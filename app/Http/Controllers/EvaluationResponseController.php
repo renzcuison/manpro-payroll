@@ -555,16 +555,20 @@ class EvaluationResponseController extends Controller
                 'message' => 'Unauthorized access!'
             ]);
 
-            DB::beginTransaction();
-
             $periodStartAtSec = strtotime($request->period_start_at);
             $periodEndAtSec = strtotime($request->period_end_at);
             $request->period_start_at = date(
-                'Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800 
+                'Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800
             );
             $request->period_end_at = date(
-                'Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800 
+                'Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800
             );
+            if($periodStartAtSec>$periodEndAtSec) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Period Start Date cannot be more than Period End Date!'
+            ]);
+
+            DB::beginTransaction();
             
             $conflictingEvaluationResponse = EvaluationResponse
                 ::where('evaluatee_id', $request->evaluatee_id)
@@ -578,7 +582,6 @@ class EvaluationResponseController extends Controller
                 'message' => 'This Evaluation is in conflict with another!',
                 'evaluationFormID' => $conflictingEvaluationResponse->id
             ]);
-            
 
             $newEvaluationResponse = EvaluationResponse::create([
                 'evaluatee_id' => $request->evaluatee_id,
