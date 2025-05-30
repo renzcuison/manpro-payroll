@@ -259,7 +259,7 @@ class EvaluationResponseController extends Controller
 
         // inputs:
         /*
-            page: number = 1,
+            page: number = 1,                   // counting starts at 1
             limit: number = 10,
             form_id?: number,                   // gets all if none given
             evaluatee_id?: number,
