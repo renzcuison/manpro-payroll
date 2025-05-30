@@ -86,9 +86,9 @@
         "twilio-client": "^1.14.0",
         "yup": "^1.6.1"
     },
-    "name": "nasya-laravel",
+    "name": "manpro",
     "version": "1.0.0",
-    "description": "<p align=\"center\"><a href=\"https://laravel.com\" target=\"_blank\"><img src=\"https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg\" width=\"400\"></a></p>",
+    "description": "",
     "main": "webpack.mix.js",
     "directories": {
         "test": "tests"

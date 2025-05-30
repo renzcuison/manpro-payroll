@@ -17,11 +17,16 @@ class MilestoneController extends Controller
      */
     public function index(): JsonResponse
     {
+        try {
+            
         $user = Auth::user();
         $milestones = Milestone::with('user.media')->where('client_id', $user->client_id)->get();
         
-        return response()->
-        json($milestones, 200);
+        return response()->json($milestones, 200);
+
+        } catch (\Throwable $th) {
+            return response()->json(['error' => $th->getMessage()], 500);
+        }
     }
 
     /**
