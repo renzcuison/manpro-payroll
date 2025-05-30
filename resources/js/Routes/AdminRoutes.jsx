@@ -25,7 +25,7 @@ import OvertimeAppsList from "../Pages/Admin/Applications/OvertimeAppsList";
 import OvertimeTypes from "../Pages/Admin/Applications/OvertimeTypes";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
-// import AnnouncementAdd from "../Pages/Admin/Announcements/AnnouncementAdd";
+import AnnouncementAdd from "../Pages/Admin/Announcements/Modals/AnnouncementAdd";
 // import AnnouncementTypes from "../Pages/Admin/Announcements/AnnouncementTypes";
 
 import AnnouncementPublishFilter from '@/Pages/Admin/Announcements/Modals/AnnouncementPublishFilter';
@@ -156,6 +156,7 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="announcements/types" element={<AnnouncementTypes />} />
             <Route path="announcements/types/publish-filter" element={<AnnouncementPublishFilter />} />
+            <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd open={true} close={() => window.history.back()} />} user={user} />} />
 
             <Route
                 path="milestones"

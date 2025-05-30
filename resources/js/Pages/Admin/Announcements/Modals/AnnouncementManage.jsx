@@ -754,7 +754,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                              <Grid size={12} sx={{ my: 0 }}>
                                 <Divider />
                             </Grid>
-                            <Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%'}}>
                                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                     Acknowledged By
                                 </Typography>

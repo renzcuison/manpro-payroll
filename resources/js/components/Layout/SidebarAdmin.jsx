@@ -215,12 +215,12 @@ const Sidebar = ({ children, closeMini }) => {
             icon: "fa fa-bullhorn",
             children: [
                 {
-                    // href: `/admin/announcements/types?`,
+                    href: `/admin/announcements/types?`,
                     href: `/admin/announcements/types`,
                     text: "Announcement Types",
                 },
                 {
-                    // href: `/admin/announcements/add?`,
+                    href: `/admin/announcements/add?`,
                     text: "Create Announcement",
                 },
                 {
@@ -468,15 +468,15 @@ const Sidebar = ({ children, closeMini }) => {
                                             Milestones
                                         </span>
                                     </StyledNav>
-                                    <StyledNav to={`/admin/announcements`}>
-                                        <i className="fa fa-bullhorn" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide"> Announcements </span>
-                                    </StyledNav>
 
-                                    <StyledNav to={`/admin/documents`}>
-                                        <i> {" "}<DescriptionOutlinedIcon sx={{ color: palette.success.main }} />{" "} </i>
-                                        <span id="navName" className="sidebar-mini-hide"> {" "}Documents{" "} </span>
-                                    </StyledNav>
+                                     {announcementsItems.map((items, index) => {
+                                        return (
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
+                                        );
+                                    })}
 
                                     <StyledNav to={`/admin/perimeters`}>
                                         <i> {" "}<TrackChangesIcon sx={{ color: palette.success.main }} />{" "} </i>
