@@ -332,7 +332,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                         component="span"
                                         sx={{ mt: 2 }}
                                     >
-                                        Upload Thumbnail
+                                        Upload Thumbnail (OPTIONAL)
                                     </Button>
                                 )}
                             </Box>
