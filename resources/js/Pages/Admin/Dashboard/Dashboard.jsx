@@ -1,13 +1,11 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import Layout from "../../../components/Layout/Layout";
-import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import "../../../../../resources/css/calendar.css";
 import {
     Avatar,
     Typography,
     Divider,
     Grid,
-    useTheme,
     Paper,
     List,
     ListItem,
@@ -38,7 +36,7 @@ dayjs.extend(localizedFormat);
 import MainSection from "./MainSection";
 import SchedulesHolidays from "./SchedulesHolidays";
 import { useDashboard } from "./useDashboard";
-import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
+import { useMilestones } from "../Milestones/hook/useMilestones";
 
 const Dashboard = () => {
     const { data, isFetched } = useUsers();
@@ -47,11 +45,17 @@ const Dashboard = () => {
         isFetched: isFetchedDashboard,
         isLoading,
     } = useDashboard();
+
+    const { data: milestones, isLoading: isLoadingMilestones } =
+        useMilestones();
+    console.log(milestones);
+
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
         moment().format("YYYY-MM-DD")
     );
-    console.log("Selected Date: ", selectedDate);
+
+    console.log(dashboard);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -59,22 +63,25 @@ const Dashboard = () => {
 
     const [adminName, setAdminName] = useState("Admin");
 
+    console.log("Selected date:", selectedDate);
+
     const presentUsers = useMemo(() => {
         if (!dashboard || !isFetched) return [];
-        const today = new Date();
-        const todayDate = today.toISOString().split("T")[0];
-        return dashboard.employees.filter((user) => {
+        return dashboard?.employees?.filter((user) => {
             if (!user.latest_attendance_log) {
                 return false;
             }
+
             const attendanceDate = new Date(
                 user.latest_attendance_log?.timestamp
             )
                 .toISOString()
                 .split("T")[0];
-            return attendanceDate === todayDate;
+            return attendanceDate === selectedDate;
         });
-    }, [dashboard, isFetched]);
+    }, [dashboard, selectedDate]);
+
+    console.log("Present users: ", presentUsers);
 
     const lateUsers = useMemo(() => {
         if (!presentUsers || presentUsers.length === 0) return [];
@@ -92,7 +99,7 @@ const Dashboard = () => {
         if (!dashboard || !isFetched) return [];
         const today = new Date();
         const todayDate = today.toISOString().split("T")[0];
-        return dashboard.employees.filter((user) => {
+        return dashboard?.employees?.filter((user) => {
             if (!user.latest_attendance_log) {
                 return false;
             }
@@ -109,7 +116,7 @@ const Dashboard = () => {
         if (data) {
             return data
                 ?.filter((user) => user.department_id !== null)
-                .slice(0, 3);
+                ?.slice(0, 3);
         }
     }, [data, isFetched]);
 
@@ -159,6 +166,27 @@ const Dashboard = () => {
         }
     }, [data, isFetched]);
 
+    function normalizeDate(date) {
+        return new Date(date.toISOString().split("T")[0]);
+    }
+    const onLeave = useMemo(() => {
+        if (dashboard) {
+            return dashboard.requests.filter((leave) => {
+                const checkDate = normalizeDate(new Date());
+                const startDate = normalizeDate(new Date(leave.duration_start));
+                const endDate = normalizeDate(new Date(leave.duration_end));
+
+                return (
+                    leave.status === "approved" &&
+                    checkDate >= startDate &&
+                    checkDate <= endDate
+                );
+            });
+        }
+    }, [dashboard]);
+
+    console.log("On leave: ", onLeave);
+
     const infoCardsData = [
         {
             title: "Total Employees",
@@ -168,7 +196,7 @@ const Dashboard = () => {
         },
         {
             title: "Present",
-            value: presentUsers.length,
+            value: presentUsers?.length,
             icon: <Check size={42} />,
             link: "/admin/attendance/today",
         },
@@ -180,21 +208,27 @@ const Dashboard = () => {
         },
         {
             title: "On Leave",
-            value: 0,
+            value: onLeave?.length,
             icon: <CalendarCheck size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "Absent",
-            value: absentUsers.length,
+            value:
+                dashboard?.employees?.length -
+                presentUsers?.length -
+                onLeave?.length,
             icon: <CalendarMinus size={42} />,
             link: "/admin/attendance/today",
         },
     ];
 
+    console.log(latestEmployees);
+
     return (
         <Layout>
             <Grid container spacing={3} sx={{ mb: 5 }}>
+                {/* MAIN DASHBOARD CARD */}
                 <Grid size={{ xs: 12, lg: 9 }}>
                     {!isLoading ? (
                         <MainSection
@@ -223,6 +257,8 @@ const Dashboard = () => {
                         </Stack>
                     )}
                 </Grid>
+
+                {/* SCHEDULES & HOLIDAYS CARD */}
                 <Grid
                     size={{ xs: 12, lg: 3 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
@@ -234,6 +270,7 @@ const Dashboard = () => {
                     )}
                 </Grid>
 
+                {/* OVERVIEW SUMMARY CARD */}
                 <Grid
                     size={{ xs: 12, lg: 8 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
@@ -258,6 +295,7 @@ const Dashboard = () => {
                         </Tabs>
                     </Paper>
                 </Grid>
+                {/* BIRTHDAYS AND MILESTONES CARD */}
                 <Grid
                     size={{ xs: 12, lg: 4 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
@@ -283,21 +321,20 @@ const Dashboard = () => {
                                 bgcolor: "background.paper",
                             }}
                         >
-                            {latestEmployees?.map((emp, index) => (
-                                <React.Fragment>
+                            {milestones?.map((emp, index) => (
+                                <React.Fragment key={index}>
                                     <ListItem
-                                        key={index}
                                         alignItems="flex-start"
                                         secondaryAction={
                                             <>
-                                                <Typography variant="caption">
-                                                    Joined
-                                                </Typography>
-                                                <Typography>
-                                                    {moment(
-                                                        emp.created_at
-                                                    ).format("MMM. DD, YYYY")}
-                                                </Typography>
+                                                <Chip
+                                                    label={
+                                                        emp.type
+                                                            .charAt(0)
+                                                            .toUpperCase() +
+                                                        emp.type.slice(1)
+                                                    }
+                                                />
                                             </>
                                         }
                                         sx={{ px: 0 }}
@@ -306,9 +343,9 @@ const Dashboard = () => {
                                             <Avatar
                                                 alt="Remy Sharp"
                                                 src={
-                                                    emp.media
-                                                        ? emp.media?.[0]
-                                                              .original_url
+                                                    emp.user?.media
+                                                        ? emp.user?.media?.[0]
+                                                              ?.original_url
                                                         : ""
                                                 }
                                             />
@@ -319,8 +356,8 @@ const Dashboard = () => {
                                                     variant="body1"
                                                     sx={{ fontWeight: 600 }}
                                                 >
-                                                    {emp.first_name}{" "}
-                                                    {emp.last_name}
+                                                    {emp.user?.first_name}{" "}
+                                                    {emp.user?.last_name}
                                                 </Typography>
                                             }
                                             secondary={
@@ -333,9 +370,8 @@ const Dashboard = () => {
                                                             display: "inline",
                                                         }}
                                                     >
-                                                        {emp.job_title.name}
+                                                        {emp.description}
                                                     </Typography>
-                                                    <Chip label="Birthday" />
                                                 </React.Fragment>
                                             }
                                         />

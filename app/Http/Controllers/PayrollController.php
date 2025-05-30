@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
+use App\Models\ClientsModel;
 use App\Models\PayslipsModel;
 use App\Models\PayslipLeavesModel;
 use App\Models\PayslipBenefitsModel;
@@ -594,6 +595,7 @@ class PayrollController extends Controller
         $employee = UsersModel::with('workHours')->find($request->selectedPayroll);
         $employeeBenefits = EmployeeBenefitsModel::where('user_id', $employee->id)->get();
         $logs = AttendanceLogsModel::where('user_id', $employee->id)->whereBetween('timestamp', [$startDate, $endDate])->get();
+        $client = ClientsModel::find($employee->client_id);
 
         $employeeShare = 0;
         $employerShare = 0;
@@ -613,6 +615,16 @@ class PayrollController extends Controller
             }
 
             if ( $cutOff == "First" && $benefit->type == "Amount") {
+                $employeeAmount = $benefit->employee_amount * 1;
+                $employerAmount = $benefit->employer_amount * 1;
+            }
+
+            if ( $cutOff == "Second" && $client->id == 4 && $benefit->type == "Percentage") {
+                $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
+                $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
+            }
+
+            if ( $cutOff == "Second" && $client->id == 4 && $benefit->type == "Amount") {
                 $employeeAmount = $benefit->employee_amount * 1;
                 $employerAmount = $benefit->employer_amount * 1;
             }

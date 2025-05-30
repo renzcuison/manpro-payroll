@@ -61,6 +61,11 @@ class UsersModel extends Authenticatable implements HasMedia
         'work_group_id',
         'company_id'
     ];
+    
+    protected $casts = [
+        'birth_date' => 'date',
+        'date_start' => 'date',
+    ];
 
 
     public function branchPosition(): BelongsTo
