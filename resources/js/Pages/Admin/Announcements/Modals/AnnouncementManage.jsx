@@ -557,17 +557,8 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             )}
                                         </Stack>
                                     </Grid>
-                                    {/* <Grid size={12} sx={{ my: 0 }}>
-                                        <Divider />
-                                    </Grid> */}
-                                    {/* Publishment Details */}
                                     {announcement.status !== "Pending" ? (
                                         <Grid container size={12} spacing={1}>
-                                            {/* <Grid size={12} align="left">
-                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                    Publishment Details
-                                                </Typography>
-                                            </Grid> */}
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Announcement Type"
@@ -616,14 +607,6 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                     clean
                                                 />
                                             </Grid>
-                                            {/* <Grid size={12}>
-                                                <InfoBox
-                                                    title="Acknowledged by"
-                                                    info={`${announceInfo?.acknowledged || 0} of ${announceInfo?.recipients || 0} Recipients`}
-                                                    compact
-                                                    clean
-                                                />
-                                            </Grid> */}
                                         </Grid>
                                     ) : (
                                         <Grid size={12} align="center">
