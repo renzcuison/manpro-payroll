@@ -666,71 +666,45 @@ const BranchDetails = () => {
                         </Typography>
 
                         {branchPositions.map(position => (
-                            <FormControl 
-                                key={position.id} 
-                                fullWidth 
-                                sx={{ 
-                                    marginBottom: 3,
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { 
-                                        '&.Mui-focused fieldset': { borderColor: '#97a5ba' } 
-                                    },
-                                }}
-                            >
-                                <InputLabel id={`position-${position.id}-label`}>{position.name}</InputLabel>
-                                <Select
-                                    labelId={`position-${position.id}-label`}
-                                    id={`position-${position.id}-select`}
-                                    multiple
-                                    value={getAssignedEmployeesForPosition(position.id)}
-                                    onChange={(e) => handlePositionAssignmentChange(position.id, e.target.value)}
-                                    renderValue={(selected) => (
-                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                            {selected.map((id) => (
-                                                <Chip 
-                                                    key={id}
-                                                    label={getEmployeeNameById(id)}
-                                                    onDelete={(e) => {
-                                                        e.stopPropagation();
-                                                        handlePositionAssignmentChange(
-                                                            position.id, 
-                                                            getAssignedEmployeesForPosition(position.id).filter(eid => eid !== id)
-                                                        );
-                                                    }}
-                                                    deleteIcon={<CancelIcon />}
-                                                    size="small"
-                                                />
-                                            ))}
-                                        </Box>
-                                    )}
-                                    MenuProps={{
-                                        PaperProps: {
-                                            style: {
-                                                maxHeight: 300
-                                            }
-                                        },
-                                        onClick: (e) => e.stopPropagation()
+                       <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                        <InputLabel id={`position-${position.id}-label`}>
+                            {position.name}
+                        </InputLabel>
+                        <Select
+                            labelId={`position-${position.id}-label`}
+                            id={`position-${position.id}-select`}
+                            multiple
+                            value={getAssignedEmployeesForPosition(position.id)}
+                            onChange={(e) => handlePositionAssignmentChange(position.id, e.target.value)}
+                            label={position.name}
+                            renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                {selected.map((id) => (
+                                <Chip 
+                                    key={id}
+                                    label={getEmployeeNameById(id)}
+                                    onDelete={(e) => {
+                                    e.stopPropagation();
+                                    handlePositionAssignmentChange(
+                                        position.id, 
+                                        getAssignedEmployeesForPosition(position.id).filter(eid => eid !== id)
+                                    );
                                     }}
-                                >
-                                    <MenuItem 
-                                        value="select-all"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleSelectAll(position.id);
-                                        }}
-                                    >
-                                        <Checkbox
-                                            checked={getFilteredEmployeeOptions(position.id).every(emp => 
-                                                getAssignedEmployeesForPosition(position.id).includes(emp.id))
-                                            }
-                                            indeterminate={
-                                                getAssignedEmployeesForPosition(position.id).length > 0 &&
-                                                getAssignedEmployeesForPosition(position.id).length < getFilteredEmployeeOptions(position.id).length
-                                            }
-                                        />
-                                        <ListItemText primary="Select All" />
-                                    </MenuItem>
-
+                                    deleteIcon={<CancelIcon />}
+                                    size="small"
+                                />
+                                ))}
+                            </Box>
+                            )}
+                            MenuProps={{
+                            PaperProps: {
+                                style: {
+                                maxHeight: 300
+                                }
+                            },
+                            onClick: (e) => e.stopPropagation()
+                            }}
+                        >
                                     <MenuItem value="" sx={{ p: 0 }}>
                                         <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
                                             <TextField
