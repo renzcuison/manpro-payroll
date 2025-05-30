@@ -183,10 +183,10 @@ class EvaluationResponseController extends Controller
         /*
             evaluationResponse: {
                 id, datetime,
-                evaluatee_id, evaluatee_user_name,
-                evaluator_id, evaluator_user_name,
-                primary_commentor_id, primary_commentor_name,
-                secondary_commentor_id, secondary_commentor_name,
+                evaluatee_id, evaluatee_last_name, evaluatee_first_name, evaluatee_middle_name,
+                evaluator_id, evaluator_last_name, evaluator_first_name, evaluator_middle_name,
+                primary_commentor_id, primary_last_name, primary_first_name, primary_middle_name,
+                secondary_commentor_id, secondary_last_name, secondary_first_name, secondary_middle_name,
                 period_start_date,
                 period_end_date,
                 signature_filepath,
@@ -200,8 +200,11 @@ class EvaluationResponseController extends Controller
                             section_id, id, name, subcategory_type, description, required,
                             allow_other_option, linear_scale_start, linear_scale_end, order,
                             options: {
-                                subcategory_id, id, label, order
-                            }[]
+                                subcategory_id, id, label, order,
+                                option_answer: { id, response_id, option_id }
+                            }[],
+                            percentage_answer: { id, response_id, subcategory_id, percentage } | null,
+                            text_answer: { id, response_id, subcategory_id, answer } | null
                         }[]
                     }[]
                 },
@@ -233,13 +236,25 @@ class EvaluationResponseController extends Controller
                 )
                 ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y - %h:%i %p') as datetime")
                 ->addSelect(
-                    'evaluatees.id as evaluatee_id', 'evaluatees.user_name as evaluatee_username',
-                    'evaluators.id as evaluator_id', 'evaluators.user_name as evaluator_username',
-                    'primary_commentors.id as primary_commentor_id', 'primary_commentors.user_name as primary_commentor_username',
-                    'secondary_commentors.id as secondary_commentor_id', 'secondary_commentors.user_name as secondary_commentor_username',
-                    'evaluation_responses.period_start_at',
-                    'evaluation_responses.period_end_at',
-                    
+                    'evaluatees.id as evaluatee_id',
+                    'evaluatees.last_name as evaluatee_last_name',
+                    'evaluatees.first_name as evaluatee_first_name',
+                    'evaluatees.middle_name as evaluatee_middle_name',
+
+                    'evaluators.id as evaluator_id',
+                    'evaluators.last_name as evaluator_last_name',
+                    'evaluators.first_name as evaluator_first_name',
+                    'evaluators.middle_name as evaluator_middle_name',
+
+                    'primary_commentors.id as primary_commentor_id',
+                    'primary_commentors.last_name as primary_commentor_last_name',
+                    'primary_commentors.first_name as primary_commentor_first_name',
+                    'primary_commentors.middle_name as primary_commentor_middle_name',
+
+                    'secondary_commentors.id as secondary_commentor_id',
+                    'secondary_commentors.last_name as secondary_commentor_last_name',
+                    'secondary_commentors.first_name as secondary_commentor_first_name',
+                    'secondary_commentors.middle_name as secondary_commentor_middle_name'
                 )
                 ->selectRaw("date_format(evaluation_responses.period_start_at, '%b %d, %Y') as period_start_date")
                 ->selectRaw("date_format(evaluation_responses.period_end_at, '%b %d, %Y') as period_end_date")
@@ -249,6 +264,52 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.updated_at',
                     DB::raw("'Pending' as status")
                 )
+                ->with(['form' => fn ($evaluationForm) =>
+                    $evaluationForm
+                        ->join('users', 'evaluation_forms.id', '=', 'users.id')
+                        ->select(
+                            'evaluation_forms.id',
+                            'evaluation_forms.name', 
+                            'evaluation_forms.creator_id',
+                            'users.user_name as creator_user_name'
+                        )
+                        ->with(['sections' => fn ($section) =>
+                            $section
+                                ->select('form_id', 'id', 'name', 'category', 'order')
+                                ->orderBy('order')
+                                ->with(['subcategories' => fn ($subcategory) =>
+                                    $subcategory
+                                        ->select(
+                                            'section_id', 'id',
+                                            'name', 'subcategory_type', 'description',
+                                            'required', 'allow_other_option',
+                                            'linear_scale_start', 'linear_scale_end',
+                                            'order'
+                                        )
+                                        ->with([
+                                            'options' => fn ($option) =>
+                                                $option
+                                                    ->select(
+                                                        'subcategory_id', 'id',
+                                                        'label', 'order'
+                                                    )
+                                                    ->orderBy('order')
+                                                    ->with([
+                                                        'optionAnswer' => fn ($optionAnswer) =>
+                                                            $optionAnswer->select('id', 'response_id', 'option_id')
+                                                    ])
+                                            ,
+                                            'percentageAnswer' => fn ($percentageAnswer) =>
+                                                $percentageAnswer->select('id', 'response_id', 'subcategory_id', 'percentage')
+                                            ,
+                                            'textAnswer' => fn ($textAnswer) =>
+                                                $textAnswer->select('id', 'response_id', 'subcategory_id', 'answer')
+                                        ])
+                                        ->orderBy('order')
+                                    ])
+                                ->orderBy('order')
+                        ])
+                ])
                 ->first()
             ;
             if( !$evaluationResponse ) return response()->json([
