@@ -31,24 +31,19 @@ class EvaluationFormSubcategory extends Model
         return $this->belongsTo(EvaluationFormSection::class, 'section_id');
     }
 
-    public function optionAnswers()
-    {
-        return $this->hasMany(EvaluationOptionAnswer::class, 'subcategory_id');
-    }
-
     public function options()
     {
         return $this->hasMany(EvaluationFormSubcategoryOption::class, 'subcategory_id');
     }
 
-    public function percentageAnswers()
+    public function percentageAnswer()
     {
-        return $this->hasMany(EvaluationPercentageAnswer::class, 'subcategory_id');
+        return $this->hasOne(EvaluationPercentageAnswer::class, 'subcategory_id');
     }
 
-    public function textAnswers()
+    public function textAnswer()
     {
-        return $this->hasMany(EvaluationTextAnswer::class, 'subcategory_id');
+        return $this->hasOne(EvaluationTextAnswer::class, 'subcategory_id');
     }
 
 }

@@ -20,6 +20,11 @@ class EvaluationFormSubcategoryOption extends Model
         'deleted_at'
     ];
 
+    public function optionAnswer()
+    {
+        return $this->hasOne(EvaluationOptionAnswer::class, 'option_id');
+    }
+
     public function subcategory()
     {
         return $this->belongsTo(EvaluationFormSubcategory::class, 'subcategory_id');

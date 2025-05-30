@@ -39,6 +39,8 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
+const MAX_DESCRIPTION_LENGTH = 512;
+
 const AnnouncementAdd = ({ open, close }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
@@ -58,6 +60,8 @@ const AnnouncementAdd = ({ open, close }) => {
     const [attachmentError, setAttachmentError] = useState(false);
     const [imageError, setImageError] = useState(false);
 
+    const quillRef = useRef(null);
+
     // Tab change for preview
     const handleTabChange = (_, newValue) => setTab(newValue);
 
@@ -74,7 +78,6 @@ const AnnouncementAdd = ({ open, close }) => {
         setAttachment(prevAttachments =>
             prevAttachments.filter((_, i) => i !== index)
         );
-
     };
 
     // Image Handlers
@@ -102,7 +105,6 @@ const AnnouncementAdd = ({ open, close }) => {
     // Validate Files
     const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit, docType) => {
         if (newFiles.length + currentFileCount > countLimit) {
-            // The File Limit has been Exceeded
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -121,7 +123,6 @@ const AnnouncementAdd = ({ open, close }) => {
                 }
             });
             if (largeFiles > 0) {
-                // A File is Too Large
                 document.activeElement.blur();
                 Swal.fire({
                     customClass: { container: "my-swal" },
@@ -133,7 +134,6 @@ const AnnouncementAdd = ({ open, close }) => {
                 });
                 return false;
             } else {
-                // All File Criteria Met
                 return true;
             }
         }
@@ -147,13 +147,80 @@ const AnnouncementAdd = ({ open, close }) => {
         return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
 
+    // Helper for plain text length from HTML
+    const getPlainTextLength = html => {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = html;
+        return tmp.innerText.length;
+    };
+
+    // Color logic for character count
+    const getCharCountColor = (count) => {
+        if (count === MAX_DESCRIPTION_LENGTH) return "#d32f2f"; // error/red
+        if (count > MAX_DESCRIPTION_LENGTH - 62) return "#ffa726"; // warning/orange (last 62 chars)
+        return "#999"; // default/gray
+    };
+
+    // OnChange handler for ReactQuill (enforce char limit)
+    const handleDescriptionChange = value => {
+        const plainLength = getPlainTextLength(value);
+        if (plainLength <= MAX_DESCRIPTION_LENGTH) {
+            setDescription(value);
+        } else {
+            // Truncate to max length
+            const tmp = document.createElement("div");
+            tmp.innerHTML = value;
+            let truncated = tmp.innerText.slice(0, MAX_DESCRIPTION_LENGTH);
+            setDescription(truncated);
+        }
+    };
+
+    // Block typing/pasting if limit reached
+    useEffect(() => {
+        const quill = quillRef.current && quillRef.current.getEditor && quillRef.current.getEditor();
+        if (!quill) return;
+
+        const handleBeforeInput = (e) => {
+            const plainText = quill.getText();
+            const length = plainText.endsWith('\n') ? plainText.length - 1 : plainText.length;
+            if (
+                length >= MAX_DESCRIPTION_LENGTH &&
+                !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Tab"].includes(e.key)
+            ) {
+                e.preventDefault();
+            }
+        };
+
+        const handlePaste = (e) => {
+            const plainText = quill.getText();
+            const length = plainText.endsWith('\n') ? plainText.length - 1 : plainText.length;
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            if (length + paste.length > MAX_DESCRIPTION_LENGTH) {
+                e.preventDefault();
+                // Optionally, only allow enough characters to fill up to the limit
+                const allowed = MAX_DESCRIPTION_LENGTH - length;
+                if (allowed > 0) {
+                    document.execCommand('insertText', false, paste.slice(0, allowed));
+                }
+            }
+        };
+
+        quill.root.addEventListener('keydown', handleBeforeInput);
+        quill.root.addEventListener('paste', handlePaste);
+
+        return () => {
+            quill.root.removeEventListener('keydown', handleBeforeInput);
+            quill.root.removeEventListener('paste', handlePaste);
+        };
+    }, [open, description]);
+
     const checkInput = (event) => {
         event.preventDefault();
 
         setTitleError(!title);
-        setDescriptionError(!description);
+        setDescriptionError(getPlainTextLength(description) === 0);
 
-        if (!title || !description) {
+        if (!title || getPlainTextLength(description) === 0) {
             document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
@@ -180,12 +247,10 @@ const AnnouncementAdd = ({ open, close }) => {
                 }
             });
         }
-
-    }
+    };
 
     const saveInput = (event) => {
         event.preventDefault();
-
 
         const formData = new FormData();
         formData.append("title", title);
@@ -199,7 +264,6 @@ const AnnouncementAdd = ({ open, close }) => {
                 formData.append('attachment[]', file);
             });
         }
-
 
         axiosInstance
             .post("/announcements/saveAnnouncement", formData, {
@@ -233,7 +297,7 @@ const AnnouncementAdd = ({ open, close }) => {
 
     return (
         <>
-             <Dialog
+            <Dialog
                 open={open}
                 fullWidth
                 maxWidth="md"
@@ -283,7 +347,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                     mb: 1,
                                     width: "100%",
                                     position: "relative",
-                                    cursor: "pointer" // Make it look clickable
+                                    cursor: "pointer"
                                 }}
                                 onClick={() => document.getElementById('thumbnail-upload').click()}
                             >
@@ -297,7 +361,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                         if (files.length > 0) {
                                             let validFiles = validateFiles(files, image.length, 10, 5242880, "image");
                                             if (validFiles) {
-                                                setImage(prev => [files[0], ...prev.slice(1)]); // Replace the first image (thumbnail)
+                                                setImage(prev => [files[0], ...prev.slice(1)]);
                                             }
                                         }
                                     }}
@@ -319,7 +383,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                                 "&:hover": { background: "#f5f5f5" }
                                             }}
                                             onClick={e => {
-                                                e.stopPropagation(); // Prevent triggering the file input
+                                                e.stopPropagation();
                                                 setImage(prev => prev.slice(1));
                                             }}
                                         >
@@ -336,7 +400,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                     </Button>
                                 )}
                             </Box>
-                           {/* Title Field */}
+                            {/* Title Field */}
                             <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
                                 <FormControl fullWidth>
                                     <TextField
@@ -388,7 +452,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                     <Tab label="WRITE" />
                                     <Tab label="PREVIEW" />
                                 </Tabs>
-                                <Box sx={{ p: 2, pt: 1 }}>
+                                <Box sx={{ p: 2, pt: 2, }}>
                                     {tab === 0 ? (
                                         <Box
                                             sx={{
@@ -412,9 +476,10 @@ const AnnouncementAdd = ({ open, close }) => {
                                             }}
                                         >
                                             <ReactQuill
+                                                ref={quillRef}
                                                 theme="snow"
                                                 value={description}
-                                                onChange={setDescription}
+                                                onChange={handleDescriptionChange}
                                                 placeholder="DESCRIPTION HERE*"
                                                 modules={{
                                                     toolbar: [
@@ -431,8 +496,16 @@ const AnnouncementAdd = ({ open, close }) => {
                                                     height: '150px'
                                                 }}
                                             />
-                                            <Typography variant="caption" sx={{ float: "right", color: "#999" }}>
-                                                {description.length}/512
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    float: "right",
+                                                    color: getCharCountColor(getPlainTextLength(description)),
+                                                    mb: 1, mt: 1,
+                                                    fontWeight: getPlainTextLength(description) === MAX_DESCRIPTION_LENGTH ? "bold" : "normal"
+                                                }}
+                                            >
+                                                {getPlainTextLength(description)}/{MAX_DESCRIPTION_LENGTH}
                                             </Typography>
                                         </Box>
                                     ) : (
@@ -459,7 +532,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                             }}
                                         >
                                             <Typography noWrap>
-                                                Images
+                                                Images (Optional)
                                             </Typography>
                                             <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
                                                 
