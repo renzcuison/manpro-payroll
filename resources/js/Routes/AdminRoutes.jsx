@@ -26,9 +26,8 @@ import OvertimeTypes from "../Pages/Admin/Applications/OvertimeTypes";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 import AnnouncementAdd from "../Pages/Admin/Announcements/Modals/AnnouncementAdd";
-// import AnnouncementTypes from "../Pages/Admin/Announcements/AnnouncementTypes";
-
 import AnnouncementPublishFilter from '@/Pages/Admin/Announcements/Modals/AnnouncementPublishFilter';
+import AnnouncementTypes from '../Pages/Admin/Announcements/AnnouncementTypes';
 
 import TrainingsList from "../Pages/Admin/Trainings/TrainingsList";
 import TrainingView from "../Pages/Admin/Trainings/TrainingView";
@@ -40,13 +39,11 @@ import PerformanceEvaluationFormAddCategory from "../Pages/Admin/PerformanceEval
 import PerformanceEvaluationFormAddSection from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddSection";
 import PerformanceEvaluationFormSaveEvaluation from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormSaveEvaluation";
 import PerformanceEvaluationFormAddSubcategory from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddSubcategory";
-import PerformanceEvaluationFormPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationFormPage';  // Import the new page
+import PerformanceEvaluationFormPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationFormPage';
 
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
 import PerformanceEvaluationForm from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationForm";
 import PerformanceEvaluationCreateEvaluation from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCreateEvaluation";
-
-// import DocumentsList from "../Pages/Documents/DocumentsList";
 
 import AttendanceView from "../Pages/Admin/Attendance/AttendanceView";
 import AttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
@@ -72,7 +69,7 @@ import Documents from "../Pages/Admin/Documents";
 import AddNewPerimeter from "../Pages/Admin/Perimeters/AddRadiusPerimeter";
 import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
 
-import AnnouncementTypes from '../Pages/Admin/Announcements/AnnouncementTypes';
+import ScheduleModule from "../Pages/Admin/Schedules";
 import Milestones from "../Pages/Admin/Milestones";
 
 const AdminRoutes = ({ user }) => {
@@ -113,8 +110,9 @@ const AdminRoutes = ({ user }) => {
             <Route path="application/leave-credits" element={<ProtectedRoute element={<LeaveCreditList />} user={user} /> } />
 
             <Route path="announcements" element={<ProtectedRoute element={<AnnouncementList />} user={user} /> } />
-            {/* <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd />} user={user} />} />
-            <Route path="announcements/types" element={<ProtectedRoute element={<AnnouncementTypes />} user={user} />} /> */}
+            <Route path="announcements/types" element={<AnnouncementTypes />} />
+            <Route path="announcements/types/publish-filter" element={<AnnouncementPublishFilter />} />
+            <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd open={true} close={() => window.history.back()} />} user={user} />} />
 
             <Route path="trainings" element={<ProtectedRoute element={<TrainingsList />} user={user} /> } />
             <Route path="training/:code" element={<ProtectedRoute element={<TrainingView />} user={user} /> } />
@@ -154,9 +152,12 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="loan-management" element={<ProtectedRoute element={<LoanList />} user={user} />} />
 
-            <Route path="announcements/types" element={<AnnouncementTypes />} />
-            <Route path="announcements/types/publish-filter" element={<AnnouncementPublishFilter />} />
-            <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd open={true} close={() => window.history.back()} />} user={user} />} />
+            <Route
+                path="schedules"
+                element={
+                    <ProtectedRoute element={<ScheduleModule />} user={user} />
+                }
+            />
 
             <Route
                 path="milestones"
