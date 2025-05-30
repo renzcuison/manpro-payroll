@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import Layout from "../../../components/Layout/Layout";
 import "../../../../../resources/css/calendar.css";
 import {
@@ -68,49 +68,32 @@ const Dashboard = () => {
     const presentUsers = useMemo(() => {
         if (!dashboard || !isFetched) return [];
         return dashboard?.employees?.filter((user) => {
-            if (!user.latest_attendance_log) {
+            if (!user.attendance_logs[0]) {
                 return false;
             }
+            const attendanceDate = moment(
+                user.attendance_logs[0]?.timestamp
+            ).format("YYYY-MM-DD");
 
-            const attendanceDate = new Date(
-                user.latest_attendance_log?.timestamp
-            )
-                .toISOString()
-                .split("T")[0];
             return attendanceDate === selectedDate;
         });
     }, [dashboard, selectedDate]);
-
-    console.log("Present users: ", presentUsers);
 
     const lateUsers = useMemo(() => {
         if (!presentUsers || presentUsers.length === 0) return [];
 
         return presentUsers.filter((user) => {
-            const timeIn = new Date(user.latest_attendance_log?.timestamp);
-            const lateThreshold = new Date(timeIn);
-            lateThreshold.setHours(8, 0, 0, 0); // Set to 8:00:00 AM
+            const timeIn = moment(user.latest_attendance_log?.timestamp);
+            const lateThreshold = moment(timeIn).set({
+                hour: 8,
+                minute: 0,
+                second: 0,
+                millisecond: 0,
+            });
 
-            return timeIn > lateThreshold;
+            return timeIn.isAfter(lateThreshold);
         });
     }, [presentUsers]);
-
-    const absentUsers = useMemo(() => {
-        if (!dashboard || !isFetched) return [];
-        const today = new Date();
-        const todayDate = today.toISOString().split("T")[0];
-        return dashboard?.employees?.filter((user) => {
-            if (!user.latest_attendance_log) {
-                return false;
-            }
-            const attendanceDate = new Date(
-                user.latest_attendance_log?.timestamp
-            )
-                .toISOString()
-                .split("T")[0];
-            return attendanceDate !== todayDate;
-        });
-    }, [dashboard, isFetched]);
 
     const latestEmployees = useMemo(() => {
         if (data) {
