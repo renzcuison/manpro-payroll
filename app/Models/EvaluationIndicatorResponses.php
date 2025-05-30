@@ -22,7 +22,7 @@ class EvaluationIndicatorResponses extends Model
 
     public function response()
     {
-        return $this->belongsTo(EvaluationResponses::class, 'response_id');
+        return $this->belongsTo(EvaluationResponse::class, 'response_id');
     }
 
     public function indicator()
