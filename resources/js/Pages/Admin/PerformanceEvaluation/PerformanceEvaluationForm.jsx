@@ -212,6 +212,10 @@ const PerformanceEvaluationForm = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', px: 4, py: 1.5 }} onClick={() => setOpenModal(true)}>Add Sub-Category</Button>
         </Box>
+        {/* The button for acknowledgement */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+        <Button variant="contained" sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', px: 4, py: 1.5 }} onClick={() => setAcknowledgeOpen(true)}>ACKNOWLEDGE</Button>
+      </Box>
       </Box>
     </Layout>
   );
