@@ -172,7 +172,22 @@ const BranchDetails = () => {
         handlePositionAssignmentChange(positionId, newIds);
     };
 
-    const handleSaveAssignments = async () => {
+const handleSaveAssignments = async () => {
+    // First show confirmation dialog
+    const result = await Swal.fire({
+        customClass: { container: 'my-swal' },
+        title: 'Confirm Assignments',
+        text: 'Are you sure you want to save these position assignments?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#177604',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, save changes',
+        cancelButtonText: 'Cancel'
+    });
+
+    // If user confirms, proceed with saving
+    if (result.isConfirmed) {
         try {
             // 1. Get current assignments to check for duplicates
             const currentAssignmentsResponse = await axiosInstance.get(
@@ -267,7 +282,8 @@ const BranchDetails = () => {
         } finally {
             setOpenAssignModal(false);
         }
-    };
+    }
+};
 
     if (error) return (
         <Layout title={"Branches"}>
