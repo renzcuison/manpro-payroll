@@ -11,8 +11,6 @@ use App\Models\AttendanceLogsModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -33,15 +31,20 @@ class AdminDashboardController extends Controller
         $clientId = $user->client_id;
         // get employees
         $employees = UsersModel::with(['media','department', 'branch', 'jobTitle', 'latestAttendanceLog', 'attendanceLogs' => function($qry){
-            $qry->orderBy('timestamp', 'desc');
-        }, 'workHours'])->where('user_type', 'Employee')
+            $qry->whereDate('timestamp', Carbon::now()->toDateString())->orderBy('timestamp', 'desc');
+        }, 'workHours'])->where('user_type', 'Employee')->where('employment_status', "Active")
         ->where('client_id', $clientId)->orderBy('created_at', 'DESC')->get();
 
         $apps = ApplicationsModel::where('client_id', $clientId)->where('status', 'Pending')->orderBy('created_at', 'asc')->get();
+        
+        $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
+            $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
+        })->whereDate('timestamp', Carbon::now()->toDateString())->groupBy('user_id')->with('user', 'workHour')->get();
 
         return response()->json([
             'employees' => $employees,
-            'requests' => $apps
+            'requests' => $apps,
+            'attendance' => $attendances
         ]);
     }
 
