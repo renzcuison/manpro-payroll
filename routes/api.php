@@ -313,7 +313,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         // Details
         Route::get('/getAnnouncementDetails/{code}', [AnnouncementsController::class, 'getAnnouncementDetails']);
         Route::get('/getEmployeeAnnouncementDetails/{code}', [AnnouncementsController::class, 'getEmployeeAnnouncementDetails']);
-        Route::get('/getAnnouncementBranchDepts/{code}', [AnnouncementsController::class, 'getAnnouncementBranchDepts']);
+        Route::get('/getAnnouncementPublishmentDetails/{code}', [AnnouncementsController::class, 'getAnnouncementPublishmentDetails']);
 
         // Files
         Route::get('/downloadFile/{id}', [AnnouncementsController::class, 'downloadFile']);
