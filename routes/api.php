@@ -105,13 +105,19 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveBranchPosition', [SettingsController::class, 'saveBranchPosition']);
         Route::post('/updateBranchPositionAssignments', [SettingsController::class, 'updateBranchPositionAssignments']);
 
+        //departments
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
+        Route::get('/getDepartmentDetails/{id}', [SettingsController::class, 'getDepartmentDetails']);
+
         Route::get('/getDepartmentPositions', [SettingsController::class, 'getDepartmentPositions']);
+        Route::get('/getEmployeeDepartment', [SettingsController::class, 'getEmployeeDepartment']);
+        Route::get('/getDepartmentWithEmployeePosition', [SettingsController::class, 'getDepartmentWithEmployeePosition']);
         Route::post('/saveDepartmentPositions', [SettingsController::class, 'saveDepartmentPositions']);
         Route::get('/getDepartment/{id}', [SettingsController::class, 'getDepartment']);
         Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
         Route::post('/editDepartment', [SettingsController::class, 'editDepartment']);
-
+        Route::post('/updateDepartment/{departmentId}', [SettingsController::class, 'updateDepartment']);
+        //departments (end)
         Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
         Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
         Route::post('/editJobTitle', [SettingsController::class, 'editJobTitle']);

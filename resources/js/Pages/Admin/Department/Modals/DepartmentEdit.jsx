@@ -1,26 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {
-    Box,
-    Typography,
-    Button,
-    TextField,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    Chip,
-    ListItemText,
-    Checkbox,
-    Menu,
-    MenuItem,
-    IconButton,
-    Grid,
-    FormGroup,
-    FormControl,
-} from "@mui/material";
+import { Box,Typography,Button,TextField,Dialog,DialogTitle,DialogContent,Chip,ListItemText,Checkbox,Menu,MenuItem,IconButton,
+Grid,FormGroup,FormControl,} from "@mui/material";
 import axiosInstance,{ getJWTHeader }  from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 
-const DepartmentAdd = ({open, close}) =>{
+const DepartmentEdit = ({open, close, departmentId}) =>{
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
@@ -30,11 +14,33 @@ const DepartmentAdd = ({open, close}) =>{
     const [acronym, setAcronym] = useState("");
     const [description, setDescription] = useState("");
     const [employees, setEmployees] = useState([]);
+    const [initAssignments, setInitAssignments] = useState({}); //original assignments <will be used for the backend>
     const [assignments, setAssignments] = useState({}); // structure be like: {position_id: [emp_id, ...]}
-    const [positions, setPosition] = useState([]);
-    
+    const [positions, setPosition] = useState([]);    
     //fethcing data
     useEffect(() => {
+        axiosInstance.get(`/settings/getDepartmentDetails/${departmentId}`, { headers })
+            .then((response) => {
+                if(response.status === 200){
+                    const existingDetails = response.data.department;
+                    setName(existingDetails.name);
+                    setAcronym(existingDetails.acronym);
+                    setDescription(existingDetails.description);
+                    if (existingDetails.assigned_positions) {
+                        const loadedAssignments = {};
+                        existingDetails.assigned_positions.forEach(posAssignment => {
+                            const positionId = posAssignment.department_position_id;
+                            const employeeIds = posAssignment.employee_assignments
+                                ? posAssignment.employee_assignments.map(ea => ea.employee.id)
+                                : [];
+                            loadedAssignments[positionId] = employeeIds;
+
+                        });
+                        setAssignments(loadedAssignments);
+                        setInitAssignments(loadedAssignments);
+                    }
+                }
+        });
         axiosInstance.get('/employee/getEmployees', { headers })
             .then((response) => {
                 if(response.status === 200){
@@ -63,9 +69,8 @@ const DepartmentAdd = ({open, close}) =>{
                 setPosition(null);
             });
         
-    }, []);
+    }, [])
 
-    
     const handleAssignChange = (position_id) => (event) => {
         const selected = event.target.value; //employee id arrays
         const updatedAssignments = {};
@@ -82,7 +87,38 @@ const DepartmentAdd = ({open, close}) =>{
         }
         setAssignments(updatedAssignments);
     }
-    console.log(assignments);
+    //create json on which data to create, updat or delete <Used in saveInput>
+    const generateAssignmentChanges = () => {
+        const changes = {
+          assignment_add: {},
+          assignment_update: {},
+          assignment_delete: {},
+        };
+      
+        for (const posId in assignments) {
+          const current = assignments[posId];
+          const original = initAssignments[posId] || [];
+      
+          // Added employees
+          const added = current.filter(id => !original.includes(id));
+          if (added.length > 0) {
+            changes.assignment_add[posId] = added;
+          }
+      
+          // Removed employees
+          const removed = original.filter(id => !current.includes(id));
+          if (removed.length > 0) {
+            changes.assignment_delete[posId] = removed;
+          }
+      
+          // Modified assignments (e.g., updated members)
+          if (added.length === 0 && removed.length === 0 && current.length > 0) {
+            changes.assignment_update[posId] = current;
+          }
+        }
+      
+        return changes;
+      };
 
     // Add New Department to the Backend functions
     const checkInput = (event) => {
@@ -122,14 +158,20 @@ const DepartmentAdd = ({open, close}) =>{
     const saveInput = (event) => {
         event.preventDefault();
 
+        const changes = generateAssignmentChanges();
+
         const data = {
             name: name,
             acronym: acronym,
             description: description,
-            assignments: assignments
+            assignments: assignments,
+            ...changes
         };
 
-        axiosInstance.post('/settings/saveDepartment', data, { headers })
+        console.log(changes.assignment_add);
+        console.log(changes.assignment_update);
+
+        axiosInstance.post(`/settings/updateDepartment/${departmentId}`, data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
@@ -316,4 +358,4 @@ const DepartmentAdd = ({open, close}) =>{
     )
     
 }
-export default DepartmentAdd;
+export default DepartmentEdit;

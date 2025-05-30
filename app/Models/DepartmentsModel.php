@@ -47,21 +47,9 @@ class DepartmentsModel extends Model
     }
 
     //positions
-    public function employeeDepartmentPositions()
+    public function assignedPositions()
     {
-        return $this->hasMany(EmployeeDepartmentPosition::class, 'department_id');
-    }
+        return $this->hasMany(DepartmentPositionAssignment::class, 'department_id');
+    }     
     
-    public function users()
-    {
-        // If you want to get users assigned to this department via the pivot table
-        return $this->hasManyThrough(
-            UsersModel::class,
-            EmployeeDepartmentPosition::class,
-            'department_id',           // Foreign key on employee_department_positions table
-            'id',                     // Foreign key on users table
-            'id',                     // Local key on departments table
-            'user_id'                 // Local key on employee_department_positions table
-        );
-    }
 }

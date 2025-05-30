@@ -88,7 +88,8 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->belongsTo(DepartmentsModel::class, 'department_id');
     }
 
-    public function departmentPosition(){
+   //pivot model connecting department positions and users
+    public function employeeDepartmentPositions(){
         return $this->hasMany(EmployeeDepartmentPosition::class, 'employee_id');
     }
 
@@ -148,6 +149,17 @@ class UsersModel extends Authenticatable implements HasMedia
     public function company(): BelongsTo
     {
         return $this->BelongsTo(Company::class, 'company_id');
+    }
+
+    //employees assigned to department positions
+    public function assignedDepartmentPositions()
+    {
+        return $this->belongsToMany(
+            DepartmentPositionAssignment::class,
+            'employee_department_positions',
+            'employee_id',
+            'assignment_id'
+        );
     }
 
   

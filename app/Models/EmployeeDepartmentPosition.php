@@ -9,24 +9,15 @@ class EmployeeDepartmentPosition extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'employee_id',
-        'department_id',
-        'department_position_id',
-    ];
+    protected $fillable = ['employee_id', 'assignment_id'];
 
-    public function user()
+    public function employee()
     {
-        return $this->belongsTo(UsersModel::class, 'user_id');
+        return $this->belongsTo(UsersModel::class, 'employee_id');
     }
 
-    public function department()
+    public function position()
     {
-        return $this->belongsTo(DepartmentsModel::class, 'department_id');
-    }
-
-    public function departmentPosition()
-    {
-        return $this->belongsTo(DepartmentPositionsModel::class, 'department_position_id');
+        return $this->belongsTo(DepartmentPositionAssignment::class, 'assignment_id');
     }
 }

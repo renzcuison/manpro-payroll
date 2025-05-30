@@ -45,7 +45,7 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
     const [deleteIds, setDeleteIds] = useState([]); //ids to delete
     
     useEffect(() => {
-        axiosInstance.get('/employee/getEducationBackground', { headers })
+        axiosInstance.get('/settings/getEmployeeDepartment', { headers })
             .then((response) => {
                 if(response.status === 200){
                     const educations = response.data.educations;
