@@ -474,6 +474,21 @@ class SettingsController extends Controller
         ], 403);
     }
 
+
+
+
+
+public function addBranchPositionAssignments(Request $request)
+    {
+        // For now, just return the incoming data to test
+        return response()->json([
+            'message' => 'Assignments received!',
+            'data' => $request->all()
+        ]);
+    }
+
+ 
+
     public function saveDepartmentPositions(Request $request){
         $user = Auth::user();
 
