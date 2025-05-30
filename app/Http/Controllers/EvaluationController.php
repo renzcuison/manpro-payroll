@@ -1467,4 +1467,66 @@ class EvaluationController extends Controller
         }
     }
 
+    // evaluation response
+
+    // public function saveEvaluationResponse(Request $request)
+    // {
+    //     log::info('EvaluationController::saveEvaluationResponse');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $isEmptyName = !$request->name;
+
+    //         if( $isEmptyName ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Name is required!'
+    //         ]);
+
+    //         $existingEvaluationForm =
+    //             EvaluationForm::where('name', $request->name)->first()
+    //         ;
+
+    //         if( $existingEvaluationForm ) return response()->json([ 
+    //             'status' => 409,
+    //             'message' => 'This Evaluation Form Name is already in use!',
+    //             'evaluationFormID' => $existingEvaluationForm->id
+    //         ]);
+
+    //         $newEvaluationForm = EvaluationForm::create([
+    //             'name' => $request->name,
+    //             'creator_id' => $user->id
+    //         ]);
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 201,
+    //             'evaluationID' => $newEvaluationForm->id,
+    //             'message' => 'Evaluation Form successfully created'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
 }
