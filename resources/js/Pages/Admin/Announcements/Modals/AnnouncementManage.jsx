@@ -269,7 +269,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const getAnnouncementThumbnail = () => {
         if (!announceInfo?.unique_code) {
             console.error('Cannot fetch thumbnail: missing unique_code');
-            setImagePath("");
+            setImagePath("../../../../images/defaultThumbnail.jpg");
             setImageLoading(false);
             return;
         }
@@ -291,7 +291,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     if (imagePath && imagePath.startsWith('blob:')) {
                         URL.revokeObjectURL(imagePath);
                     }
-                    setImagePath("");
+                    setImagePath("../../../../images/defaultThumbnail.jpg");
                 }
                 setImageLoading(false);
             })
@@ -301,7 +301,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     response: error.response?.data,
                     status: error.response?.status,
                 });
-                setImagePath("");
+                setImagePath("../../../../images/defaultThumbnail.jpg");
                 setImageLoading(false);
             });
     };
