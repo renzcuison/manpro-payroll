@@ -13,6 +13,7 @@ import {
   IconButton,
   Avatar,
   CircularProgress,
+  Tooltip
 } from "@mui/material";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import dayjs from "dayjs";
@@ -74,63 +75,72 @@ const AnnouncementViewer = ({ open, close, announcement }) => {
             No users have viewed this announcement.
           </Typography>
         ) : (
-          <TableContainer
-            style={{ overflowX: "auto", overflowY: "auto", maxHeight: "400px" }}
-            sx={{ minHeight: 400 }}
-          >
-            <Table aria-label="announcement viewers table">
-              <TableHead sx={{ position: "sticky", top: 0, zIndex: 1, backgroundColor: "#fff" }}>
-                <TableRow>
-                  <TableCell align="left" sx={{ borderBottom: "1px solid #e0e0e0", py: 1.5, width: "30%" }}>
-                    Name
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: "1px solid #e0e0e0", py: 1.5, width: "20%" }}>
-                    Department
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: "1px solid #e0e0e0", py: 1.5, width: "20%" }}>
-                    Branch
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: "1px solid #e0e0e0", py: 1.5, width: "30%" }}>
-                    Viewed
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {views.map((view, index) => (
-                  <TableRow
-                    key={view.user_id}
+          <>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+              Viewed By
+            </Typography>
+            <Box display="flex" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+              {views.map((view, index) => (
+                <Tooltip
+                  key={view.user_id || index}
+                  title={
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }} color="#fff">
+                        {`${view.first_name} ${view.middle_name || ''} ${view.last_name} ${view.suffix || ''}`.replace(/\s+/g, ' ').trim()}
+                      </Typography>
+                      <Typography variant="body2">
+                        Branch: {view.branch_name || 'N/A'}
+                      </Typography>
+                      <Typography variant="body2">
+                        Department: {view.department_name || 'N/A'}
+                      </Typography>
+                      <Typography variant="body2">
+                        Viewed At: {dayjs(view.viewed_at).format("MMM D, YYYY h:mm A")}
+                      </Typography>
+                    </Box>
+                  }
+                  arrow
+                  slotProps={{
+                    popper: {
+                      sx: {
+                        [`& .MuiTooltip-tooltip`]: {
+                          backgroundColor: '#198754',
+                          color: '#fff',
+                        },
+                        [`& .MuiTooltip-arrow`]: {
+                          color: '#198754',
+                        },
+                      }
+                    }
+                  }}
+                >
+                  <Avatar
+                    alt={
+                      view.first_name
+                        ? `${view.first_name}_Avatar`
+                        : view.user_first_name
+                          ? `${view.user_first_name}_Avatar`
+                          : "User_Avatar"
+                    }
+                    src={
+                      view.user_profile_pic
+                        ? `${location.origin}/storage/${view.user_profile_pic}`
+                        : '../../../../../images/avatarpic.jpg'
+                    }
                     sx={{
-                      p: 1,
-                      backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff",
-                      "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" },
+                      mr: 1,
+                      transition: 'background 0.2s, box-shadow 0.2s',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: '#198754',
+                        boxShadow: 3,
+                      },
                     }}
-                  >
-                    <TableCell align="left" sx={{ borderBottom: "1px solid #e0e0e0", py: 1.5 }}>
-                      <Box display="flex" sx={{ alignItems: "center" }}>
-                        <Avatar
-                          src={view.profile_pic || undefined}
-                          alt={`${view.first_name} ${view.last_name}`}
-                          sx={{ mr: 1, width: 48, height: 48 }}
-                        >
-                          {view.first_name?.[0]?.toUpperCase() || "?"}
-                        </Avatar>
-                        {`${view.first_name} ${view.last_name}`}
-                      </Box>
-                    </TableCell>
-                    <TableCell align="center" sx={{ borderBottom: "1px solid #e0e0e0", py: 1.5 }}>
-                      {view.department_name || "N/A"}
-                    </TableCell>
-                    <TableCell align="center" sx={{ borderBottom: "1px solid #e0e0e0", py: 1.5 }}>
-                      {view.branch_name || "N/A"}
-                    </TableCell>
-                    <TableCell align="center" sx={{ borderBottom: "1px solid #e0e0e0", py: 1.5 }}>
-                      {dayjs(view.viewed_at).format("MMM D, YYYY h:mm A")}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                  />
+                </Tooltip>
+              ))}
+            </Box>
+          </>
         )}
       </DialogContent>
     </Dialog>

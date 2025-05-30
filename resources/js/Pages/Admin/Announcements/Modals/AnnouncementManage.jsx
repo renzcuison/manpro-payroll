@@ -68,7 +68,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         getAnnouncementThumbnail();
         getAnnouncementFiles();
         if (announceInfo.status !== "Pending") {
-            getAnnouncementBranchDepts();
+            getAnnouncementPublishmentDetails();
         }
     }, [announceInfo]);
 
@@ -236,7 +236,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 });
             });
         getAnnouncementThumbnail();
-        getAnnouncementBranchDepts();
+        getAnnouncementPublishmentDetails();
         getAnnouncementFiles();
     };
 
@@ -307,14 +307,14 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     };
 
     // ---------------- Recipient Branch and Departments
-    const getAnnouncementBranchDepts = () => {
+    const getAnnouncementPublishmentDetails = () => {
         if (!announceInfo?.unique_code) {
             console.error('Cannot fetch branch/depts: missing unique_code');
             setBranches([]);
             setDepartments([]);
             return;
         }
-        axiosInstance.get(`/announcements/getAnnouncementBranchDepts/${announceInfo.unique_code}`, { headers })
+        axiosInstance.get(`/announcements/getAnnouncementPublishmentDetails/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 setBranches(Array.isArray(response.data.branches) ? response.data.branches : []);
                 setDepartments(Array.isArray(response.data.departments) ? response.data.departments : []);

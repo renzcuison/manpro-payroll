@@ -584,9 +584,9 @@ class AnnouncementsController extends Controller
         }
     }
     
-    public function getAnnouncementBranchDepts($code)
+    public function getAnnouncementPublishmentDetails($code)
     {
-        //Log::info("AnnouncementsController::getAnnouncementBranchDepts");
+        //Log::info("AnnouncementsController::getAnnouncementPublishmentDetails");
 
         $user = Auth::user();
 
