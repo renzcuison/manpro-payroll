@@ -216,11 +216,12 @@ const Sidebar = ({ children, closeMini }) => {
             icon: "fa fa-bullhorn",
             children: [
                 {
-                    // href: `/admin/announcements/types?`,
+                    href: `/admin/announcements/types?`,
+                    href: `/admin/announcements/types`,
                     text: "Announcement Types",
                 },
                 {
-                    // href: `/admin/announcements/add?`,
+                    href: `/admin/announcements/add?`,
                     text: "Create Announcement",
                 },
                 {
@@ -458,15 +459,15 @@ const Sidebar = ({ children, closeMini }) => {
                                             Milestones
                                         </span>
                                     </StyledNav>
-                                    <StyledNav to={`/admin/announcements`}>
-                                        <i className="fa fa-bullhorn" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide"> Announcements </span>
-                                    </StyledNav>
 
-                                    <StyledNav to={`/admin/documents`}>
-                                        <i> {" "}<DescriptionOutlinedIcon sx={{ color: palette.success.main }} />{" "} </i>
-                                        <span id="navName" className="sidebar-mini-hide"> {" "}Documents{" "} </span>
-                                    </StyledNav>
+                                     {announcementsItems.map((items, index) => {
+                                        return (
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
+                                        );
+                                    })}
 
                                     <StyledNav to={`/admin/perimeters`}>
                                         <i> {" "}<TrackChangesIcon sx={{ color: palette.success.main }} />{" "} </i>
@@ -482,9 +483,9 @@ const Sidebar = ({ children, closeMini }) => {
                                     {/* <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span> */}
                                     {/* </StyledNav> */}
 
-                                    {/*<StyledNav to={`/admin/performance-evaluation`} >
+                                    <StyledNav to={`/admin/performance-evaluation`} >
                                     <i className="fa fa-check" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
-                                </StyledNav> */}
+                                    </StyledNav>
 
                                     {/* <StyledNav to={`/hr/attendance?month=${moment().format('MM')}&year=${moment().year()}`} className={isAttendanceActive || isAttendanceEmployeeActive ? 'active' : ''} >
                                     <i className="fa fa-calendar-check-o" style={{ color: '#2a800f' }}></i> <span id="navName" className="sidebar-mini-hide">Attendance</span>
