@@ -388,7 +388,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                     <Tab label="WRITE" />
                                     <Tab label="PREVIEW" />
                                 </Tabs>
-                                <Box sx={{ p: 2, pt: 1 }}>
+                                <Box sx={{ p: 2, pt: 2, }}>
                                     {tab === 0 ? (
                                         <Box
                                             sx={{
@@ -431,7 +431,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                                     height: '150px'
                                                 }}
                                             />
-                                            <Typography variant="caption" sx={{ float: "right", color: "#999" }}>
+                                            <Typography variant="caption" sx={{ float: "right", color: "#999", mb:1, mt:1 }}>
                                                 {description.length}/512
                                             </Typography>
                                         </Box>
