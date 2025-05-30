@@ -1,0 +1,113 @@
+{
+  "node_modules/canvg/lib/index.es.js": {
+    "file": "assets/index.es-DNm4n1Rn.js",
+    "name": "index.es",
+    "src": "node_modules/canvg/lib/index.es.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.jsx"
+    ]
+  },
+  "node_modules/dompurify/dist/purify.es.mjs": {
+    "file": "assets/purify.es-Bf0oSh3b.js",
+    "name": "purify.es",
+    "src": "node_modules/dompurify/dist/purify.es.mjs",
+    "isDynamicEntry": true
+  },
+  "node_modules/leaflet-draw/dist/images/spritesheet-2x.png": {
+    "file": "assets/spritesheet-2x-D6YjwvdA.png",
+    "src": "node_modules/leaflet-draw/dist/images/spritesheet-2x.png"
+  },
+  "node_modules/leaflet-draw/dist/images/spritesheet.png": {
+    "file": "assets/spritesheet-Bprg5DAC.png",
+    "src": "node_modules/leaflet-draw/dist/images/spritesheet.png"
+  },
+  "node_modules/leaflet-draw/dist/images/spritesheet.svg": {
+    "file": "assets/spritesheet-DpIxuf5L.svg",
+    "src": "node_modules/leaflet-draw/dist/images/spritesheet.svg"
+  },
+  "node_modules/leaflet/dist/images/layers-2x.png": {
+    "file": "assets/layers-2x-Bpkbi35X.png",
+    "src": "node_modules/leaflet/dist/images/layers-2x.png"
+  },
+  "node_modules/leaflet/dist/images/layers.png": {
+    "file": "assets/layers-BWBAp2CZ.png",
+    "src": "node_modules/leaflet/dist/images/layers.png"
+  },
+  "node_modules/leaflet/dist/images/marker-icon.png": {
+    "file": "assets/marker-icon-hN30_KVU.png",
+    "src": "node_modules/leaflet/dist/images/marker-icon.png"
+  },
+  "public/media/assets/Docx_file_icon.png": {
+    "file": "assets/Docx_file_icon-Cp9-MzLG.png",
+    "src": "public/media/assets/Docx_file_icon.png"
+  },
+  "public/media/assets/Excel_file_icon.png": {
+    "file": "assets/Excel_file_icon-DMClTl-X.png",
+    "src": "public/media/assets/Excel_file_icon.png"
+  },
+  "public/media/assets/PDF_file_icon.png": {
+    "file": "assets/PDF_file_icon-Ch7fGXyF.png",
+    "src": "public/media/assets/PDF_file_icon.png"
+  },
+  "public/media/assets/PowerPoint_file_icon.png": {
+    "file": "assets/PowerPoint_file_icon-B50ZtqDv.png",
+    "src": "public/media/assets/PowerPoint_file_icon.png"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-l0sNRNKZ.js",
+    "name": "app",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/images/ManPro.png": {
+    "file": "assets/ManPro-CzJ9nc7v.png",
+    "src": "resources/images/ManPro.png"
+  },
+  "resources/images/ManProTab.png": {
+    "file": "assets/ManProTab-CLvA6S6_.png",
+    "src": "resources/images/ManProTab.png"
+  },
+  "resources/images/admin.png": {
+    "file": "assets/admin-T7M93j7i.png",
+    "src": "resources/images/admin.png"
+  },
+  "resources/images/logo.png": {
+    "file": "assets/logo-D0iV6wbb.png",
+    "src": "resources/images/logo.png"
+  },
+  "resources/js/Assets/default_perimeter_image.png": {
+    "file": "assets/default_perimeter_image-tEbXnaKu.png",
+    "src": "resources/js/Assets/default_perimeter_image.png"
+  },
+  "resources/js/app.jsx": {
+    "file": "assets/app-Be-1MbOd.js",
+    "name": "app",
+    "src": "resources/js/app.jsx",
+    "isEntry": true,
+    "dynamicImports": [
+      "node_modules/dompurify/dist/purify.es.mjs",
+      "node_modules/canvg/lib/index.es.js"
+    ],
+    "css": [
+      "assets/app-DU-M_3pX.css"
+    ],
+    "assets": [
+      "assets/admin-T7M93j7i.png",
+      "assets/logo-D0iV6wbb.png",
+      "assets/ManPro-CzJ9nc7v.png",
+      "assets/ManProTab-CLvA6S6_.png",
+      "assets/PDF_file_icon-Ch7fGXyF.png",
+      "assets/Docx_file_icon-Cp9-MzLG.png",
+      "assets/Excel_file_icon-DMClTl-X.png",
+      "assets/PowerPoint_file_icon-B50ZtqDv.png",
+      "assets/default_perimeter_image-tEbXnaKu.png",
+      "assets/spritesheet-Bprg5DAC.png",
+      "assets/spritesheet-DpIxuf5L.svg",
+      "assets/spritesheet-2x-D6YjwvdA.png",
+      "assets/layers-BWBAp2CZ.png",
+      "assets/layers-2x-Bpkbi35X.png",
+      "assets/marker-icon-hN30_KVU.png"
+    ]
+  }
+}

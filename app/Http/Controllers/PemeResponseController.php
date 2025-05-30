@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Crypt;
 use App\Models\PemeResponse;
 
 class PemeResponseController extends Controller
@@ -40,9 +42,9 @@ class PemeResponseController extends Controller
                 : null;
 
             return [
-                "response_id" => $response->id,
-                "peme" => $response->peme->name ?? 'null',
-                "user" => $response->user->user_name ??
+                "response_id" => Crypt::encrypt($response->id),
+                "peme_id" => Crypt::encrypt($response->peme_id),
+                "user_id" => Crypt::encrypt($response->user_id) ??
                     'null',
                 "expiry_date" => $expiryDate,
                 "next_schedule" => $nextSchedule,
@@ -91,7 +93,16 @@ class PemeResponseController extends Controller
         return response()->json(
             [
                 "message" => "Response saved.",
-                "data" => $response,
+                "data" => [
+                    "id" => Crypt::encrypt($response->id),
+                    "peme_id" => Crypt::encrypt($response->peme_id),
+                    "user_id" => Crypt::encrypt($response->user_id),
+                    "expiry_date" => $response->expiry_date,
+                    "next_schedule" => $response->next_schedule,
+                    "status" => $response->status,
+                    "created_at" => $response->created_at,
+                    "updated_at" => $response->updated_at,
+                ],
             ],
             201
         );
@@ -99,6 +110,8 @@ class PemeResponseController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        $id = Crypt::decrypt($id); 
+
         $validated = $request->validate([
             "status" => "required|in:pending,clear,rejected",
         ]);
@@ -109,23 +122,31 @@ class PemeResponseController extends Controller
 
         return response()->json([
             "message" => "Status updated.",
-            "data" => $response,
+            "data" => [
+                "id" => Crypt::encrypt($response->id), 
+                "status" => $response->status,
+            ],
         ]);
     }
+
     public function show($id)
     {
+
+        // log::info(Crypt::decrypt($id));
+        $id = Crypt::decrypt($id);
+
         $response = PemeResponse::with([
             'details',
             'details.question',
-            'details.type',
+            'details.inputType',
             'peme',
             'user',
         ])->findOrFail($id);
 
         return response()->json([
-            'response_id' => $response->id,
-            'peme' => $response->peme->name ?? 'null',
-            'user' => $response->user->user_name ?? 'null',
+            'response_id' => Crypt::encrypt($response->id),
+            'peme_id' => Crypt::encrypt($response->peme_id),
+            'user_id' => Crypt::encrypt($response->user_id),
             'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),
             'next_schedule' => optional($response->next_schedule)->format('Y-m-d H:i:s'),
             'status' => ucfirst($response->status),
@@ -134,39 +155,19 @@ class PemeResponseController extends Controller
             'details' => $response->details,
         ]);
     }
-    public function filter(Request $request)
-    {
-        $validated = $request->validate([
-            "status" => "sometimes|in:pending,clear,rejected",
-            "from" => "sometimes|date",
-            "to" => "sometimes|date",
-        ]);
-
-        $query = PemeResponse::query();
-
-        if (!empty($validated["status"])) {
-            $query->where("status", $validated["status"]);
-        }
-
-        if (!empty($validated["from"]) && !empty($validated["to"])) {
-            $query->whereBetween("created_at", [
-                $validated["from"],
-                $validated["to"],
-            ]);
-        }
-
-        return response()->json($query->with("user")->get());
-    }
 
     public function summary($pemeId)
     {
+
+        $pemeId = Crypt::decrypt($pemeId);
+
         $counts = PemeResponse::where("peme_id", $pemeId)
             ->selectRaw("status, COUNT(*) as total")
             ->groupBy("status")
             ->pluck("total", "status");
 
         return response()->json([
-            "peme_id" => $pemeId,
+            "peme_id" => Crypt::encrypt($pemeId),
             "summary" => $counts,
         ]);
     }
