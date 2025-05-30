@@ -755,254 +755,6 @@ class EvaluationController extends Controller
         }
     }
 
-    // // evaluation form category
-
-    // public function deleteEvaluationFormCategory(Request $request)
-    // {
-    //     log::info('EvaluationController::deleteEvaluationFormCategory');
-
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
-
-    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
-
-    //     try {
-
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
-
-    //         DB::beginTransaction();
-
-    //         $evaluationFormCategory = EvaluationFormCategory
-    //             ::select('*')
-    //             ->where('id', $request->id)
-    //             ->first()
-    //         ;
-
-    //         if( !$evaluationFormCategory ) return response()->json([ 
-    //             'status' => 404,
-    //             'message' => 'Evaluation Form Category not found!',
-    //             'evaluationFormCategoryID' => $request->id
-    //         ]);
-
-    //         if( $evaluationFormCategory->deleted_at ) return response()->json([ 
-    //             'status' => 405,
-    //             'message' => 'Evaluation Form Category already deleted!',
-    //             'evaluationFormCategory' => $evaluationFormCategory
-    //         ]);
-
-    //         $now = date('Y-m-d H:i');
-    //         $evaluationFormCategory->deleted_at = $now;
-    //         $evaluationFormCategory->save();
-
-    //         DB::commit();
-
-    //         return response()->json([ 
-    //             'status' => 200,
-    //             'evaluationFormCategory' => $evaluationFormCategory,
-    //             'message' => 'Evaluation Form Category successfully deleted'
-    //         ]);
-
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
-
-    //         throw $e;
-    //     }
-    // }
-
-    // public function editEvaluationFormCategory(Request $request)
-    // {
-    //     log::info('EvaluationController::editEvaluationFormCategory');
-
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
-
-    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
-
-    //     try {
-
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
-
-    //         DB::beginTransaction();
-
-    //         $evaluationFormCategory = EvaluationFormCategory
-    //             ::select( 'id', 'section_id', 'name', 'order', 'created_at', 'updated_at' )
-    //             ->where('id', $request->id)
-    //             ->first()
-    //         ;
-
-    //         if( !$evaluationFormCategory ) return response()->json([ 
-    //             'status' => 404,
-    //             'message' => 'Evaluation Form Category not found!',
-    //             'evaluationFormCategoryID' => $request->id
-    //         ]);
-
-    //         $isEmptyName = !$request->name;
-
-    //         if( $isEmptyName ) return response()->json([ 
-    //             'status' => 400,
-    //             'message' => 'Evaluation Form Category Name is required!'
-    //         ]);
-
-    //         $evaluationFormCategory->name = $request->name;
-    //         $evaluationFormCategory->save();
-
-    //         DB::commit();
-
-    //         return response()->json([ 
-    //             'status' => 200,
-    //             'evaluationFormCategory' => $evaluationFormCategory,
-    //             'message' => 'Evaluation Form Category successfully updated'
-    //         ]);
-
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
-
-    //         throw $e;
-    //     }
-    // }
-
-    // public function getEvaluationFormCategory(Request $request)
-    // {
-
-    //     log::info('EvaluationController::getEvaluationFormCategory');
-
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
-    
-    //     $user = DB::table('users')->where('id', $userID)->first();
-
-    //     try {
-
-    //         $evaluationFormCategory = EvaluationFormCategory
-    //             ::select('section_id', 'id','name', 'order')
-    //             ->where('id', $request->id)
-    //             ->with(['subcategories' => fn ($subcategory) =>
-    //                 $subcategory
-    //                     ->select(
-    //                         'category_id', 'id',
-    //                         'name', 'subcategory_type', 'description',
-    //                         'required', 'allow_other_option',
-    //                         'linear_scale_start', 'linear_scale_end',
-    //                         'order'
-    //                     )
-    //                     ->with(['options' => fn ($option) =>
-    //                         $option
-    //                             ->select(
-    //                                 'subcategory_id', 'id',
-    //                                 'label', 'order'
-    //                             )
-    //                             ->orderBy('order')
-    //                     ])
-    //                     ->orderBy('order')
-    //             ])
-    //             ->first()
-    //         ;
-    //         if( !$evaluationFormCategory ) return response()->json([
-    //             'status' => 404,
-    //             'message' => 'Evaluation Form Category not found!'
-    //         ]);
-    //         return response()->json([
-    //             'status' => 200,
-    //             'message' => 'Evaluation Form Category successfully retrieved.',
-    //             'evaluationFormCategory' => $evaluationFormCategory
-    //         ]);
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
-
-    //         throw $e;
-    //     }
-    
-    // }
-
-    //     // move evaluation form category
-
-    // public function saveEvaluationFormCategory(Request $request)
-    // {
-    //     log::info('EvaluationController::saveEvaluationFormCategory');
-
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
-
-    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
-
-    //     try {
-
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
-
-    //         DB::beginTransaction();
-
-    //         $isEmptyName = !$request->name;
-    //         if( $isEmptyName ) return response()->json([
-    //             'status' => 400,
-    //             'message' => 'Evaluation Form Category Name is required!'
-    //         ]);
-
-    //         // ENFORCE ONLY ONE CATEGORY PER SECTION
-    //         $existingEvaluationFormCategory = EvaluationFormCategory
-    //             ::where('section_id', $request->section_id)
-    //             ->first()
-    //         ;
-
-    //         if( $existingEvaluationFormCategory ) return response()->json([ 
-    //             'status' => 409,
-    //             'message' => 'A Evaluation Form Category already exists for this section!',
-    //             'evaluationFormCategoryID' => $existingEvaluationFormCategory->id
-    //         ]);
-
-    //         $order = 0;
-    //         $newEvaluationFormCategory = EvaluationFormCategory::create([
-    //             'section_id' => $request->section_id,
-    //             'name' => $request->name,
-    //             'order' => $order
-    //         ]);
-
-    //         DB::commit();
-
-    //         return response()->json([ 
-    //             'status' => 201,
-    //             'evaluationFormCategoryID' => $newEvaluationFormCategory->id,
-    //             'message' => 'Evaluation Form Category successfully created'
-    //         ]);
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
-
-    //         throw $e;
-    //     }
-    // }
-
     public function getEvaluationFormSubcategory(Request $request)
     {
 
@@ -1714,5 +1466,67 @@ class EvaluationController extends Controller
             throw $e;
         }
     }
+
+    // evaluation response
+
+    // public function saveEvaluationResponse(Request $request)
+    // {
+    //     log::info('EvaluationController::saveEvaluationResponse');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $isEmptyName = !$request->name;
+
+    //         if( $isEmptyName ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Name is required!'
+    //         ]);
+
+    //         $existingEvaluationForm =
+    //             EvaluationForm::where('name', $request->name)->first()
+    //         ;
+
+    //         if( $existingEvaluationForm ) return response()->json([ 
+    //             'status' => 409,
+    //             'message' => 'This Evaluation Form Name is already in use!',
+    //             'evaluationFormID' => $existingEvaluationForm->id
+    //         ]);
+
+    //         $newEvaluationForm = EvaluationForm::create([
+    //             'name' => $request->name,
+    //             'creator_id' => $user->id
+    //         ]);
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 201,
+    //             'evaluationID' => $newEvaluationForm->id,
+    //             'message' => 'Evaluation Form successfully created'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
 
 }

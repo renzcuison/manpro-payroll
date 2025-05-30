@@ -2,6 +2,7 @@ import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 import { getSubcategoryDbValue } from "../utils/performance-evaluation-utils";
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
+import { result } from "lodash";
 
 export function useEvaluationFormSection(section) {
 
@@ -10,9 +11,10 @@ export function useEvaluationFormSection(section) {
     const [isNew, setIsNew] = useState(true);
     const [sectionId, setSectionId] = useState();
     const [sectionName, setSectionName] = useState();
+    const [editableSectionName, setEditableSectionName] = useState(false);
     const [sectionCategory, setSectionCategory] = useState();
+    const [editableCategory, setEditableCategory] = useState(false);
     const [expanded, setExpanded] = useState(false);
-    const [editable, setEditable] = useState(false);
     const [order, setOrder] = useState();
     const [subcategories, setSubcategories] = useState([]);
 
@@ -28,11 +30,11 @@ export function useEvaluationFormSection(section) {
 
     // section operations
 
-    function editSection(section) {
-        axiosInstance
+    async function editSection(section, inputRef) {
+        return axiosInstance
             .post('/editEvaluationFormSection', {
-                id: sectionId,
-                ...section              
+                ...section,
+                id: sectionId
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
@@ -49,8 +51,13 @@ export function useEvaluationFormSection(section) {
                         customClass: {
                             popup: 'swal-popup-overlay' // Custom class to ensure overlay
                         }
+                    }).then(result => {
+                        if(!result.isConfirmed) return;
+                        if(!inputRef || !inputRef.current) return;
+                        inputRef.current.querySelector('input').focus();
                     });
                 }
+                return response;
             })
             .catch(error => {
                 console.error('Error saving section:', error);
@@ -63,8 +70,12 @@ export function useEvaluationFormSection(section) {
         ;
     }
 
-    function toggleEditable() {
-        setEditable(!editable);
+    function toggleEditableCategory() {
+        setEditableCategory(!editableCategory);
+    }
+
+    function toggleEditableSection() {
+        setEditableSectionName(!editableSectionName);
     }
 
     function toggleExpand() {
@@ -137,9 +148,10 @@ export function useEvaluationFormSection(section) {
         },
         sectionId,
         sectionName, setSectionName,
+        editableSectionName, toggleEditableSection,
         sectionCategory, setSectionCategory,
+        editableCategory, toggleEditableCategory,
         expanded, toggleExpand,
-        editable, toggleEditable,
         order,
         subcategories, saveSubcategory
     };

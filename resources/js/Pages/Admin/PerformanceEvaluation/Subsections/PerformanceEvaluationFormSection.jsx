@@ -15,15 +15,16 @@ import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvalua
 import Swal from 'sweetalert2';
 import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 const PerformanceEvaluationFormSection = ({ section }) => {
     const {
         sectionId,
         sectionName, setSectionName,
+        editableSectionName, toggleEditableSection,
         sectionCategory, setSectionCategory,
+        editableCategory, toggleEditableCategory,
         expanded, toggleExpand,
-        editable, toggleEditable,
         order,
         subcategories, saveSubcategory,
         editSection
@@ -34,6 +35,20 @@ const PerformanceEvaluationFormSection = ({ section }) => {
         onSingleClick: toggleExpand,
         onDoubleClick: toggleEditable
     });
+
+    const handleSaveSectionName = (sectionName) => {
+        editSection({ name: sectionName }, inputRef).then((response) => {
+            if(response.data.status.toString().startsWith(2))
+                toggleEditableSection();
+        });
+    }
+
+    const handleSaveCategoryName = (categoryName) => {
+        editSection({ category: categoryName }, inputRef).then((response) => {
+            if(response.data.status.toString().startsWith(2))
+                toggleEditableCategory();
+        });
+    }
 
     // Category modal state
     const [addCategoryOpen, setAddCategoryOpen] = useState(false);
@@ -46,7 +61,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     const handleSaveCategory = (sectionCategory) => {
         if (!sectionId || !sectionCategory) {
             Swal.fire({
-                text: "Category Name are required!",
+                text: "Category Name is required!",
                 icon: "error",
                 confirmButtonColor: '#177604',
             });
@@ -126,15 +141,18 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     boxShadow: 'none',
                 }}
             >
-                {editable ? (
-                    <TextField
+                {/* {sectionName} */}
+                {
+                    editableSectionName ? <TextField
                         autoFocus
                         label="Section Name"
                         fullWidth
                         variant="standard"
                         value={sectionName}
                         onChange={(e) => setSectionName(e.target.value)}
-                        onBlur={toggleEditable}
+                        onBlur={(e) => handleSaveSectionName(e.target.value)}
+                        ref={inputRef}
+                        required
                         InputProps={{
                             disableUnderline: true,
                             style: {
@@ -147,8 +165,8 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                         InputLabelProps={{
                             style: { color: '#fff8e1' }
                         }}
-                    />
-                ) : sectionName}
+                    /> : sectionName
+                }
             </AccordionSummary>
             <AccordionDetails sx={{ bgcolor: '#fff', borderRadius: 3, pt: 0, mb: 2, mx:2 }}>
                 <Paper
