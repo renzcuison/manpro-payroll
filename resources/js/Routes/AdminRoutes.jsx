@@ -6,6 +6,11 @@ import Error404 from "../Pages/Errors/Error404";
 
 import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
 
+import DepartmentList from "../Pages/Admin/Department/DepartmentList";
+import DepartmentDetails from "../Pages/Admin/Department/DepartmentDetails";
+import BranchList from "../Pages/Admin/Branches/BranchList";
+import BranchDetails from "../Pages/Admin/Branches/BranchDetails";
+
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
@@ -94,6 +99,12 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="employees/benefits" element={<ProtectedRoute element={<BenefitsList />} user={user} /> } />
             <Route path="employees/benefits/:benefitID" element={<ProtectedRoute element={<BenefitView />} user={user} /> } />
+
+            <Route path="department/departmentlist" element={<ProtectedRoute element={<DepartmentList />} user={user} />} />
+            <Route path="department/:id" element={<ProtectedRoute element={<DepartmentDetails />} user={user} />} />
+
+            <Route path="branches/branchlist" element={<ProtectedRoute element={<BranchList />} user={user} />} />
+            <Route path="branches/:id" element={<ProtectedRoute element={<BranchDetails />} user={user} />} />
 
             <Route path="attendance/logs" element={<ProtectedRoute element={<AttendanceLogs />} user={user} />} />
             <Route path="attendance/:user" element={<ProtectedRoute element={<AttendanceView />} user={user} />} />
