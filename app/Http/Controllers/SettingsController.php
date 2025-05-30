@@ -350,7 +350,14 @@ class SettingsController extends Controller
 
 
 
-
+public function addBranchPositionAssignments(Request $request)
+    {
+        // For now, just return the incoming data to test
+        return response()->json([
+            'message' => 'Assignments received!',
+            'data' => $request->all()
+        ]);
+    }
 
  
 

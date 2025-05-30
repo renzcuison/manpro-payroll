@@ -28,12 +28,14 @@ import {
     InputAdornment,
     Checkbox,
     ListItemText,
-    Chip
+    Chip,
+    Menu
 } from "@mui/material";
 import Swal from "sweetalert2";
 import { red } from "@mui/material/colors";
 import SearchIcon from "@mui/icons-material/Search";
 import CancelIcon from "@mui/icons-material/Cancel";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 const BranchDetails = () => {
     const { id } = useParams();
@@ -48,11 +50,14 @@ const BranchDetails = () => {
     const [searchKeyword, setSearchKeyword] = useState("");
     const [departmentFilter, setDepartmentFilter] = useState("all");
     const [openEditModal, setOpenEditModal] = useState(false);
+    const [openAssignModal, setOpenAssignModal] = useState(false);
     const [departments, setDepartments] = useState([]);
     const [allEmployees, setAllEmployees] = useState([]);
     const [branchPositions, setBranchPositions] = useState([]);
     const [positionAssignments, setPositionAssignments] = useState([]);
     const [searchQueries, setSearchQueries] = useState({});
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -90,6 +95,14 @@ const BranchDetails = () => {
 
         fetchData();
     }, [id]);
+
+    const handleMenuClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
 
     // Helper function to get employee name by ID
     const getEmployeeNameById = (employeeId) => {
@@ -137,18 +150,14 @@ const BranchDetails = () => {
         return nameMatch && departmentMatch;
     });
 
-
-
-    // Filter function for dropdown searches - now uses filteredEmployees
+    // Filter function for dropdown searches
     const getFilteredEmployeeOptions = (positionId) => {
-    const searchQuery = searchQueries[positionId] || "";
-    return filteredEmployees.filter(emp => {
-        // Use the correct property names based on your employee object structure
-        const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim();
-        return fullName.toLowerCase().includes(searchQuery.toLowerCase());
-            });
-        };
-console.log('Employee data:', filteredEmployees);
+        const searchQuery = searchQueries[positionId] || "";
+        return allEmployees.filter(emp => 
+            `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    };
+
     const handleSearchChange = (positionId, value) => {
         setSearchQueries(prev => ({
             ...prev,
@@ -161,6 +170,103 @@ console.log('Employee data:', filteredEmployees);
         const currentIds = getAssignedEmployeesForPosition(positionId);
         const newIds = currentIds.length === allIds.length ? [] : allIds;
         handlePositionAssignmentChange(positionId, newIds);
+    };
+
+    const handleSaveAssignments = async () => {
+        try {
+            // 1. Get current assignments to check for duplicates
+            const currentAssignmentsResponse = await axiosInstance.get(
+                `/settings/getBranchPositionAssignments/${id}`,
+                { headers }
+            );
+            const currentAssignments = currentAssignmentsResponse.data.assignments || [];
+            
+            // 2. Prepare only new assignments to add
+            const newAssignmentsToAdd = [];
+            
+            // For each position in our local state
+            branchPositions.forEach(position => {
+                const positionId = position.id;
+                const locallyAssignedEmployeeIds = getAssignedEmployeesForPosition(positionId);
+                
+                // Check each selected employee to see if assignment already exists
+                locallyAssignedEmployeeIds.forEach(employeeId => {
+                    const assignmentExists = currentAssignments.some(
+                        a => a.branch_position_id === positionId && a.employee_id === employeeId
+                    );
+                    
+                    if (!assignmentExists) {
+                        newAssignmentsToAdd.push({
+                            branch_id: id,
+                            branch_position_id: positionId,
+                            employee_id: employeeId
+                        });
+                    }
+                });
+            });
+
+            if (newAssignmentsToAdd.length === 0) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "No new assignments to add.",
+                    icon: "info",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+
+            // 3. Add only new position assignments
+            const assignmentsResponse = await axiosInstance.post(
+                '/settings/addBranchPositionAssignments',
+                { 
+                    branch_id: id,
+                    assignments: newAssignmentsToAdd
+                },
+                { headers }
+            );
+
+            // 4. Update each employee's branch_position_id
+            for (const assignment of newAssignmentsToAdd) {
+                if (assignment.employee_id) {
+                    await axiosInstance.post(
+                        '/employee/updateEmployeeBranchPosition',
+                        {
+                            employee_id: assignment.employee_id,
+                            branch_position_id: assignment.branch_position_id
+                        },
+                        { headers }
+                    );
+                }
+            }
+
+            if (assignmentsResponse.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "New position assignments added successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                });
+                
+                // Refresh the data
+                const updatedResponse = await axiosInstance.get(`/settings/getBranch/${id}`, { headers });
+                setPositionAssignments(updatedResponse.data.position_assignments || []);
+                setEmployees(updatedResponse.data.employees || []);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error adding new assignments!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        } finally {
+            setOpenAssignModal(false);
+        }
     };
 
     if (error) return (
@@ -207,110 +313,43 @@ console.log('Employee data:', filteredEmployees);
                                 ></i>
                                 {branch.name} ({branch.acronym})
                             </Typography>
-                            <Button
-                                variant="contained"
-                                onClick={() => setOpenEditModal(true)}
-                                sx={{
-                                    backgroundColor: '#177604',
-                                    color: 'white',
-                                    '&:hover': {
-                                        backgroundColor: '#126703'
-                                    }
-                                }}
-                            >
-                                Edit 
-                            </Button>
-                        </Box>
-
-                        <Box
-                            sx={{
-                                mt: 6,
-                                p: 3,
-                                bgcolor: "white",
-                                borderRadius: "8px",
-                                boxShadow: 1,
-                            }}
-                        >
-                            <Grid container>
-                                {/* Personnel Section */}
-                                <Grid item xs={12}>
-                                    <Box
-                                        sx={{
-                                            display: 'flex',
-                                            flexDirection: { xs: 'column', sm: 'row' },
-                                            justifyContent: 'space-between',
-                                            gap: 2,
-                                            ml: 10,
-                                            width: '100%',
-                                            px: 2,
-                                        }}
-                                    >
-                                        {branchPositions.map(position => {
-                                            const assignedEmployees = getAssignedEmployeesForPosition(position.id);
-                                            return (
-                                                <Box
-                                                    key={position.id}
-                                                    sx={{
-                                                        flex: 1,
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        alignItems: 'center',
-                                                        p: 2,
-                                                        ml: 10,
-                                                        bgcolor: '#fff',
-                                                        borderRadius: '6px',
-                                                        textAlign: 'center',
-                                                    }}
-                                                >
-                                                    {assignedEmployees.length > 0 ? (
-                                                        <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                                                            {assignedEmployees.slice(0, 3).map(employeeId => (
-                                                                <Avatar
-                                                                    key={employeeId}
-                                                                    src={getEmployeeAvatarById(employeeId)}
-                                                                    sx={{ width: 60, height: 60 }}
-                                                                />
-                                                            ))}
-                                                        </Box>
-                                                    ) : (
-                                                        <Avatar sx={{ width: 90, height: 90, mb: 1 }} />
-                                                    )}
-                                                    <TextField
-                                                        value={
-                                                            assignedEmployees.length > 0 
-                                                                ? assignedEmployees.length > 3
-                                                                    ? `${assignedEmployees.slice(0, 3).map(id => getEmployeeNameById(id)).join(', ')} +${assignedEmployees.length - 3} more`
-                                                                    : assignedEmployees.map(id => getEmployeeNameById(id)).join(', ')
-                                                                : "Not assigned"
-                                                        }
-                                                        fullWidth
-                                                        InputProps={{
-                                                            readOnly: true,
-                                                            sx: {
-                                                                input: {
-                                                                    textAlign: 'center',
-                                                                    fontWeight: 'bold'
-                                                                },
-                                                                "& .MuiOutlinedInput-notchedOutline": {
-                                                                    border: 'none',
-                                                                },
-                                                            },
-                                                        }}
-                                                        sx={{
-                                                            "& .MuiOutlinedInput-root": {
-                                                                backgroundColor: 'transparent',
-                                                            },
-                                                        }}
-                                                    />
-                                                    <Box sx={{ mt: 1, fontWeight: 'medium', fontSize: '0.9rem' }}>
-                                                        {position.name}
-                                                    </Box>
-                                                </Box>
-                                            );
-                                        })}
-                                    </Box>
-                                </Grid>
-                            </Grid>
+                            <div>
+                                <Button
+                                    variant="contained"
+                                    onClick={handleMenuClick}
+                                    endIcon={<ArrowDropDownIcon />}
+                                    sx={{
+                                        backgroundColor: '#177604',
+                                        color: 'white',
+                                        '&:hover': {
+                                            backgroundColor: '#126703'
+                                        }
+                                    }}
+                                >
+                                    Edit 
+                                </Button>
+                                <Menu
+                                    anchorEl={anchorEl}
+                                    open={open}
+                                    onClose={handleMenuClose}
+                                    MenuListProps={{
+                                        'aria-labelledby': 'basic-button',
+                                    }}
+                                >
+                                    <MenuItem onClick={() => {
+                                        setOpenEditModal(true);
+                                        handleMenuClose();
+                                    }}>
+                                        Edit Branch Details
+                                    </MenuItem>
+                                    <MenuItem onClick={() => {
+                                        setOpenAssignModal(true);
+                                        handleMenuClose();
+                                    }}>
+                                        Assign Positions
+                                    </MenuItem>
+                                </Menu>
+                            </div>
                         </Box>
 
                         <Box
@@ -370,6 +409,7 @@ console.log('Employee data:', filteredEmployees);
                                                 <TableRow>
                                                     <TableCell align="left" sx={{fontWeight: 'bold'}}>Name</TableCell>
                                                     <TableCell align="left" sx={{fontWeight: 'bold'}}>Department</TableCell>
+                                                    
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -390,6 +430,7 @@ console.log('Employee data:', filteredEmployees);
                                                         <TableCell align="left">
                                                             {employee.department}
                                                         </TableCell>
+                                                    
                                                     </TableRow>
                                                 ))}
                                             </TableBody>
@@ -531,7 +572,95 @@ console.log('Employee data:', filteredEmployees);
                             </FormControl>
                         </FormGroup>
 
-                      {/* Position Assignments Section */}
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            {/* Contact Number */}
+                            <FormControl sx={{
+                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+                                <TextField
+                                    required
+                                    id="contact_number"
+                                    label="Contact Number"
+                                    variant="outlined"
+                                    value={branch.contact_number}
+                                    onChange={(e) => setBranch({ ...branch, contact_number: e.target.value })}
+                                />
+                            </FormControl>
+                        </FormGroup>
+
+                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
+                            <Button
+                                variant="contained"
+                                sx={{ backgroundColor: '#177604', color: 'white' }}
+                                className="m-1"
+                                onClick={async () => {
+                                    try {
+                                        // First update branch details
+                                        const branchResponse = await axiosInstance.post('/settings/editBranch', branch, { headers });
+                                        
+                                        if (branchResponse.data.status === 200) {
+                                            Swal.fire({
+                                                customClass: { container: 'my-swal' },
+                                                text: "Branch updated successfully!",
+                                                icon: "success",
+                                                showConfirmButton: true,
+                                                confirmButtonText: 'Proceed',
+                                                confirmButtonColor: '#177604',
+                                            });
+                                            setOpenEditModal(false);
+                                            // Refresh the branch data
+                                            const updatedResponse = await axiosInstance.get(`/settings/getBranch/${id}`, { headers });
+                                            setBranch(updatedResponse.data.branch);
+                                            setEmployees(updatedResponse.data.employees || []);
+                                        }
+                                    } catch (error) {
+                                        console.error('Error:', error);
+                                        Swal.fire({
+                                            customClass: { container: 'my-swal' },
+                                            text: "Error updating branch!",
+                                            icon: "error",
+                                            showConfirmButton: true,
+                                            confirmButtonColor: '#177604',
+                                        });
+                                    }
+                                }}
+                            >
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Update Branch </p>
+                            </Button>
+                        </Box>
+                    </Box>
+                </DialogContent>
+            </Dialog>
+
+            {/* Assign Positions Modal */}
+            <Dialog
+                open={openAssignModal}
+                onClose={() => setOpenAssignModal(false)}
+                fullWidth
+                maxWidth="md"
+                PaperProps={{
+                    style: {
+                        padding: '16px',
+                        backgroundColor: '#f8f9fa',
+                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                        borderRadius: '20px',
+                        minWidth: '800px',
+                        maxWidth: '1000px',
+                        marginBottom: '5%'
+                    }
+                }}
+            >
+                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Assign Positions </Typography>
+                        <IconButton onClick={() => setOpenAssignModal(false)}><i className="si si-close"></i></IconButton>
+                    </Box>
+                </DialogTitle>
+
+                <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
+                    <Box component="form" sx={{ mt: 3, my: 3 }} noValidate autoComplete="off" encType="multipart/form-data" >
+                        {/* Position Assignments Section */}
                         <Typography variant="h6" sx={{ mt: 3, mb: 2, fontWeight: 'bold' }}>
                             Position Assignments
                         </Typography>
@@ -628,100 +757,30 @@ console.log('Employee data:', filteredEmployees);
                                         </Box>
                                     </MenuItem>
 
-                                   {getFilteredEmployeeOptions(position.id).map((emp) => (
+                                    {getFilteredEmployeeOptions(position.id).map((emp) => (
                                         <MenuItem key={emp.id} value={emp.id}>
                                             <Checkbox
                                                 checked={getAssignedEmployeesForPosition(position.id).includes(emp.id)}
                                             />
                                             <ListItemText primary={`${emp.first_name} ${emp.last_name}`} />
+                                            <Avatar 
+                                                src={emp.avatar} 
+                                                sx={{ width: 24, height: 24, ml: 2 }} 
+                                            />
                                         </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
                         ))}
 
-                        <FormGroup row={true} className="d-flex justify-content-between">
-                            {/* Contact Number */}
-                            <FormControl sx={{
-                                marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="contact_number"
-                                    label="Contact Number"
-                                    variant="outlined"
-                                    value={branch.contact_number}
-                                    onChange={(e) => setBranch({ ...branch, contact_number: e.target.value })}
-                                />
-                            </FormControl>
-                        </FormGroup>
-
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button
                                 variant="contained"
                                 sx={{ backgroundColor: '#177604', color: 'white' }}
                                 className="m-1"
-                                onClick={async () => {
-                                    try {
-                                        // First update branch details
-                                        const branchResponse = await axiosInstance.post('/settings/editBranch', branch, { headers });
-                                        
-                                        if (branchResponse.data.status === 200) {
-                                            // Update position assignments
-                                            const assignmentsResponse = await axiosInstance.post(
-                                                '/settings/updateBranchPositionAssignments',
-                                                { 
-                                                    branch_id: id,
-                                                    assignments: positionAssignments
-                                                },
-                                                { headers }
-                                            );
-
-                                            // Update each employee's branch_position_id in the users table
-                                            for (const assignment of positionAssignments) {
-                                                if (assignment.employee_id) {
-                                                    await axiosInstance.post(
-                                                        '/employee/updateEmployeeBranchPosition',
-                                                        {
-                                                            employee_id: assignment.employee_id,
-                                                            branch_position_id: assignment.branch_position_id
-                                                        },
-                                                        { headers }
-                                                    );
-                                                }
-                                            }
-
-                                            if (assignmentsResponse.data.status === 200) {
-                                                Swal.fire({
-                                                    customClass: { container: 'my-swal' },
-                                                    text: "Branch updated successfully!",
-                                                    icon: "success",
-                                                    showConfirmButton: true,
-                                                    confirmButtonText: 'Proceed',
-                                                    confirmButtonColor: '#177604',
-                                                });
-                                                setOpenEditModal(false);
-                                                // Refresh the branch data
-                                                const updatedResponse = await axiosInstance.get(`/settings/getBranch/${id}`, { headers });
-                                                setBranch(updatedResponse.data.branch);
-                                                setEmployees(updatedResponse.data.employees || []);
-                                                setPositionAssignments(updatedResponse.data.position_assignments || []);
-                                            }
-                                        }
-                                    } catch (error) {
-                                        console.error('Error:', error);
-                                        Swal.fire({
-                                            customClass: { container: 'my-swal' },
-                                            text: "Error updating branch!",
-                                            icon: "error",
-                                            showConfirmButton: true,
-                                            confirmButtonColor: '#177604',
-                                        });
-                                    }
-                                }}
+                                onClick={handleSaveAssignments}
                             >
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Update Branch </p>
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Assignments </p>
                             </Button>
                         </Box>
                     </Box>
