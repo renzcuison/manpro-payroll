@@ -397,8 +397,10 @@ class EvaluationResponseController extends Controller
             $page = $request->page ?? 1;
             $limit = $request->limit ?? 10;
             $totalResponseCount = $evaluationResponses->count();
-            $pageResponseCount = $totalResponseCount % $limit;
-            if($pageResponseCount == 0) $pageResponseCount = $limit;
+            $pageResponseCount =
+                ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
+                : $limit
+            ;
             $maxPageCount = ceil($totalResponseCount / $limit);
             if($page > $maxPageCount) return response()->json([ 
                 'status' => 404,
