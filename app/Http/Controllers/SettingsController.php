@@ -39,18 +39,15 @@ class SettingsController extends Controller
 
     public function getBranches(Request $request)
     {
-
         if ($this->checkUser()) {
             $user = Auth::user();
             $branches = BranchesModel::where('client_id', $user->client_id)
             ->with(['manager', 'supervisor', 'approver'])
             ->withCount('employees')
-            
             ->get();
 
             return response()->json(['status' => 200, 'branches' => $branches]);
         }
-
         return response()->json(['status' => 200, 'branches' => null]);
     }
 
@@ -209,9 +206,25 @@ class SettingsController extends Controller
             'message' => 'Position assignments updated'
         ]);
     }
+    
+    public function getDepartments(Request $request)
+    {
+        if ($this->checkUser()) {
+            $user = Auth::user();
+            $departments = DepartmentsModel::where('client_id', $user->client_id)
+                ->with(['manager', 'supervisor', 'approver'])
+                ->withCount('employees')
+                ->get();
+     
+            return response()->json(['status' => 200, 'departments' => $departments]);
+        }
+     
+        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    }
+     
 
     //get all departments
-    public function getDepartments(){
+    public function getAllDepartments(){
         if(!$this->checkUser()){
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
@@ -270,39 +283,66 @@ class SettingsController extends Controller
     }
 
     //get department, with employees and their position
-    public function getDepartmentWithEmployeePosition(Request $request){
-        if(!$this->checkUser()){
+    public function getDepartmentWithEmployeePosition(Request $request)
+    {
+        if (!$this->checkUser()) {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
+
+        //--->Load departments with their assigned positions and employees
+        //assignedPositions from departments model (hasMany)
+        //position from department position model (belongsTo)
+        //employeeAssignments from employeeAssignments (hasMany)
+        //employee from employee department position (belongsTo)
         $departments = DepartmentsModel::with([
-            'assignedPositions.position',                     
+            'assignedPositions.position',
             'assignedPositions.employeeAssignments.employee'
-            ])->get();
+        ])->get();
+
+        // Loop through departments and their assigned positions/employees
+        foreach ($departments as $department) {
+            foreach ($department->assignedPositions as $assignedPosition) {
+                foreach ($assignedPosition->employeeAssignments as $employeeAssignment) {
+                    $employee = $employeeAssignment->employee;
+
+                    if ($employee->profile_pic && Storage::disk('public')->exists($employee->profile_pic)) {
+                        $employee->avatar = base64_encode(Storage::disk('public')->get($employee->profile_pic));
+                        $employee->avatar_mime = mime_content_type(storage_path('app/public/' . $employee->profile_pic));
+                    } else {
+                        $employee->avatar = null;
+                        $employee->avatar_mime = null;
+                    }
+                }
+            }
+        }
+
         return response()->json(['status' => 200, 'departments' => $departments]);
     }
 
     //get the specific department, alongside their assigned employees based on the current department position (global table)
-        public function getDepartmentDetails($id){
-            if(!$this->checkUser()){
-                return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-            }
-            Log::info($id);
-
-            $department = DepartmentsModel::with([
-                //(Model flow relationships)
-                'assignedPositions.position', //DepartmentsPositionAssignment -> DepartmentPosition 
-                'assignedPositions.employeeAssignments.employee',   //DepartmentPositionAssignment -> EmployeeDepartmentPosition -> UsersModel
-            ])->find($id);
-
-            if (!$department) {
-                return response()->json(['status' => 404, 'message' => 'Department not found'], 404);
-            }
-
-            return response()->json([
-                'status' => 200,
-                'department' => $department,
-            ]);
+    public function getDepartmentDetails($id){
+        if(!$this->checkUser()){
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
+        Log::info($id);
+
+        $department = DepartmentsModel::with([
+            //(Model flow relationships)
+            'assignedPositions.position', //DepartmentsPositionAssignment -> DepartmentPosition 
+            'assignedPositions.employeeAssignments.employee.branch',   //DepartmentPositionAssignment -> EmployeeDepartmentPosition -> UsersModel
+        ])->find($id);
+
+        if (!$department) {
+            return response()->json(['status' => 404, 'message' => 'Department not found'], 404);
+        }
+
+        
+
+        return response()->json([
+            'status' => 200,
+            'department' => $department,
+        ]);
+    }
     
     public function saveDepartment(Request $request)
     {
@@ -330,23 +370,21 @@ class SettingsController extends Controller
                 ]);
 
                 //create assignments (if there are any right now)
-                if ($request->has('assignments') && is_array($request->assignments)) {
-                    foreach ($request->assignments as $position_id => $employee_ids) {
-                        foreach ($employee_ids as $emp_id) {
-                            //create department position assignment
-                            $assignment = DepartmentPositionAssignment::create([
-                                'department_id' => $department->id,
-                                'department_position_id' => $position_id,
-                            ]);
+                foreach ($request->assignments as $position_id => $employee_ids) {
+                    $assignment = DepartmentPositionAssignment::firstOrCreate([
+                        'department_id' => $department->id,
+                        'department_position_id' => $position_id,
+                    ]);
+                
+                    foreach ($employee_ids as $emp_id) {
+                        EmployeeDepartmentPosition::firstOrCreate([
+                            'assignment_id' => $assignment->id,
+                            'employee_id' => $emp_id,
+                        ]);
 
-                            //assign employees to the assignemnt
-                            foreach($employee_ids as $emp_id){
-                                EmployeeDepartmentPosition::create([
-                                    'assignment_id' => $assignment->id,
-                                    'employee_id' => $emp_id,
-                                ]);
-                            }
-                        }
+                        UsersModel::where('id', $emp_id)->update([
+                            'department_id' => $department->id,
+                        ]);
                     }
                 }
 
@@ -385,6 +423,10 @@ class SettingsController extends Controller
 
             foreach ($employeeIds as $empId) {
                 $assigned->employeeAssignments()->firstOrCreate(['employee_id' => $empId]);
+
+                UsersModel::where('id', $empId)->update([
+                    'department_id' => $department->id,
+                ]);
             }
         }
 
@@ -397,7 +439,11 @@ class SettingsController extends Controller
                 $assigned->employeeAssignments()->delete();
                 foreach ($employeeIds as $empId) {
                     $assigned->employeeAssignments()->create(['employee_id' => $empId]);
-                }
+
+                    UsersModel::where('id', $empId)->update([
+                        'department_id' => $department->id,
+                    ]);
+                } 
             }
         }
 
@@ -408,6 +454,10 @@ class SettingsController extends Controller
 
             if ($assigned) {
                 $assigned->employeeAssignments()->whereIn('employee_id', $empIds)->delete();
+
+                UsersModel::whereIn('id', $empIds)->update([
+                    'department_id' => null,
+                ]);
             }
         }
 

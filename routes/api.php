@@ -108,6 +108,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         //departments
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
+        Route::get('/getAllDepartments', [SettingsController::class, 'getAllDepartments']);
         Route::get('/getDepartmentDetails/{id}', [SettingsController::class, 'getDepartmentDetails']);
 
         Route::get('/getDepartmentPositions', [SettingsController::class, 'getDepartmentPositions']);

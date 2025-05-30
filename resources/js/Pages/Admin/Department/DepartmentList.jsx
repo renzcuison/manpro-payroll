@@ -22,6 +22,7 @@ import {
     IconButton,
     FormGroup,
     FormControl,
+    Tooltip,
     Menu
 } from "@mui/material";
 import { Link } from "react-router-dom";
@@ -35,12 +36,8 @@ import DepartmentAdd from "./Modals/DepartmentAdd";
 const DepartmentList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-
-    const [branches, setBranches] = useState([]);
-    const [allEmployees, setAllEmployees] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState("");
-    const [branchPositions, setBranchPositions] = useState([]);
     const [departmentPositions, setDepartmentPositions] = useState([]);
 
     const [departments, setDepartments] = useState([]);
@@ -62,26 +59,14 @@ const DepartmentList = () => {
             try {
                 setIsLoading(true);
 
+                //get all departments, with their respected assigned employees
                 const departmentResponse = await axiosInstance
                 .get("/settings/getDepartmentWithEmployeePosition", {headers});
                 setDepartments(departmentResponse.data.departments);
-                
-                // Fetch branches
-                const branchResponse = await axiosInstance.get("/settings/getBranches", { headers });
-                setBranches(branchResponse.data.branches || []);
-                
-                // Fetch all employees for name mapping
-                const employeesResponse = await axiosInstance.get('/employee/getEmployees', { headers });
-                setAllEmployees(employeesResponse.data.employees || []);
 
                 // Fetch department positions
                 const posResponse = await axiosInstance.get('/settings/getDepartmentPositions', { headers });
                 setDepartmentPositions(posResponse.data.positions);
-
-                //Fetcj department positions (will be used for the headers);
-                const positionsResponse = await axiosInstance.get('/settings/getBranchPositions', { headers });
-                setBranchPositions(positionsResponse.data.positions || []);
-
             } catch (error) {
                 console.error("Error fetching data:", error);
                 Swal.fire({
@@ -98,22 +83,10 @@ const DepartmentList = () => {
         fetchData();
     }, []);
 
-    console.log(departments);
-
-    // Helper function to get employees assigned to a specific branch and position
-    const getEmployeesForBranchPosition = (branchId, positionId) => {
-        const employeesInBranch = allEmployees.filter(emp => emp.branch_id === branchId && emp.branch_position_id === positionId);
-        return employeesInBranch.map(emp => `${emp.first_name} ${emp.last_name}`).join(", ") || "-";
-    };
+    console.log(departments)
     
-    const getEmployeeAvatarById = (employeeId) => {
-        if (!employeeId) return null;
-        const employee = allEmployees.find(emp => emp.id === employeeId);
-        return employee ? employee.avatar : null;
-    };
-
-    const filteredBranches = branches.filter((bran) =>
-        bran.name.toLowerCase().includes(searchKeyword.toLowerCase())
+    const filteredDepartments = departments.filter(dep =>
+        dep.name.toLowerCase().includes(searchKeyword.toLowerCase())
     );
     // Add Button Dropdown Handlers
     const handleAddClick = (event) => {
@@ -193,7 +166,7 @@ const DepartmentList = () => {
                             <Grid item xs={9}>
                                 <TextField
                                     fullWidth
-                                    label="Search Branch"
+                                    label="Search Departments"
                                     variant="outlined"
                                     value={searchKeyword}
                                     onChange={(e) => setSearchKeyword(e.target.value)}
@@ -226,8 +199,8 @@ const DepartmentList = () => {
                                         </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                        {departments.length > 0 ? (
-                                            departments.map((dep) => {
+                                        {filteredDepartments.length > 0 ? (
+                                            filteredDepartments.map((dep) => {
                                             // Flatten all assigned employees for total count
                                             const totalEmployees = dep.assigned_positions
                                                 ?.flatMap((assign) => assign.employee_assignments || [])
@@ -235,7 +208,7 @@ const DepartmentList = () => {
 
                                             return (
                                                 <TableRow key={dep.id}>
-                                                    {/*<--Department Nam-->*/}
+                                                    {/*<--Department Name-->*/}
                                                     <TableCell>
                                                         <Link
                                                             to={`/admin/department/${dep.id}`}
@@ -265,20 +238,30 @@ const DepartmentList = () => {
                                                         (asg) => asg.department_position_id === position.id
                                                         );
                                                         const employees = matchAssigned?.employee_assignments || [];
-                                                        console.log(employees);
+                                                    
 
                                                         return (
-                                                        <TableCell key={position.id}>
+                                                        <TableCell key={position.id} align="center">
                                                             {employees.length > 0 ? (
-                                                            <ul style={{ margin: 0, paddingLeft: 16 }}>
-                                                                {employees.map((e) => (
-                                                                <li key={e.id}>
-                                                                    {e.employee?.first_name} {e.employee?.last_name}
-                                                                </li>
-                                                                ))}
-                                                            </ul>
+                                                                <Box display="flex" justifyContent="center">
+                                                                    {employees.map((e) => (
+                                                                        <Tooltip
+                                                                        key={e.id}
+                                                                        title={`${e.employee?.first_name || ""} ${e.employee?.last_name || ""}`}
+                                                                        arrow
+                                                                        placement="top"
+                                                                        >
+                                                                            <Avatar
+                                                                            src={e.employee?.avatar_url || "/default-avatar.png"} // Use your default avatar image path
+                                                                            alt={`${e.employee?.first_name} ${e.employee?.last_name}`}
+                                                                            sx={{ width: 32, height: 32, cursor: "pointer", mx:0.2}}
+                                                                            />
+                                                                        </Tooltip>
+                                                                    ))}
+                                                                </Box>
+                                                            
                                                             ) : (
-                                                            <i style={{ color: '#999' }}>None</i>
+                                                            <Typography>--</Typography>
                                                             )}
                                                         </TableCell>
                                                         );
@@ -300,7 +283,7 @@ const DepartmentList = () => {
                                     </Table>
                                     </TableContainer>
                                 
-                                {filteredBranches.length > 0 && (
+                                {filteredDepartments.length > 0 && (
                                     <Box
                                         display="flex"
                                         sx={{
@@ -312,13 +295,13 @@ const DepartmentList = () => {
                                         }}
                                     >
                                         <Typography sx={{ mr: 2 }}>
-                                            Number of branches:
+                                            Number of Departments:
                                         </Typography>
                                         <Typography
                                             variant="h6"
                                             sx={{ fontWeight: "bold" }}
                                         >
-                                            {filteredBranches.length}
+                                            {filteredDepartments.length}
                                         </Typography>
                                     </Box>
                                 )}
@@ -328,7 +311,7 @@ const DepartmentList = () => {
                 </Box>
             </Box>
 
-            {/* Add New Branch Modal */}
+            {/* Add New Department Modal */}
             {openModal && <DepartmentAdd open={openModal} close={setOpenModal}></DepartmentAdd>}
 
             {/* Department Positions Settings Modal */}

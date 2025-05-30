@@ -3,30 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import Layout from "../../../components/Layout/Layout";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
-import {
-    Box,
-    Typography,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Button,
-    Avatar,
-    Grid,
-    TextField,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    FormGroup,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    InputAdornment
-} from "@mui/material";
+import {Box,Typography,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Button,Avatar,Grid,TextField, IconButton,Dialog,DialogTitle,DialogContent,FormGroup,
+FormControl,InputLabel,Select,MenuItem,InputAdornment} from "@mui/material";
+
 import DepartmentEdit from "./Modals/DepartmentEdit";
 
 const DepartmentDetails = () => {
@@ -36,23 +15,16 @@ const DepartmentDetails = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [department, setDepartment] = useState([]);
-    const [employees, setEmployees] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [branchFilter, setBranchFilter] = useState("all");
     const [openEditModal, setOpenEditModal] = useState(false);
     const [branches, setBranches] = useState([]);
-    const [allEmployees, setAllEmployees] = useState([]);
-    const [managerSearch, setManagerSearch] = useState("");
-    const [supervisorSearch, setSupervisorSearch] = useState("");
-    const [approverSearch, setApproverSearch] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setIsLoading(false);
-                
                 // Fetch department details
                 const deptResponse = await axiosInstance.get(`/settings/getDepartmentDetails/${id}`, { headers });
                 setDepartment(deptResponse.data.department);
@@ -71,13 +43,17 @@ const DepartmentDetails = () => {
     }, [id]);
 
     console.log(department);
-    console.log(branches);
-
-    const filteredEmployees = employees.filter(emp => {
-        const nameMatch = `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchKeyword.toLowerCase());
-        const branchMatch = branchFilter === "all" || emp.branch_id === branchFilter;
-        return nameMatch && branchMatch;
-    });
+    const filteredEmployees = department?.assigned_positions
+        ?.flatMap(asg_pos => asg_pos.employee_assignments)
+        ?.map(emp_assign => emp_assign.employee)
+        ?.filter((emp, index, self) => 
+            index === self.findIndex(e => e.id === emp.id) // remove duplicates
+        )
+        ?.filter(emp => {
+            const nameMatch = `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchKeyword.toLowerCase());
+            const branchMatch = branchFilter === "all" || emp.branch_id === branchFilter;
+            return nameMatch && branchMatch;
+        }) || [];
 
     if (error) return (
         <Layout title={"Departments"}>
@@ -191,20 +167,16 @@ const DepartmentDetails = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell>Employee Name</TableCell>
+                                                <TableCell>Branch</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {department?.assigned_positions?.length > 0 ? (
-                                                Array.from(
-                                                    new Map(
-                                                        department.assigned_positions
-                                                            .flatMap(ap => ap.employee_assignments)
-                                                            .map(emp_assign => [emp_assign.employee.id, emp_assign.employee]) // key by employee ID
-                                                    ).values()
-                                                ).map(emp => (
-                                                    <TableRow key={emp.id}>
-                                                        <TableCell>{emp.first_name} {emp.last_name}</TableCell>
-                                                    </TableRow>
+                                        {filteredEmployees.length > 0 ? (
+                                            filteredEmployees.map(emp => (
+                                                <TableRow key={emp.id}>
+                                                    <TableCell>{emp.first_name} {emp.last_name}</TableCell>
+                                                    <TableCell>{emp.branch?.name}</TableCell>
+                                                </TableRow>
                                                 ))
                                             ) : (
                                                 <TableRow>

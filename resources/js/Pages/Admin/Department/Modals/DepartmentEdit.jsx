@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box,Typography,Button,TextField,Dialog,DialogTitle,DialogContent,Chip,ListItemText,Checkbox,Menu,MenuItem,IconButton,
+import { Box,Typography,Button,TextField,Dialog,DialogTitle,DialogContent,Chip,ListItemText,Checkbox,Menu,MenuItem,IconButton,Divider,
 Grid,FormGroup,FormControl,} from "@mui/material";
 import axiosInstance,{ getJWTHeader }  from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
@@ -7,7 +7,6 @@ import Swal from "sweetalert2";
 const DepartmentEdit = ({open, close, departmentId}) =>{
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-
     const [nameError, setNameError] = useState(false);
     const [acronymError, setAcronymError] = useState(false);
     const [name, setName] = useState("");
@@ -17,8 +16,13 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
     const [initAssignments, setInitAssignments] = useState({}); //original assignments <will be used for the backend>
     const [assignments, setAssignments] = useState({}); // structure be like: {position_id: [emp_id, ...]}
     const [positions, setPosition] = useState([]);    
-    //fethcing data
+    //fetching data
     useEffect(() => {
+        getDepartmentDetails();
+        getEmployees();
+    }, [])
+
+    const getDepartmentDetails = () => {
         axiosInstance.get(`/settings/getDepartmentDetails/${departmentId}`, { headers })
             .then((response) => {
                 if(response.status === 200){
@@ -41,6 +45,8 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                     }
                 }
         });
+    }
+    const getEmployees = () => {
         axiosInstance.get('/employee/getEmployees', { headers })
             .then((response) => {
                 if(response.status === 200){
@@ -68,8 +74,8 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                 console.error('Error fetching positions:', error);
                 setPosition(null);
             });
-        
-    }, [])
+
+    }
 
     const handleAssignChange = (position_id) => (event) => {
         const selected = event.target.value; //employee id arrays
@@ -159,7 +165,6 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
         event.preventDefault();
 
         const changes = generateAssignmentChanges();
-
         const data = {
             name: name,
             acronym: acronym,
@@ -182,7 +187,7 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        setOpenModal(false);
+                        close(false);
                     });
                 }
             })
@@ -286,6 +291,7 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                             '& label.Mui-focused': { color: '#97a5ba' },
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
+                
                             <Box display="flex" sx={{mb:2}}>
                                 <Typography variant="h5" sx={{ marginLeft: { xs: 0, md: 1 }, marginRight:{xs:1, md:2}, fontWeight: 'bold' }}>Assign Employees</Typography>
                             </Box>
@@ -348,7 +354,7 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Branch </p>
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Department </p>
                             </Button>
                         </Box>
                     </Box>

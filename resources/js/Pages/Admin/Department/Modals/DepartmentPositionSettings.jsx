@@ -258,7 +258,7 @@ const DepartmentPositionSettings = ({open, close}) => {
                                         <Typography>Can Accept</Typography>
                                     </Box>
                                 </Grid>
-                                <Grid item xs={12} md={1}>
+                                <Grid item xs={12} md={2}>
                                     <Button 
                                         variant="contained" 
                                         onClick={addNewPosition}
