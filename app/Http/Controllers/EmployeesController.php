@@ -192,6 +192,19 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
+
+
+    public function getEmployeesByBranch($id)
+    {
+        try {
+            $employees = UsersModel::where('branch_id', $id)->select('id', 'first_name', 'last_name', 'avatar')->get();
+                
+            return response()->json([ 'status' => 200, 'employees' => $employees ]);
+        } catch (\Exception $e) {
+            return response()->json([ 'status' => 500, 'message' => 'Error fetching employees by branch' ]);
+        }
+    }
+
     public function getEmployeeLeaveCredits()
     {
         // log::info("EmployeesController::getEmployeeLeaveCredits");
@@ -560,6 +573,14 @@ class EmployeesController extends Controller
 
             throw $e;
         }
+    }
+
+    public function editMyProfilePicture(Request $request)
+    {
+        log::info("EmployeesController::editMyProfilePicture");
+        log::info($request);
+
+        $user = UsersModel::findOrFail($request->input('id'));
     }
 
     public function editEmployeeDetails(Request $request)

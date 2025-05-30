@@ -8,8 +8,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import EditIcon from "@mui/icons-material/Edit";
 
 function UserInformation({ user }) {
-    console.log(user)
-
     const queryClient = useQueryClient();
     const fileInputRef = useRef();
     const storedUser = localStorage.getItem("nasya_user");
@@ -70,6 +68,7 @@ function UserInformation({ user }) {
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Save
+                        console.log(file);
                         setNewProfilePic(file);
                         // Render
                         const reader = new FileReader();
@@ -80,8 +79,6 @@ function UserInformation({ user }) {
 
                         //Upload
                         saveProfilePic(event);
-                        console.log(profilePic)
-                        console.log(newProfilePic)
                     }
                 });
             }
@@ -91,21 +88,11 @@ function UserInformation({ user }) {
     const saveProfilePic = (event) => {
         event.preventDefault();
         const formData = new FormData();
+
         formData.append('id', user.id);
         formData.append('profile_pic', newProfilePic);
 
-        // [1] needed as the current backend function will update these information to empty sets if not provided
-        formData.append('first_name', user.first_name ?? '');
-        formData.append('middle_name', user.middle_name ?? '');
-        formData.append('last_name', user.last_name) ?? '';
-        formData.append('suffix', user.suffix ?? '');
-        formData.append("birth_date", dayjs(user.birth_date).format("YYYY-MM-DD HH:mm:ss"));
-        formData.append('gender', user.gender) ?? '';
-        formData.append('contact_number', user.contact_number ?? '');
-        formData.append('address', user.address ?? '');
-        // End of [1]
-
-        axiosInstance.post('/employee/editMyProfile', formData, { headers })
+        axiosInstance.post('/employee/editMyProfilePicture', formData, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
@@ -116,7 +103,7 @@ function UserInformation({ user }) {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then((res) => {
-                        queryClient.invalidateQueries(["user"])
+                        queryClient.invalidateQueries(["user"]);
                         close(true);
                     });
                 }
@@ -188,44 +175,10 @@ function UserInformation({ user }) {
                     <Tooltip title="Update Profile, 5 MB Limit">
                         <span style={{ cursor: "pointer", position: "relative" }}>
                             <input hidden type="file" onChange={handleUpload} accept=".png, .jpg, .jpeg" ref={fileInputRef} />
-                            <Avatar
-                                className="profile-image" onClick={triggerFileInput} src={profilePic} sx={{ height: "200px", width: "200px", boxShadow: 3, transition: "filter 0.3s", }} />
-                            <EditIcon className="profile-edit-icon" opacity="0"
-                                sx={{
-                                    fontSize: "90px",
-                                    opacity: 0,
-                                    position: "absolute",
-                                    top: "50%",
-                                    left: "50%",
-                                    color: "white",
-                                    pointerEvents: "none",
-                                    transform: "translate(-50%, -50%)",
-                                    transition: "opacity 0.3s",
-                                }}
-                            />
+                            <Avatar className="profile-image" onClick={triggerFileInput} src={profilePic} sx={{ height: "200px", width: "200px", boxShadow: 3, transition: "filter 0.3s", }} />
+                            <EditIcon className="profile-edit-icon" opacity="0" sx={{ fontSize: "90px", opacity: 0, position: "absolute", top: "50%", left: "50%", color: "white", pointerEvents: "none", transform: "translate(-50%, -50%)", transition: "opacity 0.3s" }} />
                         </span>
                     </Tooltip>
-                    {/* <Box sx={{position:"relative"}}>
-                        <Avatar src={profilePic} sx={{ height: "160px", width: "160px", boxShadow: 3 }} />
-                        <Tooltip title="Upload Image, 5 MB Limit">
-                            <Button variant="outlined" startIcon={<Edit />}
-                                component="label"
-                                sx={{
-                                    border: "2px solid #e0e0e0", borderRadius: "10px",
-                                    backgroundColor: "#ffffff", color: "text.secondary",
-                                    position: "absolute", right: "0px", bottom: "0px",
-                                    '&:hover': {
-                                        border: "2px solid #e0e0e0",
-                                        borderRadius: "10px",
-                                        backgroundColor: "#ffffff",
-                                        color: "text.secondary",
-                                    },
-                                }}>
-                                Edit
-                                <input type="file" hidden onChange={handleUpload} accept=".png, .jpg, .jpeg"></input>
-                            </Button>
-                        </Tooltip>
-                    </Box> */}
                 </Box>
             </Grid>
             <Stack spacing={2}>
