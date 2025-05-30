@@ -30,36 +30,43 @@ const PerformanceEvaluationFormSection = ({ section }) => {
         editSection
     } = useEvaluationFormSection(section);
 
-    // Section handlers
-    const [onSectionClick] = useClickHandler({
-        onSingleClick: toggleExpand,
-        onDoubleClick: toggleEditable
+    const inputRef = useRef(null);
+
+    // Section header click (single: expand/collapse, double: edit)
+    const onSectionClick = useClickHandler({
+        onSingleClick: () => toggleExpand(),
+        onDoubleClick: toggleEditableSection
     });
-
-    const handleSaveSectionName = (sectionName) => {
-        editSection({ name: sectionName }, inputRef).then((response) => {
-            if(response.data.status.toString().startsWith(2))
-                toggleEditableSection();
-        });
-    }
-
-    const handleSaveCategoryName = (categoryName) => {
-        editSection({ category: categoryName }, inputRef).then((response) => {
-            if(response.data.status.toString().startsWith(2))
-                toggleEditableCategory();
-        });
-    }
 
     // Category modal state
     const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-
-    // Category modal handlers
     const handleOpenAddCategoryModal = () => setAddCategoryOpen(true);
     const handleCloseAddCategoryModal = () => setAddCategoryOpen(false);
 
-    // Save category
-    const handleSaveCategory = (sectionCategory) => {
-        if (!sectionId || !sectionCategory) {
+    // Subcategory modal state
+    const [addSubcategoryOpen, setAddSubcategoryOpen] = useState(false);
+    const handleOpenAddSubcategoryModal = () => setAddSubcategoryOpen(true);
+    const handleCloseAddSubcategoryModal = () => setAddSubcategoryOpen(false);
+
+    // Save handlers for inline editing
+    const handleSaveSectionName = (newName) => {
+        if (!newName?.trim()) {
+            Swal.fire({
+                text: "Section Name is required!",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+        editSection({ name: newName }, inputRef).then((response) => {
+            if (response?.data?.status?.toString().startsWith("2")) {
+                toggleEditableSection();
+            }
+        });
+    };
+
+    const handleSaveCategoryName = (newCategory) => {
+        if (!newCategory?.trim()) {
             Swal.fire({
                 text: "Category Name is required!",
                 icon: "error",
@@ -67,19 +74,29 @@ const PerformanceEvaluationFormSection = ({ section }) => {
             });
             return;
         }
-        editSection({ category: sectionCategory });
+        editSection({ category: newCategory }, inputRef).then((response) => {
+            if (response?.data?.status?.toString().startsWith("2")) {
+                toggleEditableCategory();
+            }
+        });
     };
 
-    // Subcategory modal state
-    const [addSubcategoryOpen, setAddSubcategoryOpen] = useState(false);
+    // Save category from modal
+    const handleSaveCategory = (categoryValue) => {
+        if (!sectionId || !categoryValue?.trim()) {
+            Swal.fire({
+                text: "Category Name is required!",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+        editSection({ category: categoryValue });
+    };
 
-    // Subcategory modal handlers
-    const handleOpenAddPerformanceEvaluationFormAddSubcategory = () => setAddSubcategoryOpen(true);
-    const handleCloseAddPerformanceEvaluationFormAddSubcategory = () => setAddSubcategoryOpen(false);
-
-    // Save Subcategory
+    // Save subcategory from modal
     const handleSaveSubcategory = (subcategory) => {
-        if (!subcategory.name) {
+        if (!subcategory?.name?.trim()) {
             Swal.fire({
                 text: "Subcategory Name is required!",
                 icon: "error",
@@ -90,22 +107,20 @@ const PerformanceEvaluationFormSection = ({ section }) => {
         saveSubcategory(subcategory);
     };
 
-    // Local state to track which subcategory is expanded
+    // Collapsible subcategory state
     const [expandedSubcategory, setExpandedSubcategory] = useState(null);
     const handleSubcategoryToggle = (id) => (event, isExpanded) => {
         setExpandedSubcategory(isExpanded ? id : null);
     };
 
-    // Helper to display subcategory type
+    // Display for subcategory type
     const getSubcategoryTypeDisplay = (type) => {
-        // You can customize these for user-friendly names
         const map = {
             short_answer: "Short Answer",
             checkbox: "Checkbox",
             linear_scale: "Linear Scale",
             rating: "Rating",
             comment: "Comment",
-            // Add more mappings as needed
         };
         return map[type] || type;
     };
@@ -141,9 +156,8 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     boxShadow: 'none',
                 }}
             >
-                {/* {sectionName} */}
-                {
-                    editableSectionName ? <TextField
+                {editableSectionName ? (
+                    <TextField
                         autoFocus
                         label="Section Name"
                         fullWidth
@@ -152,7 +166,6 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                         onChange={(e) => setSectionName(e.target.value)}
                         onBlur={(e) => handleSaveSectionName(e.target.value)}
                         ref={inputRef}
-                        required
                         InputProps={{
                             disableUnderline: true,
                             style: {
@@ -165,10 +178,23 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                         InputLabelProps={{
                             style: { color: '#fff8e1' }
                         }}
-                    /> : sectionName
-                }
+                        required
+                    />
+                ) : (
+                    <Box
+                        sx={{
+                            width: "100%",
+                            cursor: "pointer",
+                            fontWeight: "bold",
+                            fontSize: 18,
+                            color: 'white',
+                        }}
+                    >
+                        {sectionName}
+                    </Box>
+                )}
             </AccordionSummary>
-            <AccordionDetails sx={{ bgcolor: '#fff', borderRadius: 3, pt: 0, mb: 2, mx:2 }}>
+            <AccordionDetails sx={{ bgcolor: '#fff', borderRadius: 3, pt: 0, mb: 2, mx: 2 }}>
                 <Paper
                     elevation={0}
                     sx={{
@@ -179,45 +205,78 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                         bgcolor: 'transparent'
                     }}
                 >
-                    {/* Only render the category card if a category exists */}
-                    {sectionCategory && (
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                bgcolor: '#f6f6f6',
-                                borderRadius: 2,
-                                borderLeft: '8px solid #eab31a',
-                                px: 3,
-                                pt: 2,
-                                pb: 2,
-                                mt: 2,
-                                mb: 4,
-                                mx: 2
-                            }}
-                        >
-                            <Typography
-                                variant="h6"
-                                sx={{
-                                    fontWeight: 'bold',
-                                    color: '#222',
-                                    mb: 2
+                    {/* CATEGORY */}
+                    {sectionCategory ? (
+                        editableCategory ? (
+                            <TextField
+                                autoFocus
+                                label="Category"
+                                fullWidth
+                                variant="standard"
+                                value={sectionCategory}
+                                onChange={(e) => setSectionCategory(e.target.value)}
+                                onBlur={(e) => handleSaveCategoryName(e.target.value)}
+                                ref={inputRef}
+                                InputProps={{
+                                    disableUnderline: true,
+                                    style: {
+                                        color: '#222',
+                                        fontWeight: 'bold',
+                                        fontSize: 20,
+                                        background: '#f6f6f6'
+                                    }
                                 }}
-                            >
-                                {sectionCategory}
-                            </Typography>
-                            <Box
-                                sx={{
-                                    borderBottom: "2px solid #ccc",
-                                    width: "100%",
-                                    mt: 1
+                                InputLabelProps={{
+                                    style: { color: '#eab31a' }
                                 }}
+                                sx={{ mb: 2, mx: 2, mt: 2 }}
+                                required
                             />
-                        </Paper>
+                        ) : (
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    bgcolor: '#f6f6f6',
+                                    borderRadius: 2,
+                                    borderLeft: '8px solid #eab31a',
+                                    px: 3,
+                                    pt: 2,
+                                    pb: 2,
+                                    mt: 2,
+                                    mb: 4,
+                                    mx: 2,
+                                    cursor: "pointer"
+                                }}
+                                onDoubleClick={toggleEditableCategory}
+                            >
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        color: '#222',
+                                        mb: 2
+                                    }}
+                                >
+                                    {sectionCategory}
+                                </Typography>
+                                <Box
+                                    sx={{
+                                        borderBottom: "2px solid #ccc",
+                                        width: "100%",
+                                        mt: 1
+                                    }}
+                                />
+                            </Paper>
+                        )
+                    ) : (
+                        <Box sx={{ textAlign: "center", mt: 3, color: "#aaa", fontStyle: "italic", mb: 2 }}>
+                            No category yet.
+                        </Box>
                     )}
 
-                    {/* Render collapsible subcategories */}
+                    {/* SUBCATEGORIES */}
                     {sectionCategory && subcategories.map((subcategory) => (
                         <Accordion
                             key={subcategory.id}
@@ -257,6 +316,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                         </Accordion>
                     ))}
 
+                    {/* BUTTONS */}
                     <Box sx={{ textAlign: 'center', mt: sectionCategory ? 0 : 3 }}>
                         <Button
                             variant="contained"
@@ -271,7 +331,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 letterSpacing: 1,
                                 '&:hover': { bgcolor: '#0d5c27' }
                             }}
-                            onClick={sectionCategory ? handleOpenAddPerformanceEvaluationFormAddSubcategory : handleOpenAddCategoryModal}
+                            onClick={sectionCategory ? handleOpenAddSubcategoryModal : handleOpenAddCategoryModal}
                         >
                             {sectionCategory ? <>ADD SUB-CATEGORY</> : <>ADD CATEGORY</>}
                         </Button>
@@ -285,7 +345,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
             />
             <PerformanceEvaluationFormAddSubcategory
                 open={addSubcategoryOpen}
-                onClose={handleCloseAddPerformanceEvaluationFormAddSubcategory}
+                onClose={handleCloseAddSubcategoryModal}
                 onSave={handleSaveSubcategory}
             />
         </Accordion>
