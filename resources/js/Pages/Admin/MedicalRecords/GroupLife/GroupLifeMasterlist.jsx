@@ -1,0 +1,142 @@
+import React, { useState } from "react";
+import {
+  Box,
+  Button,
+  Typography,
+  FormControl,
+  InputLabel,
+  OutlinedInput,
+  InputAdornment,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import Layout from "../../../../components/Layout/Layout";
+import GroupLifeAddModal from "./Modal/GroupLifeAddModal";
+import GroupLifeCompanyTable from "./GroupLifeCompanyTable";
+import GroupLifeOverview from "./GroupLifeOverview";
+import GroupLifeEmployees from "./GroupLifeEmployees";
+
+const GroupLifeMasterlist = () => {
+    const navigator = useNavigate();
+    const [openAddGroupLifeModal, setOpenAddGroupLifeModal] = useState(false);
+    const [search, setSearch] = useState("");
+
+    const companies = [
+            {
+                id: 1,
+                companyname: "St. Peter Life Plan",
+                planType: "Traditional",
+                paymentType: "Amount",
+                employerShare: 300.00,
+                employeeShare: 400.00,
+            },
+            {
+                id: 2,
+                companyname: "Evergreen Life Plan",
+                planType: "Cremation",
+                paymentType: "Amount",
+                employerShare: 300.00,
+                employeeShare: 400.00,
+            }
+        ];
+
+    const filteredRecords = companies
+        .filter((companies) =>
+        [companies.companyname,
+        companies.planType,
+        companies.paymentType,
+        companies.employerShare,
+        companies.employeeShare
+        ].some((field) =>
+            (typeof field === "number"
+            ? field.toFixed(2)
+            : (field ?? "").toString()
+            )
+            .toLowerCase()
+            .includes(search.toLowerCase())
+            ))
+
+    const resultsCount = filteredRecords.length;
+
+        const handleOnRowClick = () => {
+            navigator(
+                `/admin/medical-records/group-life-masterlist/group-life-employees/`
+            );
+        };
+
+    return (
+    <Layout title={"Pre-Employment Medical Exam Records"}>
+        <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
+            <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+
+                <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
+                                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                                                Group Life Masterlist
+                                            </Typography>
+
+                                            <Button
+                                                onClick={() => setOpenAddGroupLifeModal(true)}
+                                                variant="contained"
+                                                style={{ color: "#e8f1e6" }}
+                                            >
+                                                <i className="fa fa-plus pr-2"></i> Add
+                                            </Button>
+                                            </Box>
+                
+                                            <Box>
+                                            <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
+                                                <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
+                                                    <InputLabel htmlFor="custom-search">
+                                                        Search
+                                                    </InputLabel>
+                                                    <OutlinedInput
+                                                        id="custom-search"
+                                                        value={search}
+                                                        onChange={(e) => setSearch(e.target.value)}
+                                                        endAdornment={
+                                                        search && (
+                                                            <InputAdornment position="end">
+                                                            <Typography variant="body2" sx={{ color: "gray" }}>
+                                                                {resultsCount}{" "}
+                                                                {resultsCount === 1 || resultsCount === 0
+                                                                ? "Match"
+                                                                : "Matches"}
+                                                            </Typography>
+                                                            </InputAdornment>
+                                                        )
+                                                        }
+                                                        label="Search"
+                                                    />
+                                                </FormControl>
+                                        </Box>
+                                    </Box>
+
+                            <Box sx={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "nowrap", justifyContent: "flex-start", alignItems: "flex-start" }}>
+                            
+                                <Box sx={{width: "25%", minWidth: 280, backgroundColor: "white", borderRadius: 2, padding: 2, flexShrink: 0 }}>
+                                    <GroupLifeOverview records={companies} />
+                                </Box>
+
+                                <Box sx={{ width: "80%", minWidth: 300, backgroundColor: "white", borderRadius: 2, padding: 2, overflow: "hidden" }}>
+                                    <GroupLifeCompanyTable
+                                        onRowClick={handleOnRowClick}
+                                        responses={filteredRecords}
+                                        search={search}/>
+                                </Box>
+                            </Box>
+
+                            {openAddGroupLifeModal && (
+                                <GroupLifeAddModal
+                                    open={true}
+                                    close={() => setOpenAddGroupLifeModal(false)}
+                                />
+
+                        )}
+                </Box>
+            </Box>
+
+    </Layout>
+    
+  );
+};
+
+export default GroupLifeMasterlist;

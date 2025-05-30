@@ -59,13 +59,18 @@ import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 import Documents from "../Pages/Admin/Documents";
 import AddNewPerimeter from "../Pages/Admin/Perimeters/AddRadiusPerimeter";
 import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
+
+
 import PemeRecords from "../Pages/Admin/MedicalRecords/PEME/PemeRecords";
-import GroupLifeMasterlist from "../Pages/Admin/MedicalRecords/GroupLifeMasterlist";
-import HMOmasterlist from "../Pages/Admin/MedicalRecords/HMOmasterlist";
 import PemeRecordsForm from "../Pages/Admin/MedicalRecords/PEME/Forms/PemeRecordsForm";
 import PemeResponses from "../Pages/Admin/MedicalRecords/PEME/PemeResponses";
 import PemeQuestionnaireView from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnaireView";
 import PemeQuestionnairePreview from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnairePreview";
+
+import GroupLifeMasterlist from "../Pages/Admin/MedicalRecords/GroupLife/GroupLifeMasterlist";
+import GroupLifeEmployees from "../Pages/Admin/MedicalRecords/GroupLife/GroupLifeEmployees";
+import HMOmasterlist from "../Pages/Admin/MedicalRecords/HMO/HMOmasterlist";
+
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -375,6 +380,16 @@ const AdminRoutes = ({ user }) => {
                 element={
                     <ProtectedRoute
                         element={<GroupLifeMasterlist />}
+                        user={user}
+                    />
+                }
+            />
+
+            <Route
+                path="medical-records/group-life-masterlist/group-life-employees/"
+                element={
+                    <ProtectedRoute
+                        element={<GroupLifeEmployees />}
                         user={user}
                     />
                 }

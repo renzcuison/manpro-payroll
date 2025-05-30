@@ -51,25 +51,25 @@ const GroupLifeMasterlist = () => {
         //                         gap: "12px",
         //                     }}
         //                 >
-        //                     <Button
-        //                         variant="contained"
-        //                         style={{ color: "#e8f1e6" }}
-        //                         // onClick={() => navigate("/admin/perimeters/add")}
-        //                     >
-        //                         <i className="fa fa-plus pr-2"></i> Add New
-        //                         Record Type
-        //                     </Button>
-        //                     <Button
-        //                         variant="contained"
-        //                         color="secondary"
-        //                         style={{
-        //                             color: "#5d460d",
-        //                         }}
-        //                         // onClick={() => navigate("/admin/perimeters/add")}
-        //                     >
-        //                         <i className="fa fa-plus pr-2"></i>
-        //                         Add New Record
-        //                     </Button>
+                            // <Button
+                            //     variant="contained"
+                            //     style={{ color: "#e8f1e6" }}
+                            //     // onClick={() => navigate("/admin/perimeters/add")}
+                            // >
+                            //     <i className="fa fa-plus pr-2"></i> Add New
+                            //     Record Type
+                            // </Button>
+                            // <Button
+                            //     variant="contained"
+                            //     color="secondary"
+                            //     style={{
+                            //         color: "#5d460d",
+                            //     }}
+                            //     // onClick={() => navigate("/admin/perimeters/add")}
+                            // >
+                            //     <i className="fa fa-plus pr-2"></i>
+                            //     Add New Record
+                            // </Button>
         //                 </div>
         //             </Box>
         //         </Box>
