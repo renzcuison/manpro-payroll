@@ -49,6 +49,7 @@ use App\Http\Controllers\PreviousFilterController;
 use App\Http\Controllers\Desktop\DesktopController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\MilestoneController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [UserAuthController::class, 'login']);
@@ -336,14 +337,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/getEmployeeAvatars', [AdminDashboardController::class, 'getEmployeeAvatars']);
         // ADMIN ROUTES
         Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+        Route::get('/admin/dashboard1', [AdminDashboardController::class, 'getAttendanceToday1']);
     });
     
     Route::prefix('admin')->group(function () {
         // ADMIN ROUTES
         Route::get('/dashboard', [AdminDashboardController::class, 'index']);
         Route::get('/attendance/today', [AdminDashboardController::class, 'getAttendanceToday']);
-    });
 
+        Route::get('/milestones', [MilestoneController::class, 'index']);
+    });
 
     Route::prefix('trainings')->group(function () {
         // Trainings, Training Content

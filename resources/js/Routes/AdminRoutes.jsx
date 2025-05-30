@@ -73,6 +73,7 @@ import AddNewPerimeter from "../Pages/Admin/Perimeters/AddRadiusPerimeter";
 import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
 
 import AnnouncementTypes from '../Pages/Admin/Announcements/AnnouncementTypes';
+import Milestones from "../Pages/Admin/Milestones";
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -155,6 +156,13 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="announcements/types" element={<AnnouncementTypes />} />
             <Route path="announcements/types/publish-filter" element={<AnnouncementPublishFilter />} />
+
+            <Route
+                path="milestones"
+                element={
+                    <ProtectedRoute element={<Milestones />} user={user} />
+                }
+            />
         </Routes>
     );
 };
