@@ -403,7 +403,7 @@ const BranchList = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Branches Management
+                            Branches
                         </Typography>
 
                         <Grid item>

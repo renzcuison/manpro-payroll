@@ -26,11 +26,14 @@ import {
     Select,
     MenuItem,
     InputAdornment,
-    Checkbox
+    Checkbox,
+    ListItemText,
+    Chip
 } from "@mui/material";
 import Swal from "sweetalert2";
 import { red } from "@mui/material/colors";
 import SearchIcon from "@mui/icons-material/Search";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 const BranchDetails = () => {
     const { id } = useParams();
@@ -102,31 +105,29 @@ const BranchDetails = () => {
         return employee ? employee.avatar : null;
     };
 
-    // Get assigned employee for a specific position
-    const getAssignedEmployeeForPosition = (positionId) => {
-        const assignment = positionAssignments.find(a => a.branch_position_id === positionId);
-        return assignment ? assignment.employee_id : null;
+    // Get assigned employees for a specific position (now returns array)
+    const getAssignedEmployeesForPosition = (positionId) => {
+        return positionAssignments
+            .filter(a => a.branch_position_id === positionId)
+            .map(a => a.employee_id);
     };
 
-    // Update position assignment
-    const handlePositionAssignmentChange = (positionId, employeeId) => {
-        const updatedAssignments = [...positionAssignments];
-        const existingIndex = updatedAssignments.findIndex(a => a.branch_position_id === positionId);
+    // Update position assignments (now handles multiple employees)
+    const handlePositionAssignmentChange = (positionId, selectedEmployeeIds) => {
+        // First remove all existing assignments for this position
+        const updatedAssignments = positionAssignments.filter(
+            a => a.branch_position_id !== positionId
+        );
         
-        if (existingIndex >= 0) {
-            if (employeeId) {
-                updatedAssignments[existingIndex].employee_id = employeeId;
-            } else {
-                updatedAssignments.splice(existingIndex, 1);
-            }
-        } else if (employeeId) {
+        // Then add new assignments for each selected employee
+        selectedEmployeeIds.forEach(employeeId => {
             updatedAssignments.push({
                 branch_id: id,
                 branch_position_id: positionId,
                 employee_id: employeeId
             });
-        }
-    
+        });
+
         setPositionAssignments(updatedAssignments);
     };
 
@@ -136,19 +137,30 @@ const BranchDetails = () => {
         return nameMatch && departmentMatch;
     });
 
-    // Filter function for dropdown searches
-    const getFilteredEmployeeOptions = (positionId) => {
-        const searchQuery = searchQueries[positionId] || "";
-        return allEmployees.filter(emp => 
-            `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    };
 
+
+    // Filter function for dropdown searches - now uses filteredEmployees
+    const getFilteredEmployeeOptions = (positionId) => {
+    const searchQuery = searchQueries[positionId] || "";
+    return filteredEmployees.filter(emp => {
+        // Use the correct property names based on your employee object structure
+        const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim();
+        return fullName.toLowerCase().includes(searchQuery.toLowerCase());
+            });
+        };
+console.log('Employee data:', filteredEmployees);
     const handleSearchChange = (positionId, value) => {
         setSearchQueries(prev => ({
             ...prev,
             [positionId]: value
         }));
+    };
+
+    const handleSelectAll = (positionId) => {
+        const allIds = getFilteredEmployeeOptions(positionId).map(emp => emp.id);
+        const currentIds = getAssignedEmployeesForPosition(positionId);
+        const newIds = currentIds.length === allIds.length ? [] : allIds;
+        handlePositionAssignmentChange(positionId, newIds);
     };
 
     if (error) return (
@@ -170,7 +182,7 @@ const BranchDetails = () => {
                     display: 'flex', 
                     justifyContent: 'center', 
                     alignItems: 'center', 
-                    height: 'calc(100vh - 200px)' // Adjust based on your header height
+                    height: 'calc(100vh - 200px)'
                 }}>
                     <LoadingSpinner />
                 </Box>
@@ -234,7 +246,7 @@ const BranchDetails = () => {
                                         }}
                                     >
                                         {branchPositions.map(position => {
-                                            const assignedEmployeeId = getAssignedEmployeeForPosition(position.id);
+                                            const assignedEmployees = getAssignedEmployeesForPosition(position.id);
                                             return (
                                                 <Box
                                                     key={position.id}
@@ -250,12 +262,27 @@ const BranchDetails = () => {
                                                         textAlign: 'center',
                                                     }}
                                                 >
-                                                    <Avatar
-                                                        src={getEmployeeAvatarById(assignedEmployeeId)}
-                                                        sx={{ width: 90, height: 90, mb: 1 }}
-                                                    />
+                                                    {assignedEmployees.length > 0 ? (
+                                                        <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                                                            {assignedEmployees.slice(0, 3).map(employeeId => (
+                                                                <Avatar
+                                                                    key={employeeId}
+                                                                    src={getEmployeeAvatarById(employeeId)}
+                                                                    sx={{ width: 60, height: 60 }}
+                                                                />
+                                                            ))}
+                                                        </Box>
+                                                    ) : (
+                                                        <Avatar sx={{ width: 90, height: 90, mb: 1 }} />
+                                                    )}
                                                     <TextField
-                                                        value={getEmployeeNameById(assignedEmployeeId)}
+                                                        value={
+                                                            assignedEmployees.length > 0 
+                                                                ? assignedEmployees.length > 3
+                                                                    ? `${assignedEmployees.slice(0, 3).map(id => getEmployeeNameById(id)).join(', ')} +${assignedEmployees.length - 3} more`
+                                                                    : assignedEmployees.map(id => getEmployeeNameById(id)).join(', ')
+                                                                : "Not assigned"
+                                                        }
                                                         fullWidth
                                                         InputProps={{
                                                             readOnly: true,
@@ -504,11 +531,11 @@ const BranchDetails = () => {
                             </FormControl>
                         </FormGroup>
 
-                        {/* Position Assignments Section */}
+                      {/* Position Assignments Section */}
                         <Typography variant="h6" sx={{ mt: 3, mb: 2, fontWeight: 'bold' }}>
                             Position Assignments
                         </Typography>
-                        
+
                         {branchPositions.map(position => (
                             <FormControl 
                                 key={position.id} 
@@ -525,9 +552,28 @@ const BranchDetails = () => {
                                 <Select
                                     labelId={`position-${position.id}-label`}
                                     id={`position-${position.id}-select`}
-                                    value={getAssignedEmployeeForPosition(position.id) || ''}
-                                    label={position.name}
+                                    multiple
+                                    value={getAssignedEmployeesForPosition(position.id)}
                                     onChange={(e) => handlePositionAssignmentChange(position.id, e.target.value)}
+                                    renderValue={(selected) => (
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                            {selected.map((id) => (
+                                                <Chip 
+                                                    key={id}
+                                                    label={getEmployeeNameById(id)}
+                                                    onDelete={(e) => {
+                                                        e.stopPropagation();
+                                                        handlePositionAssignmentChange(
+                                                            position.id, 
+                                                            getAssignedEmployeesForPosition(position.id).filter(eid => eid !== id)
+                                                        );
+                                                    }}
+                                                    deleteIcon={<CancelIcon />}
+                                                    size="small"
+                                                />
+                                            ))}
+                                        </Box>
+                                    )}
                                     MenuProps={{
                                         PaperProps: {
                                             style: {
@@ -537,11 +583,30 @@ const BranchDetails = () => {
                                         onClick: (e) => e.stopPropagation()
                                     }}
                                 >
+                                    <MenuItem 
+                                        value="select-all"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSelectAll(position.id);
+                                        }}
+                                    >
+                                        <Checkbox
+                                            checked={getFilteredEmployeeOptions(position.id).every(emp => 
+                                                getAssignedEmployeesForPosition(position.id).includes(emp.id))
+                                            }
+                                            indeterminate={
+                                                getAssignedEmployeesForPosition(position.id).length > 0 &&
+                                                getAssignedEmployeesForPosition(position.id).length < getFilteredEmployeeOptions(position.id).length
+                                            }
+                                        />
+                                        <ListItemText primary="Select All" />
+                                    </MenuItem>
+
                                     <MenuItem value="" sx={{ p: 0 }}>
                                         <Box sx={{ p: 1, width: '100%' }} onClick={(e) => e.stopPropagation()}>
                                             <TextField
                                                 fullWidth
-                                                placeholder={`Search ${position.name} (ID: ${position.id})...`}
+                                                placeholder={`Search ${position.name}`}
                                                 value={searchQueries[position.id] || ''}
                                                 onChange={(e) => handleSearchChange(position.id, e.target.value)}
                                                 onClick={(e) => {
@@ -562,10 +627,13 @@ const BranchDetails = () => {
                                             />
                                         </Box>
                                     </MenuItem>
-                                    <MenuItem value="">Not assigned</MenuItem>
-                                    {getFilteredEmployeeOptions(position.id).map((emp) => (
+
+                                   {getFilteredEmployeeOptions(position.id).map((emp) => (
                                         <MenuItem key={emp.id} value={emp.id}>
-                                            {`${emp.first_name} ${emp.last_name}`}
+                                            <Checkbox
+                                                checked={getAssignedEmployeesForPosition(position.id).includes(emp.id)}
+                                            />
+                                            <ListItemText primary={`${emp.first_name} ${emp.last_name}`} />
                                         </MenuItem>
                                     ))}
                                 </Select>
