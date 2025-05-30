@@ -261,7 +261,7 @@ class EvaluationFormController extends Controller
         /*
             evaluationForm: {
                 id, name, creator_id, creator_user_name,
-                created_at, updated_at, deleted_at,
+                created_at, updated_at,
                 sections: {
                     form_id, id, name, category, order,
                     subcategories: {
@@ -571,8 +571,18 @@ class EvaluationFormController extends Controller
 
     public function editEvaluationFormSection(Request $request)
     {
-        // here: do comments
-        
+        // inputs:
+        /*
+            id: number
+        */
+
+        // returns:
+        /*
+            evaluationFormSection: {
+                id, name, order, created_at, updated_at
+            }
+        */
+
         log::info('EvaluationFormController::editEvaluationFormSection');
 
         if (Auth::check()) {
@@ -639,6 +649,24 @@ class EvaluationFormController extends Controller
 
     public function getEvaluationFormSection(Request $request)
     {
+        // inputs:
+        /*
+            id: number
+        */
+
+        // returns:
+        /*
+            evaluationFormSection: {
+                id, form_id, name, category, order, created_at, updated_at,
+                subcategories: {
+                    section_id, id, name, subcategory_type, description, required,
+                    allow_other_option, linear_scale_start, linear_scale_end, order,
+                    options: {
+                        subcategory_id, id, label, order
+                    }[]
+                }[]
+            }
+        */
 
         log::info('EvaluationFormController::getEvaluationFormSection');
 
@@ -699,6 +727,19 @@ class EvaluationFormController extends Controller
     
     public function moveEvaluationFormSection(Request $request)
     {
+        // inputs:
+        /*
+            id: number,
+            order: number              // counting start at 1 
+        */
+
+        // returns:
+        /*
+            evaluationFormSection: {
+                id, name, order, created_at, updated_at
+            }
+        */
+
         log::info('EvaluationFormController::moveEvaluationFormSection');
 
         if (Auth::check()) {
@@ -785,6 +826,16 @@ class EvaluationFormController extends Controller
 
     public function saveEvaluationFormSection(Request $request)
     {
+        // inputs:
+        /*
+            name: string
+        */
+
+        // returns:
+        /*
+            evaluationFormSectionID
+        */
+
         log::info('EvaluationFormController::saveEvaluationFormSection');
 
         if (Auth::check()) {
@@ -839,6 +890,8 @@ class EvaluationFormController extends Controller
             throw $e;
         }
     }
+
+    // evaluation form subcategory
 
     public function getEvaluationFormSubcategory(Request $request)
     {
