@@ -28,15 +28,12 @@ const PerformanceEvaluationFormSection = ({ section }) => {
         order,
         subcategories, saveSubcategory,
         editSection
-    } = useEvaluationFormSection( section );
-    const inputRef = useRef(null);
-    const hasSubcategories = subcategories.length > 0;
+    } = useEvaluationFormSection(section);
 
     // Section handlers
-
-    const onSectionClick = useClickHandler({
-        onSingleClick: () => toggleExpand(),
-        onDoubleClick: toggleEditableSection
+    const [onSectionClick] = useClickHandler({
+        onSingleClick: toggleExpand,
+        onDoubleClick: toggleEditable
     });
 
     const handleSaveSectionName = (sectionName) => {
@@ -57,13 +54,8 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     const [addCategoryOpen, setAddCategoryOpen] = useState(false);
 
     // Category modal handlers
-    const handleOpenAddCategoryModal = () => {
-        setAddCategoryOpen(true);
-    };
-
-    const handleCloseAddCategoryModal = () => {
-        setAddCategoryOpen(false);
-    };
+    const handleOpenAddCategoryModal = () => setAddCategoryOpen(true);
+    const handleCloseAddCategoryModal = () => setAddCategoryOpen(false);
 
     // Save category
     const handleSaveCategory = (sectionCategory) => {
@@ -82,13 +74,8 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     const [addSubcategoryOpen, setAddSubcategoryOpen] = useState(false);
 
     // Subcategory modal handlers
-    const handleOpenAddPerformanceEvaluationFormAddSubcategory = () => {
-        setAddSubcategoryOpen(true);
-    };
-
-    const handleCloseAddPerformanceEvaluationFormAddSubcategory = () => {
-        setAddSubcategoryOpen(false);
-    };
+    const handleOpenAddPerformanceEvaludationAddSubcategory = () => setAddSubcategoryOpen(true);
+    const handleCloseAddPerformanceEvaludationAddSubcategory = () => setAddSubcategoryOpen(false);
 
     // Save Subcategory
     const handleSaveSubcategory = (subcategory) => {
@@ -102,31 +89,56 @@ const PerformanceEvaluationFormSection = ({ section }) => {
         }
         saveSubcategory(subcategory);
     };
-    
-    return <>
+
+    // Local state to track which subcategory is expanded
+    const [expandedSubcategory, setExpandedSubcategory] = useState(null);
+    const handleSubcategoryToggle = (id) => (event, isExpanded) => {
+        setExpandedSubcategory(isExpanded ? id : null);
+    };
+
+    // Helper to display subcategory type
+    const getSubcategoryTypeDisplay = (type) => {
+        // You can customize these for user-friendly names
+        const map = {
+            short_answer: "Short Answer",
+            checkbox: "Checkbox",
+            linear_scale: "Linear Scale",
+            rating: "Rating",
+            comment: "Comment",
+            // Add more mappings as needed
+        };
+        return map[type] || type;
+    };
+
+    return (
         <Accordion
             expanded={expanded}
             onChange={onSectionClick}
             sx={{
                 my: 2,
-                boxShadow: 3,
-                borderRadius: 2,
+                boxShadow: 2,
+                borderRadius: 3,
                 '&:before': { display: 'none' },
-                bgcolor: expanded === sectionId ? '#eab31a' : 'white',
+                background: '#fff',
+                overflow: 'visible'
             }}
         >
             <AccordionSummary
-                expandIcon={<ExpandMoreIcon sx={{ color: expanded === sectionId ? 'white' : '#eab31a' }} />}
+                expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
                 aria-controls={`section-content-${sectionId}`}
                 id={`section-header-${sectionId}`}
                 sx={{
                     bgcolor: '#eab31a',
                     color: 'white',
-                    borderRadius: 2,
+                    borderTopLeftRadius: 12,
+                    borderTopRightRadius: 12,
+                    borderBottomLeftRadius: 0,
+                    borderBottomRightRadius: 0,
                     fontWeight: 'bold',
                     fontSize: 18,
-                    minHeight: 64,
-                    '& .MuiAccordionSummary-content': { my: 1 },
+                    minHeight: 56,
+                    '& .MuiAccordionSummary-content': { my: 0, alignItems: 'center' },
+                    boxShadow: 'none',
                 }}
             >
                 {/* {sectionName} */}
@@ -141,79 +153,111 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                         onBlur={(e) => handleSaveSectionName(e.target.value)}
                         ref={inputRef}
                         required
-                        style={{
-                            bgcolor: '#eab31a',
-                            color: 'white',
-                            borderRadius: 2,
-                            fontWeight: 'bold',
-                            fontSize: 18,
-                            '& .MuiAccordionSummary-content': { my: 1 },
+                        InputProps={{
+                            disableUnderline: true,
+                            style: {
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: 18,
+                                background: 'transparent'
+                            }
+                        }}
+                        InputLabelProps={{
+                            style: { color: '#fff8e1' }
                         }}
                     /> : sectionName
                 }
             </AccordionSummary>
-            <AccordionDetails sx={{ bgcolor: '#fafafa', borderRadius: 2 }}>
-                <Paper elevation={3} sx={{ p: 3, borderRadius: 2, mb: 2 }}>
-                    <Typography variant="h6" sx={{
+            <AccordionDetails sx={{ bgcolor: '#fff', borderRadius: 3, pt: 0, mb: 2, mx:2 }}>
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: 0,
+                        borderRadius: 2,
                         mb: 2,
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: '#444',
-                        fontWeight: 'bold',
-                        borderLeft: '8px solid #eab31a',
-                        pl: 2,
-                        bgcolor: '#f4f4f4',
-                        borderRadius: 1,
-                        minHeight: 48,
-                    }}>
-                        Categories
-                    </Typography>
-                    {
-                        !sectionCategory ? <>
-                            <Typography variant="body2" sx={{ color: "#aaa", mb: 2 }}>
-                                No category yet.
-                            </Typography>
-                        </> : !editableCategory ? <>
-                            <Paper
-                                sx={{
-                                    mb: 1,
-                                    p: 2,
-                                    bgcolor: "#fff8e1",
-                                    borderLeft: "5px solid #eab31a",
-                                    fontWeight: "bold"
-                                }}
-                                elevation={1}
-                                onDoubleClick={toggleEditableCategory}
-                            >{ sectionCategory }</Paper>
-                        </> : <TextField
-                            autoFocus
-                            label="Category"
-                            fullWidth
-                            variant="standard"
-                            value={sectionCategory}
-                            onChange={(e) => setSectionCategory(e.target.value)}
-                            onBlur={(e) => handleSaveCategoryName(e.target.value)}
-                            ref={inputRef}
-                            required
-                            style={{
-                                bgcolor: '#eab31a',
-                                color: 'white',
+                        boxShadow: 'none',
+                        bgcolor: 'transparent'
+                    }}
+                >
+                    {/* Only render the category card if a category exists */}
+                    {sectionCategory && (
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                bgcolor: '#f6f6f6',
                                 borderRadius: 2,
-                                fontWeight: 'bold',
-                                fontSize: 18,
-                                '& .MuiAccordionSummary-content': { my: 1 },
+                                borderLeft: '8px solid #eab31a',
+                                px: 3,
+                                pt: 2,
+                                pb: 2,
+                                mt: 2,
+                                mb: 4,
+                                mx: 2
                             }}
-                        />
-                    }
-                    {
-                        hasSubcategories ? (
-                            subcategories.map(subcategory=><PerformanceEvaluationRating
-                                key={ subcategory.id }
-                                subcategory={ subcategory }
-                            />)
-                        ) : undefined
-                    }
-                    <Box sx={{ textAlign: 'center', mt: 2 }}>
+                        >
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontWeight: 'bold',
+                                    color: '#222',
+                                    mb: 2
+                                }}
+                            >
+                                {sectionCategory}
+                            </Typography>
+                            <Box
+                                sx={{
+                                    borderBottom: "2px solid #ccc",
+                                    width: "100%",
+                                    mt: 1
+                                }}
+                            />
+                        </Paper>
+                    )}
+
+                    {/* Render collapsible subcategories */}
+                    {sectionCategory && subcategories.map((subcategory) => (
+                        <Accordion
+                            key={subcategory.id}
+                            expanded={expandedSubcategory === subcategory.id}
+                            onChange={handleSubcategoryToggle(subcategory.id)}
+                            sx={{
+                                mb: 2,
+                                boxShadow: 2,
+                                borderRadius: 2,
+                                background: "#f6f6f6",
+                                '&:before': { display: 'none' },
+                                mx: 2
+                            }}
+                        >
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                sx={{
+                                    minHeight: 56,
+                                    borderRadius: 2,
+                                    boxShadow: 'none',
+                                    px: 3,
+                                    py: 0,
+                                }}
+                            >
+                                <Box>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                                        {subcategory.name}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: "#555" }}>
+                                        Response Type: {getSubcategoryTypeDisplay(subcategory.subcategory_type)}
+                                    </Typography>
+                                </Box>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ px: 3, pb: 2 }}>
+                                <PerformanceEvaluationRating subcategory={subcategory} />
+                            </AccordionDetails>
+                        </Accordion>
+                    ))}
+
+                    <Box sx={{ textAlign: 'center', mt: sectionCategory ? 0 : 3 }}>
                         <Button
                             variant="contained"
                             sx={{
@@ -223,27 +267,29 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 borderRadius: 1,
                                 px: 4,
                                 py: 1.5,
+                                boxShadow: '0 2px 4px 0 rgba(0,0,0,0.08)',
+                                letterSpacing: 1,
                                 '&:hover': { bgcolor: '#0d5c27' }
                             }}
-                            onClick={sectionCategory ? handleOpenAddPerformanceEvaluationFormAddSubcategory : handleOpenAddCategoryModal}
-                        >{
-                            sectionCategory ? <>ADD SUB-CATEGORY</> : <>ADD CATEGORY</>
-                        }</Button>
+                            onClick={sectionCategory ? handleOpenAddPerformanceEvaludationAddSubcategory : handleOpenAddCategoryModal}
+                        >
+                            {sectionCategory ? <>ADD SUB-CATEGORY</> : <>ADD CATEGORY</>}
+                        </Button>
                     </Box>
                 </Paper>
             </AccordionDetails>
+            <PerformanceEvaluationFormAddCategory
+                open={addCategoryOpen}
+                onClose={handleCloseAddCategoryModal}
+                onSave={handleSaveCategory}
+            />
+            <PerformanceEvaluationFormAddSubcategory
+                open={addSubcategoryOpen}
+                onClose={handleCloseAddPerformanceEvaludationAddSubcategory}
+                onSave={handleSaveSubcategory}
+            />
         </Accordion>
-        <PerformanceEvaluationFormAddCategory
-            open={addCategoryOpen}
-            onClose={handleCloseAddCategoryModal}
-            onSave={handleSaveCategory}
-        />
-        <PerformanceEvaluationFormAddSubcategory
-            open={addSubcategoryOpen}
-            onClose={handleCloseAddPerformanceEvaluationFormAddSubcategory}
-            onSave={handleSaveSubcategory}
-        />
-    </>;
+    );
 };
 
 export default PerformanceEvaluationFormSection;
