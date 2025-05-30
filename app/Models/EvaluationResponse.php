@@ -25,12 +25,42 @@ class EvaluationResponse extends Model
         'form_id'
     ];
 
+    public function evaluatee()
+    {
+        return $this->belongsTo(UsersModel::class, 'evaluatee_id');
+    }
+
+    public function evaluator()
+    {
+        return $this->belongsTo(UsersModel::class, 'evaluator_id');
+    }
+
     public function form()
     {
         return $this->belongsTo(EvaluationForm::class, 'form_id');
     }
 
-    public function text_answers()
+    public function optionAnswers()
+    {
+        return $this->hasMany(EvaluationOptionAnswer::class, 'response_id');
+    }
+
+    public function percentageAnswers()
+    {
+        return $this->hasMany(EvaluationPercentageAnswer::class, 'response_id');
+    }
+
+    public function primaryCommentor()
+    {
+        return $this->belongsTo(UsersModel::class, 'primary_commentor_id');
+    }
+
+    public function secondaryCommentor()
+    {
+        return $this->belongsTo(UsersModel::class, 'secondary_commentor_id');
+    }
+
+    public function textAnswers()
     {
         return $this->hasMany(EvaluationTextAnswer::class, 'response_id');
     }

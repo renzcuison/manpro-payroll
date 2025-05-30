@@ -18,64 +18,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-class EvaluationController extends Controller
+class EvaluationResponseController extends Controller
 {
 
-    // evaluation form
-
-    //     public function getEvaluationFormSections(Request $request)
-    // {
-    //     $formId = $request->form_id;
-
-    //     if (!$formId) {
-    //         return response()->json([
-    //             'status' => 400,
-    //             'message' => 'Form ID is required',
-    //             'sections' => []
-    //         ]);
-    //     }
-
-    //     $sections = \App\Models\EvaluationFormSection::with(['categories' => function($query) {
-    //             $query->whereNull('deleted_at')->orderBy('order');
-    //         }])
-    //         ->where('form_id', $formId)
-    //         ->whereNull('deleted_at')
-    //         ->orderBy('order')
-    //         ->get();
-
-    //     return response()->json([
-    //         'status' => 200,
-    //         'sections' => $sections
-    //     ]);
-    // }
-    //    public function getFormDetails(Request $request, $formName)
-    // {
-    //     // Fetch the form details by name along with the creator's name
-    //     $form = EvaluationForm::join('users', 'evaluation_forms.creator_id', '=', 'users.id')
-    //         ->where('evaluation_forms.name', $formName)
-    //         ->select('evaluation_forms.id','evaluation_forms.name', 'evaluation_forms.created_at', 'users.first_name', 'users.last_name')
-    //         ->first();
-
-    //     // If the form doesn't exist, return an error
-    //     if (!$form) {
-    //         return response()->json(['message' => 'Form not found'], 404);
-    //     }
-
-    //     // Prepare the full creator name
-    //     $creatorName = $form->first_name . ' ' . $form->last_name;
-
-    //     // Return the form details along with the creator's name and creation date
-    //     return response()->json([
-    //         'id' => $form->id,
-    //         'formName' => $form->name,
-    //         'created_at' => $form->created_at,
-    //         'creator_name' => $creatorName
-    //     ]);
-    // }
+    // evaluation response
 
     public function deleteEvaluationForm(Request $request)
     {
-        log::info('EvaluationController::deleteEvaluationForm');
+        log::info('EvaluationResponseController::deleteEvaluationForm');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -145,7 +95,7 @@ class EvaluationController extends Controller
 
     public function editEvaluationForm(Request $request)
     {
-        log::info('EvaluationController::editEvaluationForm');
+        log::info('EvaluationResponseController::editEvaluationForm');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -225,7 +175,7 @@ class EvaluationController extends Controller
     public function getEvaluationForm(Request $request)
     {
 
-        log::info('EvaluationController::getEvaluationForms');
+        log::info('EvaluationResponseController::getEvaluationResponses');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -304,10 +254,47 @@ class EvaluationController extends Controller
     
     }
 
-    public function getEvaluationForms(Request $request)
+    public function getEvaluationResponses(Request $request)
     {
 
-        log::info('EvaluationController::getEvaluationForms');
+        // inputs:
+        /*
+            page: number = 1,                   // counting starts at 1
+            limit: number = 10,
+            form_id?: number,                   // gets all if none given
+            evaluatee_id?: number,
+            evaluator_id?: number,
+            primary_commentor_id?: number,
+            secondary_commentor_id?: number,
+            commentor_id?: number,              // for both primary or secondary
+            search: string,
+                // searches for matches in:
+                // updated_at (string form), form_name, evaluatee_user_name,
+                // department_name, branch_name, status
+            order_by:
+                'updated_at' | 'form_name' | 'evaluatee_user_name' | 'department_name' |
+                'branch_name' | 'status'
+                // this order chain is default and is always added next when this param exists:
+                // status (pending first), updated_at (date form & reverse of sort_order), evaluatee_user_name
+            sort_order: 'asc' | 'desc' = 'asc'
+        */
+
+        // returns:
+        /*
+            evaluationResponses: {
+                id, form_id, form_name,
+                date, evaluatee_id, evaluatee_user_name,
+                department_id, department_name,
+                branch_id, branch_name,
+                evaluator_id, primary_commentor_id, secondary_commentor_id,
+                status,                             // returns 'pending' always for now
+                period_start_at, period_end_at,
+                created_at, updated_at
+            }[],
+            pageResponseCount, totalResponseCount, maxPageCount
+        */
+
+        log::info('EvaluationResponseController::getEvaluationResponses');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -319,38 +306,117 @@ class EvaluationController extends Controller
 
         try {
 
-            $evaluationForms = EvaluationForm
-                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+            $evaluationResponses = EvaluationResponse
+                ::join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
+                ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
+                ->join('departments', 'evaluatees.department_id', '=', 'departments.id')
+                ->join('branches', 'evaluatees.branch_id', '=', 'branches.id')
+                ->join('users as evaluators', 'evaluation_responses.evaluator_id', '=', 'evaluators.id')
+                ->join('users as primary_commentors', 'evaluation_responses.primary_commentor_id', '=', 'primary_commentors.id')
+                ->join('users as secondary_commentors', 'evaluation_responses.secondary_commentor_id', '=', 'secondary_commentors.id')
                 ->select(
-                    'evaluation_forms.id',
-                    'evaluation_forms.name', 
-                    'evaluation_forms.creator_id',
-                    'users.user_name as creator_user_name',
-                    'evaluation_forms.created_at',
-                    'evaluation_forms.updated_at'
+                    'evaluation_responses.id',
+                    'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name'
                 )
+                ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
+                ->addSelect(
+                    'evaluatees.id as evaluatee_id', 'evaluatees.user_name as evaluatee_username',
+                    'departments.id as department_id', 'departments.name as department_name',
+                    'branches.id as branch_id', 'branches.name as branch_name',
+                    'evaluators.id as evaluator_id',
+                    'primary_commentors.id as primary_commentor_id',
+                    'secondary_commentors.id as secondary_commentor_id',
+                    'evaluation_responses.period_start_at',
+                    'evaluation_responses.period_end_at',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
+                ->addSelect(DB::raw("'Pending' as status"))
             ;
-            if( $request->creator_id ) {
-
-                $creator = DB::table('users')->select('*')->where('id', $request->creator_id)->first();
-                if( !$creator ) return response()->json([ 
-                    'status' => 404,
-                    'message' => 'User creator not found!',
-                    'creatorID' => $request->creator_id
-                ]);
-                $evaluationForms->where('evaluation_forms.creator_id', $request->creator_id);
-
-            }
-            $evaluationForms = $evaluationForms->orderBy('name')->get();
-            if( !$evaluationForms->count() ) return response()->json([
-                'status' => 200,
-                'message' => 'No Evaluation Forms found.',
-                'evaluationForms' => $evaluationForms
+            if($request->form_id)
+                $evaluationResponses = $evaluationResponses->where('form_id', $request->form_id);
+            if($request->evaluatee_id)
+                $evaluationResponses = $evaluationResponses->where('evaluatee_id', $request->evaluatee_id);
+            if($request->evaluator_id)
+                $evaluationResponses = $evaluationResponses->where('evaluator_id', $request->evaluator_id);
+            if($request->primary_commentor_id)
+                $evaluationResponses = $evaluationResponses->where('primary_commentor_id', $request->primary_commentor_id);
+            if($request->secondary_commentor_id)
+                $evaluationResponses = $evaluationResponses->where('secondary_commentor_id', $request->secondary_commentor_id);
+            if($request->commentor_id)
+                $evaluationResponses = $evaluationResponses
+                    ->where('primary_commentor_id', $request->commentor_id)
+                    ->orWhere('secondary_commentor_id', $request->commentor_id)
+                ;
+            
+            if($request->search)
+                $evaluationResponses = $evaluationResponses
+                    ->where(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
+                    ->orWhere('evaluation_forms.name', 'LIKE', "%$request->search%")
+                    ->orWhere('evaluatees.user_name', 'LIKE', "%$request->search%")
+                    ->orWhere('departments.name', 'LIKE', "%$request->search%")
+                    ->orWhere('branches.name', 'LIKE', "%$request->search%")
+                    // ->orWhere('status', 'LIKE', "%$request->search%") // not working yet in searching status
+                ;
+            
+            $sortOrder = $request->sort_order ?? 'asc';
+            $sortOrderReverse = $sortOrder == 'asc' ? 'desc' : 'asc';
+            if($sortOrder != 'asc' && $sortOrder != 'desc') return response()->json([ 
+                'status' => 400,
+                'message' => 'Sort order is invalid!'
             ]);
+            if($request->order_by) switch($request->order_by) {
+                case 'branch_name':
+                    $evaluationResponses = $evaluationResponses->orderBy('branches.name', $sortOrder);
+                    break;
+                case 'department_name':
+                    $evaluationResponses = $evaluationResponses->orderBy('departments.name', $sortOrder);
+                    break;
+                case 'evaluatee_user_name':
+                    $evaluationResponses = $evaluationResponses->orderBy('evaluatees.user_name', $sortOrder);
+                    break;
+                case 'form_name':
+                    $evaluationResponses = $evaluationResponses->orderBy('evaluation_forms.name', $sortOrder);
+                    break;
+                // case 'status':
+                case 'updated_at':
+                    $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrderReverse);
+                    break;
+                default:
+                    return response()->json([ 
+                        'status' => 400,
+                        'message' => 'Order by option is invalid!'
+                    ]);
+            }
+            $evaluationResponses = $evaluationResponses
+                // sort by 'status'
+                ->orderBy('evaluation_responses.updated_at', $sortOrderReverse)
+                ->orderBy('evaluatees.user_name', $sortOrder)
+            ;
+
+            $page = $request->page ?? 1;
+            $limit = $request->limit ?? 10;
+            $totalResponseCount = $evaluationResponses->count();
+            $pageResponseCount =
+                ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
+                : $limit
+            ;
+            $maxPageCount = ceil($totalResponseCount / $limit);
+            if($page > $maxPageCount) return response()->json([ 
+                'status' => 404,
+                'message' => 'No evaluation responses exist!'
+            ]);
+            $skip = ($page - 1) * $limit;
+            $evaluationResponses = $evaluationResponses->skip($skip)->take($limit);
+
+            $evaluationResponses = $evaluationResponses->get();
             return response()->json([
                 'status' => 200,
-                'message' => 'Evaluation Forms successfully retrieved.',
-                'evaluationForms' => $evaluationForms
+                'message' => 'Evaluation Responses successfully retrieved.',
+                'evaluationResponses' => $evaluationResponses,
+                'pageResponseCount' => $pageResponseCount,
+                'totalResponseCount' => $totalResponseCount,
+                'maxPageCount' => $maxPageCount
             ]);
 
         } catch (\Exception $e) {
@@ -365,7 +431,7 @@ class EvaluationController extends Controller
 
     public function saveEvaluationForm(Request $request)
     {
-        log::info('EvaluationController::saveEvaluationForm');
+        log::info('EvaluationResponseController::saveEvaluationForm');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -427,7 +493,7 @@ class EvaluationController extends Controller
 
     public function deleteEvaluationFormSection(Request $request)
     {
-        log::info('EvaluationController::deleteEvaluationFormSection');
+        log::info('EvaluationResponseController::deleteEvaluationFormSection');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -488,7 +554,7 @@ class EvaluationController extends Controller
 
     public function editEvaluationFormSection(Request $request)
     {
-        log::info('EvaluationController::editEvaluationFormSection');
+        log::info('EvaluationResponseController::editEvaluationFormSection');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -555,7 +621,7 @@ class EvaluationController extends Controller
     public function getEvaluationFormSection(Request $request)
     {
 
-        log::info('EvaluationController::getEvaluationFormSection');
+        log::info('EvaluationResponseController::getEvaluationFormSection');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -614,7 +680,7 @@ class EvaluationController extends Controller
     
     public function moveEvaluationFormSection(Request $request)
     {
-        log::info('EvaluationController::moveEvaluationFormSection');
+        log::info('EvaluationResponseController::moveEvaluationFormSection');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -700,7 +766,7 @@ class EvaluationController extends Controller
 
     public function saveEvaluationFormSection(Request $request)
     {
-        log::info('EvaluationController::saveEvaluationFormSection');
+        log::info('EvaluationResponseController::saveEvaluationFormSection');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -758,7 +824,7 @@ class EvaluationController extends Controller
     public function getEvaluationFormSubcategory(Request $request)
     {
 
-        log::info('EvaluationController::getEvaluationFormSubcategory');
+        log::info('EvaluationResponseController::getEvaluationFormSubcategory');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -811,7 +877,7 @@ class EvaluationController extends Controller
 
     public function deleteEvaluationFormSubcategory(Request $request)
     {
-        log::info('EvaluationController::deleteEvaluationFormSubcategory');
+        log::info('EvaluationResponseController::deleteEvaluationFormSubcategory');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -872,7 +938,7 @@ class EvaluationController extends Controller
 
     public function editEvaluationFormSubcategory(Request $request)
     {
-        log::info('EvaluationController::editEvaluationFormSubcategory');
+        log::info('EvaluationResponseController::editEvaluationFormSubcategory');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -991,7 +1057,7 @@ class EvaluationController extends Controller
 
     public function saveEvaluationFormSubcategory(Request $request)
     {
-        log::info('EvaluationController::saveEvaluationFormSubcategory');
+        log::info('EvaluationResponseController::saveEvaluationFormSubcategory');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -1118,7 +1184,7 @@ class EvaluationController extends Controller
 
     // public function saveEvaluationFormSubcategory(Request $request)
     // {
-    //     log::info('EvaluationController::saveEvaluationFormSubcategory');
+    //     log::info('EvaluationResponseController::saveEvaluationFormSubcategory');
 
     //     if (Auth::check()) {
     //         $userID = Auth::id();
@@ -1220,7 +1286,7 @@ class EvaluationController extends Controller
 
     public function deleteEvaluationFormSubcategoryOption(Request $request)
     {
-        log::info('EvaluationController::deleteEvaluationFormSubcategoryOption');
+        log::info('EvaluationResponseController::deleteEvaluationFormSubcategoryOption');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -1281,7 +1347,7 @@ class EvaluationController extends Controller
 
     public function editEvaluationFormSubcategoryOption(Request $request)
     {
-        log::info('EvaluationController::editEvaluationFormSubcategoryOption');
+        log::info('EvaluationResponseController::editEvaluationFormSubcategoryOption');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -1356,7 +1422,7 @@ class EvaluationController extends Controller
     public function getEvaluationFormSubcategoryOption(Request $request)
     {
 
-        log::info('EvaluationController::getEvaluationFormSubcategoryOption');
+        log::info('EvaluationResponseController::getEvaluationFormSubcategoryOption');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -1401,7 +1467,7 @@ class EvaluationController extends Controller
 
     public function saveEvaluationFormSubcategoryOption(Request $request)
     {
-        log::info('EvaluationController::saveEvaluationFormSubcategoryOption');
+        log::info('EvaluationResponseController::saveEvaluationFormSubcategoryOption');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -1466,67 +1532,5 @@ class EvaluationController extends Controller
             throw $e;
         }
     }
-
-    // evaluation response
-
-    // public function saveEvaluationResponse(Request $request)
-    // {
-    //     log::info('EvaluationController::saveEvaluationResponse');
-
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
-
-    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
-
-    //     try {
-
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
-
-    //         DB::beginTransaction();
-
-    //         $isEmptyName = !$request->name;
-
-    //         if( $isEmptyName ) return response()->json([ 
-    //             'status' => 400,
-    //             'message' => 'Evaluation Form Name is required!'
-    //         ]);
-
-    //         $existingEvaluationForm =
-    //             EvaluationForm::where('name', $request->name)->first()
-    //         ;
-
-    //         if( $existingEvaluationForm ) return response()->json([ 
-    //             'status' => 409,
-    //             'message' => 'This Evaluation Form Name is already in use!',
-    //             'evaluationFormID' => $existingEvaluationForm->id
-    //         ]);
-
-    //         $newEvaluationForm = EvaluationForm::create([
-    //             'name' => $request->name,
-    //             'creator_id' => $user->id
-    //         ]);
-
-    //         DB::commit();
-
-    //         return response()->json([ 
-    //             'status' => 201,
-    //             'evaluationID' => $newEvaluationForm->id,
-    //             'message' => 'Evaluation Form successfully created'
-    //         ]);
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
-
-    //         throw $e;
-    //     }
-    // }
 
 }
