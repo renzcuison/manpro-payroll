@@ -20,18 +20,19 @@ const useIsActive = (path) => {
     return location.pathname.startsWith(path);
 };
 
-const StyledNav = styled(NavLink)(({ isActive }) => ({
-    backgroundColor: "transparent",
-    ":hover": {
-        backgroundColor: "rgb(233, 171, 19,0.7)",
-        "& #navName": { color: "white" },
-    },
-    "&.active": {
-        backgroundColor: "rgb(233, 171, 19,0.7)",
-        "& #navName": { color: "white" },
-    },
-}));
-
+const StyledNav = styled(NavLink)({
+    display: "flex",
+    alignItems: "center",
+    padding: "12px 20px",
+    textDecoration: "none",
+    color: "green",
+    borderLeft: "4px solid transparent",
+    transition: "all 0.3s ease",
+    "& i": { color: "green", marginRight: "10px", fontSize: "1.2rem"},
+    "& #navName": { color: "green", fontWeight: "500" },
+    "&:hover": { backgroundColor: "#f3cd75", borderLeft: "4px solid #2a800f", "& i": {color: "white"}, "& #navName": {color: "white"}},
+    "&.active": { backgroundColor: "#f3cd75", borderLeft: "4px solid #2a800f", "& i": {color: "white"}, "& #navName": {color: "white"}},
+});
 const Sidebar = ({ children, closeMini }) => {
     const { user, refetchUser, isLoading } = useUser();
     const storedUser = localStorage.getItem("nasya_user");
@@ -395,16 +396,6 @@ const Sidebar = ({ children, closeMini }) => {
                         <ul className="nav-main">
                             {user.user_type === "Admin" ? (
                                 <>
-                                    <li className="nav-main-heading">
-                                        <span
-                                            className="sidebar-mini-hidden"
-                                            style={{ color: "#3d3d3f" }}
-                                        >
-                                            {" "}
-                                            ADMIN{" "}
-                                        </span>
-                                    </li>
-
                                     <StyledNav to={`/dashboard?year=${moment().year()}`} >
                                         <i className="si si-grid" style={{ color: "#2a800f" }} ></i>
                                         <span id="navName" className="sidebar-mini-hide"> Dashboard </span>
