@@ -94,12 +94,12 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
 
                         setImagePath(URL.createObjectURL(blob));
                     } else {
-                        setImagePath("../../../../images/ManProTab.png");
+                        setImagePath("../../../../images/defaultThumbnail.jpg");
                     }
                     setImageLoading(false);
                 })
                 .catch((error) => {
-                    setImagePath("../../../../images/ManProTab.png");
+                    setImagePath("../../../../images/defaultThumbnail.jpg");
                     setImageLoading(false);
                 });
         }

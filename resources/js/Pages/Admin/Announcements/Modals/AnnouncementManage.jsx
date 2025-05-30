@@ -269,7 +269,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const getAnnouncementThumbnail = () => {
         if (!announceInfo?.unique_code) {
             console.error('Cannot fetch thumbnail: missing unique_code');
-            setImagePath("../../../../../images/ManProTab.png");
+            setImagePath("");
             setImageLoading(false);
             return;
         }
@@ -291,7 +291,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     if (imagePath && imagePath.startsWith('blob:')) {
                         URL.revokeObjectURL(imagePath);
                     }
-                    setImagePath("../../../../../images/ManProTab.png");
+                    setImagePath("");
                 }
                 setImageLoading(false);
             })
@@ -301,7 +301,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     response: error.response?.data,
                     status: error.response?.status,
                 });
-                setImagePath("../../../../../images/ManProTab.png");
+                setImagePath("");
                 setImageLoading(false);
             });
     };
@@ -447,10 +447,16 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         <Grid container columnSpacing={4} rowSpacing={2}>
                             {/* Thumbnail */}
                             <Grid size={{ xs: 5 }}>
-                                <Box sx={{ position: 'relative', width: '100%', height: 210, borderRadius: "4px", border: '2px solid #e0e0e0', }}>
-                                    {imageLoading ?
-                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }}> <CircularProgress /> </Box> : <img src={imagePath} alt={`${announcement.title || 'Announcement'} thumbnail`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: "4px" }} />
-                                    }
+                                <Box sx={{ position: 'relative', width: '100%', height: 210, borderRadius: "4px", border: '2px solid #e0e0e0' }}>
+                                    {imageLoading ? (
+                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : imagePath ? (
+                                        <img src={imagePath} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: "4px" }} />
+                                    ) : (
+                                        <Box sx={{ width: '100%', height: '100%' }} />
+                                    )}
                                 </Box>
                             </Grid>
                             {/* Core Information */}
