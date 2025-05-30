@@ -210,9 +210,8 @@ function SchedulesHolidays({ setSelectedDate }) {
                 }}
             >
                 {events?.slice(0, 3).map((item, index) => (
-                    <React.Fragment>
+                    <React.Fragment key={index}>
                         <ListItem
-                            key={index}
                             alignItems="flex-start"
                             secondaryAction={
                                 <>

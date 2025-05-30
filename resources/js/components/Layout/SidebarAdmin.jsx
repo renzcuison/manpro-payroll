@@ -33,7 +33,7 @@ const StyledNav = styled(NavLink)(({ isActive }) => ({
 }));
 
 const Sidebar = ({ children, closeMini }) => {
-    const { user } = useUser();
+    const { user, refetchUser, isLoading } = useUser();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
@@ -41,6 +41,7 @@ const Sidebar = ({ children, closeMini }) => {
     const handleNavigate = (link) => {
         navigate(link);
     };
+
     const { palette } = useTheme();
 
     const [workshifts, setWorkshifts] = useState([]);
@@ -282,21 +283,6 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
-    // const loanItems = [{
-    //     id: 8,
-    //     text: 'Performance Evaluation',
-    //     icon: 'fa fa-check',
-    //     children: [
-    //         {
-    //             href: `/member/evaluate`,
-    //             text: 'Evaluate',
-    //         }, {
-    //             href: `/member/evaluation`,
-    //             text: 'My Evaluation',
-    //         }
-    //     ]
-    // }]
-
     const evaluationItems = [
         {
             id: 9,
@@ -468,6 +454,18 @@ const Sidebar = ({ children, closeMini }) => {
                                     <StyledNav to={`/admin/schedules`}>
                                         <i className="fa fa-calendar" style={{ color: "#2a800f" }} ></i>
                                         <span id="navName" className="sidebar-mini-hide"> Schedules & Holidays </span>
+                                    </StyledNav>
+                                    <StyledNav to={`/admin/milestones`}>
+                                        <i
+                                            className="fa fa-external-link"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            Milestones
+                                        </span>
                                     </StyledNav>
                                     <StyledNav to={`/admin/announcements`}>
                                         <i className="fa fa-bullhorn" style={{ color: "#2a800f" }} ></i>

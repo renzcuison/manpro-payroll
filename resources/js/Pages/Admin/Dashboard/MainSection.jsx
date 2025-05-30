@@ -1,7 +1,9 @@
 import {
     Avatar,
     Box,
+    Button,
     Divider,
+    Grid,
     IconButton,
     List,
     ListItem,
@@ -29,8 +31,8 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
     const theme = useTheme();
     const { data, isFetched, isLoading } = useUsers();
     const { data: attendance } = useTodaysAttendance();
-    console.log(data);
-    console.log(dashboardData);
+    // console.log(data);
+    // console.log(dashboardData);
 
     const latestEmployees = useMemo(() => {
         if (dashboardData) {
@@ -63,8 +65,6 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
         }
     }, [dashboardData, isFetched]);
 
-    // console.log("Branches:", branches);
-
     const departments = useMemo(() => {
         if (dashboardData) {
             const groupedData = dashboardData.employees
@@ -92,6 +92,7 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
     const absent = 4;
     const late = 13;
 
+    const smScreen = useMediaQuery(theme.breakpoints.up("sm"));
     const medScreen = useMediaQuery(theme.breakpoints.up("md"));
     const xlScreen = useMediaQuery(theme.breakpoints.up("xl"));
     return isLoading ? (
@@ -106,6 +107,7 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                 gap: 2,
             }}
         >
+            {/* WELCOME CARD */}
             <Box
                 component={Stack}
                 sx={{
@@ -134,27 +136,56 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                 </Typography>
 
                 <Stack>
-                    <Typography
-                        variant="subtitle1"
-                        sx={{
-                            color: "#d1d1d1",
-                            fontStyle: "italic",
-                        }}
-                    >
-                        Qoute of the day:
-                    </Typography>
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            color: "primary.contrastText",
-                            fontWeight: 600,
-                            fontFamily: "revert",
-                        }}
-                    >
-                        "Focus on being productive instead of busy."
-                    </Typography>
+                    {dashboardData.requests?.length > 0 ? (
+                        <>
+                            <Typography
+                                variant="subtitle1"
+                                sx={{
+                                    color: "#fff",
+                                }}
+                            >
+                                You have {dashboardData.requests?.length}{" "}
+                                pending requests today! Let’s work on them and
+                                get everything done!
+                            </Typography>
+                            <Box>
+                                <Button
+                                    variant="contained"
+                                    LinkComponent={Link}
+                                    to={`/admin/applications`}
+                                    color="primary"
+                                >
+                                    Check Now
+                                </Button>
+                            </Box>
+                        </>
+                    ) : (
+                        <>
+                            <Typography
+                                variant="subtitle1"
+                                sx={{
+                                    color: "#d1d1d1",
+                                    fontStyle: "italic",
+                                }}
+                            >
+                                Qoute of the day:
+                            </Typography>
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    color: "primary.contrastText",
+                                    fontWeight: 600,
+                                    fontFamily: "revert",
+                                }}
+                            >
+                                "Focus on being productive instead of busy."
+                            </Typography>
+                        </>
+                    )}
                 </Stack>
             </Box>
+
+            {/* ATTENDANCE INFOCARDS */}
             <Stack direction={medScreen ? "row" : "column"} spacing={2}>
                 {infoCardsData.map((info, index) => (
                     <Paper
@@ -212,195 +243,187 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                 ))}
             </Stack>
 
-            <Stack direction={xlScreen ? "row" : "column"} spacing={2}>
-                <Paper
-                    sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        width: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                    }}
-                >
-                    <Box
+            {/* EXTRA DASHBOARD CARDS */}
+            <Grid container spacing={2}>
+                {/* NEW EMPLOYEES CARD */}
+                <Grid size={{ md: 6, lg: 4 }}>
+                    <Paper
                         sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            width: "100%",
+                            height: "100%",
                             display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
+                            flexDirection: "column",
                         }}
                     >
-                        <Typography
-                            variant="h6"
+                        <Box
                             sx={{
-                                color: "#4d4d4d",
-                                fontWeight: 600,
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
                             }}
                         >
-                            New Employees
-                        </Typography>
-                        <IconButton>
-                            <MoreVertical />
-                        </IconButton>
-                    </Box>
-                    <List
-                        sx={{
-                            bgcolor: "background.paper",
-                        }}
-                    >
-                        {latestEmployees?.map((emp, index) => (
-                            <React.Fragment>
-                                <ListItem
-                                    alignItems="flex-start"
-                                    secondaryAction={
-                                        <>
-                                            <Typography variant="caption">
-                                                Joined
-                                            </Typography>
-                                            <Typography>
-                                                {moment(emp.created_at).format(
-                                                    "MMM. DD, YYYY"
-                                                )}
-                                            </Typography>
-                                        </>
-                                    }
-                                    sx={{ px: 0 }}
-                                >
-                                    <ListItemAvatar>
-                                        <Avatar
-                                            alt="Remy Sharp"
-                                            src={
-                                                emp.media
-                                                    ? emp.media?.[0]
-                                                          .original_url
-                                                    : ""
-                                            }
-                                        />
-                                    </ListItemAvatar>
-                                    <ListItemText
-                                        primary={
-                                            <Typography
-                                                variant="body1"
-                                                sx={{
-                                                    fontWeight: 600,
-                                                }}
-                                            >
-                                                {emp.first_name} {emp.last_name}
-                                            </Typography>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    color: "#4d4d4d",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                New Employees
+                            </Typography>
+                            <IconButton>
+                                <MoreVertical />
+                            </IconButton>
+                        </Box>
+                        <List
+                            sx={{
+                                bgcolor: "background.paper",
+                            }}
+                        >
+                            {latestEmployees?.map((emp, index) => (
+                                <React.Fragment key={index}>
+                                    <ListItem
+                                        alignItems="flex-start"
+                                        secondaryAction={
+                                            xlScreen ? (
+                                                <>
+                                                    <Typography variant="caption">
+                                                        Joined
+                                                    </Typography>
+                                                    <Typography>
+                                                        {moment(
+                                                            emp.created_at
+                                                        ).format(
+                                                            "MMM. DD, YYYY"
+                                                        )}
+                                                    </Typography>
+                                                </>
+                                            ) : (
+                                                <></>
+                                            )
                                         }
-                                        secondary={
-                                            <React.Fragment>
+                                        sx={{ px: 0 }}
+                                    >
+                                        <ListItemAvatar>
+                                            <Avatar
+                                                alt={
+                                                    emp.media?.[0]?.original_url
+                                                }
+                                                src={
+                                                    emp.media?.[0]?.original_url
+                                                }
+                                            />
+                                        </ListItemAvatar>
+                                        <ListItemText
+                                            primary={
                                                 <Typography
-                                                    component="span"
-                                                    variant="body2"
+                                                    variant="body1"
                                                     sx={{
-                                                        color: "text.primary",
-                                                        display: "inline",
+                                                        fontWeight: 600,
                                                     }}
                                                 >
-                                                    {emp.job_title.name}
+                                                    {emp.first_name}{" "}
+                                                    {emp.last_name}
                                                 </Typography>
-                                            </React.Fragment>
-                                        }
-                                    />
-                                </ListItem>
-                                <Divider variant="inset" component="li" />
-                            </React.Fragment>
-                        ))}
-                    </List>
-                </Paper>
-                <Paper
-                    sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        width: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                    }}
-                >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}
-                    >
-                        <Typography
-                            variant="h6"
-                            sx={{
-                                color: "#4d4d4d",
-                                fontWeight: 600,
-                            }}
-                        >
-                            Departments
-                        </Typography>
-                        <IconButton>
-                            <MoreVertical />
-                        </IconButton>
-                    </Box>
-                    <EmployeeBarChart data={departments} />
-                    {/* <List
-                        sx={{
-                            bgcolor: "background.paper",
-                        }}
-                    >
-                        {departments?.map((item, index) => (
-                            <React.Fragment>
-                                <ListItem
-                                    alignItems="flex-start"
-                                    secondaryAction={
-                                        <AttendanceProgressBar
-                                            present={present}
-                                            late={late}
-                                            absent={absent}
+                                            }
+                                            secondary={
+                                                <React.Fragment>
+                                                    <Typography
+                                                        component="span"
+                                                        variant="body2"
+                                                        sx={{
+                                                            color: "text.primary",
+                                                            display: "inline",
+                                                        }}
+                                                    >
+                                                        {emp.job_title.name}
+                                                    </Typography>
+                                                </React.Fragment>
+                                            }
                                         />
-                                    }
-                                    sx={{ px: 0 }}
-                                >
-                                    <ListItemText
-                                        primary={`${item.department} `}
-                                        secondary={<></>}
-                                    />
-                                </ListItem>
-                                <Divider component="li" />
-                            </React.Fragment>
-                        ))}
-                    </List> */}
-                </Paper>
-                <Paper
-                    sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        width: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                    }}
-                >
-                    <Box
+                                    </ListItem>
+                                    <Divider variant="inset" component="li" />
+                                </React.Fragment>
+                            ))}
+                        </List>
+                    </Paper>
+                </Grid>
+
+                {/* DEPARTMENTS GRAPH CARD */}
+                <Grid size={{ md: 6, lg: 4 }}>
+                    <Paper
                         sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            width: "100%",
+                            height: "100%",
                             display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
+                            flexDirection: "column",
                         }}
                     >
-                        <Typography
-                            variant="h6"
+                        <Box
                             sx={{
-                                color: "#4d4d4d",
-                                fontWeight: 600,
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
                             }}
                         >
-                            Branches
-                        </Typography>
-                        <IconButton>
-                            <MoreVertical />
-                        </IconButton>
-                    </Box>
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    color: "#4d4d4d",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                Departments
+                            </Typography>
+                            <IconButton>
+                                <MoreVertical />
+                            </IconButton>
+                        </Box>
+                        {departments && <EmployeeBarChart data={departments} />}
+                    </Paper>
+                </Grid>
 
-                    <BranchesChart data={branches} />
-                    {/* <List
+                {/* BRANCHES GRAPH CARD */}
+                <Grid size={{ md: 6, lg: 4 }}>
+                    <Paper
+                        sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    color: "#4d4d4d",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                Branches
+                            </Typography>
+                            <IconButton>
+                                <MoreVertical />
+                            </IconButton>
+                        </Box>
+                        {branches && <BranchesChart data={branches} />}
+                        {/* <List
                         sx={{
                             bgcolor: "background.paper",
                         }}
@@ -440,8 +463,9 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                             </React.Fragment>
                         ))}
                     </List> */}
-                </Paper>
-            </Stack>
+                    </Paper>
+                </Grid>
+            </Grid>
         </Box>
     );
 }
