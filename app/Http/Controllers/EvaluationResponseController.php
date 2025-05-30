@@ -520,9 +520,25 @@ class EvaluationResponseController extends Controller
     
     }
 
-    public function saveEvaluationForm(Request $request)
+    public function saveEvaluationResponse(Request $request)
     {
-        log::info('EvaluationResponseController::saveEvaluationForm');
+        // inputs:
+        /*
+            evaluatee_id: number,
+            evaluator_id: number,
+            primary_commentor_id: number,
+            secondary_commentor_id: number,
+            form_id: number,
+            period_start_at,
+            period_end_at
+        */
+
+        // returns:
+        /*
+            evaluationFormID
+        */
+
+        log::info('EvaluationResponseController::saveEvaluationResponse');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -541,34 +557,45 @@ class EvaluationResponseController extends Controller
 
             DB::beginTransaction();
 
-            $isEmptyName = !$request->name;
-
-            if( $isEmptyName ) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Form Name is required!'
-            ]);
-
-            $existingEvaluationForm =
-                EvaluationForm::where('name', $request->name)->first()
+            $periodStartAtSec = strtotime($request->period_start_at);
+            $periodEndAtSec = strtotime($request->period_end_at);
+            $request->period_start_at = date(
+                'Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800 
+            );
+            $request->period_end_at = date(
+                'Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800 
+            );
+            
+            $conflictingEvaluationResponse = EvaluationResponse
+                ::where('evaluatee_id', $request->evaluatee_id)
+                ->where('form_id', $request->form_id)
+                ->where('period_start_at', '<', $request->period_end_at)
+                ->where('period_end_at', '>', $request->period_start_at)
+                ->first()
             ;
-
-            if( $existingEvaluationForm ) return response()->json([ 
-                'status' => 409,
-                'message' => 'This Evaluation Form Name is already in use!',
-                'evaluationFormID' => $existingEvaluationForm->id
+            if($conflictingEvaluationResponse) return response()->json([ 
+                'status' => 400,
+                'message' => 'This Evaluation is in conflict with another!',
+                'evaluationFormID' => $conflictingEvaluationResponse->id
             ]);
+            
 
-            $newEvaluationForm = EvaluationForm::create([
-                'name' => $request->name,
-                'creator_id' => $user->id
+            $newEvaluationResponse = EvaluationResponse::create([
+                'evaluatee_id' => $request->evaluatee_id,
+                'evaluator_id' => $request->evaluator_id,
+                'primary_commentor_id' => $request->primary_commentor_id,
+                'secondary_commentor_id' => $request->secondary_commentor_id,
+                'form_id' => $request->form_id,
+                'period_start_at' => $request->period_start_at,
+                'period_end_at' => $request->period_end_at
             ]);
 
             DB::commit();
 
             return response()->json([ 
                 'status' => 201,
-                'evaluationID' => $newEvaluationForm->id,
-                'message' => 'Evaluation Form successfully created'
+                'evaluationResponseID' => $newEvaluationResponse->id,
+                'message' => 'Evaluation Response successfully created'
             ]);
 
         } catch (\Exception $e) {
