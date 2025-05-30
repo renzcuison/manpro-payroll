@@ -216,7 +216,6 @@ const Sidebar = ({ children, closeMini }) => {
             icon: "fa fa-bullhorn",
             children: [
                 {
-                    href: `/admin/announcements/types?`,
                     href: `/admin/announcements/types`,
                     text: "Announcement Types",
                 },
