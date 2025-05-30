@@ -79,21 +79,46 @@ const Dashboard = () => {
         });
     }, [dashboard, selectedDate]);
 
+    console.log("Present Users:", presentUsers);
+
     const lateUsers = useMemo(() => {
         if (!presentUsers || presentUsers.length === 0) return [];
 
         return presentUsers.filter((user) => {
-            const timeIn = moment(user.latest_attendance_log?.timestamp);
-            const lateThreshold = moment(timeIn).set({
-                hour: 8,
-                minute: 0,
-                second: 0,
+            const dutyInLogs = user.attendance_logs?.filter(
+                (log) => log.action === "Duty In"
+            );
+
+            if (!dutyInLogs || dutyInLogs.length === 0) return false;
+
+            // Get the earliest "Duty In" log
+            const firstDutyIn = dutyInLogs.sort((a, b) =>
+                moment(a.timestamp).diff(moment(b.timestamp))
+            )[0];
+
+            const timeIn = moment(firstDutyIn.timestamp);
+
+            // Get the scheduled time-in from work_hours (format: "08:30:00")
+            const scheduledTimeStr = user.work_hours?.first_time_in;
+            if (!scheduledTimeStr) return false;
+
+            const [hour, minute, second] = scheduledTimeStr
+                .split(":")
+                .map(Number);
+
+            // Set threshold time to the same day as timeIn but with scheduled time
+            const threshold = moment(timeIn).set({
+                hour,
+                minute,
+                second,
                 millisecond: 0,
             });
 
-            return timeIn.isAfter(lateThreshold);
+            return timeIn.isAfter(threshold);
         });
     }, [presentUsers]);
+
+    console.log("Lates: ", lateUsers);
 
     const latestEmployees = useMemo(() => {
         if (data) {
@@ -185,7 +210,7 @@ const Dashboard = () => {
         },
         {
             title: "Late",
-            value: lateUsers.length,
+            value: lateUsers?.length,
             icon: <Clock size={42} />,
             link: "/admin/attendance/today",
         },
