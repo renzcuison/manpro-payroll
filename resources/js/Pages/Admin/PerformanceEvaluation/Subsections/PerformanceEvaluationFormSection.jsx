@@ -11,7 +11,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
 import PerformanceEvaluationRating from './PerformanceEvaluationRating';
-import PerformanceEvaluationAddSubcategory from '../Modals/PerformanceEvaluationAddSubcategory';
+import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvaluationFormAddSubcategory';
 import Swal from 'sweetalert2';
 import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
@@ -59,8 +59,8 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     const [addSubcategoryOpen, setAddSubcategoryOpen] = useState(false);
 
     // Subcategory modal handlers
-    const handleOpenAddPerformanceEvaluationAddSubcategory = () => setAddSubcategoryOpen(true);
-    const handleCloseAddPerformanceEvaluationAddSubcategory = () => setAddSubcategoryOpen(false);
+    const handleOpenAddPerformanceEvaluationFormAddSubcategory = () => setAddSubcategoryOpen(true);
+    const handleCloseAddPerformanceEvaluationFormAddSubcategory = () => setAddSubcategoryOpen(false);
 
     // Save Subcategory
     const handleSaveSubcategory = (subcategory) => {
@@ -253,7 +253,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 letterSpacing: 1,
                                 '&:hover': { bgcolor: '#0d5c27' }
                             }}
-                            onClick={sectionCategory ? handleOpenAddPerformanceEvaluationAddSubcategory : handleOpenAddCategoryModal}
+                            onClick={sectionCategory ? handleOpenAddPerformanceEvaluationFormAddSubcategory : handleOpenAddCategoryModal}
                         >
                             {sectionCategory ? <>ADD SUB-CATEGORY</> : <>ADD CATEGORY</>}
                         </Button>
@@ -265,9 +265,9 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                 onClose={handleCloseAddCategoryModal}
                 onSave={handleSaveCategory}
             />
-            <PerformanceEvaluationAddSubcategory
+            <PerformanceEvaluationFormAddSubcategory
                 open={addSubcategoryOpen}
-                onClose={handleCloseAddPerformanceEvaluationAddSubcategory}
+                onClose={handleCloseAddPerformanceEvaluationFormAddSubcategory}
                 onSave={handleSaveSubcategory}
             />
         </Accordion>
