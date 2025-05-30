@@ -39,7 +39,7 @@ import PerformanceEvaluationFormAcknowledgeSign from "../Pages/Admin/Performance
 import PerformanceEvaluationFormAddCategory from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddCategory";
 import PerformanceEvaluationFormAddSection from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddSection";
 import PerformanceEvaluationFormSaveEvaluation from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormSaveEvaluation";
-import PerformanceEvaludationAddSubcategory from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaludationAddSubcategory";
+import PerformanceEvaluationAddSubcategory from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationAddSubcategory";
 import PerformanceEvaluationFormPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationFormPage';  // Import the new page
 
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
@@ -125,7 +125,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="performance-evaluation/add-category" element={<ProtectedRoute element={<PerformanceEvaluationFormAddCategory />} user={user} />} />
             <Route path="performance-evaluation/add-section" element={<ProtectedRoute element={<PerformanceEvaluationFormAddSection />} user={user} />} />
             <Route path="performance-evaluation/save-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationFormSaveEvaluation />} user={user} />} />
-            <Route path="performance-evaluation/subcategory-modal" element={<ProtectedRoute element={<PerformanceEvaludationAddSubcategory />} user={user} />} />
+            <Route path="performance-evaluation/subcategory-modal" element={<ProtectedRoute element={<PerformanceEvaluationAddSubcategory />} user={user} />} />
             <Route path="performance-evaluation/create-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />    
             <Route path="performance-evaluation/form/:formName" element={<ProtectedRoute element={<PerformanceEvaluationFormPage />} user={user} />} />
 

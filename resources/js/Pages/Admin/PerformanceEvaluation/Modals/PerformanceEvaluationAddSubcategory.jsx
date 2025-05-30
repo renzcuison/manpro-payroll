@@ -9,7 +9,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import { useEvaluationFormSubcategory } from '../../../../hooks/useEvaluationFormSubcategory';
 
-const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave }) => {
+const PerformanceEvaluationAddSubcategory = ({ open, onClose, onSave }) => {
 
     const {
         subcategory,
@@ -295,4 +295,4 @@ const PerformanceEvaludationAddSubcategory = ({ open, onClose, onSave }) => {
     );
 };
 
-export default PerformanceEvaludationAddSubcategory;
+export default PerformanceEvaluationAddSubcategory;
