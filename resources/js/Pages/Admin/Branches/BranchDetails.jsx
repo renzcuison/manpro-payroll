@@ -375,6 +375,11 @@ const BranchDetails = () => {
                                             variant="outlined"
                                             value={searchKeyword}
                                             onChange={(e) => setSearchKeyword(e.target.value)}
+                                            InputProps={{
+                                        startAdornment: (
+                                            <i className="fa fa-search mr-2"></i>
+                                        )
+                                    }}
                                         />
                                     </Grid>
                                     <Grid item xs={6} ml={90}>
