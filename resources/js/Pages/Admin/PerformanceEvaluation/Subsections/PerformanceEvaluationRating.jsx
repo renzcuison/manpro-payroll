@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     Box, TextField, Button, Grid, FormControl, FormControlLabel, InputLabel, Select,
-    RadioGroup, Radio, MenuItem, Typography, IconButton
+    RadioGroup, Radio, MenuItem, Typography, IconButton, Paper
 } from '@mui/material';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -15,122 +15,160 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
 
     const {
         subcategoryId, subcategoryName, responseType, subcategoryDescription, required,
-        allowOtherOption, linearScaleStart, linearScaleEnd, order, options,
-        editSubcategory, saveOption, switchResponseType, toggleRequired
-    } = useEvaluationFormSubcategory( subcategory );
-    // const [responseType, setResponseType] = useState('');
-    // const [options, setOptions] = useState(['']);
-    // const [rating, setRating] = useState(0);
-    // const [label1, setLabel1] = useState('');
-    // const [label2, setLabel2] = useState('');
+        allowOtherOption, linearScaleStart = 1, linearScaleEnd = 5, order, options,
+        editSubcategory, saveOption, switchResponseType, toggleRequired, editOption, deleteOption
+    } = useEvaluationFormSubcategory(subcategory);
+
+    // For demonstration, use state for the likert scale value and labels.
+    const [likertValue, setLikertValue] = useState('');
+    const [label1, setLabel1] = useState('Disagree'); // Left label
+    const [label2, setLabel2] = useState('Strongly Disagree'); // Right label
 
     const handleResponseTypeChange = (event) => {
         switchResponseType(event.target.value);
     };
 
-    // const handleRatingChange = (event) => {
-    //     setRating(event.target.value);
-    // };
+    const handleLikertChange = (event) => {
+        setLikertValue(event.target.value);
+    };
 
-    // const handleOptionChange = (index, event) => {
-    //     const newOptions = [...options];
-    //     newOptions[index] = event.target.value;
-    //     setOptions(newOptions);
-    // };
+    // Option handlers
+    const handleOptionChange = (index, event) => {
+        editOption(index, event.target.value);
+    };
 
-    // const handleAddOption = () => {
-    //     setOptions([...options, '']);
-    // };
+    const handleAddOption = () => {
+        saveOption({ label: '' });
+    };
+    const handleRemoveOption = (index) => {
+        deleteOption(index);
+    };
 
-    // const handleRemoveOption = (index) => {
-    //     const newOptions = options.filter((_, i) => i !== index);
-    //     setOptions(newOptions);
-    // };
+    // Generate scale array based on start and end
+    const scale = [];
+    for (let i = linearScaleStart; i <= linearScaleEnd; i++) {
+        scale.push(i);
+    }
 
     return (
         <div>
-            <h1>Performance Evaluation Rating</h1>
+            {/* Move Response Type Selection to the right, top corner */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+                <FormControl variant="outlined" sx={{ width: '200px' }}>
+                    <InputLabel>Response Type</InputLabel>
+                    <Select
+                        value={responseType}
+                        onChange={handleResponseTypeChange}
+                        label="Response Type"
+                    >
+                        <MenuItem value="linearScale">
+                            <LinearScaleIcon sx={{ mr: 2 }} /> Linear Scale
+                        </MenuItem>
+                        <MenuItem value="multipleChoice">
+                            <RadioButtonCheckedIcon sx={{ mr: 2 }} /> Multiple Choice
+                        </MenuItem>
+                        <MenuItem value="checkbox">
+                            <CheckBoxIcon sx={{ mr: 2 }} /> Checkbox
+                        </MenuItem>
+                        <MenuItem value="shortText">
+                            <ShortTextIcon sx={{ mr: 2 }} /> Short Text
+                        </MenuItem>
+                        <MenuItem value="longText">
+                            <TextFieldsIcon sx={{ mr: 2 }} /> Long Text
+                        </MenuItem>
+                    </Select>
+                </FormControl>
+            </Box>
 
-            {/* Response Type Selection */}
-            <FormControl variant="outlined" sx={{ width: '200px', mb: 3 }}>
-                <InputLabel>Response Type</InputLabel>
-                <Select
-                    value={responseType}
-                    onChange={handleResponseTypeChange}
-                    label="Response Type"
+            {/* Likert Scale Design */}
+            {responseType === 'linearScale' && (
+                <Paper
+                    sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        maxWidth: 800,
+                        margin: "auto",
+                        mt: 2
+                    }}
                 >
-                    <MenuItem value="linearScale">
-                        <LinearScaleIcon sx={{ mr: 2 }} /> Linear Scale
-                    </MenuItem>
-                    <MenuItem value="multipleChoice">
-                        <RadioButtonCheckedIcon sx={{ mr: 2 }} /> Multiple Choice
-                    </MenuItem>
-                    <MenuItem value="checkbox">
-                        <CheckBoxIcon sx={{ mr: 2 }} /> Checkbox
-                    </MenuItem>
-                    <MenuItem value="shortText">
-                        <ShortTextIcon sx={{ mr: 2 }} /> Short Text
-                    </MenuItem>
-                    <MenuItem value="longText">
-                        <TextFieldsIcon sx={{ mr: 2 }} /> Long Text
-                    </MenuItem>
-                </Select>
-            </FormControl>
+                    <Typography variant="h6" fontWeight="bold">
+                        {subcategoryName || 'Kindess Rating'}
+                    </Typography>
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 3 }}
+                    >
+                        {subcategoryDescription || 'Response Type: Linear Scale'}
+                    </Typography>
+
+                    <Grid container alignItems="center" spacing={0}>
+                        <Grid item xs={2} sx={{ textAlign: "left" }}>
+                            <Typography variant="body2">{label1}</Typography>
+                        </Grid>
+                        <Grid item xs={8}>
+                            <RadioGroup
+                                row
+                                sx={{
+                                    justifyContent: "space-between",
+                                    width: "100%",
+                                    px: 4
+                                }}
+                                value={likertValue}
+                                onChange={handleLikertChange}
+                            >
+                                {scale.map((num) => (
+                                    <Box
+                                        key={num}
+                                        sx={{
+                                            textAlign: "center",
+                                            width: "56px"
+                                        }}
+                                    >
+                                        <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                            {num}
+                                        </Typography>
+                                        <FormControlLabel
+                                            value={num}
+                                            control={<Radio sx={{
+                                                color: "#aaa",
+                                                "&.Mui-checked": {
+                                                    color: "#1976d2"
+                                                }
+                                            }} />}
+                                            label=""
+                                            sx={{ margin: 0 }}
+                                        />
+                                    </Box>
+                                ))}
+                            </RadioGroup>
+                        </Grid>
+                        <Grid item xs={2} sx={{ textAlign: "right" }}>
+                            <Typography variant="body2">{label2}</Typography>
+                        </Grid>
+                    </Grid>
+                </Paper>
+            )}
 
             {/* Conditionally render input fields based on the selected response type */}
             <Box sx={{ mt: 2 }}>
-                {responseType === 'linearScale' && (
-                    <Box>
-                        <Typography variant="h6">Linear Scale</Typography>
-                        <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                                <TextField
-                                    label="Label 1"
-                                    variant="outlined"
-                                    fullWidth
-                                    // value={label1}
-                                    // onChange={(e) => setLabel1(e.target.value)}
-                                />
-                            </Grid>
-                            <Grid item xs={6}>
-                                <TextField
-                                    label="Label 2"
-                                    variant="outlined"
-                                    fullWidth
-                                    // value={label2}
-                                    // onChange={(e) => setLabel2(e.target.value)}
-                                />
-                            </Grid>
-                        </Grid>
-                        {/* <RadioGroup row value={rating} onChange={handleRatingChange}> */}
-                        <RadioGroup row>
-                            <FormControlLabel value={0} control={<Radio />} label="0" />
-                            <FormControlLabel value={1} control={<Radio />} label="1" />
-                            <FormControlLabel value={2} control={<Radio />} label="2" />
-                            <FormControlLabel value={3} control={<Radio />} label="3" />
-                            <FormControlLabel value={4} control={<Radio />} label="4" />
-                            <FormControlLabel value={5} control={<Radio />} label="5" />
-                        </RadioGroup>
-                    </Box>
-                )}
-
                 {responseType === 'multipleChoice' && (
                     <Box>
-                        <Typography variant="h6">Multiple Choice</Typography>
+                        <Typography variant="h6" sx={{ mb: 2 }}>Multiple Choice</Typography>
                         {options.map(({ label }, index) => (
-                            <Grid container spacing={2} key={index}>
+                            <Grid container spacing={2} key={index} sx={{ mb: 2 }}>
                                 <Grid item xs={10}>
                                     <TextField
                                         label={`Option ${index + 1}`}
                                         variant="outlined"
                                         fullWidth
                                         value={ label }
-                                        // onChange={(e) => handleOptionChange(index, e)}
+                                        onChange={(e) => handleOptionChange(index, e)}
                                     />
                                 </Grid>
-                                <Grid item xs={2}>
+                                <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center' }}>
                                     <IconButton
-                                        // onClick={() => handleRemoveOption(index)}
+                                        onClick={() => handleRemoveOption(index)}
                                         sx={{ color: 'gray' }}
                                     >
                                         <CloseIcon />
@@ -141,7 +179,7 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                         <Button
                             variant="contained"
                             color="success"
-                            // onClick={handleAddOption}
+                            onClick={handleAddOption}
                         >
                             Add Option
                         </Button>
@@ -150,21 +188,21 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
 
                 {responseType === 'checkbox' && (
                     <Box>
-                        <Typography variant="h6">Checkbox</Typography>
-                        {options.map((option, index) => (
-                            <Grid container spacing={2} key={index}>
+                        <Typography variant="h6" sx={{ mb: 2 }}>Checkbox</Typography>
+                        {options.map(({ label }, index) => (
+                            <Grid container spacing={2} key={index} sx={{ mb: 2 }}>
                                 <Grid item xs={10}>
                                     <TextField
                                         label={`Option ${index + 1}`}
                                         variant="outlined"
                                         fullWidth
-                                        // value={option}
-                                        // onChange={(e) => handleOptionChange(index, e)}
+                                        value={label}
+                                        onChange={(e) => handleOptionChange(index, e)}
                                     />
                                 </Grid>
-                                <Grid item xs={2}>
+                                <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center' }}>
                                     <IconButton
-                                        // onClick={() => handleRemoveOption(index)}
+                                        onClick={() => handleRemoveOption(index)}
                                         sx={{ color: 'gray' }}
                                     >
                                         <CloseIcon />
@@ -175,7 +213,7 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                         <Button
                             variant="contained"
                             color="success"
-                            // onClick={handleAddOption}
+                            onClick={handleAddOption}
                         >
                             Add Option
                         </Button>
@@ -207,12 +245,6 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                         />
                     </Box>
                 )}
-            </Box>
-
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-                <Button variant="contained" color="success">
-                    Save Evaluation
-                </Button>
             </Box>
         </div>
     );
