@@ -178,6 +178,12 @@ class SettingsController extends Controller
     ], 403);
 }
 
+
+
+
+
+
+
         public function updateBranchPositionAssignments(Request $request)
         {
             $validated = $request->validate([
@@ -207,6 +213,71 @@ class SettingsController extends Controller
             ]);
         }
 
+
+
+
+public function addBranchPositionAssignments(Request $request)
+    {
+        // For now, just return the incoming data to test
+        return response()->json([
+            'message' => 'Assignments received!',
+            'data' => $request->all()
+        ]);
+    }
+
+ 
+
+
+public function getBranchPositions()
+{
+    $user = Auth::user();
+
+    $positions = BranchPosition::where('client_id', $user->client_id)->get();
+
+    return response()->json([
+        'status' => 200,
+        'positions' => $positions
+    ]);
+}
+
+public function saveBranchPosition(Request $request)
+{
+    $user = Auth::user();
+
+    $validated = $request->validate([
+        'id' => 'nullable|exists:branch_positions,id',
+        'name' => 'required|string|max:255',
+        'can_review_request' => 'required|boolean',
+        'can_approve_request' => 'required|boolean',
+        'can_note_request' => 'required|boolean',
+        'can_accept_request' => 'required|boolean',
+    ]);
+
+    // Update if ID is provided, otherwise create new
+    $position = BranchPosition::updateOrCreate(
+        ['id' => $request->id, 'client_id' => $user->client_id],
+        array_merge($validated, ['client_id' => $user->client_id])
+    );
+
+    return response()->json([
+        'status' => 200,
+        'message' => $request->id ? 'Position updated' : 'Position created',
+        'position' => $position
+    ]);
+}
+
+public function deleteBranchPosition($id)
+{
+    $user = Auth::user();
+
+    $position = BranchPosition::where('client_id', $user->client_id)->findOrFail($id);
+    $position->delete();
+
+    return response()->json([
+        'status' => 200,
+        'message' => 'Branch position deleted'
+    ]);
+}
 
 
 
@@ -347,71 +418,6 @@ class SettingsController extends Controller
 }
 
 
-
-
-
-public function addBranchPositionAssignments(Request $request)
-    {
-        // For now, just return the incoming data to test
-        return response()->json([
-            'message' => 'Assignments received!',
-            'data' => $request->all()
-        ]);
-    }
-
- 
-
-
-public function getBranchPositions()
-{
-    $user = Auth::user();
-
-    $positions = BranchPosition::where('client_id', $user->client_id)->get();
-
-    return response()->json([
-        'status' => 200,
-        'positions' => $positions
-    ]);
-}
-
-public function saveBranchPosition(Request $request)
-{
-    $user = Auth::user();
-
-    $validated = $request->validate([
-        'id' => 'nullable|exists:branch_positions,id',
-        'name' => 'required|string|max:255',
-        'can_review_request' => 'required|boolean',
-        'can_approve_request' => 'required|boolean',
-        'can_note_request' => 'required|boolean',
-        'can_accept_request' => 'required|boolean',
-    ]);
-
-    // Update if ID is provided, otherwise create new
-    $position = BranchPosition::updateOrCreate(
-        ['id' => $request->id, 'client_id' => $user->client_id],
-        array_merge($validated, ['client_id' => $user->client_id])
-    );
-
-    return response()->json([
-        'status' => 200,
-        'message' => $request->id ? 'Position updated' : 'Position created',
-        'position' => $position
-    ]);
-}
-
-public function deleteBranchPosition($id)
-{
-    $user = Auth::user();
-
-    $position = BranchPosition::where('client_id', $user->client_id)->findOrFail($id);
-    $position->delete();
-
-    return response()->json([
-        'status' => 200,
-        'message' => 'Branch position deleted'
-    ]);
-}
 
 
 

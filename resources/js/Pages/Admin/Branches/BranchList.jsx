@@ -121,6 +121,7 @@ const BranchList = () => {
             );
         }
 
+
         return (
             <Box display="flex" justifyContent="center" flexWrap="wrap" gap={1}>
                 {employees.map(emp => (
@@ -129,10 +130,16 @@ const BranchList = () => {
                         title={`${emp.first_name} ${emp.last_name}`}
                         arrow
                     >
-                        <Avatar 
-                            src={emp.avatar} 
-                            sx={{ width: 32, height: 32 }}
-                        />
+                        {emp.avatar ? (
+                            <Avatar 
+                                src={`data:${emp.avatar_mime};base64,${emp.avatar}`}
+                                sx={{ width: 32, height: 32 }}
+                            />
+                        ) : (
+                            <Avatar sx={{ width: 32, height: 32 }}>
+                                {emp.first_name?.charAt(0)}{emp.last_name?.charAt(0)}
+                            </Avatar>
+                        )}
                     </Tooltip>
                 ))}
             </Box>
@@ -477,82 +484,85 @@ const BranchList = () => {
             </Box>
 
             {/* Add Branch Modal */}
-            <Dialog open={openModal} onClose={() => { setOpenModal(false); resetBranchForm(); }} fullWidth maxWidth="md">
-            <DialogTitle>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Typography variant="h5" fontWeight="bold">Add New Branch</Typography>
-                <IconButton onClick={() => {
+            <Dialog
+                open={openModal}
+                onClose={() => {
                     setOpenModal(false);
                     resetBranchForm();
-                }}>
-                    <i className="si si-close"></i>
-                </IconButton>
-                </Box>
-            </DialogTitle>
-
-            <DialogContent>
-                <Box component="form" sx={{ mt: 3 }} onSubmit={saveBranch}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={8}>
-                    <TextField
-                        fullWidth
-                        required
-                        label="Branch Name"
-                        variant="outlined"
-                        value={name}
-                        error={nameError}
-                        onChange={(e) => setName(e.target.value)}
-                        helperText={nameError ? "Branch name is required" : ""}
-                    />
-                    </Grid>
-
-                    <Grid item xs={12} md={4}>
-                    <TextField
-                        fullWidth
-                        required
-                        label="Acronym"
-                        variant="outlined"
-                        value={acronym}
-                        error={acronymError}
-                        onChange={(e) => setAcronym(e.target.value)}
-                        helperText={acronymError ? "Acronym is required" : ""}
-                    />
-                    </Grid>
-
-                    <Grid item xs={12}>
-                    <TextField
-                        fullWidth
-                        label="Description"
-                        variant="outlined"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        multiline
-                        rows={4}
-                    />
-                    </Grid>
-                </Grid>
-
-                <DialogActions sx={{ mt: 3 }}>
-                    <Button 
-                    variant="outlined" 
-                    onClick={() => {
-                        setOpenModal(false);
-                        resetBranchForm();
-                    }}
-                    >
-                    Cancel
-                    </Button>
-
-                    <Button 
-                    type="submit" 
-                    variant="contained" 
-                    sx={{ backgroundColor: '#177604' }}
-                    >
-                    Save Branch
-                    </Button>
-                </DialogActions>
-                </Box>
-            </DialogContent>
+                }}
+                fullWidth
+                maxWidth="md"
+            >
+                <DialogTitle>
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Typography variant="h5" fontWeight="bold">Add New Branch</Typography>
+                        <IconButton onClick={() => {
+                            setOpenModal(false);
+                            resetBranchForm();
+                        }}>
+                            <i className="si si-close"></i>
+                        </IconButton>
+                    </Box>
+                </DialogTitle>
+                <DialogContent>
+                    <Box component="form" sx={{ mt: 3 }} onSubmit={saveBranch}>
+                        <Grid container spacing={3}>
+                            <Grid item xs={12} md={8}>
+                                <TextField
+                                    fullWidth
+                                    required
+                                    label="Branch Name"
+                                    variant="outlined"
+                                    value={name}
+                                    error={nameError}
+                                    onChange={(e) => setName(e.target.value)}
+                                    helperText={nameError ? "Branch name is required" : ""}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <TextField
+                                    fullWidth
+                                    required
+                                    label="Acronym"
+                                    variant="outlined"
+                                    value={acronym}
+                                    error={acronymError}
+                                    onChange={(e) => setAcronym(e.target.value)}
+                                    helperText={acronymError ? "Acronym is required" : ""}
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    label="Description"
+                                    variant="outlined"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    multiline
+                                    rows={4}
+                                />
+                            </Grid>
+                        </Grid>
+                        <DialogActions sx={{ mt: 3 }}>
+                            <Button 
+                                variant="outlined" 
+                                onClick={() => {
+                                    setOpenModal(false);
+                                    resetBranchForm();
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button 
+                                type="submit" 
+                                variant="contained" 
+                                sx={{ backgroundColor: '#177604' }}
+                            >
+                                Save Branch
+                            </Button>
+                        </DialogActions>
+                    </Box>
+                </DialogContent>
             </Dialog>
 
             {/* Branch Positions Settings Modal */}
