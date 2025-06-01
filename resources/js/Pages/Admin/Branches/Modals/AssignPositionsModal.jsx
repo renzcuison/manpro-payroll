@@ -43,13 +43,13 @@ const theme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             '& fieldset': {
-              borderColor: '#177604', // Green border
+              borderColor: '#177604',
             },
             '&:hover fieldset': {
-              borderColor: '#177604', // Green border on hover
+              borderColor: '#177604', 
             },
             '&.Mui-focused fieldset': {
-              borderColor: '#177604', // Green border when focused
+              borderColor: '#177604', 
             },
           },
         },
@@ -58,9 +58,9 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         contained: {
-          backgroundColor: '#177604', // Green background
+          backgroundColor: '#177604', 
           '&:hover': {
-            backgroundColor: '#125a03', // Darker green on hover
+            backgroundColor: '#125a03', 
           },
         },
       },
@@ -68,9 +68,9 @@ const theme = createTheme({
     MuiCheckbox: {
       styleOverrides: {
         root: {
-          color: '#177604', // Green color
+          color: '#177604', 
           '&.Mui-checked': {
-            color: '#177604', // Green color when checked
+            color: '#177604', 
           },
         },
       },
@@ -79,13 +79,13 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#177604', // Green border
+            borderColor: '#177604', 
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#177604', // Green border on hover
+            borderColor: '#177604', 
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#177604', // Green border when focused
+            borderColor: '#177604', 
           },
         },
       },
