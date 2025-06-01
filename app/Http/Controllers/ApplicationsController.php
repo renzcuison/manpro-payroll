@@ -691,7 +691,7 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
 
-            $rawApplications = ApplicationsOvertimeModel::where('client_id', $user->client_id)->with(['user', 'timeIn', 'timeOut'])->get();
+            $rawApplications = ApplicationsOvertimeModel::where('client_id', $user->client_id)->with(['user', 'timeIn', 'timeOut'])->orderBy('created_at', 'desc')->get();
 
             $applications = [];
             foreach ($rawApplications as $app) {

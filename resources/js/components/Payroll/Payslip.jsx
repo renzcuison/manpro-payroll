@@ -234,7 +234,7 @@ const Payslip = ({ selectedPayroll }) => {
                                                         <TableRow key={`employer+${benefit.name}`} >
                                                             <TableCell className="text-center bg-light" sx={{ width: "50%" }}>{benefit.name}</TableCell>
                                                             <TableCell className="text-center bg-light">
-                                                                <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right" }} readOnly className="form-control" type="text" value={new Intl.NumberFormat("en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2 } ).format(benefit.employerAmount)} />
+                                                                <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right" }} readOnly className="form-control" type="text" value={new Intl.NumberFormat("en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2 } ).format(benefit.employer_amount)} />
                                                             </TableCell>
                                                         </TableRow>
                                                     ))}
@@ -286,7 +286,7 @@ const Payslip = ({ selectedPayroll }) => {
                                                         <TableRow key={`employee+${benefit.name}`} >
                                                             <TableCell className="text-center bg-light" sx={{ width: "50%" }}> {benefit.name} </TableCell>
                                                             <TableCell className="text-center bg-light">
-                                                                <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right" }} readOnly className="form-control" type="text" value={new Intl.NumberFormat( "en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2 }).format(benefit.employeeAmount)} />
+                                                                <input id="demo-simple-select" style={{ backgroundColor: "white", height: 30, textAlign: "right" }} readOnly className="form-control" type="text" value={new Intl.NumberFormat( "en-US", { style: "currency", currency: "PHP", minimumFractionDigits: 2 }).format(benefit.employee_amount)} />
                                                             </TableCell>
                                                         </TableRow>
                                                     ))}
