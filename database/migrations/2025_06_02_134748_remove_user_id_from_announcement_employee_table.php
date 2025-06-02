@@ -25,6 +25,10 @@ return new class extends Migration
             $table->dropForeign(['user_id']);
             $table->dropColumn('user_id');
         });
+
+        Schema::table('announcement_employee_types', function (Blueprint $table) {
+            $table->renameColumn('employment_status', 'employment_type');
+        });
     }
 
     /**
