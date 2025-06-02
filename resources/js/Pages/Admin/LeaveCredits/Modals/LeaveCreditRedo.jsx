@@ -1,26 +1,22 @@
 import {
   Box, Button, IconButton, Dialog, Typography, CircularProgress, TextField,
-  MenuItem, FormControl, Stack
+  FormControl, Stack
 } from '@mui/material';
 
 import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import Swal from 'sweetalert2';
 
-const LeaveCreditAdd = ({ open, close, empId, employee }) => {
-  console.log(employee.name)
+const LeaveCreditRedo = ({ open, close, empId, employee, leaveTypeId, leaveTypeName, currentCredits }) => {
   const storedUser = localStorage.getItem("nasya_user");
   const headers = getJWTHeader(JSON.parse(storedUser));
 
-  const [leaveType, setLeaveType] = useState('');
-  const [leaveTypeSet, setLeaveTypeSet] = useState([]);
-  const [creditCount, setCreditCount] = useState('');
-
-  const [leaveTypeError, setLeaveTypeError] = useState(false);
+  // leaveType is fixed, not editable, so just set from prop
+  const [creditCount, setCreditCount] = useState(currentCredits !== undefined ? String(currentCredits) : '');
   const [creditCountError, setCreditCountError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [leaveCredits, setLeaveCredits] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [leaveTypeSet, setLeaveTypeSet] = useState([]); // to hold leave types if needed
 
   const style = {
     p: 4,
@@ -29,6 +25,7 @@ const LeaveCreditAdd = ({ open, close, empId, employee }) => {
     bgcolor: '#f8f9fa',
   };
 
+  // Fetch leave types on mount if you need it (currently you don't use this for editing, but keeping for future)
   useEffect(() => {
     setLoading(true);
     axiosInstance.get(`applications/getApplicationTypes`, { headers })
@@ -37,28 +34,30 @@ const LeaveCreditAdd = ({ open, close, empId, employee }) => {
       })
       .catch((error) => {
         console.error("Error fetching leave types:", error);
-      });
-
-    axiosInstance.get(`/applications/getLeaveCredits/${empId}`, { headers })
-      .then((response) => {
-        setLeaveCredits(response.data.leave_credits);
-      })
-      .catch((error) => {
-        console.error('Error fetching leave credits:', error);
       })
       .finally(() => setLoading(false));
-  }, [empId]);
+  }, []);
+
+  // Update credit count when prop changes
+  useEffect(() => {
+    setCreditCount(currentCredits !== undefined ? String(currentCredits) : '');
+  }, [currentCredits]);
 
   const checkInput = (event) => {
     event.preventDefault();
 
-    setLeaveTypeError(!leaveType);
-    setCreditCountError(!creditCount);
+    // Convert creditCount string to number safely
+    const creditNumber = Number(creditCount);
 
-    if (!leaveType || !creditCount) {
+    // Validate properly: creditCount must not be empty and >= 0
+    const isInvalid = creditCount === '' || isNaN(creditNumber) || creditNumber < 0;
+
+    setCreditCountError(isInvalid);
+
+    if (isInvalid) {
       Swal.fire({
         customClass: { container: 'my-swal' },
-        text: "All fields must be filled!",
+        text: "Please enter a valid credit count (0 or more)!",
         icon: "error",
         showConfirmButton: true,
         confirmButtonColor: '#177604',
@@ -69,7 +68,7 @@ const LeaveCreditAdd = ({ open, close, empId, employee }) => {
     Swal.fire({
       customClass: { container: "my-swal" },
       title: "Are you sure?",
-      text: "Do you want to add this leave credit?",
+      text: `Do you want to update the leave credit for ${leaveTypeName}?`,
       icon: "warning",
       showConfirmButton: true,
       confirmButtonText: 'Save',
@@ -85,37 +84,54 @@ const LeaveCreditAdd = ({ open, close, empId, employee }) => {
 
   const saveInput = (event) => {
     event.preventDefault();
+
     const data = {
       emp_id: empId,
-      app_type_id: leaveType,
-      credit_count: creditCount,
+      app_type_id: leaveTypeId,
+      credit_count: Number(creditCount), // convert here explicitly
     };
 
-    axiosInstance.post('/applications/saveLeaveCredits', data, { headers })
+    setLoading(true);
+
+    axiosInstance.post('/applications/updateLeaveCredits', data, { headers })
       .then(response => {
         if (response.data.status === 200) {
           Swal.fire({
             customClass: { container: 'my-swal' },
-            text: "Leave Credits added successfully!",
+            text: "Leave Credits updated successfully!",
             icon: "success",
             confirmButtonText: 'Proceed',
             confirmButtonColor: '#177604',
           }).then(() => {
             close();
           });
+        } else {
+          Swal.fire({
+            customClass: { container: 'my-swal' },
+            text: "Failed to update leave credits.",
+            icon: "error",
+            confirmButtonColor: '#177604',
+          });
         }
       })
       .catch(error => {
         console.error('Error:', error);
-      });
+        Swal.fire({
+          customClass: { container: 'my-swal' },
+          text: "An error occurred while updating leave credits.",
+          icon: "error",
+          confirmButtonColor: '#177604',
+        });
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
-    <Dialog open={open} onClose={close} aria-labelledby="add-leave-credit-title">
+    <Dialog open={open} onClose={close} aria-labelledby="edit-leave-credit-title">
       <Box sx={style}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h5" color="black" sx={{ fontWeight: 'bold' }}>
-            Add Leave Credit
+            Edit Leave Credit
           </Typography>
           <IconButton onClick={close}><i className="si si-close"></i></IconButton>
         </Box>
@@ -148,24 +164,17 @@ const LeaveCreditAdd = ({ open, close, empId, employee }) => {
           </Box>
         ) : (
           <Box component="form" onSubmit={checkInput} noValidate autoComplete="off">
-            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-              <FormControl sx={{ flex: 2 }} error={leaveTypeError}>
+            <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'center' }}>
+              <FormControl sx={{ flex: 2 }}>
                 <TextField
-                  select
                   label="Leave Type"
-                  value={leaveType}
-                  onChange={(e) => setLeaveType(e.target.value)}
+                  value={leaveTypeName}
                   size="small"
                   fullWidth
-                >
-                  {leaveTypeSet
-                    .filter(type => !leaveCredits.some(credit => credit.app_type_id === type.id))
-                    .map((type) => (
-                      <MenuItem key={type.id} value={type.id}>
-                        {type.name}
-                      </MenuItem>
-                    ))}
-                </TextField>
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
               </FormControl>
 
               <FormControl sx={{ flex: 1 }} error={creditCountError}>
@@ -196,4 +205,4 @@ const LeaveCreditAdd = ({ open, close, empId, employee }) => {
   );
 };
 
-export default LeaveCreditAdd;
+export default LeaveCreditRedo;
