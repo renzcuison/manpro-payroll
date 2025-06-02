@@ -27,7 +27,6 @@ const PerformanceEvaluationCreateEvaluation = () => {
     const [employees, setEmployees] = useState([]);
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
-    const [allDepartments, setAllDepartments] = useState([]);
 
     // Loading states
     const [loadingBranches, setLoadingBranches] = useState(false);
@@ -36,6 +35,22 @@ const PerformanceEvaluationCreateEvaluation = () => {
     // Get headers for authenticated requests (copy logic from AnnouncementPublish)
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+
+    const [admins, setAdmins] = useState([]);
+    const [loadingAdmins, setLoadingAdmins] = useState(false);
+
+    const { evaluator, primaryCommentor, secondaryCommentor } = formValues;
+    
+    // For each dropdown, filter out already-chosen people:
+    const evaluatorOptions = admins.filter(
+    admin => admin.id !== primaryCommentor && admin.id !== secondaryCommentor
+    );
+    const primaryCommentorOptions = admins.filter(
+    admin => admin.id !== evaluator && admin.id !== secondaryCommentor
+    );
+    const secondaryCommentorOptions = admins.filter(
+    admin => admin.id !== evaluator && admin.id !== primaryCommentor
+    );
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -115,6 +130,26 @@ const PerformanceEvaluationCreateEvaluation = () => {
         }
     };
 
+    const fetchAdmins = async (branchId, departmentId) => {
+        setLoadingAdmins(true);
+        try {
+            const params = {};
+            if (branchId) params.branch_id = branchId;
+            if (departmentId) params.department_id = departmentId;
+            const response = await axiosInstance.get('/getAdmins', { params, headers });
+            if (response.data.status === 200) {
+                setAdmins(response.data.admins);
+            } else {
+                setAdmins([]);
+            }
+        } catch (error) {
+            setAdmins([]);
+            console.error('Error fetching admins:', error);
+        } finally {
+            setLoadingAdmins(false);
+        }
+    };
+
     // When branch changes, fetch departments and reset employee list
     useEffect(() => {
         console.log('useEffect fired:', formValues.branch, formValues.department);
@@ -138,6 +173,14 @@ const PerformanceEvaluationCreateEvaluation = () => {
             })
             .finally(() => setIsLoading(false));
     }, []);
+
+    useEffect(() => {
+        if (formValues.branch && formValues.department) {
+            fetchAdmins(formValues.branch, formValues.department);
+        } else {
+            setAdmins([]);
+        }
+    }, [formValues.branch, formValues.department]);
 
     // When department changes, fetch employees
     useEffect(() => {
@@ -265,13 +308,15 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                 <InputLabel>Evaluator</InputLabel>
                                 <Select
                                     label="Evaluator"
-                                    variant="outlined"
                                     name="evaluator"
                                     value={formValues.evaluator}
                                     onChange={handleChange}
-                                >
-                                    <MenuItem value="Branch1">Evaluator 1</MenuItem>
-                                    <MenuItem value="Branch2">Evaluator 2</MenuItem>
+                                    >
+                                    {evaluatorOptions.map(admin => (
+                                        <MenuItem key={admin.id} value={admin.id}>
+                                        {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
+                                        </MenuItem>
+                                    ))}
                                 </Select>
                             </FormControl>
                         </Grid>
@@ -294,31 +339,36 @@ const PerformanceEvaluationCreateEvaluation = () => {
                     <Grid container spacing={3} sx={{ mt: 3 }}>
                         <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
                             <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Primary Commentor</InputLabel>
+                                <InputLabel>Primary Evaluator</InputLabel>
                                 <Select
                                     label="Primary Commentor"
-                                    variant="outlined"
                                     name="primaryCommentor"
                                     value={formValues.primaryCommentor}
                                     onChange={handleChange}
-                                >
-                                    <MenuItem value="Branch1">Primary Commentor 1</MenuItem>
-                                    <MenuItem value="Branch2">Primary Commentor 2</MenuItem>
+                                    >
+                                    {primaryCommentorOptions.map(admin => (
+                                        <MenuItem key={admin.id} value={admin.id}>
+                                        {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
+                                        </MenuItem>
+                                    ))}
                                 </Select>
+
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
                             <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Secondary Commentor</InputLabel>
+                                <InputLabel>Secondary Evaluator</InputLabel>
                                 <Select
                                     label="Secondary Commentor"
-                                    variant="outlined"
                                     name="secondaryCommentor"
                                     value={formValues.secondaryCommentor}
                                     onChange={handleChange}
-                                >
-                                    <MenuItem value="Branch1">Secondary Commentor 1</MenuItem>
-                                    <MenuItem value="Branch2">Secondary Commentor 2</MenuItem>
+                                    >
+                                    {secondaryCommentorOptions.map(admin => (
+                                        <MenuItem key={admin.id} value={admin.id}>
+                                        {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
+                                        </MenuItem>
+                                    ))}
                                 </Select>
                             </FormControl>
                         </Grid>

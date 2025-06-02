@@ -448,6 +448,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEmployeePayroll/{id}', [HrEmployeesController::class, 'getEmployeePayroll']);
 
     // New API for Employees
+    Route::get('/getAdmins', [HrEmployeesController::class, 'getAdmins']);
     Route::get('/getEmployeesName', [HrEmployeesController::class, 'getEmployeesName']);
 
     // Work Shift
