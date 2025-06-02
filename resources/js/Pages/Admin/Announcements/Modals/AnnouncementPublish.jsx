@@ -21,11 +21,12 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     const [departments, setDepartments] = useState([]);
     const [roles, setRoles] = useState([]);
     const [announcementTypes, setAnnouncementTypes] = useState([]);
+    const [clientId, setClientId] = useState(""); // <-- Client ID state
 
     // Selection
     const [selectedBranches, setSelectedBranches] = useState([]);
     const [selectedDepartments, setSelectedDepartments] = useState([]);
-    const [selectedRoleIds, setSelectedRoleIds] = useState([]); // multiple roles now
+    const [selectedRoleIds, setSelectedRoleIds] = useState([]);
 
     // Announcement Type selection + Create new
     const [selectedAnnouncementType, setSelectedAnnouncementType] = useState('');
@@ -57,8 +58,21 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     //loading state
     const [saving, setSaving] = useState(false);
 
+    // Informative feedback for scheduling
+    const [schedulingInfo, setSchedulingInfo] = useState('');
+
     // Fetch data on mount
     useEffect(() => {
+        // Fetch client_id for the logged-in user
+        axiosInstance.get('/user/profile', { headers })
+            .then((res) => {
+                setClientId(res.data.client_id || "");
+            })
+            .catch((err) => {
+                console.error('Error fetching user profile:', err);
+                setClientId("");
+            });
+
         axiosInstance.get('/settings/getBranches', { headers })
             .then((res) => {
                 setBranches(res.data.branches);
@@ -117,18 +131,13 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Departments multi-select handler with "All Departments"
     const handleDepartmentChange = (event) => {
         const value = event.target.value;
-
         if (value.includes('ALL_DEPARTMENTS')) {
-            // Toggle All Departments
             if (isAllSelected(departments, selectedDepartments)) {
-                // Deselect all
                 setSelectedDepartments([]);
             } else {
-                // Select all department IDs
                 setSelectedDepartments(departments.map(d => d.id.toString()));
             }
         } else {
-            // Select individual departments
             setSelectedDepartments(value);
         }
     };
@@ -136,7 +145,6 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Branches multi-select handler with "All Branches"
     const handleBranchChange = (event) => {
         const value = event.target.value;
-
         if (value.includes('ALL_BRANCHES')) {
             if (isAllSelected(branches, selectedBranches)) {
                 setSelectedBranches([]);
@@ -151,7 +159,6 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Roles multi-select handler with "All Roles"
     const handleRoleChange = (event) => {
         const value = event.target.value;
-
         if (value.includes('ALL_ROLES')) {
             if (isAllSelected(roles, selectedRoleIds)) {
                 setSelectedRoleIds([]);
@@ -166,7 +173,6 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Employment Types multi-select handler with "All Employment Types"
     const handleEmploymentTypesChange = (event) => {
         const value = event.target.value;
-
         if (value.includes('ALL_EMPLOYMENT_TYPES')) {
             if (isAllSelected(employmentTypes, selectedEmploymentTypes)) {
                 setSelectedEmploymentTypes([]);
@@ -181,7 +187,6 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Employment Statuses multi-select handler with "All Employment Statuses"
     const handleEmploymentStatusesChange = (event) => {
         const value = event.target.value;
-
         if (value.includes('ALL_EMPLOYMENT_STATUSES')) {
             if (isAllSelected(employmentStatuses, selectedEmploymentStatuses)) {
                 setSelectedEmploymentStatuses([]);
@@ -224,14 +229,12 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
         }
         setNewTypeError('');
         setNewTypeLoading(true);
-
         try {
             const response = await axiosInstance.post(
                 '/addAnnouncementType',
                 { name: newTypeName.trim() },
                 { headers }
             );
-
             if (response.status === 200 && response.data.status === 200) {
                 const createdType = response.data.type;
                 setAnnouncementTypes(prev => [...prev, createdType]);
@@ -248,6 +251,23 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
             setNewTypeLoading(false);
         }
     };
+
+    // Watch for scheduling changes to update info
+    useEffect(() => {
+        if (scheduledDate && scheduledTime) {
+            const scheduledSend = dayjs(
+                dayjs(scheduledDate).format('YYYY-MM-DD') + ' ' + scheduledTime,
+                'YYYY-MM-DD HH:mm'
+            );
+            if (scheduledSend.isAfter(dayjs())) {
+                setSchedulingInfo(`This announcement will be scheduled for ${scheduledSend.format('MMMM DD, YYYY hh:mm A')}. It will be automatically published at that time.`);
+            } else {
+                setSchedulingInfo('This announcement will be published immediately.');
+            }
+        } else {
+            setSchedulingInfo('');
+        }
+    }, [scheduledDate, scheduledTime]);
 
     // Validation & Submit
     const checkInput = (event) => {
@@ -272,6 +292,17 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
             reqMessage = "Select a Branch";
         } else if (selectedDepartments.length === 0) {
             reqMessage = "Select a Department";
+        }
+
+        // Validate date/time
+        if (scheduledDate && scheduledTime) {
+            const scheduledSend = dayjs(
+                dayjs(scheduledDate).format('YYYY-MM-DD') + ' ' + scheduledTime,
+                'YYYY-MM-DD HH:mm'
+            );
+            if (scheduledSend.isBefore(dayjs())) {
+                reqMessage = "Scheduled send date/time must be in the future.";
+            }
         }
 
         if (reqMessage) {
@@ -304,12 +335,13 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
 
     const saveInput = () => {
         setSaving(true); // Start loading
-        const scheduledSend = scheduledDate && scheduledTime
-            ? dayjs(
+        let scheduledSend = null;
+        if (scheduledDate && scheduledTime) {
+            scheduledSend = dayjs(
                 dayjs(scheduledDate).format('YYYY-MM-DD') + ' ' + scheduledTime,
                 'YYYY-MM-DD HH:mm'
-            ).format('YYYY-MM-DD HH:mm:ss')
-            : null;
+            ).format('YYYY-MM-DD HH:mm:ss');
+        }
 
         const data = {
             unique_code: announceInfo?.unique_code,
@@ -320,8 +352,8 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
             employment_types: selectedEmploymentTypes,
             employment_statuses: selectedEmploymentStatuses,
             scheduled_send_datetime: scheduledSend,
+            client_id: clientId, // <-- Pass client ID if needed
         };
-
 
         axiosInstance.post('/announcements/publishAnnouncement', data, { headers })
             .then(() => {
@@ -329,7 +361,9 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                 Swal.fire({
                     customClass: { container: "my-swal" },
                     title: "Success!",
-                    text: "Announcement published.",
+                    text: scheduledSend
+                        ? "Announcement has been scheduled for publishing."
+                        : "Announcement published.",
                     icon: "success",
                     confirmButtonColor: '#177604'
                 }).then(() => handleClose());
@@ -376,6 +410,12 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                 </Box>
             </DialogTitle>
             <DialogContent sx={{ padding: 5, mt: 2 }}>
+                {/* Show client ID for demonstration */}
+                {clientId && (
+                    <Typography variant="body2" sx={{ mb: 2, color: "gray" }}>
+                        Client ID: {clientId}
+                    </Typography>
+                )}
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <Box sx={{ mt: 2, width: '100%', display: 'flex', justifyContent: 'center' }}>
                         <Card sx={{ width: 500 }}>
@@ -648,6 +688,11 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                             </Box>
                             </LocalizationProvider>
                         </FormControl>
+                    )}
+                    {schedulingInfo && (
+                        <Typography variant="caption" sx={{ color: 'gray', mt: 1 }}>
+                            {schedulingInfo}
+                        </Typography>
                     )}
                     <Box display="flex" justifyContent="center" sx={{ marginTop: 2 }}>
                         <Button
