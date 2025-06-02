@@ -39,6 +39,11 @@ import EmployeeRoutes from "./Routes/EmployeeRoutes.jsx";
 import SuperAdminRoutes from "./Routes/SuperAdminRoutes.jsx";
 import { createTheme, ThemeProvider } from "@mui/material";
 
+import AnnouncementPublished from "./Pages/Admin/Announcements/AnnouncementPublished.jsx";
+import AnnouncementPending from "./Pages/Admin/Announcements/AnnouncementPending.jsx";
+import AnnouncementHidden from "./Pages/Admin/Announcements/AnnouncementHidden.jsx";
+import AnnouncementList from "./Pages/Admin/Announcements/AnnouncementList.jsx";
+
 const theme = createTheme({
     palette: {
         primary: {
@@ -169,9 +174,11 @@ function App() {
             <Route path="/verifyLogin" element={<VerifyLogin />} />
 
             <Route path="/error-404" element={<Error404 />} />
+            <Route path="/AnnouncementList" element={user ? <AnnouncementList /> : <CheckUser />} />
+            <Route path="/AnnouncementPublished" element={user ? <AnnouncementPublished /> : <CheckUser />} />
+            <Route path="/AnnouncementPending" element={user ? <AnnouncementPending /> : <CheckUser />} />
+            <Route path="/AnnouncementHidden" element={user ? <AnnouncementHidden /> : <CheckUser />} />
 
-            
-            
         </Routes>
     );
 }

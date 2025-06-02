@@ -14,14 +14,14 @@ import {
     Checkbox,
     ListItemText,
     MenuItem,
-    Avatar,
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
     IconButton,
-    FormGroup,
-    FormControl
+    Menu,
+    Avatar,
+    Tooltip
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import Layout from "../../../components/Layout/Layout";
@@ -37,13 +37,10 @@ const BranchList = () => {
     const [allEmployees, setAllEmployees] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState("");
-    const [selectedColumns, setSelectedColumns] = useState([
-        "Assigned Manager",
-        "Assigned Supervisor",
-        "Number of Employees",
-        "Assigned Approver"
-    ]);
+    const [branchPositions, setBranchPositions] = useState([]);
+    const [fetchError, setFetchError] = useState(null);
 
+    // Modal states
     const [openModal, setOpenModal] = useState(false);
     const [nameError, setNameError] = useState(false);
     const [acronymError, setAcronymError] = useState(false);
@@ -51,21 +48,44 @@ const BranchList = () => {
     const [acronym, setAcronym] = useState("");
     const [description, setDescription] = useState("");
 
+    const [openSettingsModal, setOpenSettingsModal] = useState(false);
+    const [newPosition, setNewPosition] = useState({
+        name: "",
+        can_review_request: false,
+        can_approve_request: false,
+        can_note_request: false,
+        can_accept_request: false
+    });
+
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                
-                // Fetch branches
-                const branchResponse = await axiosInstance.get("/settings/getBranches", { headers });
-                setBranches(branchResponse.data.branches || []);
-                
-                // Fetch all employees for name mapping
-                const employeesResponse = await axiosInstance.get('/employee/getEmployees', { headers });
-                setAllEmployees(employeesResponse.data.employees || []);
+                setFetchError(null);
+
+                const [branchesRes, employeesRes, positionsRes] = await Promise.all([
+                    axiosInstance.get("/settings/getBranches", { headers }),
+                    axiosInstance.get('/employee/getEmployees', { headers }),
+                    axiosInstance.get('/settings/getBranchPositions', { headers })
+                ]);
+
+                setBranches(branchesRes.data?.branches || []);
+                setAllEmployees(employeesRes.data?.employees || []);
+                setBranchPositions(positionsRes.data?.positions || []);
 
             } catch (error) {
-                console.error("Error fetching data:", error);
+                console.error("Error in fetchData:", error);
+                setFetchError(error.message);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Error loading data! Please try again.",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
             } finally {
                 setIsLoading(false);
             }
@@ -74,94 +94,304 @@ const BranchList = () => {
         fetchData();
     }, []);
 
-    // Helper function to get employee name by ID
-    const getEmployeeNameById = (employeeId) => {
-        if (!employeeId) return "-";
-        const employee = allEmployees.find(emp => emp.id === employeeId);
-        return employee ? `${employee.first_name} ${employee.last_name}` : "-";
+    const filteredBranches = React.useMemo(() => {
+        return branches.filter(bran => 
+            bran.name?.toLowerCase().includes(searchKeyword.toLowerCase())
+        );
+    }, [branches, searchKeyword]);
+
+    const getEmployeesForBranchPosition = (branchId, positionId) => {
+        const branch = branches.find(b => b.id === branchId);
+        if (!branch) return [];
+
+        return allEmployees.filter(emp => 
+            emp.branch?.trim().toLowerCase() === branch.name.trim().toLowerCase() && 
+            Number(emp.branch_position_id) === Number(positionId)
+        );
     };
 
-    // Helper function to get employee avatar by ID
-    const getEmployeeAvatarById = (employeeId) => {
-        if (!employeeId) return null;
-        const employee = allEmployees.find(emp => emp.id === employeeId);
-        return employee ? employee.avatar : null;
+    const renderEmployeeAvatars = (branchId, positionId) => {
+        const employees = getEmployeesForBranchPosition(branchId, positionId);
+        
+        if (employees.length === 0) {
+            return (
+                <Box display="flex" justifyContent="center">
+                    <Typography variant="caption" color="textSecondary">-</Typography>
+                </Box>
+            );
+        }
+
+        return (
+            <Box display="flex" justifyContent="center" flexWrap="wrap" gap={1}>
+                {employees.map(emp => (
+                    <Tooltip 
+                        key={emp.id} 
+                        title={`${emp.first_name} ${emp.last_name}`}
+                        arrow
+                    >
+                        <Avatar 
+                            src={emp.avatar} 
+                            sx={{ width: 32, height: 32 }}
+                        />
+                    </Tooltip>
+                ))}
+            </Box>
+        );
     };
 
-    const filteredBranches = branches.filter((bran) =>
-        bran.name.toLowerCase().includes(searchKeyword.toLowerCase())
-    );
+    // Modal handlers
+    const handleAddClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
 
-    const checkInput = (event) => {
-        event.preventDefault();
+    const handleAddClose = () => {
+        setAnchorEl(null);
+    };
 
+    const handleAddNew = () => {
+        handleAddClose();
+        setOpenModal(true);
+    };
+
+    const handleSettings = () => {
+        handleAddClose();
+        setOpenSettingsModal(true);
+    };
+
+    // Branch CRUD operations
+    const validateBranchInput = () => {
+        const valid = name && acronym;
         setNameError(!name);
         setAcronymError(!acronym);
+        return valid;
+    };
 
-        if (!name || !acronym) {
+    const saveBranch = async (event) => {
+        event.preventDefault();
+        
+        if (!validateBranchInput()) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
+                text: "Please fill all required fields!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: '#177604',
             });
-        } else {
-            document.activeElement.blur();
+            return;
+        }
+
+        try {
+            const data = { name, acronym, description };
+            const response = await axiosInstance.post('/settings/saveBranch', data, { headers });
+
+            if (response.data.status === 200) {
+                setBranches(prev => [...prev, response.data.branch]);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Branch saved successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+                setOpenModal(false);
+                resetBranchForm();
+            }
+        } catch (error) {
+            console.error("Error saving branch:", error);
             Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "This branch will be added",
-                icon: "warning",
+                customClass: { container: 'my-swal' },
+                text: "Error saving branch!",
+                icon: "error",
                 showConfirmButton: true,
-                confirmButtonText: "Add",
-                confirmButtonColor: "#177604",
-                showCancelButton: true,
-                cancelButtonText: "Cancel",
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
+                confirmButtonColor: '#177604',
             });
         }
     };
 
-    const saveInput = (event) => {
-        event.preventDefault();
+    const resetBranchForm = () => {
+        setName("");
+        setAcronym("");
+        setDescription("");
+        setNameError(false);
+        setAcronymError(false);
+    };
 
-        const data = {
-            name: name,
-            acronym: acronym,
-            description: description
-        };
+    // Position CRUD operations
+    const handlePositionChange = (index, field, value) => {
+        const updatedPositions = [...branchPositions];
+        updatedPositions[index][field] = value;
+        setBranchPositions(updatedPositions);
+    };
 
-        axiosInstance.post('/settings/saveBranch', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Branch saved successfully!",
-                        icon: "success",
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        setBranches(prev => [...prev, response.data.branch]);
-                        setName("");
-                        setAcronym("");
-                        setDescription("");
-                        setOpenModal(false);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+    const savePositionChanges = async (index) => {
+        const position = branchPositions[index];
+
+        try {
+            const response = await axiosInstance.post('/settings/saveBranchPosition', position, { headers });
+
+            if (response.data.status === 200) {
+                const updatedPositions = [...branchPositions];
+                updatedPositions[index] = response.data.position;
+                setBranchPositions(updatedPositions);
+                
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Position updated successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+            }
+        } catch (error) {
+            console.error("Error updating position:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error updating position!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
             });
+        }
+    };
+
+    const addNewPosition = async () => {
+        if (!newPosition.name) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Position name is required!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+
+        try {
+            const response = await axiosInstance.post('/settings/saveBranchPosition', newPosition, { headers });
+
+            if (response.data.status === 200) {
+                setBranchPositions(prev => [...prev, response.data.position]);
+                setNewPosition({
+                    name: "",
+                    can_review_request: false,
+                    can_approve_request: false,
+                    can_note_request: false,
+                    can_accept_request: false
+                });
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Position added successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+            }
+        } catch (error) {
+            console.error("Error adding position:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error adding position!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
+    };
+
+    const renderBranchTable = () => {
+        if (isLoading) {
+            return <LoadingSpinner />;
+        }
+
+        if (fetchError) {
+            return (
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                    <Typography color="error">Error loading data: {fetchError}</Typography>
+                    <Button 
+                        variant="contained" 
+                        onClick={() => window.location.reload()}
+                        sx={{ mt: 2, backgroundColor: '#177604' }}
+                    >
+                        Retry
+                    </Button>
+                </Box>
+            );
+        }
+
+        if (branches.length === 0) {
+            return (
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                    <Typography>No branches found. Please add a new branch.</Typography>
+                </Box>
+            );
+        }
+
+        if (filteredBranches.length === 0) {
+            return (
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                    <Typography>No branches match your search criteria.</Typography>
+                </Box>
+            );
+        }
+
+        return (
+            <TableContainer sx={{ mt: 3, maxHeight: 500 }}>
+                <Table stickyHeader>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Branch</TableCell>
+                            {branchPositions.map(position => (
+                                <TableCell key={position.id} align="center" sx={{ fontWeight: 'bold' }}>
+                                    {position.name}
+                                </TableCell>
+                            ))}
+                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Employees</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {filteredBranches.map((branch) => (
+                            <TableRow key={branch.id} hover>
+                                <TableCell align="center">
+                                    <Link
+                                        to={`/admin/branches/${branch.id}`}
+                                        style={{
+                                            textDecoration: "none",
+                                            color: "inherit",
+                                            display: "block",
+                                            padding: "16px"
+                                        }}
+                                    >
+                                        <Typography>
+                                            {branch.name} ({branch.acronym})
+                                        </Typography>
+                                        {branch.description && (
+                                            <Typography variant="caption" color="textSecondary">
+                                                {branch.description}
+                                            </Typography>
+                                        )}
+                                    </Link>
+                                </TableCell>
+                                
+                                {branchPositions.map(position => (
+                                    <TableCell key={`${branch.id}-${position.id}`} align="center">
+                                        {renderEmployeeAvatars(branch.id, position.id)}
+                                    </TableCell>
+                                ))}
+                                
+                                <TableCell align="center">
+                                    {branch.employees_count || "0"}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        );
     };
 
     return (
         <Layout title={"Branches"}>
-            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
+            <Box sx={{ overflowX: "auto", width: "100%" }}>
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box
                         sx={{
@@ -172,21 +402,31 @@ const BranchList = () => {
                             alignItems: "center",
                         }}
                     >
-                        <Typography variant="h4" sx={{ fontWeight: "bold", display: 'flex', alignItems: 'center' }}>
-                            Branches 
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                            Branches
                         </Typography>
 
                         <Grid item>
                             <Button 
                                 variant="contained" 
-                                color="primary"
-                                onClick={() => setOpenModal(true)}
+                                onClick={handleAddClick}
                                 sx={{ backgroundColor: '#177604', color: 'white' }}
+                                endIcon={<i className="fa fa-caret-down"></i>}
                             >
-                                <p className="m-0">
-                                    <i className="fa fa-plus mr-2"></i> Add
-                                </p>
+                                <i className="fa fa-plus mr-2"></i> Add
                             </Button>
+                            <Menu
+                                anchorEl={anchorEl}
+                                open={open}
+                                onClose={handleAddClose}
+                            >
+                                <MenuItem onClick={handleAddNew}>
+                                    <ListItemText>Add New Branch</ListItemText>
+                                </MenuItem>
+                                <MenuItem onClick={handleSettings}>
+                                    <ListItemText>Branch Positions Settings</ListItemText>
+                                </MenuItem>
+                            </Menu>
                         </Grid>
                     </Box>
 
@@ -198,280 +438,287 @@ const BranchList = () => {
                             borderRadius: "8px",
                         }}
                     >
-                        <Grid container spacing={2} sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
-                            <Grid item xs={9}>
+                        <Grid container spacing={2} sx={{ pb: 4 }}>
+                            <Grid item xs={12} md={9}>
                                 <TextField
                                     fullWidth
                                     label="Search Branch"
                                     variant="outlined"
                                     value={searchKeyword}
                                     onChange={(e) => setSearchKeyword(e.target.value)}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <i className="fa fa-search mr-2"></i>
+                                        )
+                                    }}
                                 />
-                            </Grid>
-                            <Grid item xs={3}>
-                                {/* Empty grid item for alignment */}
                             </Grid>
                         </Grid>
 
-                        {isLoading ? (
-                            <LoadingSpinner />
-                        ) : (
-                            <>
-                                <TableContainer sx={{ mt: 3, maxHeight: 500 }}>
-                                    <Table stickyHeader>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align="center" sx={{fontWeight: 'bold'}}>Branch</TableCell>
-                                                {selectedColumns.includes("Assigned Manager") && (
-                                                    <TableCell align="center"sx={{fontWeight: 'bold'}}>Assigned Manager</TableCell>
-                                                )}
-                                                {selectedColumns.includes("Assigned Supervisor") && (
-                                                    <TableCell align="center" sx={{fontWeight: 'bold'}}>Assigned Supervisor</TableCell>
-                                                )}
-                                                {selectedColumns.includes("Assigned Approver") && (
-                                                    <TableCell align="center" sx={{fontWeight: 'bold'}}>Assigned Approver</TableCell>
-                                                )}
-                                                {selectedColumns.includes("Number of Employees") && (
-                                                    <TableCell align="center" sx={{fontWeight: 'bold'}}>No. of Employees</TableCell>
-                                                )}
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {filteredBranches.length > 0 ? (
-                                                filteredBranches.map((bran) => (
-                                                    <TableRow 
-                                                        key={bran.id}
-                                                        hover
-                                                        sx={{ 
-                                                            cursor: "pointer",
-                                                            "&:hover": {
-                                                                backgroundColor: "rgba(0, 0, 0, 0.1)"
-                                                            }
-                                                        }}
-                                                    >
-                                                        <TableCell align="center">
-                                                            <Link
-                                                                to={`/admin/branches/${bran.id}`}
-                                                                style={{
-                                                                    textDecoration: "none",
-                                                                    color: "inherit",
-                                                                    display: "block",
-                                                                    width: "100%",
-                                                                    height: "100%",
-                                                                    padding: "16px"
-                                                                }}
-                                                            >
-                                                                <Box 
-                                                                    display="flex" 
-                                                                    alignItems="center"
-                                                                    justifyContent="center"
-                                                                >
-                                                                    {bran.name}
-                                                                </Box>
-                                                            </Link>
-                                                        </TableCell>
-                                                        {selectedColumns.includes("Assigned Manager") && (
-                                                            <TableCell align="center">
-                                                                <Link
-                                                                    to={`/admin/branches/${bran.id}`}
-                                                                    style={{
-                                                                        textDecoration: "none",
-                                                                        color: "inherit",
-                                                                        display: "block",
-                                                                        width: "100%",
-                                                                        height: "100%",
-                                                                        padding: "16px"
-                                                                    }}
-                                                                >
-                                                                    <Box display="flex" alignItems="center" justifyContent="center">
-                                                                        {getEmployeeNameById(bran.manager_id)}
-                                                                    </Box>
-                                                                </Link>
-                                                            </TableCell>
-                                                        )}
-                                                        {selectedColumns.includes("Assigned Supervisor") && (
-                                                            <TableCell align="center">
-                                                                <Link
-                                                                    to={`/admin/branches/${bran.id}`}
-                                                                    style={{
-                                                                        textDecoration: "none",
-                                                                        color: "inherit",
-                                                                        display: "block",
-                                                                        width: "100%",
-                                                                        height: "100%",
-                                                                        padding: "16px"
-                                                                    }}
-                                                                >
-                                                                    <Box display="flex" alignItems="center" justifyContent="center">
-                                                                        {getEmployeeNameById(bran.supervisor_id)}
-                                                                    </Box>
-                                                                </Link>
-                                                            </TableCell>
-                                                        )}
-                                                        {selectedColumns.includes("Assigned Approver") && (
-                                                            <TableCell align="center">
-                                                                <Link
-                                                                    to={`/admin/branches/${bran.id}`}
-                                                                    style={{
-                                                                        textDecoration: "none",
-                                                                        color: "inherit",
-                                                                        display: "block",
-                                                                        width: "100%",
-                                                                        height: "100%",
-                                                                        padding: "16px"
-                                                                    }}
-                                                                >
-                                                                    <Box display="flex" alignItems="center" justifyContent="center">
-                                                                        {getEmployeeNameById(bran.approver_id)}
-                                                                    </Box>
-                                                                </Link>
-                                                            </TableCell>
-                                                        )}
-                                                        {selectedColumns.includes("Number of Employees") && (
-                                                            <TableCell align="center">
-                                                                <Link
-                                                                    to={`/admin/branches/${bran.id}`}
-                                                                    style={{
-                                                                        textDecoration: "none",
-                                                                        color: "inherit",
-                                                                        display: "block",
-                                                                        width: "100%",
-                                                                        height: "100%",
-                                                                        padding: "16px"
-                                                                    }}
-                                                                >
-                                                                    {bran.employees_count || "0"}
-                                                                </Link>
-                                                            </TableCell>
-                                                        )}
-                                                    </TableRow>
-                                                ))
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={selectedColumns.length + 1} align="center">
-                                                        No branches found.
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                                
-                                {filteredBranches.length > 0 && (
-                                    <Box
-                                        display="flex"
-                                        sx={{
-                                            py: 2,
-                                            pr: 2,
-                                            width: "100%",
-                                            justifyContent: "flex-end",
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        <Typography sx={{ mr: 2 }}>
-                                            Number of branches:
-                                        </Typography>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{ fontWeight: "bold" }}
-                                        >
-                                            {filteredBranches.length}
-                                        </Typography>
-                                    </Box>
-                                )}
-                            </>
+                        {renderBranchTable()}
+                        
+                        {filteredBranches.length > 0 && (
+                            <Box
+                                display="flex"
+                                sx={{
+                                    py: 2,
+                                    pr: 2,
+                                    justifyContent: "flex-end",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Typography sx={{ mr: 2 }}>
+                                    Showing {filteredBranches.length} of {branches.length} branches
+                                </Typography>
+                            </Box>
                         )}
                     </Box>
                 </Box>
             </Box>
 
             {/* Add Branch Modal */}
+            <Dialog open={openModal} onClose={() => { setOpenModal(false); resetBranchForm(); }} fullWidth maxWidth="md">
+            <DialogTitle>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Typography variant="h5" fontWeight="bold">Add New Branch</Typography>
+                <IconButton onClick={() => {
+                    setOpenModal(false);
+                    resetBranchForm();
+                }}>
+                    <i className="si si-close"></i>
+                </IconButton>
+                </Box>
+            </DialogTitle>
+
+            <DialogContent>
+                <Box component="form" sx={{ mt: 3 }} onSubmit={saveBranch}>
+                <Grid container spacing={3}>
+                    <Grid item xs={12} md={8}>
+                    <TextField
+                        fullWidth
+                        required
+                        label="Branch Name"
+                        variant="outlined"
+                        value={name}
+                        error={nameError}
+                        onChange={(e) => setName(e.target.value)}
+                        helperText={nameError ? "Branch name is required" : ""}
+                    />
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                    <TextField
+                        fullWidth
+                        required
+                        label="Acronym"
+                        variant="outlined"
+                        value={acronym}
+                        error={acronymError}
+                        onChange={(e) => setAcronym(e.target.value)}
+                        helperText={acronymError ? "Acronym is required" : ""}
+                    />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                    <TextField
+                        fullWidth
+                        label="Description"
+                        variant="outlined"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        multiline
+                        rows={4}
+                    />
+                    </Grid>
+                </Grid>
+
+                <DialogActions sx={{ mt: 3 }}>
+                    <Button 
+                    variant="outlined" 
+                    onClick={() => {
+                        setOpenModal(false);
+                        resetBranchForm();
+                    }}
+                    >
+                    Cancel
+                    </Button>
+
+                    <Button 
+                    type="submit" 
+                    variant="contained" 
+                    sx={{ backgroundColor: '#177604' }}
+                    >
+                    Save Branch
+                    </Button>
+                </DialogActions>
+                </Box>
+            </DialogContent>
+            </Dialog>
+
+            {/* Branch Positions Settings Modal */}
             <Dialog
-                open={openModal}
-                onClose={() => setOpenModal(false)}
+                open={openSettingsModal}
+                onClose={() => setOpenSettingsModal(false)}
                 fullWidth
-                maxWidth="md"
-                PaperProps={{
-                    style: {
-                        padding: '16px',
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
-                        minWidth: '800px',
-                        maxWidth: '1000px',
-                        marginBottom: '5%'
-                    }
-                }}
+                maxWidth="lg"
+                scroll="paper"
             >
-                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Branch </Typography>
-                        <IconButton onClick={() => setOpenModal(false)}><i className="si si-close"></i></IconButton>
+                <DialogTitle>
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Typography variant="h5" fontWeight="bold">Branch Positions Settings</Typography>
+                        <IconButton onClick={() => setOpenSettingsModal(false)}>
+                            <i className="si si-close"></i>
+                        </IconButton>
                     </Box>
                 </DialogTitle>
+                <DialogContent dividers>
+                    <Box sx={{ mb: 4 }}>
+                        <Typography variant="h6" gutterBottom>Existing Positions</Typography>
+                        <TableContainer>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Position</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Review</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Approve</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Note</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Accept</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {branchPositions.map((position, index) => (
+                                        <TableRow key={position.id}>
+                                            <TableCell>
+                                                <TextField
+                                                    fullWidth
+                                                    value={position.name}
+                                                    onChange={(e) => 
+                                                        handlePositionChange(index, 'name', e.target.value)
+                                                    }
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={position.can_review_request}
+                                                    onChange={(e) => 
+                                                        handlePositionChange(index, 'can_review_request', e.target.checked)
+                                                    }
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={position.can_approve_request}
+                                                    onChange={(e) => 
+                                                        handlePositionChange(index, 'can_approve_request', e.target.checked)
+                                                    }
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={position.can_note_request}
+                                                    onChange={(e) => 
+                                                        handlePositionChange(index, 'can_note_request', e.target.checked)
+                                                    }
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={position.can_accept_request}
+                                                    onChange={(e) => 
+                                                        handlePositionChange(index, 'can_accept_request', e.target.checked)
+                                                    }
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Button 
+                                                    variant="contained" 
+                                                    onClick={() => savePositionChanges(index)}
+                                                    sx={{ 
+                                                        backgroundColor: '#177604',
+                                                        '&:hover': { backgroundColor: '#126903' }
+                                                    }}
+                                                >
+                                                    Save
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
 
-                <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data" >
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
+                    <Box>
+                        <Typography variant="h6" gutterBottom>Add New Position</Typography>
+                        <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={12} md={3}>
                                 <TextField
-                                    required
-                                    id="name"
-                                    label="Name"
-                                    variant="outlined"
-                                    value={name}
-                                    error={nameError}
-                                    onChange={(e) => setName(e.target.value)}
+                                    fullWidth
+                                    label="Position Name"
+                                    value={newPosition.name}
+                                    onChange={(e) => 
+                                        setNewPosition({...newPosition, name: e.target.value})
+                                    }
                                 />
-                            </FormControl>
-
-                            <FormControl sx={{
-                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    required
-                                    id="acronym"
-                                    label="Acronym"
-                                    variant="outlined"
-                                    value={acronym}
-                                    error={acronymError}
-                                    onChange={(e) => setAcronym(e.target.value)}
-                                />
-                            </FormControl>
-                        </FormGroup>
-
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{
-                                marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
-                                <TextField
-                                    id="description"
-                                    label="Description"
-                                    variant="outlined"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    multiline
-                                    rows={4}
-                                />
-                            </FormControl>
-                        </FormGroup>
-
-                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Branch </p>
-                            </Button>
-                        </Box>
+                            </Grid>
+                            <Grid item xs={12} md={2}>
+                                <Box display="flex" alignItems="center">
+                                    <Checkbox
+                                        checked={newPosition.can_review_request}
+                                        onChange={(e) => 
+                                            setNewPosition({...newPosition, can_review_request: e.target.checked})
+                                        }
+                                    />
+                                    <Typography>Review</Typography>
+                                </Box>
+                            </Grid>
+                            <Grid item xs={12} md={2}>
+                                <Box display="flex" alignItems="center">
+                                    <Checkbox
+                                        checked={newPosition.can_approve_request}
+                                        onChange={(e) => 
+                                            setNewPosition({...newPosition, can_approve_request: e.target.checked})
+                                        }
+                                    />
+                                    <Typography>Approve</Typography>
+                                </Box>
+                            </Grid>
+                            <Grid item xs={12} md={2}>
+                                <Box display="flex" alignItems="center">
+                                    <Checkbox
+                                        checked={newPosition.can_note_request}
+                                        onChange={(e) => 
+                                            setNewPosition({...newPosition, can_note_request: e.target.checked})
+                                        }
+                                    />
+                                    <Typography>Note</Typography>
+                                </Box>
+                            </Grid>
+                            <Grid item xs={12} md={2}>
+                                <Box display="flex" alignItems="center">
+                                    <Checkbox
+                                        checked={newPosition.can_accept_request}
+                                        onChange={(e) => 
+                                            setNewPosition({...newPosition, can_accept_request: e.target.checked})
+                                        }
+                                    />
+                                    <Typography>Accept</Typography>
+                                </Box>
+                            </Grid>
+                            <Grid item xs={12} md={1}>
+                                <Button 
+                                    variant="contained" 
+                                    onClick={addNewPosition}
+                                    sx={{ 
+                                        backgroundColor: '#177604',
+                                        '&:hover': { backgroundColor: '#126903' }
+                                    }}
+                                >
+                                    Add
+                                </Button>
+                            </Grid>
+                        </Grid>
                     </Box>
                 </DialogContent>
             </Dialog>

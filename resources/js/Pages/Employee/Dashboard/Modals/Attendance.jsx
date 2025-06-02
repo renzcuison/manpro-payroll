@@ -222,19 +222,10 @@ const Attendance = ({ open, close }) => {
                 if (res.isConfirmed) {
                     const data = {
                         datetime: formattedDateTime,
-                        action: `${shift == "Overtime"
-                            ? timeIn
-                                ? "Overtime In"
-                                : "Overtime Out"
-                            : timeIn
-                                ? "Duty In"
-                                : "Duty Out"
-                            }`,
+                        action: `${shift == "Overtime" ? timeIn ? "Overtime In" : "Overtime Out" : timeIn ? "Duty In" : "Duty Out" }`,
                     };
-                    axiosInstance
-                        .post("/attendance/saveEmployeeAttendance", data, {
-                            headers,
-                        })
+
+                    axiosInstance.post("/attendance/saveEmployeeAttendance", data, { headers })
                         .then((response) => {
                             if (response.data.status == 200) {
                                 document.activeElement.blur();
@@ -257,7 +248,6 @@ const Attendance = ({ open, close }) => {
             });
         }
     };
-
 
     return (
         <>
@@ -380,19 +370,9 @@ const Attendance = ({ open, close }) => {
                                 {/* Second Shift has not yet expired */}
                                 {/* Second shift has expired, but the user is On Duty and the Time In occured before the second time out */}
                                 {(!firstShiftExpired || (firstShiftExpired && onDuty && latestTime < workHour?.first_time_out)) ? (
-                                    <AttendanceButton
-                                        label={workShift.first_label}
-                                        onDuty={onDuty}
-                                        shiftType="First"
-                                        onTimeInOut={handleTimeInOut}
-                                    />
+                                    <AttendanceButton label={workShift.first_label} onDuty={onDuty} shiftType="First" onTimeInOut={handleTimeInOut} />
                                 ) : (!secondShiftExpired || (secondShiftExpired && onDuty && latestTime < workHour?.second_time_out)) ? (
-                                    <AttendanceButton
-                                        label={workShift.second_label}
-                                        onDuty={onDuty}
-                                        shiftType="Second"
-                                        onTimeInOut={handleTimeInOut}
-                                    />
+                                    <AttendanceButton label={workShift.second_label} onDuty={onDuty} shiftType="Second" onTimeInOut={handleTimeInOut} />
                                 ) : null
                                 }
                             </>
@@ -414,20 +394,13 @@ const Attendance = ({ open, close }) => {
                                             );
                                         } else if (!overtimeExpired || (overtimeExpired && onDuty && latestTime < workHour?.over_time_out)) {
                                             return (
-                                                <AttendanceButton
-                                                    label="Overtime"
-                                                    onDuty={onDuty}
-                                                    shiftType="Overtime"
-                                                    onTimeInOut={handleTimeInOut}
-                                                />
+                                                <AttendanceButton label="Overtime" onDuty={onDuty} shiftType="Overtime" onTimeInOut={handleTimeInOut} />
                                             );
                                         } else {
                                             return (
                                                 <Grid size={12}>
                                                     <Box sx={{ py: 1, width: "100%", textAlign: "center", }} >
-                                                        <Typography>
-                                                            The Day Has Ended
-                                                        </Typography>
+                                                        <Typography> The Day Has Ended </Typography>
                                                     </Box>
                                                 </Grid>
                                             );
@@ -436,14 +409,13 @@ const Attendance = ({ open, close }) => {
                                 ) : (
                                     <Grid size={12}>
                                         <Box sx={{ pt: 1, width: "100%", textAlign: "center", }} >
-                                            <Typography>
-                                                {firstNightShift ? `Time In Period for Next Shift Opens at ${dayjs(`2023-01-01 ${workHour.first_time_in}`).subtract(2, 'hour').format('hh:mm:ss A')}` : "The Day Has Ended"}
-                                            </Typography>
+                                            <Typography> {firstNightShift ? `Time In Period for Next Shift Opens at ${dayjs(`2023-01-01 ${workHour.first_time_in}`).subtract(2, 'hour').format('hh:mm:ss A')}` : "The Day Has Ended"} </Typography>
                                         </Box>
                                     </Grid>
                                 )
                             )}
                     </Grid>
+
                     {/*Attendance Logs------------------------------*/}
                     {employeeAttendance.length > 0 ? (
                         <>
@@ -535,15 +507,7 @@ const Attendance = ({ open, close }) => {
                             })()}
                         </>
                     ) : (
-                        <Box
-                            sx={{
-                                mt: 2,
-                                pt: 2,
-                                borderTop: "1px solid #e0e0e0",
-                                width: "100%",
-                                textAlign: "center",
-                            }}
-                        >
+                        <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid #e0e0e0", width: "100%", textAlign: "center" }} >
                             No Attendance For Today
                         </Box>
                     )}

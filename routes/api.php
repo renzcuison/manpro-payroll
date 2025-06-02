@@ -1,5 +1,10 @@
 <?php
 
+//test
+use App\Models\UsersModel;
+use App\Models\LeaveCreditsModel;
+use App\Models\ApplicationTypesModel;
+
 // New Controllers
 use App\Http\Controllers\ClientsController;
 use App\Http\Controllers\PayrollController;
@@ -23,7 +28,7 @@ use App\Http\Controllers\PemeController;
 use App\Http\Controllers\PemeQuestionnaireController;
 use App\Http\Controllers\PemeResponseController;
 use App\Http\Controllers\PemeResponseDetailsController;
-
+use App\Http\Controllers\BranchPositionController;
 
 // Old Controllers
 use App\Http\Controllers\VoiceController;
@@ -43,7 +48,8 @@ use App\Http\Controllers\MemberDashboardController;
 use App\Http\Controllers\MemberPayrollDetails;
 use App\Http\Controllers\MemberSettingsController;
 use App\Http\Controllers\CategoriesController;
-use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\EvaluationFormController;
+use App\Http\Controllers\EvaluationResponseController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\PreviousFilterController;
 
@@ -51,6 +57,7 @@ use App\Http\Controllers\PreviousFilterController;
 use App\Http\Controllers\Desktop\DesktopController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\MilestoneController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [UserAuthController::class, 'login']);
@@ -63,7 +70,7 @@ Route::get('/sendVerifyCode/{id}', [MailController::class, 'verifyCode']);
 Route::post('/sendForgotPasswordMail/{id}', [MailController::class, 'forgotPasswordMail']);
 Route::post('/reset_password', [MemberSettingsController::class, 'resetPassword']);
 
-Route::post('/saveEvaluation', [EvaluationController::class, 'saveEvaluation']);
+Route::post('/saveEvaluation', [EvaluationFormController::class, 'saveEvaluation']);
 
 Route::get('/employeeList', [EmployeesController::class, 'employeeList']);
 
@@ -100,9 +107,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('settings')->group(function () {
         Route::get('/getBranches', [SettingsController::class, 'getBranches']);
         Route::get('/getBranch/{id}', [SettingsController::class, 'getBranch']);
-
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
         Route::post('/editBranch', [SettingsController::class, 'editBranch']);
+
+
+        Route::get('/getBranchPositions', [SettingsController::class, 'getBranchPositions']);
+        Route::post('/saveBranchPosition', [SettingsController::class, 'saveBranchPosition']);
+        Route::post('/addBranchPositionAssignments', [SettingsController::class, 'addBranchPositionAssignments']);
+        Route::post('/updateBranchPositionAssignments', [SettingsController::class, 'updateBranchPositionAssignments']);
 
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
         Route::get('/getDepartment/{id}', [SettingsController::class, 'getDepartment']);
@@ -126,6 +138,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
 
+  
+
+        Route::post('/updateEmployeeBranchPosition', [EmployeesController::class, 'updateBranchPosition']);
+
+
         Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
 
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
@@ -138,6 +155,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
+        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeeController::class, 'getEmployeesByBranch']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
@@ -280,6 +298,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
         Route::post('/deleteLeaveCredits', [ApplicationsController::class, 'deleteLeaveCredits']);
+        Route::post('/updateLeaveCredits', [ApplicationsController::class,'updateLeaveCredits']);
 
 
         // Overtime Applications
@@ -329,14 +348,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/getEmployeeAvatars', [AdminDashboardController::class, 'getEmployeeAvatars']);
         // ADMIN ROUTES
         Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+        Route::get('/admin/dashboard1', [AdminDashboardController::class, 'getAttendanceToday1']);
     });
     
     Route::prefix('admin')->group(function () {
         // ADMIN ROUTES
         Route::get('/dashboard', [AdminDashboardController::class, 'index']);
         Route::get('/attendance/today', [AdminDashboardController::class, 'getAttendanceToday']);
-    });
 
+        Route::get('/milestones', [MilestoneController::class, 'index']);
+    });
 
     Route::prefix('trainings')->group(function () {
         // Trainings, Training Content
@@ -424,35 +445,63 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
     // Evaluation
-    // Route::post('/saveEvaluation', [EvaluationController::class, 'saveEvaluation']);
-    Route::post('/editEvaluation', [EvaluationController::class, 'editEvaluation']);
-    Route::get('/getEvaluation', [EvaluationController::class, 'getEvaluation']);
-    Route::get('/getEvaluations', [EvaluationController::class, 'getEvaluations']);
-    Route::post('/saveAcknowledgement', [EvaluationController::class, 'saveAcknowledgement']);
+    Route::post('/deleteEvaluationForm', [EvaluationFormController::class, 'deleteEvaluationForm']);
+    Route::post('/editEvaluationForm', [EvaluationFormController::class, 'editEvaluationForm']);
+    Route::get('/getEvaluationForm', [EvaluationFormController::class, 'getEvaluationForm']);
+    Route::get('/getEvaluationForms', [EvaluationFormController::class, 'getEvaluationForms']);
+    Route::post('/saveEvaluationForm', [EvaluationFormController::class, 'saveEvaluationForm']);
 
-    Route::post('/saveCategory', [EvaluationController::class, 'saveCategory']);
-    Route::get('/getCategories', [EvaluationController::class, 'getCategories']);
+    Route::post('/deleteEvaluationFormSection', [EvaluationFormController::class, 'deleteEvaluationFormSection']);
+    Route::post('/editEvaluationFormSection', [EvaluationFormController::class, 'editEvaluationFormSection']);
+    Route::get('/getEvaluationFormSection', [EvaluationFormController::class, 'getEvaluationFormSection']);
+    Route::post('/moveEvaluationFormSection', [EvaluationFormController::class, 'moveEvaluationFormSection']);
+    Route::post('/saveEvaluationFormSection', [EvaluationFormController::class, 'saveEvaluationFormSection']);
 
-    Route::post('/saveRating', [EvaluationController::class, 'saveRating']);
-    Route::post('/editRating', [EvaluationController::class, 'editRating']);
-    Route::get('/getRatings', [EvaluationController::class, 'getRatings']);
-    Route::get('/getRating', [EvaluationController::class, 'getRating']);
+    // Route::post('/deleteEvaluationFormCategory', [EvaluationFormController::class, 'deleteEvaluationFormCategory']);
+    // Route::post('/editEvaluationFormCategory', [EvaluationFormController::class, 'editEvaluationFormCategory']);
+    // Route::get('/getEvaluationFormCategory', [EvaluationFormController::class, 'getEvaluationFormCategory']);
+    // Route::post('/moveEvaluationFormCategory', [EvaluationFormController::class, 'moveEvaluationFormCategory']);
+    // Route::post('/saveEvaluationFormCategory', [EvaluationFormController::class, 'saveEvaluationFormCategory']);
 
-    Route::post('/saveIndicator', [EvaluationController::class, 'saveIndicator']);
-    Route::post('/editIndicator', [EvaluationController::class, 'editIndicator']);
+    Route::post('/deleteEvaluationFormSubcategory', [EvaluationFormController::class, 'deleteEvaluationFormSubcategory']);
+    Route::post('/editEvaluationFormSubcategory', [EvaluationFormController::class, 'editEvaluationFormSubcategory']);
+    Route::get('/getEvaluationFormSubcategory', [EvaluationFormController::class, 'getEvaluationFormSubcategory']);
+    Route::post('/moveEvaluationFormSubcategory', [EvaluationFormController::class, 'moveEvaluationFormSubcategory']);
+    Route::post('/saveEvaluationFormSubcategory', [EvaluationFormController::class, 'saveEvaluationFormSubcategory']);
 
-    Route::post('/saveEvaluationForm', [EvaluationController::class, 'saveEvaluationForm']);
-    Route::get('/getEvaluationAllForms', [EvaluationController::class, 'getEvaluationAllForms']);
-    Route::get('/getEvaluationForms', [EvaluationController::class, 'getEvaluationForms']);
-    Route::get('/getEvaluationForm', [EvaluationController::class, 'getEvaluationForm']);
+    Route::post('/deleteEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'deleteEvaluationFormSubcategoryOption']);
+    Route::post('/editEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'editEvaluationFormSubcategoryOption']);
+    Route::get('/getEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'getEvaluationFormSubcategoryOption']);
+    Route::post('/moveEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'moveEvaluationFormSubcategoryOption']);
+    Route::post('/saveEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'saveEvaluationFormSubcategoryOption']);
 
-    Route::post('/saveEvaluationResponse', [EvaluationController::class, 'saveEvaluationResponse']);
-    Route::get('/getEvaluationResponse', [EvaluationController::class, 'getEvaluationResponse']);
+    // Route::get('/form/{formName}', [EvaluationFormController::class, 'getFormDetails']);
+    // Route::get('/getEvaluationFormSections', [EvaluationFormController::class, 'getEvaluationFormSections']);
 
-    Route::get('/getEmployeeEvaluations', [EvaluationController::class, 'getEmployeeEvaluations']);
-    Route::get('/getCategoryResponse', [EvaluationController::class, 'getCategoryResponse']);
-    Route::post('/approveEvaluation', [EvaluationController::class, 'approveEvaluation']);
+    Route::post('/deleteEvaluationResponse', [EvaluationResponseController::class, 'deleteEvaluationResponse']);
+    Route::post('/editEvaluationResponse', [EvaluationResponseController::class, 'editEvaluationResponse']);
+    Route::get('/getEvaluationResponse', [EvaluationResponseController::class, 'getEvaluationResponse']);
+    Route::get('/getEvaluationResponses', [EvaluationResponseController::class, 'getEvaluationResponses']);
+    Route::get('/getEvaluationResponsesMaxPageCount', [EvaluationResponseController::class, 'getEvaluationResponsesMaxPageCount']);
+    Route::post('/saveEvaluationResponse', [EvaluationResponseController::class, 'saveEvaluationResponse']);
 
+    Route::post('/deleteEvaluationTextAnswer', [EvaluationResponseController::class, 'deleteEvaluationTextAnswer']);
+    Route::post('/editEvaluationTextAnswer', [EvaluationResponseController::class, 'editEvaluationTextAnswer']);
+    Route::get('/getEvaluationTextAnswer', [EvaluationResponseController::class, 'getEvaluationTextAnswer']);
+    Route::get('/getEvaluationTextAnswers', [EvaluationResponseController::class, 'getEvaluationTextAnswers']);
+    Route::post('/saveEvaluationTextAnswer', [EvaluationResponseController::class, 'saveEvaluationTextAnswer']);
+
+    Route::post('/deleteEvaluationPercentageAnswer', [EvaluationResponseController::class, 'deleteEvaluationPercentageAnswer']);
+    Route::post('/editEvaluationPercentageAnswer', [EvaluationResponseController::class, 'editEvaluationPercentageAnswer']);
+    Route::get('/getEvaluationPercentageAnswer', [EvaluationResponseController::class, 'getEvaluationPercentageAnswer']);
+    Route::get('/getEvaluationPercentageAnswers', [EvaluationResponseController::class, 'getEvaluationPercentageAnswers']);
+    Route::post('/saveEvaluationPercentageAnswer', [EvaluationResponseController::class, 'saveEvaluationPercentageAnswer']);
+
+    Route::post('/deleteEvaluationOptionAnswer', [EvaluationResponseController::class, 'deleteEvaluationOptionAnswer']);
+    Route::post('/editEvaluationOptionAnswer', [EvaluationResponseController::class, 'editEvaluationOptionAnswer']);
+    Route::get('/getEvaluationOptionAnswer', [EvaluationResponseController::class, 'getEvaluationOptionAnswer']);
+    Route::get('/getEvaluationOptionAnswers', [EvaluationResponseController::class, 'getEvaluationOptionAnswers']);
+    Route::post('/saveEvaluationOptionAnswer', [EvaluationResponseController::class, 'saveEvaluationOptionAnswer']);
 
     // Reports
     Route::get('/getReport', [ReportsController::class, 'getReport']);
@@ -557,6 +606,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getUserSchedule', [HrAttendanceController::class, 'getUserSchedule']);
 
 
+// Branch SAM
+
+
+
     // Hr applications
     Route::get('/applications', [HrApplicationsController::class, 'getApplications']);
     Route::get('/applications-reports/{id}/{dates}', [HrApplicationsController::class, 'getApplicationsReports']);
@@ -623,8 +676,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/add_evaluation', [CategoriesController::class, 'addEvaluation']);
     Route::get('/incidents', [CategoriesController::class, 'getIncident']);
     Route::post('/add_incident', [CategoriesController::class, 'addIncident']);
-
-
     // Mailer routes
     Route::get('/mail', [MailController::class, 'referralConfirmationMail']);
     Route::get('/sendPayrollMail/{id}', [MailController::class, 'payrollMail']);
@@ -703,5 +754,13 @@ Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
 Route::post('/handle-recording', [VoiceController::class, 'handleRecording'])->name('handleRecording');
 Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
+
+//Annoucements Type
+Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
+Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
+Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
+
+Route::get('/settings/getEmploymentTypes', [SettingsController::class, 'getEmploymentTypes']);
+Route::get('/settings/getStatuses', [SettingsController::class, 'getStatuses']);
 
 require __DIR__ . '/super-admin.php';
