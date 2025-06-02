@@ -158,7 +158,7 @@ const PemeResponses = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Group Life Masterlist
+                            Respondents
                         </Typography>
                         <Button
                             onClick={handleOnPreviewClick}
@@ -196,8 +196,7 @@ const PemeResponses = () => {
                             sx={{ width: 196, mb: 1 }}
                         >
                             <InputLabel htmlFor="custom-search">
-                                Search Date, Employee, Branch, Department, or
-                                Status
+                                Search
                             </InputLabel>
                             <OutlinedInput
                                 id="custom-search"
@@ -212,7 +211,7 @@ const PemeResponses = () => {
                                         </InputAdornment>
                                     )
                                 }
-                                label="Search Date, Employee, Branch, Department, or Status"
+                                label="Search"
                             />
                         </FormControl>
 

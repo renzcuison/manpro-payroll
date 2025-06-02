@@ -26,10 +26,12 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import GroupLifeEmployeeTable from "./GroupLifeEmployeeTable";
+import GroupLifeAssignEmployee from "./Modal/GroupLifeAssignEmployee";
 
 const GroupLifeEmployees = () => {
     const navigator = useNavigate();
     const [search, setSearch] = React.useState("");
+    const [openAssignEmployeeModal, setOpenAssignEmployeeModal] = useState(false);
     const employees = [
         {
             employee: "Samuel Christian D. Nacar",
@@ -64,7 +66,7 @@ const GroupLifeEmployees = () => {
                             <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                                 InsuranceCompanyName
                             </Typography>
-                            <Grid item>                             
+                            <Grid container spacing={2} gap={2}>                             
                                 <Button
                                 style = {{backgroundColor: "#727F91"}}
                                 onClick={handleOnBackClick}
@@ -72,14 +74,15 @@ const GroupLifeEmployees = () => {
                                     Back
                             </Button>
 
-                            <Button variant="contained">Add Employee</Button>
-                            </Grid>
-                            {/* <Button
-                                onClick={handleOnPreviewClick}
+                            <Button
+                                onClick={() => setOpenAssignEmployeeModal(true)}
                                 variant="contained"
+                                style={{ color: "#e8f1e6" }}
                             >
-                                Preview
-                            </Button> */}
+                                <i className="fa fa-plus pr-2"></i> Assign
+                            </Button>
+                            </Grid>
+
                             
                     </Box>
 
@@ -142,6 +145,12 @@ const GroupLifeEmployees = () => {
                         </Grid>
                     </Grid>
                 
+            {openAssignEmployeeModal && (
+                <GroupLifeAssignEmployee
+                    open={openAssignEmployeeModal}
+                    close={setOpenAssignEmployeeModal}
+                />
+            )}
             </Box>
         </Layout>
     );

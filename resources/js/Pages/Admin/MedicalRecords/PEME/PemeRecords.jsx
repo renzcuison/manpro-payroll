@@ -25,9 +25,7 @@ const PemeRecords = () => {
 
     const [pemeRecords, setPemeRecords] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] = useState(
-        false
-    );
+    const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] = useState(false);
     const [search, setSearch] = useState("");
 
     useEffect(() => {

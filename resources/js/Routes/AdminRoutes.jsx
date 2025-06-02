@@ -300,6 +300,7 @@ const AdminRoutes = ({ user }) => {
             />
 
             <Route path="medical-records/group-life-masterlist/group-life-employees/" element={ <ProtectedRoute element={<GroupLifeEmployees />} user={user} /> } />
+            
             <Route path="medical-records/hmo-masterlist-records" element={ <ProtectedRoute element={<HMOmasterlist />} user={user} /> } />
             <Route path="loan-management" element={<ProtectedRoute element={<LoanList />} user={user} />} />
             <Route path="schedules" element={ <ProtectedRoute element={<ScheduleModule />} user={user} /> } />
