@@ -775,10 +775,10 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                                 {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`.replace(/\s+/g, ' ').trim()}
                                                             </Typography>
                                                             <Typography variant="body2">
-                                                                Branch: {ack.branch_acronym || 'N/A'}
+                                                                Branch: {ack.branch || 'N/A'}
                                                             </Typography>
                                                             <Typography variant="body2">
-                                                                Department: {ack.department_acronym || 'N/A'}
+                                                                Department: {ack.department || 'N/A'}
                                                             </Typography>
                                                             <Typography variant="body2">
                                                                 Role: {ack.emp_role || 'N/A'}
@@ -846,10 +846,10 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                                     {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`.replace(/\s+/g, ' ').trim()}
                                                                 </Typography>
                                                                 <Typography variant="body2">
-                                                                    Branch: {ack.branch_acronym || 'N/A'}
+                                                                    Branch: {ack.branch || 'N/A'}
                                                                 </Typography>
                                                                 <Typography variant="body2">
-                                                                    Department: {ack.department_acronym || 'N/A'}
+                                                                    Department: {ack.department || 'N/A'}
                                                                 </Typography>
                                                                 <Typography variant="body2">
                                                                     Role: {ack.emp_role || 'N/A'}

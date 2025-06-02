@@ -831,11 +831,11 @@ class AnnouncementsController extends Controller
                     'emp_suffix' => $emp->suffix ?? '',
                     'emp_profile_pic' => $emp->profile_pic ?? null,
                     'timestamp' => $ack->created_at,
-                    'branch_acronym' => $emp->branch ? $emp->branch->acronym : null,
-                    'department_acronym' => $emp->department ? $emp->department->acronym : null,
+                    'branch' => $emp->branch ? $emp->branch->name : null,
+                    'department' => $emp->department ? $emp->department->name : null,
                     'emp_type' => $emp->employment_type ?? null,
                     'emp_status' => $emp->employment_status ?? null,
-                    'emp_role' => $emp->role ? $emp->role->acronym : null,
+                    'emp_role' => $emp->role ? $emp->role->name : null,
                 ];
             })->all();
 
@@ -867,11 +867,11 @@ class AnnouncementsController extends Controller
                         'emp_last_name' => $employee->last_name,
                         'emp_suffix' => $employee->suffix ?? '',
                         'emp_profile_pic' => $employee->profile_pic ?? null,
-                        'branch_acronym' => $employee->branch ? $employee->branch->acronym : null,
-                        'department_acronym' => $employee->department ? $employee->department->acronym : null,
+                        'branch' => $employee->branch ? $employee->branch->name : null,
+                        'department' => $employee->department ? $employee->department->name : null,
                         'emp_type' => $employee->employment_type ?? null,
                         'emp_status' => $employee->employment_status ?? null,
-                        'emp_role' => $employee->role ? $employee->role->acronym : null,
+                        'emp_role' => $employee->role ? $employee->role->name : null,
                     ];
                 })
                 ->all();
