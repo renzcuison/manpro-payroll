@@ -361,6 +361,7 @@ const BranchDetails = () => {
         id={id}
         setPositionAssignments={setPositionAssignments}
         setEmployees={setEmployees}
+
       />
     </Layout>
   );

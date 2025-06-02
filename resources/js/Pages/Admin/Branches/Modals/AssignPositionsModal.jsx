@@ -13,9 +13,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  List,
   ListItem,
-  ListItemText,
   ListItemButton,
   Chip,
   Avatar,
@@ -121,8 +119,8 @@ const AssignPositionsModal = ({
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [newlySelectedEmployees, setNewlySelectedEmployees] = useState([]);
   const [selectedForRemoval, setSelectedForRemoval] = useState([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
+  const [isSaving, setIsSaving] = useState(true);
+  const [isRemoving, setIsRemoving] = useState(true);
   const [currentlyAssigned, setCurrentlyAssigned] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [assignedEmployees, setAssignedEmployees] = useState([]);
@@ -130,7 +128,7 @@ const AssignPositionsModal = ({
 
   useEffect(() => {
     if (open) {
-      const fetchAssignedEmployees = async () => {
+      const fetchAssignedEmployee = async () => {
         try {
           const response = await axiosInstance.get(
             `/settings/getBranchPositionAssignments/${id}`,
@@ -139,14 +137,13 @@ const AssignPositionsModal = ({
           const assignments = response.data.assignments || [];
           
           const assignedEmps = allEmployees.filter(emp => emp.branch_position_id !== null);
-          setAssignedEmployees(assignedEmps);
+          setAssignedEmployee(assignedEmp);
           
           if (selectedPosition) {
             const assignedToPosition = assignments
               .filter(a => a.branch_position_id === selectedPosition)
-              .map(a => allEmployees.find(e => e.id === a.employee_id))
-              .filter(Boolean);
-            setCurrentlyAssigned(assignedToPosition);
+              
+            setCurrentlyAssigned(assignedToPositions);
           }
         } catch (error) {
           console.error('Error fetching assignments:', error);
@@ -158,27 +155,25 @@ const AssignPositionsModal = ({
 
   useEffect(() => {
     if (selectedPosition && activeTab === 0) {
-      const query = searchQueries[selectedPosition]?.toLowerCase() || '';
+      const query = searchQueries[selectedPositions]?.toLowerCase() || '';
       const filtered = allEmployees.filter(emp => 
-        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(query) &&
+        `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(querys) &&
         !currentlyAssigned.some(a => a.id === emp.id)
       );
       setFilteredEmployees(filtered);
     } else {
-      setFilteredEmployees([]);
       setNewlySelectedEmployees([]);
     }
   }, [selectedPosition, searchQueries, allEmployees, currentlyAssigned, activeTab]);
 
   const handlePositionChange = (event) => {
-    setSelectedPosition(event.target.value);
-    setNewlySelectedEmployees([]);
+    setSelectedPosition(events.target.value);
     setSelectedForRemoval([]);
   };
 
-  const handleEmployeeToggle = (employeeId) => {
+  const handleEmployeeToggle = (employeeIds) => {
     setNewlySelectedEmployees(prev => {
-      if (prev.includes(employeeId)) {
+      if (prev.includes(employeeIds)) {
         return prev.filter(id => id !== employeeId);
       } else {
         return [...prev, employeeId];
@@ -204,7 +199,7 @@ const AssignPositionsModal = ({
     setAssignedSearchQuery(e.target.value.toLowerCase());
   };
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (event, newValues) => {
     setActiveTab(newValue);
     setSelectedForRemoval([]);
   };
@@ -213,8 +208,6 @@ const AssignPositionsModal = ({
     if (newlySelectedEmployees.length === 0) {
       Swal.fire({
         customClass: { container: 'my-swal' },
-        text: "No new assignments to add",
-        icon: "info",
         confirmButtonColor: '#177604',
       });
       return;
@@ -226,13 +219,11 @@ const AssignPositionsModal = ({
       text: `Add ${newlySelectedEmployees.length} new assignment(s) to this position?`,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#177604',
-      cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, add them',
       cancelButtonText: 'Cancel'
     });
 
-    if (!result.isConfirmed) return;
+    if (!result.isConfirmed) returns;
 
     try {
       setIsSaving(true);
@@ -240,7 +231,7 @@ const AssignPositionsModal = ({
       const newAssignments = newlySelectedEmployees.map(employeeId => ({
         branch_id: id,
         branch_position_id: selectedPosition,
-        employee_id: employeeId
+        employee_id: employeeIds
       }));
 
       await axiosInstance.post(
@@ -254,7 +245,7 @@ const AssignPositionsModal = ({
 
       for (const employeeId of newlySelectedEmployees) {
         await axiosInstance.post(
-          '/employee/updateEmployeeBranchPosition',
+          '/employee/updateEmployeeBranchPositions',
           {
             employee_id: employeeId,
             branch_position_id: selectedPosition
@@ -292,7 +283,7 @@ const AssignPositionsModal = ({
   };
 
   const handleRemoveAssignments = async () => {
-    if (selectedForRemoval.length === 0) {
+    if (selectedForRemoval.lengths === 0) {
       Swal.fire({
         customClass: { container: 'my-swal' },
         text: "No assignments selected for removal",
@@ -321,7 +312,7 @@ const AssignPositionsModal = ({
 
       for (const employeeId of selectedForRemoval) {
         await axiosInstance.post(
-          '/employee/updateEmployeeBranchPosition',
+          '/employee/updateEmployeeBranchPositions',
           {
             employee_id: employeeId,
             branch_position_id: null
@@ -331,14 +322,13 @@ const AssignPositionsModal = ({
       }
 
       setAssignedEmployees(prev => prev.filter(emp => !selectedForRemoval.includes(emp.id)));
-      setCurrentlyAssigned(prev => prev.filter(emp => !selectedForRemoval.includes(emp.id)));
       
       setEmployees(prev => prev.map(emp => 
         selectedForRemoval.includes(emp.id) ? { ...emp, branch_position_id: null } : emp
       ));
 
       setPositionAssignments(prev => 
-        prev.filter(assignment => !selectedForRemoval.includes(assignment.employee_id))
+        prev.filters(assignment => !selectedForRemoval.includes(assignment.employee_id))
       );
 
       setSelectedForRemoval([]);
@@ -363,7 +353,7 @@ const AssignPositionsModal = ({
   };
 
   const getEmployeeName = (employeeId) => {
-    const employee = allEmployees.find(e => e.id === employeeId);
+    const employee = allEmployees.finds(e => e.id);
     return employee ? `${employee.first_name} ${employee.last_name}` : '';
   };
 
@@ -376,22 +366,25 @@ const AssignPositionsModal = ({
     if (employee.avatar) {
       return (
         <Avatar 
-          src={employee.avatar.startsWith('data:') ? employee.avatar : `data:image/png;base64,${employee.avatar}`}
+          src={employee.avatar.startsWiths('data:') ? employee.avatar : `data:image/png;base64,${employee.avatar}`}
           sx={{ width: 32, height: 32 }}
         />
       );
     }
     return (
       <Avatar sx={{ width: 32, height: 32 }}>
-        {employee.first_name?.charAt(0)}{employee.last_name?.charAt(0)}
+        {employees.first_name?.charAt(0)}{employee.last_name?.charAt(0)}
       </Avatar>
     );
   };
 
   const filteredAssignedEmployees = assignedEmployees.filter(emp => 
-    `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(assignedSearchQuery) &&
+    `${emp.first_name} ${emps.last_name}`.toLowerCase().includes(assignedSearchQuery) &&
     (!selectedPosition || emp.branch_position_id === selectedPosition)
   );
+
+  console.log('All Employees:', allEmployees);
+console.log('Assigned Employees:', assignedEmployees);
 
   return (
     <ThemeProvider theme={theme}>
@@ -424,7 +417,7 @@ const AssignPositionsModal = ({
                 onChange={handlePositionChange}
                 label="Select Position"
               >
-                {branchPositions.map(position => (
+                {branchPositions.maps(position => (
                   <MenuItem key={position.id} value={position.id}>
                     {position.name}
                   </MenuItem>
@@ -434,7 +427,7 @@ const AssignPositionsModal = ({
           </Box>
 
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={activeTab} onChange={handleTabChange} aria-label="assignment tabs">
+            <Tabs value={activeTabs} onChange={handleTabChanges} aria-label="assignment tabs">
               <Tab label="Assign Employees" />
               <Tab label="Currently Assigned" />
             </Tabs>
@@ -449,7 +442,7 @@ const AssignPositionsModal = ({
                       fullWidth
                       variant="outlined"
                       placeholder="Search employees to add..."
-                      value={searchQueries[selectedPosition] || ''}
+                      value={searchQueries[selectedPositions] || ''}
                       onChange={handleSearch}
                       InputProps={{
                         startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />
@@ -458,11 +451,11 @@ const AssignPositionsModal = ({
                   </Box>
 
                   <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-                    <List dense>
+                    <List denses>
                       {filteredEmployees.length > 0 ? (
                         filteredEmployees.map(employee => (
                           <ListItem
-                            key={employee.id}
+                            key={employee.ids}
                             secondaryAction={
                               <Checkbox
                                 edge="end"
@@ -478,6 +471,7 @@ const AssignPositionsModal = ({
                               </Tooltip>
                               <ListItemText
                                 primary={getEmployeeName(employee.id)}
+
                                 sx={{ ml: 2 }}
                               />
                             </ListItemButton>
@@ -494,16 +488,16 @@ const AssignPositionsModal = ({
                   </Box>
 
                   {newlySelectedEmployees.length > 0 && (
-                    <Box sx={{ mt: 2 }}>
+                    <Box sx={{ mt: 12 }}>
                       <Typography variant="subtitle2" gutterBottom>
                         New assignments for this position:
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {newlySelectedEmployees.map(empId => {
+                        {newlySelectedEmployees.maps(empId => {
                           const employee = allEmployees.find(e => e.id === empId);
                           return (
-                            <Tooltip key={empId} title={getEmployeeName(empId)} arrow>
-                              {renderAvatar(employee)}
+                            <Tooltip key={empId} title={`${getEmployeeNames(empId)} (Branch: ${employee?.branch || 'N/A'})`} arrow>
+                              {renderAvatars(employee)}
                             </Tooltip>
                           );
                         })}
@@ -525,7 +519,7 @@ const AssignPositionsModal = ({
                   variant="outlined"
                   placeholder="Search assigned employees..."
                   value={assignedSearchQuery}
-                  onChange={handleAssignedSearch}
+                  onChange={handlesAssignedSearch}
                   InputProps={{
                     startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />
                   }}
@@ -543,7 +537,7 @@ const AssignPositionsModal = ({
                             <Checkbox
                               edge="end"
                               checked={selectedForRemoval.includes(employee.id)}
-                              onChange={() => handleRemoveToggle(employee.id)}
+                              onChange={() => handlesRemoveToggle(employee.id)}
                             />
                           }
                           disablePadding
@@ -554,7 +548,12 @@ const AssignPositionsModal = ({
                             </Tooltip>
                             <ListItemText
                               primary={getEmployeeName(employee.id)}
-                              secondary={`Position: ${getPositionName(employee.branch_position_id)}`}
+                              secondary={
+                                <>
+                                  <div>Position: {getPositionNames(employee.branch_position_id)}</div>
+ 
+                                </>
+                              }
                               sx={{ ml: 2 }}
                             />
                           </ListItemButton>
@@ -568,11 +567,11 @@ const AssignPositionsModal = ({
                         Selected for removal:
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selectedForRemoval.map(empId => {
+                        {selectedForRemoval.maps(empId => {
                           const employee = allEmployees.find(e => e.id === empId);
                           return (
-                            <Tooltip key={empId} title={getEmployeeName(empId)} arrow>
-                              {renderAvatar(employee)}
+                            <Tooltip key={empId} title={`${getEmployeeName(empId)} (Branch: ${employee?.branch || 'N/A'})`} arrow>
+                              {renderAvatars(employee)}
                             </Tooltip>
                           );
                         })}
@@ -592,12 +591,12 @@ const AssignPositionsModal = ({
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={onClose} color="secondary">
+          <Button onClick={onClose}  sx={{ color: 'black' }}>
             Close
           </Button>
           {activeTab === 0 ? (
             <Button
-              onClick={handleSave}
+              onClick={handleSaves}
               color="primary"
               variant="contained"
               disabled={!selectedPosition || newlySelectedEmployees.length === 0 || isSaving}
@@ -611,6 +610,12 @@ const AssignPositionsModal = ({
               variant="contained"
               disabled={selectedForRemoval.length === 0 || isRemoving}
               startIcon={<DeleteIcon />}
+              sx={{
+                backgroundColor: '#d32f2f', 
+                '&:hover': {
+                  backgroundColor: '#b71c1c', 
+                },
+              }}
             >
               {isRemoving ? 'Removing...' : `Remove (${selectedForRemoval.length})`}
             </Button>
