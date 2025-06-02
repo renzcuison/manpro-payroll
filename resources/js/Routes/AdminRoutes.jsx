@@ -10,8 +10,6 @@ import DepartmentDetails from "../Pages/Admin/Department/DepartmentDetails";
 import BranchList from "../Pages/Admin/Branches/BranchList";
 import BranchDetails from "../Pages/Admin/Branches/BranchDetails";
 
-
-
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
@@ -74,7 +72,6 @@ import PemeQuestionnaireView from "../Pages/Admin/MedicalRecords/PEME/PemeQuesti
 import PemeQuestionnairePreview from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnairePreview";
 import ScheduleModule from "../Pages/Admin/Schedules";
 
-
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
 
@@ -86,14 +83,39 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
-            <Route path="department/departmentlist" element={<ProtectedRoute element={<DepartmentList />} user={user} />} />
-            <Route path="department/:id" element={<ProtectedRoute element={<DepartmentDetails />} user={user} />} />
+            <Route
+                path="department/departmentlist"
+                element={
+                    <ProtectedRoute element={<DepartmentList />} user={user} />
+                }
+            />
+            <Route
+                path="department/:id"
+                element={
+                    <ProtectedRoute
+                        element={<DepartmentDetails />}
+                        user={user}
+                    />
+                }
+            />
 
-            <Route path="branches/branchlist" element={<ProtectedRoute element={<BranchList />} user={user} />} />
-            <Route path="branches/:id" element={<ProtectedRoute element={<BranchDetails />} user={user} />} />
-            
+            <Route
+                path="branches/branchlist"
+                element={
+                    <ProtectedRoute element={<BranchList />} user={user} />
+                }
+            />
+            <Route
+                path="branches/:id"
+                element={
+                    <ProtectedRoute element={<BranchDetails />} user={user} />
+                }
+            />
 
-            <Route path="dashboard" element={ <ProtectedRoute element={<Dashboard />} user={user} /> } />
+            <Route
+                path="dashboard"
+                element={<ProtectedRoute element={<Dashboard />} user={user} />}
+            />
 
             <Route
                 path="employee/:user"
@@ -369,7 +391,7 @@ const AdminRoutes = ({ user }) => {
                 }
             />
             <Route
-                path="medical-records/peme-records/peme-questionnaire-view"
+                path="medical-records/peme-records/peme-questionnaire-view/:PemeResponseID"
                 element={
                     <ProtectedRoute
                         element={<PemeQuestionnaireView />}
@@ -418,8 +440,6 @@ const AdminRoutes = ({ user }) => {
             />
         </Routes>
     );
-
 };
-
 
 export default AdminRoutes;

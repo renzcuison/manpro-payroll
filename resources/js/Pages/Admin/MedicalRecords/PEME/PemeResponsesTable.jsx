@@ -166,8 +166,10 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
 
                             return (
                                 <TableRow
-                                    key={response.id || index}
-                                    onClick={onRowClick}
+                                    key={response.response_id || index}
+                                    onClick={() =>
+                                        onRowClick(response.response_id)
+                                    }
                                     sx={{
                                         cursor: "pointer",
                                         transition: ".15s",

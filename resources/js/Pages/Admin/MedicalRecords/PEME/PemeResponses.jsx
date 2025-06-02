@@ -43,6 +43,7 @@ const PemeResponses = () => {
     const [toDate, setToDate] = useState(null);
     const [dueDate, setDueDate] = useState(null);
 
+    // FETCH THE QUESTIONNAIRE STRUCTURE FOR THE GIVEN PEME ID
     useEffect(() => {
         axiosInstance
             .get(`/peme/${PemeID}/questionnaire`, { headers })
@@ -56,12 +57,13 @@ const PemeResponses = () => {
             });
     }, []);
 
+    // FETCH PEME RESPONSES FOR THE GIVEN PEME ID
     useEffect(() => {
         axiosInstance
             .get(`/peme-responses/${PemeID}`, { headers })
             .then((response) => {
                 setPemeResponses([response.data]);
-                console.log("peme responses", response.data);
+                console.log("PEME Responses:", response.data);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -70,10 +72,11 @@ const PemeResponses = () => {
             });
     }, []);
 
-    const handleOnRowClick = () => {
+    const handleOnRowClick = (responseID) => {
         navigator(
-            "/admin/medical-records/peme-records/peme-questionnaire-view"
+            `/admin/medical-records/peme-records/peme-questionnaire-view/${responseID}`
         );
+        console.log(responseID);
     };
 
     const handleOnPreviewClick = () => {
@@ -86,37 +89,19 @@ const PemeResponses = () => {
         navigator(`/admin/medical-records/peme-records/peme-form/${PemeID}`);
     };
 
-    const dummyData = [
-        {
-            dueDate: "05-10-2025",
-            employee: "employee",
-            branch: "branch",
-            department: "department",
-            status: "status",
-            currentProgress: 1,
-            fullProgress: 2,
-        },
-        {
-            dueDate: "06-12-2025",
-            employee: "employee",
-            branch: "branch",
-            department: "department",
-            status: "status",
-            currentProgress: 2,
-            fullProgress: 3,
-        },
-        {
-            dueDate: "07-09-2025",
-            employee: "employee",
-            branch: "branch",
-            department: "department",
-            status: "status",
-            currentProgress: 1,
-            fullProgress: 4,
-        },
-    ];
+    // const dummyData = [
+    //     {
+    //         dueDate: "05-10-2025",
+    //         employee: "employee",
+    //         branch: "branch",
+    //         department: "department",
+    //         status: "status",
+    //         currentProgress: 1,
+    //         fullProgress: 2,
+    //     },
+    // ];
 
-    const filteredRecords = dummyData
+    const filteredRecords = pemeResponses
         .filter((response) =>
             [
                 dayjs(response.date).format("MMMM D, YYYY"),
