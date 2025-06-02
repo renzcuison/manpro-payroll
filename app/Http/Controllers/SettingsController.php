@@ -9,6 +9,8 @@ use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\ApplicationTypesModel;
+use App\Models\BranchPosition;
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,17 +36,49 @@ class SettingsController extends Controller
 
     public function getBranches(Request $request)
     {
-        // Log::info("SettingsController::getBranches");
 
         if ($this->checkUser()) {
             $user = Auth::user();
-            $branches = BranchesModel::where('client_id', $user->client_id)->get();
+            $branches = BranchesModel::where('client_id', $user->client_id)
+            ->with(['manager', 'supervisor', 'approver'])
+            ->withCount('employees')
+            
+            ->get();
 
             return response()->json(['status' => 200, 'branches' => $branches]);
         }
 
         return response()->json(['status' => 200, 'branches' => null]);
     }
+
+
+   public function getBranch($id)
+    {
+        if ($this->checkUser()) {
+            $branch = BranchesModel::with(['manager', 'supervisor', 'approver', 'employees'])->findOrFail($id);
+            $rawEmployees = $branch->employees;
+
+            $employees = [];
+
+            foreach( $rawEmployees as $rawEmployee ){
+                $employees[] = [
+                    'name' => $rawEmployee->last_name . ", " . $rawEmployee->first_name . " " . $rawEmployee->middle_name . " " . $rawEmployee->suffix,
+                    'department' => $rawEmployee->department->name,
+                ];  
+            }
+
+            return response()->json([
+                'status' => 200,
+                'branch' => $branch,
+                'employees' => $employees, 
+                'employeesCount' => $branch->employees->count()
+            ]);
+        }
+
+        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    }
+
+
 
     public function saveBranch(Request $request)
     {
@@ -92,38 +126,127 @@ class SettingsController extends Controller
             'name' => 'required',
             'acronym' => 'required',
             'status' => 'required',
+            'manager_id' => 'nullable|exists:users,id',
+            'supervisor_id' => 'nullable|exists:users,id',
+            'approver_id' => 'nullable|exists:users,id',
+            'leave_limit' => 'required|integer|min:0'
         ]);
 
         if ($this->checkUser() && $validated) {
+        try {
+            DB::beginTransaction();
 
-            $user = Auth::user();
-            $branch = BranchesModel::find($request->input('id'));
+            $branch = BranchesModel::findOrFail($request->id);
+            
+            $branch->update([
+                'name' => $request->name,
+                'acronym' => $request->acronym,
+                'description' => $request->description,
+                'status' => $request->status,
+                'manager_id' => $request->manager_id,
+                'supervisor_id' => $request->supervisor_id,
+                'approver_id' => $request->approver_id,
+                'leave_limit' => $request->leave_limit
+            ]);
 
-            $branch->name = $request->input('name');
-            $branch->acronym = $request->input('acronym');
-            $branch->address = $request->input('address');
-            $branch->status = $request->input('status');
-            $branch->leave_limit = $request->input('leave_limit');
+            DB::commit();
 
-            $branch->save();
+            // Return the updated branch with personnel names
+            $updatedBranch = BranchesModel::with(['manager', 'supervisor', 'approver'])
+                ->find($request->id);
+  
+                
+            return response()->json([
+                'status' => 200,
+                'branch' => $updatedBranch,
+                'message' => 'Branch updated successfully'
+            ]);
 
-            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error updating Branch: " . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Error updating branch'
+            ], 500);
         }
     }
+
+    return response()->json([
+        'status' => 403,
+        'message' => 'Unauthorized'
+    ], 403);
+}
+
+        public function updateBranchPositionAssignments(Request $request)
+        {
+            $validated = $request->validate([
+                'branch_id' => 'required|exists:branches,id',
+                'assignments' => 'required|array',
+                'assignments.*.branch_position_id' => 'required|exists:branch_positions,id',
+                'assignments.*.employee_id' => 'nullable|exists:users,id',
+            ]);
+
+            // Clear existing branch_position_id for this branch
+            UsersModel::where('branch_id', $validated['branch_id'])->update([
+                'branch_position_id' => null
+            ]);
+
+            // Apply new assignments
+            foreach ($validated['assignments'] as $assignment) {
+                if ($assignment['employee_id']) {
+                    UsersModel::where('id', $assignment['employee_id'])->update([
+                        'branch_position_id' => $assignment['branch_position_id']
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Position assignments updated'
+            ]);
+        }
+
+
+
+
+
+    public function getDepartment($id)
+    {
+        if ($this->checkUser()) {
+            $department = DepartmentsModel::with(['manager', 'supervisor', 'approver', 'employees'])
+                ->findOrFail($id);
+
+            return response()->json([
+                'status' => 200,
+                'department' => $department,
+                 'employees' => $department->employees, 
+                'employeesCount' => $department->employees->count()
+            ]);
+        }
+
+        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    }
+
+
 
     public function getDepartments(Request $request)
-    {
-        // Log::info("SettingsController::getDepartments");
+{
+    if ($this->checkUser()) {
+        $user = Auth::user();
+        $departments = DepartmentsModel::where('client_id', $user->client_id)
+            ->with(['manager', 'supervisor', 'approver'])
+            ->withCount('employees')
+            ->get();
 
-        if ($this->checkUser()) {
-            $user = Auth::user();
-            $departments = DepartmentsModel::where('client_id', $user->client_id)->get();
-
-            return response()->json(['status' => 200, 'departments' => $departments]);
-        }
-
-        return response()->json(['status' => 200, 'departments' => null]);
+        return response()->json(['status' => 200, 'departments' => $departments]);
     }
+
+    return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+}
+    
+
+
 
     public function saveDepartment(Request $request)
     {
@@ -163,32 +286,136 @@ class SettingsController extends Controller
         }
     }
 
-    public function editDepartment(Request $request)
-    {
-        log::info("SettingsController::editDepartment");
+   public function editDepartment(Request $request)
+{
+    log::info("SettingsController::editDepartment");
 
-        $validated = $request->validate([
-            'name' => 'required',
-            'acronym' => 'required',
-            'status' => 'required',
-        ]);
+    $validated = $request->validate([
+        'id' => 'required|exists:departments,id',
+        'name' => 'required|string|max:255',
+        'acronym' => 'required|string|max:10',
+        'status' => 'required|in:Active,Inactive,Disabled',
+        'manager_id' => 'nullable|exists:users,id',
+        'supervisor_id' => 'nullable|exists:users,id',
+        'approver_id' => 'nullable|exists:users,id',
+        'leave_limit' => 'required|integer|min:0'
+    ]);
 
-        if ($this->checkUser() && $validated) {
+    if ($this->checkUser() && $validated) {
+        try {
+            DB::beginTransaction();
 
-            $user = Auth::user();
-            $department = DepartmentsModel::find($request->input('id'));
+            $department = DepartmentsModel::findOrFail($request->id);
+            
+            $department->update([
+                'name' => $request->name,
+                'acronym' => $request->acronym,
+                'description' => $request->description,
+                'status' => $request->status,
+                'manager_id' => $request->manager_id,
+                'supervisor_id' => $request->supervisor_id,
+                'approver_id' => $request->approver_id,
+                'leave_limit' => $request->leave_limit
+            ]);
 
-            $department->name = $request->input('name');
-            $department->acronym = $request->input('acronym');
-            $department->description = $request->input('description');
-            $department->status = $request->input('status');
-            $department->leave_limit = $request->input('leave_limit');
+            DB::commit();
 
-            $department->save();
+            // Return the updated department with personnel names
+            $updatedDepartment = DepartmentsModel::with(['manager', 'supervisor', 'approver'])
+                ->find($request->id);
 
-            return response()->json(['status' => 200]);
+            return response()->json([
+                'status' => 200,
+                'department' => $updatedDepartment,
+                'message' => 'Department updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error updating department: " . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Error updating department'
+            ], 500);
         }
     }
+
+    return response()->json([
+        'status' => 403,
+        'message' => 'Unauthorized'
+    ], 403);
+}
+
+
+
+
+
+public function addBranchPositionAssignments(Request $request)
+    {
+        // For now, just return the incoming data to test
+        return response()->json([
+            'message' => 'Assignments received!',
+            'data' => $request->all()
+        ]);
+    }
+
+ 
+
+
+public function getBranchPositions()
+{
+    $user = Auth::user();
+
+    $positions = BranchPosition::where('client_id', $user->client_id)->get();
+
+    return response()->json([
+        'status' => 200,
+        'positions' => $positions
+    ]);
+}
+
+public function saveBranchPosition(Request $request)
+{
+    $user = Auth::user();
+
+    $validated = $request->validate([
+        'id' => 'nullable|exists:branch_positions,id',
+        'name' => 'required|string|max:255',
+        'can_review_request' => 'required|boolean',
+        'can_approve_request' => 'required|boolean',
+        'can_note_request' => 'required|boolean',
+        'can_accept_request' => 'required|boolean',
+    ]);
+
+    // Update if ID is provided, otherwise create new
+    $position = BranchPosition::updateOrCreate(
+        ['id' => $request->id, 'client_id' => $user->client_id],
+        array_merge($validated, ['client_id' => $user->client_id])
+    );
+
+    return response()->json([
+        'status' => 200,
+        'message' => $request->id ? 'Position updated' : 'Position created',
+        'position' => $position
+    ]);
+}
+
+public function deleteBranchPosition($id)
+{
+    $user = Auth::user();
+
+    $position = BranchPosition::where('client_id', $user->client_id)->findOrFail($id);
+    $position->delete();
+
+    return response()->json([
+        'status' => 200,
+        'message' => 'Branch position deleted'
+    ]);
+}
+
+
+
+
 
     public function getJobTitles(Request $request)
     {
@@ -266,19 +493,19 @@ class SettingsController extends Controller
         }
     }
 
-    public function getRoles(Request $request)
-    {
-        // Log::info("SettingsController::getRoles");
+    // public function getRoles(Request $request)
+    // {
+    //     // Log::info("SettingsController::getRoles");
 
-        if ($this->checkUser()) {
-            $user = Auth::user();
-            $roles = EmployeeRolesModel::where('client_id', $user->client_id)->get();
+    //     if ($this->checkUser()) {
+    //         $user = Auth::user();
+    //         $roles = EmployeeRolesModel::where('client_id', $user->client_id)->get();
 
-            return response()->json(['status' => 200, 'roles' => $roles]);
-        }
+    //         return response()->json(['status' => 200, 'roles' => $roles]);
+    //     }
 
-        return response()->json(['status' => 200, 'roles' => null]);
-    }
+    //     return response()->json(['status' => 200, 'roles' => null]);
+    // }
 
     public function saveRole(Request $request)
     {
@@ -405,5 +632,37 @@ class SettingsController extends Controller
 
             return response()->json(['status' => 200]);
         }
+    }
+
+
+
+    // Trial 
+    public function getRoles()
+    {
+        try {
+            $roles = \App\Models\EmployeeRolesModel::all();
+            return response()->json(['roles' => $roles]);
+        } catch (\Exception $e) {
+            \Log::error('getRoles: ' . $e->getMessage());
+            return response()->json(['error' => 'Error fetching roles'], 500);
+        }
+    }
+
+    public function getEmploymentTypes()
+    {
+        try {
+            $types = \App\Models\EmployeeTypeModel::all();
+            return response()->json(['employment_types' => $types]);
+        } catch (\Exception $e) {
+            \Log::error('getEmploymentTypes: ' . $e->getMessage());
+            return response()->json(['error' => 'Error fetching employment types'], 500);
+        }
+    }
+
+    public function getStatuses()
+    {
+        // If you want to use a fixed list:
+        $statuses = ['Active', 'Resigned', 'Terminated'];
+        return response()->json(['statuses' => $statuses]);
     }
 }

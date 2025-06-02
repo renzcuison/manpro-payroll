@@ -49,7 +49,7 @@ class UsersModel extends Authenticatable implements HasMedia
 
         'date_start',
         'date_end',
-
+        'branch_position_id',
         'employment_type',
         'employment_status',
 
@@ -61,6 +61,17 @@ class UsersModel extends Authenticatable implements HasMedia
         'work_group_id',
         'company_id'
     ];
+    
+    protected $casts = [
+        'birth_date' => 'date',
+        'date_start' => 'date',
+    ];
+
+
+    public function branchPosition(): BelongsTo
+    {
+        return $this->belongsTo(BranchPosition::class, 'branch_position_id');
+    }
 
     public function role()
     {
@@ -92,6 +103,11 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->hasMany(AttendanceLogsModel::class, 'user_id');
     }
 
+    public function latestAttendanceLog()
+    {
+        return $this->hasOne(AttendanceLogsModel::class, 'user_id')->latestOfMany();
+    }
+    
     public function workShift()
     {
         return $this->hasOneThrough(
@@ -116,6 +132,10 @@ class UsersModel extends Authenticatable implements HasMedia
         );
     }
 
+    // public function educations(): HasMany{
+    //     return $this.hasMany(EmployeeEducation::class, 'user_id');
+    // }
+
     public function allowances()
     {
         return $this->hasMany(EmployeeAllowancesModel::class, 'user_id');
@@ -130,4 +150,25 @@ class UsersModel extends Authenticatable implements HasMedia
     {
         return $this->BelongsTo(Company::class, 'company_id');
     }
+
+    public function evaluateeForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'evaluatee_id');
+    }
+
+    public function evaluatorForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'evaluator_id');
+    }
+
+    public function primaryCommentorForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'primary_commentor_id');
+    }
+
+    public function secondaryCommentorForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'secondary_commentor_id');
+    }
+    
 }

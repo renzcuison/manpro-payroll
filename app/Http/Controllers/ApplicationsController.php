@@ -48,7 +48,7 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
-            $apps = ApplicationsModel::where('client_id', $clientId)->orderBy('created_at', 'asc')->get();
+            $apps = ApplicationsModel::where('client_id', $clientId)->orderBy('created_at', 'desc')->get();
 
             $applications = [];
 
@@ -686,12 +686,12 @@ class ApplicationsController extends Controller
 
     public function getOvertimeApplications()
     {
-        Log::info("ApplicationsController::saveOvertimeApplication");
+        Log::info("ApplicationsController::getOvertimeApplications");
         $user = Auth::user();
 
         if ($this->checkUser()) {
 
-            $rawApplications = ApplicationsOvertimeModel::where('client_id', $user->client_id)->with(['user', 'timeIn', 'timeOut'])->get();
+            $rawApplications = ApplicationsOvertimeModel::where('client_id', $user->client_id)->with(['user', 'timeIn', 'timeOut'])->orderBy('created_at', 'desc')->get();
 
             $applications = [];
             foreach ($rawApplications as $app) {

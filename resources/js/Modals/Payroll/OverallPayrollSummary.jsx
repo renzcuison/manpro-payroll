@@ -12,17 +12,7 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import axiosInstance, { getJWTHeader } from '../../utils/axiosConfig';
 
-const OverallPayrollSummary = ({
-    open,
-    close,
-    records = [],
-    totals = {},
-    headerConfig = [],
-    payrollDateRange,
-    preparedBy: propPreparedBy,
-    approvedBy: propApprovedBy,
-    onAddSignatoryClick
-}) => {
+const OverallPayrollSummary = ({ open, close, records = [], totals = {}, headerConfig = [], payrollDateRange, preparedBy: propPreparedBy, approvedBy: propApprovedBy, onAddSignatoryClick }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = useMemo(() => getJWTHeader(JSON.parse(storedUser)), [storedUser]);
     const [signatories, setSignatories] = useState([]);
@@ -51,6 +41,9 @@ const OverallPayrollSummary = ({
     }, [headers, open]);
 
     useEffect(() => {
+        console.log("Totals");
+        console.log(totals);
+
         if (open) {
             setIsPrintingOrDownloading(false);
             setIsDownloading(false);
@@ -280,8 +273,8 @@ const OverallPayrollSummary = ({
         return records.reduce((acc, curr) => {
             acc.payroll += Number(curr.payrollNetPay - curr.totalAllowance || 0);
             acc.sssEmployer += Number(curr.sssEmployer || 0);
-            acc.philhealthEmployer += Number(curr.philhealthEmployer || 0);
-            acc.pagibigEmployer += Number(curr.pagibigEmployer || 0);
+            acc.philHealthEmployer += Number(curr.philHealthEmployer || 0);
+            acc.pagIbigEmployer += Number(curr.pagIbigEmployer || 0);
             acc.insuranceEmployer += Number(curr.insuranceEmployer || 0);
             acc.allowance += Number(curr.totalAllowance || 0);
             acc.advance += Number(curr.advance || 0);
@@ -290,7 +283,7 @@ const OverallPayrollSummary = ({
             acc.bonuses += Number(curr.bonuses || 0);
             return acc;
         }, {
-            payroll: 0, sssEmployer: 0, philhealthEmployer: 0, pagibigEmployer: 0,
+            payroll: 0, sssEmployer: 0, philHealthEmployer: 0, pagIbigEmployer: 0,
             insuranceEmployer: 0, allowance: 0, advance: 0, tax: 0, loan: 0, bonuses: 0,
         });
     }, [records]);
@@ -298,8 +291,8 @@ const OverallPayrollSummary = ({
     const breakdownGrandTotal = useMemo(() => {
         return (breakdownTotals.payroll || 0) +
             (breakdownTotals.sssEmployer || 0) +
-            (breakdownTotals.philhealthEmployer || 0) +
-            (breakdownTotals.pagibigEmployer || 0) +
+            (breakdownTotals.philHealthEmployer || 0) +
+            (breakdownTotals.pagIbigEmployer || 0) +
             (breakdownTotals.insuranceEmployer || 0) +
             (breakdownTotals.allowance || 0) +
             (breakdownTotals.bonuses || 0) -
@@ -386,8 +379,8 @@ const OverallPayrollSummary = ({
                     <Box className="breakdown-summary" sx={{ fontSize: '11px', '& p': { marginBottom: 0 }}}>
                         <p>Payroll: {formatCurrency(breakdownTotals.payroll)}</p>
                         <p>SSS Employer Share: {formatCurrency(breakdownTotals.sssEmployer)}</p>
-                        <p>Philhealth Employer Share: {formatCurrency(breakdownTotals.philhealthEmployer)}</p>
-                        <p>Pagibig Employer Share: {formatCurrency(breakdownTotals.pagibigEmployer)}</p>
+                        <p>Philhealth Employer Share: {formatCurrency(breakdownTotals.philHealthEmployer)}</p>
+                        <p>Pagibig Employer Share: {formatCurrency(breakdownTotals.pagIbigEmployer)}</p>
                         <p>Insurance Employer Share: {formatCurrency(breakdownTotals.insuranceEmployer)}</p>
                         <p>Allowance: {formatCurrency(breakdownTotals.allowance)}</p>
                         <p>Bonuses: {formatCurrency(breakdownTotals.bonuses)}</p>

@@ -37,7 +37,7 @@ function PersonalDetails({ user }) {
                 <Avatar
                     alt={`${user.user_name} Profile Pic`}
                     src={
-                        user?.media[0]
+                        user?.media?.[0]
                             ? user?.media[0]?.original_url
                             : user.avatar
                     }

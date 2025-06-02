@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Table,
     TableHead,
@@ -38,6 +38,7 @@ import {
 } from "../../../components/utils/tableUtils";
 
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
+import { useEmployees } from "./hooks/useEmployees";
 
 const EmployeesList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -51,13 +52,6 @@ const EmployeesList = () => {
 
     const [selectedBranches, setSelectedBranches] = useState([]);
     const [selectedDepartments, setSelectedDepartments] = useState([]);
-    const [selectedColumns, setSelectedColumns] = useState([
-        "Branch",
-        "Department",
-        "Role",
-        "Status",
-        "Type",
-    ]);
 
     const [searchName, setSearchName] = useState("");
     const [filterByBranch, setFilterByBranch] = useState("");
@@ -147,8 +141,9 @@ const EmployeesList = () => {
             employee.middle_name || ""
         } ${employee.last_name} ${employee.suffix || ""}`.toLowerCase();
         const matchedName = fullName.includes(searchName.toLowerCase());
-        const matchedBranchDept = filterByBranch === "" || filterByDepartment === "" ||
-        (employee["department"] === filterByDepartment && employee["branch"] === filterByBranch);
+        const matchedBranchDept =
+        (filterByBranch === "" || employee["branch"] === filterByBranch) &&
+        (filterByDepartment === "" || employee["department"] === filterByDepartment);
         return matchedName && matchedBranchDept;
     });
 
@@ -158,353 +153,148 @@ const EmployeesList = () => {
                 sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}
             >
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
-                    <Box
-                        sx={{
-                            mt: 5,
-                            display: "flex",
-                            justifyContent: "space-between",
-                            px: 1,
-                            alignItems: "center",
-                        }}
-                    >
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {" "}Employees{" "}
-                        </Typography>
+                    <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center", }} >
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}> {" "}Employees{" "} </Typography>
 
-                        {/*
-                        <Link to="/admin/employees/add">
-                            <Button variant="contained" color="primary">
-                                <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                            </Button>
-                        </Link>
-                         */}
-
-                        <Button
-                            id="employee-menu"
-                            variant="contained"
-                            color="primary"
-                            aria-controls={open ? "emp-menu" : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={open ? "true" : undefined}
-                            onClick={handleMenuOpen}
-                        >
+                        <Button id="employee-menu" variant="contained" color="primary" aria-controls={open ? "emp-menu" : undefined} aria-haspopup="true" aria-expanded={open ? "true" : undefined} onClick={handleMenuOpen} >
                             <p className="m-0">
                                 <i className="fa fa-plus"></i> Add{" "}
                             </p>
                         </Button>
-                        <Menu
-                            id="emp-menu"
-                            anchorEl={anchorEl}
-                            open={open}
-                            onClose={handleMenuClose}
-                            MenuListProps={{
-                                "aria-labelledby": "employee_menu",
-                            }}
-                        >
-                            <MenuItem
-                                component={Link}
-                                to="/admin/employees/add"
-                                onClick={handleMenuClose}
-                            >
-                                {" "}
-                                Add Employee{" "}
-                            </MenuItem>
-                            <MenuItem
-                                component={Link}
-                                to="/admin/employees/formlinks"
-                                onClick={handleMenuClose}
-                            >
-                                {" "}
-                                Employee Form Links{" "}
-                            </MenuItem>
+                        <Menu id="emp-menu" anchorEl={anchorEl} open={open} onClose={handleMenuClose} MenuListProps={{ "aria-labelledby": "employee_menu", }} >
+                            <MenuItem component={Link} to="/admin/employees/add" onClick={handleMenuClose}> {" "}Add Employee{" "} </MenuItem>
+                            <MenuItem component={Link} to="/admin/employees/formlinks" onClick={handleMenuClose} > {" "}Employee Form Links{" "} </MenuItem>
                         </Menu>
                     </Box>
 
-                    <Box
-                        sx={{
-                            mt: 6,
-                            p: 3,
-                            bgcolor: "#ffffff",
-                            borderRadius: "8px",
-                        }}
-                    >
-                        <Grid
-                            container
-                            sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}
-                        >              
+                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
+                        <Grid container sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
                             <Grid container size={12} spacing={2}>
-                                {/*<---Name Search field--->*/}  
+                                {/*<---Name Search field--->*/}
                                 <Grid size={6}>
                                     <TextField
                                         id="searchName"
                                         label="Search Name"
                                         variant="outlined"
                                         value={searchName}
-                                        onChange={(e) =>
-                                            setSearchName(e.target.value)
-                                        }
+                                        onChange={(e) => setSearchName(e.target.value)}
                                     />
-                                </Grid>  
-                                {/*<---Branch filter field--->*/}   
-                                <Grid size = {3}>
+                                </Grid>
+                                {/*<---Branch filter field--->*/}
+                                <Grid size={3}>
                                     <TextField
                                         select
                                         id="column-view-select"
                                         label="Filter by Branch"
                                         value={filterByBranch}
                                         onChange={(event) => {
-                                            console.log("Selected branch:", event.target.value);
-                                            setFilterByBranch(event.target.value)}}
+                                            console.log( "Selected branch:", event.target.value );
+                                            setFilterByBranch(event.target.value);
+                                        }}
                                         sx={{ width: "100%" }}
                                     >
                                         {branches.map((branch) => (
-                                            <MenuItem key={branch.id} value={branch.name}>
-                                                {branch.name}
-                                            </MenuItem>
+                                            <MenuItem key={branch.id} value={branch.name} > {branch.name} </MenuItem>
                                         ))}
                                     </TextField>
                                 </Grid>
-                            
-                                {/*<---Department filter field--->*/}  
-                                <Grid size = {3}>
+
+                                {/*<---Department filter field--->*/}
+                                <Grid size={3}>
                                     <TextField
                                         select
                                         id="column-view-select"
                                         label="Filter by Department"
                                         value={filterByDepartment}
                                         onChange={(event) => {
-                                            console.log("Selected department:", event.target.value);
-                                            setFilterByDepartment(event.target.value)}}
-                                        sx={{ width: "100%"}}
+                                            console.log( "Selected department:", event.target.value);
+                                            setFilterByDepartment(event.target.value);
+                                        }}
+                                        sx={{ width: "100%" }}
                                     >
                                         {departments.map((department) => (
-                                            <MenuItem key={department.id} value={department.name}>
-                                                {department.name}
-                                            </MenuItem>
+                                            <MenuItem key={department.id} value={department.name} > {department.name} </MenuItem>
                                         ))}
                                     </TextField>
-                                </Grid>       
+                                </Grid>
                             </Grid>
-                            {/* <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2}>
-                                <Grid item xs={6}>
-                                     <FormControl sx={{width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <TextField
-                                            select
-                                            id="department"
-                                            label="Department"
-                                            value={selectedDepartments}
-                                            SelectProps={{
-                                                multiple: true,
-                                                renderValue: (selected) => departments.filter((department) => selected.includes(department.id)).map((department) => department.acronym).join(', ')
-                                            }}
-                                        >
-                                            {departments.map((department) => (
-                                                <MenuItem
-                                                    key={department.id}
-                                                    value={department.id}
-                                                    onClick={() => {
-                                                        setSelectedDepartments((prevSelected) => prevSelected.includes(department.id) ? prevSelected.filter((id) => id !== department.id) : [...prevSelected, department.id] );
-                                                    }}
-                                                >
-                                                    <Checkbox checked={selectedDepartments.includes(department.id)} />
-                                                    <ListItemText primary={`${department.name} (${department.acronym})`} />
-                                                </MenuItem>
-                                            ))}
-                                        </TextField>
-                                    </FormControl> 
-                                </Grid>
-                                <Grid item xs={6}>
-                                     <FormControl sx={{width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <TextField
-                                            select
-                                            id="branch"
-                                            label="Branch"
-                                            value={selectedBranches}
-                                            SelectProps={{
-                                                multiple: true,
-                                                renderValue: (selected) => branches.filter((branch) => selected.includes(branch.id)).map((branch) => branch.acronym).join(', ')
-                                            }}
-                                        >
-                                            {branches.map((branch) => (
-                                                <MenuItem
-                                                    key={branch.id}
-                                                    value={branch.id}
-                                                    onClick={() => {
-                                                        setSelectedBranches((prevSelected) => prevSelected.includes(branch.id) ? prevSelected.filter((id) => id !== branch.id) : [...prevSelected, branch.id]);
-                                                    }}
-                                                >
-                                                    <Checkbox checked={selectedBranches.includes(branch.id)} />
-                                                    <ListItemText primary={`${branch.name} (${branch.acronym})`} />
-                                                </MenuItem>
-                                            ))}
-                                        </TextField>
-                                    </FormControl> 
-                                </Grid>
-                            </Grid> */}
                         </Grid>
 
-                        {/*<---Main Employee List table--->*/}   
+                        {/*<---Main Employee List table--->*/}
                         {isLoading ? (
                             <LoadingSpinner />
                         ) : (
                             <>
-                                <TableContainer
-                                    style={{ overflowX: "auto" }}
-                                    sx={{ minHeight: 400, maxHeight: 500 }}
-                                >
-                                    <Table
-                                        stickyHeader
-                                        aria-label="employee table"
-                                    >
-                                        {/*<--Table Header Section-->*/} 
+                                <TableContainer style={{ overflowX: "auto" }} sx={{ minHeight: 400, maxHeight: 500 }} >
+                                    <Table stickyHeader aria-label="employee table" >
+                                        {/*<--Table Header Section-->*/}
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell
-                                                    align="center"
-                                                    scope="col"
-                                                >
-                                                    Name
-                                                </TableCell> 
-                                                {[
-                                                    "Branch","Department",
-                                                    "Role","Status","Type",
-                                                ].map(
-                                                    (column) =>
-                                                    selectedColumns.includes(
-                                                        column
-                                                    ) && (
-                                                        <TableCell
-                                                            key={column}
-                                                            align="center"
-                                                            scope="col"
-                                                        >
-                                                            {column}
-                                                        </TableCell>
-                                                    )
-                                                )}
+                                                <TableCell align="center" scope="col"> Name </TableCell>
+                                                <TableCell align="center" scope="col"> Branch </TableCell>
+                                                <TableCell align="center" scope="col"> Department </TableCell>
+                                                <TableCell align="center" scope="col"> Role </TableCell>
+                                                <TableCell align="center" scope="col"> Status </TableCell>
+                                                <TableCell align="center" scope="col"> Type </TableCell>
                                             </TableRow>
                                         </TableHead>
-                                        {/*<--Table Body Section-->*/} 
+                                        {/*<--Table Body Section-->*/}
                                         <TableBody>
-                                            {filteredEmployees.length > 0 ? (
-                                                filteredEmployees.map(
+                                            {filteredEmployees?.length > 0 ? (
+                                                filteredEmployees?.map(
                                                     (employee) => (
-                                                        <TableRow
-                                                            key={employee.id}
-                                                            sx={{
-                                                            "&:last-child td, &:last-child th": {border: 0,},
-                                                            "&:hover": {
-                                                                backgroundColor: "rgba(0, 0, 0, 0.1)",
-                                                                cursor: "pointer",
-                                                            },
-                                                        }}
-                                                        >
+                                                        <TableRow key={employee.id} sx={{ "&:last-child td, &:last-child th": { border: 0 }, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}} >
                                                             <TableCell align="left">
-                                                                <Link
-                                                                    to={`/admin/employee/${employee.user_name}`}
-                                                                    style={{
-                                                                        textDecoration: "none",
-                                                                        color: "inherit",
-                                                                    }}
-                                                                >
-                                                                    <Box
-                                                                        display="flex"
-                                                                        sx={{alignItems:"center",}}
-                                                                    >
-                                                                        <Avatar
-                                                                            src={renderImage(
-                                                                                employee.id,
-                                                                                employee.avatar,
-                                                                                employee.avatar_mime
-                                                                            )}
-                                                                            sx={{mr: 2,}}
-                                                                        />
-                                                                        {
-                                                                            employee.first_name
-                                                                        }{" "}
-                                                                        {employee.middle_name ||
-                                                                            ""}{" "}
-                                                                        {
-                                                                            employee.last_name
-                                                                        }{" "}
-                                                                        {employee.suffix ||
-                                                                            ""}
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit" }} >
+                                                                    <Box display="flex" sx={{ alignItems: "center" }} >
+                                                                        <Avatar src={renderImage( employee.id, employee.avatar, employee.avatar_mime )} sx={{ mr: 2 }} />
+                                                                        {employee.first_name}{" "}
+                                                                        {employee.middle_name || ""}{" "}
+                                                                        {employee.last_name}{" "}
+                                                                        {employee.suffix || ""}
                                                                     </Box>
                                                                 </Link>
                                                             </TableCell>
-                                                            {[
-                                                                "Branch","Department",
-                                                                "Role","Status","Type",
-                                                            ].map(
-                                                                (column) =>
-                                                                    selectedColumns.includes(column) &&  
-                                                                    (
-                                                                    <TableCell
-                                                                        key={column}
-                                                                        align="center"
-                                                                    >
-                                                                        <Link
-                                                                            to={`/admin/employee/${employee.user_name}`}
-                                                                            style={{
-                                                                                textDecoration: "none",
-                                                                                color: "inherit",
-                                                                            }}
-                                                                        >
-                                                                            {employee[
-                                                                                column.toLowerCase()
-                                                                            ] ||
-                                                                                employee[
-                                                                                    `employment_${column.toLowerCase()}`
-                                                                                ] ||
-                                                                                "-"}
-                                                                        </Link>
-                                                                    </TableCell>
-                                                                )
-                                                            )}
+
+                                                            <TableCell align="center">
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >{employee.branch || ""}</Link>
+                                                            </TableCell>
+
+                                                            <TableCell align="center">
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >{employee.department || ""}</Link>
+                                                            </TableCell>
+
+                                                            <TableCell align="center">
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >{employee.role || ""}</Link>
+                                                            </TableCell>
+
+                                                            <TableCell align="center">
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >{employee.employment_status || ""}</Link>
+                                                            </TableCell>
+
+                                                            <TableCell align="center">
+                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >{employee.employment_type || ""}</Link>
+                                                            </TableCell>
                                                         </TableRow>
                                                     )
                                                 )
-                                            ):(
+                                            ) : (
                                                 <TableRow>
-                                                    <TableCell
-                                                        colSpan={selectedColumns.length +1}
-                                                        align="center"
-                                                    >
-                                                        No employees found.
-                                                    </TableCell>
+                                                    <TableCell colSpan={6} align="center"> No employees found. </TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
-                                {filteredEmployees.length > 0 && (
-                                    <Box
-                                        display="flex"
-                                        sx={{
-                                            py: 2,
-                                            pr: 2,
-                                            width: "100%",
-                                            justifyContent: "flex-end",
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        <Typography sx={{ mr: 2 }}>
-                                            Number of Employees:
-                                        </Typography>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{ fontWeight: "bold" }}
-                                        >
-                                            {filteredEmployees.length}
-                                        </Typography>
+
+                                {filteredEmployees?.length > 0 && (
+                                    <Box display="flex" sx={{ py: 2, pr: 2, width: "100%", justifyContent: "flex-end", alignItems: "center" }} >
+                                        <Typography sx={{ mr: 2 }}> Number of Employees: </Typography>
+                                        <Typography variant="h6" sx={{ fontWeight: "bold" }} > {filteredEmployees?.length} </Typography>
                                     </Box>
                                 )}
                             </>
-                        )}
+                        )}  
                     </Box>
                 </Box>
             </Box>
