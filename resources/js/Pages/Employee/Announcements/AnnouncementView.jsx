@@ -261,33 +261,45 @@ const AnnouncementView = () => {
       <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
         <Box sx={{ mx: "auto", width: { xs: "100%", md: "95%" } }}>
           <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }}>
-            <Box display="flex" sx={{ alignItems: "center" }}>
-              <Typography
-                variant={capSize}
-                sx={{
-                  fontWeight: "bold",
-                  whiteSpace: "normal",
-                  wordBreak: "break-word",
-                  overflowWrap: "break-word",
-                  lineHeight: 1.5,
-                  paddingRight: { xs: 0, md: 2 },
-                }}
-              >
-                {announcement.title || "Announcement"}
-              </Typography>
-              {announcement.acknowledged && (
-                <Tooltip title="You have acknowledged this announcement">
-                  <CheckCircle
-                    sx={{
-                      ml: 1,
-                      fontSize: 36,
-                      color: "#177604",
-                      transition: "color 0.2s ease-in-out",
-                      "&:hover": { color: "#1A8F07" },
-                    }}
-                  />
-                </Tooltip>
-              )}
+            <Box sx={{
+              mt: 5,
+              display: "flex",
+              justifyContent: "space-between",
+              px: 1,
+              alignItems: "center",
+              width: "100%"
+            }}>
+              <Box display="flex" sx={{ alignItems: "center" }}>
+                <Typography
+                  variant={capSize}
+                  sx={{
+                    fontWeight: "bold",
+                    whiteSpace: "normal",
+                    wordBreak: "break-word",
+                    overflowWrap: "break-word",
+                    lineHeight: 1.5,
+                    paddingRight: { xs: 0, md: 2 },
+                  }}
+                >
+                  {announcement.title || "Announcement"}
+                </Typography>
+                {announcement.acknowledged && (
+                  <Tooltip title="You have acknowledged this announcement">
+                    <CheckCircle
+                      sx={{
+                        ml: 1,
+                        fontSize: 36,
+                        color: "#177604",
+                        transition: "color 0.2s ease-in-out",
+                        "&:hover": { color: "#1A8F07" },
+                      }}
+                    />
+                  </Tooltip>
+                )}
+              </Box>
+              <IconButton onClick={() => navigate("/employee/announcements")}>
+                    <i className="si si-close"></i>
+              </IconButton>
             </Box>
           </Box>
 
