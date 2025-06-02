@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig'; // Use your axiosInstance and getJWTHeader
+import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
+// Import SweetAlert2
+import Swal from 'sweetalert2';
 
 const PerformanceEvaluationCreateEvaluation = () => {
     const navigate = useNavigate();
@@ -52,9 +54,39 @@ const PerformanceEvaluationCreateEvaluation = () => {
     admin => admin.id !== evaluator && admin.id !== primaryCommentor
     );
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(formValues);
+        // Map form values to backend fields
+        const payload = {
+            evaluatee_id: formValues.employeeName,
+            evaluator_id: formValues.evaluator,
+            primary_commentor_id: formValues.primaryCommentor,
+            secondary_commentor_id: formValues.secondaryCommentor,
+            form_id: formValues.evaluationForm,
+            period_start_at: formValues.periodFrom + ' 00:00:00',
+            period_end_at: formValues.periodTo + ' 23:59:59'
+        };
+        try {
+            const response = await axiosInstance.post('/saveEvaluationResponse', payload, { headers });
+            // Show success SweetAlert
+            Swal.fire({
+                icon: 'success',
+                title: 'Evaluation Response Saved!',
+                text: 'The evaluation response has been successfully saved.',
+                confirmButtonText: 'OK',
+            }).then(() => {
+                // Optionally navigate or reset form after confirmation
+                navigate(-1);
+            });
+        } catch (error) {
+            // Show error SweetAlert
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error?.response?.data?.message || 'Error saving evaluation response. Please try again.',
+            });
+            console.error('Error saving evaluation response:', error);
+        }
     };
 
     const handleChange = (event) => {
