@@ -52,57 +52,56 @@ function Milestones() {
                     </Button>
                 </Box>
                 <Divider sx={{ borderStyle: "dashed" }} />
-                <Paper sx={{ p: 3, borderRadius: 5 }}>
-                    <Grid container spacing={2}>
-                        {data?.map((milestone) => (
-                            <Grid item xs={12} md={6} key={milestone.id}>
-                                <Card
-                                    elevation={3}
-                                    sx={{ borderRadius: 3, width: "100%" }}
-                                >
-                                    <CardContent>
-                                        <Box
-                                            display="flex"
-                                            alignItems="center"
-                                            gap={2}
-                                        >
-                                            <Avatar
-                                                src={
-                                                    milestone.user.media?.[0]
-                                                        ?.original_url
-                                                }
-                                                alt={milestone.user.first_name}
-                                            />
-                                            <Box>
-                                                <Typography variant="h6">
-                                                    {milestone.user.first_name}{" "}
-                                                    {milestone.user.last_name}
-                                                </Typography>
-                                                <Typography
-                                                    variant="body2"
-                                                    color="text.secondary"
-                                                >
-                                                    {milestone.description ||
-                                                        milestone.type}
-                                                </Typography>
-                                            </Box>
-                                            <Chip
-                                                label={milestone.type.toUpperCase()}
-                                                icon={iconMap[milestone.type]}
-                                                color="primary"
-                                            />
+
+                <Grid container spacing={2}>
+                    {data?.map((milestone) => (
+                        <Grid size={{ xs: 12, md: 6 }} key={milestone.id}>
+                            <Card
+                                elevation={3}
+                                sx={{ borderRadius: 4, width: "100%" }}
+                            >
+                                <CardContent>
+                                    <Box
+                                        display="flex"
+                                        alignItems="center"
+                                        gap={2}
+                                    >
+                                        <Avatar
+                                            src={
+                                                milestone.user.media?.[0]
+                                                    ?.original_url
+                                            }
+                                            alt={milestone.user.first_name}
+                                        />
+                                        <Box>
+                                            <Typography variant="h6">
+                                                {milestone.user.first_name}{" "}
+                                                {milestone.user.last_name}
+                                            </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                            >
+                                                {milestone.description ||
+                                                    milestone.type}
+                                            </Typography>
                                         </Box>
-                                        <Typography variant="caption" mt={2}>
-                                            {new Date(
-                                                milestone.date
-                                            ).toDateString()}
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                            </Grid>
-                        ))}
-                    </Grid>
-                </Paper>
+                                        <Chip
+                                            label={milestone.type.toUpperCase()}
+                                            icon={iconMap[milestone.type]}
+                                            color="primary"
+                                        />
+                                    </Box>
+                                    <Typography variant="caption" mt={2}>
+                                        {new Date(
+                                            milestone.date
+                                        ).toDateString()}
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
             </Stack>
         </Layout>
     );

@@ -48,22 +48,17 @@ const Dashboard = () => {
 
     const { data: milestones, isLoading: isLoadingMilestones } =
         useMilestones();
-    console.log(milestones);
 
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
         moment().format("YYYY-MM-DD")
     );
 
-    console.log(dashboard);
-
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
 
     const [adminName, setAdminName] = useState("Admin");
-
-    console.log("Selected date:", selectedDate);
 
     const presentUsers = useMemo(() => {
         if (!dashboard || !isFetched) return [];
@@ -78,8 +73,6 @@ const Dashboard = () => {
             return attendanceDate === selectedDate;
         });
     }, [dashboard, selectedDate]);
-
-    console.log("Present Users:", presentUsers);
 
     const lateUsers = useMemo(() => {
         if (!presentUsers || presentUsers.length === 0) return [];
@@ -117,8 +110,6 @@ const Dashboard = () => {
             return timeIn.isAfter(threshold);
         });
     }, [presentUsers]);
-
-    console.log("Lates: ", lateUsers);
 
     const latestEmployees = useMemo(() => {
         if (data) {
@@ -193,8 +184,6 @@ const Dashboard = () => {
         }
     }, [dashboard]);
 
-    console.log("On leave: ", onLeave);
-
     const infoCardsData = [
         {
             title: "Total Employees",
@@ -230,8 +219,6 @@ const Dashboard = () => {
             link: "/admin/attendance/today",
         },
     ];
-
-    console.log(latestEmployees);
 
     return (
         <Layout>
