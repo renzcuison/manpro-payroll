@@ -122,6 +122,7 @@ class AnnouncementsController extends Controller
                     'acknowledged' => $acknowledgedCount,
                     'views' => $views,
                     'acknowledgements' => $acknowledgements,
+                    'scheduled_send_datetime' => $announcement->scheduled_send_datetime
                 ];
             });
 
@@ -593,7 +594,7 @@ class AnnouncementsController extends Controller
 
         if ($this->checkUser()) {
             $announcement = AnnouncementsModel::where('unique_code', $code)
-                ->select('id', 'announcement_types_id')
+                ->select('id', 'announcement_types_id', 'scheduled_send_datetime')
                 ->first();
 
             $branches = AnnouncementBranchesModel::where('announcement_id', $announcement->id)
@@ -619,7 +620,9 @@ class AnnouncementsController extends Controller
                 $announcementTypeName = $type ? $type->name : null;
             }
 
-            return response()->json(['status' => 200, 'branches' => $branches, 'departments' => $departments, 'announcement_type' => $announcementTypeName,]);
+            $scheduledSendDatetime = $announcement->scheduled_send_datetime;
+
+            return response()->json(['status' => 200, 'branches' => $branches, 'departments' => $departments, 'announcement_type' => $announcementTypeName, 'scheduled_send_datetime' => $scheduledSendDatetime,]);
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }

@@ -53,6 +53,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [announcementType, setAnnouncementType] = useState('');
+    const [scheduledSendDatetime, setScheduledSendDatetime] = useState(null);
     const [announcement, setAnnouncement] = useState(announceInfo || {});
     const [exitReload, setExitReload] = useState(false);
 
@@ -68,9 +69,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         console.log('Stored User:', JSON.parse(storedUser));
         getAnnouncementThumbnail();
         getAnnouncementFiles();
-        if (announceInfo.status !== "Pending") {
-            getAnnouncementPublishmentDetails();
-        }
+        getAnnouncementPublishmentDetails();
     }, [announceInfo]);
 
     // Announcement Menu
@@ -320,6 +319,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 setBranches(Array.isArray(response.data.branches) ? response.data.branches : []);
                 setDepartments(Array.isArray(response.data.departments) ? response.data.departments : []);
                 setAnnouncementType(response.data.announcement_type || 'N/A');
+                setScheduledSendDatetime(response.data.scheduled_send_datetime || null); // <-- Add this
             })
             .catch((error) => {
                 console.error('Error fetching published branch/departments:', {
@@ -330,6 +330,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 setBranches([]);
                 setDepartments([]);
                 setAnnouncementType('N/A');
+                setScheduledSendDatetime(null);
             });
     };
 
@@ -559,7 +560,18 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                 />
                                             )}
                                         </Stack>
-                                    </Grid>
+                                    </Grid> 
+                                    {announcement.status === "Pending" && scheduledSendDatetime && (
+                                        <Grid size={12}>
+                                            <InfoBox
+                                                title="Scheduled Post"
+                                                info={dayjs(scheduledSendDatetime).format('MMM D, YYYY h:mm A')}
+                                                color="#1976d2"
+                                                compact
+                                                clean
+                                            />
+                                        </Grid>
+                                    )}
                                     {announcement.status !== "Pending" ? (
                                         <Grid container size={12} spacing={1}>
                                             <Grid size={12}>
