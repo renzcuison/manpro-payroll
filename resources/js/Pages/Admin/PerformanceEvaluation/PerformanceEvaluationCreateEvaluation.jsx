@@ -8,7 +8,7 @@ import CloseIcon from '@mui/icons-material/Close';
 const PerformanceEvaluationCreateEvaluation = () => {
     const navigate = useNavigate();
 
-    // You can add form state and functionality here
+    // Form state, no dummy data
     const [formValues, setFormValues] = useState({
         employeeName: '',
         branch: '',
@@ -18,22 +18,23 @@ const PerformanceEvaluationCreateEvaluation = () => {
         secondaryCommentor: '',
         evaluationForm: '',
         periodFrom: '',
-        periodTo: ''
+        periodTo: '',
+        date: ''
     });
 
     const handleChange = (event) => {
         setFormValues({ ...formValues, [event.target.name]: event.target.value });
     };
 
-    const handleSubmit = () => {
-        // Handle the form submission here
-        console.log(formValues);
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // Handle form submission logic here
     };
 
     return (
         <Layout title={"Create Evaluation Form"}> 
             <Box sx={{ maxWidth: '1000px', mx: 'auto', mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative' }}>
-            <IconButton
+                <IconButton
                     onClick={() => navigate(-1)}
                     sx={{
                         position: 'absolute',
@@ -45,57 +46,53 @@ const PerformanceEvaluationCreateEvaluation = () => {
                         color: '#BEBEBE',
                     }}
                 >
-                    <CloseIcon sx={{ fontSize: '1.2rem' }} /> {/* Adjust the size here */}
+                    <CloseIcon sx={{ fontSize: '1.2rem' }} />
                 </IconButton>
                 <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 4 }}>E-Employee Evaluation Form</Typography>
                
                 <form onSubmit={handleSubmit}>
                     {/* First Row */}
                     <Grid container spacing={3}>
-                        
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }} >
                             <FormControl fullWidth variant="outlined" required>
-                                <InputLabel >Branch</InputLabel>
+                                <InputLabel>Branch</InputLabel>
                                 <Select
                                     label="Branch"
                                     name="branch"
                                     value={formValues.branch}
                                     onChange={handleChange}
                                 >
-                                    <MenuItem value="Branch1">Branch 1</MenuItem>
-                                    <MenuItem value="Branch2">Branch 2</MenuItem>
+                                    {/* No dummy MenuItems */}
                                 </Select>
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
                             <FormControl fullWidth variant="outlined" required>
-                                <InputLabel >Department</InputLabel>
-                                    <Select
-                                        label="Department"
-                                        variant="outlined"
-                                        name="department"
-                                        value={formValues.department}
-                                        onChange={handleChange}
-                                    >
-                                        <MenuItem value="Branch1">CS Cluster</MenuItem>
-                                        <MenuItem value="Branch2">IS Cluster</MenuItem>
-                                    </Select>
-                                </FormControl>
+                                <InputLabel>Department</InputLabel>
+                                <Select
+                                    label="Department"
+                                    variant="outlined"
+                                    name="department"
+                                    value={formValues.department}
+                                    onChange={handleChange}
+                                >
+                                    {/* No dummy MenuItems */}
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
                             <FormControl fullWidth variant="outlined" required>
-                                <InputLabel >Employee Name</InputLabel>
-                                    <Select
-                                        label="Employee Name"
-                                        variant="outlined"
-                                        name="employeeName"
-                                        value={formValues.employeeName}
-                                        onChange={handleChange}
-                                    >
-                                        <MenuItem value="Branch1">Employee 1</MenuItem>
-                                        <MenuItem value="Branch2">Employee 2</MenuItem>
-                                    </Select>
-                                </FormControl>
+                                <InputLabel>Employee Name</InputLabel>
+                                <Select
+                                    label="Employee Name"
+                                    variant="outlined"
+                                    name="employeeName"
+                                    value={formValues.employeeName}
+                                    onChange={handleChange}
+                                >
+                                    {/* No dummy MenuItems */}
+                                </Select>
+                            </FormControl>
                         </Grid> 
                     </Grid>
 
@@ -103,18 +100,17 @@ const PerformanceEvaluationCreateEvaluation = () => {
                     <Grid container spacing={3} sx={{ mt: 3 }} >
                         <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '625px' }}>
                             <FormControl fullWidth variant="outlined" required>
-                                <InputLabel >Evaluator</InputLabel>
-                                    <Select
-                                        label="Evaluator"
-                                        variant="outlined"
-                                        name="evaluator"
-                                        value={formValues.evaluator}
-                                        onChange={handleChange}
-                                    >
-                                        <MenuItem value="Branch1">Evaluator 1</MenuItem>
-                                        <MenuItem value="Branch2">Evaluator 2</MenuItem>
-                                    </Select>
-                                </FormControl>
+                                <InputLabel>Evaluator</InputLabel>
+                                <Select
+                                    label="Evaluator"
+                                    variant="outlined"
+                                    name="evaluator"
+                                    value={formValues.evaluator}
+                                    onChange={handleChange}
+                                >
+                                    {/* No dummy MenuItems */}
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '300px' }}>
                             <TextField
@@ -135,33 +131,31 @@ const PerformanceEvaluationCreateEvaluation = () => {
                     <Grid container spacing={3} sx={{ mt: 3 }}>
                         <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
                             <FormControl fullWidth variant="outlined" required>
-                                <InputLabel >Primary Commentor</InputLabel>
-                                    <Select
-                                        label="Primary Commentor"
-                                        variant="outlined"
-                                        name="primaryCommentor"
-                                        value={formValues.primaryCommentor}
-                                        onChange={handleChange}
-                                    >
-                                        <MenuItem value="Branch1">Primary Commentor 1</MenuItem>
-                                        <MenuItem value="Branch2">Primary Commentor 2</MenuItem>
-                                    </Select>
-                                </FormControl>
+                                <InputLabel>Primary Commentor</InputLabel>
+                                <Select
+                                    label="Primary Commentor"
+                                    variant="outlined"
+                                    name="primaryCommentor"
+                                    value={formValues.primaryCommentor}
+                                    onChange={handleChange}
+                                >
+                                    {/* No dummy MenuItems */}
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
                             <FormControl fullWidth variant="outlined" required>
-                                <InputLabel >Secondary Commentor</InputLabel>
-                                    <Select
-                                        label="Secondary Commentor"
-                                        variant="outlined"
-                                        name="secondaryCommentor"
-                                        value={formValues.secondaryCommentor}
-                                        onChange={handleChange}
-                                    >
-                                        <MenuItem value="Branch1">Secondary Commentor 1</MenuItem>
-                                        <MenuItem value="Branch2">Secondary Commentor 2</MenuItem>
-                                    </Select>
-                                </FormControl>
+                                <InputLabel>Secondary Commentor</InputLabel>
+                                <Select
+                                    label="Secondary Commentor"
+                                    variant="outlined"
+                                    name="secondaryCommentor"
+                                    value={formValues.secondaryCommentor}
+                                    onChange={handleChange}
+                                >
+                                    {/* No dummy MenuItems */}
+                                </Select>
+                            </FormControl>
                         </Grid>
                     </Grid>
 
@@ -169,18 +163,17 @@ const PerformanceEvaluationCreateEvaluation = () => {
                     <Grid container spacing={3} sx={{ mt: 3 }}>
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
                             <FormControl fullWidth variant="outlined" required>
-                                <InputLabel >Evaluation Form</InputLabel>
-                                    <Select
-                                        label="Evaluation Form"
-                                        variant="outlined"
-                                        name="evaluationForm"
-                                        value={formValues.evaluationForm}
-                                        onChange={handleChange}
-                                    >
-                                        <MenuItem value="Branch1">Evaluation Form 1</MenuItem>
-                                        <MenuItem value="Branch2">Evaluation Form 2</MenuItem>
-                                    </Select>
-                                </FormControl>
+                                <InputLabel>Evaluation Form</InputLabel>
+                                <Select
+                                    label="Evaluation Form"
+                                    variant="outlined"
+                                    name="evaluationForm"
+                                    value={formValues.evaluationForm}
+                                    onChange={handleChange}
+                                >
+                                    {/* No dummy MenuItems */}
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
                             <TextField
@@ -217,7 +210,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
                             variant="contained"
                             color="success"
                             sx={{ padding: '10px 20px' }}
-                            startIcon={<SaveIcon />} // Add the Save icon here
+                            startIcon={<SaveIcon />}
                         >
                             Save Evaluation
                         </Button>
