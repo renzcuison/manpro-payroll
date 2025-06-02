@@ -156,6 +156,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
 
+        //test v
+        Route::get('/getLeaveCreditByUser/{username}', [EmployeesController::class,'getLeaveCreditByUser']);
+
+
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
         Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
@@ -444,7 +448,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEmployeePayroll/{id}', [HrEmployeesController::class, 'getEmployeePayroll']);
 
     // New API for Employees
-    Route::get('/getEmployees', [HrEmployeesController::class, 'getEmployees']);
+    Route::get('/getEmployeesName', [HrEmployeesController::class, 'getEmployeesName']);
 
     // Work Shift
     // Route::get('/getWorkShift', [HrEmployeesController::class, 'getWorkShift']);
