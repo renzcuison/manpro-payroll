@@ -156,7 +156,7 @@ class EvaluationResponseController extends Controller
                                 subcategory_id, id, label, order,
                                 option_answer: { id, response_id, option_id }
                             }[],
-                            percentage_answer: { id, response_id, subcategory_id, percentage } | null,
+                            percentage_answer: { id, response_id, subcategory_id, percentage, value, array_index } | null,
                             text_answer: { id, response_id, subcategory_id, answer } | null
                         }[]
                     }[]
@@ -253,7 +253,28 @@ class EvaluationResponseController extends Controller
                                                     ])
                                             ,
                                             'percentageAnswer' => fn ($percentageAnswer) =>
-                                                $percentageAnswer->select('id', 'response_id', 'subcategory_id', 'percentage')
+                                                $percentageAnswer
+                                                ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+                                                ->select(
+                                                    'evaluation_percentage_answers.id',
+                                                    'evaluation_percentage_answers.response_id',
+                                                    'evaluation_percentage_answers.subcategory_id',
+                                                    'evaluation_percentage_answers.percentage',
+                                                    'evaluation_form_subcategories.subcategory_type'
+                                                )
+                                                ->addSelect(DB::raw(
+                                                    "evaluation_percentage_answers.percentage*"
+                                                    ."(evaluation_form_subcategories.linear_scale_end"
+                                                    ."-evaluation_form_subcategories.linear_scale_start)"
+                                                    ."+evaluation_form_subcategories.linear_scale_start"
+                                                    ." as value"
+                                                ))
+                                                ->addSelect(DB::raw(
+                                                    "evaluation_percentage_answers.percentage*"
+                                                    ."(evaluation_form_subcategories.linear_scale_end"
+                                                    ."-evaluation_form_subcategories.linear_scale_start)"
+                                                    ." as array_index"
+                                                ))
                                             ,
                                             'textAnswer' => fn ($textAnswer) =>
                                                 $textAnswer->select('id', 'response_id', 'subcategory_id', 'answer')
@@ -685,7 +706,8 @@ class EvaluationResponseController extends Controller
         /*
             response_id: number,
             subcategory_id: number,
-            percentage: string
+            percentage?: number,            // either percentage or value must be given
+            value?: number                  // value means percentage is auto-calculated
         */
 
         // returns:
@@ -710,12 +732,13 @@ class EvaluationResponseController extends Controller
                 'message' => 'Unauthorized access!'
             ]);
 
-            $subcategory = EvaluationPercentageAnswer
-                ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_percentage_answers.subcategory_id')
-                ->select(
-                    'evaluation_form_subcategories.id',
-                    'evaluation_form_subcategories.subcategory_type'
-                )
+           if($request->percentage === null && $request->value === null) return response()->json([
+                'status' => 400,
+                'message' => 'Either Percentage or Value must be given!'
+            ]);
+
+            $subcategory = EvaluationFormSubcategory
+                ::select('subcategory_type', 'linear_scale_start', 'linear_scale_end')
                 ->where('evaluation_form_subcategories.id', $request->subcategory_id)
                 ->first()
             ;
@@ -738,19 +761,34 @@ class EvaluationResponseController extends Controller
                 'evaluationPercentageAnswerID' => $existingFormPercentageAnswer->id
             ]);
 
-            $isEmptyAnswer = !$request->percentage;
-
-            if($isEmptyAnswer) return response()->json([ 
+            if(
+                $request->percentage === null
+                && (
+                    $request->value < $subcategory->linear_scale_start
+                    || $request->value > $subcategory->linear_scale_end
+                )
+            ) return response()->json([
                 'status' => 400,
-                'message' => 'Evaluation Form Answer is required!'
+                'message' => 'Value is is not within linear scale!',
+                'evaluationFormSubcategoryID' => $subcategory->id,
+                'linear_scale_start' => $subcategory->linear_scale_start,
+                'linear_scale_end' => $subcategory->linear_scale_end
             ]);
 
             DB::beginTransaction();
 
+            $percentage = (
+                $request->percentage
+                ?? (
+                    ($request->value - $subcategory->linear_scale_start)
+                    / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
+                )
+            );
+
             $newEvaluationPercentageAnswer = EvaluationPercentageAnswer::create([
                 'response_id' => $request->response_id,
                 'subcategory_id' => $request->subcategory_id,
-                'percentage' => $request->percentage
+                'percentage' => $percentage
             ]);
 
             DB::commit();
@@ -913,13 +951,9 @@ class EvaluationResponseController extends Controller
                 'message' => 'Unauthorized access!'
             ]);
 
-            $subcategory = EvaluationTextAnswer
-                ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_text_answers.subcategory_id')
-                ->select(
-                    'evaluation_form_subcategories.id',
-                    'evaluation_form_subcategories.subcategory_type'
-                )
-                ->where('evaluation_form_subcategories.id', $request->subcategory_id)
+            $subcategory = EvaluationFormSubcategory
+                ::select('id', 'subcategory_type')
+                ->where('id', $request->subcategory_id)
                 ->first()
             ;
 

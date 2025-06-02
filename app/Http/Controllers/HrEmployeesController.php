@@ -1990,22 +1990,25 @@ class HrEmployeesController extends Controller
 
         try {
 
-            $employees = UsersModel
-                ::select(
-                    'id', 'user_name', 'first_name', 'middle_name', 'last_name', 'suffix',
-                    'birth_date', 'gender', 'address', 'contact_number', 'email', 'user_type',
-                    'salary_type', 'is_fixed_salary', 'tin_number', 'deduct_tax',
-                    'profile_pic', 'verify_code', 'code_expiration', 'is_verified',
-                    'employment_type', 'employment_status', 'client_id', 'company_id',
-                    'branch_id', 'branch_position_id', 'department_id', 'role_id',
-                    'job_title_id', 'work_group_id', 'date_start', 'date_end', 'updated_at'
-                )
-            ;
+            $employees = UsersModel::select(
+                'id', 'user_name', 'first_name', 'middle_name', 'last_name', 'suffix',
+                'birth_date', 'gender', 'address', 'contact_number', 'email', 'user_type',
+                'salary_type', 'is_fixed_salary', 'tin_number', 'deduct_tax',
+                'profile_pic', 'verify_code', 'code_expiration', 'is_verified',
+                'employment_type', 'employment_status', 'client_id', 'company_id',
+                'branch_id', 'branch_position_id', 'department_id', 'role_id',
+                'job_title_id', 'work_group_id', 'date_start', 'date_end', 'updated_at'
+            );
             if($request->branch_id)
                 $employees = $employees->where('branch_id', $request->branch_id);
             if($request->department_id)
                 $employees = $employees->where('department_id', $request->department_id);
-            $employees = $employees->get();
+            $employees = $employees
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->orderBy('middle_name')
+                ->get()
+            ;
             if( !$employees ) return response()->json([
                 'status' => 404,
                 'message' => 'No employees found!'
