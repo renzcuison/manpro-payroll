@@ -12,6 +12,7 @@ use App\Models\AnnouncementBranchesModel;
 use App\Models\AnnouncementEmployeeRoleModel;
 use App\Models\AnnouncementEmployeeTypeModel; 
 use App\Models\AnnouncementEmployeeStatusModel;
+use App\Models\AnnouncementTypesModel;
 use App\Models\EmployeeTypeModel;
 use App\Models\AnnouncementRecipientModel;
 use App\Mail\NewAnnouncementMail;
@@ -586,13 +587,13 @@ class AnnouncementsController extends Controller
     
     public function getAnnouncementPublishmentDetails($code)
     {
-        //Log::info("AnnouncementsController::getAnnouncementPublishmentDetails");
+        Log::info("AnnouncementsController::getAnnouncementPublishmentDetails");
 
         $user = Auth::user();
 
         if ($this->checkUser()) {
             $announcement = AnnouncementsModel::where('unique_code', $code)
-                ->select('id')
+                ->select('id', 'announcement_types_id')
                 ->first();
 
             $branches = AnnouncementBranchesModel::where('announcement_id', $announcement->id)
@@ -611,7 +612,14 @@ class AnnouncementsController extends Controller
                 ->unique()
                 ->toArray();
 
-            return response()->json(['status' => 200, 'branches' => $branches, 'departments' => $departments]);
+            $announcementTypeId = $announcement->announcement_types_id;
+            $announcementTypeName = null;
+            if ($announcementTypeId) {
+                $type = AnnouncementTypesModel::find($announcementTypeId);
+                $announcementTypeName = $type ? $type->name : null;
+            }
+
+            return response()->json(['status' => 200, 'branches' => $branches, 'departments' => $departments, 'announcement_type' => $announcementTypeName,]);
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
