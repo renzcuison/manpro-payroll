@@ -52,6 +52,9 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const [attachments, setAttachments] = useState([]);
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
+    const [roles, setRoles] = useState([]);
+    const [employmentTypes, setEmploymentTypes] = useState([]);
+    const [employmentStatuses, setEmploymentStatuses] = useState([]);
     const [announcementType, setAnnouncementType] = useState('');
     const [scheduledSendDatetime, setScheduledSendDatetime] = useState(null);
     const [announcement, setAnnouncement] = useState(announceInfo || {});
@@ -312,12 +315,18 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             console.error('Cannot fetch branch/depts: missing unique_code');
             setBranches([]);
             setDepartments([]);
+            setRoles([]);
+            setEmploymentTypes([]);
+            setEmploymentStatuses([]);
             return;
         }
         axiosInstance.get(`/announcements/getAnnouncementPublishmentDetails/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 setBranches(Array.isArray(response.data.branches) ? response.data.branches : []);
                 setDepartments(Array.isArray(response.data.departments) ? response.data.departments : []);
+                setRoles(Array.isArray(response.data.roles) ? response.data.roles : []);
+                setEmploymentTypes(Array.isArray(response.data.employment_types) ? response.data.employment_types : []);
+                setEmploymentStatuses(Array.isArray(response.data.employment_statuses) ? response.data.employment_statuses : []);
                 setAnnouncementType(response.data.announcement_type || 'N/A');
                 setScheduledSendDatetime(response.data.scheduled_send_datetime || null); // <-- Add this
             })
@@ -329,6 +338,9 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 });
                 setBranches([]);
                 setDepartments([]);
+                setRoles([]);
+                setEmploymentTypes([]);
+                setEmploymentStatuses([]);
                 setAnnouncementType('N/A');
                 setScheduledSendDatetime(null);
             });
@@ -601,7 +613,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Roles"
-                                                    info={departments.length > 0 ? departments.join(', ') : 'N/A'}
+                                                    info={roles.length > 0 ? roles.join(', ') : 'N/A'}
                                                     compact
                                                     clean
                                                 />
@@ -609,7 +621,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Status"
-                                                    info={departments.length > 0 ? departments.join(', ') : 'N/A'}
+                                                    info={employmentStatuses.length > 0 ? employmentStatuses.join(', ') : 'N/A'}
                                                     compact
                                                     clean
                                                 />
@@ -617,7 +629,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Employment Type"
-                                                    info={departments.length > 0 ? departments.join(', ') : 'N/A'}
+                                                    info={employmentTypes.length > 0 ? employmentTypes.join(', ') : 'N/A'}
                                                     compact
                                                     clean
                                                 />

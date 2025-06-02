@@ -613,6 +613,28 @@ class AnnouncementsController extends Controller
                 ->unique()
                 ->toArray();
 
+            // Fetch Roles
+            $roles = AnnouncementEmployeeRoleModel::where('announcement_id', $announcement->id)
+                ->join('employee_roles', 'announcement_employee_role.role_id', '=', 'employee_roles.id')
+                ->select('employee_roles.name')
+                ->pluck('name')
+                ->unique()
+                ->toArray();
+
+            // Fetch Employment Types
+            $employmentTypes = AnnouncementEmployeeTypeModel::where('announcement_id', $announcement->id)
+                ->select('employment_type')
+                ->pluck('employment_type')
+                ->unique()
+                ->toArray();
+
+            // Fetch Employment Statuses
+            $employmentStatuses = AnnouncementEmployeeStatusModel::where('announcement_id', $announcement->id)
+                ->select('employment_status')
+                ->pluck('employment_status')
+                ->unique()
+                ->toArray();
+
             $announcementTypeId = $announcement->announcement_types_id;
             $announcementTypeName = null;
             if ($announcementTypeId) {
@@ -622,7 +644,16 @@ class AnnouncementsController extends Controller
 
             $scheduledSendDatetime = $announcement->scheduled_send_datetime;
 
-            return response()->json(['status' => 200, 'branches' => $branches, 'departments' => $departments, 'announcement_type' => $announcementTypeName, 'scheduled_send_datetime' => $scheduledSendDatetime,]);
+            return response()->json([
+                'status' => 200,
+                'branches' => $branches,
+                'departments' => $departments,
+                'roles' => $roles,
+                'employment_types' => $employmentTypes,
+                'employment_statuses' => $employmentStatuses,
+                'announcement_type' => $announcementTypeName,
+                'scheduled_send_datetime' => $scheduledSendDatetime,
+            ]);
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
