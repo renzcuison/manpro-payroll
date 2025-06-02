@@ -18,39 +18,48 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
         allowOtherOption, linearScaleStart, linearScaleEnd, order, options,
         editSubcategory, saveOption, switchResponseType, toggleRequired
     } = useEvaluationFormSubcategory( subcategory );
-    // const [responseType, setResponseType] = useState('');
-    // const [options, setOptions] = useState(['']);
-    // const [rating, setRating] = useState(0);
-    // const [label1, setLabel1] = useState('');
-    // const [label2, setLabel2] = useState('');
+
+    // Demo controlled state for linear scale labels (if you want to save them)
+    const [label1, setLabel1] = useState('');
+    const [label2, setLabel2] = useState('');
+    const [rating, setRating] = useState(0);
+
+    // Demo controlled state for options if you want to make them editable
+    const [optionList, setOptionList] = useState(options || []);
+
+    // Update local optionList when options change from props/hook
+    React.useEffect(() => {
+        setOptionList(options || []);
+    }, [options]);
 
     const handleResponseTypeChange = (event) => {
         switchResponseType(event.target.value);
     };
 
-    // const handleRatingChange = (event) => {
-    //     setRating(event.target.value);
-    // };
+    const handleRatingChange = (event) => {
+        setRating(Number(event.target.value));
+    };
 
-    // const handleOptionChange = (index, event) => {
-    //     const newOptions = [...options];
-    //     newOptions[index] = event.target.value;
-    //     setOptions(newOptions);
-    // };
+    const handleOptionChange = (index, event) => {
+        const newOptions = [...optionList];
+        newOptions[index] = { ...newOptions[index], label: event.target.value };
+        setOptionList(newOptions);
+        // Optionally, call saveOption or similar here to persist
+    };
 
-    // const handleAddOption = () => {
-    //     setOptions([...options, '']);
-    // };
+    const handleAddOption = () => {
+        setOptionList([...optionList, { label: "" }]);
+        // Optionally, call saveOption or similar here to persist
+    };
 
-    // const handleRemoveOption = (index) => {
-    //     const newOptions = options.filter((_, i) => i !== index);
-    //     setOptions(newOptions);
-    // };
+    const handleRemoveOption = (index) => {
+        const newOptions = optionList.filter((_, i) => i !== index);
+        setOptionList(newOptions);
+        // Optionally, call saveOption or similar here to persist
+    };
 
     return (
         <div>
-            <h1>Performance Evaluation Rating</h1>
-
             {/* Response Type Selection */}
             <FormControl variant="outlined" sx={{ width: '200px', mb: 3 }}>
                 <InputLabel>Response Type</InputLabel>
@@ -82,56 +91,53 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                 {responseType === 'linearScale' && (
                     <Box>
                         <Typography variant="h6">Linear Scale</Typography>
-                        <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                                <TextField
-                                    label="Label 1"
-                                    variant="outlined"
-                                    fullWidth
-                                    // value={label1}
-                                    // onChange={(e) => setLabel1(e.target.value)}
-                                />
-                            </Grid>
-                            <Grid item xs={6}>
-                                <TextField
-                                    label="Label 2"
-                                    variant="outlined"
-                                    fullWidth
-                                    // value={label2}
-                                    // onChange={(e) => setLabel2(e.target.value)}
-                                />
-                            </Grid>
+                        <Grid container spacing={2} direction="column">
+                        <Grid item>
+                            <TextField
+                            label="Label 1"
+                            variant="outlined"
+                            value={label1}
+                            onChange={(e) => setLabel1(e.target.value)}
+                            />
                         </Grid>
-                        {/* <RadioGroup row value={rating} onChange={handleRatingChange}> */}
-                        <RadioGroup row>
-                            <FormControlLabel value={0} control={<Radio />} label="0" />
-                            <FormControlLabel value={1} control={<Radio />} label="1" />
-                            <FormControlLabel value={2} control={<Radio />} label="2" />
-                            <FormControlLabel value={3} control={<Radio />} label="3" />
-                            <FormControlLabel value={4} control={<Radio />} label="4" />
-                            <FormControlLabel value={5} control={<Radio />} label="5" />
-                        </RadioGroup>
+                        <Grid item>
+                            <TextField
+                            label="Label 2"
+                            variant="outlined"
+                            value={label2}
+                            onChange={(e) => setLabel2(e.target.value)}
+                            sx={{ mb: 2 }}
+
+                            />
+                        </Grid>
+                        </Grid>
+                                                {/* <RadioGroup row value={rating} onChange={handleRatingChange} sx={{ mt: 2 }}>
+                            {[0, 1, 2, 3, 4, 5].map((num) => (
+                                <FormControlLabel key={num} value={num} control={<Radio />} label={num.toString()} />
+                            ))}
+                        </RadioGroup> */}
                     </Box>
                 )}
 
                 {responseType === 'multipleChoice' && (
                     <Box>
                         <Typography variant="h6">Multiple Choice</Typography>
-                        {options.map(({ label }, index) => (
-                            <Grid container spacing={2} key={index}>
+                        {optionList.map((option, index) => (
+                            <Grid container spacing={2} key={index} sx={{ mb: 2, mt: 2 }}>
                                 <Grid item xs={10}>
                                     <TextField
                                         label={`Option ${index + 1}`}
                                         variant="outlined"
                                         fullWidth
-                                        value={ label }
-                                        // onChange={(e) => handleOptionChange(index, e)}
+                                        value={option.label}
+                                        onChange={(e) => handleOptionChange(index, e)}
                                     />
                                 </Grid>
-                                <Grid item xs={2}>
+                                <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center' }}>
                                     <IconButton
-                                        // onClick={() => handleRemoveOption(index)}
+                                        onClick={() => handleRemoveOption(index)}
                                         sx={{ color: 'gray' }}
+                                        aria-label="Remove option"
                                     >
                                         <CloseIcon />
                                     </IconButton>
@@ -141,7 +147,8 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                         <Button
                             variant="contained"
                             color="success"
-                            // onClick={handleAddOption}
+                            onClick={handleAddOption}
+                            sx={{ mt: 2 }}
                         >
                             Add Option
                         </Button>
@@ -151,21 +158,22 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                 {responseType === 'checkbox' && (
                     <Box>
                         <Typography variant="h6">Checkbox</Typography>
-                        {options.map((option, index) => (
-                            <Grid container spacing={2} key={index}>
+                        {optionList.map((option, index) => (
+                            <Grid container spacing={2} key={index} sx={{ mb: 2, mt:2  }}>
                                 <Grid item xs={10}>
                                     <TextField
                                         label={`Option ${index + 1}`}
                                         variant="outlined"
                                         fullWidth
-                                        // value={option}
-                                        // onChange={(e) => handleOptionChange(index, e)}
+                                        value={option.label}
+                                        onChange={(e) => handleOptionChange(index, e)}
                                     />
                                 </Grid>
-                                <Grid item xs={2}>
+                                <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center' }}>
                                     <IconButton
-                                        // onClick={() => handleRemoveOption(index)}
+                                        onClick={() => handleRemoveOption(index)}
                                         sx={{ color: 'gray' }}
+                                        aria-label="Remove option"
                                     >
                                         <CloseIcon />
                                     </IconButton>
@@ -175,7 +183,8 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                         <Button
                             variant="contained"
                             color="success"
-                            // onClick={handleAddOption}
+                            onClick={handleAddOption}
+                            sx={{ mt: 2 }}
                         >
                             Add Option
                         </Button>
@@ -191,6 +200,7 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                             fullWidth
                             multiline
                             rows={2}
+                            sx={{ mb: 2 }}
                         />
                     </Box>
                 )}
@@ -204,16 +214,18 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                             fullWidth
                             multiline
                             rows={4}
+                            sx={{ mb: 2 }}
+
                         />
                     </Box>
                 )}
             </Box>
 
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            {/* <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
                 <Button variant="contained" color="success">
                     Save Evaluation
                 </Button>
-            </Box>
+            </Box> */}
         </div>
     );
 };

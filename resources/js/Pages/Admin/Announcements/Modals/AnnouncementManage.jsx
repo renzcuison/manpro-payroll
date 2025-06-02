@@ -68,7 +68,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         getAnnouncementThumbnail();
         getAnnouncementFiles();
         if (announceInfo.status !== "Pending") {
-            getAnnouncementBranchDepts();
+            getAnnouncementPublishmentDetails();
         }
     }, [announceInfo]);
 
@@ -236,7 +236,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 });
             });
         getAnnouncementThumbnail();
-        getAnnouncementBranchDepts();
+        getAnnouncementPublishmentDetails();
         getAnnouncementFiles();
     };
 
@@ -269,7 +269,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const getAnnouncementThumbnail = () => {
         if (!announceInfo?.unique_code) {
             console.error('Cannot fetch thumbnail: missing unique_code');
-            setImagePath("../../../../../images/ManProTab.png");
+            setImagePath("");
             setImageLoading(false);
             return;
         }
@@ -291,7 +291,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     if (imagePath && imagePath.startsWith('blob:')) {
                         URL.revokeObjectURL(imagePath);
                     }
-                    setImagePath("../../../../../images/ManProTab.png");
+                    setImagePath("");
                 }
                 setImageLoading(false);
             })
@@ -301,20 +301,20 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     response: error.response?.data,
                     status: error.response?.status,
                 });
-                setImagePath("../../../../../images/ManProTab.png");
+                setImagePath("");
                 setImageLoading(false);
             });
     };
 
     // ---------------- Recipient Branch and Departments
-    const getAnnouncementBranchDepts = () => {
+    const getAnnouncementPublishmentDetails = () => {
         if (!announceInfo?.unique_code) {
             console.error('Cannot fetch branch/depts: missing unique_code');
             setBranches([]);
             setDepartments([]);
             return;
         }
-        axiosInstance.get(`/announcements/getAnnouncementBranchDepts/${announceInfo.unique_code}`, { headers })
+        axiosInstance.get(`/announcements/getAnnouncementPublishmentDetails/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 setBranches(Array.isArray(response.data.branches) ? response.data.branches : []);
                 setDepartments(Array.isArray(response.data.departments) ? response.data.departments : []);
@@ -447,10 +447,16 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         <Grid container columnSpacing={4} rowSpacing={2}>
                             {/* Thumbnail */}
                             <Grid size={{ xs: 5 }}>
-                                <Box sx={{ position: 'relative', width: '100%', height: 210, borderRadius: "4px", border: '2px solid #e0e0e0', }}>
-                                    {imageLoading ?
-                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }}> <CircularProgress /> </Box> : <img src={imagePath} alt={`${announcement.title || 'Announcement'} thumbnail`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: "4px" }} />
-                                    }
+                                <Box sx={{ position: 'relative', width: '100%', height: 210, borderRadius: "4px", border: '2px solid #e0e0e0' }}>
+                                    {imageLoading ? (
+                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : imagePath ? (
+                                        <img src={imagePath} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: "4px" }} />
+                                    ) : (
+                                        <Box sx={{ width: '100%', height: '100%' }} />
+                                    )}
                                 </Box>
                             </Grid>
                             {/* Core Information */}
@@ -551,17 +557,8 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             )}
                                         </Stack>
                                     </Grid>
-                                    {/* <Grid size={12} sx={{ my: 0 }}>
-                                        <Divider />
-                                    </Grid> */}
-                                    {/* Publishment Details */}
                                     {announcement.status !== "Pending" ? (
                                         <Grid container size={12} spacing={1}>
-                                            {/* <Grid size={12} align="left">
-                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                    Publishment Details
-                                                </Typography>
-                                            </Grid> */}
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Announcement Type"
@@ -610,14 +607,6 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                     clean
                                                 />
                                             </Grid>
-                                            {/* <Grid size={12}>
-                                                <InfoBox
-                                                    title="Acknowledged by"
-                                                    info={`${announceInfo?.acknowledged || 0} of ${announceInfo?.recipients || 0} Recipients`}
-                                                    compact
-                                                    clean
-                                                />
-                                            </Grid> */}
                                         </Grid>
                                     ) : (
                                         <Grid size={12} align="center">
@@ -754,7 +743,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                              <Grid size={12} sx={{ my: 0 }}>
                                 <Divider />
                             </Grid>
-                            <Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%'}}>
                                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                     Acknowledged By
                                 </Typography>

@@ -6,6 +6,11 @@ import Error404 from "../Pages/Errors/Error404";
 
 import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
 
+import DepartmentList from "../Pages/Admin/Department/DepartmentList";
+import DepartmentDetails from "../Pages/Admin/Department/DepartmentDetails";
+import BranchList from "../Pages/Admin/Branches/BranchList";
+import BranchDetails from "../Pages/Admin/Branches/BranchDetails";
+
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";
@@ -25,10 +30,9 @@ import OvertimeAppsList from "../Pages/Admin/Applications/OvertimeAppsList";
 import OvertimeTypes from "../Pages/Admin/Applications/OvertimeTypes";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
-// import AnnouncementAdd from "../Pages/Admin/Announcements/AnnouncementAdd";
-// import AnnouncementTypes from "../Pages/Admin/Announcements/AnnouncementTypes";
-
+import AnnouncementAdd from "../Pages/Admin/Announcements/Modals/AnnouncementAdd";
 import AnnouncementPublishFilter from '@/Pages/Admin/Announcements/Modals/AnnouncementPublishFilter';
+import AnnouncementTypes from '../Pages/Admin/Announcements/AnnouncementTypes';
 
 import TrainingsList from "../Pages/Admin/Trainings/TrainingsList";
 import TrainingView from "../Pages/Admin/Trainings/TrainingView";
@@ -45,8 +49,6 @@ import PerformanceEvaluationFormPage from '../Pages/Admin/PerformanceEvaluation/
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
 import PerformanceEvaluationForm from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationForm";
 import PerformanceEvaluationCreateEvaluation from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCreateEvaluation";
-
-// import DocumentsList from "../Pages/Documents/DocumentsList";
 
 import AttendanceView from "../Pages/Admin/Attendance/AttendanceView";
 import AttendanceLogs from "../Pages/Admin/Attendance/AttendanceLogs";
@@ -98,6 +100,12 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees/benefits" element={<ProtectedRoute element={<BenefitsList />} user={user} /> } />
             <Route path="employees/benefits/:benefitID" element={<ProtectedRoute element={<BenefitView />} user={user} /> } />
 
+            <Route path="department/departmentlist" element={<ProtectedRoute element={<DepartmentList />} user={user} />} />
+            <Route path="department/:id" element={<ProtectedRoute element={<DepartmentDetails />} user={user} />} />
+
+            <Route path="branches/branchlist" element={<ProtectedRoute element={<BranchList />} user={user} />} />
+            <Route path="branches/:id" element={<ProtectedRoute element={<BranchDetails />} user={user} />} />
+
             <Route path="attendance/logs" element={<ProtectedRoute element={<AttendanceLogs />} user={user} />} />
             <Route path="attendance/:user" element={<ProtectedRoute element={<AttendanceView />} user={user} />} />
             <Route path="attendance/today" element={<ProtectedRoute element={<AttendanceToday />} user={user} />} />
@@ -112,8 +120,9 @@ const AdminRoutes = ({ user }) => {
             <Route path="application/leave-credits" element={<ProtectedRoute element={<LeaveCreditList />} user={user} /> } />
 
             <Route path="announcements" element={<ProtectedRoute element={<AnnouncementList />} user={user} /> } />
-            {/* <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd />} user={user} />} />
-            <Route path="announcements/types" element={<ProtectedRoute element={<AnnouncementTypes />} user={user} />} /> */}
+            <Route path="announcements/types" element={<AnnouncementTypes />} />
+            <Route path="announcements/types/publish-filter" element={<AnnouncementPublishFilter />} />
+            <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd open={true} close={() => window.history.back()} />} user={user} />} />
 
             <Route path="trainings" element={<ProtectedRoute element={<TrainingsList />} user={user} /> } />
             <Route path="training/:code" element={<ProtectedRoute element={<TrainingView />} user={user} /> } />

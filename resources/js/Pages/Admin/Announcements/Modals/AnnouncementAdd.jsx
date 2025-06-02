@@ -1,70 +1,274 @@
-import React, { useState } from "react";
 import {
     Box,
     Button,
+    IconButton,
     Dialog,
     DialogTitle,
     DialogContent,
-    IconButton,
+    Grid,
     TextField,
     Typography,
+    InputAdornment,
+    CircularProgress,
+    FormGroup,
+    FormControl,
+    InputLabel,
+    FormControlLabel,
+    FormHelperText,
+    Switch,
+    Select,
+    MenuItem,
     Stack,
+    Radio,
     useMediaQuery,
     Divider,
     Tabs,
     Tab
 } from "@mui/material";
-import { Close, CloudUpload, CheckCircle } from "@mui/icons-material";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import { Cancel } from "@mui/icons-material";
+import React, { useState, useEffect, useRef } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
+import { Form, useLocation, useNavigate } from "react-router-dom";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import Swal from "sweetalert2";
+import moment from "moment";
 
-const tabSx = {
-    fontWeight: 700,
-    minWidth: 120,
-    fontSize: "1rem",
-    color: "#177604",
-    "&.Mui-selected": {
-        color: "#155d03"
-    }
-};
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
+const MAX_DESCRIPTION_LENGTH = 512;
 
 const AnnouncementAdd = ({ open, close }) => {
-    // Auth
+    const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const isMobile = useMediaQuery('(max-width:600px)');
+    // Form Fields
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [uploadFile, setUploadFile] = useState(null);
+    const [attachment, setAttachment] = useState([]);
+    const [image, setImage] = useState([]);
+    const [thumbnailIndex, setThumbnailIndex] = useState(null);
     const [tab, setTab] = useState(0);
 
-    // Errors
+    // Form Errors
     const [titleError, setTitleError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
+    const [attachmentError, setAttachmentError] = useState(false);
+    const [imageError, setImageError] = useState(false);
+
+    const quillRef = useRef(null);
 
     // Tab change for preview
     const handleTabChange = (_, newValue) => setTab(newValue);
 
-    // Upload handler
-    const handleUpload = (e) => {
-        const file = e.target.files[0];
-        setUploadFile(file);
+    // Attachment Handlers
+    const handleAttachmentUpload = (input) => {
+        const files = Array.from(input.target.files);
+        let validFiles = validateFiles(files, attachment.length, 5, 10485760, "document");
+        if (validFiles) {
+            setAttachment(prev => [...prev, ...files]);
+        }
     };
 
-    // Main save function (from old design)
-    const saveAnnouncement = async () => {
+    const handleDeleteAttachment = (index) => {
+        setAttachment(prevAttachments =>
+            prevAttachments.filter((_, i) => i !== index)
+        );
+    };
+
+    // Image Handlers
+    const handleImageUpload = (input) => {
+        const files = Array.from(input.target.files);
+        let validFiles = validateFiles(files, image.length, 10, 5242880, "image");
+        if (validFiles) {
+            setImage(prev => [...prev, ...files]);
+        }
+    };
+
+    const handleDeleteImage = (index) => {
+        if (thumbnailIndex !== null) {
+            if (index === thumbnailIndex) {
+                setThumbnailIndex(null);
+            } else if (index < thumbnailIndex) {
+                setThumbnailIndex(thumbnailIndex - 1);
+            }
+        }
+        setImage(prevAttachments =>
+            prevAttachments.filter((_, i) => i !== index)
+        );
+    };
+
+    // Validate Files
+    const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit, docType) => {
+        if (newFiles.length + currentFileCount > countLimit) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "File Limit Reached!",
+                text: `You can only have up to ${countLimit} ${docType}s at a time.`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+            return false;
+        } else {
+            let largeFiles = 0;
+            newFiles.forEach((file) => {
+                if (file.size > sizeLimit) {
+                    largeFiles++;
+                }
+            });
+            if (largeFiles > 0) {
+                document.activeElement.blur();
+                Swal.fire({
+                    customClass: { container: "my-swal" },
+                    title: "File Too Large!",
+                    text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: "#177604",
+                });
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
+    const getFileSize = (size) => {
+        if (size === 0) return "0 Bytes";
+        const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+        const k = 1024;
+        const i = Math.floor(Math.log(size) / Math.log(k));
+        return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
+
+    // Helper for plain text length from HTML
+    const getPlainTextLength = html => {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = html;
+        return tmp.innerText.length;
+    };
+
+    // Color logic for character count
+    const getCharCountColor = (count) => {
+        if (count === MAX_DESCRIPTION_LENGTH) return "#d32f2f"; // error/red
+        if (count > MAX_DESCRIPTION_LENGTH - 62) return "#ffa726"; // warning/orange (last 62 chars)
+        return "#999"; // default/gray
+    };
+
+    // OnChange handler for ReactQuill (enforce char limit)
+    const handleDescriptionChange = value => {
+        const plainLength = getPlainTextLength(value);
+        if (plainLength <= MAX_DESCRIPTION_LENGTH) {
+            setDescription(value);
+        } else {
+            // Truncate to max length
+            const tmp = document.createElement("div");
+            tmp.innerHTML = value;
+            let truncated = tmp.innerText.slice(0, MAX_DESCRIPTION_LENGTH);
+            setDescription(truncated);
+        }
+    };
+
+    // Block typing/pasting if limit reached
+    useEffect(() => {
+        const quill = quillRef.current && quillRef.current.getEditor && quillRef.current.getEditor();
+        if (!quill) return;
+
+        const handleBeforeInput = (e) => {
+            const plainText = quill.getText();
+            const length = plainText.endsWith('\n') ? plainText.length - 1 : plainText.length;
+            if (
+                length >= MAX_DESCRIPTION_LENGTH &&
+                !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Tab"].includes(e.key)
+            ) {
+                e.preventDefault();
+            }
+        };
+
+        const handlePaste = (e) => {
+            const plainText = quill.getText();
+            const length = plainText.endsWith('\n') ? plainText.length - 1 : plainText.length;
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            if (length + paste.length > MAX_DESCRIPTION_LENGTH) {
+                e.preventDefault();
+                // Optionally, only allow enough characters to fill up to the limit
+                const allowed = MAX_DESCRIPTION_LENGTH - length;
+                if (allowed > 0) {
+                    document.execCommand('insertText', false, paste.slice(0, allowed));
+                }
+            }
+        };
+
+        quill.root.addEventListener('keydown', handleBeforeInput);
+        quill.root.addEventListener('paste', handlePaste);
+
+        return () => {
+            quill.root.removeEventListener('keydown', handleBeforeInput);
+            quill.root.removeEventListener('paste', handlePaste);
+        };
+    }, [open, description]);
+
+    const checkInput = (event) => {
+        event.preventDefault();
+
+        setTitleError(!title);
+        setDescriptionError(getPlainTextLength(description) === 0);
+
+        if (!title || getPlainTextLength(description) === 0) {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "All Required Fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else {
+            document.activeElement.blur();
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "Do you want to save this announcement?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: "Save",
+                confirmButtonColor: "#177604",
+                showCancelButton: true,
+                cancelButtonText: "Cancel",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveInput(event);
+                }
+            });
+        }
+    };
+
+    const saveInput = (event) => {
+        event.preventDefault();
+
         const formData = new FormData();
         formData.append("title", title);
         formData.append("description", description);
-        if (uploadFile) {
-            formData.append('attachment[]', uploadFile);
+        formData.append("thumbnail", 0);
+        image.forEach(file => {
+            formData.append('image[]', file);
+        });
+        if (attachment.length > 0) {
+            attachment.forEach(file => {
+                formData.append('attachment[]', file);
+            });
         }
 
-        await axiosInstance
-            .post("/announcements/saveAnnouncement", formData, { headers })
+        axiosInstance
+            .post("/announcements/saveAnnouncement", formData, {
+                headers,
+            })
             .then((response) => {
                 document.activeElement.blur();
                 document.body.removeAttribute("aria-hidden");
@@ -91,235 +295,423 @@ const AnnouncementAdd = ({ open, close }) => {
             });
     };
 
-    // Validate and confirm before saving
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setTitleError(!title);
-        setDescriptionError(!description);
-
-        if (!title || !description) {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                text: "All Required Fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: "#177604",
-            });
-        } else {
-            document.activeElement.blur();
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "Do you want to save this announcement?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: "Save",
-                confirmButtonColor: "#177604",
-                showCancelButton: true,
-                cancelButtonText: "Cancel",
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveAnnouncement();
-                }
-            });
-        }
-    };
-
     return (
-        <Dialog
-            open={open}
-            fullWidth
-            maxWidth="md"
-            PaperProps={{
-                style: {
-                    background: "#fafbfa",
-                    borderRadius: 12,
-                    minWidth: isMobile ? "100%" : 700,
-                    maxWidth: 800,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-                }
-            }}
-        >
-            <Box sx={{ px: { xs: 2, sm: 4 }, pt: 3, pb: 2, width: "100%" }}>
-                {/* Header */}
-                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography
-                        sx={{
-                            fontWeight: 700,
-                            fontSize: "1.4rem",
-                            textTransform: "uppercase",
-                            textDecoration: "underline",
-                            letterSpacing: 0.5
-                        }}
-                    >
-                        Create Announcement
-                    </Typography>
-                    <IconButton onClick={() => close(false)} aria-label="close">
-                        <Close />
-                    </IconButton>
-                </Stack>
-            </Box>
-            <Divider />
-            <DialogContent sx={{ px: { xs: 2, sm: 4 }, pb: 4 }}>
-                <form onSubmit={handleSubmit}>
-                    {/* Upload Area */}
-                    <Box
-                        sx={{
-                            border: "1.5px solid #E0E0E0",
-                            borderRadius: 2,
-                            height: 140,
-                            background: "#fff",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexDirection: "column",
-                            mb: 3,
-                            cursor: "pointer",
-                            transition: "border 0.2s",
-                            "&:hover": { borderColor: "#bdbdbd" }
-                        }}
-                        onClick={() => document.getElementById("file-upload").click()}
-                    >
-                        <input
-                            id="file-upload"
-                            type="file"
-                            accept="image/*,application/pdf"
-                            style={{ display: "none" }}
-                            onChange={handleUpload}
-                        />
-                        <CloudUpload sx={{ fontSize: 42, color: "#bdbdbd" }} />
-                        <Typography sx={{
-                            color: "#757575", fontSize: "1rem", mt: 1, fontWeight: 500, letterSpacing: 0.2
-                        }}>
-                            {uploadFile ? uploadFile.name : "UPLOAD"}
+        <>
+            <Dialog
+                open={open}
+                fullWidth
+                maxWidth="md"
+                PaperProps={{
+                    style: {
+                        backgroundColor: '#f8f9fa',
+                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
+                        borderRadius: '20px',
+                        minWidth: { xs: "100%", sm: "700px" },
+                        maxWidth: '800px',
+                        marginBottom: '5%',
+                        marginTop: '5%'
+                    }
+                }}>
+                <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
+                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
+                            {" "}Create Announcement{" "}
                         </Typography>
+                        <IconButton onClick={() => close(false)}>
+                            <i className="si si-close"></i>
+                        </IconButton>
                     </Box>
-                    {/* Title Field */}
-                    <TextField
-                        placeholder="TITLE HERE*"
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
-                        fullWidth
-                        required
-                        variant="outlined"
-                        error={titleError}
-                        sx={{
-                            mb: 3,
-                            "& input": { fontWeight: 500, fontSize: "1.1rem" }
-                        }}
-                        inputProps={{
-                            maxLength: 128,
-                        }}
-                        helperText={`${title.length}/128`}
-                    />
-                    {/* Description Field with Tabs */}
+                </DialogTitle>
+
+                <Divider></Divider>
+
+                <DialogContent sx={{ padding: 4, mt: 2, mb: 3 }}>
                     <Box
-                        sx={{
-                            border: "1.5px solid #E0E0E0",
-                            borderRadius: 2,
-                            background: "#fff",
-                            mb: 3,
-                            overflow: "hidden"
-                        }}
+                        component="form"
+                        onSubmit={checkInput}
+                        noValidate
+                        autoComplete="off"
                     >
-                        <Tabs
-                            value={tab}
-                            onChange={handleTabChange}
-                            TabIndicatorProps={{
-                                style: { background: "#177604", height: 3, borderRadius: 2 }
-                            }}
-                            sx={{
-                                borderBottom: "1.5px solid #E0E0E0",
-                                minHeight: 44,
-                                pl: 1,
-                                ".MuiTabs-flexContainer": { gap: 2 }
-                            }}
-                        >
-                            <Tab label="WRITE" sx={tabSx} />
-                            <Tab label="PREVIEW" sx={tabSx} />
-                        </Tabs>
-                        <Box sx={{ p: 2, pt: 1 }}>
-                            {tab === 0 ? (
-                                <Box
+                        <Grid container columnSpacing={2} rowSpacing={3}>
+                            {/* Thumbnail Section */}
+                            <Box
+                                sx={{
+                                    border: "1.5px solid #E0E0E0",
+                                    borderRadius: 2,
+                                    height: 140,
+                                    background: "#fff",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    flexDirection: "column",
+                                    mb: 1,
+                                    width: "100%",
+                                    position: "relative",
+                                    cursor: "pointer"
+                                }}
+                                onClick={() => document.getElementById('thumbnail-upload').click()}
+                            >
+                                <input
+                                    accept=".png, .jpg, .jpeg"
+                                    id="thumbnail-upload"
+                                    type="file"
+                                    style={{ display: "none" }}
+                                    onChange={e => {
+                                        const files = Array.from(e.target.files);
+                                        if (files.length > 0) {
+                                            let validFiles = validateFiles(files, image.length, 10, 5242880, "image");
+                                            if (validFiles) {
+                                                setImage(prev => [files[0], ...prev.slice(1)]);
+                                            }
+                                        }
+                                    }}
+                                />
+                                {image.length > 0 ? (
+                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", width: "100%", height: "100%", padding: 1 }}>
+                                        <img
+                                            src={URL.createObjectURL(image[0])}
+                                            alt="Thumbnail Preview"
+                                            style={{ maxHeight: "100%", maxWidth: "100%", borderRadius: 4, border: "1px solid #e0e0e0" }}
+                                        />
+                                        <IconButton
+                                            size="small"
+                                            sx={{
+                                                position: "absolute",
+                                                top: 8,
+                                                right: 8,
+                                                background: "#fff",
+                                                "&:hover": { background: "#f5f5f5" }
+                                            }}
+                                            onClick={e => {
+                                                e.stopPropagation();
+                                                setImage(prev => prev.slice(1));
+                                            }}
+                                        >
+                                            <Cancel />
+                                        </IconButton>
+                                    </Box>
+                                ) : (
+                                    <Button
+                                        variant="outlined"
+                                        component="span"
+                                        sx={{ mt: 2 }}
+                                    >
+                                        Upload Thumbnail (OPTIONAL)
+                                    </Button>
+                                )}
+                            </Box>
+                            {/* Title Field */}
+                            <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
+                                <FormControl fullWidth>
+                                    <TextField
+                                        placeholder="TITLE HERE*"
+                                        value={title}
+                                        onChange={(event) => {
+                                            if (event.target.value.length <= 128) {
+                                                setTitle(event.target.value);
+                                            }
+                                        }}
+                                        fullWidth
+                                        required
+                                        variant="outlined"
+                                        error={titleError}
+                                        sx={{
+                                            "& input": { fontWeight: 500, fontSize: "1.1rem" }
+                                        }}
+                                        inputProps={{
+                                            maxLength: 128,
+                                        }}
+                                        helperText={`${title.length}/128`}
+                                    />
+                                </FormControl>
+                            </Grid>
+                            {/* Description Field with Tabs */}
+                            <Box
+                                sx={{
+                                    border: "1.5px solid #E0E0E0",
+                                    borderRadius: 2,
+                                    background: "#fff",
+                                    mb: 3,
+                                    overflow: "hidden",
+                                    width: "100%",
+                                }}
+                            >
+                                <Tabs
+                                    value={tab}
+                                    onChange={handleTabChange}
+                                    TabIndicatorProps={{
+                                        style: { background: "#177604", height: 3, borderRadius: 2 }
+                                    }}
                                     sx={{
-                                        border: descriptionError ? "1px solid red" : "1px solid #E0E0E0",
-                                        borderRadius: 2,
-                                        background: "#fff",
-                                        minHeight: 120,
-                                        "& .ql-toolbar": {
-                                            border: "none",
-                                            borderBottom: "1px solid #e0e0e0",
-                                            borderRadius: 0,
-                                            padding: "4px 8px",
-                                            fontSize: "1rem",
-                                        },
-                                        "& .ql-container": {
-                                            border: "none",
-                                            fontSize: "1rem",
-                                            color: "#757575",
-                                            minHeight: 80,
-                                        },
+                                        borderBottom: "1.5px solid #E0E0E0",
+                                        minHeight: 44,
+                                        pl: 1,
+                                        ".MuiTabs-flexContainer": { gap: 2 }
                                     }}
                                 >
-                                    <ReactQuill
-                                        theme="snow"
-                                        value={description}
-                                        onChange={setDescription}
-                                        placeholder="DESCRIPTION HERE*"
-                                        modules={{
-                                            toolbar: [
-                                                [{ 'header': [false, 1, 2, 3] }],
-                                                ['bold', 'italic', 'underline'],
-                                                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                                                ['link', 'strike'],
-                                            ]
-                                        }}
-                                        style={{
-                                            background: "transparent",
-                                            border: "none",
-                                            minHeight: 90
-                                        }}
-                                    />
-                                    <Typography variant="caption" sx={{ float: "right", color: "#999" }}>
-                                        {description.length}/512
-                                    </Typography>
+                                    <Tab label="WRITE" />
+                                    <Tab label="PREVIEW" />
+                                </Tabs>
+                                <Box sx={{ p: 2, pt: 2, }}>
+                                    {tab === 0 ? (
+                                        <Box
+                                            sx={{
+                                                border: descriptionError ? "1px solid red" : "1px solid #E0E0E0",
+                                                borderRadius: 2,
+                                                background: "#fff",
+                                                minHeight: 120,
+                                                "& .ql-toolbar": {
+                                                    border: "none",
+                                                    borderBottom: "1px solid #e0e0e0",
+                                                    borderRadius: 0,
+                                                    padding: "4px 8px",
+                                                    fontSize: "1rem",
+                                                },
+                                                "& .ql-container": {
+                                                    border: "none",
+                                                    fontSize: "1rem",
+                                                    color: "#757575",
+                                                    minHeight: 80,
+                                                },
+                                            }}
+                                        >
+                                            <ReactQuill
+                                                ref={quillRef}
+                                                theme="snow"
+                                                value={description}
+                                                onChange={handleDescriptionChange}
+                                                placeholder="DESCRIPTION HERE*"
+                                                modules={{
+                                                    toolbar: [
+                                                        [{ 'header': [false, 1, 2, 3] }],
+                                                        ['bold', 'italic', 'underline'],
+                                                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                                        ['link', 'strike'],
+                                                    ]
+                                                }}
+                                                style={{
+                                                    background: "transparent",
+                                                    border: "none",
+                                                    marginBottom: '3rem', 
+                                                    height: '150px'
+                                                }}
+                                            />
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    float: "right",
+                                                    color: getCharCountColor(getPlainTextLength(description)),
+                                                    mb: 1, mt: 1,
+                                                    fontWeight: getPlainTextLength(description) === MAX_DESCRIPTION_LENGTH ? "bold" : "normal"
+                                                }}
+                                            >
+                                                {getPlainTextLength(description)}/{MAX_DESCRIPTION_LENGTH}
+                                            </Typography>
+                                        </Box>
+                                    ) : (
+                                        <Box sx={{
+                                            minHeight: 120,
+                                            color: "#333",
+                                            fontSize: "1rem",
+                                            p: 1,
+                                        }}>
+                                            <div dangerouslySetInnerHTML={{ __html: description || "<em>No content</em>" }} />
+                                        </Box>
+                                    )}
                                 </Box>
-                            ) : (
-                                <Box sx={{
-                                    minHeight: 120,
-                                    color: "#333",
-                                    fontSize: "1rem",
-                                    p: 1,
-                                }}>
-                                    <div dangerouslySetInnerHTML={{ __html: description || "<em>No content</em>" }} />
-                                </Box>
-                            )}
-                        </Box>
+                            </Box>
+                            {/* Image Upload */}
+                            <Grid size={12}>
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Typography noWrap>
+                                                Images (Optional)
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                                
+                                                <input
+                                                    accept=".png, .jpg, .jpeg"
+                                                    id="image-upload"
+                                                    type="file"
+                                                    name="image"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleImageUpload}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
+                                                    onClick={() => document.getElementById('image-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 10 Files, 5 MB Each
+                                            </Typography>
+                                            {image.length > 0 && (
+                                                <Stack direction="row" spacing={1}>
+                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                        Remove
+                                                    </Typography>
+                                                </Stack>
+                                            )}
+                                        </Stack>
+                                        {/* Added Images */}
+                                        {image.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {image.map((file, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <Stack direction="row" spacing={3}>
+                                                            <IconButton onClick={() => handleDeleteImage(index)} size="small">
+                                                                <Cancel />
+                                                            </IconButton>
+                                                        </Stack>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
+                                </FormControl>
+                            </Grid>
+                            {/* Attachment Upload */}
+                            <Grid size={12}>
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <Typography noWrap>
+                                                Documents
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <input
+                                                    accept=".doc, .docx, .pdf, .xls, .xlsx"
+                                                    id="attachment-upload"
+                                                    type="file"
+                                                    name="attachment"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleAttachmentUpload}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white" }}
+                                                    onClick={() => document.getElementById('attachment-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 5 Files, 10 MB Each
+                                            </Typography>
+                                            {attachment.length > 0 && (
+                                                <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
+                                                    Remove
+                                                </Typography>
+                                            )}
+                                        </Stack>
+                                        {/* Added Attachments */}
+                                        {attachment.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {attachment.map((file, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <IconButton onClick={() => handleDeleteAttachment(index)} size="small">
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
+                                </FormControl>
+                            </Grid>
+                            {/* Submit Button */}
+                            <Grid
+                                item
+                                size={12}
+                                align="center"
+                                sx={{
+                                    justifyContent: "center", alignItems: "center",
+                                }}
+                            >
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    sx={{
+                                        backgroundColor: "#177604",
+                                        color: "white",
+                                    }}
+                                    className="m-1"
+                                >
+                                    <p className="m-0">
+                                        <i className="fa fa-floppy-o mr-2 mt-1"></i>
+                                        {" "}Save Announcement{" "}
+                                    </p>
+                                </Button>
+                            </Grid>
+                        </Grid>
                     </Box>
-                    {/* Proceed Button */}
-                    <Stack direction="row" justifyContent="center" sx={{ mt: 2 }}>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            sx={{
-                                background: "#177604",
-                                color: "#fff",
-                                fontWeight: 700,
-                                borderRadius: 1.5,
-                                px: 5,
-                                py: 1.2,
-                                fontSize: "1.05rem",
-                                "&:hover": { background: "#155d03" }
-                            }}
-                            startIcon={<CheckCircle sx={{ fontSize: 22 }} />}
-                        >
-                            PROCEED
-                        </Button>
-                    </Stack>
-                </form>
-            </DialogContent>
-        </Dialog>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };
 

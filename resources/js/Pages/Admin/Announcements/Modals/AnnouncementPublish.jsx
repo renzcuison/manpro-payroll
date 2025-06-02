@@ -53,6 +53,9 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     const [scheduledDate, setScheduledDate] = useState(null);
     const [scheduledTime, setScheduledTime] = useState(null);
 
+    //loading state
+    const [saving, setSaving] = useState(false);
+
     // Fetch data on mount
     useEffect(() => {
         axiosInstance.get('/settings/getBranches', { headers })
@@ -94,12 +97,12 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
 
                         setImagePath(URL.createObjectURL(blob));
                     } else {
-                        setImagePath("../../../../images/ManProTab.png");
+                        setImagePath("../../../../images/defaultThumbnail.jpg");
                     }
                     setImageLoading(false);
                 })
                 .catch((error) => {
-                    setImagePath("../../../../images/ManProTab.png");
+                    setImagePath("../../../../images/defaultThumbnail.jpg");
                     setImageLoading(false);
                 });
         }
@@ -299,6 +302,7 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     };
 
     const saveInput = () => {
+        setSaving(true); // Start loading
         const scheduledSend = scheduledDate && scheduledTime
             ? dayjs(
                 dayjs(scheduledDate).format('YYYY-MM-DD') + ' ' + scheduledTime,
@@ -320,6 +324,7 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
 
         axiosInstance.post('/announcements/publishAnnouncement', data, { headers })
             .then(() => {
+                setSaving(false); // Stop loading
                 Swal.fire({
                     customClass: { container: "my-swal" },
                     title: "Success!",
@@ -329,6 +334,7 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                 }).then(() => handleClose());
             })
             .catch(() => {
+                setSaving(false); // Stop loading
                 Swal.fire({
                     title: "Error!",
                     text: "Failed to publish announcement.",
@@ -398,6 +404,12 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                         </Card>
                     </Box>
                 </Box>
+                {saving ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+                        <CircularProgress size={60} sx={{ mb: 2 }} />
+                        <Typography variant="h6" sx={{ color: "#177604" }}>Publishing announcement...</Typography>
+                    </Box>
+                ) : (
                 <Box component="form" sx={{ my: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
                     <Typography variant="subtitle1" sx={{ color: "text.primary", mb: 2 }}>
                         Select Recipients
@@ -641,6 +653,7 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                         </Button>
                     </Box>
                 </Box>
+                )}
             </DialogContent>
         </Dialog>
     );
