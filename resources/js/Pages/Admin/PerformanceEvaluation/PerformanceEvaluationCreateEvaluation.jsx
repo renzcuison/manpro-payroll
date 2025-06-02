@@ -110,7 +110,7 @@ const fetchEmployees = async (branchId, departmentId) => {
 // When branch changes, fetch departments and reset employee list
 useEffect(() => {
     if (formValues.branch) {
-        fetchDepartments(formValues.branch);
+        fetchDepartments(formValues.branch); // Pass the branchId!
         setEmployees([]);
         setFormValues(prev => ({ ...prev, department: '', employeeName: '' }));
     } else {

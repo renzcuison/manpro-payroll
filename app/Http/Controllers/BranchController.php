@@ -49,7 +49,7 @@ class BranchController extends Controller
             switch($request->status) {
                 case 'disabled':
                     $branches = $branches->where('status', 'Disabled');
-                case 'inctive':
+                case 'inactive':
                     $branches = $branches->where('status', 'Inactive');
                 case 'active':
                 default:
