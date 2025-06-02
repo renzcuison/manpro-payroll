@@ -1031,6 +1031,9 @@ class AnnouncementsController extends Controller
             // Clean up old relations
             AnnouncementDepartmentsModel::where('announcement_id', $announcement->id)->delete();
             AnnouncementBranchesModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementEmployeeTypeModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementEmployeeRoleModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementEmployeeStatusModel::where('announcement_id', $announcement->id)->delete();
             AnnouncementRecipientModel::where('announcement_id', $announcement->id)->delete();
 
             // Departments
@@ -1046,6 +1049,30 @@ class AnnouncementsController extends Controller
                 AnnouncementBranchesModel::create([
                     'announcement_id' => $announcement->id,
                     'branch_id' => (int)$branchId
+                ]);
+            }
+
+            // Employee Types
+            foreach ($request->input('employment_types', []) as $employment_type) {
+                AnnouncementEmployeeTypeModel::create([
+                    'announcement_id' => $announcement->id,
+                    'employment_type' => $employment_type
+                ]);
+            }
+
+            // Employee Roles
+            foreach ($request->input('role_ids', []) as $roleId) {
+                AnnouncementEmployeeRoleModel::create([
+                    'announcement_id' => $announcement->id,
+                    'role_id' => (int)$roleId
+                ]);
+            }
+
+            // Employee Statuses
+            foreach ($request->input('employment_statuses', []) as $employment_status) {
+                AnnouncementEmployeeStatusModel::create([
+                    'announcement_id' => $announcement->id,
+                    'employment_status' => $employment_status
                 ]);
             }
 
