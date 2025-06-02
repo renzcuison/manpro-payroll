@@ -1,5 +1,14 @@
 <?php
 
+//test
+use App\Models\UsersModel;
+use App\Models\LeaveCreditsModel;
+use App\Models\ApplicationTypesModel;
+
+
+
+
+
 // New Controllers
 use App\Http\Controllers\ClientsController;
 use App\Http\Controllers\PayrollController;
@@ -291,6 +300,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
         Route::post('/deleteLeaveCredits', [ApplicationsController::class, 'deleteLeaveCredits']);
+        Route::post('/updateLeaveCredits', [ApplicationsController::class,'updateLeaveCredits']);
 
 
         // Overtime Applications
