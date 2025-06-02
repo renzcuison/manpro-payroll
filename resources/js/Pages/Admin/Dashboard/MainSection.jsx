@@ -136,7 +136,7 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                 </Typography>
 
                 <Stack>
-                    {dashboardData.requests?.length > 0 ? (
+                    {dashboardData?.requests?.length > 0 ? (
                         <>
                             <Typography
                                 variant="subtitle1"
@@ -144,7 +144,7 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                                     color: "#fff",
                                 }}
                             >
-                                You have {dashboardData.requests?.length}{" "}
+                                You have {dashboardData?.requests?.length}{" "}
                                 pending requests today! Let’s work on them and
                                 get everything done!
                             </Typography>

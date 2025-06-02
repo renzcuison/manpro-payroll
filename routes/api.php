@@ -156,6 +156,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
 
+        //test v
+        Route::get('/getLeaveCreditByUser/{username}', [EmployeesController::class,'getLeaveCreditByUser']);
+
+
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
         Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
