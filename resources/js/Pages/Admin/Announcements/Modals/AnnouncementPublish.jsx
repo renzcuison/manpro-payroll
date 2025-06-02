@@ -21,11 +21,12 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     const [departments, setDepartments] = useState([]);
     const [roles, setRoles] = useState([]);
     const [announcementTypes, setAnnouncementTypes] = useState([]);
+    const [clientId, setClientId] = useState(""); // <-- Client ID state
 
     // Selection
     const [selectedBranches, setSelectedBranches] = useState([]);
     const [selectedDepartments, setSelectedDepartments] = useState([]);
-    const [selectedRoleIds, setSelectedRoleIds] = useState([]); // multiple roles now
+    const [selectedRoleIds, setSelectedRoleIds] = useState([]);
 
     // Announcement Type selection + Create new
     const [selectedAnnouncementType, setSelectedAnnouncementType] = useState('');
@@ -58,6 +59,16 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
 
     // Fetch data on mount
     useEffect(() => {
+        // Fetch client_id for the logged-in user
+        axiosInstance.get('/user/profile', { headers })
+            .then((res) => {
+                setClientId(res.data.client_id || "");
+            })
+            .catch((err) => {
+                console.error('Error fetching user profile:', err);
+                setClientId("");
+            });
+
         axiosInstance.get('/settings/getBranches', { headers })
             .then((res) => {
                 setBranches(res.data.branches);
@@ -116,18 +127,13 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Departments multi-select handler with "All Departments"
     const handleDepartmentChange = (event) => {
         const value = event.target.value;
-
         if (value.includes('ALL_DEPARTMENTS')) {
-            // Toggle All Departments
             if (isAllSelected(departments, selectedDepartments)) {
-                // Deselect all
                 setSelectedDepartments([]);
             } else {
-                // Select all department IDs
                 setSelectedDepartments(departments.map(d => d.id.toString()));
             }
         } else {
-            // Select individual departments
             setSelectedDepartments(value);
         }
     };
@@ -135,7 +141,6 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Branches multi-select handler with "All Branches"
     const handleBranchChange = (event) => {
         const value = event.target.value;
-
         if (value.includes('ALL_BRANCHES')) {
             if (isAllSelected(branches, selectedBranches)) {
                 setSelectedBranches([]);
@@ -150,7 +155,6 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Roles multi-select handler with "All Roles"
     const handleRoleChange = (event) => {
         const value = event.target.value;
-
         if (value.includes('ALL_ROLES')) {
             if (isAllSelected(roles, selectedRoleIds)) {
                 setSelectedRoleIds([]);
@@ -165,7 +169,6 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Employment Types multi-select handler with "All Employment Types"
     const handleEmploymentTypesChange = (event) => {
         const value = event.target.value;
-
         if (value.includes('ALL_EMPLOYMENT_TYPES')) {
             if (isAllSelected(employmentTypes, selectedEmploymentTypes)) {
                 setSelectedEmploymentTypes([]);
@@ -180,7 +183,6 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Employment Statuses multi-select handler with "All Employment Statuses"
     const handleEmploymentStatusesChange = (event) => {
         const value = event.target.value;
-
         if (value.includes('ALL_EMPLOYMENT_STATUSES')) {
             if (isAllSelected(employmentStatuses, selectedEmploymentStatuses)) {
                 setSelectedEmploymentStatuses([]);
@@ -223,14 +225,12 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
         }
         setNewTypeError('');
         setNewTypeLoading(true);
-
         try {
             const response = await axiosInstance.post(
                 '/addAnnouncementType',
                 { name: newTypeName.trim() },
                 { headers }
             );
-
             if (response.status === 200 && response.data.status === 200) {
                 const createdType = response.data.type;
                 setAnnouncementTypes(prev => [...prev, createdType]);
@@ -319,8 +319,8 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
             employment_types: selectedEmploymentTypes,
             employment_statuses: selectedEmploymentStatuses,
             scheduled_send_datetime: scheduledSend,
+            client_id: clientId, // <-- Pass client ID if needed
         };
-
 
         axiosInstance.post('/announcements/publishAnnouncement', data, { headers })
             .then(() => {
@@ -375,6 +375,12 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                 </Box>
             </DialogTitle>
             <DialogContent sx={{ padding: 5, mt: 2 }}>
+                {/* Show client ID for demonstration */}
+                {clientId && (
+                    <Typography variant="body2" sx={{ mb: 2, color: "gray" }}>
+                        Client ID: {clientId}
+                    </Typography>
+                )}
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <Box sx={{ mt: 2, width: '100%', display: 'flex', justifyContent: 'center' }}>
                         <Card sx={{ width: 500 }}>
@@ -629,7 +635,6 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                     <Typography variant="subtitle1" sx={{ color: "text.primary", mb: 1 }}>
                         Schedule Send
                     </Typography>
-                    {/* Removed preset buttons */}
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <DatePicker
