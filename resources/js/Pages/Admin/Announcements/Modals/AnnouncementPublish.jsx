@@ -9,8 +9,8 @@ import { DatePicker, TimePicker, LocalizationProvider } from '@mui/x-date-picker
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
-const employmentTypes = ['Probationary', 'Regular', 'Full-Time', 'Part-Time'];
-const employmentStatuses = ['Active', 'Resigned', 'Terminated'];
+const employmentTypes = ['Probationary', 'Regular', 'Full-Time', 'Part-Time', 'Resigned'];
+const employmentStatuses = ['Active', 'Suspended', 'Inactive'];
 
 const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     const storedUser = localStorage.getItem("nasya_user");

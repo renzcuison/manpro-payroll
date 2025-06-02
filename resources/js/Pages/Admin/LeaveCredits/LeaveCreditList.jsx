@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, TablePagination } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import { Link } from 'react-router-dom';
 
+import LeaveCreditDescription from './Modals/LeaveCreditDescription';  // <-- LeaveCreditAdd removed
 import LeaveCreditView from './Modals/LeaveCreditView';
 
 const LeaveCreditList = () => {
@@ -12,13 +12,17 @@ const LeaveCreditList = () => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [employees, setEmployees] = useState([]);
-    const [employeeCredits, setEmployeeCredits] = useState({}); // Store leave credits for each employee
     const [searchName, setSearchName] = useState('');
-    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);  // will hold the employee object now
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     useEffect(() => {
+        fetchEmployees();
+    }, []);
+
+    const fetchEmployees = () => {
+        setIsLoading(true);
         axiosInstance.get('/employee/getEmployeeLeaveCredits', { headers })
             .then((response) => {
                 const employeesData = response.data.employees;
@@ -29,10 +33,10 @@ const LeaveCreditList = () => {
                 console.error('Error fetching employees:', error);
                 setIsLoading(false);
             });
-    }, []);
+    };
 
     const handleRowClick = (employee) => {
-        setSelectedEmployee(employee.user_name);
+        setSelectedEmployee(employee);  // pass whole object now
     };
 
     const handleCloseModal = () => {
@@ -40,8 +44,9 @@ const LeaveCreditList = () => {
     };
 
     const filteredEmployees = employees.filter((employee) => {
-        const fullName = `${employee.last_name}, ${employee.first_name} ${employee.middle_name || ''} ${employee.suffix || ''}`.toLowerCase();
-        return fullName.includes(searchName.toLowerCase());
+        const fullName = `${employee?.last_name}, ${employee.first_name} ${employee.middle_name || ''} ${employee.suffix || ''}`.toLowerCase();
+        const match = fullName.includes(searchName.toLowerCase());
+        return match;
     });
 
     const handleChangePage = (event, newPage) => {
@@ -54,7 +59,7 @@ const LeaveCreditList = () => {
     };
 
     const paginatedEmployees = filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-   
+
     return (
         <Layout title={"LeaveCreditList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -69,12 +74,11 @@ const LeaveCreditList = () => {
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
                             <Grid container item direction="row" justifyContent="flex-start" xs={4} spacing={2}>
                                 <Grid item xs={6}>
-                                    <FormControl sx={{ width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}} >
+                                    <FormControl sx={{ width: '100%' }}>
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Grid>
                             </Grid>
-                            <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
                         {isLoading ? (
@@ -83,66 +87,68 @@ const LeaveCreditList = () => {
                             </Box>
                         ) : (
                             <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                    <Table aria-label="simple table">
+                                <TableContainer sx={{ minHeight: 400 }}>
+                                    <Table>
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="left"> Employee Name </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Branch </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Department </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Total Credits </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Used Credits </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Remaining </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }}>Employee Name</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center">Branch</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center">Department</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center">Total Credits</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center">Used Credits</TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center">Remaining</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {paginatedEmployees.length > 0 ? (
-                                                paginatedEmployees.map((employee, index) => {
-                                                    return (
-                                                        <TableRow key={employee.user_name} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
-                                                            <TableCell align="left">{employee.name || '-'}</TableCell>
-                                                            <TableCell align="center">{employee.branch || '-'}</TableCell>
-                                                            <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                            <TableCell align="center">{Number(employee.total || 0).toFixed(2)}</TableCell>
-                                                            <TableCell align="center">{Number(employee.used || 0).toFixed(2)}</TableCell>
-                                                            <TableCell align="center">{Number(employee.remaining || 0).toFixed(2)}</TableCell>
-                                                        </TableRow>
-                                                    );
-                                                })
+                                                paginatedEmployees.map((employee, index) => (
+                                                    <TableRow
+                                                        key={employee.user_name}
+                                                        onClick={() => handleRowClick(employee)}  // pass whole object
+                                                        sx={{
+                                                            backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff',
+                                                            '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' }
+                                                        }}
+                                                    >
+                                                        <TableCell>{employee.name || '-'}</TableCell>
+                                                        <TableCell align="center">{employee.branch || '-'}</TableCell>
+                                                        <TableCell align="center">{employee.department || '-'}</TableCell>
+                                                        <TableCell align="center">{Number(employee.total || 0).toFixed(2)}</TableCell>
+                                                        <TableCell align="center">{Number(employee.used || 0).toFixed(2)}</TableCell>
+                                                        <TableCell align="center">{Number(employee.remaining || 0).toFixed(2)}</TableCell>
+                                                    </TableRow>
+                                                ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={6} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                                        No Employees Found
-                                                    </TableCell>
+                                                    <TableCell colSpan={6} align="center">No matching records found</TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
-
-                                {/* Pagination Controls */}
-                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                                    <TablePagination
-                                        rowsPerPageOptions={[5, 10, 25]}
-                                        component="div"
-                                        count={filteredEmployees.length}
-                                        rowsPerPage={rowsPerPage}
-                                        page={page}
-                                        onPageChange={handleChangePage}
-                                        onRowsPerPageChange={handleChangeRowsPerPage}
-                                        labelRowsPerPage="Rows per page:"
-                                        labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count}`}
-                                    />
-                                </Box>
+                                <TablePagination
+                                    rowsPerPageOptions={[10, 25, 50]}
+                                    component="div"
+                                    count={filteredEmployees.length}
+                                    rowsPerPage={rowsPerPage}
+                                    page={page}
+                                    onPageChange={handleChangePage}
+                                    onRowsPerPageChange={handleChangeRowsPerPage}
+                                />
                             </>
                         )}
                     </Box>
                 </Box>
-
-                {selectedEmployee && (
-                    <LeaveCreditView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
-                )}
             </Box>
+            {/* LeaveCreditView modal as before */}
+            {selectedEmployee && (
+                <LeaveCreditDescription
+                    open={Boolean(selectedEmployee)}
+                    onClose={handleCloseModal}
+                    employee={selectedEmployee}
+                    refreshCredit={fetchEmployees}
+                />
+            )}
         </Layout>
     );
 };

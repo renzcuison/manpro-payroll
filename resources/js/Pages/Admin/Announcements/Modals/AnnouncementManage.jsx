@@ -52,7 +52,11 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const [attachments, setAttachments] = useState([]);
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
+    const [roles, setRoles] = useState([]);
+    const [employmentTypes, setEmploymentTypes] = useState([]);
+    const [employmentStatuses, setEmploymentStatuses] = useState([]);
     const [announcementType, setAnnouncementType] = useState('');
+    const [scheduledSendDatetime, setScheduledSendDatetime] = useState(null);
     const [announcement, setAnnouncement] = useState(announceInfo || {});
     const [exitReload, setExitReload] = useState(false);
 
@@ -68,9 +72,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         console.log('Stored User:', JSON.parse(storedUser));
         getAnnouncementThumbnail();
         getAnnouncementFiles();
-        if (announceInfo.status !== "Pending") {
-            getAnnouncementPublishmentDetails();
-        }
+        getAnnouncementPublishmentDetails();
     }, [announceInfo]);
 
     // Announcement Menu
@@ -313,13 +315,20 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             console.error('Cannot fetch branch/depts: missing unique_code');
             setBranches([]);
             setDepartments([]);
+            setRoles([]);
+            setEmploymentTypes([]);
+            setEmploymentStatuses([]);
             return;
         }
         axiosInstance.get(`/announcements/getAnnouncementPublishmentDetails/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 setBranches(Array.isArray(response.data.branches) ? response.data.branches : []);
                 setDepartments(Array.isArray(response.data.departments) ? response.data.departments : []);
+                setRoles(Array.isArray(response.data.roles) ? response.data.roles : []);
+                setEmploymentTypes(Array.isArray(response.data.employment_types) ? response.data.employment_types : []);
+                setEmploymentStatuses(Array.isArray(response.data.employment_statuses) ? response.data.employment_statuses : []);
                 setAnnouncementType(response.data.announcement_type || 'N/A');
+                setScheduledSendDatetime(response.data.scheduled_send_datetime || null); // <-- Add this
             })
             .catch((error) => {
                 console.error('Error fetching published branch/departments:', {
@@ -329,7 +338,11 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 });
                 setBranches([]);
                 setDepartments([]);
+                setRoles([]);
+                setEmploymentTypes([]);
+                setEmploymentStatuses([]);
                 setAnnouncementType('N/A');
+                setScheduledSendDatetime(null);
             });
     };
 
@@ -494,7 +507,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         Edit
                                                     </MenuItem>
                                                 )}
-                                                {announcement.status === "Pending" && (
+                                                {!scheduledSendDatetime && announcement.status === "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
@@ -559,8 +572,19 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                 />
                                             )}
                                         </Stack>
-                                    </Grid>
-                                    {announcement.status !== "Pending" ? (
+                                    </Grid> 
+                                    {announcement.status === "Pending" && scheduledSendDatetime && (
+                                        <Grid size={12}>
+                                            <InfoBox
+                                                title="Scheduled Post"
+                                                info={dayjs(scheduledSendDatetime).format('MMM D, YYYY h:mm A')}
+                                                color="#1976d2"
+                                                compact
+                                                clean
+                                            />
+                                        </Grid>
+                                    )}
+                                    {announcement.status !== "Pending" || scheduledSendDatetime ? (
                                         <Grid container size={12} spacing={1}>
                                             <Grid size={12}>
                                                 <InfoBox
@@ -589,7 +613,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Roles"
-                                                    info={departments.length > 0 ? departments.join(', ') : 'N/A'}
+                                                    info={roles.length > 0 ? roles.join(', ') : 'N/A'}
                                                     compact
                                                     clean
                                                 />
@@ -597,7 +621,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Status"
-                                                    info={departments.length > 0 ? departments.join(', ') : 'N/A'}
+                                                    info={employmentStatuses.length > 0 ? employmentStatuses.join(', ') : 'N/A'}
                                                     compact
                                                     clean
                                                 />
@@ -605,7 +629,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Employment Type"
-                                                    info={departments.length > 0 ? departments.join(', ') : 'N/A'}
+                                                    info={employmentTypes.length > 0 ? employmentTypes.join(', ') : 'N/A'}
                                                     compact
                                                     clean
                                                 />
@@ -763,10 +787,10 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                                 {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`.replace(/\s+/g, ' ').trim()}
                                                             </Typography>
                                                             <Typography variant="body2">
-                                                                Branch: {ack.branch_acronym || 'N/A'}
+                                                                Branch: {ack.branch || 'N/A'}
                                                             </Typography>
                                                             <Typography variant="body2">
-                                                                Department: {ack.department_acronym || 'N/A'}
+                                                                Department: {ack.department || 'N/A'}
                                                             </Typography>
                                                             <Typography variant="body2">
                                                                 Role: {ack.emp_role || 'N/A'}
@@ -834,10 +858,10 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                                     {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`.replace(/\s+/g, ' ').trim()}
                                                                 </Typography>
                                                                 <Typography variant="body2">
-                                                                    Branch: {ack.branch_acronym || 'N/A'}
+                                                                    Branch: {ack.branch || 'N/A'}
                                                                 </Typography>
                                                                 <Typography variant="body2">
-                                                                    Department: {ack.department_acronym || 'N/A'}
+                                                                    Department: {ack.department || 'N/A'}
                                                                 </Typography>
                                                                 <Typography variant="body2">
                                                                     Role: {ack.emp_role || 'N/A'}
@@ -847,9 +871,6 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                                 </Typography>
                                                                 <Typography variant="body2">
                                                                     Type: {ack.emp_type || 'N/A'}
-                                                                </Typography>
-                                                                <Typography variant="body2">
-                                                                    Acknowledged on: {dayjs(ack.timestamp).format('MMM D, YYYY h:mm A') || 'N/A'}
                                                                 </Typography>
                                                             </Box>
                                                         }
