@@ -128,6 +128,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     };
 
     return (
+        
         <Accordion
             expanded={expanded}
             onChange={onSectionClick}
@@ -137,8 +138,9 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                 borderRadius: 3,
                 '&:before': { display: 'none' },
                 background: '#fff',
-                overflow: 'visible',
-                bgcolor: 'transparent'
+                overflow: "hidden",
+                bgcolor: 'transparent',
+                border: 'none',
             }}
         >
             <AccordionSummary
@@ -150,15 +152,13 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     color: 'white',
                     borderTopLeftRadius: 12,
                     borderTopRightRadius: 12,
-                    borderBottomLeftRadius: 0,
-                    borderBottomRightRadius: 0,
+                    borderBottomLeftRadius: expanded ? 0 : 12,
+                    borderBottomRightRadius: expanded ? 0 : 12,
                     fontWeight: 'bold',
                     fontSize: 18,
                     minHeight: 56,
                     '& .MuiAccordionSummary-content': { my: 0, alignItems: 'center' },
                     boxShadow: 'none',
-                    borderRadius: expanded === section.id ? '20px 20px 0 0' : '20px',
-                    boxShadow: expanded === section.id ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
                     px: 3,
                 }}
             >
@@ -200,7 +200,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     </Box>
                 )}
             </AccordionSummary>
-            <AccordionDetails sx={{ bgcolor: '#fff', borderRadius: 3, pt: 0, mb: 2, mx: 2 , borderTop: 'none',
+            <AccordionDetails sx={{ bgcolor: '#fff', borderRadius: 0, pt: 0, mb: 2, mx: 2 , borderTop: 'none',
         borderRadius: '0 0 20px 20px',  p: 3,
         pt: 4}}>
                 <Paper
@@ -350,6 +350,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                 onSave={handleSaveSubcategory}
             />
         </Accordion>
+        
     );
 };
 
