@@ -671,6 +671,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Response Details
     Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
     Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
+    Route::get('/peme-response-details/response/{id}', [PemeResponseDetailsController::class, 'getResponseDetails']);
     Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
     Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
     Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);

@@ -20,6 +20,7 @@ class Peme extends Model
         'respondents',
         'isVisible',
         'isEditable',
+        'isMultiple'
     ];
 
     public function client()

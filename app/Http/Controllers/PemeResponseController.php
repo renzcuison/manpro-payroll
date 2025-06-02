@@ -23,6 +23,7 @@ class PemeResponseController extends Controller
 
     public function index()
     {
+
         $user = Auth::user();
 
         $responses = $user->user_type === "Admin"
@@ -49,8 +50,8 @@ class PemeResponseController extends Controller
                 "expiry_date" => $expiryDate,
                 "next_schedule" => $nextSchedule,
                 "status" => ucfirst($response->status),
-                "branch" => $response->peme->branch ?? 'null',
-                "department" => $response->peme->department ?? 'null',
+                "branch" => $response->peme->user->branch->name ?? 'null',
+                "department" => $response->peme->user->department->name ?? 'null',
             ];
         });
 
@@ -65,19 +66,19 @@ class PemeResponseController extends Controller
             "next_schedule" => "nullable|date",
         ]);
 
-        if (
-            PemeResponse::where("user_id", Auth::id())
-            ->where("peme_id", $validated["peme_id"])
-            ->exists()
-        ) {
-            return response()->json(
-                [
-                    "message" =>
-                    "You have already submitted a response for this form.",
-                ],
-                409
-            );
-        }
+        // if (
+        //     PemeResponse::where("user_id", Auth::id())
+        //     ->where("peme_id", $validated["peme_id"])
+        //     ->exists()
+        // ) {
+        //     return response()->json(
+        //         [
+        //             "message" =>
+        //             "You have already submitted a response for this form.",
+        //         ],
+        //         409
+        //     );
+        // }
 
         $response = PemeResponse::create([
             "user_id" => Auth::id(),
@@ -110,7 +111,11 @@ class PemeResponseController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $id = Crypt::decrypt($id); 
+        $id = Crypt::decrypt($id);
+
+        $request->merge([
+            'status' => strtolower($request->input('status'))
+        ]);
 
         $validated = $request->validate([
             "status" => "required|in:pending,clear,rejected",
@@ -123,7 +128,7 @@ class PemeResponseController extends Controller
         return response()->json([
             "message" => "Status updated.",
             "data" => [
-                "id" => Crypt::encrypt($response->id), 
+                "id" => Crypt::encrypt($response->id),
                 "status" => $response->status,
             ],
         ]);
@@ -136,23 +141,21 @@ class PemeResponseController extends Controller
         $id = Crypt::decrypt($id);
 
         $response = PemeResponse::with([
-            'details',
-            'details.question',
-            'details.inputType',
-            'peme',
+            'peme.user',
             'user',
+            'details'
         ])->findOrFail($id);
 
         return response()->json([
             'response_id' => Crypt::encrypt($response->id),
             'peme_id' => Crypt::encrypt($response->peme_id),
             'user_id' => Crypt::encrypt($response->user_id),
+            'branch' => $response->peme->user->branch->name ?? 'null',
+            'department' => $response->peme->user->department->name ?? 'null',
+            'status' => ucfirst($response->status),
             'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),
             'next_schedule' => optional($response->next_schedule)->format('Y-m-d H:i:s'),
-            'status' => ucfirst($response->status),
-            'branch' => $response->peme->branch ?? 'null',
-            'department' => $response->peme->department ?? 'null',
-            'details' => $response->details,
+            'response_details_id' => $response->details->pluck('id'),
         ]);
     }
 
@@ -174,6 +177,9 @@ class PemeResponseController extends Controller
 
     public function destroy($id)
     {
+
+        $id = Crypt::decrypt($id);
+
         $response = PemeResponse::findOrFail($id);
         $pemeId = $response->peme_id;
 
@@ -190,6 +196,9 @@ class PemeResponseController extends Controller
 
     public function restore($id)
     {
+
+        $id = Crypt::decrypt($id);
+
         $response = PemeResponse::withTrashed()->findOrFail($id);
         $response->restore();
 
