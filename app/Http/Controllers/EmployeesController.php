@@ -192,29 +192,6 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
-
-
-    public function getEmployeesByBranch($id)
-{
-    try {
-        $employees = Employee::where('branch_id', $id)
-            ->select('id', 'first_name', 'last_name', 'avatar')
-            ->get();
-            
-        return response()->json([
-            'status' => 200,
-            'employees' => $employees
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 500,
-            'message' => 'Error fetching employees by branch'
-        ]);
-    }
-}
-
-
-
     public function getEmployeesByBranch($id)
     {
         try {
