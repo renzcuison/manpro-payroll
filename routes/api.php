@@ -92,6 +92,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('perimeters')->group(function () {
         Route::get('/getRadiusPerimeters', [RadiusPerimeterController::class, 'getRadiusPerimeters']);
         Route::post('/saveRadiusPerimeter', [RadiusPerimeterController::class, 'saveRadiusPerimeter']);
+        Route::get('/user-perimeters', [RadiusPerimeterController::class, 'getPerimeterbyUser']);
         Route::get('{id}', [RadiusPerimeterController::class, 'show']);
         Route::put('{id}', [RadiusPerimeterController::class, 'update']);
         Route::delete('{id}', [RadiusPerimeterController::class, 'destroy']);
@@ -148,7 +149,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
-        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeeController::class, 'getEmployeesByBranch']);
+        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
