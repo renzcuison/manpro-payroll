@@ -1,16 +1,15 @@
-import Layout from '../../../components/Layout/Layout';  // Import your Layout component
+import Layout from '../../../components/Layout/Layout';
 import { Box, TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, Typography, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import SaveIcon from '@mui/icons-material/Save'; 
-import CloseIcon from '@mui/icons-material/Close'; 
-import axios from 'axios';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
+import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig'; // Use your axiosInstance and getJWTHeader
 
 const PerformanceEvaluationCreateEvaluation = () => {
     const navigate = useNavigate();
 
     // Form state to hold input values
-    // Form state, no dummy data
     const [formValues, setFormValues] = useState({
         employeeName: '',
         branch: '',
@@ -30,12 +29,16 @@ const PerformanceEvaluationCreateEvaluation = () => {
     const [departments, setDepartments] = useState([]);
     const [allDepartments, setAllDepartments] = useState([]);
 
-    // Loading states for branches and departments
+    // Loading states
     const [loadingBranches, setLoadingBranches] = useState(false);
     const [loadingDepartments, setLoadingDepartments] = useState(false);
 
-    const handleSubmit = () => {
-        // Handle the form submission here
+    // Get headers for authenticated requests (copy logic from AnnouncementPublish)
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
         console.log(formValues);
     };
 
@@ -60,95 +63,96 @@ const PerformanceEvaluationCreateEvaluation = () => {
         }
     };
 
-    // Fetch branches
-const fetchBranches = async () => {
-    setLoadingBranches(true);
-    try {
-        const response = await axios.get('/getBranches');
-        if (response.data.status === 200) {
-            setBranches(response.data.branches);
+    // Fetch branches, copying from AnnouncementPublish
+    const fetchBranches = async () => {
+        setLoadingBranches(true);
+        try {
+            // Use endpoint as in AnnouncementPublish
+            const response = await axiosInstance.get('/settings/getBranches', { headers });
+            if (response.data.branches) {
+                setBranches(response.data.branches);
+            }
+        } catch (error) {
+            console.error('Error fetching branches:', error);
+        } finally {
+            setLoadingBranches(false);
         }
-    } catch (error) {
-        console.error('Error fetching branches:', error);
-    } finally {
-        setLoadingBranches(false);
-    }
-};
+    };
 
-// Fetch departments (optionally filtered by branch)
-const fetchDepartments = async (branchId) => {
-    setLoadingDepartments(true);
-    try {
-        const params = branchId ? { branch_id: branchId } : {};
-        const response = await axios.get('/getDepartments', { params });
-        if (response.data.status === 200) {
-            setDepartments(response.data.departments);
+    // Fetch departments (optionally filtered by branch)
+    const fetchDepartments = async (branchId) => {
+        setLoadingDepartments(true);
+        try {
+            let params = {};
+            if (branchId) params.branch_id = branchId;
+            const response = await axiosInstance.get('/settings/getDepartments', { params, headers });
+            if (response.data.departments) {
+                setDepartments(response.data.departments);
+            }
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+        } finally {
+            setLoadingDepartments(false);
         }
-    } catch (error) {
-        console.error('Error fetching departments:', error);
-    } finally {
-        setLoadingDepartments(false);
-    }
-};
+    };
 
-// Fetch employees filtered by branch and/or department
-const fetchEmployees = async (branchId, departmentId) => {
-    try {
-        const params = {};
-        if (branchId) params.branch_id = branchId;
-        if (departmentId) params.department_id = departmentId;
-        const response = await axios.get('/getEmployees', { params });
-        if (response.data.status === 200) {
-            setEmployees(response.data.employees);
-        } else {
+    // Fetch employees filtered by branch and/or department
+    const fetchEmployees = async (branchId, departmentId) => {
+        try {
+            const params = {};
+            if (branchId) params.branch_id = branchId;
+            if (departmentId) params.department_id = departmentId;
+            const response = await axiosInstance.get('/getEmployees', { params, headers });
+            if (response.data.status === 200) {
+                setEmployees(response.data.employees);
+            } else {
+                setEmployees([]);
+            }
+        } catch (error) {
+            console.error('Error fetching employees:', error);
             setEmployees([]);
         }
-    } catch (error) {
-        console.error('Error fetching employees:', error);
-        setEmployees([]);
-    }
-};
+    };
 
-// When branch changes, fetch departments and reset employee list
-useEffect(() => {
-    if (formValues.branch) {
-        fetchDepartments(formValues.branch);
-        setEmployees([]);
-        setFormValues(prev => ({ ...prev, department: '', employeeName: '' }));
-    } else {
+    // When branch changes, fetch departments and reset employee list
+    useEffect(() => {
+        if (formValues.branch) {
+            fetchDepartments(formValues.branch);
+            setEmployees([]);
+            setFormValues(prev => ({ ...prev, department: '', employeeName: '' }));
+        } else {
+            fetchDepartments();
+            setEmployees([]);
+            setFormValues(prev => ({ ...prev, department: '', employeeName: '' }));
+        }
+    }, [formValues.branch]);
+
+    // When department changes, fetch employees
+    useEffect(() => {
+        if (formValues.branch && formValues.department) {
+            fetchEmployees(formValues.branch, formValues.department);
+        } else {
+            setEmployees([]);
+            setFormValues(prev => ({ ...prev, employeeName: '' }));
+        }
+    }, [formValues.department, formValues.branch]);
+
+    // On mount, fetch branches and departments (no filter)
+    useEffect(() => {
+        fetchBranches();
         fetchDepartments();
-        setEmployees([]);
-        setFormValues(prev => ({ ...prev, department: '', employeeName: '' }));
-    }
-}, [formValues.branch]);
+    }, []);
 
-// When department changes, fetch employees
-useEffect(() => {
-    if (formValues.branch && formValues.department) {
-        fetchEmployees(formValues.branch, formValues.department);
-    } else {
-        setEmployees([]);
-        setFormValues(prev => ({ ...prev, employeeName: '' }));
-    }
-}, [formValues.department, formValues.branch]);
-
-// On mount, fetch branches and departments (no filter)
-useEffect(() => {
-    fetchBranches();
-    fetchDepartments();
-}, []);
-
-    // Log branches and departments for debugging
+    // Debug
     useEffect(() => {
         console.log('Branches:', branches);
     }, [branches]);
-
     useEffect(() => {
         console.log('Departments:', departments);
     }, [departments]);
 
     return (
-        <Layout title={"Create Evaluation Form"}> 
+        <Layout title={"Create Evaluation Form"}>
             <Box sx={{ maxWidth: '1000px', mx: 'auto', mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative' }}>
                 <IconButton
                     onClick={() => navigate(-1)}
@@ -165,7 +169,7 @@ useEffect(() => {
                     <CloseIcon sx={{ fontSize: '1.2rem' }} />
                 </IconButton>
                 <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 4 }}>E-Employee Evaluation Form</Typography>
-               
+
                 <form onSubmit={handleSubmit}>
                     <Grid container spacing={3}>
                         {/* Branch Dropdown */}
@@ -239,7 +243,7 @@ useEffect(() => {
                                     )}
                                 </Select>
                             </FormControl>
-                        </Grid> 
+                        </Grid>
                     </Grid>
 
                     {/* Second Row (Evaluator, Date) */}
@@ -367,7 +371,7 @@ useEffect(() => {
                     </Box>
                 </form>
             </Box>
-        </Layout> 
+        </Layout>
     );
 };
 
