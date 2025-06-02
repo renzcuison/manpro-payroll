@@ -156,7 +156,7 @@ class EvaluationResponseController extends Controller
                                 subcategory_id, id, label, order,
                                 option_answer: { id, response_id, option_id }
                             }[],
-                            percentage_answer: { id, response_id, subcategory_id, percentage } | null,
+                            percentage_answer: { id, response_id, subcategory_id, percentage, value, array_index } | null,
                             text_answer: { id, response_id, subcategory_id, answer } | null
                         }[]
                     }[]
@@ -253,7 +253,28 @@ class EvaluationResponseController extends Controller
                                                     ])
                                             ,
                                             'percentageAnswer' => fn ($percentageAnswer) =>
-                                                $percentageAnswer->select('id', 'response_id', 'subcategory_id', 'percentage')
+                                                $percentageAnswer
+                                                ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+                                                ->select(
+                                                    'evaluation_percentage_answers.id',
+                                                    'evaluation_percentage_answers.response_id',
+                                                    'evaluation_percentage_answers.subcategory_id',
+                                                    'evaluation_percentage_answers.percentage',
+                                                    'evaluation_form_subcategories.subcategory_type'
+                                                )
+                                                ->addSelect(DB::raw(
+                                                    "evaluation_percentage_answers.percentage*"
+                                                    ."(evaluation_form_subcategories.linear_scale_end"
+                                                    ."-evaluation_form_subcategories.linear_scale_start)"
+                                                    ."+evaluation_form_subcategories.linear_scale_start"
+                                                    ." as value"
+                                                ))
+                                                ->addSelect(DB::raw(
+                                                    "evaluation_percentage_answers.percentage*"
+                                                    ."(evaluation_form_subcategories.linear_scale_end"
+                                                    ."-evaluation_form_subcategories.linear_scale_start)"
+                                                    ." as array_index"
+                                                ))
                                             ,
                                             'textAnswer' => fn ($textAnswer) =>
                                                 $textAnswer->select('id', 'response_id', 'subcategory_id', 'answer')
