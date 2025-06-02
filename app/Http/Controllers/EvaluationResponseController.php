@@ -21,6 +21,10 @@ use Illuminate\Support\Facades\Storage;
 class EvaluationResponseController extends Controller
 {
 
+    // evaluation response
+ 
+        // delete evaluation response
+
     public function editEvaluationResponse(Request $request)
     {
         // inputs:
@@ -562,5 +566,1510 @@ class EvaluationResponseController extends Controller
             throw $e;
         }
     }
+
+    // evaluation form percentage answer
+
+        // delete evaluation form percentage answer
+
+        // edit evaluation form percentage answer
+
+    public function getEvaluationPercentageAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            id: number
+        */
+
+        // returns:
+        /*
+            evaluationPercentageAnswer: { id, response_id, subcategory_id, percentage, created_at, updated_at }
+        */
+
+        log::info('EvaluationResponseController::getEvaluationPercentageAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationPercentageAnswer = EvaluationPercentageAnswer
+                ::select(
+                    'id', 'response_id', 'subcategory_id', 'percentage',
+                    'created_at', 'updated_at'
+                )
+                ->where('id', $request->id)
+                ->first()
+            ;
+            if( !$evaluationPercentageAnswer ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Percentage Answer not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Percentage Answer successfully retrieved.',
+                'evaluationPercentageAnswer' => $evaluationPercentageAnswer
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function getEvaluationPercentageAnswers(Request $request)
+    {
+        // inputs:
+        /*
+            subcategory_id: number
+        */
+
+        // returns:
+        /*
+            evaluationPercentageAnswers: {
+                id, response_id, subcategory_id, percentage, created_at, updated_at
+            }[]
+        */
+
+        log::info('EvaluationResponseController::getEvaluationPercentageAnswers');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationPercentageAnswers = EvaluationPercentageAnswer
+                ::select(
+                    'id', 'response_id', 'subcategory_id', 'percentage',
+                    'created_at', 'updated_at'
+                )
+                ->where('subcategory_id', $request->subcategory_id)
+                ->get()
+            ;
+            if( !$evaluationPercentageAnswers ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Percentage Answers not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Percentage Answers successfully retrieved.',
+                'evaluationPercentageAnswers' => $evaluationPercentageAnswers
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function saveEvaluationPercentageAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            subcategory_id: number,
+            percentage: string
+        */
+
+        // returns:
+        /*
+            evaluationPercentageAnswerID
+        */
+
+        log::info('EvaluationResponseController::saveEvaluationPercentageAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            $existingFormPercentageAnswer = EvaluationPercentageAnswer
+                ::where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
+                ->first()
+            ;
+
+            if($existingFormPercentageAnswer) return response()->json([ 
+                'status' => 409,
+                'message' => 'A text percentage was already created for this subcategory!',
+                'evaluationFormPercentageAnswerID' => $existingFormPercentageAnswer->id
+            ]);
+
+            $isEmptyAnswer = !$request->percentage;
+
+            if( $isEmptyAnswer ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Answer is required!'
+            ]);
+
+            DB::beginTransaction();
+
+            $newEvaluationPercentageAnswer = EvaluationPercentageAnswer::create([
+                'response_id' => $request->response_id,
+                'subcategory_id' => $request->subcategory_id,
+                'percentage' => $request->percentage
+            ]);
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 201,
+                'evaluationPercentageAnswerID' => $newEvaluationPercentageAnswer->id,
+                'message' => 'Evaluation Percentage Answer successfully created'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    // evaluation form text answer
+
+        // delete evaluation form text answer
+
+        // edit evaluation form text answer
+
+    public function getEvaluationTextAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            id: number
+        */
+
+        // returns:
+        /*
+            evaluationTextAnswer: { id, response_id, subcategory_id, answer, created_at, updated_at }
+        */
+
+        log::info('EvaluationResponseController::getEvaluationTextAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationTextAnswer = EvaluationTextAnswer
+                ::select(
+                    'id', 'response_id', 'subcategory_id', 'answer',
+                    'created_at', 'updated_at'
+                )
+                ->where('id', $request->id)
+                ->first()
+            ;
+            if( !$evaluationTextAnswer ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Text Answer not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Text Answer successfully retrieved.',
+                'evaluationTextAnswer' => $evaluationTextAnswer
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function getEvaluationTextAnswers(Request $request)
+    {
+        // inputs:
+        /*
+            subcategory_id: number
+        */
+
+        // returns:
+        /*
+            evaluationTextAnswers: {
+                id, response_id, subcategory_id, answer, created_at, updated_at
+            }[]
+        */
+
+        log::info('EvaluationResponseController::getEvaluationTextAnswers');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationTextAnswers = EvaluationTextAnswer
+                ::select(
+                    'id', 'response_id', 'subcategory_id', 'answer',
+                    'created_at', 'updated_at'
+                )
+                ->where('subcategory_id', $request->subcategory_id)
+                ->get()
+            ;
+            if( !$evaluationTextAnswers ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Text Answers not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Text Answers successfully retrieved.',
+                'evaluationTextAnswers' => $evaluationTextAnswers
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function saveEvaluationTextAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            subcategory_id: number,
+            answer: string
+        */
+
+        // returns:
+        /*
+            evaluationTextAnswerID
+        */
+
+        log::info('EvaluationResponseController::saveEvaluationTextAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            $existingFormTextAnswer = EvaluationTextAnswer
+                ::where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
+                ->first()
+            ;
+
+            if($existingFormTextAnswer) return response()->json([ 
+                'status' => 409,
+                'message' => 'A text answer was already created for this subcategory!',
+                'evaluationFormTextAnswerID' => $existingFormTextAnswer->id
+            ]);
+
+            $isEmptyAnswer = !$request->answer;
+
+            if( $isEmptyAnswer ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Answer is required!'
+            ]);
+
+            DB::beginTransaction();
+
+            $newEvaluationTextAnswer = EvaluationTextAnswer::create([
+                'response_id' => $request->response_id,
+                'subcategory_id' => $request->subcategory_id,
+                'answer' => $request->answer
+            ]);
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 201,
+                'evaluationTextAnswerID' => $newEvaluationTextAnswer->id,
+                'message' => 'Evaluation Text Answer successfully created'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    // evaluation form option answer
+
+        // delete evaluation form option answer
+
+        // edit evaluation form option answer
+
+    // public function getEvaluationOptionAnswer(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         id: number
+    //     */
+
+    //     // returns:
+    //     /*
+    //         evaluationOptionAnswer: { id, response_id, option_id, answer, created_at, updated_at }
+    //     */
+
+    //     log::info('EvaluationResponseController::getEvaluationOptionAnswer');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+    
+    //     $user = DB::table('users')->where('id', $userID)->first();
+
+    //     try {
+
+    //         $evaluationOptionAnswer = EvaluationOptionAnswer
+    //             ::select(
+    //                 'id', 'response_id', 'option_id', 'created_at', 'updated_at'
+    //             )
+    //             ->where('id', $request->id)
+    //             ->first()
+    //         ;
+    //         if( !$evaluationOptionAnswer ) return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation Option Answer not found!'
+    //         ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Option Answer successfully retrieved.',
+    //             'evaluationOptionAnswer' => $evaluationOptionAnswer
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    
+    // }
+
+    // public function getEvaluationOptionAnswers(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         form_id?: number,
+    //         subcategory_id: number
+    //     */
+
+    //     // returns:
+    //     /*
+    //         evaluationOptionAnswers: {
+    //             id, response_id, option_id, created_at, updated_at
+    //         }[]
+    //     */
+
+    //     log::info('EvaluationResponseController::getEvaluationOptionAnswers');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+    
+    //     $user = DB::table('users')->where('id', $userID)->first();
+
+    //     try {
+
+    //         $evaluationOptionAnswers = EvaluationOptionAnswer
+    //             ::select(
+    //                 'id', 'response_id', 'subcategory_id', 'answer',
+    //                 'created_at', 'updated_at'
+    //             )
+    //             ->where('subcategory_id', $request->subcategory_id)
+    //             ->get()
+    //         ;
+    //         if( !$evaluationOptionAnswers ) return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation Option Answers not found!'
+    //         ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Option Answers successfully retrieved.',
+    //             'evaluationOptionAnswers' => $evaluationOptionAnswers
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    
+    // }
+
+    // public function saveEvaluationOptionAnswer(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         response_id: number,
+    //         subcategory_id: number,
+    //         answer: string
+    //     */
+
+    //     // returns:
+    //     /*
+    //         evaluationOptionAnswerID
+    //     */
+
+    //     log::info('EvaluationResponseController::saveEvaluationOptionAnswer');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         $existingFormOptionAnswer = EvaluationOptionAnswer
+    //             ::where('response_id', $request->response_id)
+    //             ->where('subcategory_id', $request->subcategory_id)
+    //             ->first()
+    //         ;
+
+    //         if($existingFormOptionAnswer) return response()->json([ 
+    //             'status' => 409,
+    //             'message' => 'A option answer was already created for this subcategory!',
+    //             'evaluationFormOptionAnswerID' => $existingFormOptionAnswer->id
+    //         ]);
+
+    //         $isEmptyAnswer = !$request->answer;
+
+    //         if( $isEmptyAnswer ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Answer is required!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $newEvaluationOptionAnswer = EvaluationOptionAnswer::create([
+    //             'response_id' => $request->response_id,
+    //             'subcategory_id' => $request->subcategory_id,
+    //             'answer' => $request->answer
+    //         ]);
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 201,
+    //             'evaluationOptionAnswerID' => $newEvaluationOptionAnswer->id,
+    //             'message' => 'Evaluation Option Answer successfully created'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+    // evaluation form section
+
+    // public function deleteEvaluationFormSection(Request $request)
+    // {
+    //     log::info('EvaluationResponseController::deleteEvaluationFormSection');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $evaluationFormSection = EvaluationFormSection
+    //             ::select('*')
+    //             ->where('id', $request->id)
+    //             ->first()
+    //         ;
+
+    //         if( !$evaluationFormSection ) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'Evaluation Form Section not found!',
+    //             'evaluationFormSectionID' => $request->id
+    //         ]);
+
+    //         if( $evaluationFormSection->deleted_at ) return response()->json([ 
+    //             'status' => 405,
+    //             'message' => 'Evaluation Form Section already deleted!',
+    //             'evaluationFormSection' => $evaluationFormSection
+    //         ]);
+
+    //         $now = date('Y-m-d H:i');
+    //         $evaluationFormSection->deleted_at = $now;
+    //         $evaluationFormSection->save();
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 200,
+    //             'evaluationFormSection' => $evaluationFormSection,
+    //             'message' => 'Evaluation Form Section successfully deleted'
+    //         ]);
+
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+    // public function editEvaluationFormSection(Request $request)
+    // {
+    //     log::info('EvaluationResponseController::editEvaluationFormSection');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $evaluationFormSection = EvaluationFormSection
+    //             ::select(
+    //                 'id', 'form_id', 'name', 'category', 'order', 'created_at',
+    //                 'updated_at'
+    //             )
+    //             ->where('id', $request->id)
+    //             ->first()
+    //         ;
+
+    //         if(!$evaluationFormSection) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'Evaluation Form Section not found!',
+    //             'evaluationFormSectionID' => $request->id
+    //         ]);
+
+    //         $isEmptyName = $request->has('name') && !$request->name;
+    //         if($isEmptyName) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Section Name is required!'
+    //         ]);
+    //         if($request->name)
+    //             $evaluationFormSection->name = $request->name;
+    //         if($request->category)
+    //             $evaluationFormSection->category = $request->category;
+
+    //         $evaluationFormSection->save();
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 200,
+    //             'evaluationFormSection' => $evaluationFormSection,
+    //             'message' => 'Evaluation Form Section successfully updated'
+    //         ]);
+
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+    // public function getEvaluationFormSection(Request $request)
+    // {
+
+    //     log::info('EvaluationResponseController::getEvaluationFormSection');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+    
+    //     $user = DB::table('users')->where('id', $userID)->first();
+
+    //     try {
+
+    //         $evaluationFormSection = EvaluationFormSection
+    //             ::select('form_id', 'id', 'name', 'category', 'order')
+    //             ->where('id', $request->id)
+    //             ->with(['subcategories' => fn ($subcategory) =>
+    //                 $subcategory
+    //                     ->select(
+    //                         'section_id', 'id',
+    //                         'name', 'subcategory_type', 'description',
+    //                         'required', 'allow_other_option',
+    //                         'linear_scale_start', 'linear_scale_end',
+    //                         'order'
+    //                     )
+    //                     ->with(['options' => fn ($option) =>
+    //                         $option
+    //                             ->select(
+    //                                 'subcategory_id', 'id',
+    //                                 'label', 'order'
+    //                             )
+    //                             ->orderBy('order')
+    //                     ])
+    //                     ->orderBy('order')
+    //             ])
+    //             ->orderBy('order')
+    //             ->first()
+    //         ;
+    //         if( !$evaluationFormSection ) return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation Form Section not found!'
+    //         ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Form Section successfully retrieved.',
+    //             'evaluationFormSection' => $evaluationFormSection
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    
+    // }
+    
+    // public function moveEvaluationFormSection(Request $request)
+    // {
+    //     log::info('EvaluationResponseController::moveEvaluationFormSection');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $evaluationFormSection = EvaluationFormSection
+    //             ::select( 'id', 'form_id', 'name', 'order', 'created_at', 'updated_at' )
+    //             ->where('id', $request->id)
+    //             ->first()
+    //         ;
+
+    //         if( !$evaluationFormSection ) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'Evaluation Form Section not found!',
+    //             'evaluationFormSectionID' => $request->id
+    //         ]);
+
+    //         $oldOrder = $evaluationFormSection->order;
+    //         $newOrder = $request->order;
+    //         $tempOrder = (
+    //             EvaluationFormSection
+    //                 ::where('form_id', $evaluationFormSection->form_id)
+    //                 ->max('order')
+    //             ?? -1
+    //         ) + 1;
+    //         if( $newOrder >= $tempOrder || $newOrder < 0 ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Section Order is not within valid range!',
+    //             'evaluationFormSectionID' => $request->id
+    //         ]);
+    //         $evaluationFormSection->order = $tempOrder;
+    //         $evaluationFormSection->save();
+            
+    //         $moveUp = $oldOrder < $newOrder;
+    //         $evaluationFormSectionsToMove = EvaluationFormSection
+    //             ::select( 'id', 'form_id', 'name', 'order', 'created_at', 'updated_at' )
+    //             ->where('form_id', $evaluationFormSection->form_id)
+    //             ->where('order', $moveUp ? '>' : '<', $oldOrder)
+    //             ->where('order', $moveUp ? '<=' : '>=', $newOrder)
+    //             ->orderBy('order', $moveUp ? 'asc' : 'desc')
+    //             ->get()
+    //         ;
+    //         $curOrder = $oldOrder;
+    //         foreach($evaluationFormSectionsToMove as $evaluationFormSectionToMove) {
+    //             $evaluationFormSectionToMove->order = $curOrder;
+    //             $evaluationFormSectionToMove->save();
+    //             $curOrder += $moveUp ? 1 : -1;
+    //         }
+
+    //         $evaluationFormSection->order = $newOrder;
+    //         $evaluationFormSection->save();
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 200,
+    //             'evaluationFormSection' => $evaluationFormSection,
+    //             'message' => 'Evaluation Form Section successfully moved'
+    //         ]);
+
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+    // public function saveEvaluationFormSection(Request $request)
+    // {
+    //     log::info('EvaluationResponseController::saveEvaluationFormSection');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $isEmptyName = !$request->name;
+
+    //         if( $isEmptyName ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Section Name is required!'
+    //         ]);
+
+    //         $order = (
+    //             EvaluationFormSection::where('form_id', $request->form_id)->max('order')
+    //             ?? -1
+    //         ) + 1;
+
+    //         $newEvaluationFormSection = EvaluationFormSection::create([
+    //             'form_id' => $request->form_id,
+    //             'name' => $request->name,
+    //             'category' => $request->category,
+    //             'order' => $order
+    //         ]);
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 201,
+    //             'evaluationFormSectionID' => $newEvaluationFormSection->id,
+    //             'message' => 'Evaluation Form Section successfully created'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+    // public function getEvaluationFormSubcategory(Request $request)
+    // {
+
+    //     log::info('EvaluationResponseController::getEvaluationFormSubcategory');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+    
+    //     $user = DB::table('users')->where('id', $userID)->first();
+
+    //     try {
+
+    //         $evaluationFormSubcategory = EvaluationFormSubcategory
+    //             ::select(
+    //                 'section_id', 'id',
+    //                 'name', 'subcategory_type', 'description',
+    //                 'required', 'allow_other_option',
+    //                 'linear_scale_start', 'linear_scale_end',
+    //                 'order'
+    //             )
+    //             ->where('id', $request->id)
+    //             ->with(['options' => fn ($option) =>
+    //                 $option
+    //                     ->select(
+    //                         'subcategory_id', 'id',
+    //                         'label', 'order'
+    //                     )
+    //                     ->orderBy('order')
+    //             ])
+    //             ->first()
+    //         ;
+    //         if( !$evaluationFormSubcategory ) return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation Form Subcategory not found!'
+    //         ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Form Subcategory successfully retrieved.',
+    //             'evaluationFormSubcategory' => $evaluationFormSubcategory
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    
+    // }
+
+    // public function deleteEvaluationFormSubcategory(Request $request)
+    // {
+    //     log::info('EvaluationResponseController::deleteEvaluationFormSubcategory');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $evaluationFormSubcategory = EvaluationFormSubcategory
+    //             ::select('*')
+    //             ->where('id', $request->id)
+    //             ->first()
+    //         ;
+
+    //         if( !$evaluationFormSubcategory ) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'Evaluation Form Subcategory not found!',
+    //             'evaluationFormSubcategoryID' => $request->id
+    //         ]);
+
+    //         if( $evaluationFormSubcategory->deleted_at ) return response()->json([ 
+    //             'status' => 405,
+    //             'message' => 'Evaluation Form Subcategory already deleted!',
+    //             'evaluationFormSubcategory' => $evaluationFormSubcategory
+    //         ]);
+
+    //         $now = date('Y-m-d H:i');
+    //         $evaluationFormSubcategory->deleted_at = $now;
+    //         $evaluationFormSubcategory->save();
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 200,
+    //             'evaluationFormSubcategory' => $evaluationFormSubcategory,
+    //             'message' => 'Evaluation Form Subcategory successfully deleted'
+    //         ]);
+
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+    // public function editEvaluationFormSubcategory(Request $request)
+    // {
+    //     log::info('EvaluationResponseController::editEvaluationFormSubcategory');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $evaluationFormSubcategory = EvaluationFormSubcategory
+    //             ::select(
+    //                 'id', 'section_id', 'name', 'description',
+    //                 'subcategory_type', 'required', 'allow_other_option',
+    //                 'linear_scale_start', 'linear_scale_end', 'order', 'created_at',
+    //                 'updated_at'
+    //             )
+    //             ->where('id', $request->id)
+    //             ->first()
+    //         ;
+
+    //         if( !$evaluationFormSubcategory ) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'Evaluation Form Subcategory not found!',
+    //             'evaluationFormSubcategoryID' => $request->id
+    //         ]);
+
+    //         $isEmptyName = $request->has('name') && $request->name === null;
+    //         if( $isEmptyName ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Name is required!'
+    //         ]);
+
+    //         $isEmptyDescription = $request->has('description') && $request->description === null;
+    //         if( $isEmptyDescription ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Description is required!'
+    //         ]);
+
+    //         if($request->subcategory_type) {
+
+    //             $subcategory_types = [
+    //                 'short_answer', 'long_answer', 'multiple_choice',
+    //                 'checkbox', 'linear_scale'
+    //             ];
+    //             if(!in_array($request->subcategory_type, $subcategory_types))
+    //                 return response()->json([ 
+    //                     'status' => 400,
+    //                     'message' => 'Evaluation Form Subcategory Type is invalid!'
+    //                 ]);
+    //                 $evaluationFormSubcategory->subcategory_type = $request->subcategory_type;
+
+    //         }
+    //         if(is_bool($request->required) || is_numeric($request->required))
+    //             $evaluationFormSubcategory->required = (int) $request->required;
+            
+    //          if(is_bool($request->allow_other_option) || is_numeric($request->allow_other_option))
+    //             $evaluationFormSubcategory->allow_other_option = (int) $request->allow_other_option;
+            
+    //         if($request->linear_scale_start<0 || $request->linear_scale_end<0)
+    //             return response()->json([
+    //                 'status' => 400,
+    //                 'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
+    //             ]);
+    //         if(is_numeric($request->linear_scale_start))
+    //             $evaluationFormSubcategory->linear_scale_start = $request->linear_scale_start;
+    //         if(is_numeric($request->linear_scale_end))
+    //             $evaluationFormSubcategory->linear_scale_end = $request->linear_scale_end;
+    //         if($evaluationFormSubcategory->linear_scale_start>=$evaluationFormSubcategory->linear_scale_end)
+    //             return response()->json([
+    //                 'status' => 400,
+    //                 'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
+    //             ]);
+    //         $isEmptyLinearScaleStartLabel = $request->has('linear_scale_start_label') && $request->linear_scale_start_label === null;
+    //         if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
+    //         ]);
+    //         $isEmptyLinearScaleEndLabel = $request->has('linear_scale_end_label') && $request->linear_scale_end_label === null;
+    //         if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
+    //         ]);
+    //         $evaluationFormSubcategory->linear_scale_start_label = $request->linear_scale_start_label;
+    //         $evaluationFormSubcategory->linear_scale_end_label = $request->linear_scale_end_label;
+
+    //         $evaluationFormSubcategory->save();
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 200,
+    //             'evaluationFormSubcategory' => $evaluationFormSubcategory,
+    //             'message' => 'Evaluation Form Subcategory successfully updated'
+    //         ]);
+
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+        // move evaluation form subcategory
+
+    // public function saveEvaluationFormSubcategory(Request $request)
+    // {
+    //     log::info('EvaluationResponseController::saveEvaluationFormSubcategory');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $isEmptyName = !$request->name;
+    //         if( $isEmptyName ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Name is required!'
+    //         ]);
+
+    //         $isEmptyDescription = !$request->description;
+    //         if( $isEmptyDescription ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Description is required!'
+    //         ]);
+
+    //         $order = (
+    //             EvaluationFormSubcategory
+    //                 ::where('section_id', $request->section_id)->max('order')
+    //             ?? -1
+    //         ) + 1;
+    //         $subcategoryTypes = [
+    //             'short_answer', 'long_answer', 'multiple_choice',
+    //             'checkbox', 'linear_scale'
+    //         ];
+    //         if(!in_array($request->subcategory_type, $subcategoryTypes))
+    //             return response()->json([ 
+    //                 'status' => 400,
+    //                 'message' => 'Evaluation Form Subcategory Type is invalid!'
+    //             ]);
+    //         if($request->linear_scale_start<0 || $request->linear_scale_end<0)
+    //             return response()->json([
+    //                 'status' => 400,
+    //                 'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
+    //             ]);
+    //         if(
+    //             is_numeric($request->linear_scale_start)
+    //             && is_numeric($request->linear_scale_end)
+    //             && $request->linear_scale_start>=$request->linear_scale_end
+    //         ) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
+    //         ]);
+    //         $isEmptyLinearScaleStartLabel = !$request->linear_scale_start_label;
+    //         if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
+    //         ]);
+    //         $isEmptyLinearScaleEndLabel = !$request->linear_scale_end_label;
+    //         if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
+    //         ]);
+
+    //         $newEvaluationFormSubcategory = EvaluationFormSubcategory::create([
+    //             'section_id' => $request->section_id,
+    //             'name' => $request->name,
+    //             'subcategory_type' => $request->subcategory_type,
+    //             'description' => $request->description,
+    //             'required' => 1,
+    //             'allow_other_option' => $request->allow_other_option,
+    //             'linear_scale_start' => $request->linear_scale_start,
+    //             'linear_scale_end' => $request->linear_scale_end,
+    //             'linear_scale_start_label' => $request->linear_scale_start_label,
+    //             'linear_scale_end_label' => $request->linear_scale_end_label,
+    //             'order' => $order
+    //         ]);
+
+    //         if($request->options) {
+    //             $labels = array();
+    //             foreach($request->options as $order => $option) {
+    //                 $label = $option["label"];
+    //                 $isEmptyName = !$label;
+    //                 if( $isEmptyName ) return response()->json([ 
+    //                     'status' => 400,
+    //                     'message' => 'Evaluation Form Subcategory Option Labels are required!'
+    //                 ]);
+
+    //                 $isRepeated = in_array($label, $labels);
+    //                 if($isRepeated) return response()->json([ 
+    //                     'status' => 409,
+    //                     'message' => 'Evaluation Form Subcategory Option Labels must be unique!'
+    //                 ]);
+    //                 $labels[] = $label;
+
+    //                 EvaluationFormSubcategoryOption::create([
+    //                     'subcategory_id' => $newEvaluationFormSubcategory->id,
+    //                     'label' => $label,
+    //                     'order' => $order
+    //                 ]);
+    //             }
+    //         }
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'status' => 201,
+    //             'evaluationFormSubcategoryID' => $newEvaluationFormSubcategory->id,
+    //             'message' => 'Evaluation Form Subcategory successfully created'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+    // evaluation form subcategory option
+
+    // public function deleteEvaluationFormSubcategoryOption(Request $request)
+    // {
+    //     log::info('EvaluationResponseController::deleteEvaluationFormSubcategoryOption');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
+    //             ::select('*')
+    //             ->where('id', $request->id)
+    //             ->first()
+    //         ;
+
+    //         if( !$evaluationFormSubcategoryOption ) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'Evaluation Form Subcategory Option not found!',
+    //             'evaluationFormSubcategoryOptionID' => $request->id
+    //         ]);
+
+    //         if( $evaluationFormSubcategoryOption->deleted_at ) return response()->json([ 
+    //             'status' => 405,
+    //             'message' => 'Evaluation Form Subcategory Option already deleted!',
+    //             'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption
+    //         ]);
+
+    //         $now = date('Y-m-d H:i');
+    //         $evaluationFormSubcategoryOption->deleted_at = $now;
+    //         $evaluationFormSubcategoryOption->save();
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 200,
+    //             'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption,
+    //             'message' => 'Evaluation Form Subcategory Option successfully deleted'
+    //         ]);
+
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+    // public function editEvaluationFormSubcategoryOption(Request $request)
+    // {
+    //     log::info('EvaluationResponseController::editEvaluationFormSubcategoryOption');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
+    //             ::select( 'id', 'subcategory_id', 'label', 'order', 'created_at', 'updated_at' )
+    //             ->where('id', $request->id)
+    //             ->first()
+    //         ;
+
+    //         if( !$evaluationFormSubcategoryOption ) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'Evaluation Form Subcategory Option not found!',
+    //             'evaluationFormSubcategoryOptionID' => $request->id
+    //         ]);
+
+    //         $isEmptyName = !$request->label;
+
+    //         if( $isEmptyName ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Option Label is required!'
+    //         ]);
+
+    //         $existingEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
+    //             ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
+    //             ->where('label', $request->label)
+    //             ->where('id', '!=', $request->id)
+    //             ->first()
+    //         ;
+
+    //         if( $existingEvaluationFormSubcategoryOption ) return response()->json([ 
+    //             'status' => 409,
+    //             'message' => 'This Evaluation Form Subcategory Option Label is already in use!',
+    //             'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
+    //         ]);
+
+    //         $evaluationFormSubcategoryOption->label = $request->label;
+    //         $evaluationFormSubcategoryOption->save();
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 200,
+    //             'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption,
+    //             'message' => 'Evaluation Form Subcategory Option successfully updated'
+    //         ]);
+
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+    // public function getEvaluationFormSubcategoryOption(Request $request)
+    // {
+
+    //     log::info('EvaluationResponseController::getEvaluationFormSubcategoryOption');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+    
+    //     $user = DB::table('users')->where('id', $userID)->first();
+
+    //     try {
+
+    //         $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
+    //             ::select(
+    //                 'subcategory_id', 'id',
+    //                 'label', 'order'
+    //             )
+    //             ->where('id', $request->id)
+    //             ->orderBy('order')
+    //             ->first()
+    //         ;
+    //         if( !$evaluationFormSubcategoryOption ) return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation Form Subcategory Option not found!'
+    //         ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Form Subcategory Option successfully retrieved.',
+    //             'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    
+    // }
+
+        // move evaluation form subcategory option
+
+    // public function saveEvaluationFormSubcategoryOption(Request $request)
+    // {
+    //     log::info('EvaluationResponseController::saveEvaluationFormSubcategoryOption');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $isEmptyName = !$request->label;
+
+    //         if( $isEmptyName ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Option Label is required!'
+    //         ]);
+
+    //         $existingEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
+    //             ::where('subcategory_id', $request->subcategory_id)
+    //             ->where('label', $request->label)
+    //             ->first()
+    //         ;
+
+    //         if( $existingEvaluationFormSubcategoryOption ) return response()->json([ 
+    //             'status' => 409,
+    //             'message' => 'This Evaluation Form Subcategory Option Label is already in use!',
+    //             'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
+    //         ]);
+
+    //         $order = (
+    //             EvaluationFormSubcategoryOption::where('subcategory_id', $request->subcategory_id)->max('order')
+    //             ?? -1
+    //         ) + 1;
+
+    //         $newEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::create([
+    //             'subcategory_id' => $request->subcategory_id,
+    //             'label' => $request->label,
+    //             'order' => $order
+    //         ]);
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 201,
+    //             'evaluationSubcategoryOptionID' => $newEvaluationFormSubcategoryOption->id,
+    //             'message' => 'Evaluation Form Subcategory Option successfully created'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
 
 }

@@ -52,21 +52,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
                 <form onSubmit={handleSubmit}>
                     {/* First Row */}
                     <Grid container spacing={3}>
-                        <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
-                            <FormControl fullWidth variant="outlined" required>
-                                <InputLabel >Employee Name</InputLabel>
-                                    <Select
-                                        label="Employee Name"
-                                        variant="outlined"
-                                        name="employeeName"
-                                        value={formValues.employeeName}
-                                        onChange={handleChange}
-                                    >
-                                        <MenuItem value="Branch1">Employee 1</MenuItem>
-                                        <MenuItem value="Branch2">Employee 2</MenuItem>
-                                    </Select>
-                                </FormControl>
-                        </Grid>
+                        
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }} >
                             <FormControl fullWidth variant="outlined" required>
                                 <InputLabel >Branch</InputLabel>
@@ -96,6 +82,21 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     </Select>
                                 </FormControl>
                         </Grid>
+                        <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
+                            <FormControl fullWidth variant="outlined" required>
+                                <InputLabel >Employee Name</InputLabel>
+                                    <Select
+                                        label="Employee Name"
+                                        variant="outlined"
+                                        name="employeeName"
+                                        value={formValues.employeeName}
+                                        onChange={handleChange}
+                                    >
+                                        <MenuItem value="Branch1">Employee 1</MenuItem>
+                                        <MenuItem value="Branch2">Employee 2</MenuItem>
+                                    </Select>
+                                </FormControl>
+                        </Grid> 
                     </Grid>
 
                     {/* Second Row */}

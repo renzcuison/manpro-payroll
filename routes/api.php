@@ -148,7 +148,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
-        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeeController::class, 'getEmployeesByBranch']);
+        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
@@ -474,7 +474,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/editEvaluationResponse', [EvaluationResponseController::class, 'editEvaluationResponse']);
     Route::get('/getEvaluationResponse', [EvaluationResponseController::class, 'getEvaluationResponse']);
     Route::get('/getEvaluationResponses', [EvaluationResponseController::class, 'getEvaluationResponses']);
-    Route::get('/getEvaluationResponsesMaxPageCount', [EvaluationResponseController::class, 'getEvaluationResponsesMaxPageCount']);
     Route::post('/saveEvaluationResponse', [EvaluationResponseController::class, 'saveEvaluationResponse']);
 
     Route::post('/deleteEvaluationTextAnswer', [EvaluationResponseController::class, 'deleteEvaluationTextAnswer']);
