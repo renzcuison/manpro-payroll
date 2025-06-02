@@ -103,7 +103,7 @@ class UserAuthController extends Controller
                 'passcode' => 'required|string'
             ]);
 
-            $user = UsersModel::where(function ($query)
+            $user = UsersModel::with(['media','company.package'])->where(function ($query)
 
             use ($fields) {
                 $query->where('user_name', '=', $fields['username'])->orWhere('email', '=', $fields['username']);
