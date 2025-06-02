@@ -530,7 +530,7 @@ class EvaluationFormController extends Controller
             DB::beginTransaction();
 
             $evaluationFormSection = EvaluationFormSection
-                ::select('*')
+                ::select()
                 ->where('id', $request->id)
                 ->first()
             ;
