@@ -28,8 +28,6 @@ function UserInformation({ user }) {
     // const profilePic = user.media[0]?.original_url;
     const profilePic = user?.media?.length ? user.media[0]?.original_url : user?.avatar || "../../../../../images/avatarpic.jpg";
 
-    const [newProfilePic, setNewProfilePic] = useState("");
-
     const triggerFileInput = () => {
         console.log("triggerFileInput()");
 
@@ -68,17 +66,23 @@ function UserInformation({ user }) {
                 }).then((result) => {
                     if (result.isConfirmed) {
 
+                        // Render the selected file
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+
+                        // Upload the new profile picture
+                        saveProfilePic(event, file);
                     }
                 });
             }
         }
     };
 
-    const saveProfilePic = (event) => {
+    const saveProfilePic = (event, file) => {
         event.preventDefault();
         const formData = new FormData();
         formData.append("id", user.id);
-        formData.append("profile_picture", newProfilePic);
+        formData.append("profile_picture", file);
 
         axiosInstance
             .post("/employee/editMyProfilePicture", formData, { headers })
