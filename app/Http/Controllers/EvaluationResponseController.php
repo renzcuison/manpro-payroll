@@ -222,6 +222,15 @@ class EvaluationResponseController extends Controller
             ]);
 
             DB::beginTransaction();
+
+            $evaluationFormResponse = EvaluationFormResponse
+                ::select(
+                    'id', 'form_id', 'name', 'category', 'order', 'created_at',
+                    'updated_at'
+                )
+                ->where('id', $request->id)
+                ->first()
+            ;
             
             $conflictingEvaluationResponse = EvaluationResponse
                 ::where('evaluatee_id', $request->evaluatee_id)
