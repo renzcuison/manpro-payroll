@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
-  Menu,
-  MenuItem,
+  Button,
   Stack,
   Grid,
   CircularProgress,
@@ -333,42 +332,9 @@ const AnnouncementView = () => {
                 <Grid container size={12} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
                   {/* Header and Action Menu */}
                   <Grid size={12}>
-                    <Stack direction="row" sx={{ pb: 2, justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography variant={headSize} sx={{ fontWeight: "bold", color: "text.primary" }}>
-                        About This Announcement:
-                      </Typography>
-                      {!announcement.acknowledged && (
-                        <>
-                          <IconButton
-                            id="basic-button"
-                            size="small"
-                            aria-controls={menuOpen ? "basic-menu" : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={menuOpen ? "true" : undefined}
-                            onClick={handleMenuClick}
-                          >
-                            <MoreVert />
-                          </IconButton>
-                          <Menu
-                            id="basic-menu"
-                            anchorEl={anchorEl}
-                            open={menuOpen}
-                            onClose={handleMenuClose}
-                            MenuListProps={{ "aria-labelledby": "basic-button" }}
-                          >
-                            <MenuItem
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleAcknowledgeAnnouncement();
-                                handleMenuClose();
-                              }}
-                            >
-                              Acknowledge Announcement
-                            </MenuItem>
-                          </Menu>
-                        </>
-                      )}
-                    </Stack>
+                    <Typography variant={headSize} sx={{ fontWeight: "bold", color: "text.primary", mb: 1}}>
+                      About This Announcement:
+                    </Typography>  
                   </Grid>
                   {/* Posting Date */}
                   <Grid size={{ xs: 12, md: 6 }}>
@@ -562,6 +528,24 @@ const AnnouncementView = () => {
                       </ImageList>
                     </Grid>
                   </Grid>
+                )}
+                {/* Acknowledge Button */}
+                {!announcement.acknowledged && (
+                  <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%", mt: 2 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleAcknowledgeAnnouncement();
+                        handleMenuClose();
+                      }}
+                    >
+                      <p className="m-0">
+                        <i className="fa fa-check"></i> Acknowledge{" "}
+                      </p>
+                    </Button>
+                  </Box>
                 )}
               </Grid>
             )}
