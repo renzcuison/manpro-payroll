@@ -14,12 +14,14 @@ import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationF
 import PerformanceEvaluationFormSection from './Subsections/PerformanceEvaluationFormSection';
 import Swal from 'sweetalert2';
 import { useEvaluationForm } from '../../../hooks/useEvaluationForm';
-
+import CloseIcon from '@mui/icons-material/Close'; 
+import { useNavigate } from 'react-router-dom';
 const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams();
     const { creatorName, createdDate, formId, loading, notFound, sections, saveSection } =
         useEvaluationForm({ name: formName })
     ;
+    const navigate = useNavigate();
 
     // Section modal state
     const [addSectionOpen, setAddSectionOpen] = useState(false);
@@ -53,8 +55,19 @@ const PerformanceEvaluationFormPage = () => {
     return (
         <Layout title="Performance Evaluation Form">
             <Box sx={{ mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative', maxWidth: '1000px', mx: 'auto', boxShadow: 3 }}>
-                <IconButton sx={{ position: 'absolute', top: 24, right: 24 }} onClick={handleSettings}>
-                    <SettingsIcon sx={{ color: '#bdbdbd', fontSize: 32 }} />
+<               IconButton
+                    onClick={() => navigate(-1)}
+                    sx={{
+                        position: 'absolute',
+                        top: 25,
+                        right: 30,
+                        border: '1px solid #BEBEBE',
+                        borderRadius: '50%',
+                        padding: '5px',
+                        color: '#BEBEBE',
+                    }}
+                >
+                    <CloseIcon sx={{ fontSize: '1.2rem' }} /> {/* Adjust the size here */}
                 </IconButton>
 
                 {loading ? (

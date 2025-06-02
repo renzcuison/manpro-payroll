@@ -434,8 +434,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEmployeePayroll/{id}', [HrEmployeesController::class, 'getEmployeePayroll']);
 
     // New API for Employees
-    Route::get('/getEmployees', [HrEmployeesController::class, 'getEmployees']);
     Route::get('/getAdmins', [HrEmployeesController::class, 'getAdmins']);
+    Route::get('/getEmployeesName', [HrEmployeesController::class, 'getEmployeesName']);
 
     // Work Shift
     // Route::get('/getWorkShift', [HrEmployeesController::class, 'getWorkShift']);
@@ -725,15 +725,21 @@ Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.
 Route::get('/token', [VoiceController::class, 'getToken']);
 
 //Annoucements Type
-Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
-Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
-Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
+// Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
+// Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
+// Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
 
 Route::get('/settings/getEmploymentTypes', [SettingsController::class, 'getEmploymentTypes']);
 Route::get('/settings/getStatuses', [SettingsController::class, 'getStatuses']);
 
 
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
+    Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
+    Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
+    Route::get('/settings/getRoles', [AnnouncementsController::class, 'getRoles']);
 
+});
 
 
 

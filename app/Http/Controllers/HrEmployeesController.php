@@ -1957,7 +1957,7 @@ class HrEmployeesController extends Controller
     // -----------------------  NEW  FUNCTIONS  -----------------------
     // ----------------------------------------------------------------
 
-    public function getEmployees(Request $request)
+    public function getEmployeesName(Request $request)
     {
 
         // inputs:
@@ -1978,7 +1978,7 @@ class HrEmployeesController extends Controller
             }[]
         */
 
-        log::info('HrEmployeesController::getEmployees');
+        log::info('HrEmployeesController::getEmployeesName');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -1990,18 +1990,9 @@ class HrEmployeesController extends Controller
 
         try {
 
-            $employees = UsersModel
-                ::select(
-                    'id', 'user_name', 'first_name', 'middle_name', 'last_name', 'suffix',
-                    'birth_date', 'gender', 'address', 'contact_number', 'email', 'user_type',
-                    'salary_type', 'is_fixed_salary', 'tin_number', 'deduct_tax',
-                    'profile_pic', 'verify_code', 'code_expiration', 'is_verified',
-                    'employment_type', 'employment_status', 'client_id', 'company_id',
-                    'branch_id', 'branch_position_id', 'department_id', 'role_id',
-                    'job_title_id', 'work_group_id', 'date_start', 'date_end', 'updated_at'
-                )
-                ->where('user_type', 'Employee')
-            ;
+            $employees = UsersModel::select(
+                'id', 'first_name', 'middle_name', 'last_name'
+            );
             if($request->branch_id)
                 $employees = $employees->where('branch_id', $request->branch_id);
             if($request->department_id)
@@ -2012,10 +2003,13 @@ class HrEmployeesController extends Controller
                 ->orderBy('middle_name')
                 ->get()
             ;
-            if( !$employees ) return response()->json([
-                'status' => 404,
-                'message' => 'No employees found!'
-            ]);
+            if ($employees->isEmpty()) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'No employees found!',
+                    'employees' => [],
+                ]);
+            }
             return response()->json([
                 'status' => 200,
                 'message' => 'Employees successfully retrieved.',
