@@ -18,6 +18,8 @@ import { Plus } from "lucide-react";
 import CakeIcon from "@mui/icons-material/Cake";
 import WorkIcon from "@mui/icons-material/Work";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import { useDashboard } from "../Dashboard/useDashboard";
+import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 
 const iconMap = {
     birthday: <CakeIcon color="secondary" />,
@@ -26,8 +28,20 @@ const iconMap = {
 };
 
 function Milestones() {
-    const { data, isFetching, refetch, isLoading } = useMilestones();
-    console.log(data);
+    // const { data, isFetching, refetch, isLoading } = useMilestones();
+
+    const {
+        data: dashboard,
+        isFetched: isFetchedDashboard,
+        isLoading,
+    } = useDashboard();
+
+    if (isLoading) {
+        return <LoadingSpinner />;
+    }
+
+    const { milestones } = dashboard;
+    console.log(milestones);
 
     return (
         <Layout>
@@ -54,7 +68,7 @@ function Milestones() {
                 <Divider sx={{ borderStyle: "dashed" }} />
 
                 <Grid container spacing={2}>
-                    {data?.map((milestone) => (
+                    {milestones?.map((milestone) => (
                         <Grid size={{ xs: 12, md: 6 }} key={milestone.id}>
                             <Card
                                 elevation={3}

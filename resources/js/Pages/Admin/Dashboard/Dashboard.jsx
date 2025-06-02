@@ -46,8 +46,10 @@ const Dashboard = () => {
         isLoading,
     } = useDashboard();
 
-    const { data: milestones, isLoading: isLoadingMilestones } =
-        useMilestones();
+    console.log(dashboard);
+
+    // const { data: milestones, isLoading: isLoadingMilestones } =
+    //     useMilestones();
 
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
@@ -316,7 +318,7 @@ const Dashboard = () => {
                                 bgcolor: "background.paper",
                             }}
                         >
-                            {milestones?.map((emp, index) => (
+                            {dashboard?.milestones?.map((emp, index) => (
                                 <React.Fragment key={index}>
                                     <ListItem
                                         alignItems="flex-start"
