@@ -52,7 +52,7 @@ const PerformanceEvaluationFormPage = () => {
 
     return (
         <Layout title="Performance Evaluation Form">
-            <Box sx={{ mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative', maxWidth: '1000px', mx: 'auto' }}>
+            <Box sx={{ mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative', maxWidth: '1000px', mx: 'auto', boxShadow: 3 }}>
                 <IconButton sx={{ position: 'absolute', top: 24, right: 24 }} onClick={handleSettings}>
                     <SettingsIcon sx={{ color: '#bdbdbd', fontSize: 32 }} />
                 </IconButton>
