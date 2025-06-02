@@ -176,7 +176,7 @@ class EmployeesController extends Controller
                     $employee->code_expiration,
                     $employee->is_verified,
                     $employee->client_id,
-                    // $employee->branch_id,
+                    $employee->branch_id,
                     // $employee->department_id,
                     // $employee->role_id,
                     // $employee->job_title_id,
@@ -191,6 +191,27 @@ class EmployeesController extends Controller
 
         return response()->json(['status' => 200, 'employees' => null]);
     }
+
+
+
+    public function getEmployeesByBranch($id)
+{
+    try {
+        $employees = Employee::where('branch_id', $id)
+            ->select('id', 'first_name', 'last_name', 'avatar')
+            ->get();
+            
+        return response()->json([
+            'status' => 200,
+            'employees' => $employees
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 500,
+            'message' => 'Error fetching employees by branch'
+        ]);
+    }
+}
 
 
 

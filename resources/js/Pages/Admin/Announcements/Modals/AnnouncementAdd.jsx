@@ -19,7 +19,11 @@ import {
     Select,
     MenuItem,
     Stack,
-    Radio
+    Radio,
+    useMediaQuery,
+    Divider,
+    Tabs,
+    Tab
 } from "@mui/material";
 import { Cancel } from "@mui/icons-material";
 import React, { useState, useEffect, useRef } from "react";
@@ -46,12 +50,16 @@ const AnnouncementAdd = ({ open, close }) => {
     const [attachment, setAttachment] = useState([]);
     const [image, setImage] = useState([]);
     const [thumbnailIndex, setThumbnailIndex] = useState(null);
+    const [tab, setTab] = useState(0);
 
     // Form Errors
     const [titleError, setTitleError] = useState(false);
     const [descriptionError, setDescriptionError] = useState(false);
     const [attachmentError, setAttachmentError] = useState(false);
     const [imageError, setImageError] = useState(false);
+
+    // Tab change for preview
+    const handleTabChange = (_, newValue) => setTab(newValue);
 
     // Attachment Handlers
     const handleAttachmentUpload = (input) => {
@@ -182,15 +190,13 @@ const AnnouncementAdd = ({ open, close }) => {
         const formData = new FormData();
         formData.append("title", title);
         formData.append("description", description);
-        formData.append("thumbnail", thumbnailIndex);
+        formData.append("thumbnail", 0);
+        image.forEach(file => {
+            formData.append('image[]', file);
+        });
         if (attachment.length > 0) {
             attachment.forEach(file => {
                 formData.append('attachment[]', file);
-            });
-        }
-        if (image.length > 0) {
-            image.forEach(file => {
-                formData.append('image[]', file);
             });
         }
 
@@ -227,7 +233,7 @@ const AnnouncementAdd = ({ open, close }) => {
 
     return (
         <>
-            <Dialog
+             <Dialog
                 open={open}
                 fullWidth
                 maxWidth="md"
@@ -238,7 +244,8 @@ const AnnouncementAdd = ({ open, close }) => {
                         borderRadius: '20px',
                         minWidth: { xs: "100%", sm: "700px" },
                         maxWidth: '800px',
-                        marginBottom: '5%'
+                        marginBottom: '5%',
+                        marginTop: '5%'
                     }
                 }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
@@ -252,7 +259,9 @@ const AnnouncementAdd = ({ open, close }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
+                <Divider></Divider>
+
+                <DialogContent sx={{ padding: 4, mt: 2, mb: 3 }}>
                     <Box
                         component="form"
                         onSubmit={checkInput}
@@ -260,68 +269,267 @@ const AnnouncementAdd = ({ open, close }) => {
                         autoComplete="off"
                     >
                         <Grid container columnSpacing={2} rowSpacing={3}>
-                            {/* Title Field */}
+                            {/* Thumbnail Section */}
+                            <Box
+                                sx={{
+                                    border: "1.5px solid #E0E0E0",
+                                    borderRadius: 2,
+                                    height: 140,
+                                    background: "#fff",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    flexDirection: "column",
+                                    mb: 1,
+                                    width: "100%",
+                                    position: "relative",
+                                    cursor: "pointer" // Make it look clickable
+                                }}
+                                onClick={() => document.getElementById('thumbnail-upload').click()}
+                            >
+                                <input
+                                    accept=".png, .jpg, .jpeg"
+                                    id="thumbnail-upload"
+                                    type="file"
+                                    style={{ display: "none" }}
+                                    onChange={e => {
+                                        const files = Array.from(e.target.files);
+                                        if (files.length > 0) {
+                                            let validFiles = validateFiles(files, image.length, 10, 5242880, "image");
+                                            if (validFiles) {
+                                                setImage(prev => [files[0], ...prev.slice(1)]); // Replace the first image (thumbnail)
+                                            }
+                                        }
+                                    }}
+                                />
+                                {image.length > 0 ? (
+                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", width: "100%", height: "100%", padding: 1 }}>
+                                        <img
+                                            src={URL.createObjectURL(image[0])}
+                                            alt="Thumbnail Preview"
+                                            style={{ maxHeight: "100%", maxWidth: "100%", borderRadius: 4, border: "1px solid #e0e0e0" }}
+                                        />
+                                        <IconButton
+                                            size="small"
+                                            sx={{
+                                                position: "absolute",
+                                                top: 8,
+                                                right: 8,
+                                                background: "#fff",
+                                                "&:hover": { background: "#f5f5f5" }
+                                            }}
+                                            onClick={e => {
+                                                e.stopPropagation(); // Prevent triggering the file input
+                                                setImage(prev => prev.slice(1));
+                                            }}
+                                        >
+                                            <Cancel />
+                                        </IconButton>
+                                    </Box>
+                                ) : (
+                                    <Button
+                                        variant="outlined"
+                                        component="span"
+                                        sx={{ mt: 2 }}
+                                    >
+                                        Upload Thumbnail (OPTIONAL)
+                                    </Button>
+                                )}
+                            </Box>
+                           {/* Title Field */}
                             <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
                                 <FormControl fullWidth>
                                     <TextField
-                                        required
-                                        fullWidth
-                                        label="Title"
-                                        variant="outlined"
+                                        placeholder="TITLE HERE*"
                                         value={title}
-                                        error={titleError}
                                         onChange={(event) => {
                                             if (event.target.value.length <= 128) {
                                                 setTitle(event.target.value);
                                             }
                                         }}
-                                        inputProps={{ maxLength: 128 }}
+                                        fullWidth
+                                        required
+                                        variant="outlined"
+                                        error={titleError}
+                                        sx={{
+                                            "& input": { fontWeight: 500, fontSize: "1.1rem" }
+                                        }}
+                                        inputProps={{
+                                            maxLength: 128,
+                                        }}
+                                        helperText={`${title.length}/128`}
                                     />
-                                    <FormHelperText>
-                                        {title.length}/{128}
-                                    </FormHelperText>
                                 </FormControl>
                             </Grid>
-                            {/* Description Field */}
+                            {/* Description Field with Tabs */}
+                            <Box
+                                sx={{
+                                    border: "1.5px solid #E0E0E0",
+                                    borderRadius: 2,
+                                    background: "#fff",
+                                    mb: 3,
+                                    overflow: "hidden",
+                                    width: "100%",
+                                }}
+                            >
+                                <Tabs
+                                    value={tab}
+                                    onChange={handleTabChange}
+                                    TabIndicatorProps={{
+                                        style: { background: "#177604", height: 3, borderRadius: 2 }
+                                    }}
+                                    sx={{
+                                        borderBottom: "1.5px solid #E0E0E0",
+                                        minHeight: 44,
+                                        pl: 1,
+                                        ".MuiTabs-flexContainer": { gap: 2 }
+                                    }}
+                                >
+                                    <Tab label="WRITE" />
+                                    <Tab label="PREVIEW" />
+                                </Tabs>
+                                <Box sx={{ p: 2, pt: 1 }}>
+                                    {tab === 0 ? (
+                                        <Box
+                                            sx={{
+                                                border: descriptionError ? "1px solid red" : "1px solid #E0E0E0",
+                                                borderRadius: 2,
+                                                background: "#fff",
+                                                minHeight: 120,
+                                                "& .ql-toolbar": {
+                                                    border: "none",
+                                                    borderBottom: "1px solid #e0e0e0",
+                                                    borderRadius: 0,
+                                                    padding: "4px 8px",
+                                                    fontSize: "1rem",
+                                                },
+                                                "& .ql-container": {
+                                                    border: "none",
+                                                    fontSize: "1rem",
+                                                    color: "#757575",
+                                                    minHeight: 80,
+                                                },
+                                            }}
+                                        >
+                                            <ReactQuill
+                                                theme="snow"
+                                                value={description}
+                                                onChange={setDescription}
+                                                placeholder="DESCRIPTION HERE*"
+                                                modules={{
+                                                    toolbar: [
+                                                        [{ 'header': [false, 1, 2, 3] }],
+                                                        ['bold', 'italic', 'underline'],
+                                                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                                        ['link', 'strike'],
+                                                    ]
+                                                }}
+                                                style={{
+                                                    background: "transparent",
+                                                    border: "none",
+                                                    marginBottom: '3rem', 
+                                                    height: '150px'
+                                                }}
+                                            />
+                                            <Typography variant="caption" sx={{ float: "right", color: "#999" }}>
+                                                {description.length}/512
+                                            </Typography>
+                                        </Box>
+                                    ) : (
+                                        <Box sx={{
+                                            minHeight: 120,
+                                            color: "#333",
+                                            fontSize: "1rem",
+                                            p: 1,
+                                        }}>
+                                            <div dangerouslySetInnerHTML={{ __html: description || "<em>No content</em>" }} />
+                                        </Box>
+                                    )}
+                                </Box>
+                            </Box>
+                            {/* Image Upload */}
                             <Grid size={12}>
-                                <FormControl error={descriptionError} sx={{ width: '100%' }}>
-                                    <div style={{ border: descriptionError ? '1px solid red' : '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
-                                        <ReactQuill
-                                            id='description'
-                                            name='description'
-                                            value={description}
-                                            onChange={(value) => {
-                                                if (value.length <= 512) {
-                                                    setDescription(value);
-                                                }
+                                <FormControl fullWidth>
+                                    <Box sx={{ width: "100%" }}>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
                                             }}
-                                            placeholder="Enter announcement description here *"
-                                            modules={{
-                                                toolbar: [
-                                                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                                                    ['bold', 'italic', 'underline', 'strike'],
-                                                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                                                    [{ align: '' }, { align: 'center' }, { align: 'right' }, { align: 'justify' }],
-                                                    ['link'],
-                                                    ['clean']
-                                                ],
+                                        >
+                                            <Typography noWrap>
+                                                Images
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
+                                                
+                                                <input
+                                                    accept=".png, .jpg, .jpeg"
+                                                    id="image-upload"
+                                                    type="file"
+                                                    name="image"
+                                                    multiple
+                                                    style={{ display: "none" }}
+                                                    onChange={handleImageUpload}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
+                                                    onClick={() => document.getElementById('image-upload').click()}
+                                                >
+                                                    <p className="m-0">
+                                                        <i className="fa fa-plus"></i> Add
+                                                    </p>
+                                                </Button>
+                                            </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={1}
+                                            sx={{
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                mt: 1
                                             }}
-                                            formats={[
-                                                'header', 'font', 'size',
-                                                'bold', 'italic', 'underline', 'strike', 'blockquote',
-                                                'list', 'bullet', 'indent',
-                                                'align',
-                                                'link', 'image', 'video'
-                                            ]}
-                                            theme="snow"
-                                            style={{ marginBottom: '3rem', height: '150px', width: '100%' }}
-                                        ></ReactQuill>
-                                        <FormHelperText>
-                                            {description.length}/{512}
-                                        </FormHelperText>
-                                    </div>
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                Max Limit: 10 Files, 5 MB Each
+                                            </Typography>
+                                            {image.length > 0 && (
+                                                <Stack direction="row" spacing={1}>
+                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                        Remove
+                                                    </Typography>
+                                                </Stack>
+                                            )}
+                                        </Stack>
+                                        {/* Added Images */}
+                                        {image.length > 0 && (
+                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
+                                                {image.map((file, index) => (
+                                                    <Box
+                                                        key={index}
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px'
+                                                        }}
+                                                    >
+                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
+                                                        <Stack direction="row" spacing={3}>
+                                                            <IconButton onClick={() => handleDeleteImage(index)} size="small">
+                                                                <Cancel />
+                                                            </IconButton>
+                                                        </Stack>
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        )}
+                                    </Box>
                                 </FormControl>
-
                             </Grid>
                             {/* Attachment Upload */}
                             <Grid size={12}>
@@ -334,10 +542,10 @@ const AnnouncementAdd = ({ open, close }) => {
                                                 width: "100%",
                                             }}
                                         >
-                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
-                                                <Typography noWrap>
-                                                    Documents
-                                                </Typography>
+                                            <Typography noWrap>
+                                                Documents
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                 <input
                                                     accept=".doc, .docx, .pdf, .xls, .xlsx"
                                                     id="attachment-upload"
@@ -350,7 +558,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                                 <Button
                                                     variant="contained"
                                                     size="small"
-                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: "auto" }}
+                                                    sx={{ backgroundColor: "#42a5f5", color: "white" }}
                                                     onClick={() => document.getElementById('attachment-upload').click()}
                                                 >
                                                     <p className="m-0">
@@ -395,98 +603,6 @@ const AnnouncementAdd = ({ open, close }) => {
                                                         <IconButton onClick={() => handleDeleteAttachment(index)} size="small">
                                                             <Cancel />
                                                         </IconButton>
-                                                    </Box>
-                                                ))}
-                                            </Stack>
-                                        )}
-                                    </Box>
-                                </FormControl>
-                            </Grid>
-                            {/* Image Upload */}
-                            <Grid size={12}>
-                                <FormControl fullWidth>
-                                    <Box sx={{ width: "100%" }}>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                            }}
-                                        >
-                                            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
-                                                <Typography noWrap>
-                                                    Images
-                                                </Typography>
-                                                <input
-                                                    accept=".png, .jpg, .jpeg"
-                                                    id="image-upload"
-                                                    type="file"
-                                                    name="image"
-                                                    multiple
-                                                    style={{ display: "none" }}
-                                                    onChange={handleImageUpload}
-                                                />
-                                                <Button
-                                                    variant="contained"
-                                                    size="small"
-                                                    sx={{ backgroundColor: "#42a5f5", color: "white", marginLeft: 'auto' }}
-                                                    onClick={() => document.getElementById('image-upload').click()}
-                                                >
-                                                    <p className="m-0">
-                                                        <i className="fa fa-plus"></i> Add
-                                                    </p>
-                                                </Button>
-                                            </Box>
-                                        </Stack>
-                                        <Stack direction="row" spacing={1}
-                                            sx={{
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                mt: 1
-                                            }}
-                                        >
-                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                Max Limit: 10 Files, 5 MB Each
-                                            </Typography>
-                                            {image.length > 0 && (
-                                                <Stack direction="row" spacing={1}>
-                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                        Set Thumbnail
-                                                    </Typography>
-                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                        Remove
-                                                    </Typography>
-                                                </Stack>
-                                            )}
-                                        </Stack>
-                                        {/* Added Images */}
-                                        {image.length > 0 && (
-                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
-                                                {image.map((file, index) => (
-                                                    <Box
-                                                        key={index}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center',
-                                                            border: '1px solid #e0e0e0',
-                                                            borderRadius: '4px',
-                                                            padding: '4px 8px'
-                                                        }}
-                                                    >
-                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
-                                                        <Stack direction="row" spacing={3}>
-                                                            <Radio
-                                                                checked={thumbnailIndex === index}
-                                                                onChange={() => setThumbnailIndex(index)}
-                                                                name="thumbnail"
-                                                                inputProps={{ 'aria-label': `Choose ${file.name} as thumbnail` }}
-                                                            />
-                                                            <IconButton onClick={() => handleDeleteImage(index)} size="small">
-                                                                <Cancel />
-                                                            </IconButton>
-                                                        </Stack>
                                                     </Box>
                                                 ))}
                                             </Stack>

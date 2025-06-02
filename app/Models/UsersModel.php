@@ -151,17 +151,24 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->BelongsTo(Company::class, 'company_id');
     }
 
-
-    public function approverOf() {
-    return $this->hasMany(BranchApprover::class);
+    public function evaluateeForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'evaluatee_id');
     }
 
-    public function managerOf() {
-        return $this->hasMany(BranchManager::class);
+    public function evaluatorForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'evaluator_id');
     }
 
-    public function supervisorOf() {
-        return $this->hasMany(BranchSupervisor::class);
+    public function primaryCommentorForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'primary_commentor_id');
+    }
+
+    public function secondaryCommentorForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'secondary_commentor_id');
     }
     
 }
