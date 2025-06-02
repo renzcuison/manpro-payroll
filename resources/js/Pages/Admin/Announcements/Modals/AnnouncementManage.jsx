@@ -872,9 +872,6 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                                 <Typography variant="body2">
                                                                     Type: {ack.emp_type || 'N/A'}
                                                                 </Typography>
-                                                                <Typography variant="body2">
-                                                                    Acknowledged on: {dayjs(ack.timestamp).format('MMM D, YYYY h:mm A') || 'N/A'}
-                                                                </Typography>
                                                             </Box>
                                                         }
                                                         arrow 
