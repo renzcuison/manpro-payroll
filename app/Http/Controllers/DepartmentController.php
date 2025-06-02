@@ -38,22 +38,23 @@ class DepartmentController extends Controller
             $userID = null;
         }
     
-        $user = DB::table('users')->where('id', $userID)->first();
+        $userID = Auth::check() ? Auth::id() : null;
+    $user = DB::table('users')->where('id', $userID)->first();
 
         try {
 
             $departments = DepartmentsModel::select(
-                'id', 'name', 'acronym', 'description', 'status', 'client_id', 'leave_limit',
-                'manager_id', 'supervisor_id', 'approver_id', 'created_at', 'updated_at'
+                'id', 'name', 'acronym', 'description', 'status', 'client_id', 'created_at', 'updated_at'
             );
             switch($request->status) {
                 case 'disabled':
                     $departments = $departments->where('status', 'Disabled');
-                case 'inctive':
+                case 'inactive':
                     $departments = $departments->where('status', 'Inactive');
                 case 'active':
                 default:
                     $departments = $departments->where('status', 'Active');
+                    break;
             }
             $departments = $departments->orderBy('name')->get();
             if( !$departments->count() ) return response()->json([

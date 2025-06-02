@@ -43,8 +43,7 @@ class BranchController extends Controller
         try {
 
             $branches = BranchesModel::select(
-                'id', 'name', 'acronym', 'address', 'status', 'client_id', 'leave_limit',
-                'manager_id', 'supervisor_id', 'approver_id', 'created_at', 'updated_at'
+                'id', 'name', 'acronym', 'address', 'status', 'client_id', 'created_at', 'updated_at'
             );
             switch($request->status) {
                 case 'disabled':
@@ -54,6 +53,7 @@ class BranchController extends Controller
                 case 'active':
                 default:
                     $branches = $branches->where('status', 'Active');
+                    break;
             }
             $branches = $branches->orderBy('name')->get();
             if( !$branches->count() ) return response()->json([

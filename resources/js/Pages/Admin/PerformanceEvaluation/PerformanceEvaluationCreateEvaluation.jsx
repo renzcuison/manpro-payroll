@@ -46,7 +46,6 @@ const PerformanceEvaluationCreateEvaluation = () => {
         const { name, value } = event.target;
         const updatedValues = { ...formValues, [name]: value };
 
-        // Reset dependent fields
         if (name === 'branch') {
             updatedValues.department = '';
             updatedValues.employeeName = '';
@@ -57,11 +56,11 @@ const PerformanceEvaluationCreateEvaluation = () => {
 
         setFormValues(updatedValues);
 
-        // Fetch employees if both branch and department are selected
-        if (updatedValues.branch && updatedValues.department) {
-            fetchEmployees(updatedValues.branch, updatedValues.department);
-        }
+        console.log('handleChange:', name, value, updatedValues);
     };
+
+    const [performanceEvaluation, setEvaluationForm] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Fetch branches, copying from AnnouncementPublish
     const fetchBranches = async () => {
@@ -98,11 +97,13 @@ const PerformanceEvaluationCreateEvaluation = () => {
 
     // Fetch employees filtered by branch and/or department
     const fetchEmployees = async (branchId, departmentId) => {
+        console.log('fetchEmployees called!', branchId, departmentId);
         try {
             const params = {};
             if (branchId) params.branch_id = branchId;
             if (departmentId) params.department_id = departmentId;
-            const response = await axiosInstance.get('/getEmployees', { params, headers });
+            const response = await axiosInstance.get('/getEmployeesName', { params, headers });
+            console.log('Employees API response:', response);
             if (response.data.status === 200) {
                 setEmployees(response.data.employees);
             } else {
@@ -116,16 +117,27 @@ const PerformanceEvaluationCreateEvaluation = () => {
 
     // When branch changes, fetch departments and reset employee list
     useEffect(() => {
-        if (formValues.branch) {
-            fetchDepartments(formValues.branch);
-            setEmployees([]);
-            setFormValues(prev => ({ ...prev, department: '', employeeName: '' }));
+        console.log('useEffect fired:', formValues.branch, formValues.department);
+        if (formValues.branch && formValues.department) {
+            console.log('Calling fetchEmployees with:', formValues.branch, formValues.department);
+            fetchEmployees(formValues.branch, formValues.department);
         } else {
-            fetchDepartments();
             setEmployees([]);
-            setFormValues(prev => ({ ...prev, department: '', employeeName: '' }));
+            setFormValues(prev => ({ ...prev, employeeName: '' }));
         }
-    }, [formValues.branch]);
+    }, [formValues.department, formValues.branch]);
+
+    useEffect(() => {
+        setIsLoading(true);
+        axiosInstance.get('/getEvaluationForms', { headers })
+            .then((response) => {
+                setEvaluationForm(response.data.evaluationForms || []);
+            })
+            .catch(() => {
+                setEvaluationForm([]);
+            })
+            .finally(() => setIsLoading(false));
+    }, []);
 
     // When department changes, fetch employees
     useEffect(() => {
@@ -324,8 +336,17 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     value={formValues.evaluationForm}
                                     onChange={handleChange}
                                 >
-                                    <MenuItem value="Branch1">Evaluation Form 1</MenuItem>
-                                    <MenuItem value="Branch2">Evaluation Form 2</MenuItem>
+                                    {isLoading ? (
+                                        <MenuItem disabled>Loading forms...</MenuItem>
+                                    ) : performanceEvaluation.length === 0 ? (
+                                        <MenuItem disabled>No evaluation forms found</MenuItem>
+                                    ) : (
+                                        performanceEvaluation.map(form => (
+                                            <MenuItem key={form.id} value={form.id}>
+                                                {form.name}
+                                            </MenuItem>
+                                        ))
+                                    )}
                                 </Select>
                             </FormControl>
                         </Grid>
