@@ -495,7 +495,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         Edit
                                                     </MenuItem>
                                                 )}
-                                                {announcement.status === "Pending" && (
+                                                {!scheduledSendDatetime && announcement.status === "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
@@ -572,7 +572,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             />
                                         </Grid>
                                     )}
-                                    {announcement.status !== "Pending" ? (
+                                    {announcement.status !== "Pending" || scheduledSendDatetime ? (
                                         <Grid container size={12} spacing={1}>
                                             <Grid size={12}>
                                                 <InfoBox
