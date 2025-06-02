@@ -17,6 +17,7 @@ use App\Http\Controllers\BenefitsController;
 use App\Http\Controllers\AllowanceController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\TrainingsController;
+use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceMobileController;
@@ -86,9 +87,17 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/auth', [UserAuthController::class, 'index']);
     Route::post('/logout', [UserAuthController::class, 'logout']);
 
+    Route::prefix('branches')->group(function () {
+        Route::get('/getBranches', [BranchController::class, 'getBranches']);
+    });
+
     Route::prefix('clients')->group(function () {
         Route::get('/getClients', [ClientsController::class, 'getClients']);
         Route::post('/saveClient', [ClientsController::class, 'saveClient']);
+    });
+
+    Route::prefix('departments')->group(function () {
+        Route::get('/getDepartments', [DepartmentController::class, 'getDepartments']);
     });
 
     Route::prefix('admin/documents')->group(function () {
@@ -330,7 +339,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         // Details
         Route::get('/getAnnouncementDetails/{code}', [AnnouncementsController::class, 'getAnnouncementDetails']);
         Route::get('/getEmployeeAnnouncementDetails/{code}', [AnnouncementsController::class, 'getEmployeeAnnouncementDetails']);
-        Route::get('/getAnnouncementBranchDepts/{code}', [AnnouncementsController::class, 'getAnnouncementBranchDepts']);
+        Route::get('/getAnnouncementPublishmentDetails/{code}', [AnnouncementsController::class, 'getAnnouncementPublishmentDetails']);
 
         // Files
         Route::get('/downloadFile/{id}', [AnnouncementsController::class, 'downloadFile']);
@@ -440,7 +449,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEmployeePayroll/{id}', [HrEmployeesController::class, 'getEmployeePayroll']);
 
     // New API for Employees
-    Route::get('/getEmployees', [HrEmployeesController::class, 'getEmployees']);
+    Route::get('/getEmployeesName', [HrEmployeesController::class, 'getEmployeesName']);
 
     // Work Shift
     // Route::get('/getWorkShift', [HrEmployeesController::class, 'getWorkShift']);
@@ -489,7 +498,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/editEvaluationResponse', [EvaluationResponseController::class, 'editEvaluationResponse']);
     Route::get('/getEvaluationResponse', [EvaluationResponseController::class, 'getEvaluationResponse']);
     Route::get('/getEvaluationResponses', [EvaluationResponseController::class, 'getEvaluationResponses']);
-    Route::get('/getEvaluationResponsesMaxPageCount', [EvaluationResponseController::class, 'getEvaluationResponsesMaxPageCount']);
     Route::post('/saveEvaluationResponse', [EvaluationResponseController::class, 'saveEvaluationResponse']);
 
     Route::post('/deleteEvaluationTextAnswer', [EvaluationResponseController::class, 'deleteEvaluationTextAnswer']);
@@ -731,15 +739,21 @@ Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.
 Route::get('/token', [VoiceController::class, 'getToken']);
 
 //Annoucements Type
-Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
-Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
-Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
+// Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
+// Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
+// Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
 
 Route::get('/settings/getEmploymentTypes', [SettingsController::class, 'getEmploymentTypes']);
 Route::get('/settings/getStatuses', [SettingsController::class, 'getStatuses']);
 
 
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
+    Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
+    Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
+    Route::get('/settings/getRoles', [AnnouncementsController::class, 'getRoles']);
 
+});
 
 
 

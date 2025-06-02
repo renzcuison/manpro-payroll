@@ -19,6 +19,11 @@ class EvaluationPercentageAnswer extends Model
         'percentage',
         'deleted_at'
     ];
+    
+    protected $casts = [
+        'array_index' => 'integer',
+        'value' => 'integer'
+    ];
 
     public function response()
     {
