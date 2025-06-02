@@ -734,10 +734,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
     Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
 
+    Route::post('/google/event', [GoogleController::class, 'addEvent']);
+    Route::get('/google/events', [GoogleController::class, 'getEvents']);
+    Route::put('/google/event/{id}', [GoogleController::class, 'updateEvent']);
+    Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent']);
 });
 
-// Route::get('/google/redirect', [GoogleController::class, 'redirectToGoogle']);
-// Route::get('/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+Route::get('/google/redirect', [GoogleController::class, 'redirectToGoogle']);
+Route::get('/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 //Register
 Route::post('/create_employee_link', [HrEmployeesController::class, 'createEmployeeLink']);

@@ -74,6 +74,8 @@ import Documents from "../Pages/Admin/Documents";
 import AddNewPerimeter from "../Pages/Admin/Perimeters/AddRadiusPerimeter";
 import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
 
+import ScheduleModule from "../Pages/Admin/Schedules";
+import Milestones from "../Pages/Admin/Milestones";
 
 import PemeRecords from "../Pages/Admin/MedicalRecords/PEME/PemeRecords";
 import PemeRecordsForm from "../Pages/Admin/MedicalRecords/PEME/Forms/PemeRecordsForm";
@@ -286,44 +288,22 @@ const AdminRoutes = ({ user }) => {
             <Route
                 path="medical-records/peme-records/peme-questionnaire-preview/:PemeID"
                 element={
-                    <ProtectedRoute
-                        element={<PemeQuestionnairePreview />}
-                        user={user}
-                    />
+                    <ProtectedRoute element={<PemeQuestionnairePreview />} user={user} />
                 }
             />
 
             <Route
                 path="medical-records/group-life-masterlist-records"
                 element={
-                    <ProtectedRoute
-                        element={<GroupLifeMasterlist />}
-                        user={user}
-                    />
+                    <ProtectedRoute element={<GroupLifeMasterlist />} user={user} />
                 }
             />
 
-            <Route
-                path="medical-records/group-life-masterlist/group-life-employees/"
-                element={
-                    <ProtectedRoute
-                        element={<GroupLifeEmployees />}
-                        user={user}
-                    />
-                }
-            />
-
-            <Route
-                path="medical-records/hmo-masterlist-records"
-                element={
-                    <ProtectedRoute element={<HMOmasterlist />} user={user} />
-                }
-            />
-
-            <Route
-                path="loan-management"
-                element={<ProtectedRoute element={<LoanList />} user={user} />}
-            />
+            <Route path="medical-records/group-life-masterlist/group-life-employees/" element={ <ProtectedRoute element={<GroupLifeEmployees />} user={user} /> } />
+            <Route path="medical-records/hmo-masterlist-records" element={ <ProtectedRoute element={<HMOmasterlist />} user={user} /> } />
+            <Route path="loan-management" element={<ProtectedRoute element={<LoanList />} user={user} />} />
+            <Route path="schedules" element={ <ProtectedRoute element={<ScheduleModule />} user={user} /> } />
+            <Route path="milestones" element={ <ProtectedRoute element={<Milestones />} user={user} /> } />
         </Routes>
     );
 };
