@@ -186,7 +186,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                             width: "100%",
                             cursor: "pointer",
                             fontWeight: "bold",
-                            fontSize: 18,
+                            fontSize: 20,
                             color: 'white',
                         }}
                     >
@@ -229,7 +229,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 InputLabelProps={{
                                     style: { color: '#eab31a' }
                                 }}
-                                sx={{ mb: 2, mx: 2, mt: 2 }}
+                                sx={{ mb: 2, mx: 2, mt: 2}}
                                 required
                             />
                         ) : (
@@ -238,16 +238,17 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 sx={{
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    bgcolor: '#f6f6f6',
+                                    bgcolor: '#f3f3f3',
                                     borderRadius: 2,
                                     borderLeft: '8px solid #eab31a',
-                                    px: 3,
+                                    px: 2,
                                     pt: 2,
                                     pb: 2,
                                     mt: 2,
-                                    mb: 4,
+                                    mb: 2,
                                     mx: 2,
-                                    cursor: "pointer"
+                                    cursor: "pointer",
+                                    boxShadow: 2
                                 }}
                                 onDoubleClick={toggleEditableCategory}
                             >
@@ -255,19 +256,18 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                     variant="h6"
                                     sx={{
                                         fontWeight: 'bold',
-                                        color: '#222',
-                                        mb: 2
+                                        color: '#222'
                                     }}
                                 >
                                     {sectionCategory}
                                 </Typography>
-                                <Box
+                                {/* <Box
                                     sx={{
                                         borderBottom: "2px solid #ccc",
                                         width: "100%",
                                         mt: 1
                                     }}
-                                />
+                                /> */}
                             </Paper>
                         )
                     ) : (
@@ -286,7 +286,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 mb: 2,
                                 boxShadow: 2,
                                 borderRadius: 2,
-                                background: "#f6f6f6",
+                                background: "#f3f3f3",
                                 '&:before': { display: 'none' },
                                 mx: 2
                             }}
