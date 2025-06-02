@@ -64,12 +64,15 @@ const GroupLifeEmployees = () => {
                             <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                                 InsuranceCompanyName
                             </Typography>
-                            <Button
+                            <Grid item sx={{padding :'2'}}>                             
+                                <Button
                                 style = {{backgroundColor: "#727F91"}}
                                 onClick={handleOnBackClick}
                                 variant="contained">
                                     Back
                             </Button>
+
+                            <Button variant="contained">Add Employee</Button></Grid>
                             {/* <Button
                                 onClick={handleOnPreviewClick}
                                 variant="contained"

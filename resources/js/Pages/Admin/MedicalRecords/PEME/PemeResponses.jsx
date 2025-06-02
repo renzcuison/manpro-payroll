@@ -152,7 +152,7 @@ const PemeResponses = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {pemeRecords.peme}
+                            Group Life Masterlist
                         </Typography>
                         <Button
                             onClick={handleOnPreviewClick}

@@ -54,7 +54,7 @@ const PemeRecords = () => {
 
     const filteredRecords = pemeRecords.filter((record) =>
         [
-            dayjs(record.date).format("MMMM D, YYYY"),
+            dayjs(record.created_at).format("MMMM D, YYYY"), // format created_at for filtering
             record.exam || record.name,
         ].some((field) =>
             field?.toString().toLowerCase().includes(search.toLowerCase())
@@ -89,7 +89,7 @@ const PemeRecords = () => {
 
                         <Box>
                             <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
-                                <FormControl variant="outlined" sx={{ width: 652, mb: 1 }}>
+                                <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
                                 <InputLabel htmlFor="custom-search" >Search Date or Exam</InputLabel>
                                 <OutlinedInput
                                     id="custom-search"
@@ -107,48 +107,7 @@ const PemeRecords = () => {
                                     label="Search Date or Exam"
                                     />
                                 </FormControl>
-                                <Box sx={{ mx: -3, my: -1.5, pl: 3, pr: 3 }}>
-                            </Box>
                         </Box>
-                    </Box>
-
-                    <Box
-                        sx={{
-                            mt: 6,
-                            p: 3,
-                            bgcolor: "#ffffff",
-                            borderRadius: "8px",
-                        }}
-                    >
-                        <FormControl
-                            variant="outlined"
-                            sx={{ width: 652, mb: 1 }}
-                        >
-                            <InputLabel htmlFor="custom-search">
-                                Search Date or Exam
-                            </InputLabel>
-                            <OutlinedInput
-                                id="custom-search"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                endAdornment={
-                                    search && (
-                                        <InputAdornment position="end">
-                                            <Typography
-                                                variant="body2"
-                                                sx={{ color: "gray" }}
-                                            >
-                                                {resultsCount}{" "}
-                                                {resultsCount === 1
-                                                    ? "Result"
-                                                    : "Results"}
-                                            </Typography>
-                                        </InputAdornment>
-                                    )
-                                }
-                                label="Search Date or Exam"
-                            />
-                        </FormControl>
                     </Box>
 
                     <Box
@@ -167,7 +126,6 @@ const PemeRecords = () => {
                                 minWidth: 280,
                                 backgroundColor: "white",
                                 borderRadius: 2,
-                                boxShadow: 1,
                                 padding: 2,
                                 flexShrink: 0,
                             }}
@@ -181,23 +139,15 @@ const PemeRecords = () => {
                                 minWidth: 300,
                                 backgroundColor: "white",
                                 borderRadius: 2,
-                                boxShadow: 1,
                                 padding: 2,
                                 overflow: "hidden",
                             }}
                         >
-                            <TextField
-                                label="Search exam, date, or status"
-                                variant="outlined"
-                                fullWidth
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                sx={{ marginBottom: 2 }}
-                            />
-                            <PemeExamTypeTable
-                                records={filteredRecords}
-                                onRowClick={handleOnRowClick}
-                            />
+                        <PemeExamTypeTable
+                            records={filteredRecords}
+                            onRowClick={handleOnRowClick}
+                            search={search}
+                        />
                         </Box>
                     </Box>
                 </Box>
