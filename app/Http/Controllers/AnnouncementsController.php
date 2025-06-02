@@ -1000,15 +1000,21 @@ class AnnouncementsController extends Controller
                 return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
             }
 
-            $announcement->status = "Published";
-            $announcement->announcement_types_id = $request->input('announcement_type_id');
-            
-            // Set scheduled_send_datetime if provided
-            if ($request->filled('scheduled_send_datetime')) {
-                $announcement->scheduled_send_datetime = $request->input('scheduled_send_datetime');
+            // Scheduled publish logic
+            $scheduled = $request->input('scheduled_send_datetime');
+            $now = now();
+
+            if ($scheduled && $now->lt($scheduled)) {
+                // If scheduled date is in the future, set to Pending
+                $announcement->status = "Pending";
+                $announcement->scheduled_send_datetime = $scheduled;
             } else {
+                // Immediate publish
+                $announcement->status = "Published";
                 $announcement->scheduled_send_datetime = null;
             }
+
+            $announcement->announcement_types_id = $request->input('announcement_type_id');
             $announcement->save();
 
             // Clean up old relations
@@ -1039,7 +1045,6 @@ class AnnouncementsController extends Controller
             $branchIds = $request->input('branches', []);
             $departmentIds = $request->input('departments', []);
 
-            // Eager load company relation for company name in email (optional now)
             $recipientsQuery = UsersModel::with('company');
 
             if (!empty($roleIds)) {
@@ -1070,8 +1075,6 @@ class AnnouncementsController extends Controller
                     'employment_status' => $targetUser->employment_status,
                     'user_id' => $targetUser->id,
                 ]);
-
-                // Email sending logic removed
             }
 
             DB::commit();
@@ -1083,7 +1086,6 @@ class AnnouncementsController extends Controller
             return response()->json(['status' => 500, 'message' => 'Internal Server Error'], 500);
         }
     }
-
     public function getRoles()
     {
         $user = \Auth::user();

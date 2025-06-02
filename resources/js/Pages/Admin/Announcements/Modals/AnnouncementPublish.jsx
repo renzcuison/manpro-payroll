@@ -57,6 +57,9 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     //loading state
     const [saving, setSaving] = useState(false);
 
+    // Informative feedback for scheduling
+    const [schedulingInfo, setSchedulingInfo] = useState('');
+
     // Fetch data on mount
     useEffect(() => {
         // Fetch client_id for the logged-in user
@@ -248,6 +251,23 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
         }
     };
 
+    // Watch for scheduling changes to update info
+    useEffect(() => {
+        if (scheduledDate && scheduledTime) {
+            const scheduledSend = dayjs(
+                dayjs(scheduledDate).format('YYYY-MM-DD') + ' ' + scheduledTime,
+                'YYYY-MM-DD HH:mm'
+            );
+            if (scheduledSend.isAfter(dayjs())) {
+                setSchedulingInfo(`This announcement will be scheduled for ${scheduledSend.format('MMMM DD, YYYY hh:mm A')}. It will be automatically published at that time.`);
+            } else {
+                setSchedulingInfo('This announcement will be published immediately.');
+            }
+        } else {
+            setSchedulingInfo('');
+        }
+    }, [scheduledDate, scheduledTime]);
+
     // Validation & Submit
     const checkInput = (event) => {
         event.preventDefault();
@@ -271,6 +291,17 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
             reqMessage = "Select a Branch";
         } else if (selectedDepartments.length === 0) {
             reqMessage = "Select a Department";
+        }
+
+        // Validate date/time
+        if (scheduledDate && scheduledTime) {
+            const scheduledSend = dayjs(
+                dayjs(scheduledDate).format('YYYY-MM-DD') + ' ' + scheduledTime,
+                'YYYY-MM-DD HH:mm'
+            );
+            if (scheduledSend.isBefore(dayjs())) {
+                reqMessage = "Scheduled send date/time must be in the future.";
+            }
         }
 
         if (reqMessage) {
@@ -303,12 +334,13 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
 
     const saveInput = () => {
         setSaving(true); // Start loading
-        const scheduledSend = scheduledDate && scheduledTime
-            ? dayjs(
+        let scheduledSend = null;
+        if (scheduledDate && scheduledTime) {
+            scheduledSend = dayjs(
                 dayjs(scheduledDate).format('YYYY-MM-DD') + ' ' + scheduledTime,
                 'YYYY-MM-DD HH:mm'
-            ).format('YYYY-MM-DD HH:mm:ss')
-            : null;
+            ).format('YYYY-MM-DD HH:mm:ss');
+        }
 
         const data = {
             unique_code: announceInfo?.unique_code,
@@ -328,7 +360,9 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                 Swal.fire({
                     customClass: { container: "my-swal" },
                     title: "Success!",
-                    text: "Announcement published.",
+                    text: scheduledSend
+                        ? "Announcement has been scheduled for publishing."
+                        : "Announcement published.",
                     icon: "success",
                     confirmButtonColor: '#177604'
                 }).then(() => handleClose());
@@ -651,6 +685,11 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                         />
                         </Box>
                     </LocalizationProvider>
+                    {schedulingInfo && (
+                        <Typography variant="caption" sx={{ color: 'gray', mt: 1 }}>
+                            {schedulingInfo}
+                        </Typography>
+                    )}
                     </FormControl>
                     <Box display="flex" justifyContent="center" sx={{ marginTop: 2 }}>
                         <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} >
