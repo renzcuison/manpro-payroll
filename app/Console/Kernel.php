@@ -15,7 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         \App\Console\Commands\DailyTaskDueNotification::class,
         \App\Console\Commands\GenerateMilestones::class,
-        \App\Console\Commands\PublishScheduledAnnouncements::class, // <-- Add your scheduled announcement command here
+        \App\Console\Commands\PublishScheduledAnnouncements::class, 
     ];
 
     /**
@@ -28,7 +28,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('daily:notification')->dailyAt('7:00');
         $schedule->command('generate:milestones')->daily();
-        $schedule->command('announcements:publish-scheduled')->everyMinute(); // <-- Schedule your announcement publisher
+        $schedule->command('announcements:publish-scheduled')->everyMinute(); 
     }
 
     /**
