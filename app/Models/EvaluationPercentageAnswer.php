@@ -21,7 +21,7 @@ class EvaluationPercentageAnswer extends Model
     ];
     
     protected $casts = [
-        'array_index' => 'integer',
+        'linear_scale_index' => 'integer',
         'value' => 'integer'
     ];
 

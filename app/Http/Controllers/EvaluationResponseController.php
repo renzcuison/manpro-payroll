@@ -25,105 +25,7 @@ class EvaluationResponseController extends Controller
  
         // delete evaluation response
 
-    public function editEvaluationResponse(Request $request)
-    {
-        // inputs:
-        /*
-            id: number,
-            evaluatee_id?: number,
-            evaluator_id?: number,
-            primary_commentor_id?: number,
-            secondary_commentor_id?: number,
-            form_id?: number,
-            period_start_at?: string,
-            period_end_at?: string
-        */
-
-        // returns:
-        /*
-            evaluationFormID
-        */
-
-        log::info('EvaluationResponseController::editEvaluationResponse');
-
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
-
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
-
-        try {
-
-            if( $user === null ) return response()->json([ 
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
-
-            $periodStartAtSec = strtotime($request->period_start_at);
-            $periodEndAtSec = strtotime($request->period_end_at);
-            $request->period_start_at = date(
-                'Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800
-            );
-            $request->period_end_at = date(
-                'Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800
-            );
-            if($periodStartAtSec>$periodEndAtSec) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Period Start Date cannot be more than Period End Date!'
-            ]);
-
-            DB::beginTransaction();
-
-            $evaluationFormResponse = EvaluationFormResponse
-                ::select(
-                    'id', 'form_id', 'name', 'category', 'order', 'created_at',
-                    'updated_at'
-                )
-                ->where('id', $request->id)
-                ->first()
-            ;
-            
-            $conflictingEvaluationResponse = EvaluationResponse
-                ::where('evaluatee_id', $request->evaluatee_id)
-                ->where('form_id', $request->form_id)
-                ->where('period_start_at', '<', $request->period_end_at)
-                ->where('period_end_at', '>', $request->period_start_at)
-                ->first()
-            ;
-            if($conflictingEvaluationResponse) return response()->json([ 
-                'status' => 400,
-                'message' => 'This Evaluation is in conflict with another!',
-                'evaluationResponseID' => $conflictingEvaluationResponse->id
-            ]);
-
-            $newEvaluationResponse = EvaluationResponse::create([
-                'evaluatee_id' => $request->evaluatee_id,
-                'evaluator_id' => $request->evaluator_id,
-                'primary_commentor_id' => $request->primary_commentor_id,
-                'secondary_commentor_id' => $request->secondary_commentor_id,
-                'form_id' => $request->form_id,
-                'period_start_at' => $request->period_start_at,
-                'period_end_at' => $request->period_end_at
-            ]);
-
-            DB::commit();
-
-            return response()->json([ 
-                'status' => 201,
-                'evaluationResponseID' => $newEvaluationResponse->id,
-                'message' => 'Evaluation Response successfully created'
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Error saving work shift: ' . $e->getMessage());
-
-            throw $e;
-        }
-    }
+        // edit evaluation response
 
     public function getEvaluationResponse(Request $request)
     {
@@ -156,7 +58,7 @@ class EvaluationResponseController extends Controller
                                 subcategory_id, id, label, order,
                                 option_answer: { id, response_id, option_id }
                             }[],
-                            percentage_answer: { id, response_id, subcategory_id, percentage, value, array_index } | null,
+                            percentage_answer: { id, response_id, subcategory_id, percentage, value, linear_scale_index } | null,
                             text_answer: { id, response_id, subcategory_id, answer } | null
                         }[]
                     }[]
@@ -263,17 +165,17 @@ class EvaluationResponseController extends Controller
                                                     'evaluation_form_subcategories.subcategory_type'
                                                 )
                                                 ->addSelect(DB::raw(
-                                                    "evaluation_percentage_answers.percentage*"
+                                                    "round(evaluation_percentage_answers.percentage*"
                                                     ."(evaluation_form_subcategories.linear_scale_end"
                                                     ."-evaluation_form_subcategories.linear_scale_start)"
-                                                    ."+evaluation_form_subcategories.linear_scale_start"
+                                                    ."+evaluation_form_subcategories.linear_scale_start)"
                                                     ." as value"
                                                 ))
                                                 ->addSelect(DB::raw(
-                                                    "evaluation_percentage_answers.percentage*"
+                                                    "round(evaluation_percentage_answers.percentage*"
                                                     ."(evaluation_form_subcategories.linear_scale_end"
-                                                    ."-evaluation_form_subcategories.linear_scale_start)"
-                                                    ." as array_index"
+                                                    ."-evaluation_form_subcategories.linear_scale_start))"
+                                                    ." as linear_scale_index"
                                                 ))
                                             ,
                                             'textAnswer' => fn ($textAnswer) =>
@@ -592,7 +494,127 @@ class EvaluationResponseController extends Controller
 
         // delete evaluation form percentage answer
 
-        // edit evaluation form percentage answer
+    public function editEvaluationPercentageAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            id: number,
+            percentage?: number,            // either percentage or value must be given
+            value?: number                  // value means percentage is auto-calculated
+        */
+
+        // returns:
+        /*
+            evaluationPercentageAnswer: {
+                id, response_id, subcategory_id, percentage, value, linear_scale_index,
+                created_at, updated_at, deleted_at
+            }
+        */
+
+        log::info('EvaluationResponseController::editEvaluationPercentageAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationPercentageAnswer = EvaluationPercentageAnswer
+                ::join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+                ->select('evaluation_percentage_answers.*')
+                ->addSelect(DB::raw(
+                    "round(evaluation_percentage_answers.percentage*"
+                    ."(evaluation_form_subcategories.linear_scale_end"
+                    ."-evaluation_form_subcategories.linear_scale_start)"
+                    ."+evaluation_form_subcategories.linear_scale_start)"
+                    ." as value"
+                ))
+                ->addSelect(DB::raw(
+                    "round(evaluation_percentage_answers.percentage*"
+                    ."(evaluation_form_subcategories.linear_scale_end"
+                    ."-evaluation_form_subcategories.linear_scale_start))"
+                    ." as linear_scale_index"
+                ))
+                ->where('evaluation_percentage_answers.id', $request->id)
+                ->first()
+            ;
+
+            if(!$evaluationPercentageAnswer) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Percentage Answer not found!',
+                'evaluationPercentageAnswerID' => $request->id
+            ]);
+
+            if($request->percentage === null && $request->value === null) return response()->json([
+                'status' => 400,
+                'message' => 'Either Percentage or Value must be given!'
+            ]);
+
+            $subcategory = EvaluationFormSubcategory
+                ::select('id', 'subcategory_type', 'linear_scale_start', 'linear_scale_end')
+                ->where('id', $evaluationPercentageAnswer->subcategory_id)
+                ->first()
+            ;
+
+            if($subcategory->subcategory_type != 'linear_scale') return response()->json([
+                'status' => 400,
+                'message' => 'This subcategory does not accept percentage answers!',
+                'evaluationFormSubcategoryID' => $subcategory->id,
+                'subcategoryType' => $subcategory->subcategory_type
+            ]);
+
+            if(
+                $request->percentage === null
+                && (
+                    $request->value < $subcategory->linear_scale_start
+                    || $request->value > $subcategory->linear_scale_end
+                )
+            ) return response()->json([
+                'status' => 400,
+                'message' => 'Value is is not within linear scale!',
+                'evaluationFormSubcategoryID' => $subcategory->id,
+                'linear_scale_start' => $subcategory->linear_scale_start,
+                'linear_scale_end' => $subcategory->linear_scale_end
+            ]);
+
+            $percentage = (
+                $request->percentage
+                ?? (
+                    ($request->value - $subcategory->linear_scale_start)
+                    / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
+                )
+            );
+
+            $evaluationPercentageAnswer->percentage = (double) $percentage;
+            $evaluationPercentageAnswer->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationPercentageAnswer' => $evaluationPercentageAnswer,
+                'message' => 'Evaluation Percentage Answer successfully updated'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     public function getEvaluationPercentageAnswer(Request $request)
     {
@@ -603,7 +625,10 @@ class EvaluationResponseController extends Controller
 
         // returns:
         /*
-            evaluationPercentageAnswer: { id, response_id, subcategory_id, percentage, created_at, updated_at }
+            evaluationPercentageAnswer: {
+                id, response_id, subcategory_id, percentage, value, linear_scale_index,
+                created_at, updated_at
+            }
         */
 
         log::info('EvaluationResponseController::getEvaluationPercentageAnswer');
@@ -656,7 +681,8 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationPercentageAnswers: {
-                id, response_id, subcategory_id, percentage, created_at, updated_at
+                id, response_id, subcategory_id, percentage, value, linear_scale_index,
+                created_at, updated_at
             }[]
         */
 
@@ -739,7 +765,7 @@ class EvaluationResponseController extends Controller
 
             $subcategory = EvaluationFormSubcategory
                 ::select('subcategory_type', 'linear_scale_start', 'linear_scale_end')
-                ->where('evaluation_form_subcategories.id', $request->subcategory_id)
+                ->where('id', $request->subcategory_id)
                 ->first()
             ;
 
@@ -748,7 +774,7 @@ class EvaluationResponseController extends Controller
                 'message' => 'This subcategory does not accept percentage answers!',
                 'evaluationFormSubcategoryID' => $subcategory->id
             ]);
-
+            
             $existingFormPercentageAnswer = EvaluationPercentageAnswer
                 ::where('response_id', $request->response_id)
                 ->where('subcategory_id', $request->subcategory_id)
@@ -812,7 +838,90 @@ class EvaluationResponseController extends Controller
 
         // delete evaluation form text answer
 
-        // edit evaluation form text answer
+    public function editEvaluationTextAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            id: number,
+            answer: string
+        */
+
+        // returns:
+        /*
+            evaluationTextAnswer: {
+                id, response_id, subcategory_id, answer, created_at, updated_at, deleted_at
+            }
+        */
+
+        log::info('EvaluationResponseController::editEvaluationTextAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationTextAnswer = EvaluationTextAnswer
+                ::select('*')
+                ->where('id', $request->id)
+                ->first()
+            ;
+
+            if(!$evaluationTextAnswer) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Text Answer not found!',
+                'evaluationTextAnswerID' => $request->id
+            ]);
+
+            $subcategory = EvaluationFormSubcategory
+                ::select('id', 'subcategory_type')
+                ->where('id', $request->subcategory_id)
+                ->first()
+            ;
+
+            if(!in_array($subcategory->subcategory_type, ['long_answer', 'short_answer']))
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'This subcategory does not accept text answers!',
+                    'evaluationFormSubcategoryID' => $subcategory->id
+                ]);
+
+            $isEmptyAnswer = !$request->answer;
+            if($isEmptyAnswer) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Answer is required!'
+            ]);
+
+            $evaluationTextAnswer->answer = $request->answer;
+            $evaluationTextAnswer->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationTextAnswer' => $evaluationTextAnswer,
+                'message' => 'Evaluation Text Answer successfully updated'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     public function getEvaluationTextAnswer(Request $request)
     {
