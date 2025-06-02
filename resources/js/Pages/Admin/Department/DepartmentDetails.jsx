@@ -22,27 +22,36 @@ const DepartmentDetails = () => {
     const [openEditModal, setOpenEditModal] = useState(false);
     const [branches, setBranches] = useState([]);
 
+    const handleOpenEditModal = () => {
+        setOpenEditModal(true);
+    }
+    const handleCloseEditModal = (reload) => {
+        setOpenEditModal(false);
+        if(reload){
+            fetchBranches();
+            fetchDepartmentDetail();
+        }
+    }
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Fetch department details
-                const deptResponse = await axiosInstance.get(`/settings/getDepartmentDetails/${id}`, { headers });
-                setDepartment(deptResponse.data.department);
-                
-                // Fetch branches
-                const branchesResponse = await axiosInstance.get('/settings/getBranches', { headers });
-                setBranches(branchesResponse.data.branches || []);
-            } catch (err) {
-                console.error("Error fetching data:", err);
-                setError("Failed to load data");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
+        fetchBranches();
+        fetchDepartmentDetail();
     }, [id]);
 
-    console.log(department);
+    
+    const fetchDepartmentDetail = () => {
+        axiosInstance.get(`/settings/getDepartmentDetails/${id}`, { headers }).then((response) => {
+            setDepartment(response.data.department);
+            setIsLoading(false);
+        });
+    }
+    const fetchBranches = () => {
+        axiosInstance.get('/settings/getBranches', { headers }).then((response) => {
+            setBranches(response.data.branches);
+            setIsLoading(false);
+        }); 
+    }
+    
     const filteredEmployees = department?.assigned_positions
         ?.flatMap(asg_pos => asg_pos.employee_assignments)
         ?.map(emp_assign => emp_assign.employee)
@@ -103,7 +112,7 @@ const DepartmentDetails = () => {
                             </Typography>
                             <Button 
                                 variant="contained"
-                                onClick={() => setOpenEditModal(true)}
+                                onClick={handleOpenEditModal}
                                 sx={{ 
                                     backgroundColor: '#177604',
                                     color: 'white',
@@ -214,7 +223,7 @@ const DepartmentDetails = () => {
                             </Box>
                         </Box>
                     </Box>
-                    {openEditModal && (<DepartmentEdit open={openEditModal} close={setOpenEditModal} departmentId={id}></DepartmentEdit>)}
+                    {openEditModal && (<DepartmentEdit open={openEditModal} close={handleCloseEditModal} departmentId={id}></DepartmentEdit>)}
                 </Box>
                 
             )}

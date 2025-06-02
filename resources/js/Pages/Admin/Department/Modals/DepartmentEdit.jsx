@@ -22,6 +22,8 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
         getEmployees();
     }, [])
 
+    console.log(employees);
+
     const getDepartmentDetails = () => {
         axiosInstance.get(`/settings/getDepartmentDetails/${departmentId}`, { headers })
             .then((response) => {
@@ -32,7 +34,7 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                     setDescription(existingDetails.description);
                     if (existingDetails.assigned_positions) {
                         const loadedAssignments = {};
-                        existingDetails.assigned_positions.forEach(posAssignment => {
+                        existingDetails.assigned_positions.forEach((posAssignment) => {
                             const positionId = posAssignment.department_position_id;
                             const employeeIds = posAssignment.employee_assignments
                                 ? posAssignment.employee_assignments.map(ea => ea.employee.id)
@@ -146,10 +148,10 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "This branch will be added",
+                text: "This department will be updated",
                 icon: "warning",
                 showConfirmButton: true,
-                confirmButtonText: "Add",
+                confirmButtonText: "Update",
                 confirmButtonColor: "#177604",
                 showCancelButton: true,
                 cancelButtonText: "Cancel",
@@ -187,7 +189,7 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        close(false);
+                        close(true);
                     });
                 }
             })
@@ -323,16 +325,16 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                                             variant="outlined"
                                         >
                                             {employees.map((emp) => {
-                                            const isAssignedElsewhere = Object.entries(assignments).some(
+                                            const alreadyAssigned = Object.entries(assignments).some(
                                                 ([posId, empList]) =>
-                                                posId !== String(position.id) && empList.includes(emp.id)
+                                                posId !== String(position.id) && (emp.department_id !== null) && empList.includes(emp.id) 
                                             );
                                             const selectedEmployees = assignments[position.id] || [{}];
                                             return (
                                                 <MenuItem
                                                 key={emp.id}
                                                 value={emp.id}
-                                                disabled={isAssignedElsewhere}
+                                                disabled={alreadyAssigned}
                                                 >
                                                 <Checkbox checked={selectedEmployees.includes(emp.id)} />
                                                 <ListItemText primary={`${emp.first_name} ${emp.last_name}`} />

@@ -413,9 +413,6 @@ class SettingsController extends Controller
         $update = $request->input('assignment_update', []);
         $delete = $request->input('assignment_delete', []);
 
-        log::info($update);
-        log::info($add);
-
         // ADD 
         foreach ($add as $positionId => $employeeIds) {
             $assigned = $department->assignedPositions()
