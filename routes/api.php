@@ -17,6 +17,7 @@ use App\Http\Controllers\BenefitsController;
 use App\Http\Controllers\AllowanceController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\TrainingsController;
+use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceMobileController;
@@ -86,9 +87,17 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/auth', [UserAuthController::class, 'index']);
     Route::post('/logout', [UserAuthController::class, 'logout']);
 
+    Route::prefix('branches')->group(function () {
+        Route::get('/getBranches', [BranchController::class, 'getBranches']);
+    });
+
     Route::prefix('clients')->group(function () {
         Route::get('/getClients', [ClientsController::class, 'getClients']);
         Route::post('/saveClient', [ClientsController::class, 'saveClient']);
+    });
+
+    Route::prefix('departments')->group(function () {
+        Route::get('/getDepartments', [DepartmentController::class, 'getDepartments']);
     });
 
     Route::prefix('admin/documents')->group(function () {
