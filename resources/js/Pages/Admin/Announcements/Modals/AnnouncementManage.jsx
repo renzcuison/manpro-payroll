@@ -52,6 +52,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const [attachments, setAttachments] = useState([]);
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
+    const [announcementType, setAnnouncementType] = useState('');
     const [announcement, setAnnouncement] = useState(announceInfo || {});
     const [exitReload, setExitReload] = useState(false);
 
@@ -269,7 +270,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const getAnnouncementThumbnail = () => {
         if (!announceInfo?.unique_code) {
             console.error('Cannot fetch thumbnail: missing unique_code');
-            setImagePath("");
+            setImagePath("../../../../images/defaultThumbnail.jpg");
             setImageLoading(false);
             return;
         }
@@ -291,7 +292,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     if (imagePath && imagePath.startsWith('blob:')) {
                         URL.revokeObjectURL(imagePath);
                     }
-                    setImagePath("");
+                    setImagePath("../../../../images/defaultThumbnail.jpg");
                 }
                 setImageLoading(false);
             })
@@ -301,7 +302,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     response: error.response?.data,
                     status: error.response?.status,
                 });
-                setImagePath("");
+                setImagePath("../../../../images/defaultThumbnail.jpg");
                 setImageLoading(false);
             });
     };
@@ -318,6 +319,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
             .then((response) => {
                 setBranches(Array.isArray(response.data.branches) ? response.data.branches : []);
                 setDepartments(Array.isArray(response.data.departments) ? response.data.departments : []);
+                setAnnouncementType(response.data.announcement_type || 'N/A');
             })
             .catch((error) => {
                 console.error('Error fetching published branch/departments:', {
@@ -327,6 +329,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 });
                 setBranches([]);
                 setDepartments([]);
+                setAnnouncementType('N/A');
             });
     };
 
@@ -562,7 +565,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             <Grid size={12}>
                                                 <InfoBox
                                                     title="Announcement Type"
-                                                    info={departments.length > 0 ? departments.join(', ') : 'N/A'}
+                                                    info={announcementType || 'N/A'}
                                                     compact
                                                     clean
                                                 />
@@ -739,152 +742,162 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                     </Grid>
                                 </>
                             ) : null}
-                            {/* Acknowledgements */}
-                             <Grid size={12} sx={{ my: 0 }}>
-                                <Divider />
-                            </Grid>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%'}}>
-                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                    Acknowledged By
-                                </Typography>
-                                {acknowledgements.length > 0 ? (
-                                    <Box display="flex" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                                    {acknowledgements.map((ack, index) => (
-                                        <Tooltip
-                                            key={ack.emp_id || index}
-                                            title={
-                                                <Box>
-                                                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }} color="#fff">
-                                                        {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`.replace(/\s+/g, ' ').trim()}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Branch: {ack.branch_acronym || 'N/A'}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Department: {ack.department_acronym || 'N/A'}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Role: {ack.emp_role || 'N/A'}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Status: {ack.emp_status || 'N/A'}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Type: {ack.emp_type || 'N/A'}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Acknowledged on: {dayjs(ack.timestamp).format('MMM D, YYYY h:mm A') || 'N/A'}
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                            arrow
-                                            slotProps={{
-                                                popper: {
-                                                sx: {
-                                                    [`& .MuiTooltip-tooltip`]: {
-                                                    backgroundColor: '#198754', // Your custom color
-                                                    color: '#fff',              // Text color
-                                                    },
-                                                    [`& .MuiTooltip-arrow`]: {
-                                                    color: '#198754',           // Arrow color
-                                                    },
-                                                }
-                                                }
-                                            }}
-                                        >
-                                            <Avatar
-                                                alt={`${ack.emp_first_name}_Avatar`}
-                                                src={ack.emp_profile_pic ? `${location.origin}/storage/${ack.emp_profile_pic}` : '../../../../../images/avatarpic.jpg'}
-                                                sx={{
-                                                    mr: 1,
-                                                    transition: 'background 0.2s, box-shadow 0.2s',
-                                                    cursor: 'pointer',
-                                                    '&:hover': {
-                                                        backgroundColor: '#198754', // Your desired hover color
-                                                        boxShadow: 3,               // Optional: adds a shadow on hover
-                                                    },
-                                                }}
-                                            />
-                                        </Tooltip>
-                                    ))}
-                                </Box>
-                                ) : (
-                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                        -- No Acknowledgements --
+                            {announcement.status !== "Pending" ? (
+                            <Grid container columnSpacing={4} rowSpacing={2}> 
+                                    {/* Acknowledgements */}
+                                    <Grid size={12} sx={{ my: 0 }}>
+                                        <Divider />
+                                    </Grid>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%'}}>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                            Acknowledged By
+                                        </Typography>
+                                        {acknowledgements.length > 0 ? (
+                                            <Box display="flex" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                                            {acknowledgements.map((ack, index) => (
+                                                <Tooltip
+                                                    key={ack.emp_id || index}
+                                                    title={
+                                                        <Box>
+                                                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }} color="#fff">
+                                                                {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`.replace(/\s+/g, ' ').trim()}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Branch: {ack.branch_acronym || 'N/A'}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Department: {ack.department_acronym || 'N/A'}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Role: {ack.emp_role || 'N/A'}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Status: {ack.emp_status || 'N/A'}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Type: {ack.emp_type || 'N/A'}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Acknowledged on: {dayjs(ack.timestamp).format('MMM D, YYYY h:mm A') || 'N/A'}
+                                                            </Typography>
+                                                        </Box>
+                                                    }
+                                                    arrow
+                                                    slotProps={{
+                                                        popper: {
+                                                        sx: {
+                                                            [`& .MuiTooltip-tooltip`]: {
+                                                            backgroundColor: '#198754', // Your custom color
+                                                            color: '#fff',              // Text color
+                                                            },
+                                                            [`& .MuiTooltip-arrow`]: {
+                                                            color: '#198754',           // Arrow color
+                                                            },
+                                                        }
+                                                        }
+                                                    }}
+                                                >
+                                                    <Avatar
+                                                        alt={`${ack.emp_first_name}_Avatar`}
+                                                        src={ack.emp_profile_pic ? `${location.origin}/storage/${ack.emp_profile_pic}` : '../../../../../images/avatarpic.jpg'}
+                                                        sx={{
+                                                            mr: 1,
+                                                            transition: 'background 0.2s, box-shadow 0.2s',
+                                                            cursor: 'pointer',
+                                                            '&:hover': {
+                                                                backgroundColor: '#198754', // Your desired hover color
+                                                                boxShadow: 3,               // Optional: adds a shadow on hover
+                                                            },
+                                                        }}
+                                                    />
+                                                </Tooltip>
+                                            ))}
+                                        </Box>
+                                        ) : (
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                -- No Acknowledgements --
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%'}}>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                            Waiting to be acknowledged by
+                                        </Typography>
+                                        {unAcknowledged.length > 0 ? (
+                                            <Box display="flex" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                                                {unAcknowledged.map((ack, index) => (
+                                                    <Tooltip
+                                                        key={ack.emp_id || index}
+                                                        title={
+                                                            <Box>
+                                                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }} color="#fff">
+                                                                    {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`.replace(/\s+/g, ' ').trim()}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Branch: {ack.branch_acronym || 'N/A'}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Department: {ack.department_acronym || 'N/A'}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Role: {ack.emp_role || 'N/A'}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Status: {ack.emp_status || 'N/A'}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Type: {ack.emp_type || 'N/A'}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Acknowledged on: {dayjs(ack.timestamp).format('MMM D, YYYY h:mm A') || 'N/A'}
+                                                                </Typography>
+                                                            </Box>
+                                                        }
+                                                        arrow 
+                                                        slotProps={{
+                                                            popper: {
+                                                            sx: {
+                                                                [`& .MuiTooltip-tooltip`]: {
+                                                                backgroundColor: '#dc3545', // Your custom color
+                                                                color: '#fff',              // Text color
+                                                                },
+                                                                [`& .MuiTooltip-arrow`]: {
+                                                                color: '#dc3545',           // Arrow color
+                                                                },
+                                                            }
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Avatar
+                                                            alt={`${ack.emp_first_name}_Avatar`}
+                                                            src={ack.emp_profile_pic ? `${location.origin}/storage/${ack.emp_profile_pic}` : '../../../../../images/avatarpic.jpg'}
+                                                            sx={{
+                                                                mr: 1,
+                                                                transition: 'background 0.2s, box-shadow 0.2s',
+                                                                cursor: 'pointer',
+                                                                '&:hover': {
+                                                                    backgroundColor: '#dc3545',  // Your desired hover color
+                                                                    boxShadow: 3,               // Optional: adds a shadow on hover
+                                                                },
+                                                            }}
+                                                        />
+                                                    </Tooltip>
+                                                ))}
+                                            </Box>
+                                        ) : (
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                -- Announcement Acknowledged by all recipients --
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                </Grid>
+                            ) : (
+                                <Grid size={12} align="center">
+                                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                        -- Acknowledgement Details Unavailable --
                                     </Typography>
-                                )}
-                            </Box>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%'}}>
-                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                    Waiting to be acknowledged by
-                                </Typography>
-                                {unAcknowledged.length > 0 ? (
-                                    <Box display="flex" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                                    {unAcknowledged.map((ack, index) => (
-                                        <Tooltip
-                                            key={ack.emp_id || index}
-                                            title={
-                                                <Box>
-                                                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }} color="#fff">
-                                                        {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`.replace(/\s+/g, ' ').trim()}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Branch: {ack.branch_acronym || 'N/A'}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Department: {ack.department_acronym || 'N/A'}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Role: {ack.emp_role || 'N/A'}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Status: {ack.emp_status || 'N/A'}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Type: {ack.emp_type || 'N/A'}
-                                                    </Typography>
-                                                    <Typography variant="body2">
-                                                        Acknowledged on: {dayjs(ack.timestamp).format('MMM D, YYYY h:mm A') || 'N/A'}
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                            arrow 
-                                            slotProps={{
-                                                popper: {
-                                                sx: {
-                                                    [`& .MuiTooltip-tooltip`]: {
-                                                    backgroundColor: '#dc3545', // Your custom color
-                                                    color: '#fff',              // Text color
-                                                    },
-                                                    [`& .MuiTooltip-arrow`]: {
-                                                    color: '#dc3545',           // Arrow color
-                                                    },
-                                                }
-                                                }
-                                            }}
-                                        >
-                                            <Avatar
-                                                alt={`${ack.emp_first_name}_Avatar`}
-                                                src={ack.emp_profile_pic ? `${location.origin}/storage/${ack.emp_profile_pic}` : '../../../../../images/avatarpic.jpg'}
-                                                sx={{
-                                                    mr: 1,
-                                                    transition: 'background 0.2s, box-shadow 0.2s',
-                                                    cursor: 'pointer',
-                                                    '&:hover': {
-                                                        backgroundColor: '#dc3545',  // Your desired hover color
-                                                        boxShadow: 3,               // Optional: adds a shadow on hover
-                                                    },
-                                                }}
-                                            />
-                                        </Tooltip>
-                                    ))}
-                                </Box>
-                                ) : (
-                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                        -- Announcement Acknowledged by all recipients --
-                                    </Typography>
-                                )}
-                            </Box>
+                                </Grid>
+                            )}
                         </Grid>
                     </Box>
                 </DialogContent>

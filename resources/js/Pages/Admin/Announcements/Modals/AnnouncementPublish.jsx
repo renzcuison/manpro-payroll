@@ -53,6 +53,7 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
     // Scheduled Sent
     const [scheduledDate, setScheduledDate] = useState(null);
     const [scheduledTime, setScheduledTime] = useState(null);
+    const [showSchedule, setShowSchedule] = useState(false);
 
     //loading state
     const [saving, setSaving] = useState(false);
@@ -665,33 +666,42 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                         </TextField>
                     </FormControl>
                     {/* Scheduled Sent */}
-                    <FormControl sx={{ marginBottom: 2, width: '100%' }}>
-                    <Typography variant="subtitle1" sx={{ color: "text.primary", mb: 1 }}>
-                        Schedule Send
-                    </Typography>
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <DatePicker
-                            label="Select Date"
-                            value={scheduledDate}
-                            onChange={setScheduledDate}
-                            sx={{ width: 180 }}
-                        />
-                        <TimePicker
-                            label="Select Time"
-                            value={scheduledTime ? dayjs(`${dayjs(scheduledDate).format('YYYY-MM-DD')}T${scheduledTime}`) : null}
-                            onChange={val => setScheduledTime(val ? dayjs(val).format('HH:mm') : null)}
-                            sx={{ width: 120 }}
-                        />
-                        </Box>
-                    </LocalizationProvider>
+                    {showSchedule && (
+                        <FormControl sx={{ marginBottom: 2, width: '100%' }}>
+                            <Typography variant="subtitle1" sx={{ color: "text.primary", mb: 1 }}>
+                            Schedule Send
+                            </Typography>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <DatePicker
+                                label="Select Date"
+                                value={scheduledDate}
+                                onChange={setScheduledDate}
+                                sx={{ width: 180 }}
+                                />
+                                <TimePicker
+                                label="Select Time"
+                                value={scheduledTime ? dayjs(`${dayjs(scheduledDate).format('YYYY-MM-DD')}T${scheduledTime}`) : null}
+                                onChange={val => setScheduledTime(val ? dayjs(val).format('HH:mm') : null)}
+                                sx={{ width: 120 }}
+                                />
+                            </Box>
+                            </LocalizationProvider>
+                        </FormControl>
+                    )}
                     {schedulingInfo && (
                         <Typography variant="caption" sx={{ color: 'gray', mt: 1 }}>
                             {schedulingInfo}
                         </Typography>
                     )}
-                    </FormControl>
                     <Box display="flex" justifyContent="center" sx={{ marginTop: 2 }}>
+                        <Button
+                            variant="contained"
+                            sx={{ backgroundColor: '#adb5bd', color: 'black', mr: 2 }}
+                            onClick={() => setShowSchedule(true)}
+                            >
+                            <p className='m-0'><i className="fa fa-calendar mr-2 mt-1"></i> Schedule Post </p>
+                        </Button>
                         <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} >
                             <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Publish </p>
                         </Button>
