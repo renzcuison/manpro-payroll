@@ -22,155 +22,8 @@ class EvaluationResponseController extends Controller
 {
 
     // evaluation response
-
-    // public function deleteEvaluationForm(Request $request)
-    // {
-    //     log::info('EvaluationResponseController::deleteEvaluationForm');
-
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
-
-    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
-
-    //     try {
-
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
-
-    //         DB::beginTransaction();
-
-    //         $evaluationForm = EvaluationForm
-    //             ::join('users', 'evaluation_forms.id', '=', 'users.id')
-    //             ->select(
-    //                 'evaluation_forms.id',
-    //                 'evaluation_forms.name', 
-    //                 'evaluation_forms.creator_id',
-    //                 'users.user_name as creator_user_name',
-    //                 'evaluation_forms.created_at',
-    //                 'evaluation_forms.updated_at',
-    //                 'evaluation_forms.deleted_at'
-    //             )
-    //             ->where('evaluation_forms.id', $request->id)
-    //             ->first()
-    //         ;
-
-    //         if( !$evaluationForm ) return response()->json([ 
-    //             'status' => 404,
-    //             'message' => 'Evaluation Form not found!',
-    //             'evaluationFormID' => $request->id
-    //         ]);
-
-    //         if( $evaluationForm->deleted_at ) return response()->json([ 
-    //             'status' => 405,
-    //             'message' => 'Evaluation Form already deleted!',
-    //             'evaluationForm' => $evaluationForm
-    //         ]);
-
-    //         $now = date('Y-m-d H:i');
-    //         $evaluationForm->deleted_at = $now;
-    //         $evaluationForm->save();
-
-    //         DB::commit();
-
-    //         return response()->json([ 
-    //             'status' => 200,
-    //             'evaluationForm' => $evaluationForm,
-    //             'message' => 'Evaluation Form successfully deleted'
-    //         ]);
-
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
-
-    //         throw $e;
-    //     }
-    // }
-
-    // public function editEvaluationForm(Request $request)
-    // {
-    //     log::info('EvaluationResponseController::editEvaluationForm');
-
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
-
-    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
-
-    //     try {
-
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
-
-    //         DB::beginTransaction();
-
-    //         $evaluationForm = EvaluationForm
-    //             ::join('users', 'evaluation_forms.id', '=', 'users.id')
-    //             ->select(
-    //                 'evaluation_forms.id',
-    //                 'evaluation_forms.name', 
-    //                 'evaluation_forms.creator_id',
-    //                 'users.user_name as creator_user_name',
-    //                 'evaluation_forms.created_at',
-    //                 'evaluation_forms.updated_at'
-    //             )
-    //             ->where('evaluation_forms.id', $request->id)
-    //             ->first()
-    //         ;
-
-    //         if( !$evaluationForm ) return response()->json([ 
-    //             'status' => 404,
-    //             'message' => 'Evaluation Form not found!',
-    //             'evaluationFormID' => $request->id
-    //         ]);
-
-    //         $isEmptyName = !$request->name;
-
-    //         if( $isEmptyName ) return response()->json([ 
-    //             'status' => 400,
-    //             'message' => 'Evaluation Form Name is required!'
-    //         ]);
-
-    //         $existingEvaluationForm =
-    //             EvaluationForm::where('name', $request->name)->where('id', '!=', $request->id)->first()
-    //         ;
-
-    //         if( $existingEvaluationForm ) return response()->json([ 
-    //             'status' => 409,
-    //             'message' => 'This Evaluation Form Name is already in use!',
-    //             'evaluationFormID' => $existingEvaluationForm->id
-    //         ]);
-
-    //         $evaluationForm->name = $request->name;
-    //         $evaluationForm->save();
-
-    //         DB::commit();
-
-    //         return response()->json([ 
-    //             'status' => 200,
-    //             'evaluationForm' => $evaluationForm,
-    //             'message' => 'Evaluation Form successfully updated'
-    //         ]);
-
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
-
-    //         throw $e;
-    //     }
-    // }
+ 
+        // delete evaluation response
 
     public function editEvaluationResponse(Request $request)
     {
@@ -714,9 +567,566 @@ class EvaluationResponseController extends Controller
         }
     }
 
+    // evaluation form percentage answer
+
+        // delete evaluation form percentage answer
+
+        // edit evaluation form percentage answer
+
+    public function getEvaluationPercentageAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            id: number
+        */
+
+        // returns:
+        /*
+            evaluationPercentageAnswer: { id, response_id, subcategory_id, percentage, created_at, updated_at }
+        */
+
+        log::info('EvaluationResponseController::getEvaluationPercentageAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationPercentageAnswer = EvaluationPercentageAnswer
+                ::select(
+                    'id', 'response_id', 'subcategory_id', 'percentage',
+                    'created_at', 'updated_at'
+                )
+                ->where('id', $request->id)
+                ->first()
+            ;
+            if( !$evaluationPercentageAnswer ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Percentage Answer not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Percentage Answer successfully retrieved.',
+                'evaluationPercentageAnswer' => $evaluationPercentageAnswer
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function getEvaluationPercentageAnswers(Request $request)
+    {
+        // inputs:
+        /*
+            subcategory_id: number
+        */
+
+        // returns:
+        /*
+            evaluationPercentageAnswers: {
+                id, response_id, subcategory_id, percentage, created_at, updated_at
+            }[]
+        */
+
+        log::info('EvaluationResponseController::getEvaluationPercentageAnswers');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationPercentageAnswers = EvaluationPercentageAnswer
+                ::select(
+                    'id', 'response_id', 'subcategory_id', 'percentage',
+                    'created_at', 'updated_at'
+                )
+                ->where('subcategory_id', $request->subcategory_id)
+                ->get()
+            ;
+            if( !$evaluationPercentageAnswers ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Percentage Answers not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Percentage Answers successfully retrieved.',
+                'evaluationPercentageAnswers' => $evaluationPercentageAnswers
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function saveEvaluationPercentageAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            subcategory_id: number,
+            percentage: string
+        */
+
+        // returns:
+        /*
+            evaluationPercentageAnswerID
+        */
+
+        log::info('EvaluationResponseController::saveEvaluationPercentageAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            $existingFormPercentageAnswer = EvaluationPercentageAnswer
+                ::where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
+                ->first()
+            ;
+
+            if($existingFormPercentageAnswer) return response()->json([ 
+                'status' => 409,
+                'message' => 'A text percentage was already created for this subcategory!',
+                'evaluationFormPercentageAnswerID' => $existingFormPercentageAnswer->id
+            ]);
+
+            $isEmptyAnswer = !$request->percentage;
+
+            if( $isEmptyAnswer ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Answer is required!'
+            ]);
+
+            DB::beginTransaction();
+
+            $newEvaluationPercentageAnswer = EvaluationPercentageAnswer::create([
+                'response_id' => $request->response_id,
+                'subcategory_id' => $request->subcategory_id,
+                'percentage' => $request->percentage
+            ]);
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 201,
+                'evaluationPercentageAnswerID' => $newEvaluationPercentageAnswer->id,
+                'message' => 'Evaluation Percentage Answer successfully created'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
     // evaluation form text answer
 
+        // delete evaluation form text answer
+
+        // edit evaluation form text answer
+
+    public function getEvaluationTextAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            id: number
+        */
+
+        // returns:
+        /*
+            evaluationTextAnswer: { id, response_id, subcategory_id, answer, created_at, updated_at }
+        */
+
+        log::info('EvaluationResponseController::getEvaluationTextAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
     
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationTextAnswer = EvaluationTextAnswer
+                ::select(
+                    'id', 'response_id', 'subcategory_id', 'answer',
+                    'created_at', 'updated_at'
+                )
+                ->where('id', $request->id)
+                ->first()
+            ;
+            if( !$evaluationTextAnswer ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Text Answer not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Text Answer successfully retrieved.',
+                'evaluationTextAnswer' => $evaluationTextAnswer
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function getEvaluationTextAnswers(Request $request)
+    {
+        // inputs:
+        /*
+            subcategory_id: number
+        */
+
+        // returns:
+        /*
+            evaluationTextAnswers: {
+                id, response_id, subcategory_id, answer, created_at, updated_at
+            }[]
+        */
+
+        log::info('EvaluationResponseController::getEvaluationTextAnswers');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationTextAnswers = EvaluationTextAnswer
+                ::select(
+                    'id', 'response_id', 'subcategory_id', 'answer',
+                    'created_at', 'updated_at'
+                )
+                ->where('subcategory_id', $request->subcategory_id)
+                ->get()
+            ;
+            if( !$evaluationTextAnswers ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Text Answers not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Text Answers successfully retrieved.',
+                'evaluationTextAnswers' => $evaluationTextAnswers
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function saveEvaluationTextAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            subcategory_id: number,
+            answer: string
+        */
+
+        // returns:
+        /*
+            evaluationTextAnswerID
+        */
+
+        log::info('EvaluationResponseController::saveEvaluationTextAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            $existingFormTextAnswer = EvaluationTextAnswer
+                ::where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
+                ->first()
+            ;
+
+            if($existingFormTextAnswer) return response()->json([ 
+                'status' => 409,
+                'message' => 'A text answer was already created for this subcategory!',
+                'evaluationFormTextAnswerID' => $existingFormTextAnswer->id
+            ]);
+
+            $isEmptyAnswer = !$request->answer;
+
+            if( $isEmptyAnswer ) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Form Answer is required!'
+            ]);
+
+            DB::beginTransaction();
+
+            $newEvaluationTextAnswer = EvaluationTextAnswer::create([
+                'response_id' => $request->response_id,
+                'subcategory_id' => $request->subcategory_id,
+                'answer' => $request->answer
+            ]);
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 201,
+                'evaluationTextAnswerID' => $newEvaluationTextAnswer->id,
+                'message' => 'Evaluation Text Answer successfully created'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    // evaluation form option answer
+
+        // delete evaluation form option answer
+
+        // edit evaluation form option answer
+
+    // public function getEvaluationOptionAnswer(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         id: number
+    //     */
+
+    //     // returns:
+    //     /*
+    //         evaluationOptionAnswer: { id, response_id, option_id, answer, created_at, updated_at }
+    //     */
+
+    //     log::info('EvaluationResponseController::getEvaluationOptionAnswer');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+    
+    //     $user = DB::table('users')->where('id', $userID)->first();
+
+    //     try {
+
+    //         $evaluationOptionAnswer = EvaluationOptionAnswer
+    //             ::select(
+    //                 'id', 'response_id', 'option_id', 'created_at', 'updated_at'
+    //             )
+    //             ->where('id', $request->id)
+    //             ->first()
+    //         ;
+    //         if( !$evaluationOptionAnswer ) return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation Option Answer not found!'
+    //         ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Option Answer successfully retrieved.',
+    //             'evaluationOptionAnswer' => $evaluationOptionAnswer
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    
+    // }
+
+    // public function getEvaluationOptionAnswers(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         form_id?: number,
+    //         subcategory_id: number
+    //     */
+
+    //     // returns:
+    //     /*
+    //         evaluationOptionAnswers: {
+    //             id, response_id, option_id, created_at, updated_at
+    //         }[]
+    //     */
+
+    //     log::info('EvaluationResponseController::getEvaluationOptionAnswers');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+    
+    //     $user = DB::table('users')->where('id', $userID)->first();
+
+    //     try {
+
+    //         $evaluationOptionAnswers = EvaluationOptionAnswer
+    //             ::select(
+    //                 'id', 'response_id', 'subcategory_id', 'answer',
+    //                 'created_at', 'updated_at'
+    //             )
+    //             ->where('subcategory_id', $request->subcategory_id)
+    //             ->get()
+    //         ;
+    //         if( !$evaluationOptionAnswers ) return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation Option Answers not found!'
+    //         ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Option Answers successfully retrieved.',
+    //             'evaluationOptionAnswers' => $evaluationOptionAnswers
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    
+    // }
+
+    // public function saveEvaluationOptionAnswer(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         response_id: number,
+    //         subcategory_id: number,
+    //         answer: string
+    //     */
+
+    //     // returns:
+    //     /*
+    //         evaluationOptionAnswerID
+    //     */
+
+    //     log::info('EvaluationResponseController::saveEvaluationOptionAnswer');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         $existingFormOptionAnswer = EvaluationOptionAnswer
+    //             ::where('response_id', $request->response_id)
+    //             ->where('subcategory_id', $request->subcategory_id)
+    //             ->first()
+    //         ;
+
+    //         if($existingFormOptionAnswer) return response()->json([ 
+    //             'status' => 409,
+    //             'message' => 'A option answer was already created for this subcategory!',
+    //             'evaluationFormOptionAnswerID' => $existingFormOptionAnswer->id
+    //         ]);
+
+    //         $isEmptyAnswer = !$request->answer;
+
+    //         if( $isEmptyAnswer ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Answer is required!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $newEvaluationOptionAnswer = EvaluationOptionAnswer::create([
+    //             'response_id' => $request->response_id,
+    //             'subcategory_id' => $request->subcategory_id,
+    //             'answer' => $request->answer
+    //         ]);
+
+    //         DB::commit();
+
+    //         return response()->json([ 
+    //             'status' => 201,
+    //             'evaluationOptionAnswerID' => $newEvaluationOptionAnswer->id,
+    //             'message' => 'Evaluation Option Answer successfully created'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
 
     // evaluation form section
 
