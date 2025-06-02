@@ -116,9 +116,11 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     // Display for subcategory type
     const getSubcategoryTypeDisplay = (type) => {
         const map = {
-            short_answer: "Short Answer",
+            short_answer: "Short Text",
+            long_answer: "Long Text",
             checkbox: "Checkbox",
             linear_scale: "Linear Scale",
+            multiple_choice: "Multiple Choice",
             rating: "Rating",
             comment: "Comment",
         };
@@ -135,7 +137,8 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                 borderRadius: 3,
                 '&:before': { display: 'none' },
                 background: '#fff',
-                overflow: 'visible'
+                overflow: 'visible',
+                bgcolor: 'transparent'
             }}
         >
             <AccordionSummary
@@ -154,6 +157,9 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     minHeight: 56,
                     '& .MuiAccordionSummary-content': { my: 0, alignItems: 'center' },
                     boxShadow: 'none',
+                    borderRadius: expanded === section.id ? '20px 20px 0 0' : '20px',
+                    boxShadow: expanded === section.id ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                    px: 3,
                 }}
             >
                 {editableSectionName ? (
@@ -194,7 +200,9 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     </Box>
                 )}
             </AccordionSummary>
-            <AccordionDetails sx={{ bgcolor: '#fff', borderRadius: 3, pt: 0, mb: 2, mx: 2 }}>
+            <AccordionDetails sx={{ bgcolor: '#fff', borderRadius: 3, pt: 0, mb: 2, mx: 2 , borderTop: 'none',
+        borderRadius: '0 0 20px 20px',  p: 3,
+        pt: 4}}>
                 <Paper
                     elevation={0}
                     sx={{
@@ -261,13 +269,6 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 >
                                     {sectionCategory}
                                 </Typography>
-                                {/* <Box
-                                    sx={{
-                                        borderBottom: "2px solid #ccc",
-                                        width: "100%",
-                                        mt: 1
-                                    }}
-                                /> */}
                             </Paper>
                         )
                     ) : (
