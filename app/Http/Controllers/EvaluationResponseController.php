@@ -207,197 +207,197 @@ class EvaluationResponseController extends Controller
     
     }
 
-    public function getEvaluationResponses(Request $request)
-    {
+    // public function getEvaluationResponses(Request $request)
+    // {
 
-        // inputs:
-        /*
-            page: number = 1,                   // counting starts at 1
-            limit: number = 10,
-            form_id?: number,                   // gets all if none given
-            evaluatee_id?: number,
-            evaluator_id?: number,
-            primary_commentor_id?: number,
-            secondary_commentor_id?: number,
-            commentor_id?: number,              // for both primary or secondary
-            search: string,
-                // searches for matches in:
-                // updated_at (date string form), form_name, last_name, first_name,
-                // middle_name, department_name, branch_name, status
-            order_by: {
-                key:
-                    'updated_at' | 'form_name' | 'last_name' | 'first_name |
-                    'middle_name' | 'department_name' |
-                    'branch_name' |
-                    'status'                // pending first -> finished last
-                ,
-                sort_order: 'asc' | 'desc' = 'asc'
-            }[];
-        */
+    //     // inputs:
+    //     /*
+    //         page: number = 1,                   // counting starts at 1
+    //         limit: number = 10,
+    //         form_id?: number,                   // gets all if none given
+    //         evaluatee_id?: number,
+    //         evaluator_id?: number,
+    //         primary_commentor_id?: number,
+    //         secondary_commentor_id?: number,
+    //         commentor_id?: number,              // for both primary or secondary
+    //         search: string,
+    //             // searches for matches in:
+    //             // updated_at (date string form), form_name, last_name, first_name,
+    //             // middle_name, department_name, branch_name, status
+    //         order_by: {
+    //             key:
+    //                 'updated_at' | 'form_name' | 'last_name' | 'first_name |
+    //                 'middle_name' | 'department_name' |
+    //                 'branch_name' |
+    //                 'status'                // pending first -> finished last
+    //             ,
+    //             sort_order: 'asc' | 'desc' = 'asc'
+    //         }[];
+    //     */
 
-        // returns:
-        /*
-            evaluationResponses: {
-                id, form_id, form_name,
-                date, evaluatee_id, last_name, first_name, middle_name,
-                department_id, department_name,
-                branch_id, branch_name,
-                evaluator_id, primary_commentor_id, secondary_commentor_id,
-                status,                             // returns 'pending' always for now
-                period_start_at, period_end_at,
-                created_at, updated_at
-            }[],
-            pageResponseCount, totalResponseCount, maxPageCount
-        */
+    //     // returns:
+    //     /*
+    //         evaluationResponses: {
+    //             id, form_id, form_name,
+    //             date, evaluatee_id, last_name, first_name, middle_name,
+    //             department_id, department_name,
+    //             branch_id, branch_name,
+    //             evaluator_id, primary_commentor_id, secondary_commentor_id,
+    //             status,                             // returns 'pending' always for now
+    //             period_start_at, period_end_at,
+    //             created_at, updated_at
+    //         }[],
+    //         pageResponseCount, totalResponseCount, maxPageCount
+    //     */
 
-        log::info('EvaluationResponseController::getEvaluationResponses');
+    //     log::info('EvaluationResponseController::getEvaluationResponses');
 
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
     
-        $user = DB::table('users')->where('id', $userID)->first();
+    //     $user = DB::table('users')->where('id', $userID)->first();
 
-        try {
+    //     try {
 
-            if($request->page<1 || $request->limit<1) return response()->json([ 
-                'status' => 404,
-                'message' => 'No evaluation responses exist!'
-            ]);
+    //         if($request->page<1 || $request->limit<1) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'No evaluation responses exist!'
+    //         ]);
 
-            $evaluationResponses = EvaluationResponse
-                ::join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
-                ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
-                ->join('departments', 'evaluatees.department_id', '=', 'departments.id')
-                ->join('branches', 'evaluatees.branch_id', '=', 'branches.id')
-                ->join('users as evaluators', 'evaluation_responses.evaluator_id', '=', 'evaluators.id')
-                ->join('users as primary_commentors', 'evaluation_responses.primary_commentor_id', '=', 'primary_commentors.id')
-                ->join('users as secondary_commentors', 'evaluation_responses.secondary_commentor_id', '=', 'secondary_commentors.id')
-                ->select(
-                    'evaluation_responses.id',
-                    'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name'
-                )
-                ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
-                ->addSelect(
-                    'evaluatees.id as evaluatee_id', 'evaluatees.last_name as last_name',
-                    'evaluatees.id as evaluatee_id', 'evaluatees.first_name as first_name',
-                    'evaluatees.id as evaluatee_id', 'evaluatees.middle_name as middle_name',
-                    'departments.id as department_id', 'departments.name as department_name',
-                    'branches.id as branch_id', 'branches.name as branch_name',
-                    'evaluators.id as evaluator_id',
-                    'primary_commentors.id as primary_commentor_id',
-                    'secondary_commentors.id as secondary_commentor_id',
-                    'evaluation_responses.period_start_at',
-                    'evaluation_responses.period_end_at',
-                    'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at'
-                )
-                ->addSelect(DB::raw("'Pending' as status"))
-            ;
-            if($request->form_id)
-                $evaluationResponses = $evaluationResponses->where('form_id', $request->form_id);
-            if($request->evaluatee_id)
-                $evaluationResponses = $evaluationResponses->where('evaluatee_id', $request->evaluatee_id);
-            if($request->evaluator_id)
-                $evaluationResponses = $evaluationResponses->where('evaluator_id', $request->evaluator_id);
-            if($request->primary_commentor_id)
-                $evaluationResponses = $evaluationResponses->where('primary_commentor_id', $request->primary_commentor_id);
-            if($request->secondary_commentor_id)
-                $evaluationResponses = $evaluationResponses->where('secondary_commentor_id', $request->secondary_commentor_id);
-            if($request->commentor_id)
-                $evaluationResponses = $evaluationResponses
-                    ->where('primary_commentor_id', $request->commentor_id)
-                    ->orWhere('secondary_commentor_id', $request->commentor_id)
-                ;
+    //         $evaluationResponses = EvaluationResponse
+    //             ::join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
+    //             ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
+    //             ->join('departments', 'evaluatees.department_id', '=', 'departments.id')
+    //             ->join('branches', 'evaluatees.branch_id', '=', 'branches.id')
+    //             ->join('users as evaluators', 'evaluation_responses.evaluator_id', '=', 'evaluators.id')
+    //             ->join('users as primary_commentors', 'evaluation_responses.primary_commentor_id', '=', 'primary_commentors.id')
+    //             ->join('users as secondary_commentors', 'evaluation_responses.secondary_commentor_id', '=', 'secondary_commentors.id')
+    //             ->select(
+    //                 'evaluation_responses.id',
+    //                 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name'
+    //             )
+    //             ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
+    //             ->addSelect(
+    //                 'evaluatees.id as evaluatee_id', 'evaluatees.last_name as last_name',
+    //                 'evaluatees.id as evaluatee_id', 'evaluatees.first_name as first_name',
+    //                 'evaluatees.id as evaluatee_id', 'evaluatees.middle_name as middle_name',
+    //                 'departments.id as department_id', 'departments.name as department_name',
+    //                 'branches.id as branch_id', 'branches.name as branch_name',
+    //                 'evaluators.id as evaluator_id',
+    //                 'primary_commentors.id as primary_commentor_id',
+    //                 'secondary_commentors.id as secondary_commentor_id',
+    //                 'evaluation_responses.period_start_at',
+    //                 'evaluation_responses.period_end_at',
+    //                 'evaluation_responses.created_at',
+    //                 'evaluation_responses.updated_at'
+    //             )
+    //             ->addSelect(DB::raw("'Pending' as status"))
+    //         ;
+    //         if($request->form_id)
+    //             $evaluationResponses = $evaluationResponses->where('form_id', $request->form_id);
+    //         if($request->evaluatee_id)
+    //             $evaluationResponses = $evaluationResponses->where('evaluatee_id', $request->evaluatee_id);
+    //         if($request->evaluator_id)
+    //             $evaluationResponses = $evaluationResponses->where('evaluator_id', $request->evaluator_id);
+    //         if($request->primary_commentor_id)
+    //             $evaluationResponses = $evaluationResponses->where('primary_commentor_id', $request->primary_commentor_id);
+    //         if($request->secondary_commentor_id)
+    //             $evaluationResponses = $evaluationResponses->where('secondary_commentor_id', $request->secondary_commentor_id);
+    //         if($request->commentor_id)
+    //             $evaluationResponses = $evaluationResponses
+    //                 ->where('primary_commentor_id', $request->commentor_id)
+    //                 ->orWhere('secondary_commentor_id', $request->commentor_id)
+    //             ;
             
-            if($request->search)
-                $evaluationResponses = $evaluationResponses
-                    ->where(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
-                    ->orWhere('evaluation_forms.name', 'LIKE', "%$request->search%")
-                    ->orWhere('evaluatees.last_name', 'LIKE', "%$request->search%")
-                    ->orWhere('evaluatees.first_name', 'LIKE', "%$request->search%")
-                    ->orWhere('evaluatees.middle_name', 'LIKE', "%$request->search%")
-                    ->orWhere('departments.name', 'LIKE', "%$request->search%")
-                    ->orWhere('branches.name', 'LIKE', "%$request->search%")
-                    // ->orWhere('status', 'LIKE', "%$request->search%") // not working yet in searching status
-                ;
+    //         if($request->search)
+    //             $evaluationResponses = $evaluationResponses
+    //                 ->where(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
+    //                 ->orWhere('evaluation_forms.name', 'LIKE', "%$request->search%")
+    //                 ->orWhere('evaluatees.last_name', 'LIKE', "%$request->search%")
+    //                 ->orWhere('evaluatees.first_name', 'LIKE', "%$request->search%")
+    //                 ->orWhere('evaluatees.middle_name', 'LIKE', "%$request->search%")
+    //                 ->orWhere('departments.name', 'LIKE', "%$request->search%")
+    //                 ->orWhere('branches.name', 'LIKE', "%$request->search%")
+    //                 // ->orWhere('status', 'LIKE', "%$request->search%") // not working yet in searching status
+    //             ;
             
-            $sortOrder = $request->sort_order ?? 'asc';
-            $sortOrderReverse = $sortOrder == 'asc' ? 'desc' : 'asc';
-            if($sortOrder != 'asc' && $sortOrder != 'desc') return response()->json([ 
-                'status' => 400,
-                'message' => 'Sort order is invalid!'
-            ]);
-            if($request->order_by) foreach($request->order_by as $index => $order_by_param) {
-                $sortOrder = $order_by_param['sort_order'] ?? 'asc';
-                $sortOrderReverse = $sortOrder == 'asc' ? 'desc' : 'asc';
-                if($sortOrder != 'asc' && $sortOrder != 'desc') return response()->json([ 
-                    'status' => 400,
-                    'message' => 'Sort order is invalid!'
-                ]);
-                switch($order_by_param['key']) {
-                    case 'branch_name':
-                        $evaluationResponses = $evaluationResponses->orderBy('branches.name', $sortOrder);
-                        break;
-                    case 'department_name':
-                        $evaluationResponses = $evaluationResponses->orderBy('departments.name', $sortOrder);
-                        break;
-                    case 'last_name':
-                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.last_name', $sortOrder);
-                        break;
-                    case 'first_name':
-                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.first_name', $sortOrder);
-                        break;
-                    case 'middle_name':
-                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.middle_name', $sortOrder);
-                        break;
-                    // case 'status':
-                    case 'updated_at':
-                        $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrderReverse);
-                        break;
-                    default:
-                        return response()->json([ 
-                            'status' => 400,
-                            'message' => 'Order by option is invalid!'
-                        ]);
-                }
-            }
+    //         $sortOrder = $request->sort_order ?? 'asc';
+    //         $sortOrderReverse = $sortOrder == 'asc' ? 'desc' : 'asc';
+    //         if($sortOrder != 'asc' && $sortOrder != 'desc') return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Sort order is invalid!'
+    //         ]);
+    //         if($request->order_by) foreach($request->order_by as $index => $order_by_param) {
+    //             $sortOrder = $order_by_param['sort_order'] ?? 'asc';
+    //             $sortOrderReverse = $sortOrder == 'asc' ? 'desc' : 'asc';
+    //             if($sortOrder != 'asc' && $sortOrder != 'desc') return response()->json([ 
+    //                 'status' => 400,
+    //                 'message' => 'Sort order is invalid!'
+    //             ]);
+    //             switch($order_by_param['key']) {
+    //                 case 'branch_name':
+    //                     $evaluationResponses = $evaluationResponses->orderBy('branches.name', $sortOrder);
+    //                     break;
+    //                 case 'department_name':
+    //                     $evaluationResponses = $evaluationResponses->orderBy('departments.name', $sortOrder);
+    //                     break;
+    //                 case 'last_name':
+    //                     $evaluationResponses = $evaluationResponses->orderBy('evaluatees.last_name', $sortOrder);
+    //                     break;
+    //                 case 'first_name':
+    //                     $evaluationResponses = $evaluationResponses->orderBy('evaluatees.first_name', $sortOrder);
+    //                     break;
+    //                 case 'middle_name':
+    //                     $evaluationResponses = $evaluationResponses->orderBy('evaluatees.middle_name', $sortOrder);
+    //                     break;
+    //                 // case 'status':
+    //                 case 'updated_at':
+    //                     $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrderReverse);
+    //                     break;
+    //                 default:
+    //                     return response()->json([ 
+    //                         'status' => 400,
+    //                         'message' => 'Order by option is invalid!'
+    //                     ]);
+    //             }
+    //         }
 
-            $page = $request->page ?? 1;
-            $limit = $request->limit ?? 10;
-            $totalResponseCount = $evaluationResponses->count();
-            $maxPageCount = ceil($totalResponseCount / $limit);
-            if($page > $maxPageCount) return response()->json([ 
-                'status' => 404,
-                'message' => 'No evaluation responses exist!'
-            ]);
-            $pageResponseCount =
-                ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
-                : $limit
-            ;
-            $skip = ($page - 1) * $limit;
-            $evaluationResponses = $evaluationResponses->skip($skip)->take($limit)->get();
+    //         $page = $request->page ?? 1;
+    //         $limit = $request->limit ?? 10;
+    //         $totalResponseCount = $evaluationResponses->count();
+    //         $maxPageCount = ceil($totalResponseCount / $limit);
+    //         if($page > $maxPageCount) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'No evaluation responses exist!'
+    //         ]);
+    //         $pageResponseCount =
+    //             ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
+    //             : $limit
+    //         ;
+    //         $skip = ($page - 1) * $limit;
+    //         $evaluationResponses = $evaluationResponses->skip($skip)->take($limit)->get();
 
-            return response()->json([
-                'status' => 200,
-                'message' => 'Evaluation Responses successfully retrieved.',
-                'evaluationResponses' => $evaluationResponses,
-                'pageResponseCount' => $pageResponseCount,
-                'totalResponseCount' => $totalResponseCount,
-                'maxPageCount' => $maxPageCount
-            ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Responses successfully retrieved.',
+    //             'evaluationResponses' => $evaluationResponses,
+    //             'pageResponseCount' => $pageResponseCount,
+    //             'totalResponseCount' => $totalResponseCount,
+    //             'maxPageCount' => $maxPageCount
+    //         ]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
 
-            Log::error('Error saving work shift: ' . $e->getMessage());
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
 
-            throw $e;
-        }
+    //         throw $e;
+    //     }
     
-    }
+    // }
 
     public function saveEvaluationResponse(Request $request)
     {
