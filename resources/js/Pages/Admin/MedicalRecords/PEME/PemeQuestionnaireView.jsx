@@ -57,26 +57,69 @@ const UploadForm = ({ fileSizeLimit }) => {
     );
 };
 
-const PassOrFail = ({ value }) => (
-    <Box sx={{ borderBottom: "solid", borderWidth: 1, borderColor: "#ccc" }}>
-        <FormControl>
-            <RadioGroup value={value || ""}>
-                <FormControlLabel
-                    value="Pass"
-                    control={<Radio />}
-                    label="Pass"
-                    disabled
-                />
-                <FormControlLabel
-                    value="Fail"
-                    control={<Radio />}
-                    label="Fail"
-                    disabled
-                />
-            </RadioGroup>
-        </FormControl>
-    </Box>
-);
+const PassOrFail = ({ value }) => {
+    const normalizedValue =
+        value?.toLowerCase() === "pass"
+            ? "Pass"
+            : value?.toLowerCase() === "fail"
+            ? "Fail"
+            : "";
+
+    return (
+        <Box
+            sx={{ borderBottom: "solid", borderWidth: 1, borderColor: "#ccc" }}
+        >
+            <FormControl>
+                <RadioGroup value={normalizedValue}>
+                    <FormControlLabel
+                        value="Pass"
+                        control={<Radio />}
+                        label="Pass"
+                        disabled
+                    />
+                    <FormControlLabel
+                        value="Fail"
+                        control={<Radio />}
+                        label="Fail"
+                        disabled
+                    />
+                </RadioGroup>
+            </FormControl>
+        </Box>
+    );
+};
+
+const PostiveOrNegative = ({ value }) => {
+    const normalizedValue =
+        value?.toLowerCase() === "positive"
+            ? "Positive"
+            : value?.toLowerCase() === "negative"
+            ? "Negative"
+            : "";
+
+    return (
+        <Box
+            sx={{ borderBottom: "solid", borderWidth: 1, borderColor: "#ccc" }}
+        >
+            <FormControl>
+                <RadioGroup value={normalizedValue}>
+                    <FormControlLabel
+                        value="Positive"
+                        control={<Radio />}
+                        label="Positive"
+                        disabled
+                    />
+                    <FormControlLabel
+                        value="Negative"
+                        control={<Radio />}
+                        label="Negative"
+                        disabled
+                    />
+                </RadioGroup>
+            </FormControl>
+        </Box>
+    );
+};
 
 const Remarks = ({ value }) => {
     return (
@@ -97,54 +140,13 @@ const TextBox = ({ value }) => {
         <TextField label="Description" value={value || ""} disabled={true} />
     );
 };
-const PostiveOrNegative = ({ value }) => {
-    return (
-        <Box
-            sx={{ borderBottom: "solid", borderWidth: 1, borderColor: "#ccc" }}
-        >
-            <FormControl>
-                <RadioGroup value={value || ""}>
-                    <FormControlLabel
-                        value="Positive"
-                        control={<Radio />}
-                        label="Positive"
-                        disabled
-                    />
-                    <FormControlLabel
-                        value="Negative"
-                        control={<Radio />}
-                        label="Negative"
-                        disabled
-                    />
-                </RadioGroup>
-            </FormControl>
-        </Box>
-    );
-};
 
 const PemeQuestionnaireView = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const { PemeResponseID } = useParams();
-
-    const [
-        pemeResponsesQuestionnaire,
-        setPemeResponsesQuestionnaire,
-    ] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [employeeResponse, setEmployeeResponse] = useState([]);
-    useEffect(() => {
-        axiosInstance
-            .get(`/peme-responses/${PemeResponseID}`, { headers })
-            .then((response) => {
-                setEmployeeResponse(response.data);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching PEME records:", error);
-                setIsLoading(false);
-            });
-    }, []);
 
     useEffect(() => {
         axiosInstance
@@ -152,8 +154,40 @@ const PemeQuestionnaireView = () => {
                 headers,
             })
             .then((response) => {
-                setEmployeeResponse(response.data);
-                console.log("RESPONCE", response.data);
+                const data = response.data;
+
+                const updatedDetails = data.details.map((detail) => {
+                    const valueMap = detail.value || {};
+
+                    const updatedInputTypes = detail.input_type.map((input) => {
+                        const encryptedVal = valueMap[input.id];
+
+                        let decrypted = "";
+                        if (encryptedVal) {
+                            try {
+                                const parsed = JSON.parse(encryptedVal);
+                                decrypted = parsed.value || "";
+                            } catch (e) {
+                                decrypted = encryptedVal;
+                            }
+                        }
+
+                        return {
+                            ...input,
+                            value: decrypted,
+                        };
+                    });
+
+                    return {
+                        ...detail,
+                        input_type: updatedInputTypes,
+                    };
+                });
+
+                setEmployeeResponse({
+                    ...data,
+                    details: updatedDetails,
+                });
 
                 setIsLoading(false);
             })
@@ -162,20 +196,21 @@ const PemeQuestionnaireView = () => {
                 setIsLoading(false);
             });
     }, []);
-
     useEffect(() => {
-        if (!employeeResponse.peme_id) return; // Wait until peme_id is available
         axiosInstance
-            .get(`/peme/${employeeResponse.peme_id}/questionnaire`, { headers })
+            .get(`/peme-response/${PemeResponseID}/details`, {
+                headers,
+            })
             .then((response) => {
-                setPemeResponsesQuestionnaire(response.data);
-                console.log("QUESTIONNAIRE", response.data);
+                setEmployeeResponse(response.data);
+                console.log("response", response.data);
                 setIsLoading(false);
             })
             .catch((error) => {
+                console.error("Error fetching PEME records:", error);
                 setIsLoading(false);
             });
-    }, [employeeResponse.peme_id]);
+    }, []);
 
     const handleOnDeleteClick = () => {};
     const handleOnCancelClick = () => {
@@ -222,7 +257,7 @@ const PemeQuestionnaireView = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {pemeResponsesQuestionnaire.peme}
+                            {employeeResponse.peme_name}
                         </Typography>
                         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                             Employee Name
@@ -230,8 +265,8 @@ const PemeQuestionnaireView = () => {
                     </Box>
                 </Box>
                 {/* QUESTION */}
-                {Array.isArray(pemeResponsesQuestionnaire.questions) &&
-                    pemeResponsesQuestionnaire.questions.map((form, index) => (
+                {Array.isArray(employeeResponse.details) &&
+                    employeeResponse.details.map((form, index) => (
                         <Box
                             key={index}
                             sx={{
@@ -250,34 +285,14 @@ const PemeQuestionnaireView = () => {
                                 variant="h4"
                                 sx={{ fontWeight: "bold", marginBottom: 3 }}
                             >
-                                {form.question}
+                                {form.question_text}
                             </Typography>
                             {/* INPUT TYPES OF THAT QUESTION */}
-                            {Array.isArray(form.input_types) &&
-                                form.input_types.map((type, i) => {
-                                    const value = findResponseValue(
-                                        form.id,
-                                        type.input_type
-                                    );
+                            {Array.isArray(form.input_type) &&
+                                form.input_type.map((type, i) => {
+                                    const value = type.value || "";
 
                                     switch (type.input_type) {
-                                        case "attachment":
-                                            return (
-                                                <Box
-                                                    key={i}
-                                                    sx={{
-                                                        display: "flex",
-                                                        flexDirection: "column",
-                                                        gap: 1,
-                                                    }}
-                                                >
-                                                    <UploadForm
-                                                        fileSizeLimit={
-                                                            type.file_size_limit
-                                                        }
-                                                    />
-                                                </Box>
-                                            );
                                         case "remarks":
                                             return (
                                                 <Remarks
@@ -305,6 +320,23 @@ const PemeQuestionnaireView = () => {
                                                     key={i}
                                                     value={value}
                                                 />
+                                            );
+                                        case "attachment":
+                                            return (
+                                                <Box
+                                                    key={i}
+                                                    sx={{
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        gap: 1,
+                                                    }}
+                                                >
+                                                    <UploadForm
+                                                        fileSizeLimit={
+                                                            type.file_size_limit
+                                                        }
+                                                    />
+                                                </Box>
                                             );
                                         default:
                                             return null;

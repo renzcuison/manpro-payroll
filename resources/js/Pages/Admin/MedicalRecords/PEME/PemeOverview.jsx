@@ -34,7 +34,7 @@ const PemeOverview = ({ records }) => {
                             usePointStyle: true,
                             pointStyle: "circle",
                             font: {
-                                size: 14,
+                                size: 12,
                             },
                         },
                     },
@@ -51,10 +51,8 @@ const PemeOverview = ({ records }) => {
     }, [records]);
 
     return (
-        <div className="p-1 max-w-xl mx-auto">
-            <h6 className="text-lg mb-50 text-left">
-                Employee Respondents per Exam
-            </h6>
+        <div>
+            <h6>Employee Respondents per Exam</h6>
             <canvas ref={canvasRef}></canvas>
         </div>
     );

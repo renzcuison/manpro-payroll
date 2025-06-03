@@ -89,18 +89,6 @@ const PemeResponses = () => {
         navigator(`/admin/medical-records/peme-records/peme-form/${PemeID}`);
     };
 
-    // const dummyData = [
-    //     {
-    //         dueDate: "05-10-2025",
-    //         employee: "employee",
-    //         branch: "branch",
-    //         department: "department",
-    //         status: "status",
-    //         currentProgress: 1,
-    //         fullProgress: 2,
-    //     },
-    // ];
-
     const filteredRecords = pemeResponses
         .filter((response) =>
             [

@@ -102,7 +102,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
                         >
                             <Box>
                                 <Button
-                                    onClick={close}
+                                    onClick={() => close()}
                                     variant="contained"
                                     sx={{ backgroundColor: "#727F91" }}
                                 >

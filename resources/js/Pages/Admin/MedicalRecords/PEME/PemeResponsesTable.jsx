@@ -143,7 +143,6 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                         <TableCell align="center"> Date </TableCell>
                         <TableCell align="center"> Expiry Date </TableCell>
                         <TableCell align="center"> Next Schedule </TableCell>
-
                         <TableCell align="center"> Employee </TableCell>
                         <TableCell align="center"> Branch </TableCell>
                         <TableCell align="center"> Department </TableCell>

@@ -67,25 +67,6 @@ const PemeResponses = () => {
         }
     };
 
-    const responses = [
-        {
-            date: "2025-05-01",
-            exam: "Annual Physical Exam",
-            dueDate: "2025-05-29",
-            currentProgress: 2,
-            fullProgress: 4,
-            status: "Pending",
-        },
-        {
-            date: "2025-05-23",
-            exam: "Drug Test",
-            dueDate: "2025-05-25",
-            currentProgress: 4,
-            fullProgress: 4,
-            status: "Accepted",
-        },
-    ];
-
     // Handle dropdown changes for due date filtering
     const filteredRecords = pemeRecords
         .filter((response) =>
