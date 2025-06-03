@@ -161,7 +161,7 @@ const DepartmentPositionSettings = ({open, close}) => {
                                 <TableBody>
                                     {positions.length > 0 ? 
                                     (positions.map((position, index) => (
-                                        <TableRow key={position.id}>
+                                        <TableRow key={position.id} >
                                             <TableCell>
                                                 <TextField
                                                     fullWidth
@@ -169,25 +169,25 @@ const DepartmentPositionSettings = ({open, close}) => {
                                                     onChange={(e) => handlePositionChange(index, 'name', e.target.value)}
                                                 />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell align="center">
                                                 <Checkbox
                                                     checked={Boolean(position.can_review_request)}
                                                     onChange={(e) => handlePositionChange(index, 'can_review_request', e.target.checked)}
                                                 />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell align="center">
                                                 <Checkbox
                                                     checked={Boolean(position.can_approve_request)}
                                                     onChange={(e) => handlePositionChange(index, 'can_approve_request', e.target.checked)}
                                                 />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell align="center">
                                                 <Checkbox
                                                     checked={Boolean(position.can_note_request)}
                                                     onChange={(e) => handlePositionChange(index, 'can_note_request', e.target.checked)}
                                                 />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell align="center">
                                                 <Checkbox
                                                     checked={Boolean(position.can_accept_request)}
                                                     onChange={(e) => handlePositionChange(index, 'can_accept_request', e.target.checked)}
@@ -213,7 +213,7 @@ const DepartmentPositionSettings = ({open, close}) => {
 
                         <Typography variant="h6" sx={{ mt: 5, mb: 3 }}>Add New Position</Typography>
                         <Box component="form" sx={{ mb: 3 }}>
-                            <Grid container spacing={2}>
+                            <Grid container spacing={2} alignItems="center">
                                 <Grid item xs={12} md={3}>
                                     <TextField
                                         fullWidth

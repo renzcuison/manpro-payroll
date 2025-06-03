@@ -1,134 +1,60 @@
+////////this should be it
 import React, { useEffect, useState } from "react";
-import { Box,Typography,Button,TextField,Dialog,DialogTitle,DialogContent,Chip,ListItemText,Checkbox,Menu,MenuItem,IconButton,Divider,
-Grid,FormGroup,FormControl,} from "@mui/material";
+import {
+    Box,
+    Typography,
+    Button,
+    TextField,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    Chip,
+    ListItemText,
+    Checkbox,
+    Menu,
+    MenuItem,
+    IconButton,
+    Grid,
+    FormGroup,
+    FormControl,
+    InputLabel,
+    Select,
+} from "@mui/material";
 import axiosInstance,{ getJWTHeader }  from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 
 const DepartmentEdit = ({open, close, departmentId}) =>{
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+
     const [nameError, setNameError] = useState(false);
     const [acronymError, setAcronymError] = useState(false);
+    
+
     const [name, setName] = useState("");
     const [acronym, setAcronym] = useState("");
     const [description, setDescription] = useState("");
-    const [employees, setEmployees] = useState([]);
-    const [initAssignments, setInitAssignments] = useState({}); //original assignments <will be used for the backend>
-    const [assignments, setAssignments] = useState({}); // structure be like: {position_id: [emp_id, ...]}
-    const [positions, setPosition] = useState([]);    
-    //fetching data
-    useEffect(() => {
-        getDepartmentDetails();
-        getEmployees();
-    }, [])
+    const [status, setStatus] = useState('');
 
-    console.log(employees);
+    console.log(status)
+    useEffect(()=>{
+        getDepartment();
+    },[])
 
-    const getDepartmentDetails = () => {
-        axiosInstance.get(`/settings/getDepartmentDetails/${departmentId}`, { headers })
+    const getDepartment = () => {
+        axiosInstance.get(`/settings/getDepartment/${departmentId}`, { headers })
             .then((response) => {
                 if(response.status === 200){
                     const existingDetails = response.data.department;
                     setName(existingDetails.name);
                     setAcronym(existingDetails.acronym);
                     setDescription(existingDetails.description);
-                    if (existingDetails.assigned_positions) {
-                        const loadedAssignments = {};
-                        existingDetails.assigned_positions.forEach((posAssignment) => {
-                            const positionId = posAssignment.department_position_id;
-                            const employeeIds = posAssignment.employee_assignments
-                                ? posAssignment.employee_assignments.map(ea => ea.employee.id)
-                                : [];
-                            loadedAssignments[positionId] = employeeIds;
-
-                        });
-                        setAssignments(loadedAssignments);
-                        setInitAssignments(loadedAssignments);
-                    }
-                }
+                    setStatus(existingDetails.status);
+            }
         });
     }
-    const getEmployees = () => {
-        axiosInstance.get('/employee/getEmployees', { headers })
-            .then((response) => {
-                if(response.status === 200){
-                    const employee = response.data.employees;
-                    setEmployees(employee);    
-                }
-                else{
-                    setEmployees(null);
-                }
-            }).catch((error) => {
-                console.error('Error fetching employees:', error);
-                setEmployees(null);
-            });
-
-        axiosInstance.get('/settings/getDepartmentPositions', { headers })
-            .then((response) => {
-                if(response.status === 200){
-                    const position = response.data.positions;
-                    setPosition(position);    
-                }
-                else{
-                    setPosition(null);
-                }
-            }).catch((error) => {
-                console.error('Error fetching positions:', error);
-                setPosition(null);
-            });
-
-    }
-
-    const handleAssignChange = (position_id) => (event) => {
-        const selected = event.target.value; //employee id arrays
-        const updatedAssignments = {};
-
-        //explanation --> if there exist the same employee when assigning to a new position, remove their id from that position, ensuring they can only be assigned to one position
-        for(const pos of positions){
-            const pos_id = pos.id; //extract id from the position useState array
-            if(pos_id === position_id){
-                updatedAssignments[pos_id] = selected;
-            }
-            else{
-                updatedAssignments[pos_id] = (assignments[pos_id] || []).filter(emp_id => !selected.includes(emp_id))
-            }
-        }
-        setAssignments(updatedAssignments);
-    }
-    //create json on which data to create, updat or delete <Used in saveInput>
-    const generateAssignmentChanges = () => {
-        const changes = {
-          assignment_add: {},
-          assignment_update: {},
-          assignment_delete: {},
-        };
-      
-        for (const posId in assignments) {
-          const current = assignments[posId];
-          const original = initAssignments[posId] || [];
-      
-          // Added employees
-          const added = current.filter(id => !original.includes(id));
-          if (added.length > 0) {
-            changes.assignment_add[posId] = added;
-          }
-      
-          // Removed employees
-          const removed = original.filter(id => !current.includes(id));
-          if (removed.length > 0) {
-            changes.assignment_delete[posId] = removed;
-          }
-      
-          // Modified assignments (e.g., updated members)
-          if (added.length === 0 && removed.length === 0 && current.length > 0) {
-            changes.assignment_update[posId] = current;
-          }
-        }
-      
-        return changes;
-      };
-
-    // Add New Department to the Backend functions
+     
+    // Update Department in the backend
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -166,19 +92,14 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
     const saveInput = (event) => {
         event.preventDefault();
 
-        const changes = generateAssignmentChanges();
         const data = {
             name: name,
             acronym: acronym,
             description: description,
-            assignments: assignments,
-            ...changes
+            status: status,
         };
 
-        console.log(changes.assignment_add);
-        console.log(changes.assignment_update);
-
-        axiosInstance.post(`/settings/updateDepartment/${departmentId}`, data, { headers })
+        axiosInstance.post(`/settings/saveDepartment/${departmentId}`, data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
@@ -238,7 +159,7 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                         }}>
                             <FormControl sx={{
-                                marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
+                                marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -253,7 +174,7 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                             </FormControl>
 
                             <FormControl sx={{
-                                marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
+                                marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
                                 <TextField
@@ -266,7 +187,35 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                                     onChange={(e) => setAcronym(e.target.value)}
                                 />
                             </FormControl>
-                        </FormGroup>
+
+                            <FormControl sx={{
+                                marginBottom: 3, width: '20%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+                                <InputLabel id="department-status-label">
+                                    Status
+                                </InputLabel>
+                                <Select
+                                    required
+                                    labelId="department-status-label"
+                                    id="department-status"
+                                    value={status}
+                                    label="Status"
+                                    onChange={(e) => setStatus(e.target.value)}
+                                >
+                                    <MenuItem value="Active">
+                                        Active
+                                    </MenuItem>
+                                    <MenuItem value="Inactive">
+                                        Inactive
+                                    </MenuItem>
+                                    <MenuItem value="Disabled">
+                                        Disabled
+                                    </MenuItem>
+                                </Select>
+                            </FormControl>
+
+                          </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                             '& label.Mui-focused': { color: '#97a5ba' },
@@ -287,72 +236,6 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
                                 />
                             </FormControl>
                         </FormGroup>
-
-
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                
-                            <Box display="flex" sx={{mb:2}}>
-                                <Typography variant="h5" sx={{ marginLeft: { xs: 0, md: 1 }, marginRight:{xs:1, md:2}, fontWeight: 'bold' }}>Assign Employees</Typography>
-                            </Box>
-
-                            {positions.length > 0 ? (
-                                positions.map((position) => (
-                                    <FormControl fullWidth key={position.id} sx={{ my: 1 }}>
-                                        <TextField
-                                            select
-                                            SelectProps={{
-                                            multiple: true,
-                                            value: assignments[position.id] || [], //structure: {position_id: '', employee_ids: []}
-                                            onChange: handleAssignChange(position.id),
-                                            renderValue: (selected) => (
-                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                {selected.map((emp_id) => {
-                                                    const emp = employees.find((e) => e.id === emp_id);
-                                                    return (
-                                                    <Chip
-                                                        key={emp_id}
-                                                        label={emp ? `${emp.first_name} ${emp.last_name}` : emp_id}
-                                                    />
-                                                    );
-                                                })}
-                                                </Box>
-                                            ),
-                                            }}
-                                            label={position.name}
-                                            variant="outlined"
-                                        >
-                                            {employees.map((emp) => {
-                                            const alreadyAssigned = Object.entries(assignments).some(
-                                                ([posId, empList]) =>
-                                                posId !== String(position.id) && (emp.department_id !== null) && empList.includes(emp.id) 
-                                            );
-                                            const selectedEmployees = assignments[position.id] || [{}];
-                                            return (
-                                                <MenuItem
-                                                key={emp.id}
-                                                value={emp.id}
-                                                disabled={alreadyAssigned}
-                                                >
-                                                <Checkbox checked={selectedEmployees.includes(emp.id)} />
-                                                <ListItemText primary={`${emp.first_name} ${emp.last_name}`} />
-                                                </MenuItem>
-                                            );
-                                            })}
-                                        </TextField>
-                                    </FormControl>
-                                ))
-                            ):(
-                            <FormControl fullWidth>
-                                <Box display="flex" alignContent="center">
-                                    <Typography>No Positions to Assign</Typography>
-                                </Box>
-                            </FormControl>
-                            )}
-                        </FormGroup>
-                        
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">

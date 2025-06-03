@@ -22,6 +22,7 @@ import {
     IconButton,
     FormGroup,
     FormControl,
+    InputAdornment,
     Tooltip,
     Menu
 } from "@mui/material";
@@ -31,6 +32,7 @@ import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 import Swal from "sweetalert2";
 import DepartmentPositionSettings from "./Modals/DepartmentPositionSettings";
+import SearchIcon from "@mui/icons-material/Search";
 import DepartmentAdd from "./Modals/DepartmentAdd";
 
 const DepartmentList = () => {
@@ -52,7 +54,6 @@ const DepartmentList = () => {
     // Add Button Dropdown
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -82,8 +83,6 @@ const DepartmentList = () => {
         };
         fetchData();
     }, []);
-
-    console.log(departments)
     
     const filteredDepartments = departments.filter(dep =>
         dep.name.toLowerCase().includes(searchKeyword.toLowerCase())
@@ -170,6 +169,13 @@ const DepartmentList = () => {
                                     variant="outlined"
                                     value={searchKeyword}
                                     onChange={(e) => setSearchKeyword(e.target.value)}
+                                    InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon />
+                                        </InputAdornment>
+                                    ),
+                                    }}
                                 />
                             </Grid>
                             <Grid item xs={3}>
@@ -184,33 +190,42 @@ const DepartmentList = () => {
                                 <TableContainer sx={{ mt: 3, maxHeight: 500 }}>
                                     <Table stickyHeader>
                                         <TableHead>
-                                        <TableRow >
-                                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Department</TableCell>
-                                            {departmentPositions.length > 0 ? (
-                                            departmentPositions.map((position) => (
-                                                <TableCell key={position.id} align="center" sx={{ fontWeight: 'bold' }}>
-                                                {position.name}
-                                                </TableCell>
-                                            ))
-                                            ) : (
-                                            <TableCell />
-                                            )}
-                                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>No. of Employees</TableCell>
-                                        </TableRow>
+                                            <TableRow >
+                                                <TableCell align='center' sx={{ fontWeight: 'bold'}}>Department</TableCell>
+                                                {departmentPositions.length > 0 ? (
+                                                    departmentPositions.map((position) => (
+                                                        <TableCell key={position.id} align="center" sx={{ fontWeight: 'bold' }}>
+                                                        {position.name}
+                                                        </TableCell>
+                                                    ))
+                                                ) : (
+                                                null
+                                                )}
+                                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>No. of Assigned Employees</TableCell>
+                                            </TableRow>
                                         </TableHead>
-                                        <TableBody>
-                                        {filteredDepartments.length > 0 ? (
-                                            filteredDepartments.map((dep) => {
-                                            // Flatten all assigned employees for total count
-                                            const totalEmployees = dep.assigned_positions
-                                                ?.flatMap((assign) => assign.employee_assignments || [])
-                                                .length || 0;
 
-                                            return (
-                                                <TableRow key={dep.id}>
-                                                    {/*<--Department Name-->*/}
-                                                    <TableCell>
-                                                        <Link
+                                        <TableBody>
+                                            {filteredDepartments.length > 0 ? (
+                                                filteredDepartments.map((dep) => {
+                                                // Flatten all employees from assigned_positions
+                                                const allEmployees = dep.assigned_positions?.flatMap(pos => pos.employees || []) || [];
+
+                                                // Group by department_position_id
+                                                const groupedByPosition = departmentPositions.reduce((acc, pos) => {
+                                                    acc[pos.id] = allEmployees.filter(emp => emp.department_position_id === pos.id);
+                                                    return acc;
+                                                }, {});
+
+                                                return (
+                                                    <TableRow key={dep.id} sx={{
+                                                        '&:hover': {
+                                                          backgroundColor: '#f0f0f0', 
+                                                        },
+                                                      }}>
+                                                        {/* Department Name */}
+                                                        <TableCell>
+                                                            <Link
                                                             to={`/admin/department/${dep.id}`}
                                                             style={{
                                                                 textDecoration: "none",
@@ -218,48 +233,43 @@ const DepartmentList = () => {
                                                                 display: "block",
                                                                 width: "100%",
                                                                 height: "100%",
-                                                                padding: "16px"
+                                                                padding: "16px",
+                                                                
                                                             }}
-                                                        >
-                                                            <Box 
-                                                                display="flex" 
-                                                                alignItems="center"
-                                                                justifyContent="center"
                                                             >
-                                                                {dep.name}
-                                                            </Box>
-                                                        </Link>
-                                                    </TableCell>
+                                                                <Box display="flex" alignItems="center" justifyContent="center" >
+                                                                    {dep.name}
+                                                                </Box>
+                                                            </Link>
+                                                        </TableCell>
 
-                                                    {/* Per-Position Employee Names <using departmentPosition state array for consistency> */}
+                                                    {/* Per-Position Employee Avatars */}
                                                     {departmentPositions.map((position) => {
-                                                        // Find the assigned position for this department
-                                                        const matchAssigned = dep.assigned_positions?.find(
-                                                        (asg) => asg.department_position_id === position.id
-                                                        );
-                                                        const employees = matchAssigned?.employee_assignments || [];
-                                                    
+                                                        const employees = groupedByPosition[position.id] || [];
 
                                                         return (
                                                         <TableCell key={position.id} align="center">
                                                             {employees.length > 0 ? (
-                                                                <Box display="flex" justifyContent="center">
-                                                                    {employees.map((e) => (
-                                                                        <Tooltip
-                                                                        key={e.id}
-                                                                        title={`${e.employee?.first_name || ""} ${e.employee?.last_name || ""}`}
-                                                                        arrow
-                                                                        placement="top"
-                                                                        >
-                                                                            <Avatar
-                                                                            src={e.employee?.avatar_url || "/default-avatar.png"} // Use your default avatar image path
-                                                                            alt={`${e.employee?.first_name} ${e.employee?.last_name}`}
-                                                                            sx={{ width: 32, height: 32, cursor: "pointer", mx:0.2}}
-                                                                            />
-                                                                        </Tooltip>
-                                                                    ))}
-                                                                </Box>
-                                                            
+                                                            <Box display="flex" justifyContent="center">
+                                                                {employees.map((emp) => (
+                                                                <Tooltip
+                                                                    key={emp.id}
+                                                                    title={`${emp.first_name} ${emp.last_name}`}
+                                                                    arrow
+                                                                    placement="top"
+                                                                >
+                                                                    <Avatar
+                                                                    src={
+                                                                        emp.avatar && emp.avatar_mime
+                                                                        ? `data:${emp.avatar_mime};base64,${emp.avatar}`
+                                                                        : "/default-avatar.png"
+                                                                    }
+                                                                    alt={`${emp.first_name} ${emp.last_name}`}
+                                                                    sx={{ width: 32, height: 32, cursor: "pointer", mx: 0.2 }}
+                                                                    />
+                                                                </Tooltip>
+                                                                ))}
+                                                            </Box>
                                                             ) : (
                                                             <Typography>--</Typography>
                                                             )}
@@ -268,20 +278,20 @@ const DepartmentList = () => {
                                                     })}
 
                                                     {/* Total Employee Count */}
-                                                    <TableCell align="center">{totalEmployees}</TableCell>
+                                                        <TableCell align="center">{allEmployees.length}</TableCell>
+                                                    </TableRow>
+                                                );
+                                                })
+                                            ) : (
+                                                <TableRow>
+                                                <TableCell colSpan={2 + departmentPositions.length}>
+                                                    No department found
+                                                </TableCell>
                                                 </TableRow>
-                                            );
-                                            })
-                                        ) : (
-                                            <TableRow>
-                                            <TableCell colSpan={2 + departmentPositions.length}>
-                                                No department found
-                                            </TableCell>
-                                            </TableRow>
-                                        )}
+                                            )}
                                         </TableBody>
                                     </Table>
-                                    </TableContainer>
+                                </TableContainer>
                                 
                                 {filteredDepartments.length > 0 && (
                                     <Box
@@ -294,9 +304,7 @@ const DepartmentList = () => {
                                             alignItems: "center",
                                         }}
                                     >
-                                        <Typography sx={{ mr: 2 }}>
-                                            Number of Departments:
-                                        </Typography>
+                                        <Typography sx={{ mr: 2 }}> Number of Departments:</Typography>
                                         <Typography
                                             variant="h6"
                                             sx={{ fontWeight: "bold" }}

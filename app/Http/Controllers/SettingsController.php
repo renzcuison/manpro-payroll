@@ -212,14 +212,29 @@ class SettingsController extends Controller
         if ($this->checkUser()) {
             $user = Auth::user();
             $departments = DepartmentsModel::where('client_id', $user->client_id)
-                ->with(['manager', 'supervisor', 'approver'])
-                ->withCount('employees')
-                ->get();
+            ->get();
      
             return response()->json(['status' => 200, 'departments' => $departments]);
         }
      
         return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    }
+
+    //get only the information of one specific department
+    public function getDepartment($departmentId)
+    {
+        if (!$this->checkUser()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+        $user = Auth::user();
+        $department = DepartmentsModel::where('id', $departmentId)
+        ->where('client_id', $user->client_id)
+        ->first();
+
+        if (!$department) {
+            return response()->json(['status' => 404, 'message' => 'Department not found'], 404);
+        }
+        return response()->json(['status' => 200, 'department' => $department]);
     }
      
 
@@ -241,70 +256,69 @@ class SettingsController extends Controller
         return response()->json(['status' => 200, 'positions' => $positions]);
     }
 
-    public function getEmployeeDepartment($departmentId)
+    //get assigned employees in a specific department
+    public function getEmployeesByDepartment($departmentId)
     {
-        $department = DepartmentsModel::with([
-            'assignedPositions.position',
-            'assignedPositions.employeeAssignments.employee'
-        ])->find($departmentId);
-
-        if (!$department) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'Department not found'
-            ], 404);
+        if (!$this->checkUser()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
+        $user = Auth::user();
 
-        $employees = [];
+        //gets employees that are assigned in this department and have assigned positions
+        $assigned = UsersModel::with(['departmentPosition'])
+        ->where('client_id', $user->client_id)
+        ->where('department_id', $departmentId)
+        ->whereNotNull('department_position_id')
+        ->get();
 
-        foreach ($department->assignedPositions as $assignment) {
-            $position = $assignment->position;
-
-            foreach ($assignment->employeeAssignments as $empAssignment) {
-                $emp = $empAssignment->employee;
-
-                $employees[] = [
-                    'id' => $emp->id,
-                    'first_name' => $emp->first_name,
-                    'last_name' => $emp->last_name,
-                    'email' => $emp->email,
-                    'position_id' => $position->id,
-                    'position_name' => $position->name,
-                ];
-            }
-        }
-
+        //gets employees that does not belong to any departments yet, and those that are in this department but not assigned to a position
+        $unassigned = UsersModel::where('client_id', $user->client_id)
+        ->where('user_type', 'Employee')
+        ->where(function ($q) use ($departmentId) {
+            $q->whereNull('department_id')
+            ->orWhere(function ($q2) use ($departmentId) {
+                $q2->where('department_id', $departmentId)
+                    ->whereNull('department_position_id');
+            });
+        })
+        ->get();
         return response()->json([
             'status' => 200,
-            'department_id' => $department->id,
-            'department_name' => $department->name,
-            'employees' => $employees,
+            'assigned' => $assigned,
+            'unassigned' => $unassigned,
         ]);
     }
 
-    //get department, with employees and their position
+    //get each of the department's details, along with their assigned employees per department position
     public function getDepartmentWithEmployeePosition(Request $request)
     {
         if (!$this->checkUser()) {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
 
-        //--->Load departments with their assigned positions and employees
-        //assignedPositions from departments model (hasMany)
-        //position from department position model (belongsTo)
-        //employeeAssignments from employeeAssignments (hasMany)
-        //employee from employee department position (belongsTo)
-        $departments = DepartmentsModel::with([
-            'assignedPositions.position',
-            'assignedPositions.employeeAssignments.employee'
-        ])->get();
+        $user = Auth::user();
+        $departments = DepartmentsModel::where('client_id', $user->client_id)->get();
 
-        // Loop through departments and their assigned positions/employees
+        $result = [];
+
         foreach ($departments as $department) {
-            foreach ($department->assignedPositions as $assignedPosition) {
-                foreach ($assignedPosition->employeeAssignments as $employeeAssignment) {
-                    $employee = $employeeAssignment->employee;
+            // Get employees in this department who have a department_position_id
+            $employees = UsersModel::with(['branch', 'departmentPosition'])
+                ->where('department_id', $department->id)
+                ->whereNotNull('department_position_id')
+                ->get();
 
+            // Group employees by department_position_id
+            $grouped = $employees->groupBy('department_position_id');
+
+            $assignedPositions = [];
+
+            foreach ($grouped as $positionId => $groupedEmployees) {
+                $position = DepartmentPosition::find($positionId);
+
+                if (!$position) continue;
+
+                $employeesWithAvatars = $groupedEmployees->map(function ($employee) {
                     if ($employee->profile_pic && Storage::disk('public')->exists($employee->profile_pic)) {
                         $employee->avatar = base64_encode(Storage::disk('public')->get($employee->profile_pic));
                         $employee->avatar_mime = mime_content_type(storage_path('app/public/' . $employee->profile_pic));
@@ -312,153 +326,132 @@ class SettingsController extends Controller
                         $employee->avatar = null;
                         $employee->avatar_mime = null;
                     }
-                }
+                    return $employee;
+                });
+
+                $assignedPositions[] = [
+                    'id' => $position->id,
+                    'name' => $position->name,
+                    'can_review_request' => $position->can_review_request,
+                    'can_approve_request' => $position->can_approve_request,
+                    'can_note_request' => $position->can_note_request,
+                    'can_accept_request' => $position->can_accept_request,
+                    'employees' => $employeesWithAvatars,
+                ];
             }
+
+            $result[] = [
+                'id' => $department->id,
+                'name' => $department->name,
+                'acronym' => $department->acronym,
+                'assigned_positions' => $assignedPositions,
+            ];
         }
 
-        return response()->json(['status' => 200, 'departments' => $departments]);
+        return response()->json(['status' => 200, 'departments' => $result]);
     }
-
-    //get the specific department, alongside their assigned employees based on the current department position (global table)
-    public function getDepartmentDetails($id){
-        if(!$this->checkUser()){
+    
+    //get details from a specific department
+    public function getDepartmentDetails($id)
+    {
+        if (!$this->checkUser()) {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
-        Log::info($id);
 
-        $department = DepartmentsModel::with([
-            //(Model flow relationships)
-            'assignedPositions.position', //DepartmentsPositionAssignment -> DepartmentPosition 
-            'assignedPositions.employeeAssignments.employee.branch',   //DepartmentPositionAssignment -> EmployeeDepartmentPosition -> UsersModel
-        ])->find($id);
+        $user = Auth::user();
+        $department = DepartmentsModel::where('id', $id)
+        ->where('client_id', $user->client_id)
+        ->first();
 
         if (!$department) {
             return response()->json(['status' => 404, 'message' => 'Department not found'], 404);
         }
 
-        
+        // Load employees that belong to this department (including their branch and position)
+        $employees = UsersModel::with(['branch', 'departmentPosition'])
+            ->where('department_id', $id)
+            ->get();
 
         return response()->json([
             'status' => 200,
-            'department' => $department,
+            'department' => [
+                'id' => $department->id,
+                'name' => $department->name,
+                'acronym' => $department->acronym,
+                'employees' => $employees
+            ]
         ]);
     }
     
-    public function saveDepartment(Request $request)
+    public function saveDepartment(Request $request, $departmentId)
     {
-        // log::info("SettingsController::saveDepartment");
         $validated = $request->validate([
             'name' => 'required',
             'acronym' => 'required',
         ]);
 
-        if ($this->checkUser() && $validated) {
+        if (!$this->checkUser()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
 
-            $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
 
-            try {
-                DB::beginTransaction();
-                
-                //create new department
-                $department = DepartmentsModel::create([
-                    "name" => $request->name,
-                    "acronym" => $request->acronym,
-                    "description" => $request->description,
-                    "status" => "Active",
-                    "client_id" => $client->id,
-                ]);
+        try {
+            DB::beginTransaction();
+            $department = DepartmentsModel::updateOrCreate(
+                [
+                    'id' => $departmentId,
+                    'client_id' => $client->id,
+                ],
+                [
+                    'name' => $request->name,
+                    'acronym' => $request->acronym,
+                    'description' => $request->description,
+                    'status' => $departmentId ? $request->status : 'Active', // On creation, set status to active
+                    'client_id' => $client->id, 
+                ]
+            );
 
-                //create assignments (if there are any right now)
-                foreach ($request->assignments as $position_id => $employee_ids) {
-                    $assignment = DepartmentPositionAssignment::firstOrCreate([
-                        'department_id' => $department->id,
-                        'department_position_id' => $position_id,
-                    ]);
-                
-                    foreach ($employee_ids as $emp_id) {
-                        EmployeeDepartmentPosition::firstOrCreate([
-                            'assignment_id' => $assignment->id,
-                            'employee_id' => $emp_id,
-                        ]);
-
-                        UsersModel::where('id', $emp_id)->update([
-                            'department_id' => $department->id,
-                        ]);
-                    }
-                }
-
-                DB::commit();
-
-                return response()->json(['status' => 200, 'department' => $department]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                Log::error("Error saving: " . $e->getMessage());
-                throw $e;
-            }
+            DB::commit();
+            return response()->json(['status' => 200, 'message' => 'Successfully Saved']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error saving: " . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Error saving department'], 500);
         }
     }
-
-    public function updateDepartment(Request $request, $departmentId)
+    public function updateDepartmentPositionAssignments(Request $request, $departmentId)
     {
-        $department = DepartmentsModel::findOrFail($departmentId);
+        if (!$this->checkUser()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
 
-        $department->update([
-            'name' => $request->name,
-            'acronym' => $request->acronym,
-            'description' => $request->description
+        $request->validate([
+            'department_position_id' => 'required|exists:department_positions,id',
+            'add_employee_ids' => 'array',
+            'add_employee_ids.*' => 'exists:users,id',
+            'remove_employee_ids' => 'array',
+            'remove_employee_ids.*' => 'exists:users,id',
         ]);
 
-        $add = $request->input('assignment_add', []);
-        $update = $request->input('assignment_update', []);
-        $delete = $request->input('assignment_delete', []);
+        $departmentPositionId = $request->department_position_id;
+        $addIds = $request->add_employee_ids ?? [];
+        $removeIds = $request->remove_employee_ids ?? [];
 
-        // ADD 
-        foreach ($add as $positionId => $employeeIds) {
-            $assigned = $department->assignedPositions()
-                ->firstOrCreate(['department_position_id' => $positionId]);
+        // Assign employees
+        UsersModel::whereIn('id', $addIds)->update([
+            'department_id' => $departmentId,
+            'department_position_id' => $departmentPositionId
+        ]);
 
-            foreach ($employeeIds as $empId) {
-                $assigned->employeeAssignments()->firstOrCreate(['employee_id' => $empId]);
-
-                UsersModel::where('id', $empId)->update([
-                    'department_id' => $department->id,
-                ]);
-            }
-        }
-
-        // UPDATE
-        foreach ($update as $positionId => $employeeIds) {
-            $assigned = $department->assignedPositions()
-                ->where('department_position_id', $positionId)->first();
-
-            if ($assigned) {
-                $assigned->employeeAssignments()->delete();
-                foreach ($employeeIds as $empId) {
-                    $assigned->employeeAssignments()->create(['employee_id' => $empId]);
-
-                    UsersModel::where('id', $empId)->update([
-                        'department_id' => $department->id,
-                    ]);
-                } 
-            }
-        }
-
-        // DELETE
-        foreach ($delete as $positionId => $empIds) {
-            $assigned = $department->assignedPositions()
-                ->where('department_position_id', $positionId)->first();
-
-            if ($assigned) {
-                $assigned->employeeAssignments()->whereIn('employee_id', $empIds)->delete();
-
-                UsersModel::whereIn('id', $empIds)->update([
-                    'department_id' => null,
-                ]);
-            }
-        }
-
-        return response()->json(['status' => 200, 'message' => 'Updated successfully']);
+        // Remove employees (set position to null)
+        UsersModel::whereIn('id', $removeIds)
+            ->where('department_position_id', $departmentPositionId) // Ensure only removing from this position
+            ->update([
+                'department_position_id' => null
+            ]);
+        return response()->json(['status' => 200, 'message' => 'Employee assignments updated.']);
     }
 
    public function editDepartment(Request $request)

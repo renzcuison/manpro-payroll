@@ -29,60 +29,8 @@ const DepartmentAdd = ({open, close}) =>{
     const [name, setName] = useState("");
     const [acronym, setAcronym] = useState("");
     const [description, setDescription] = useState("");
-    const [employees, setEmployees] = useState([]);
-    const [assignments, setAssignments] = useState({}); // structure be like: {position_id: [emp_id, ...]}
-    const [positions, setPosition] = useState([]);
-    
-    //fethcing data
-    useEffect(() => {
-        axiosInstance.get('/employee/getEmployees', { headers })
-            .then((response) => {
-                if(response.status === 200){
-                    const employee = response.data.employees;
-                    setEmployees(employee);    
-                }
-                else{
-                    setEmployees(null);
-                }
-            }).catch((error) => {
-                console.error('Error fetching employees:', error);
-                setEmployees(null);
-            });
+     
 
-        axiosInstance.get('/settings/getDepartmentPositions', { headers })
-            .then((response) => {
-                if(response.status === 200){
-                    const position = response.data.positions;
-                    setPosition(position);    
-                }
-                else{
-                    setPosition(null);
-                }
-            }).catch((error) => {
-                console.error('Error fetching positions:', error);
-                setPosition(null);
-            });
-        
-    }, []);
-
-    
-    const handleAssignChange = (position_id) => (event) => {
-        const selected = event.target.value; //employee id arrays
-        const updatedAssignments = {};
-
-        //explanation --> if there exist the same employee when assigning to a new position, remove their id from that position, ensuring they can only be assigned to one position
-        for(const pos of positions){
-            const pos_id = pos.id; //extract id from the position useState array
-            if(pos_id === position_id){
-                updatedAssignments[pos_id] = selected;
-            }
-            else{
-                updatedAssignments[pos_id] = (assignments[pos_id] || []).filter(emp_id => !selected.includes(emp_id))
-            }
-        }
-        setAssignments(updatedAssignments);
-    }
-    console.log(assignments);
 
     // Add New Department to the Backend functions
     const checkInput = (event) => {
@@ -104,7 +52,7 @@ const DepartmentAdd = ({open, close}) =>{
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "This branch will be added",
+                text: "This department will be added",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: "Add",
@@ -126,7 +74,6 @@ const DepartmentAdd = ({open, close}) =>{
             name: name,
             acronym: acronym,
             description: description,
-            assignments: assignments
         };
 
         axiosInstance.post('/settings/saveDepartment', data, { headers })
@@ -140,7 +87,7 @@ const DepartmentAdd = ({open, close}) =>{
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        setOpenModal(false);
+                        close(true);
                     });
                 }
             })
@@ -238,71 +185,6 @@ const DepartmentAdd = ({open, close}) =>{
                                 />
                             </FormControl>
                         </FormGroup>
-
-
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <Box display="flex" sx={{mb:2}}>
-                                <Typography variant="h5" sx={{ marginLeft: { xs: 0, md: 1 }, marginRight:{xs:1, md:2}, fontWeight: 'bold' }}>Assign Employees</Typography>
-                            </Box>
-
-                            {positions.length > 0 ? (
-                                positions.map((position) => (
-                                    <FormControl fullWidth key={position.id} sx={{ my: 1 }}>
-                                        <TextField
-                                            select
-                                            SelectProps={{
-                                            multiple: true,
-                                            value: assignments[position.id] || [], //structure: {position_id: '', employee_ids: []}
-                                            onChange: handleAssignChange(position.id),
-                                            renderValue: (selected) => (
-                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                {selected.map((emp_id) => {
-                                                    const emp = employees.find((e) => e.id === emp_id);
-                                                    return (
-                                                    <Chip
-                                                        key={emp_id}
-                                                        label={emp ? `${emp.first_name} ${emp.last_name}` : emp_id}
-                                                    />
-                                                    );
-                                                })}
-                                                </Box>
-                                            ),
-                                            }}
-                                            label={position.name}
-                                            variant="outlined"
-                                        >
-                                            {employees.map((emp) => {
-                                            const isAssignedElsewhere = Object.entries(assignments).some(
-                                                ([posId, empList]) =>
-                                                posId !== String(position.id) && empList.includes(emp.id)
-                                            );
-                                            const selectedEmployees = assignments[position.id] || [{}];
-                                            return (
-                                                <MenuItem
-                                                key={emp.id}
-                                                value={emp.id}
-                                                disabled={isAssignedElsewhere}
-                                                >
-                                                <Checkbox checked={selectedEmployees.includes(emp.id)} />
-                                                <ListItemText primary={`${emp.first_name} ${emp.last_name}`} />
-                                                </MenuItem>
-                                            );
-                                            })}
-                                        </TextField>
-                                    </FormControl>
-                                ))
-                            ):(
-                            <FormControl fullWidth>
-                                <Box display="flex" alignContent="center">
-                                    <Typography>No Positions to Assign</Typography>
-                                </Box>
-                            </FormControl>
-                            )}
-                        </FormGroup>
-                        
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">

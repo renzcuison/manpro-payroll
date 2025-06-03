@@ -192,6 +192,50 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
+    //for the employee assignment process (only returns employees that are either unassigned or those whose department id matches the id being updated)
+    public function getAssignableEmployees(Request $request)
+    {
+        // log::info("EmployeesController::getEmployees");
+
+        if ($this->checkUserAdmin()) {
+            $user = Auth::user();
+            // $employees = $user->company->users;
+
+            $client = ClientsModel::find($user->client_id);
+            $departmentId = $request->query('department_id');
+
+            //responsible for filtering employees that are not assigned to any dept or those who belong to the specific dept id
+            $employees = $client->employees->filter(function ($employee) use ($departmentId){
+                
+                if(is_null($departmentId)){
+                    //executed when no department_id is provided (will be used when adding new department)
+                    return is_null($employee->department_id);
+                }
+                //otherwise execute this (will be used when updating a specific department)
+                return is_null($employee->department_id) || $employee->department_id == $departmentId;
+            });
+
+           $employees = $employees->map(function ($employee) {
+                $employee = $this->enrichEmployeeDetails($employee);
+
+                unset(
+                    $employee->verify_code,
+                    $employee->code_expiration,
+                    $employee->is_verified,
+                    $employee->client_id,
+                    $employee->branch_id,
+                );
+                return $employee;
+            });
+
+            $employees = $employees->values()->all();
+
+            return response()->json(['status' => 200, 'employees' => $employees]);
+        }
+
+        return response()->json(['status' => 200, 'employees' => null]);
+    }
+
 
 
     public function getEmployeesByBranch($id)

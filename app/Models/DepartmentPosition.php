@@ -23,4 +23,9 @@ class DepartmentPosition extends Model
     {
         return $this->hasMany(DepartmentPositionAssignment::class);
     }
+
+    public function employees()
+    {
+        return $this->hasMany(UsersModel::class, 'department_position_id');
+    }
 }
