@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\UsersModel;
 use App\Models\HrEmployees;
 use App\Models\HrWorkshifts;
 use App\Models\HrWorkhour;
@@ -1956,17 +1957,139 @@ class HrEmployeesController extends Controller
     // -----------------------  NEW  FUNCTIONS  -----------------------
     // ----------------------------------------------------------------
 
-    public function getEmployees()
+    public function getEmployeesName(Request $request)
     {
+
+        // inputs:
+        /*
+            branch_id?: number,
+            department_id?: number
+        */
+
+        // returns:
+        /*
+            employees: {
+                id, user_name, first_name, middle_name, last_name, suffix, birth_date, gender,
+                address, contact_number, email, user_type, salary_type, , is_fixed_salary,
+                tin_number, deduct_tax, profile_pic, verify_code, code_expiration, is_verified,
+                employment_type, employment_status, client_id, company_id, branch_id,
+                branch_position_id, department_id, role_id, job_title_id, work_group_id,
+                date_start, date_end, updated_at
+            }[]
+        */
+
+        log::info('HrEmployeesController::getEmployeesName');
+
         if (Auth::check()) {
             $userID = Auth::id();
         } else {
             $userID = null;
         }
-        
-        $user = User::findOrFail($userID);
-        $employees = User::where('team', $user->team)->where('is_deleted', 0)->get();
+    
+        $user = DB::table('users')->where('id', $userID)->first();
 
-        return response()->json([ 'status' => 200, 'employees' => $employees ]);
+        try {
+
+            $employees = UsersModel::select(
+                'id', 'first_name', 'middle_name', 'last_name'
+            );
+            if($request->branch_id)
+                $employees = $employees->where('branch_id', $request->branch_id);
+            if($request->department_id)
+                $employees = $employees->where('department_id', $request->department_id);
+            $employees = $employees
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->orderBy('middle_name')
+                ->get()
+            ;
+            if ($employees->isEmpty()) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'No employees found!',
+                    'employees' => [],
+                ]);
+            }
+            return response()->json([
+                'status' => 200,
+                'message' => 'Employees successfully retrieved.',
+                'employees' => $employees
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    public function getAdmins(Request $request)
+    {
+
+        // inputs:
+        /*
+            branch_id?: number,
+            department_id?: number
+        */
+
+        // returns:
+        /*
+            admins: {
+                id, user_name, first_name, middle_name, last_name, suffix, birth_date, gender,
+                address, contact_number, email, user_type, salary_type, , is_fixed_salary,
+                tin_number, deduct_tax, profile_pic, verify_code, code_expiration, is_verified,
+                employment_type, employment_status, client_id, company_id, branch_id,
+                branch_position_id, department_id, role_id, job_title_id, work_group_id,
+                date_start, date_end, updated_at
+            }[]
+        */
+
+        log::info('HrEmployeesController::getAdmins');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $admins = UsersModel
+                ::select(
+                    'id', 'first_name', 'middle_name', 'last_name'
+                )
+                ->where('user_type', 'Admin')
+            ;
+            // if($request->branch_id)
+            //     $admins = $admins->where('branch_id', $request->branch_id);
+            // if($request->department_id)
+            //     $admins = $admins->where('department_id', $request->department_id);
+            $admins = $admins
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->orderBy('middle_name')
+                ->get()
+            ;
+            if( !$admins ) return response()->json([
+                'status' => 404,
+                'message' => 'No admins found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Admins successfully retrieved.',
+                'admins' => $admins
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
     }
 }

@@ -1,10 +1,6 @@
 {
   "node_modules/canvg/lib/index.es.js": {
-<<<<<<< HEAD
-    "file": "assets/index.es-DNm4n1Rn.js",
-=======
-    "file": "assets/index.es-BkSiaDg1.js",
->>>>>>> main
+    "file": "assets/index.es-CkoNhKKw.js",
     "name": "index.es",
     "src": "node_modules/canvg/lib/index.es.js",
     "isDynamicEntry": true,
@@ -105,11 +101,7 @@
     "src": "resources/js/Assets/default_perimeter_image.png"
   },
   "resources/js/app.jsx": {
-<<<<<<< HEAD
-    "file": "assets/app-Be-1MbOd.js",
-=======
-    "file": "assets/app-BGrJCHEP.js",
->>>>>>> main
+    "file": "assets/app-CjUeOGBD.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,

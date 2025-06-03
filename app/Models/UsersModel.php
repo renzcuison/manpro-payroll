@@ -170,5 +170,10 @@ class UsersModel extends Authenticatable implements HasMedia
     {
         return $this->hasMany(EvaluationResponse::class, 'secondary_commentor_id');
     }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('profile_pictures')->singleFile();
+    }
     
 }
