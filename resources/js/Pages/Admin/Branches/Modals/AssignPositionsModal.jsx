@@ -393,8 +393,8 @@ const AssignPositionsModal = ({
     (!selectedPosition || emp.branch_position_id === selectedPosition)
   );
 
-  console.log('All Employees:', allEmployees);
-console.log('Assigned Employees:', assignedEmployees);
+  // console.log('All Employees:', allEmployees);
+  // console.log('Assigned Employees:', assignedEmployees);
 
   return (
     <ThemeProvider theme={theme}>
