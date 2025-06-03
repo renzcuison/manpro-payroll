@@ -1127,9 +1127,277 @@ class EvaluationFormController extends Controller
 
         // move evaluation form subcategory
 
+    // public function saveEvaluationFormSubcategory(Request $request)
+    // {
+    //     log::info('EvaluationFormController::saveEvaluationFormSubcategory');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $isEmptyName = !$request->name;
+    //         if( $isEmptyName ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Name is required!'
+    //         ]);
+
+    //         $isEmptyDescription = !$request->description;
+    //         if( $isEmptyDescription ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Description is required!'
+    //         ]);
+
+    //         $order = (
+    //             EvaluationFormSubcategory
+    //                 ::where('section_id', $request->section_id)->max('order')
+    //             ?? -1
+    //         ) + 1;
+    //         $subcategoryTypes = [
+    //             'short_answer', 'long_answer', 'multiple_choice',
+    //             'checkbox', 'linear_scale'
+    //         ];
+    //         if(!in_array($request->subcategory_type, $subcategoryTypes))
+    //             return response()->json([ 
+    //                 'status' => 400,
+    //                 'message' => 'Evaluation Form Subcategory Type is invalid!'
+    //             ]);
+    //         if($request->linear_scale_start<0 || $request->linear_scale_end<0)
+    //             return response()->json([
+    //                 'status' => 400,
+    //                 'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
+    //             ]);
+    //         if(
+    //             is_numeric($request->linear_scale_start)
+    //             && is_numeric($request->linear_scale_end)
+    //             && $request->linear_scale_start>=$request->linear_scale_end
+    //         ) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
+    //         ]);
+    //         $isEmptyLinearScaleStartLabel = !$request->linear_scale_start_label;
+    //         if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
+    //         ]);
+    //         $isEmptyLinearScaleEndLabel = !$request->linear_scale_end_label;
+    //         if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
+    //         ]);
+
+    //         $newEvaluationFormSubcategory = EvaluationFormSubcategory::create([
+    //             'section_id' => $request->section_id,
+    //             'name' => $request->name,
+    //             'subcategory_type' => $request->subcategory_type,
+    //             'description' => $request->description,
+    //             'required' => 1,
+    //             'allow_other_option' => $request->allow_other_option,
+    //             'linear_scale_start' => $request->linear_scale_start,
+    //             'linear_scale_end' => $request->linear_scale_end,
+    //             'linear_scale_start_label' => $request->linear_scale_start_label,
+    //             'linear_scale_end_label' => $request->linear_scale_end_label,
+    //             'order' => $order
+    //         ]);
+
+    //         if($request->options) {
+    //             $labels = array();
+    //             foreach($request->options as $order => $option) {
+    //                 $label = $option["label"];
+    //                 $isEmptyName = !$label;
+    //                 if( $isEmptyName ) return response()->json([ 
+    //                     'status' => 400,
+    //                     'message' => 'Evaluation Form Subcategory Option Labels are required!'
+    //                 ]);
+
+    //                 $isRepeated = in_array($label, $labels);
+    //                 if($isRepeated) return response()->json([ 
+    //                     'status' => 409,
+    //                     'message' => 'Evaluation Form Subcategory Option Labels must be unique!'
+    //                 ]);
+    //                 $labels[] = $label;
+
+    //                 EvaluationFormSubcategoryOption::create([
+    //                     'subcategory_id' => $newEvaluationFormSubcategory->id,
+    //                     'label' => $label,
+    //                     'order' => $order
+    //                 ]);
+    //             }
+    //         }
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'status' => 201,
+    //             'evaluationFormSubcategoryID' => $newEvaluationFormSubcategory->id,
+    //             'message' => 'Evaluation Form Subcategory successfully created'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
+
+    // public function saveEvaluationFormSubcategory(Request $request)
+    // {
+    //     log::info('EvaluationFormController::saveEvaluationFormSubcategory');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         DB::beginTransaction();
+
+    //         $isEmptyName = !$request->name;
+    //         if( $isEmptyName ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Name is required!'
+    //         ]);
+
+    //         $isEmptyDescription = !$request->description;
+    //         if( $isEmptyDescription ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Description is required!'
+    //         ]);
+
+    //         $order = (
+    //             EvaluationFormSubcategory
+    //                 ::where('section_id', $request->section_id)->max('order')
+    //             ?? -1
+    //         ) + 1;
+    //         $subcategoryTypes = [
+    //             'short_answer', 'long_answer', 'multiple_choice',
+    //             'checkbox', 'linear_scale'
+    //         ];
+    //         if(!in_array($request->subcategory_type, $subcategoryTypes))
+    //             return response()->json([ 
+    //                 'status' => 400,
+    //                 'message' => 'Evaluation Form Subcategory Type is invalid!'
+    //             ]);
+    //         if($request->linear_scale_start<0 || $request->linear_scale_end<0)
+    //             return response()->json([
+    //                 'status' => 400,
+    //                 'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
+    //             ]);
+    //         if(
+    //             is_numeric($request->linear_scale_start)
+    //             && is_numeric($request->linear_scale_end)
+    //             && $request->linear_scale_start>=$request->linear_scale_end
+    //         ) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
+    //         ]);
+    //         $isEmptyLinearScaleStartLabel = !$request->linear_scale_start_label;
+    //         if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
+    //         ]);
+    //         $isEmptyLinearScaleEndLabel = !$request->linear_scale_end_label;
+    //         if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
+    //         ]);
+
+    //         $newEvaluationFormSubcategory = EvaluationFormSubcategory::create([
+    //             'section_id' => $request->section_id,
+    //             'name' => $request->name,
+    //             'subcategory_type' => $request->subcategory_type,
+    //             'description' => $request->description,
+    //             'required' => 1,
+    //             'allow_other_option' => $request->allow_other_option,
+    //             'linear_scale_start' => $request->linear_scale_start,
+    //             'linear_scale_end' => $request->linear_scale_end,
+    //             'linear_scale_start_label' => $request->linear_scale_start_label,
+    //             'linear_scale_end_label' => $request->linear_scale_end_label,
+    //             'order' => $order
+    //         ]);
+
+    //         // Save options for multiple choice, checkbox, or linear_scale
+    //         if($request->subcategory_type == 'linear_scale') {
+    //             // Save the start and end labels as options
+    //             EvaluationFormSubcategoryOption::create([
+    //                 'subcategory_id' => $newEvaluationFormSubcategory->id,
+    //                 'label' => $request->linear_scale_start_label,
+    //                 'order' => 0
+    //             ]);
+    //             EvaluationFormSubcategoryOption::create([
+    //                 'subcategory_id' => $newEvaluationFormSubcategory->id,
+    //                 'label' => $request->linear_scale_end_label,
+    //                 'order' => 1
+    //             ]);
+    //         }
+
+    //         if($request->options && is_array($request->options)) {
+    //             $labels = array();
+    //             foreach($request->options as $order => $option) {
+    //                 $label = $option["label"];
+    //                 $isEmptyName = !$label;
+    //                 if( $isEmptyName ) return response()->json([ 
+    //                     'status' => 400,
+    //                     'message' => 'Evaluation Form Subcategory Option Labels are required!'
+    //                 ]);
+
+    //                 $isRepeated = in_array($label, $labels);
+    //                 if($isRepeated) return response()->json([ 
+    //                     'status' => 409,
+    //                     'message' => 'Evaluation Form Subcategory Option Labels must be unique!'
+    //                 ]);
+    //                 $labels[] = $label;
+
+    //                 EvaluationFormSubcategoryOption::create([
+    //                     'subcategory_id' => $newEvaluationFormSubcategory->id,
+    //                     'label' => $label,
+    //                     'order' => $order
+    //                 ]);
+    //             }
+    //         }
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'status' => 201,
+    //             'evaluationFormSubcategoryID' => $newEvaluationFormSubcategory->id,
+    //             'message' => 'Evaluation Form Subcategory successfully created'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    // }
     public function saveEvaluationFormSubcategory(Request $request)
     {
-        log::info('EvaluationFormController::saveEvaluationFormSubcategory');
+        Log::info('EvaluationFormController::saveEvaluationFormSubcategory');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -1141,7 +1409,7 @@ class EvaluationFormController extends Controller
 
         try {
 
-            if( $user === null ) return response()->json([ 
+            if ($user === null) return response()->json([
                 'status' => 403,
                 'message' => 'Unauthorized access!'
             ]);
@@ -1149,13 +1417,13 @@ class EvaluationFormController extends Controller
             DB::beginTransaction();
 
             $isEmptyName = !$request->name;
-            if( $isEmptyName ) return response()->json([ 
+            if ($isEmptyName) return response()->json([
                 'status' => 400,
                 'message' => 'Evaluation Form Subcategory Name is required!'
             ]);
 
             $isEmptyDescription = !$request->description;
-            if( $isEmptyDescription ) return response()->json([ 
+            if ($isEmptyDescription) return response()->json([
                 'status' => 400,
                 'message' => 'Evaluation Form Subcategory Description is required!'
             ]);
@@ -1165,38 +1433,43 @@ class EvaluationFormController extends Controller
                     ::where('section_id', $request->section_id)->max('order')
                 ?? -1
             ) + 1;
+
             $subcategoryTypes = [
                 'short_answer', 'long_answer', 'multiple_choice',
                 'checkbox', 'linear_scale'
             ];
-            if(!in_array($request->subcategory_type, $subcategoryTypes))
-                return response()->json([ 
+            if (!in_array($request->subcategory_type, $subcategoryTypes))
+                return response()->json([
                     'status' => 400,
                     'message' => 'Evaluation Form Subcategory Type is invalid!'
                 ]);
-            if($request->linear_scale_start<0 || $request->linear_scale_end<0)
-                return response()->json([
+
+            // Linear scale validations
+            if ($request->subcategory_type == 'linear_scale') {
+                if ($request->linear_scale_start < 0 || $request->linear_scale_end < 0)
+                    return response()->json([
+                        'status' => 400,
+                        'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
+                    ]);
+                if (
+                    is_numeric($request->linear_scale_start)
+                    && is_numeric($request->linear_scale_end)
+                    && $request->linear_scale_start >= $request->linear_scale_end
+                ) return response()->json([
                     'status' => 400,
-                    'message' => 'Evaluation Form Subcategory Linear Scale Value cannot not be negative!'
+                    'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
                 ]);
-            if(
-                is_numeric($request->linear_scale_start)
-                && is_numeric($request->linear_scale_end)
-                && $request->linear_scale_start>=$request->linear_scale_end
-            ) return response()->json([
-                'status' => 400,
-                'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
-            ]);
-            $isEmptyLinearScaleStartLabel = !$request->linear_scale_start_label;
-            if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
-            ]);
-            $isEmptyLinearScaleEndLabel = !$request->linear_scale_end_label;
-            if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
-            ]);
+                $isEmptyLinearScaleStartLabel = !$request->linear_scale_start_label;
+                if ($isEmptyLinearScaleStartLabel) return response()->json([
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
+                ]);
+                $isEmptyLinearScaleEndLabel = !$request->linear_scale_end_label;
+                if ($isEmptyLinearScaleEndLabel) return response()->json([
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
+                ]);
+            }
 
             $newEvaluationFormSubcategory = EvaluationFormSubcategory::create([
                 'section_id' => $request->section_id,
@@ -1212,23 +1485,60 @@ class EvaluationFormController extends Controller
                 'order' => $order
             ]);
 
-            if($request->options) {
-                $labels = array();
-                foreach($request->options as $order => $option) {
+            // Save options
+            if ($request->subcategory_type == 'linear_scale') {
+                // Save the start and end labels as options
+                EvaluationFormSubcategoryOption::create([
+                    'subcategory_id' => $newEvaluationFormSubcategory->id,
+                    'label' => $request->linear_scale_start_label,
+                    'order' => 0
+                ]);
+                EvaluationFormSubcategoryOption::create([
+                    'subcategory_id' => $newEvaluationFormSubcategory->id,
+                    'label' => $request->linear_scale_end_label,
+                    'order' => 1
+                ]);
+                // If there are additional options for the scale, add them starting from order 2
+                if ($request->options && is_array($request->options)) {
+                    $labels = [
+                        $request->linear_scale_start_label,
+                        $request->linear_scale_end_label
+                    ];
+                    foreach ($request->options as $index => $option) {
+                        $label = $option["label"];
+                        $isEmptyName = !$label;
+                        if ($isEmptyName) return response()->json([
+                            'status' => 400,
+                            'message' => 'Evaluation Form Subcategory Option Labels are required!'
+                        ]);
+                        $isRepeated = in_array($label, $labels);
+                        if ($isRepeated) return response()->json([
+                            'status' => 409,
+                            'message' => 'Evaluation Form Subcategory Option Labels must be unique!'
+                        ]);
+                        $labels[] = $label;
+                        EvaluationFormSubcategoryOption::create([
+                            'subcategory_id' => $newEvaluationFormSubcategory->id,
+                            'label' => $label,
+                            'order' => $index + 2 // Start AFTER start/end labels
+                        ]);
+                    }
+                }
+            } else if ($request->options && is_array($request->options)) {
+                $labels = [];
+                foreach ($request->options as $order => $option) {
                     $label = $option["label"];
                     $isEmptyName = !$label;
-                    if( $isEmptyName ) return response()->json([ 
+                    if ($isEmptyName) return response()->json([
                         'status' => 400,
                         'message' => 'Evaluation Form Subcategory Option Labels are required!'
                     ]);
-
                     $isRepeated = in_array($label, $labels);
-                    if($isRepeated) return response()->json([ 
+                    if ($isRepeated) return response()->json([
                         'status' => 409,
                         'message' => 'Evaluation Form Subcategory Option Labels must be unique!'
                     ]);
                     $labels[] = $label;
-
                     EvaluationFormSubcategoryOption::create([
                         'subcategory_id' => $newEvaluationFormSubcategory->id,
                         'label' => $label,
@@ -1244,12 +1554,9 @@ class EvaluationFormController extends Controller
                 'evaluationFormSubcategoryID' => $newEvaluationFormSubcategory->id,
                 'message' => 'Evaluation Form Subcategory successfully created'
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-
-            Log::error('Error saving work shift: ' . $e->getMessage());
-
+            Log::error('Error saving evaluation form subcategory: ' . $e->getMessage());
             throw $e;
         }
     }
