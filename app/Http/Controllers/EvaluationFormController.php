@@ -184,7 +184,7 @@ class EvaluationFormController extends Controller
 
         try {
 
-            if( $user === null ) return response()->json([ 
+            if($user === null) return response()->json([ 
                 'status' => 403,
                 'message' => 'Unauthorized access!'
             ]);
@@ -205,7 +205,7 @@ class EvaluationFormController extends Controller
                 ->first()
             ;
 
-            if( !$evaluationForm ) return response()->json([ 
+            if(!$evaluationForm) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form not found!',
                 'evaluationFormID' => $request->id
@@ -213,7 +213,7 @@ class EvaluationFormController extends Controller
 
             $isEmptyName = !$request->name;
 
-            if( $isEmptyName ) return response()->json([ 
+            if($isEmptyName) return response()->json([ 
                 'status' => 400,
                 'message' => 'Evaluation Form Name is required!'
             ]);
@@ -222,7 +222,7 @@ class EvaluationFormController extends Controller
                 EvaluationForm::where('name', $request->name)->where('id', '!=', $request->id)->first()
             ;
 
-            if( $existingEvaluationForm ) return response()->json([ 
+            if($existingEvaluationForm) return response()->json([ 
                 'status' => 409,
                 'message' => 'This Evaluation Form Name is already in use!',
                 'evaluationFormID' => $existingEvaluationForm->id

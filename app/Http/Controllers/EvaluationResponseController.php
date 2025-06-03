@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\UsersModel;
 use App\Models\EvaluationForm;
 use App\Models\EvaluationFormSection;
 use App\Models\EvaluationFormCategory;
@@ -25,7 +25,187 @@ class EvaluationResponseController extends Controller
  
         // delete evaluation response
 
-        // edit evaluation response
+    public function editEvaluationResponse(Request $request)
+    {
+        // inputs:
+        /*
+            id: number,
+            evaluatee_id?: number,
+            evaluator_id?: number,
+            primary_commentor_id?: number,
+            secondary_commentor_id?: number,
+            form_id?: number,
+            period_start_at?: string,
+            period_end_at?: string
+        */
+
+        // returns:
+        /*
+            evaluationResponse: {
+                id, datetime,
+                evaluatee_id, evaluatee_last_name, evaluatee_first_name, evaluatee_middle_name,
+                evaluator_id, evaluator_last_name, evaluator_first_name, evaluator_middle_name,
+                primary_commentor_id, primary_last_name, primary_first_name, primary_middle_name,
+                secondary_commentor_id, secondary_last_name, secondary_first_name, secondary_middle_name,
+                period_start_date,
+                period_end_date,
+                signature_filepath,
+                created_at, updated_at,
+                status,                 // returns 'pending' always for now
+                evaluationForm: {
+                    id, name, creator_id, creator_user_name,
+                    sections: {
+                        form_id, id, name, category, order,
+                        subcategories: {
+                            section_id, id, name, subcategory_type, description, required,
+                            allow_other_option, linear_scale_start, linear_scale_end, order,
+                            options: {
+                                subcategory_id, id, label, order,
+                                option_answer: { response_id, option_id }
+                            }[],
+                            percentage_answer: { response_id, subcategory_id, percentage, value, linear_scale_index } | null,
+                            text_answer: { response_id, subcategory_id, answer } | null
+                        }[]
+                    }[]
+                }
+            }
+        */
+
+        log::info('EvaluationResponseController::saveEvaluationResponse');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            $evaluationResponse = EvaluationResponse
+                ::select()->where('id', $request->id)->first()
+            ;
+            if(!$evaluationResponse) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Response not found!',
+                'evaluationResponseID' => $request->id
+            ]);
+
+            $periodStartAtSec = strtotime($request->period_start_at ?? $evaluationResponse->period_start_at);
+            $periodEndAtSec = strtotime($request->period_end_at ?? $evaluationResponse->period_end_at);
+            $request->period_start_at = date(
+                'Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800
+            );
+            $request->period_end_at = date(
+                'Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800
+            );
+            if($periodStartAtSec>$periodEndAtSec) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluation Period Start Date cannot be more than Period End Date!'
+            ]);
+
+            DB::beginTransaction();
+            
+            $conflictingEvaluationResponse = EvaluationResponse
+                ::where('id', '!=', $request->id)
+                ->where('evaluatee_id', $request->evaluatee_id ?? $evaluationResponse->evaluatee_id)
+                ->where('form_id', $request->form_id ?? $evaluationResponse->form_id)
+                ->where('period_start_at', '<', $request->period_end_at)
+                ->where('period_end_at', '>', $request->period_start_at)
+                ->first()
+            ;
+            if($conflictingEvaluationResponse) return response()->json([ 
+                'status' => 400,
+                'message' => 'This Evaluation is in conflict with another!',
+                'evaluationResponseID' => $conflictingEvaluationResponse->id
+            ]);
+            $evaluationResponse->period_start_at = $request->period_start_at;
+            $evaluationResponse->period_end_at = $request->period_end_at;
+
+            $users = UsersModel::select('id', 'user_type');
+
+            if($request->evaluatee_id) {
+                $evaluatee = $users->where('id', $request->evaluatee_id)->first();
+                if(!$evaluatee) return response()->json([ 
+                    'status' => 404,
+                    'message' => 'Evaluatee not found!',
+                    'evaluateeID' => $request->evaluatee_id
+                ]);
+                if($evaluatee->user_type != 'Employee') return response()->json([ 
+                    'status' => 400,
+                    'message' => 'Evaluatee must be an Employee!',
+                    'evaluateeID' => $request->evaluatee_id
+                ]);
+                $evaluationResponse->evaluatee_id = $request->evaluatee_id;
+            }
+            if($request->evaluator_id) {
+                $evaluator = $users->where('id', $request->evaluator_id)->first();
+                if(!$evaluator) return response()->json([ 
+                    'status' => 404,
+                    'message' => 'Evaluator not found!',
+                    'evaluateeID' => $request->evaluator_id
+                ]);
+                if($evaluator->user_type == 'Employee') return response()->json([ 
+                    'status' => 400,
+                    'message' => 'Evaluator must be an Admin or SuperAdmin!',
+                    'evaluatorID' => $request->evaluator_id
+                ]);
+                $evaluationResponse->evaluator_id = $request->evaluator_id;
+            }
+            if($request->primary_commentor_id) {
+                $primaryCommentor = $users->where('id', $request->primary_commentor_id)->first();
+                if(!$primaryCommentor) return response()->json([ 
+                    'status' => 404,
+                    'message' => 'Primary Commentor not found!',
+                    'primaryCommentorID' => $request->primary_commentor_id
+                ]);
+                if($primaryCommentor->user_type == 'Employee') return response()->json([ 
+                    'status' => 400,
+                    'message' => 'Primary Commentor must be an Admin or SuperAdmin!',
+                    'primaryCommentorID' => $request->primary_commentor_id
+                ]);
+                $evaluationResponse->primary_commentor_id = $request->primary_commentor_id;
+            }
+            if($request->secondary_commentor_id) {
+                $secondaryCommentor = $users->where('id', $request->secondary_commentor_id)->first();
+                if(!$secondaryCommentor) return response()->json([ 
+                    'status' => 404,
+                    'message' => 'Secondary Commentor not found!',
+                    'secondaryCommentorID' => $request->secondary_commentor_id
+                ]);
+                if($secondaryCommentor->user_type == 'Employee') return response()->json([ 
+                    'status' => 400,
+                    'message' => 'Secondary Commentor must be an Admin or SuperAdmin!',
+                    'secondaryCommentorID' => $request->secondary_commentor_id
+                ]);
+                $evaluationResponse->secondary_commentor_id = $request->secondary_commentor_id;
+            }
+
+            if($request->form_id) $evaluationResponse->form_id = $request->form_id;
+
+            $evaluationResponse->save();
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'message' => 'Evaluation Response successfully updated',
+                'evaluationResponse' => $evaluationResponse
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     public function getEvaluationResponse(Request $request)
     {
@@ -62,8 +242,7 @@ class EvaluationResponseController extends Controller
                             text_answer: { response_id, subcategory_id, answer } | null
                         }[]
                     }[]
-                },
-
+                }
             }
         */
 
@@ -148,11 +327,11 @@ class EvaluationResponseController extends Controller
                                                         'subcategory_id', 'id',
                                                         'label', 'order'
                                                     )
-                                                    ->orderBy('order')
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
                                                             $optionAnswer->select('response_id', 'option_id')
                                                     ])
+                                                    ->orderBy('order')
                                             ,
                                             'percentageAnswer' => fn ($percentageAnswer) =>
                                                 $percentageAnswer
@@ -187,6 +366,7 @@ class EvaluationResponseController extends Controller
                 ])
                 ->first()
             ;
+            
             if( !$evaluationResponse ) return response()->json([
                 'status' => 404,
                 'message' => 'Evaluation Response not found!'
@@ -460,6 +640,56 @@ class EvaluationResponseController extends Controller
                 'status' => 400,
                 'message' => 'This Evaluation is in conflict with another!',
                 'evaluationResponseID' => $conflictingEvaluationResponse->id
+            ]);
+
+            $users = UsersModel::select('id', 'user_type');
+
+            $evaluatee = $users->where('id', $request->evaluatee_id)->first();
+            if(!$evaluatee) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluatee not found!',
+                'evaluateeID' => $request->evaluatee_id
+            ]);
+            if($evaluatee->user_type != 'Employee') return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluatee must be an Employee!',
+                'evaluateeID' => $request->evaluatee_id
+            ]);
+
+            $evaluator = $users->where('id', $request->evaluator_id)->first();
+            if(!$evaluator) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluator not found!',
+                'evaluateeID' => $request->evaluator_id
+            ]);
+            if($evaluator->user_type == 'Employee') return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluator must be an Admin or SuperAdmin!',
+                'evaluatorID' => $request->evaluator_id
+            ]);
+
+            $primaryCommentor = $users->where('id', $request->primary_commentor_id)->first();
+            if(!$primaryCommentor) return response()->json([ 
+                'status' => 404,
+                'message' => 'Primary Commentor not found!',
+                'primaryCommentorID' => $request->primary_commentor_id
+            ]);
+            if($primaryCommentor->user_type == 'Employee') return response()->json([ 
+                'status' => 400,
+                'message' => 'Primary Commentor must be an Admin or SuperAdmin!',
+                'primaryCommentorID' => $request->primary_commentor_id
+            ]);
+
+            $secondaryCommentor = $users->where('id', $request->secondary_commentor_id)->first();
+            if(!$secondaryCommentor) return response()->json([ 
+                'status' => 404,
+                'message' => 'Secondary Commentor not found!',
+                'secondaryCommentorID' => $request->secondary_commentor_id
+            ]);
+            if($secondaryCommentor->user_type == 'Employee') return response()->json([ 
+                'status' => 400,
+                'message' => 'Secondary Commentor must be an Admin or SuperAdmin!',
+                'secondaryCommentorID' => $request->secondary_commentor_id
             ]);
 
             $newEvaluationResponse = EvaluationResponse::create([
