@@ -88,9 +88,9 @@ class EvaluationResponseController extends Controller
                 'message' => 'Unauthorized access!'
             ]);
 
-            $evaluationResponse = EvaluationResponse
-                ::select()->where('id', $request->id)->first()
-            ;
+            DB::beginTransaction();
+
+            $evaluationResponse = EvaluationResponse::select()->where('id', $request->id)->first();
             if(!$evaluationResponse) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Response not found!',
@@ -109,8 +109,6 @@ class EvaluationResponseController extends Controller
                 'status' => 400,
                 'message' => 'Evaluation Period Start Date cannot be more than Period End Date!'
             ]);
-
-            DB::beginTransaction();
             
             $conflictingEvaluationResponse = EvaluationResponse
                 ::where('id', '!=', $request->id)
@@ -191,6 +189,116 @@ class EvaluationResponseController extends Controller
 
             $evaluationResponse->save();
             DB::commit();
+
+            $evaluationResponse = EvaluationResponse
+                ::join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
+                ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
+                ->join('users as evaluators', 'evaluation_responses.evaluator_id', '=', 'evaluators.id')
+                ->join('users as primary_commentors', 'evaluation_responses.primary_commentor_id', '=', 'primary_commentors.id')
+                ->join('users as secondary_commentors', 'evaluation_responses.secondary_commentor_id', '=', 'secondary_commentors.id')
+                ->select(
+                    'evaluation_responses.id',
+                    'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name'
+                )
+                ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y - %h:%i %p') as datetime")
+                ->addSelect(
+                    'evaluatees.id as evaluatee_id',
+                    'evaluatees.last_name as evaluatee_last_name',
+                    'evaluatees.first_name as evaluatee_first_name',
+                    'evaluatees.middle_name as evaluatee_middle_name',
+
+                    'evaluators.id as evaluator_id',
+                    'evaluators.last_name as evaluator_last_name',
+                    'evaluators.first_name as evaluator_first_name',
+                    'evaluators.middle_name as evaluator_middle_name',
+
+                    'primary_commentors.id as primary_commentor_id',
+                    'primary_commentors.last_name as primary_commentor_last_name',
+                    'primary_commentors.first_name as primary_commentor_first_name',
+                    'primary_commentors.middle_name as primary_commentor_middle_name',
+
+                    'secondary_commentors.id as secondary_commentor_id',
+                    'secondary_commentors.last_name as secondary_commentor_last_name',
+                    'secondary_commentors.first_name as secondary_commentor_first_name',
+                    'secondary_commentors.middle_name as secondary_commentor_middle_name'
+                )
+                ->selectRaw("date_format(evaluation_responses.period_start_at, '%b %d, %Y') as period_start_date")
+                ->selectRaw("date_format(evaluation_responses.period_end_at, '%b %d, %Y') as period_end_date")
+                ->addSelect(
+                    'evaluation_responses.signature_filepath',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at',
+                    DB::raw("'Pending' as status")
+                )
+                ->with(['form' => fn ($evaluationForm) =>
+                    $evaluationForm
+                        ->join('users', 'evaluation_forms.id', '=', 'users.id')
+                        ->select(
+                            'evaluation_forms.id',
+                            'evaluation_forms.name', 
+                            'evaluation_forms.creator_id',
+                            'users.user_name as creator_user_name'
+                        )
+                        ->with(['sections' => fn ($section) =>
+                            $section
+                                ->select('form_id', 'id', 'name', 'category', 'order')
+                                ->orderBy('order')
+                                ->with(['subcategories' => fn ($evaluationFormSubcategory) =>
+                                    $evaluationFormSubcategory
+                                        ->select(
+                                            'section_id', 'id',
+                                            'name', 'subcategory_type', 'description',
+                                            'required', 'allow_other_option',
+                                            'linear_scale_start', 'linear_scale_end',
+                                            'order'
+                                        )
+                                        ->with([
+                                            'options' => fn ($option) =>
+                                                $option
+                                                    ->select(
+                                                        'subcategory_id', 'id',
+                                                        'label', 'order'
+                                                    )
+                                                    ->with([
+                                                        'optionAnswer' => fn ($optionAnswer) =>
+                                                            $optionAnswer->select('response_id', 'option_id')
+                                                    ])
+                                                    ->orderBy('order')
+                                            ,
+                                            'percentageAnswer' => fn ($percentageAnswer) =>
+                                                $percentageAnswer
+                                                ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+                                                ->select(
+                                                    'evaluation_percentage_answers.response_id',
+                                                    'evaluation_percentage_answers.subcategory_id',
+                                                    'evaluation_percentage_answers.percentage',
+                                                    'evaluation_form_subcategories.subcategory_type'
+                                                )
+                                                ->addSelect(DB::raw(
+                                                    "round(evaluation_percentage_answers.percentage*"
+                                                    ."(evaluation_form_subcategories.linear_scale_end"
+                                                    ."-evaluation_form_subcategories.linear_scale_start)"
+                                                    ."+evaluation_form_subcategories.linear_scale_start)"
+                                                    ." as value"
+                                                ))
+                                                ->addSelect(DB::raw(
+                                                    "round(evaluation_percentage_answers.percentage*"
+                                                    ."(evaluation_form_subcategories.linear_scale_end"
+                                                    ."-evaluation_form_subcategories.linear_scale_start))"
+                                                    ." as linear_scale_index"
+                                                ))
+                                            ,
+                                            'textAnswer' => fn ($textAnswer) =>
+                                                $textAnswer->select('response_id', 'subcategory_id', 'answer')
+                                        ])
+                                        ->orderBy('order')
+                                    ])
+                                ->orderBy('order')
+                        ])
+                ])
+                ->where('evaluation_responses.id', $request->id)
+                ->first()
+            ;
 
             return response()->json([ 
                 'status' => 200,
@@ -364,6 +472,7 @@ class EvaluationResponseController extends Controller
                                 ->orderBy('order')
                         ])
                 ])
+                ->where('evaluation_responses.id', $request->id)
                 ->first()
             ;
             
