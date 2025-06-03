@@ -17,10 +17,7 @@ class PemeResponseDetails extends Model implements HasMedia
         'peme_response_id',
         'peme_q_item_id',
         'peme_q_type_id',
-        'value_text',
-        'value_remark',
-        'value_pass_fail',
-        'value_pos_neg',
+        'value'
     ];
 
     public function registerMediaCollections(): void
@@ -41,5 +38,10 @@ class PemeResponseDetails extends Model implements HasMedia
     public function inputType()
     {
         return $this->belongsTo(PemeQType::class, 'peme_q_type_id');
+    }
+
+    public function getMediaDirectory(): string
+    {
+        return 'attachments/' . auth()->user()->user_name;
     }
 }

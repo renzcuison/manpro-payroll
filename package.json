@@ -29,6 +29,7 @@
     },
     "dependencies": {
         "@babel/runtime": "^7.19.4",
+        "@dnd-kit/core": "^6.3.1",
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.0",
         "@fontsource/roboto": "^5.0.8",
@@ -75,19 +76,21 @@
         "react-router-dom": "^6.4.1",
         "react-scrollbar": "^0.5.6",
         "react-signature-canvas": "^1.0.6",
+        "react-slick": "^0.30.3",
         "react-to-print": "^2.14.11",
         "react-youtube": "^10.1.0",
         "reactstrap": "^9.2.0",
         "sass": "^1.54.9",
         "sass-loader": "^13.0.2",
+        "slick-carousel": "^1.8.1",
         "sweetalert2": "^11.6.13",
         "sweetalert2-react-content": "^5.1.0",
         "twilio-client": "^1.14.0",
         "yup": "^1.6.1"
     },
-    "name": "nasya-laravel",
+    "name": "manpro",
     "version": "1.0.0",
-    "description": "<p align=\"center\"><a href=\"https://laravel.com\" target=\"_blank\"><img src=\"https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg\" width=\"400\"></a></p>",
+    "description": "",
     "main": "webpack.mix.js",
     "directories": {
         "test": "tests"

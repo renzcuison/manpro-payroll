@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use App\Models\Peme;
 use Carbon\Carbon;
 
@@ -22,6 +25,8 @@ class PemeController extends Controller
 
     public function createPeme(Request $request)
     {
+
+        log::info("PemeController::createPeme");
         if (!$this->checkUser()) {
             return response()->json(["message" => "Unauthorized"], 403);
         }
@@ -29,14 +34,16 @@ class PemeController extends Controller
         $validatedData = $request->validate([
             "name" => "required|string|max:50",
             "respondents" => "nullable|integer",
-            "isVisible" => "nullable|boolean",     
-            "isEditable" => "nullable|boolean",    
+            "isVisible" => "nullable|boolean",
+            "isEditable" => "nullable|boolean",
+            "isMultiple" => "nullable|boolean"
         ]);
 
         $validatedData["name"] = ucwords(strtolower($validatedData["name"]));
         $validatedData["respondents"] = $validatedData["respondents"] ?? 0;
         $validatedData["isVisible"] = $validatedData["isVisible"] ?? 0;
         $validatedData["isEditable"] = $validatedData["isEditable"] ?? 0;
+        $validatedData["isMultiple"] = $validatedData["isMultiple"] ?? 0;
         $validatedData["medical_record_id"] = 1;
         $validatedData["response_date"] = Carbon::now()->toDateString();
 
@@ -66,43 +73,80 @@ class PemeController extends Controller
         $peme = Peme::create($validatedData);
 
         return response()->json(
-            ["message" => "Exam created successfully.", "peme" => $peme],
+            [
+                "message" => "Exam created successfully.",
+                "peme" => [
+                    "id" => Crypt::encrypt($peme->id),
+                    "name" => $peme->name,
+                    "created_at" => $peme->created_at,
+                ],
+            ],
             201
         );
     }
 
     public function getPemeList()
     {
+        Log::info("PemeController::getPemeList");
+
         if (!$this->checkUser()) {
             return response()->json(["message" => "Unauthorized"], 403);
         }
 
         $user = Auth::user();
 
-        $pemeList = Peme::select("id", "created_at", "name")
+        $pemeList = Peme::select(
+            "id",
+            "client_id",
+            "user_id",
+            "medical_record_id",
+            "name",
+            "respondents",
+            "isVisible",
+            "isEditable",
+            "isMultiple",
+            "created_at",
+            "updated_at",
+            "deleted_at"
+        )
             ->where("client_id", $user->client_id)
             ->orderBy("created_at", "desc")
             ->get()
             ->map(function ($peme) {
                 return [
-                    "id" => $peme->id,
-                    "date" => Carbon::parse($peme->created_at)->format(
-                        "F d, Y"
-                    ),
+                    "id" => Crypt::encrypt($peme->id),
+                    "client_id" => Crypt::encrypt($peme->client_id),
+                    "user_id" => Crypt::encrypt($peme->user_id),
+                    "medical_record_id" => Crypt::encrypt($peme->medical_record_id),
                     "name" => $peme->name,
+                    "respondents" => $peme->respondents,
+                    "isVisible" => $peme->isVisible,
+                    "isEditable" => $peme->isEditable,
+                    "isMultiple" => $peme->isMultiple,
+                    "created_at" => $peme->created_at,
+                    "updated_at" => $peme->updated_at,
+                    "deleted_at" => $peme->deleted_at,
                 ];
             });
 
         return response()->json($pemeList);
     }
 
+
     public function getPemeStats()
     {
         $clientId = Auth::user()->client_id;
 
         $data = Peme::where("client_id", $clientId)
-            ->select("name", "respondents")
-            ->get();
+            ->select("id", "name", "respondents")
+            ->get()
+            ->map(function ($peme) {
+                return [
+                    'id' => Crypt::encrypt($peme->id),
+                    'name' => $peme->name,
+                    'respondents' => $peme->respondents,
+                ];
+            });
 
         return response()->json($data);
     }

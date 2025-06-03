@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import EditIcon from "@mui/icons-material/Edit";
 
 function UserInformation({ user }) {
+    console.log(user)
 
     const queryClient = useQueryClient();
     const fileInputRef = useRef();
@@ -16,7 +17,7 @@ function UserInformation({ user }) {
     const [profilePic, setProfilePic] = useState( user?.media?.length ? user.media[0]?.original_url : user?.avatar || "../../../../../images/avatarpic.jpg" );
     const [newProfilePic, setNewProfilePic] = useState('');
     const [imagePath, setImagePath] = useState("");
-    const [education, setEducation] = useState([{}]);
+    
 
     const triggerFileInput = () => {
         fileInputRef.current.click();
@@ -79,6 +80,8 @@ function UserInformation({ user }) {
 
                         //Upload
                         saveProfilePic(event);
+                        console.log(profilePic)
+                        console.log(newProfilePic)
                     }
                 });
             }
@@ -172,19 +175,21 @@ function UserInformation({ user }) {
     }, [imagePath]);
 
     return (
+        
         <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
+            {/*User Profile picture*/}
             <Grid container sx={{ pt: 1, pb: 4, justifyContent: "center", alignItems: "center", }}>
                 <Box display="flex" sx={{
                     justifyContent: "center",
-                    "&:hover .profile-edit-icon": { opacity: 0, },
-                    "&:hover .profile-image": { filter: "brightness(1)", },
+                    "&:hover .profile-edit-icon": { opacity: 0.7, },
+                    "&:hover .profile-image": { filter: "brightness(0.4 )", },
                 }}>
 
                     <Tooltip title="Update Profile, 5 MB Limit">
                         <span style={{ cursor: "pointer", position: "relative" }}>
                             <input hidden type="file" onChange={handleUpload} accept=".png, .jpg, .jpeg" ref={fileInputRef} />
                             <Avatar
-                                className="profile-image" src={profilePic} sx={{ height: "200px", width: "200px", boxShadow: 3, transition: "filter 0.3s", }} />
+                                className="profile-image" onClick={triggerFileInput} src={profilePic} sx={{ height: "200px", width: "200px", boxShadow: 3, transition: "filter 0.3s", }} />
                             <EditIcon className="profile-edit-icon" opacity="0"
                                 sx={{
                                     fontSize: "90px",

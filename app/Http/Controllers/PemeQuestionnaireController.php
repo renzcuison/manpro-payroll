@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use App\Models\PemeQItem;
 use App\Models\PemeQType;
 use App\Models\Peme;
@@ -23,7 +25,9 @@ class PemeQuestionnaireController extends Controller
 
     public function store(Request $request)
     {
-        $request->headers->set("Accept", "application/json");
+
+        $pemeId = Crypt::decrypt($request->peme_id);
+        $request->merge(['peme_id' => $pemeId]);
 
         $validated = $request->validate([
             "peme_id" => "required|exists:peme,id",
@@ -83,23 +87,32 @@ class PemeQuestionnaireController extends Controller
 
         $question->load("types");
 
-        return response()->json(
-            [
-                "message" => "Item saved.",
-                "data" => [
-                    "question" => $question,
+        return response()->json([
+            "message" => "Item saved.",
+            "data" => [
+                "question" => [
+                    "id" => Crypt::encrypt($question->id),
+                    "peme_id" => Crypt::encrypt($question->peme_id),
+                    "question" => $question->question,
+                    "types" => $question->types->map(function ($type) {
+                        return [
+                            "id" => Crypt::encrypt($type->id),
+                            "input_type" => $type->input_type,
+                            "file_size_limit" => $type->file_size_limit ?? null,
+                        ];
+                    }),
                 ],
             ],
-            201
-        );
+        ], 201);
     }
 
-    public function update(Request $request, $questionId)
+    public function update(Request $request, $pemeId, $questionId)
     {
-        $request->headers->set("Accept", "application/json");
+
+        $pemeId = Crypt::decrypt($pemeId);
+        $questionId = Crypt::decrypt($questionId);
 
         $validated = $request->validate([
-            "peme_id" => "required|exists:peme,id",
             "question" => "required|string|max:255",
             "input_types" => "required|array|min:1",
             "input_types.*" => "in:attachment,pass_fail,pos_neg,remarks,text",
@@ -119,9 +132,13 @@ class PemeQuestionnaireController extends Controller
             );
         }
 
+        $question = PemeQItem::where("id", $questionId)
+            ->where("peme_id", $pemeId)
+            ->firstOrFail();
+
         if (
             $this->isDuplicateQuestion(
-                $validated["peme_id"],
+                $pemeId,
                 $validated["question"],
                 $questionId
             )
@@ -134,10 +151,7 @@ class PemeQuestionnaireController extends Controller
             );
         }
 
-        $question = PemeQItem::findOrFail($questionId);
-
         $question->update([
-            "peme_id" => $validated["peme_id"],
             "question" => $validated["question"],
         ]);
 
@@ -165,7 +179,18 @@ class PemeQuestionnaireController extends Controller
             [
                 "message" => "Item saved.",
                 "data" => [
-                    "question" => $question,
+                    "question" => [
+                        "id" => Crypt::encrypt($question->id),
+                        "peme_id" => Crypt::encrypt($question->peme_id),
+                        "question" => $question->question,
+                        "types" => $question->types->map(function ($type) {
+                            return [
+                                "id" => Crypt::encrypt($type->id),
+                                "input_type" => $type->input_type,
+                                "file_size_limit" => $type->file_size_limit ?? null,
+                            ];
+                        }),
+                    ],
                 ],
             ],
             200
@@ -174,6 +199,12 @@ class PemeQuestionnaireController extends Controller
 
     public function getQuestionnaire($pemeId)
     {
+        // log::info("PemeQuestionnaireController::getQuestionnaire");
+        // log::info($pemeId);
+        // log::info(Crypt::decrypt($pemeId));
+
+        $pemeId = Crypt::decrypt($pemeId);
+
         $peme = Peme::with(["questions.types"])->find($pemeId);
 
         if (!$peme) {
@@ -194,19 +225,24 @@ class PemeQuestionnaireController extends Controller
             });
 
             return [
+                "id" => Crypt::encrypt($question->id),
                 "question" => $question->question,
                 "input_types" => $inputTypes,
             ];
         });
 
         return response()->json([
+            "peme_id" => Crypt::encrypt($peme->id),
             "peme" => $peme->name,
             "questions" => $questions,
         ]);
     }
-    
+
     public function destroy($questionId)
     {
+
+        $questionId = Crypt::decrypt($questionId);
+
         $question = PemeQItem::findOrFail($questionId);
         $question->types()->delete();
         $question->delete();
@@ -233,12 +269,29 @@ class PemeQuestionnaireController extends Controller
         return $query->exists();
     }
 
-    public function show($questionId)
+    public function show($pemeId, $questionId)
     {
-        $question = PemeQItem::with("types")->findOrFail($questionId);
+        $pemeId = Crypt::decrypt($pemeId);
+        $questionId = Crypt::decrypt($questionId);
+
+        $question = PemeQItem::with("types")
+            ->where("id", $questionId)
+            ->where("peme_id", $pemeId)
+            ->firstOrFail();
 
         return response()->json([
-            "question" => $question,
+            "question" => [
+                "id" => Crypt::encrypt($question->id),
+                "peme_id" => Crypt::encrypt($question->peme_id),
+                "question" => $question->question,
+                "types" => $question->types->map(function ($type) {
+                    return [
+                        "id" => Crypt::encrypt($type->id),
+                        "input_type" => $type->input_type,
+                        "file_size_limit" => $type->file_size_limit ?? null,
+                    ];
+                }),
+            ],
         ]);
     }
 }

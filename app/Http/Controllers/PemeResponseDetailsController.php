@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\PemeResponseDetails;
 use App\Models\PemeQType;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
+// use Illuminate\Support\Facades\Validator;
+// use Illuminate\Validation\ValidationException;
 
 class PemeResponseDetailsController extends Controller
 {
@@ -25,106 +26,85 @@ class PemeResponseDetailsController extends Controller
     }
     public function index()
     {
+
         $details = PemeResponseDetails::with([
             "response.user",
             "question",
             "inputType",
+            "media"
         ])->get();
 
         $result = $details->map(function ($detail) {
+            $inputType = $detail->inputType->input_type ?? null;
+            $value = $inputType === 'attachment'
+                ? $detail->getFirstMediaUrl('attachment') ?? null
+                : $detail->value;
+
             return [
-                "id" => $detail->id,
-                "user" => $detail->response->user->user_name ?? null,
+                "id" => Crypt::encrypt($detail->id),
+                "user_id" => Crypt::encrypt($detail->response->user->id ?? null),
                 "question" => $detail->question->question ?? null,
-                "input_type" => $detail->inputType->input_type ?? null,
-                'value' => $detail->{$detail->inputType->input_type === 'text' ? 'value_text' : (
-                    $detail->inputType->input_type === 'remark' ? 'value_remark' : ($detail->inputType->input_type === 'pass_fail' ? 'value_pass_fail' : ($detail->inputType->input_type === 'pos_neg' ? 'value_pos_neg' :
-                        'media_id'
-                    )))}
+                "input_type" => $inputType,
+                "value" => $value,
             ];
         });
 
         return response()->json($result);
     }
 
-    // public function bulkStore(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'responses' => 'required|array',
-    //         'responses.*.peme_response_id' => 'required|exists:peme_response,id',
-    //         'responses.*.peme_q_item_id' => 'required|exists:peme_q_item,id',
-    //         'responses.*.peme_q_type_id' => [
-    //             'required',
-    //             Rule::exists('peme_q_type', 'id')->whereNull('deleted_at'),
-    //         ],
-    //         'responses.*.value_text' => 'nullable|string',
-    //         'responses.*.value_pass_fail' => 'nullable|string',
-    //         'responses.*.value_pos_neg' => 'nullable|string',
-    //         'responses.*.value_remark' => 'nullable|string',
-    //         'responses.*.media_id' => 'nullable|exists:media,id',
-    //     ]);
+    public function getResponseDetails($id)
+    {
+        try {
+            $responseId = Crypt::decrypt($id);
 
-    //     $created = [];
+            $details = PemeResponseDetails::with([
+                "question",
+                "inputType",
+                "media",
+                "response.user"
+            ])
+                ->where('peme_response_id', $responseId)
+                ->get();
 
-    //     foreach ($validated['responses'] as $item) {
-    //         $qType = PemeQType::find($item['peme_q_type_id']);
-    //         if (!$qType) continue;
+            $result = $details->map(function ($detail) {
+                $inputType = $detail->inputType->input_type ?? null;
+                $value = $inputType === 'attachment'
+                    ? $detail->getFirstMediaUrl('attachments') ?? null
+                    : $detail->value;
 
-    //         $inputType = $qType->input_type;
+                return [
+                    "id" => Crypt::encrypt($detail->id),
+                    "peme_response_id" => Crypt::encrypt($detail->peme_response_id),
+                    "peme_q_item_id" => Crypt::encrypt($detail->peme_q_item_id),
+                    "peme_q_type_id" => Crypt::encrypt($detail->peme_q_type_id),
+                    "question" => [
+                        "id" => Crypt::encrypt($detail->question->id ?? null),
+                        "question" => $detail->question->question ?? null,
+                    ],
+                    "input_type" => [
+                        "id" => Crypt::encrypt($detail->inputType->id ?? null),
+                        "input_type" => $detail->inputType->input_type ?? null,
+                    ],
+                    "value" => $value,
+                    "media" => $detail->media->map(function ($media) {
+                        return [
+                            "id" => Crypt::encrypt($media->id),
+                            "url" => $media->getFullUrl(),
+                            "file_name" => $media->file_name,
+                            "size" => $media->size,
+                        ];
+                    }),
+                ];
+            });
 
-    //         $duplicateExists = PemeResponseDetails::where('peme_response_id', $item['peme_response_id'])
-    //             ->where('peme_q_item_id', $item['peme_q_item_id'])
-    //             ->whereHas('inputType', function ($query) use ($inputType) {
-    //                 $query->where('input_type', $inputType);
-    //             })
-    //             ->exists();
-
-    //         if ($duplicateExists) continue;
-
-    //         $allowedFields = [
-    //             'text' => ['value_text'],
-    //             'remark' => ['value_remark'],
-    //             'pass_fail' => ['value_pass_fail'],
-    //             'pos_neg' => ['value_pos_neg'],
-    //             'attachment' => ['media_id'],
-    //         ];
-
-    //         $allowed = $allowedFields[$inputType] ?? [];
-
-    //         $submittedFields = array_filter([
-    //             'value_text' => $item['value_text'] ?? null,
-    //             'value_pass_fail' => $item['value_pass_fail'] ?? null,
-    //             'value_pos_neg' => $item['value_pos_neg'] ?? null,
-    //             'value_remark' => $item['value_remark'] ?? null,
-    //             'media_id' => $item['media_id'] ?? null,
-    //         ], function ($v) {
-    //             return $v !== null;
-    //         });
-
-    //         $invalidField = false;
-    //         foreach ($submittedFields as $field => $value) {
-    //             if (!in_array($field, $allowed)) {
-    //                 $invalidField = true;
-    //                 break;
-    //             }
-    //         }
-
-    //         if ($invalidField) continue;
-
-    //         $detail = PemeResponseDetails::create($item)->load(['question', 'inputType']);
-
-    //         $created[] = [
-    //             "question" => $detail->question->question ?? null,
-    //             "input_type" => $detail->inputType->input_type ?? null,
-    //             $allowed[0] ?? 'value_text' => $detail->{$allowed[0] ?? 'value_text'},
-    //         ];
-    //     }
-
-    //     return response()->json([
-    //         "message" => count($created) . " responses created successfully",
-    //         "data" => $created,
-    //     ], 201);
-    // }
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Invalid response ID or data not found.',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
 
     public function store(Request $request)
     {
@@ -132,78 +112,58 @@ class PemeResponseDetailsController extends Controller
             "peme_response_id" => "required|exists:peme_response,id",
             "peme_q_item_id" => "required|exists:peme_q_item,id",
             "peme_q_type_id" => [
-                'required',
+                "required",
                 Rule::exists('peme_q_type', 'id')->whereNull('deleted_at'),
             ],
-            "value_text" => "nullable|string",
-            "value_pass_fail" => "nullable|string",
-            "value_pos_neg" => "nullable|string",
-            "value_remark" => "nullable|string",
-            "media_id" => "nullable|exists:media,id",
+            "value" => "nullable|string|max:512",
         ]);
 
-        $qType = PemeQType::find($validated['peme_q_type_id']);
-        if (!$qType) {
-            return response()->json([
-                "message" => "Invalid question type."
-            ], 422);
-        }
-
-        $inputType = $qType->input_type;
-
-        $duplicateExists = PemeResponseDetails::where('peme_response_id', $validated['peme_response_id'])
+        $existing = PemeResponseDetails::where('peme_response_id', $validated['peme_response_id'])
             ->where('peme_q_item_id', $validated['peme_q_item_id'])
-            ->whereHas('inputType', function ($query) use ($inputType) {
-                $query->where('input_type', $inputType);
-            })
-            ->exists();
+            ->where('peme_q_type_id', $validated['peme_q_type_id'])
+            ->first();
 
-        if ($duplicateExists) {
+        if ($existing) {
             return response()->json([
-                "message" => "A response for input type '{$inputType}' has already been submitted for this question.",
+                "message" => "This question already has a response for the given input type.",
             ], 422);
         }
 
-        $allowedFields = [
-            'text' => ['value_text'],
-            'remark' => ['value_remark'],
-            'pass_fail' => ['value_pass_fail'],
-            'pos_neg' => ['value_pos_neg'],
-            'attachment' => ['media_id'],
-        ];
+        $detail = PemeResponseDetails::create($validated);
 
-        $allowed = $allowedFields[$inputType] ?? [];
-
-        $submittedFields = array_filter([
-            'value_text' => $request->input('value_text'),
-            'value_pass_fail' => $request->input('value_pass_fail'),
-            'value_pos_neg' => $request->input('value_pos_neg'),
-            'value_remark' => $request->input('value_remark'),
-            'media_id' => $request->input('media_id'),
-        ], function ($v) {
-            return $v !== null;
-        });
-        foreach ($submittedFields as $field => $value) {
-            if (!in_array($field, $allowed)) {
-                return response()->json([
-                    "message" => "Field '{$field}' is not allowed for input type '{$inputType}'."
-                ], 422);
-            }
-        }
-
-        $detail = PemeResponseDetails::create($validated)->load(['question', 'inputType']);
+        $detail->load(['question', 'inputType', 'response.user']);
 
         return response()->json([
-            "message" => "Response created successfully",
+            "message" => "Response detail saved successfully.",
             "data" => [
-                "question" => $detail->question->question ?? null,
-                "input_type" => $detail->inputType->input_type ?? null,
-                $allowed[0] ?? 'value_text' => $detail->{$allowed[0] ?? 'value_text'},
+                "id" => Crypt::encrypt($detail->id),
+                "peme_response_id" => Crypt::encrypt($detail->peme_response_id),
+                "peme_q_item_id" => Crypt::encrypt($detail->peme_q_item_id),
+                "peme_q_type_id" => Crypt::encrypt($detail->peme_q_type_id),
+                "value" => $detail->value,
+                "question" => [
+                    "id" => Crypt::encrypt($detail->question->id ?? null),
+                    "question" => $detail->question->question ?? null,
+                ],
+                "input_type" => [
+                    "id" => Crypt::encrypt($detail->inputType->id ?? null),
+                    "input_type" => $detail->inputType->input_type ?? null,
+                ],
+                "response" => [
+                    "id" => Crypt::encrypt($detail->response->id ?? null),
+                    "user" => [
+                        "id" => Crypt::encrypt($detail->response->user->id ?? null),
+                        "name" => $detail->response->user->user_name ?? null,
+                    ],
+                ],
             ],
-        ], 201);
+        ]);
     }
+
     public function attachMedia(Request $request, $id)
     {
+
+        $id = Crypt::decrypt($id);
 
         if (!$request->hasFile('file')) {
             return response()->json(['message' => 'Attachment failed.'], 400);
@@ -233,6 +193,9 @@ class PemeResponseDetailsController extends Controller
 
     public function destroy($id)
     {
+
+        $id = Crypt::decrypt($id);
+
         $detail = PemeResponseDetails::findOrFail($id);
         $detail->delete();
 
@@ -241,6 +204,9 @@ class PemeResponseDetailsController extends Controller
 
     public function restore($id)
     {
+
+        $id = Crypt::decrypt($id);
+
         $detail = PemeResponseDetails::withTrashed()->findOrFail($id);
         $detail->restore();
 
@@ -249,119 +215,142 @@ class PemeResponseDetailsController extends Controller
 
     public function update(Request $request, $id)
     {
-        $detail = PemeResponseDetails::findOrFail($id);
+        $id = Crypt::decrypt($id);
 
         $validated = $request->validate([
+            "peme_response_id" => "required|exists:peme_response,id",
+            "peme_q_item_id" => "required|exists:peme_q_item,id",
             "peme_q_type_id" => [
-                'sometimes',
+                'required',
                 Rule::exists('peme_q_type', 'id')->whereNull('deleted_at'),
             ],
-            "peme_q_item_id" => [
-                'sometimes',
-                Rule::exists('peme_q_item', 'id')->whereNull('deleted_at'),
-            ],
-            "value_text" => "nullable|string",
-            "value_pass_fail" => "nullable|string",
-            "value_pos_neg" => "nullable|string",
-            "value_remark" => "nullable|string",
-            "media_id" => "nullable|exists:media,id",
+            "value" => "nullable|string|max:512",
         ]);
 
-        $qTypeId = $validated['peme_q_type_id'] ?? $detail->peme_q_type_id;
-        $qItemId = $validated['peme_q_item_id'] ?? $detail->peme_q_item_id;
+        $detail = PemeResponseDetails::find($id);
 
-        $qType = PemeQType::where('id', $qTypeId)
-            ->where('peme_q_item_id', $qItemId)
-            ->whereNull('deleted_at')
-            ->first();
+        if (!$detail) {
+            return response()->json([
+                "message" => "Response detail not found."
+            ], 404);
+        }
 
+        $qType = PemeQType::find($validated['peme_q_type_id']);
         if (!$qType) {
             return response()->json([
-                "message" => "Invalid combination of question type and item."
+                "message" => "Invalid question type."
             ], 422);
         }
 
         $inputType = $qType->input_type;
 
-        $duplicateExists = PemeResponseDetails::where('peme_response_id', $detail->peme_response_id)
-            ->where('peme_q_item_id', $qItemId)
+        $duplicateExists = PemeResponseDetails::where('peme_response_id', $validated['peme_response_id'])
+            ->where('peme_q_item_id', $validated['peme_q_item_id'])
             ->whereHas('inputType', function ($query) use ($inputType) {
                 $query->where('input_type', $inputType);
             })
-            ->where('id', '!=', $detail->id)
+            ->where('id', '!=', $id)
             ->exists();
 
         if ($duplicateExists) {
             return response()->json([
-                "message" => "A response for input type '{$inputType}' already exists for this question.",
+                "message" => "Another response with the same input type exists for this question."
             ], 422);
         }
 
-        $allowedFields = [
-            'text' => ['value_text'],
-            'remark' => ['value_remark'],
-            'pass_fail' => ['value_pass_fail'],
-            'pos_neg' => ['value_pos_neg'],
-            'attachment' => ['media_id'],
-        ];
+        $detail->update($validated);
 
-        $allowed = $allowedFields[$inputType] ?? [];
+        $detail->load(['question', 'inputType', 'response.user']);
 
-        $submittedFields = array_filter([
-            'value_text' => $request->input('value_text'),
-            'value_pass_fail' => $request->input('value_pass_fail'),
-            'value_pos_neg' => $request->input('value_pos_neg'),
-            'value_remark' => $request->input('value_remark'),
-            'media_id' => $request->input('media_id'),
-        ], function ($v) {
-            return $v !== null;
-        });
+        $responseData = $detail->toArray();
 
-        foreach ($submittedFields as $field => $value) {
-            if (!in_array($field, $allowed)) {
-                return response()->json([
-                    "message" => "Field '{$field}' is not allowed for input type '{$inputType}'."
-                ], 422);
-            }
+        $responseData['id'] = Crypt::encryptString($responseData['id']);
+        $responseData['peme_response_id'] = Crypt::encryptString($responseData['peme_response_id']);
+        $responseData['peme_q_item_id'] = Crypt::encryptString($responseData['peme_q_item_id']);
+        $responseData['peme_q_type_id'] = Crypt::encryptString($responseData['peme_q_type_id']);
+
+        if (isset($responseData['question']['id'])) {
+            $responseData['question']['id'] = Crypt::encryptString($responseData['question']['id']);
+            $responseData['question']['peme_id'] = Crypt::encryptString($responseData['question']['peme_id']);
         }
-
-        $detail->update(array_merge(
-            [
-                'peme_q_type_id' => $qTypeId,
-                'peme_q_item_id' => $qItemId,
-            ],
-            $request->only($allowed)
-        ));
-
-        $detail = $detail->fresh(['question', 'inputType']);
-
-        if (!$detail->question) {
-            return response()->json(["message" => "Question relation not loaded or null"], 500);
+        if (isset($responseData['input_type']['id'])) {
+            $responseData['input_type']['id'] = Crypt::encryptString($responseData['input_type']['id']);
+            $responseData['input_type']['peme_q_item_id'] = Crypt::encryptString($responseData['input_type']['peme_q_item_id']);
         }
-
-        if (!$detail->inputType) {
-            return response()->json(["message" => "InputType relation not loaded or null"], 500);
+        if (isset($responseData['response']['id'])) {
+            $responseData['response']['id'] = Crypt::encryptString($responseData['response']['id']);
+            $responseData['response']['user_id'] = Crypt::encryptString($responseData['response']['user_id']);
+        }
+        if (isset($responseData['response']['user']['id'])) {
+            $responseData['response']['user']['id'] = Crypt::encryptString($responseData['response']['user']['id']);
         }
 
         return response()->json([
-            "message" => "Response updated successfully",
-            "data" => [
-                "question" => $detail->question->question ?? null,
-                "input_type" => $detail->inputType->input_type ?? null,
-                $allowed[0] ?? 'value_text' => $detail->{$allowed[0] ?? 'value_text'},
-            ],
+            "message" => "Response detail updated successfully.",
+            "data" => $responseData,
         ]);
     }
 
     public function show($id)
     {
         try {
+            $decryptedId = Crypt::decrypt($id);
+
             $detail = PemeResponseDetails::with([
                 "question",
                 "inputType",
                 "media",
-            ])->findOrFail($id);
-            return response()->json($detail);
+            ])->findOrFail($decryptedId);
+
+            return response()->json([
+                "id" => Crypt::encrypt($detail->id),
+                "peme_response_id" => Crypt::encrypt($detail->peme_response_id),
+                "peme_q_item_id" => Crypt::encrypt($detail->peme_q_item_id),
+                "peme_q_type_id" => Crypt::encrypt($detail->peme_q_type_id),
+                "value" => $detail->value,
+                "created_at" => $detail->created_at,
+                "updated_at" => $detail->updated_at,
+                "deleted_at" => $detail->deleted_at,
+
+                "question" => [
+                    "id" => Crypt::encrypt($detail->question->id ?? null),
+                    "peme_id" => Crypt::encrypt($detail->question->peme_id ?? null),
+                    "question" => $detail->question->question ?? null,
+                    "created_at" => $detail->question->created_at ?? null,
+                    "updated_at" => $detail->question->updated_at ?? null,
+                    "deleted_at" => $detail->question->deleted_at ?? null,
+                ],
+
+                "input_type" => [
+                    "id" => Crypt::encrypt($detail->inputType->id ?? null),
+                    "peme_q_item_id" => Crypt::encrypt($detail->inputType->peme_q_item_id ?? null),
+                    "input_type" => $detail->inputType->input_type ?? null,
+                    "created_at" => $detail->inputType->created_at ?? null,
+                    "updated_at" => $detail->inputType->updated_at ?? null,
+                    "deleted_at" => $detail->inputType->deleted_at ?? null,
+                    "file_size_limit" => $detail->inputType->file_size_limit ?? null,
+                ],
+
+                "media" => $detail->media->map(function ($media) {
+                    return [
+                        "id" => Crypt::encrypt($media->id),
+                        "model_id" => Crypt::encrypt($media->model_id),
+                        "uuid" => $media->uuid,
+                        "collection_name" => $media->collection_name,
+                        "name" => $media->name,
+                        "file_name" => $media->file_name,
+                        "size" => $media->size,
+                        "manipulations" => $media->manipulations,
+                        "custom_properties" => $media->custom_properties,
+                        "generated_conversions" => $media->generated_conversions,
+                        "responsive_images" => $media->responsive_images,
+                        "order_column" => $media->order_column,
+                        "created_at" => $media->created_at,
+                        "updated_at" => $media->updated_at,
+                        "preview_url" => $media->preview_url,
+                    ];
+                }),
+            ]);
         } catch (\Exception $e) {
             Log::error("Detail fetch error: ", ["error" => $e->getMessage()]);
             return response()->json(["message" => "Response not found"], 404);

@@ -91,8 +91,8 @@ function EmploymentDetails({ user }) {
                 <Grid size={{ xs: 7, md: 2 }}>
                     <Typography sx={{ fontWeight: "bold" }}>
                         {" "}
-                        {user.date_start ? `${formattedStartDate}` : "-"}{" "}
-                        {user.date_end ? `- ${formattedEndDate}` : ""}{" "}
+                        {/* {user.date_start ? `${formattedStartDate}` : "-"}{" "}
+                        {user.date_end ? `- ${formattedEndDate}` : ""}{" "} */}
                     </Typography>
                 </Grid>
             </Grid>

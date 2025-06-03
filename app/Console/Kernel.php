@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \App\Console\Commands\DailyTaskDueNotification::class,
+        \App\Console\Commands\GenerateMilestones::class
     ];
     /**
      * Define the application's command schedule.
@@ -24,6 +25,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('daily:notification')->dailyAt('7:00');
+        $schedule->command('generate:milestones')->daily();
+
     }
 
     /**

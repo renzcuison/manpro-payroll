@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::table('peme', function (Blueprint $table) {
             $table->boolean('isVisible')->default(0);
             $table->boolean('isEditable')->default(0);
+            $table->boolean('isMultiple')->default(0);
         });
     }
 
@@ -23,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('peme', function (Blueprint $table) {
-            $table->dropColumn(['isVisible', 'isEditable']);
+            $table->dropColumn(['isVisible', 'isEditable', 'isMultiple']);
         });
     }
 };

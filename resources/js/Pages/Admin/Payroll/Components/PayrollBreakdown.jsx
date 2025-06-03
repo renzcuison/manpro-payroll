@@ -182,7 +182,7 @@ const PayrollBreakdown = ({ payroll, paidLeaves, unpaidLeaves, earnings, deducti
                                         className="text-center"
                                     >
                                         {" "}
-                                        Employer Share{" "}
+                                        Employee Share{" "}
                                     </TableCell>
                                 </TableRow>
                             </TableHead>

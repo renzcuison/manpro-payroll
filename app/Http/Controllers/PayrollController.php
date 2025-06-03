@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
+use App\Models\ClientsModel;
 use App\Models\PayslipsModel;
 use App\Models\PayslipLeavesModel;
 use App\Models\PayslipBenefitsModel;
@@ -343,8 +344,10 @@ class PayrollController extends Controller
             $startDate = $request->startDate;
             $endDate = $request->endDate;
 
-            $employees = UsersModel::whereHas('attendanceLogs', function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('timestamp', [$startDate, $endDate]);
+            $employees = UsersModel::where(function ($query) use ($startDate, $endDate) {
+                $query->whereHas('attendanceLogs', function ($subQuery) use ($startDate, $endDate) {
+                    $subQuery->whereBetween('timestamp', [$startDate, $endDate]);
+                })->orWhere('is_fixed_salary', true);
             })->where('client_id', $user->client_id)->get();
 
             $payrolls = [];
@@ -592,6 +595,7 @@ class PayrollController extends Controller
         $employee = UsersModel::with('workHours')->find($request->selectedPayroll);
         $employeeBenefits = EmployeeBenefitsModel::where('user_id', $employee->id)->get();
         $logs = AttendanceLogsModel::where('user_id', $employee->id)->whereBetween('timestamp', [$startDate, $endDate])->get();
+        $client = ClientsModel::find($employee->client_id);
 
         $employeeShare = 0;
         $employerShare = 0;
@@ -611,6 +615,24 @@ class PayrollController extends Controller
             }
 
             if ( $cutOff == "First" && $benefit->type == "Amount") {
+                $employeeAmount = $benefit->employee_amount * 1;
+                $employerAmount = $benefit->employer_amount * 1;
+            }
+
+            if ( $cutOff == "Second" && $client->id == 4 && $benefit->type == "Percentage") {
+                $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
+                $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
+
+                if ( $benefit->id == 3 && $employee->salary < 15000 ){
+                    $employerAmount = $employerAmount + 10;
+                }
+
+                if ( $benefit->id == 3 && $employee->salary >= 15000 ){
+                    $employerAmount = $employerAmount + 30;
+                }
+            }
+
+            if ( $cutOff == "Second" && $client->id == 4 && $benefit->type == "Amount") {
                 $employeeAmount = $benefit->employee_amount * 1;
                 $employerAmount = $benefit->employer_amount * 1;
             }
@@ -1190,7 +1212,41 @@ class PayrollController extends Controller
                 $holidayPay = PayslipEarningsModel::where('payslip_id', $rawRecord->id)->where('earning_id', 3)->value('amount');
                 $holidayOvertime = PayslipEarningsModel::where('payslip_id', $rawRecord->id)->where('earning_id', 4)->value('amount');
 
+
+                // Getting of Static Statury Beneftis
+                // log::info("====================================================================================================");
+                $sssEmployee = 0;
+                $sssEmployer = 0;
+
+                $philHealthEmployee = 0;
+                $philHealthEmployer = 0;
+
+                $pagIbigEmployee = 0;
+                $pagIbigEmployer = 0;
+
+                $benefits = PayslipBenefitsModel::where('payslip_id', $rawRecord->id)->get();
+
+                foreach ($benefits as $benefit) {
+                    log::info("====================================================================================================");
+                    if ($benefit->benefit_id == 3) {
+                        $sssEmployee = $benefit->employee_amount;
+                        $sssEmployer = $benefit->employer_amount;
+                    }
+
+                    if ($benefit->benefit_id == 4) {
+                        $philHealthEmployee = $benefit->employee_amount;
+                        $philHealthEmployer = $benefit->employer_amount;
+                    }
+
+                    if ($benefit->benefit_id == 5) {
+                        $pagIbigEmployee = $benefit->employee_amount;
+                        $pagIbigEmployer = $benefit->employer_amount;
+                    }
+                }
+
+
                 $records[] = [
+                    'key' => $rawRecord->id . $rawRecord->employee_id,
                     'record' => encrypt($rawRecord->id),
                     'employeeName' => $employee->last_name . ', ' . $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->suffix,
                     
@@ -1214,6 +1270,15 @@ class PayrollController extends Controller
 
                     'absences' => $absences->amount,
                     'tardiness' => $tardiness->amount,
+
+                    'sssEmployee' => $sssEmployee,
+                    'sssEmployer' => $sssEmployer,
+
+                    'philHealthEmployee' => $philHealthEmployee,
+                    'philHealthEmployer' => $philHealthEmployer,
+
+                    'pagIbigEmployee' => $pagIbigEmployee,
+                    'pagIbigEmployer' => $pagIbigEmployer,
 
                     'payrollStartDate' => $rawRecord->period_start,
                     'payrollEndDate' => $rawRecord->period_end,

@@ -15,6 +15,7 @@ use App\Models\DepartmentsModel;
 use App\Models\ApplicationsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\AttendanceLogsModel;
+use App\Models\LeaveCreditsModel;
 use App\Models\LoanLimitHistoryModel;
 use App\Models\EmployeeEducation;
 
@@ -136,6 +137,22 @@ class EmployeesController extends Controller
         return $employee;
     }
 
+
+    public function updateBranchPosition(Request $request)
+{
+    $validated = $request->validate([
+        'employee_id' => 'required|exists:users,id',
+        'branch_position_id' => 'nullable|exists:branch_positions,id',
+    ]);
+
+    $employee = UsersModel::find($validated['employee_id']);
+    $employee->branch_position_id = $validated['branch_position_id'];
+    $employee->save();
+
+    return response()->json(['message' => 'Branch position updated successfully']);
+}
+
+
     public function getEmployees()
     {
         // log::info("EmployeesController::getEmployees");
@@ -160,7 +177,7 @@ class EmployeesController extends Controller
                     $employee->code_expiration,
                     $employee->is_verified,
                     $employee->client_id,
-                    // $employee->branch_id,
+                    $employee->branch_id,
                     // $employee->department_id,
                     // $employee->role_id,
                     // $employee->job_title_id,
@@ -176,9 +193,22 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
+
+
+    public function getEmployeesByBranch($id)
+    {
+        try {
+            $employees = UsersModel::where('branch_id', $id)->select('id', 'first_name', 'last_name', 'avatar')->get();
+                
+            return response()->json([ 'status' => 200, 'employees' => $employees ]);
+        } catch (\Exception $e) {
+            return response()->json([ 'status' => 500, 'message' => 'Error fetching employees by branch' ]);
+        }
+    }
+
     public function getEmployeeLeaveCredits()
     {
-        // log::info("EmployeesController::getEmployeeLeaveCredits");
+        // log::info("EmployeesController::getEmployeesLeaveCredits");
 
         if ($this->checkUserAdmin()) {
             $user = Auth::user();
@@ -189,8 +219,8 @@ class EmployeesController extends Controller
                 $employees[] = [
                     'user_name' => $employee->user_name,
                     'name' => $employee->first_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
-                    'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
-                    'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
+                    'branch' => optional($employee->branch)->name . " (" . optional($employee->branch)->acronym . ")", 'N/A',
+                    'department' => optional($employee->department)->name . " (" . optional($employee->department)->acronym . ")", 'N/A',
                     'total' => $employee->leaveCredits->sum('number'),
                     'used' => $employee->leaveCredits->sum('used'),
                     'remaining' => $employee->leaveCredits->sum('number') - $employee->leaveCredits->sum('used'),
@@ -461,11 +491,9 @@ class EmployeesController extends Controller
 
     public function getEducationBackground(Request $request)
     {
-        log::info("EmployeesController::getEducationBackground");
+        // log::info("EmployeesController::getEducationBackground");
 
         $user = Auth::user();
-        
-        log::info($user->id);
 
         $educations = EmployeeEducation::where('employee_id', $user->id)->get();
 
@@ -536,6 +564,7 @@ class EmployeesController extends Controller
 
             return response()->json([
                 'user' => $user->load('media'),
+                 'message' => 'Profile updated successfully',
                 'status' => 200
             ]);
         } catch (\Exception $e) {
@@ -795,4 +824,40 @@ class EmployeesController extends Controller
 
         return $result;
     }
+//TEST VVVV
+ public function getLeaveCreditByUser($username)
+{
+    // Check if the user is authorized
+    if (! $this->checkUserAdmin() && !(Auth::check() && Auth::user()->user_name === $username)) {
+        return response()->json(['message' => 'Unauthorized to view these leave credits.'], 403);
+    }
+
+    // Retrieve the user by username
+    $user = UsersModel::where('user_name', $username)->first();
+    if (! $user) {
+        return response()->json(['leaveCredits' => []], 404);
+    }
+
+    // Fetch leave credits with associated leave type
+    $leaveCredits = LeaveCreditsModel::where('user_id', $user->id)
+        ->with('type')
+        ->get();
+
+    // Format the leave credits data
+    $formattedLeaveCredits = $leaveCredits->map(function ($credit) {
+        return [
+            'leaveType'   => $credit->type ? $credit->type->name : 'Unknown Leave Type',
+            'leaveTypeId' => $credit->type ? $credit->type->id : null,
+            'limit'       => (float) $credit->number,
+            'used'        => (float) $credit->used,
+            'remaining'   => max (0, (float) ($credit->number - $credit->used)),
+        ];
+    })->toArray();
+
+    // Return the formatted credits
+    return response()->json([
+        'leaveCredits' => $formattedLeaveCredits
+    ]);
+}
+
 }
