@@ -27,7 +27,7 @@ import BranchesChart from "./BranchesBarChart";
 import { useTodaysAttendance } from "./useDashboard";
 import { Link } from "react-router-dom";
 
-function MainSection({ infoCardsData, adminName, dashboardData }) {
+function MainSection({ infoCardsData, adminName, dashboardData, user }) {
     const theme = useTheme();
     const { data, isFetched, isLoading } = useUsers();
     const { data: attendance } = useTodaysAttendance();
@@ -131,7 +131,11 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                             fontWeight: "bold",
                         }}
                     >
-                        <Typewriter text={adminName} delay={300} infinite />
+                        <Typewriter
+                            text={user.first_name}
+                            delay={300}
+                            infinite
+                        />
                     </Box>
                 </Typography>
 
