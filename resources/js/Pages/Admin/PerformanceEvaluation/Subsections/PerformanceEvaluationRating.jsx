@@ -110,12 +110,7 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
 
                             />
                         </Grid>
-                        </Grid>
-                                                {/* <RadioGroup row value={rating} onChange={handleRatingChange} sx={{ mt: 2 }}>
-                            {[0, 1, 2, 3, 4, 5].map((num) => (
-                                <FormControlLabel key={num} value={num} control={<Radio />} label={num.toString()} />
-                            ))}
-                        </RadioGroup> */}
+                        </Grid> 
                     </Box>
                 )}
 

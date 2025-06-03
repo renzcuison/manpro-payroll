@@ -4,38 +4,38 @@ import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
- 
+
 const PerformanceEvaluationList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const user = JSON.parse(storedUser);
     const headers = getJWTHeader(user);
- 
+
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [evaluationResponses, setEvaluationResponses] = useState([]);
     const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
- 
+
     // Pagination state
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
- 
+
     // ----- Menu Items
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
     const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
- 
+
     // Modal state for New Form
     const [modalOpen, setModalOpen] = useState(false);
- 
+
     // Fetch evaluation forms for menu dropdown
     useEffect(() => {
         axiosInstance.get('/getEvaluationForms', { headers })
             .then((response) => setPerformanceEvaluation(response.data.evaluationForms || []))
             .catch(() => setPerformanceEvaluation([]));
     }, []);
- 
+
     // Fetch evaluation responses for the current user (as evaluatee or evaluator)
     // In PerformanceEvaluationList.jsx
     useEffect(() => {
@@ -62,11 +62,11 @@ const PerformanceEvaluationList = () => {
         })
         .finally(() => setIsLoading(false));
     }, [page, rowsPerPage]);
- 
+
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
- 
+
     return (
         <Layout title={"PerformanceEvaluation"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
@@ -129,7 +129,7 @@ const PerformanceEvaluationList = () => {
                             onOpen={() => setModalOpen(true)}
                             onSuccess={formName => navigate(`form/${formName}`)}
                         />
- 
+
                         {isLoading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
                                 <CircularProgress />
@@ -168,7 +168,7 @@ const PerformanceEvaluationList = () => {
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
- 
+
                                 {/* Pagination controls */}
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                                     <TablePagination
@@ -189,5 +189,5 @@ const PerformanceEvaluationList = () => {
         </Layout>
     );
 }
- 
+
 export default PerformanceEvaluationList;
