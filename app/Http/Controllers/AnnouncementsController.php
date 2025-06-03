@@ -782,7 +782,7 @@ class AnnouncementsController extends Controller
 
     public function getPageThumbnails(Request $request)
     {
-        //Log::info("AnnouncementsController::getPageThumbnails");
+        // Log::info("AnnouncementsController::getPageThumbnails");
         $announcementIds = $request->input('announcement_ids', []);
         $announcements = AnnouncementsModel::whereIn('id', $announcementIds)->get();
 
@@ -790,7 +790,13 @@ class AnnouncementsController extends Controller
         foreach ($announcements as $announcement) {
             $thumbnailMedia = $announcement->getMedia('thumbnails')->first();
             if ($thumbnailMedia) {
-                $thumbnails[$announcement->id] = base64_encode(file_get_contents($thumbnailMedia->getPath()));
+                $path = $thumbnailMedia->getPath();
+                if (file_exists($path)) {
+                    $thumbnails[$announcement->id] = base64_encode(file_get_contents($path));
+                } else {
+                    Log::warning("Thumbnail file missing for announcement {$announcement->id}: $path");
+                    $thumbnails[$announcement->id] = null;
+                }
             }
         }
 
