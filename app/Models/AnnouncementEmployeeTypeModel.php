@@ -15,16 +15,11 @@ class AnnouncementEmployeeTypeModel extends Model
 
     protected $fillable = [
         'announcement_id',
-        'employee_type_id',
+        'employment_type',
     ];
 
     public function announcement()
     {
         return $this->belongsTo(AnnouncementsModel::class, 'announcement_id');
-    }
-
-    public function employeeType()
-    {
-        return $this->belongsTo(EmployeeTypeModel::class, 'employee_type_id');
     }
 }
