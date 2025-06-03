@@ -49,6 +49,21 @@ class AnnouncementsModel extends Model implements HasMedia
         return $this->hasMany(AnnouncementDepartmentsModel::class, 'announcement_id');
     }
 
+    public function employeeRoles()
+    {
+        return $this->hasMany(AnnouncementEmployeeRoleModel::class, 'announcement_id');
+    }
+
+    public function employeeStatuses()
+    {
+        return $this->hasMany(AnnouncementEmployeeStatusModel::class, 'announcement_id');
+    }
+
+    public function employeeTypes()
+    {
+        return $this->hasMany(AnnouncementEmployeeTypeModel::class, 'announcement_id');
+    }
+
     public function views()
     {
         return $this->hasMany(AnnouncementViewsModel::class, 'announcement_id', 'id');
@@ -58,6 +73,7 @@ class AnnouncementsModel extends Model implements HasMedia
     {
         return $this->hasMany(AnnouncementAcknowledgementsModel::class, 'announcement_id');
     }
+
     public function recipients()
     {
         return $this->hasMany(AnnouncementRecipientModel::class, 'announcement_id');

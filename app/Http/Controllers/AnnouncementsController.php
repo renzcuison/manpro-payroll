@@ -57,32 +57,55 @@ class AnnouncementsController extends Controller
         }
 
         try {
-            $announcements = AnnouncementsModel::with(['views.user', 'branches', 'departments'])
+            $announcements = AnnouncementsModel::with(['views.user', 'branches', 'departments', 'employeeRoles', 'employeeStatuses', 'employeeTypes'])
                 ->where('client_id', $user->client_id)
                 ->whereIn('status', ['Published', 'Pending', 'Hidden']) // Include Hidden
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            $formattedAnnouncements = $announcements->map(function ($announcement) {
-                $viewCount = $announcement->views->count();
-                // Count unique employees in assigned branches and departments !!ADD FOR ADDITIONAL ROLES, STATUS, AND EMPLOYMENT TYPE!!!
-                $branchIds = $announcement->branches->pluck('branch_id')->toArray();
-                $departmentIds = $announcement->departments->pluck('department_id')->toArray();
-                $recipientCount = UsersModel::where('user_type', 'Employee')
-                    ->where(function ($query) use ($branchIds, $departmentIds) {
-                        if (!empty($branchIds)) {
-                            $query->whereIn('branch_id', $branchIds);
-                        }
-                        if (!empty($departmentIds)) {
-                            $query->orWhereIn('department_id', $departmentIds);
-                        }
-                    })
-                    ->distinct('id')
-                    ->count();
-                // Count acknowledgments
-                $acknowledgedCount = AnnouncementAcknowledgementsModel::where('announcement_id', $announcement->id)->count();
-                
-                $views = $announcement->views->map(function ($view) {
+        $formattedAnnouncements = $announcements->map(function ($announcement) {
+            $viewCount = $announcement->views->count();
+            $branchIds = $announcement->branches->pluck('branch_id')->toArray();
+            $departmentIds = $announcement->departments->pluck('department_id')->toArray();
+
+            // Get allowed roles, types, statuses
+            $allowedRoleIds = $announcement->employeeRoles->pluck('role_id')->toArray();
+            $allowedEmploymentTypes = $announcement->employeeTypes->pluck('employment_type')->toArray();
+            $allowedEmploymentStatuses = $announcement->employeeStatuses->pluck('employment_status')->toArray();
+
+            $recipientCount = UsersModel::where('user_type', 'Employee')
+                ->where(function ($query) use ($branchIds, $departmentIds) {
+                    if (!empty($branchIds)) {
+                        $query->whereIn('branch_id', $branchIds);
+                    }
+                    if (!empty($departmentIds)) {
+                        $query->orWhereIn('department_id', $departmentIds);
+                    }
+                })
+                ->when(!empty($allowedRoleIds), function ($query) use ($allowedRoleIds) {
+                    $query->whereIn('role_id', $allowedRoleIds);
+                })
+                ->when(!empty($allowedEmploymentTypes), function ($query) use ($allowedEmploymentTypes) {
+                    $query->whereIn('employment_type', $allowedEmploymentTypes);
+                })
+                ->when(!empty($allowedEmploymentStatuses), function ($query) use ($allowedEmploymentStatuses) {
+                    $query->whereIn('employment_status', $allowedEmploymentStatuses);
+                })
+                ->distinct('id')
+                ->count();
+
+            $acknowledgedCount = AnnouncementAcknowledgementsModel::where('announcement_id', $announcement->id)->count();
+
+            $views = $announcement->views
+                ->filter(function ($view) use ($allowedRoleIds, $allowedEmploymentTypes, $allowedEmploymentStatuses) {
+                    $user = $view->user;
+                    if (!$user) return false;
+                    $roleMatch = empty($allowedRoleIds) || in_array($user->role_id, $allowedRoleIds);
+                    $typeMatch = empty($allowedEmploymentTypes) || in_array($user->employment_type, $allowedEmploymentTypes);
+                    $statusMatch = empty($allowedEmploymentStatuses) || in_array($user->employment_status, $allowedEmploymentStatuses);
+                    return $roleMatch && $typeMatch && $statusMatch;
+                })
+                ->map(function ($view) {
                     $profilePic = $view->user && $view->user->profile_pic
                         ? asset('storage/' . $view->user->profile_pic)
                         : asset('images/default-avatar.png');
@@ -97,7 +120,16 @@ class AnnouncementsController extends Controller
                     ];
                 });
 
-                $acknowledgements = $announcement->acknowledgements->map(function ($acknowledgement) {
+            $acknowledgements = $announcement->acknowledgements
+                ->filter(function ($ack) use ($allowedRoleIds, $allowedEmploymentTypes, $allowedEmploymentStatuses) {
+                    $user = $ack->user;
+                    if (!$user) return false;
+                    $roleMatch = empty($allowedRoleIds) || in_array($user->role_id, $allowedRoleIds);
+                    $typeMatch = empty($allowedEmploymentTypes) || in_array($user->employment_type, $allowedEmploymentTypes);
+                    $statusMatch = empty($allowedEmploymentStatuses) || in_array($user->employment_status, $allowedEmploymentStatuses);
+                    return $roleMatch && $typeMatch && $statusMatch;
+                })
+                ->map(function ($acknowledgement) {
                     $profilePic = $acknowledgement->user && $acknowledgement->user->profile_pic
                         ? asset('storage/' . $acknowledgement->user->profile_pic)
                         : asset('images/default-avatar.png');
@@ -109,22 +141,22 @@ class AnnouncementsController extends Controller
                     ];
                 });
 
-                return [
-                    'id' => $announcement->id,
-                    'unique_code' => $announcement->unique_code,
-                    'title' => $announcement->title,
-                    'description' => $announcement->description,
-                    'status' => $announcement->status,
-                    'created_at' => $announcement->created_at,
-                    'updated_at' => $announcement->updated_at,
-                    'viewed' => $viewCount,
-                    'recipients' => $recipientCount,
-                    'acknowledged' => $acknowledgedCount,
-                    'views' => $views,
-                    'acknowledgements' => $acknowledgements,
-                    'scheduled_send_datetime' => $announcement->scheduled_send_datetime
-                ];
-            });
+            return [
+                'id' => $announcement->id,
+                'unique_code' => $announcement->unique_code,
+                'title' => $announcement->title,
+                'description' => $announcement->description,
+                'status' => $announcement->status,
+                'created_at' => $announcement->created_at,
+                'updated_at' => $announcement->updated_at,
+                'viewed' => $viewCount,
+                'recipients' => $recipientCount,
+                'acknowledged' => $acknowledgedCount,
+                'views' => $views,
+                'acknowledgements' => $acknowledgements,
+                'scheduled_send_datetime' => $announcement->scheduled_send_datetime
+            ];
+        });
 
             //Log::info('getAnnouncements: Successfully fetched announcements', ['count' => $formattedAnnouncements->count()]);
 
@@ -146,11 +178,27 @@ class AnnouncementsController extends Controller
         }
 
         try {
-            $announcement = AnnouncementsModel::where('unique_code', $code)->firstOrFail();
+            $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->with(['employeeRoles', 'employeeTypes', 'employeeStatuses'])
+                ->firstOrFail();
+
+            $allowedRoleIds = $announcement->employeeRoles->pluck('role_id')->toArray();
+            $allowedEmploymentTypes = $announcement->employeeTypes->pluck('employment_type')->toArray();
+            $allowedEmploymentStatuses = $announcement->employeeStatuses->pluck('employment_status')->toArray();
+
             $views = AnnouncementViewsModel::where('announcement_id', $announcement->id)
                 ->join('users', 'announcement_views.user_id', '=', 'users.id')
                 ->leftJoin('branches', 'users.branch_id', '=', 'branches.id')
                 ->leftJoin('departments', 'users.department_id', '=', 'departments.id')
+                ->when(!empty($allowedRoleIds), function ($query) use ($allowedRoleIds) {
+                    $query->whereIn('users.role_id', $allowedRoleIds);
+                })
+                ->when(!empty($allowedEmploymentTypes), function ($query) use ($allowedEmploymentTypes) {
+                    $query->whereIn('users.employment_type', $allowedEmploymentTypes);
+                })
+                ->when(!empty($allowedEmploymentStatuses), function ($query) use ($allowedEmploymentStatuses) {
+                    $query->whereIn('users.employment_status', $allowedEmploymentStatuses);
+                })
                 ->select(
                     'users.id as user_id',
                     'users.first_name',
@@ -225,7 +273,6 @@ class AnnouncementsController extends Controller
 
     public function getEmployeeAnnouncements()
     {
-        //Log::info("AnnouncementsController::getEmployeeAnnouncements");
         $user = Auth::user();
         if (!$user) {
             Log::warning('Unauthenticated user attempted to access getEmployeeAnnouncements');
@@ -240,6 +287,25 @@ class AnnouncementsController extends Controller
                     })->orWhereHas('departments', function ($q) use ($user) {
                         $q->where('department_id', $user->department_id);
                     });
+                })
+                // Filter by allowed roles, types, statuses
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeRoles')
+                        ->orWhereHas('employeeRoles', function ($q) use ($user) {
+                            $q->where('role_id', $user->role_id);
+                        });
+                })
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeTypes')
+                        ->orWhereHas('employeeTypes', function ($q) use ($user) {
+                            $q->where('employment_type', $user->employment_type);
+                        });
+                })
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeStatuses')
+                        ->orWhereHas('employeeStatuses', function ($q) use ($user) {
+                            $q->where('employment_status', $user->employment_status);
+                        });
                 })
                 ->with(['acknowledgements' => function ($query) use ($user) {
                     $query->where('user_id', $user->id);
@@ -536,8 +602,6 @@ class AnnouncementsController extends Controller
 
     public function getEmployeeAnnouncementDetails($code)
     {
-        //Log::info("AnnouncementsController::getEmployeeAnnouncementDetails");
-
         $user = Auth::user();
         if (!$user) {
             Log::warning('Unauthenticated user attempted to access getEmployeeAnnouncementDetails');
@@ -553,6 +617,25 @@ class AnnouncementsController extends Controller
                     })->orWhereHas('departments', function ($q) use ($user) {
                         $q->where('department_id', $user->department_id);
                     });
+                })
+                // Filter by allowed roles, types, statuses
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeRoles')
+                        ->orWhereHas('employeeRoles', function ($q) use ($user) {
+                            $q->where('role_id', $user->role_id);
+                        });
+                })
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeTypes')
+                        ->orWhereHas('employeeTypes', function ($q) use ($user) {
+                            $q->where('employment_type', $user->employment_type);
+                        });
+                })
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeStatuses')
+                        ->orWhereHas('employeeStatuses', function ($q) use ($user) {
+                            $q->where('employment_status', $user->employment_status);
+                        });
                 })
                 ->with(['acknowledgements' => function ($query) use ($user) {
                     $query->where('user_id', $user->id);
@@ -842,43 +925,52 @@ class AnnouncementsController extends Controller
 
     public function getAcknowledgements($code)
     {
-        //Log::info("AnnouncementsController::getAnnouncementAcknowledgements");
         $user = Auth::user();
         if ($this->checkUser()) {
             $clientId = $user->client_id;
-            $announcement = AnnouncementsModel::where('unique_code', $code) //add new changes!
-                ->with(['acknowledgements', 'branches', 'departments'])
+            $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->with(['acknowledgements.user', 'branches', 'departments', 'employeeRoles', 'employeeTypes', 'employeeStatuses'])
                 ->firstOrFail();
 
-            // Acknowledged Users
-            $acknowledgements = $announcement->acknowledgements->map(function ($ack) {
-                $emp = $ack->user;
+            // Allowed filters
+            $allowedRoleIds = $announcement->employeeRoles->pluck('role_id')->toArray();
+            $allowedEmploymentTypes = $announcement->employeeTypes->pluck('employment_type')->toArray();
+            $allowedEmploymentStatuses = $announcement->employeeStatuses->pluck('employment_status')->toArray();
 
-                return [
-                    'emp_id' => $emp->id,
-                    'emp_first_name' => $emp->first_name,
-                    'emp_middle_name' => $emp->middle_name ?? '',
-                    'emp_last_name' => $emp->last_name,
-                    'emp_suffix' => $emp->suffix ?? '',
-                    'emp_profile_pic' => $emp->profile_pic ?? null,
-                    'timestamp' => $ack->created_at,
-                    'branch' => $emp->branch ? $emp->branch->name : null,
-                    'department' => $emp->department ? $emp->department->name : null,
-                    'emp_type' => $emp->employment_type ?? null,
-                    'emp_status' => $emp->employment_status ?? null,
-                    'emp_role' => $emp->role ? $emp->role->name : null,
-                ];
-            })->all();
+            // Acknowledged Users (filtered)
+            $acknowledgements = $announcement->acknowledgements
+                ->filter(function ($ack) use ($allowedRoleIds, $allowedEmploymentTypes, $allowedEmploymentStatuses) {
+                    $emp = $ack->user;
+                    if (!$emp) return false;
+                    $roleMatch = empty($allowedRoleIds) || in_array($emp->role_id, $allowedRoleIds);
+                    $typeMatch = empty($allowedEmploymentTypes) || in_array($emp->employment_type, $allowedEmploymentTypes);
+                    $statusMatch = empty($allowedEmploymentStatuses) || in_array($emp->employment_status, $allowedEmploymentStatuses);
+                    return $roleMatch && $typeMatch && $statusMatch;
+                })
+                ->map(function ($ack) {
+                    $emp = $ack->user;
+                    return [
+                        'emp_id' => $emp->id,
+                        'emp_first_name' => $emp->first_name,
+                        'emp_middle_name' => $emp->middle_name ?? '',
+                        'emp_last_name' => $emp->last_name,
+                        'emp_suffix' => $emp->suffix ?? '',
+                        'emp_profile_pic' => $emp->profile_pic ?? null,
+                        'timestamp' => $ack->created_at,
+                        'branch' => $emp->branch ? $emp->branch->name : null,
+                        'department' => $emp->department ? $emp->department->name : null,
+                        'emp_type' => $emp->employment_type ?? null,
+                        'emp_status' => $emp->employment_status ?? null,
+                        'emp_role' => $emp->role ? $emp->role->name : null,
+                    ];
+                })->all();
 
-            // Unacknowledged Users
+            // Unacknowledged Users (filtered)
             $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
             $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
-
             $acknowledgedUsers = $announcement->acknowledgements->pluck('user_id')->unique()->toArray();
 
-            //Log::info($acknowledgedUsers);
-
-                $unacknowledged = UsersModel::with(['branch', 'department', 'role'])
+            $unacknowledged = UsersModel::with(['branch', 'department', 'role'])
                 ->where('client_id', $clientId)
                 ->where(function ($query) use ($branches, $departments) {
                     if (!empty($branches)) {
@@ -888,6 +980,16 @@ class AnnouncementsController extends Controller
                         $query->orWhereIn('department_id', $departments);
                     }
                 })
+                ->when(!empty($allowedRoleIds), function ($query) use ($allowedRoleIds) {
+                    $query->whereIn('role_id', $allowedRoleIds);
+                })
+                ->when(!empty($allowedEmploymentTypes), function ($query) use ($allowedEmploymentTypes) {
+                    $query->whereIn('employment_type', $allowedEmploymentTypes);
+                })
+                ->when(!empty($allowedEmploymentStatuses), function ($query) use ($allowedEmploymentStatuses) {
+                    $query->whereIn('employment_status', $allowedEmploymentStatuses);
+                })
+                ->whereNotIn('id', $acknowledgedUsers)
                 ->select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'profile_pic', 'branch_id', 'department_id', 'employment_type', 'employment_status', 'role_id')
                 ->get()
                 ->map(function ($employee) {
@@ -907,13 +1009,11 @@ class AnnouncementsController extends Controller
                 })
                 ->all();
 
-                        //Log::info($unacknowledged);
-
-                        return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements, 'unacknowledged' => $unacknowledged]);
-                    } else {
-                        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-                    }
-                }
+            return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements, 'unacknowledged' => $unacknowledged]);
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
 
     // Utility
     function generateRandomCode($length)
