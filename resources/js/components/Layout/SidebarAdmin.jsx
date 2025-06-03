@@ -416,9 +416,9 @@ const Sidebar = ({ children, closeMini }) => {
                                     {/* </StyledNav> */}
 
                                     <StyledNav to={`/admin/branches/branchlist`}>
-                                        <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide">Branches</span>
-                                    </StyledNav>
+                                        <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i> 
+                                        <span id="navName" className="sidebar-mini-hide">Branches</span> 
+                                    </StyledNav> 
 
                                     <StyledNav to={`/admin/milestones`}>
                                         <i className="fa fa-external-link" style={{ color: "#2a800f" }} ></i>
