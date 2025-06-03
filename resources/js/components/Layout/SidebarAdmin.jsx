@@ -313,77 +313,31 @@ const Sidebar = ({ children, closeMini }) => {
                     <div className="content-header content-header-fullrow px-15">
                         <div className="content-header-section sidebar-mini-visible-b">
                             <span className="content-header-item font-w700 font-size-xl float-left animated fadeIn">
-                                <span className="text-dual-primary-dark">
-                                    c
-                                </span>
+                                <span className="text-dual-primary-dark">c</span>
                                 <span className="text-primary">b</span>
                             </span>
                         </div>
                         <div className="content-header-section text-center align-parent sidebar-mini-hidden">
-                            <button
-                                type="button"
-                                className="btn btn-circle btn-dual-secondary d-lg-none align-v-r"
-                                data-toggle="layout"
-                                data-action="sidebar_close"
-                                onClick={closeMini}
-                            >
+                            <button type="button" className="btn btn-circle btn-dual-secondary d-lg-none align-v-r" data-toggle="layout" data-action="sidebar_close" onClick={closeMini} >
                                 <i className="fa fa-times text-danger"></i>
                             </button>
                             <div className="content-header-item">
-                                <img
-                                    src={manpro_logo}
-                                    style={{
-                                        height: "30px",
-                                        marginBottom: "20px",
-                                    }}
-                                />
+                                <img src={manpro_logo} style={{ height: "30px", marginBottom: "20px" }} />
                             </div>
                         </div>
                     </div>
 
-                    <div
-                        className="content-side content-side-full content-side-user px-10 align-parent"
-                        style={{
-                            backgroundImage:
-                                "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))",
-                        }}
-                    >
+                    <div className="content-side content-side-full content-side-user px-10 align-parent" style={{ backgroundImage: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }} >
                         <div className="sidebar-mini-visible-b align-v animated fadeIn">
-                            <img
-                                className="img-avatar img-avatar32"
-                                src={avatar}
-                                alt=""
-                            />
+                            <img className="img-avatar img-avatar32" src={avatar} alt="" />
                         </div>
                         <div className="sidebar-mini-hidden-b text-center">
-                            <Box
-                                display="flex"
-                                flexDirection="column"
-                                alignItems="center"
-                            >
-                                <Avatar
-                                    src={
-                                        user?.media?.[0]?.original_url ||
-                                        imagePath
-                                    }
-                                    alt={`${user?.first_name || ""} ${
-                                        user?.last_name || ""
-                                    }`}
-                                    sx={{
-                                        width: 64,
-                                        height: 64,
-                                        objectFit: "contain",
-                                        bgcolor: "grey.300",
-                                        "& .MuiAvatar-img": {
-                                            objectFit: "cover",
-                                        },
-                                    }}
-                                />
+                            <Box display="flex" flexDirection="column" alignItems="center" >
+                                <Avatar src={ user?.media?.[0]?.original_url || imagePath } alt={`${user?.first_name || ""} ${ user?.last_name || "" }`} sx={{ width: 64, height: 64, objectFit: "contain", bgcolor: "grey.300", "& .MuiAvatar-img": { objectFit: "cover" }}} />
                                 <ul className="list-inline mt-10">
                                     <li className="list-inline-item">
                                         <a className="link-effect text-white font-size-xs font-w600">
-                                            {capitalize(user.first_name)}{" "}
-                                            {capitalize(user.last_name)}
+                                            {capitalize(user.first_name)}{" "}{capitalize(user.last_name)}
                                         </a>
                                     </li>
                                 </ul>
