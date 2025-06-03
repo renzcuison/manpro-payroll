@@ -576,6 +576,46 @@ class EmployeesController extends Controller
         }
     }
 
+    public function editMyProfilePicture(Request $request)
+    {
+        Log::info("EmployeesController::editMyProfilePicture");
+        Log::info($request);
+
+        // $request->validate([
+        //     'profile_picture' => 'required|image|max:5120'
+        // ]);
+
+        $user = UsersModel::findOrFail($request->input('id'));
+
+        try {
+            if ($request->hasFile('profile_picture')) {
+                // Optional: clear existing media first
+                $user->clearMediaCollection('profile_pictures');
+
+                // Save new profile picture
+                $user->addMediaFromRequest('profile_picture')->toMediaCollection('profile_pictures');
+            } else {
+                Log::warning("No profile picture file found in request.");
+                return response()->json([
+                    'message' => 'No profile picture provided',
+                    'status' => 422
+                ]);
+            }
+
+            return response()->json([
+                'user' => $user->load('media'),
+                'message' => 'Profile updated successfully',
+                'status' => 200
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error saving profile picture: " . $e->getMessage());
+            return response()->json([
+                'message' => 'An error occurred while updating the profile picture',
+                'status' => 500
+            ]);
+        }
+    }
+
     public function editEmployeeDetails(Request $request)
     {
         // log::info("EmployeesController::editEmployeeDetails");

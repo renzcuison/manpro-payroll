@@ -168,6 +168,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeShortDetails', [EmployeesController::class, 'getEmployeeShortDetails']);
 
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
+        Route::post('/editMyProfilePicture', [EmployeesController::class, 'editMyProfilePicture']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
         Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
