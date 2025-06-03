@@ -36,11 +36,11 @@ const AttendanceLogs = () => {
     }, [fromDate, toDate, selectedRange]);
 
     const getAttendanceLogs = () => {
-        axiosInstance.get('/attendance/getAttendanceLogs', {
-            headers, params: {
-                from_date: fromDate.format("YYYY-MM-DD"),
-                to_date: toDate.format("YYYY-MM-DD"),
-            },
+        // axiosInstance.get('/attendance/getAttendanceLogs', {
+        //     headers, params: {
+        //         from_date: fromDate.format("YYYY-MM-DD"),
+        //         to_date: toDate.format("YYYY-MM-DD"),
+        //     },
          axiosInstance.get('/attendance/getAttendanceLogs', {
             headers, 
             
