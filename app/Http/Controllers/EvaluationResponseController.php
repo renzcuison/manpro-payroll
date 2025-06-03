@@ -56,10 +56,10 @@ class EvaluationResponseController extends Controller
                             allow_other_option, linear_scale_start, linear_scale_end, order,
                             options: {
                                 subcategory_id, id, label, order,
-                                option_answer: { id, response_id, option_id }
+                                option_answer: { response_id, option_id }
                             }[],
-                            percentage_answer: { id, response_id, subcategory_id, percentage, value, linear_scale_index } | null,
-                            text_answer: { id, response_id, subcategory_id, answer } | null
+                            percentage_answer: { response_id, subcategory_id, percentage, value, linear_scale_index } | null,
+                            text_answer: { response_id, subcategory_id, answer } | null
                         }[]
                     }[]
                 },
@@ -132,8 +132,8 @@ class EvaluationResponseController extends Controller
                             $section
                                 ->select('form_id', 'id', 'name', 'category', 'order')
                                 ->orderBy('order')
-                                ->with(['subcategories' => fn ($subcategory) =>
-                                    $subcategory
+                                ->with(['subcategories' => fn ($evaluationFormSubcategory) =>
+                                    $evaluationFormSubcategory
                                         ->select(
                                             'section_id', 'id',
                                             'name', 'subcategory_type', 'description',
@@ -151,14 +151,13 @@ class EvaluationResponseController extends Controller
                                                     ->orderBy('order')
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
-                                                            $optionAnswer->select('id', 'response_id', 'option_id')
+                                                            $optionAnswer->select('response_id', 'option_id')
                                                     ])
                                             ,
                                             'percentageAnswer' => fn ($percentageAnswer) =>
                                                 $percentageAnswer
                                                 ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
                                                 ->select(
-                                                    'evaluation_percentage_answers.id',
                                                     'evaluation_percentage_answers.response_id',
                                                     'evaluation_percentage_answers.subcategory_id',
                                                     'evaluation_percentage_answers.percentage',
@@ -179,7 +178,7 @@ class EvaluationResponseController extends Controller
                                                 ))
                                             ,
                                             'textAnswer' => fn ($textAnswer) =>
-                                                $textAnswer->select('id', 'response_id', 'subcategory_id', 'answer')
+                                                $textAnswer->select('response_id', 'subcategory_id', 'answer')
                                         ])
                                         ->orderBy('order')
                                     ])
@@ -426,7 +425,7 @@ class EvaluationResponseController extends Controller
             $userID = null;
         }
 
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
         try {
 
@@ -498,7 +497,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number,
+            response_id: number,
+            subcategory_id: number,
             percentage?: number,            // either percentage or value must be given
             value?: number                  // value means percentage is auto-calculated
         */
@@ -519,7 +519,7 @@ class EvaluationResponseController extends Controller
             $userID = null;
         }
 
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
         try {
 
@@ -546,14 +546,16 @@ class EvaluationResponseController extends Controller
                     ."-evaluation_form_subcategories.linear_scale_start))"
                     ." as linear_scale_index"
                 ))
-                ->where('evaluation_percentage_answers.id', $request->id)
+                ->where('evaluation_percentage_answers.response_id', $request->response_id)
+                ->where('evaluation_percentage_answers.subcategory_id', $request->subcategory_id)
                 ->first()
             ;
 
             if(!$evaluationPercentageAnswer) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Percentage Answer not found!',
-                'evaluationPercentageAnswerID' => $request->id
+                'evaluationFormResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id
             ]);
 
             if($request->percentage === null && $request->value === null) return response()->json([
@@ -561,38 +563,38 @@ class EvaluationResponseController extends Controller
                 'message' => 'Either Percentage or Value must be given!'
             ]);
 
-            $subcategory = EvaluationFormSubcategory
+            $evaluationFormSubcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type', 'linear_scale_start', 'linear_scale_end')
                 ->where('id', $evaluationPercentageAnswer->subcategory_id)
                 ->first()
             ;
 
-            if($subcategory->subcategory_type != 'linear_scale') return response()->json([
+            if($evaluationFormSubcategory->subcategory_type != 'linear_scale') return response()->json([
                 'status' => 400,
                 'message' => 'This subcategory does not accept percentage answers!',
-                'evaluationFormSubcategoryID' => $subcategory->id,
-                'subcategoryType' => $subcategory->subcategory_type
+                'evaluationFormSubcategoryID' => $evaluationFormSubcategory->id,
+                'subcategoryType' => $evaluationFormSubcategory->subcategory_type
             ]);
 
             if(
                 $request->percentage === null
                 && (
-                    $request->value < $subcategory->linear_scale_start
-                    || $request->value > $subcategory->linear_scale_end
+                    $request->value < $evaluationFormSubcategory->linear_scale_start
+                    || $request->value > $evaluationFormSubcategory->linear_scale_end
                 )
             ) return response()->json([
                 'status' => 400,
                 'message' => 'Value is is not within linear scale!',
-                'evaluationFormSubcategoryID' => $subcategory->id,
-                'linear_scale_start' => $subcategory->linear_scale_start,
-                'linear_scale_end' => $subcategory->linear_scale_end
+                'evaluationFormSubcategoryID' => $evaluationFormSubcategory->id,
+                'linear_scale_start' => $evaluationFormSubcategory->linear_scale_start,
+                'linear_scale_end' => $evaluationFormSubcategory->linear_scale_end
             ]);
 
             $percentage = (
                 $request->percentage
                 ?? (
-                    ($request->value - $subcategory->linear_scale_start)
-                    / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
+                    ($request->value - $evaluationFormSubcategory->linear_scale_start)
+                    / ($evaluationFormSubcategory->linear_scale_end - $evaluationFormSubcategory->linear_scale_start)
                 )
             );
 
@@ -620,13 +622,14 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number
+            response_id: number,
+            subcategory_id: number
         */
 
         // returns:
         /*
             evaluationPercentageAnswer: {
-                id, response_id, subcategory_id, percentage, value, linear_scale_index,
+                response_id, subcategory_id, percentage, value, linear_scale_index,
                 created_at, updated_at
             }
         */
@@ -645,15 +648,18 @@ class EvaluationResponseController extends Controller
 
             $evaluationPercentageAnswer = EvaluationPercentageAnswer
                 ::select(
-                    'id', 'response_id', 'subcategory_id', 'percentage',
+                    'response_id', 'subcategory_id', 'percentage',
                     'created_at', 'updated_at'
                 )
-                ->where('id', $request->id)
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->first()
             ;
             if( !$evaluationPercentageAnswer ) return response()->json([
                 'status' => 404,
-                'message' => 'Evaluation Percentage Answer not found!'
+                'message' => 'Evaluation Percentage Answer not found!',
+                'evaluationFormResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id
             ]);
             return response()->json([
                 'status' => 200,
@@ -681,7 +687,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationPercentageAnswers: {
-                id, response_id, subcategory_id, percentage, value, linear_scale_index,
+                response_id, subcategory_id, percentage, value, linear_scale_index,
                 created_at, updated_at
             }[]
         */
@@ -700,7 +706,7 @@ class EvaluationResponseController extends Controller
 
             $evaluationPercentageAnswers = EvaluationPercentageAnswer
                 ::select(
-                    'id', 'response_id', 'subcategory_id', 'percentage',
+                    'response_id', 'subcategory_id', 'percentage',
                     'created_at', 'updated_at'
                 )
                 ->where('subcategory_id', $request->subcategory_id)
@@ -708,7 +714,8 @@ class EvaluationResponseController extends Controller
             ;
             if( !$evaluationPercentageAnswers ) return response()->json([
                 'status' => 404,
-                'message' => 'Evaluation Percentage Answers not found!'
+                'message' => 'Evaluation Percentage Answers not found!',
+                'evaluationFormSubcategoryID' => $request->subcategory_id
             ]);
             return response()->json([
                 'status' => 200,
@@ -738,7 +745,7 @@ class EvaluationResponseController extends Controller
 
         // returns:
         /*
-            evaluationPercentageAnswerID
+            evaluationResponseID, evaluationFormSubcategoryID
         */
 
         log::info('EvaluationResponseController::saveEvaluationPercentageAnswer');
@@ -749,7 +756,7 @@ class EvaluationResponseController extends Controller
             $userID = null;
         }
 
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
         try {
 
@@ -763,16 +770,16 @@ class EvaluationResponseController extends Controller
                 'message' => 'Either Percentage or Value must be given!'
             ]);
 
-            $subcategory = EvaluationFormSubcategory
+            $evaluationFormSubcategory = EvaluationFormSubcategory
                 ::select('subcategory_type', 'linear_scale_start', 'linear_scale_end')
                 ->where('id', $request->subcategory_id)
                 ->first()
             ;
 
-            if($subcategory->subcategory_type != 'linear_scale') return response()->json([
+            if($evaluationFormSubcategory->subcategory_type != 'linear_scale') return response()->json([
                 'status' => 400,
                 'message' => 'This subcategory does not accept percentage answers!',
-                'evaluationFormSubcategoryID' => $subcategory->id
+                'evaluationFormSubcategoryID' => $evaluationFormSubcategory->id
             ]);
             
             $existingFormPercentageAnswer = EvaluationPercentageAnswer
@@ -784,21 +791,22 @@ class EvaluationResponseController extends Controller
             if($existingFormPercentageAnswer) return response()->json([ 
                 'status' => 409,
                 'message' => 'A percentage answer was already created for this subcategory!',
-                'evaluationPercentageAnswerID' => $existingFormPercentageAnswer->id
+                'evaluationResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id,
             ]);
 
             if(
                 $request->percentage === null
                 && (
-                    $request->value < $subcategory->linear_scale_start
-                    || $request->value > $subcategory->linear_scale_end
+                    $request->value < $evaluationFormSubcategory->linear_scale_start
+                    || $request->value > $evaluationFormSubcategory->linear_scale_end
                 )
             ) return response()->json([
                 'status' => 400,
                 'message' => 'Value is is not within linear scale!',
-                'evaluationFormSubcategoryID' => $subcategory->id,
-                'linear_scale_start' => $subcategory->linear_scale_start,
-                'linear_scale_end' => $subcategory->linear_scale_end
+                'evaluationFormSubcategoryID' => $evaluationFormSubcategory->id,
+                'linear_scale_start' => $evaluationFormSubcategory->linear_scale_start,
+                'linear_scale_end' => $evaluationFormSubcategory->linear_scale_end
             ]);
 
             DB::beginTransaction();
@@ -806,8 +814,8 @@ class EvaluationResponseController extends Controller
             $percentage = (
                 $request->percentage
                 ?? (
-                    ($request->value - $subcategory->linear_scale_start)
-                    / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
+                    ($request->value - $evaluationFormSubcategory->linear_scale_start)
+                    / ($evaluationFormSubcategory->linear_scale_end - $evaluationFormSubcategory->linear_scale_start)
                 )
             );
 
@@ -821,7 +829,8 @@ class EvaluationResponseController extends Controller
 
             return response()->json([ 
                 'status' => 201,
-                'evaluationPercentageAnswerID' => $newEvaluationPercentageAnswer->id,
+                'evaluationResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id,
                 'message' => 'Evaluation Percentage Answer successfully created'
             ]);
 
@@ -842,14 +851,15 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number,
+            response_id: number,
+            subcategory_id: number
             answer: string
         */
 
         // returns:
         /*
             evaluationTextAnswer: {
-                id, response_id, subcategory_id, answer, created_at, updated_at, deleted_at
+                response_id, subcategory_id, answer, created_at, updated_at, deleted_at
             }
         */
 
@@ -861,7 +871,7 @@ class EvaluationResponseController extends Controller
             $userID = null;
         }
 
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
         try {
 
@@ -873,28 +883,30 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $evaluationTextAnswer = EvaluationTextAnswer
-                ::select('*')
-                ->where('id', $request->id)
+                ::select()
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->first()
             ;
 
             if(!$evaluationTextAnswer) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Text Answer not found!',
-                'evaluationTextAnswerID' => $request->id
+                'evaluationFormResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id
             ]);
 
-            $subcategory = EvaluationFormSubcategory
+            $evaluationFormSubcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type')
-                ->where('id', $request->subcategory_id)
+                ->where('id', $evaluationTextAnswer->subcategory_id)
                 ->first()
             ;
 
-            if(!in_array($subcategory->subcategory_type, ['long_answer', 'short_answer']))
+            if(!in_array($evaluationFormSubcategory->subcategory_type, ['long_answer', 'short_answer']))
                 return response()->json([
                     'status' => 400,
                     'message' => 'This subcategory does not accept text answers!',
-                    'evaluationFormSubcategoryID' => $subcategory->id
+                    'evaluationFormSubcategoryID' => $evaluationFormSubcategory->id
                 ]);
 
             $isEmptyAnswer = !$request->answer;
@@ -927,12 +939,15 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number
+            response_id: number,
+            subcategory_id: number
         */
 
         // returns:
         /*
-            evaluationTextAnswer: { id, response_id, subcategory_id, answer, created_at, updated_at }
+            evaluationTextAnswer: {
+                response_id, subcategory_id, answer, created_at, updated_at
+            }
         */
 
         log::info('EvaluationResponseController::getEvaluationTextAnswer');
@@ -949,15 +964,18 @@ class EvaluationResponseController extends Controller
 
             $evaluationTextAnswer = EvaluationTextAnswer
                 ::select(
-                    'id', 'response_id', 'subcategory_id', 'answer',
+                    'response_id', 'subcategory_id', 'answer',
                     'created_at', 'updated_at'
                 )
-                ->where('id', $request->id)
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->first()
             ;
             if( !$evaluationTextAnswer ) return response()->json([
                 'status' => 404,
-                'message' => 'Evaluation Text Answer not found!'
+                'message' => 'Evaluation Text Answer not found!',
+                'evaluationFormResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id
             ]);
             return response()->json([
                 'status' => 200,
@@ -985,7 +1003,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationTextAnswers: {
-                id, response_id, subcategory_id, answer, created_at, updated_at
+                response_id, subcategory_id, answer, created_at, updated_at
             }[]
         */
 
@@ -1003,7 +1021,7 @@ class EvaluationResponseController extends Controller
 
             $evaluationTextAnswers = EvaluationTextAnswer
                 ::select(
-                    'id', 'response_id', 'subcategory_id', 'answer',
+                    'response_id', 'subcategory_id', 'answer',
                     'created_at', 'updated_at'
                 )
                 ->where('subcategory_id', $request->subcategory_id)
@@ -1011,7 +1029,8 @@ class EvaluationResponseController extends Controller
             ;
             if( !$evaluationTextAnswers ) return response()->json([
                 'status' => 404,
-                'message' => 'Evaluation Text Answers not found!'
+                'message' => 'Evaluation Text Answers not found!',
+                'evaluationFormSubcategoryID' => $request->subcategory_id
             ]);
             return response()->json([
                 'status' => 200,
@@ -1040,7 +1059,7 @@ class EvaluationResponseController extends Controller
 
         // returns:
         /*
-            evaluationTextAnswerID
+            evaluationResponseID, evaluationFormSubcategoryID
         */
 
         log::info('EvaluationResponseController::saveEvaluationTextAnswer');
@@ -1051,7 +1070,7 @@ class EvaluationResponseController extends Controller
             $userID = null;
         }
 
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
         try {
 
@@ -1060,17 +1079,18 @@ class EvaluationResponseController extends Controller
                 'message' => 'Unauthorized access!'
             ]);
 
-            $subcategory = EvaluationFormSubcategory
+            $evaluationFormSubcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type')
-                ->where('id', $request->subcategory_id)
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->first()
             ;
 
-            if(!in_array($subcategory->subcategory_type, ['long_answer', 'short_answer']))
+            if(!in_array($evaluationFormSubcategory->subcategory_type, ['long_answer', 'short_answer']))
                 return response()->json([
                     'status' => 400,
                     'message' => 'This subcategory does not accept text answers!',
-                    'evaluationFormSubcategoryID' => $subcategory->id
+                    'evaluationFormSubcategoryID' => $evaluationFormSubcategory->id
                 ]);
 
             $existingFormTextAnswer = EvaluationTextAnswer
@@ -1082,7 +1102,8 @@ class EvaluationResponseController extends Controller
             if($existingFormTextAnswer) return response()->json([ 
                 'status' => 409,
                 'message' => 'A text answer was already created for this subcategory!',
-                'evaluationTextAnswerID' => $existingFormTextAnswer->id
+                'evaluationResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id
             ]);
 
             $isEmptyAnswer = !$request->answer;
@@ -1104,7 +1125,8 @@ class EvaluationResponseController extends Controller
 
             return response()->json([ 
                 'status' => 201,
-                'evaluationTextAnswerID' => $newEvaluationTextAnswer->id,
+                'evaluationResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id,
                 'message' => 'Evaluation Text Answer successfully created'
             ]);
 
@@ -1121,18 +1143,120 @@ class EvaluationResponseController extends Controller
 
         // delete evaluation form option answer
 
-        // edit evaluation form option answer
+    public function editEvaluationOptionAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            option_id: number,
+            new_option_id: number
+        */
+
+        // returns:
+        /*
+            evaluationOptionAnswer: {
+                response_id, option_id, created_at, updated_at, deleted_at
+            }
+        */
+
+        log::info('EvaluationResponseController::editEvaluationOptionAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationOptionAnswer = EvaluationOptionAnswer
+                ::select()
+                ->where('response_id', $request->response_id)
+                ->where('option_id', $request->option_id)
+                ->first()
+            ;
+
+            if(!$evaluationOptionAnswer) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Option Answer not found!',
+                'evaluationFormResponseID' => $request->response_id,
+                'evaluationFormOptionID' => $request->option_id
+            ]);
+
+            $evaluationFormSubcategory = EvaluationFormSubcategoryOption
+                ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
+                ->select('evaluation_form_subcategories.id', 'evaluation_form_subcategories.subcategory_type')
+                ->first()
+            ;
+
+            switch($evaluationFormSubcategory->subcategory_type) {
+                case "linear_scale":
+                case "long_answer":
+                case "short_answer":
+                    return response()->json([
+                        'status' => 400,
+                        'message' => 'This subcategory does not accept choice answers!',
+                        'evaluationFormSubcategoryID' => $evaluationFormSubcategory->id
+                    ]);
+                    break;
+                case "checkbox":
+                case "dropdown":
+                case "multiple_choice":
+                    $existingOptionAnswer = EvaluationOptionAnswer
+                        ->select('response_id', 'option_id')
+                        ->where('response_id', '=', $request->response_id)
+                        ->where('option_id', '=', $request->option_id)
+                        ->first()
+                    ;
+                    if($existingOptionAnswer) return response()->json([ 
+                        'status' => 409,
+                        'message' => 'The same option answer was already created for this subcategory!',
+                        'evaluationResponseID' => $request->response_id,
+                        'evaluationFormSubcategoryOptionID' => $erequest->option_id
+                    ]);
+                    break;
+            }
+
+            $evaluationOptionAnswer->option_id  = $request->new_option_id;
+            $evaluationOptionAnswer->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationOptionAnswer' => $evaluationOptionAnswer,
+                'message' => 'Evaluation Option Answer successfully updated'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     public function getEvaluationOptionAnswer(Request $request)
     {
         // inputs:
         /*
-            id: number
+            response_id: number,
+            option_id: number
         */
 
         // returns:
         /*
-            evaluationOptionAnswer: { id, response_id, option_id, answer, created_at, updated_at }
+            evaluationOptionAnswer: { response_id, option_id, answer, created_at, updated_at }
         */
 
         log::info('EvaluationResponseController::getEvaluationOptionAnswer');
@@ -1148,10 +1272,9 @@ class EvaluationResponseController extends Controller
         try {
 
             $evaluationOptionAnswer = EvaluationOptionAnswer
-                ::select(
-                    'id', 'response_id', 'option_id', 'created_at', 'updated_at'
-                )
-                ->where('id', $request->id)
+                ::select('response_id', 'option_id', 'created_at', 'updated_at')
+                ->where('response_id', $request->response_id)
+                ->where('option_id', $request->option_id)
                 ->first()
             ;
             if( !$evaluationOptionAnswer ) return response()->json([
@@ -1187,7 +1310,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationOptionAnswers: {
-                id, response_id, option_id, created_at, updated_at
+                response_id, option_id, created_at, updated_at
             }[]
         */
 
@@ -1214,7 +1337,7 @@ class EvaluationResponseController extends Controller
                 ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                 ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                 ->select(
-                    'evaluation_option_answers.id', 'evaluation_option_answers.response_id',
+                    'evaluation_option_answers.response_id',
                     'evaluation_form_subcategories.id as subcategory_id',
                     'evaluation_option_answers.option_id',
                     'evaluation_option_answers.created_at', 'evaluation_option_answers.updated_at'
@@ -1265,7 +1388,7 @@ class EvaluationResponseController extends Controller
 
         // returns:
         /*
-            evaluationOptionAnswerID
+            evaluationResponseID, evaluationFormSubcategoryOptionID
         */
 
         log::info('EvaluationResponseController::saveEvaluationOptionAnswer');
@@ -1276,7 +1399,7 @@ class EvaluationResponseController extends Controller
             $userID = null;
         }
 
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
         try {
 
@@ -1285,7 +1408,7 @@ class EvaluationResponseController extends Controller
                 'message' => 'Unauthorized access!'
             ]);
 
-            $subcategory = EvaluationFormSubcategoryOption
+            $evaluationFormSubcategory = EvaluationFormSubcategoryOption
                 ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                 ->select(
                     'evaluation_form_subcategories.id',
@@ -1295,47 +1418,45 @@ class EvaluationResponseController extends Controller
                 ->first()
             ;
 
-            switch($subcategory->subcategory_type) {
+            switch($evaluationFormSubcategory->subcategory_type) {
                 case "linear_scale":
                 case "long_answer":
                 case "short_answer":
                     return response()->json([
                         'status' => 400,
                         'message' => 'This subcategory does not accept choice answers!',
-                        'evaluationFormSubcategoryID' => $subcategory->id
+                        'evaluationFormSubcategoryID' => $evaluationFormSubcategory->id
                     ]);
                     break;
                 case "checkbox":
                     $existingOptionAnswer = EvaluationOptionAnswer
-                        ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
-                        ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
-                        ->select('evaluation_option_answers.id')
-                        ->where('evaluation_option_answers.option_id', '=', $request->option_id)
-                        ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                        ->select('option_id', 'response_id')
+                        ->where('response_id', '=', $request->response_id)
+                        ->where('option_id', '=', $request->option_id)
                         ->first()
                     ;
                     if($existingOptionAnswer) return response()->json([ 
                         'status' => 409,
                         'message' => 'The same option answer was already created for this subcategory!',
-                        'evaluationOptionAnswerID' => $existingOptionAnswer->id
+                        'evaluationResponseID' => $request->response_id,
+                        'evaluationFormSubcategoryOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
                 case "dropdown":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
-                        ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
-                        ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
-                        ->select('evaluation_option_answers.id')
-                        ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                        ->select('response_id', 'option_id')
+                        ->where('response_id', '=', $request->response_id)
+                        ->where('option_id', '=', $request->option_id)
                         ->first()
                     ;
                     if($existingOptionAnswer) return response()->json([ 
                         'status' => 409,
                         'message' => 'An option answer was already created for this subcategory!',
-                        'evaluationOptionAnswerID' => $existingOptionAnswer->id
+                        'evaluationResponseID' => $request->response_id,
+                        'evaluationFormSubcategoryOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
-                
             }
 
             DB::beginTransaction();
@@ -1349,7 +1470,8 @@ class EvaluationResponseController extends Controller
 
             return response()->json([ 
                 'status' => 201,
-                'evaluationOptionAnswerID' => $newEvaluationOptionAnswer->id,
+                'evaluationResponseID' => $request->response_id,
+                'evaluationFormSubcategoryOptionID' => $request->option_id,
                 'message' => 'Evaluation Option Answer successfully created'
             ]);
 
@@ -1361,6 +1483,5 @@ class EvaluationResponseController extends Controller
             throw $e;
         }
     }
-
 
 }
