@@ -1,44 +1,44 @@
-import { Avatar, Box, Grid, Paper, Stack, Typography, Tooltip, Button, Divider } from "@mui/material";
+import {
+    Avatar,
+    Box,
+    Grid,
+    Paper,
+    Stack,
+    Typography,
+    Tooltip,
+    Button,
+    Divider,
+} from "@mui/material";
 import moment from "moment";
-import React, { useState, useEffect, useRef } from 'react';
-import Swal from 'sweetalert2';
+import React, { useState, useEffect, useRef } from "react";
+import Swal from "sweetalert2";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import dayjs from "dayjs";
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from "@tanstack/react-query";
 import EditIcon from "@mui/icons-material/Edit";
 
 function UserInformation({ user }) {
-    console.log(user);
-    const useQuery = useQueryClient();
+    console.log(user.media);
+
+    const queryClient = useQueryClient();
     const fileInputRef = useRef();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const [profilePic, setProfilePic] = useState( user?.media?.length ? user.media[0].original_url : user?.avatar || "../../../../../images/avatarpic.jpg" );
+
+    // const profilePic = user.media[0]?.original_url;
+    const profilePic = user?.media?.length ? user.media[0]?.original_url : user?.avatar || "../../../../../images/avatarpic.jpg";
 
     const triggerFileInput = () => {
-        fileInputRef.current.click();
-    }
-    //birthdate handlers
-    const calculateAge = (birthDate) => {
-        const birth = new Date(birthDate);
-        const today = new Date();
-        let age = today.getFullYear() - birth.getFullYear();
-        const m = today.getMonth() - birth.getMonth();
+        console.log("triggerFileInput()");
 
-        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-            age--;
-        }
-        return age;
+        console.log('Profile Pic:', profilePic);
+
+        fileInputRef.current.click();
     };
 
-    const formattedBirthDate = (() => {
-        if (!user.birth_date) return '';
-            const date = new Date(user.birth_date);
-            return isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
-    })();
-
-    //profile picture handlers
     const handleUpload = (event) => {
+        console.log("handleUpload()");
+
         const file = event.target.files[0];
         if (file) {
             if (file.size > 5242880) {
@@ -65,6 +65,12 @@ function UserInformation({ user }) {
                     customClass: { container: "my-swal" },
                 }).then((result) => {
                     if (result.isConfirmed) {
+
+                        // Render the selected file
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+
+                        // Upload the new profile picture
                         saveProfilePic(event, file);
                     }
                 });
@@ -75,142 +81,96 @@ function UserInformation({ user }) {
     const saveProfilePic = (event, file) => {
         event.preventDefault();
         const formData = new FormData();
-        formData.append('id', user.id);
-        formData.append('profile_pic', file);
-        
-        axiosInstance.post('/employee/editMyProfileAvatar', formData, { headers })
-            .then(response => {
+        formData.append("id", user.id);
+        formData.append("profile_picture", file);
+
+        axiosInstance
+            .post("/employee/editMyProfilePicture", formData, { headers })
+            .then((response) => {
                 if (response.data.status === 200) {
                     Swal.fire({
-                        customClass: { container: 'my-swal' },
+                        customClass: { container: "my-swal" },
                         text: "Profile Picture updated successfully!",
                         icon: "success",
                         showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
+                        confirmButtonText: "Proceed",
+                        confirmButtonColor: "#177604",
                     }).then((res) => {
-                        useQuery.invalidateQueries(["user"]);
-                        close(true);
+                        queryClient.invalidateQueries(["user"]);
                     });
                 }
             })
-            .catch(error => {
-                console.error('Error:', error);
+            .catch((error) => {
+                console.error("Error:", error);
             });
     };
-    return (
-        
-        <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
-            {/*User Profile picture*/}
-            <Grid container sx={{ pt: 1, pb: 4, justifyContent: "center", alignItems: "center", }}>
-                <Box display="flex" sx={{
-                    justifyContent: "center",
-                    "&:hover .profile-edit-icon": { opacity: 0.8, },
-                    "&:hover .profile-image": { filter: "brightness(0.4)", },
-                }}>
 
+    const calculateAge = (birthDate) => {
+        const birth = new Date(birthDate);
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
+    const formattedBirthDate = (() => {
+        if (!user.birth_date) return "";
+        const date = new Date(user.birth_date);
+        return isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat("en-US", { year: "numeric", month: "long", day: "numeric" }).format(date);
+    })();
+
+    return (
+        <Paper sx={{ p: 4, borderRadius: 5 }}>
+            {/*User Profile picture*/}
+            <Grid container sx={{ pt: 1, pb: 4, justifyContent: "center", alignItems: "center" }} >
+                <Box display="flex" sx={{ justifyContent: "center", "&:hover .profile-edit-icon": { opacity: 0.7 }, "&:hover .profile-image": {filter: "brightness(0.4 )"}, }} >
                     <Tooltip title="Update Profile, 5 MB Limit">
-                        <span style={{ cursor: "pointer", position: "relative" }}>
+                        <span style={{ cursor: "pointer", position: "relative" }} >
                             <input hidden type="file" onChange={handleUpload} accept=".png, .jpg, .jpeg" ref={fileInputRef} />
-                            <Avatar
-                                className="profile-image" onClick={triggerFileInput} src={profilePic} sx={{ height: "200px", width: "200px", boxShadow: 3, transition: "filter 0.3s", }} />
-                            <EditIcon className="profile-edit-icon" opacity="0"
-                                sx={{
-                                    fontSize: "90px",
-                                    opacity: 0,
-                                    position: "absolute",
-                                    top: "50%",
-                                    left: "50%",
-                                    color: "white",
-                                    pointerEvents: "none",
-                                    transform: "translate(-50%, -50%)",
-                                    transition: "opacity 0.3s",
-                                }}
-                            />
+                            <Avatar className="profile-image" onClick={triggerFileInput} src={profilePic} sx={{ height: "200px", width: "200px", boxShadow: 3, transition: "filter 0.3s" }} />
+                            <EditIcon className="profile-edit-icon" opacity="0" sx={{ fontSize: "90px", opacity: 0, position: "absolute", top: "50%", left: "50%", color: "white", pointerEvents: "none", transform: "translate(-50%, -50%)", transition: "opacity 0.3s" }} />
                         </span>
                     </Tooltip>
                 </Box>
             </Grid>
             <Stack spacing={2}>
-                <Stack direction="row"
-                    spacing={2}
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                    }}
-                >
-                    <i className="fa fa-id-card"></i>{"   "}
+                <Stack direction="row" spacing={2} sx={{ display: "flex", alignItems: "center" }} >
+                    <i className="fa fa-id-card"></i>
                     <div>
-                        {user.first_name} {user.middle_name || ""}{" "}
-                        {user.last_name} {user.suffix || ""}
+                        {user.first_name} {user.middle_name || ""}{" "}{user.last_name} {user.suffix || ""}
                     </div>
                 </Stack>
 
-                <Stack
-                    direction="row"
-                    spacing={2}
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                    }}
-                >
+                <Stack direction="row" spacing={2} sx={{ display: "flex", alignItems: "center" }} >
                     <i className="fa fa-envelope"></i>{" "}
                     <Typography> {user.email} </Typography>
                 </Stack>
-                <Stack
-                    direction="row"
-                    spacing={2}
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                    }}
-                >
+                <Stack direction="row" spacing={2} sx={{ display: "flex", alignItems: "center" }} >
                     <i className="fa fa-phone"></i>{" "}
-                    <Typography>{user.contact_number || "Not Indicated"}</Typography>
-                </Stack>
-                <Stack
-                    direction="row"
-                    spacing={2}
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                    }}
-                >
-                    <i className="fa fa-globe"></i>
-
-                    <Typography>{user.address || "Not Indicated"}</Typography>
-                </Stack>
-                <Stack
-                    direction="row"
-                    spacing={2}
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                    }}
-                >
-                    <i className="fa fa-birthday-cake"></i>
-
                     <Typography>
-                        {" "}
-                        {user.birth_date
-                            ? `${formattedBirthDate} (${calculateAge(user.birth_date)} Years Old)`
-                            : "Not Indicated"}{" "}
+                        {user.contact_number || "Not Indicated"}
                     </Typography>
                 </Stack>
-                <Stack
-                    direction="row"
-                    spacing={2}
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                    }}
-                >
+                <Stack direction="row" spacing={2} sx={{ display: "flex", alignItems: "center" }} >
+                    <i className="fa fa-globe"></i>
+                    <Typography>{user.address || "Not Indicated"}</Typography>
+                </Stack>
+                <Stack direction="row" spacing={2} sx={{ display: "flex", alignItems: "center" }} >
+                    <i className="fa fa-birthday-cake"></i>
+                    <Typography>
+                        {" "} {user.birth_date ? `${formattedBirthDate} (${calculateAge( user.birth_date )} Years Old)` : "Not Indicated"}{" "}
+                    </Typography>
+                </Stack>
+                <Stack direction="row" spacing={2} sx={{ display: "flex", alignItems: "center" }} >
                     <i className="fa fa-venus-mars"></i>
                     <Typography> {user.gender || "Not Indicated"} </Typography>
                 </Stack>
-
             </Stack>
-        </Box>
+        </Paper>
     );
 }
 

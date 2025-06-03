@@ -62,6 +62,11 @@ class UsersModel extends Authenticatable implements HasMedia
         'work_group_id',
         'company_id'
     ];
+    
+    protected $casts = [
+        'birth_date' => 'date',
+        'date_start' => 'date',
+    ];
 
 
     public function branchPosition(): BelongsTo
@@ -157,7 +162,31 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->BelongsTo(Company::class, 'company_id');
     }
 
-    //employees assigned to department positions
+    public function evaluateeForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'evaluatee_id');
+    }
+
+    public function evaluatorForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'evaluator_id');
+    }
+
+    public function primaryCommentorForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'primary_commentor_id');
+    }
+
+    public function secondaryCommentorForms()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'secondary_commentor_id');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('profile_pictures')->singleFile();
+    }
+      //employees assigned to department positions
     public function assignedDepartmentPositions()
     {
         return $this->belongsToMany(

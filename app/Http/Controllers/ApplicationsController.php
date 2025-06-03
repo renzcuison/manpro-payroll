@@ -691,7 +691,7 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
 
-            $rawApplications = ApplicationsOvertimeModel::where('client_id', $user->client_id)->with(['user', 'timeIn', 'timeOut'])->get();
+            $rawApplications = ApplicationsOvertimeModel::where('client_id', $user->client_id)->with(['user', 'timeIn', 'timeOut'])->orderBy('created_at', 'desc')->get();
 
             $applications = [];
             foreach ($rawApplications as $app) {
@@ -895,4 +895,60 @@ class ApplicationsController extends Controller
             return [];
         }
     }
+
+    //TEST VVVV
+
+    public function updateLeaveCredits(Request $request)
+{
+    $user = Auth::user();
+
+    if ($this->checkUser()) {
+        try {
+            // Validate input (optional but recommended)
+            $request->validate([
+                'emp_id' => 'required|string',
+                'app_type_id' => 'required|integer',
+                'credit_count' => 'required|numeric|min:0',
+            ]);
+
+            // Find the employee
+            $employee = UsersModel::where('user_name', $request->input('emp_id'))->first();
+            if (!$employee) {
+                return response()->json(['status' => 404, 'message' => 'Employee not found.']);
+            }
+
+            // Find the leave credit by employee and leave type
+            $leaveCredit = LeaveCreditsModel::where('user_id', $employee->id)
+                ->where('application_type_id', $request->input('app_type_id'))
+                ->first();
+
+            if (!$leaveCredit) {
+                return response()->json(['status' => 404, 'message' => 'Leave credit not found.']);
+            }
+
+            $oldLeaveNumber = $leaveCredit->number;
+            $newLeaveNumber = number_format($request->input('credit_count'), 2, '.', '');
+
+            // Update leave credit
+            $leaveCredit->number = $newLeaveNumber;
+            $leaveCredit->save();
+
+            // Log the update
+            LogsLeaveCreditsModel::create([
+                'user_id' => $user->id,
+                'leave_credit_id' => $leaveCredit->id,
+                'action' => 'Updated Credit ' . $leaveCredit->id . ' from ' . $oldLeaveNumber . ' to ' . $newLeaveNumber . '.',
+            ]);
+
+            return response()->json(['status' => 200, 'message' => 'Leave credit updated successfully.']);
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => 500, 'message' => 'An error occurred.', 'error' => $e->getMessage()]);
+        }
+    }
+
+    return response()->json(['status' => 403, 'message' => 'Unauthorized.']);
+}
+
+
 }

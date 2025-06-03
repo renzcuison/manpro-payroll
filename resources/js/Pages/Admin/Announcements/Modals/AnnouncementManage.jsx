@@ -14,7 +14,8 @@ import {
     ImageList,
     ImageListItem,
     ImageListItemBar,
-    CircularProgress
+    CircularProgress,
+    Avatar
 } from "@mui/material";
 import { MoreVert, Download } from "@mui/icons-material";
 import React, { useState, useEffect } from "react";
@@ -51,8 +52,16 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const [attachments, setAttachments] = useState([]);
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
+    const [roles, setRoles] = useState([]);
+    const [employmentTypes, setEmploymentTypes] = useState([]);
+    const [employmentStatuses, setEmploymentStatuses] = useState([]);
+    const [announcementType, setAnnouncementType] = useState('');
+    const [scheduledSendDatetime, setScheduledSendDatetime] = useState(null);
     const [announcement, setAnnouncement] = useState(announceInfo || {});
     const [exitReload, setExitReload] = useState(false);
+
+    const [acknowledgements, setAcknowledgements] = useState([]);
+    const [unAcknowledged, setUnAcknowledged] = useState([]);
 
     // ----------- Additional Details
     useEffect(() => {
@@ -63,9 +72,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         console.log('Stored User:', JSON.parse(storedUser));
         getAnnouncementThumbnail();
         getAnnouncementFiles();
-        if (announceInfo.status !== "Pending") {
-            getAnnouncementBranchDepts();
-        }
+        getAnnouncementPublishmentDetails();
     }, [announceInfo]);
 
     // Announcement Menu
@@ -232,7 +239,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 });
             });
         getAnnouncementThumbnail();
-        getAnnouncementBranchDepts();
+        getAnnouncementPublishmentDetails();
         getAnnouncementFiles();
     };
 
@@ -265,7 +272,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const getAnnouncementThumbnail = () => {
         if (!announceInfo?.unique_code) {
             console.error('Cannot fetch thumbnail: missing unique_code');
-            setImagePath("../../../../../images/ManProTab.png");
+            setImagePath("../../../../images/defaultThumbnail.jpg");
             setImageLoading(false);
             return;
         }
@@ -287,7 +294,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     if (imagePath && imagePath.startsWith('blob:')) {
                         URL.revokeObjectURL(imagePath);
                     }
-                    setImagePath("../../../../../images/ManProTab.png");
+                    setImagePath("../../../../images/defaultThumbnail.jpg");
                 }
                 setImageLoading(false);
             })
@@ -297,23 +304,31 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     response: error.response?.data,
                     status: error.response?.status,
                 });
-                setImagePath("../../../../../images/ManProTab.png");
+                setImagePath("../../../../images/defaultThumbnail.jpg");
                 setImageLoading(false);
             });
     };
 
     // ---------------- Recipient Branch and Departments
-    const getAnnouncementBranchDepts = () => {
+    const getAnnouncementPublishmentDetails = () => {
         if (!announceInfo?.unique_code) {
             console.error('Cannot fetch branch/depts: missing unique_code');
             setBranches([]);
             setDepartments([]);
+            setRoles([]);
+            setEmploymentTypes([]);
+            setEmploymentStatuses([]);
             return;
         }
-        axiosInstance.get(`/announcements/getAnnouncementBranchDepts/${announceInfo.unique_code}`, { headers })
+        axiosInstance.get(`/announcements/getAnnouncementPublishmentDetails/${announceInfo.unique_code}`, { headers })
             .then((response) => {
                 setBranches(Array.isArray(response.data.branches) ? response.data.branches : []);
                 setDepartments(Array.isArray(response.data.departments) ? response.data.departments : []);
+                setRoles(Array.isArray(response.data.roles) ? response.data.roles : []);
+                setEmploymentTypes(Array.isArray(response.data.employment_types) ? response.data.employment_types : []);
+                setEmploymentStatuses(Array.isArray(response.data.employment_statuses) ? response.data.employment_statuses : []);
+                setAnnouncementType(response.data.announcement_type || 'N/A');
+                setScheduledSendDatetime(response.data.scheduled_send_datetime || null); // <-- Add this
             })
             .catch((error) => {
                 console.error('Error fetching published branch/departments:', {
@@ -323,6 +338,11 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 });
                 setBranches([]);
                 setDepartments([]);
+                setRoles([]);
+                setEmploymentTypes([]);
+                setEmploymentStatuses([]);
+                setAnnouncementType('N/A');
+                setScheduledSendDatetime(null);
             });
     };
 
@@ -413,6 +433,22 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         };
     }, [imagePath]);
 
+    useEffect(() => {
+    if (!announceInfo?.unique_code) return;
+    axiosInstance
+        .get(`/announcements/getAcknowledgements/${announceInfo.unique_code}`, { headers })
+        .then((response) => {
+            console.log("Fetched acknowledgements:", response.data.acknowledgements);
+            setAcknowledgements(response.data.acknowledgements || []);
+            setUnAcknowledged(response.data.unacknowledged || []);
+        })
+        .catch((error) => {
+            console.error("Error fetching acknowledgements:", error);
+            setAcknowledgements([]);
+            setUnAcknowledged([]);
+        });
+}, [announceInfo?.unique_code]);
+
     return (
         <>
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: { xs: "100%", sm: "800px" }, maxWidth: '1000px', maxHeight: '750px', marginBottom: '5%' } }}>
@@ -427,10 +463,16 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         <Grid container columnSpacing={4} rowSpacing={2}>
                             {/* Thumbnail */}
                             <Grid size={{ xs: 5 }}>
-                                <Box sx={{ position: 'relative', width: '100%', height: 210, borderRadius: "4px", border: '2px solid #e0e0e0', }}>
-                                    {imageLoading ?
-                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }}> <CircularProgress /> </Box> : <img src={imagePath} alt={`${announcement.title || 'Announcement'} thumbnail`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: "4px" }} />
-                                    }
+                                <Box sx={{ position: 'relative', width: '100%', height: 210, borderRadius: "4px", border: '2px solid #e0e0e0' }}>
+                                    {imageLoading ? (
+                                        <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : imagePath ? (
+                                        <img src={imagePath} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: "4px" }} />
+                                    ) : (
+                                        <Box sx={{ width: '100%', height: '100%' }} />
+                                    )}
                                 </Box>
                             </Grid>
                             {/* Core Information */}
@@ -439,8 +481,18 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                     {/* Title and Action Menu */}
                                     <Grid size={12}>
                                         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}> Announcement Details </Typography>
-                                            <IconButton id="basic-button" size="small" aria-controls={open ? 'basic-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined} onClick={handleMenuClick} sx={{ m: 0 }} >
+                                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                Publishment Details
+                                            </Typography>
+                                            <IconButton
+                                                id="basic-button"
+                                                size="small"
+                                                aria-controls={open ? 'basic-menu' : undefined}
+                                                aria-haspopup="true"
+                                                aria-expanded={open ? 'true' : undefined}
+                                                onClick={handleMenuClick}
+                                                sx={{ m: 0 }}
+                                            >
                                                 <MoreVert />
                                             </IconButton>
 
@@ -455,7 +507,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                         Edit
                                                     </MenuItem>
                                                 )}
-                                                {announcement.status === "Pending" && (
+                                                {!scheduledSendDatetime && announcement.status === "Pending" && (
                                                     <MenuItem
                                                         onClick={(event) => {
                                                             event.stopPropagation();
@@ -500,38 +552,47 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                     <Grid size={12} sx={{ my: 0 }}>
                                         <Divider />
                                     </Grid>
-                                    {/* Announcement Status */}
+                                    {/* Announcement Status & Visibility */}
                                     <Grid size={12}>
-                                        <InfoBox
-                                            title="Status"
-                                            info={announcement.status === "Pending" ? "PENDING" : announcement.status === "Hidden" ? "HIDDEN" : "PUBLISHED"}
-                                            color={announcement.status === "Pending" ? "#e9ae20" : announcement.status === "Hidden" ? "#f57c00" : "#177604"}
-                                            compact
-                                            clean
-                                        />
-                                    </Grid>
-                                    {/* Visibility */}
-                                    {announcement.status !== "Pending" && (
+                                        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                            <InfoBox
+                                                title="Status"
+                                                info={announcement.status === "Pending" ? "PENDING" : announcement.status === "Hidden" ? "HIDDEN" : "PUBLISHED"}
+                                                color={announcement.status === "Pending" ? "#e9ae20" : announcement.status === "Hidden" ? "#f57c00" : "#177604"}
+                                                compact
+                                                clean
+                                            />
+                                            {announcement.status !== "Pending" && (
+                                                <InfoBox
+                                                    title="Visibility"
+                                                    info={announcement.status === "Published" ? "VISIBLE" : "HIDDEN"}
+                                                    color={announcement.status === "Published" ? "#177604" : "#f57c00"}
+                                                    compact
+                                                    clean
+                                                />
+                                            )}
+                                        </Stack>
+                                    </Grid> 
+                                    {announcement.status === "Pending" && scheduledSendDatetime && (
                                         <Grid size={12}>
                                             <InfoBox
-                                                title="Visibility"
-                                                info={announcement.status === "Published" ? "VISIBLE" : "HIDDEN"}
-                                                color={announcement.status === "Published" ? "#177604" : "#f57c00"}
+                                                title="Scheduled Post"
+                                                info={dayjs(scheduledSendDatetime).format('MMM D, YYYY h:mm A')}
+                                                color="#1976d2"
                                                 compact
                                                 clean
                                             />
                                         </Grid>
                                     )}
-                                    <Grid size={12} sx={{ my: 0 }}>
-                                        <Divider />
-                                    </Grid>
-                                    {/* Publishment Details */}
-                                    {announcement.status !== "Pending" ? (
+                                    {announcement.status !== "Pending" || scheduledSendDatetime ? (
                                         <Grid container size={12} spacing={1}>
-                                            <Grid size={12} align="left">
-                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                    Publishment Details
-                                                </Typography>
+                                            <Grid size={12}>
+                                                <InfoBox
+                                                    title="Announcement Type"
+                                                    info={announcementType || 'N/A'}
+                                                    compact
+                                                    clean
+                                                />
                                             </Grid>
                                             <Grid size={12}>
                                                 <InfoBox
@@ -551,8 +612,24 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                             </Grid>
                                             <Grid size={12}>
                                                 <InfoBox
-                                                    title="Acknowledged by"
-                                                    info={`${announceInfo?.acknowledged || 0} of ${announceInfo?.recipients || 0} Recipients`}
+                                                    title="Roles"
+                                                    info={roles.length > 0 ? roles.join(', ') : 'N/A'}
+                                                    compact
+                                                    clean
+                                                />
+                                            </Grid>
+                                            <Grid size={12}>
+                                                <InfoBox
+                                                    title="Status"
+                                                    info={employmentStatuses.length > 0 ? employmentStatuses.join(', ') : 'N/A'}
+                                                    compact
+                                                    clean
+                                                />
+                                            </Grid>
+                                            <Grid size={12}>
+                                                <InfoBox
+                                                    title="Employment Type"
+                                                    info={employmentTypes.length > 0 ? employmentTypes.join(', ') : 'N/A'}
                                                     compact
                                                     clean
                                                 />
@@ -571,12 +648,12 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                 <Divider />
                             </Grid>
                             {/* Description */}
-                            <Grid size={12} sx={{ mb: 1 }} align="left">
+                            <Grid size={12} align="left">
                                 <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                    Description
+                                    Announcement Details
                                 </Typography>
                             </Grid>
-                            <Grid size={12}>
+                            <Grid size={12}  sx={{ mb: 0 }}>
                                 <Typography
                                     variant="body1"
                                     sx={{
@@ -689,6 +766,159 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                     </Grid>
                                 </>
                             ) : null}
+                            {announcement.status !== "Pending" ? (
+                            <Grid container columnSpacing={4} rowSpacing={2}> 
+                                    {/* Acknowledgements */}
+                                    <Grid size={12} sx={{ my: 0 }}>
+                                        <Divider />
+                                    </Grid>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%'}}>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                            Acknowledged By
+                                        </Typography>
+                                        {acknowledgements.length > 0 ? (
+                                            <Box display="flex" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                                            {acknowledgements.map((ack, index) => (
+                                                <Tooltip
+                                                    key={ack.emp_id || index}
+                                                    title={
+                                                        <Box>
+                                                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }} color="#fff">
+                                                                {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`.replace(/\s+/g, ' ').trim()}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Branch: {ack.branch || 'N/A'}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Department: {ack.department || 'N/A'}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Role: {ack.emp_role || 'N/A'}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Status: {ack.emp_status || 'N/A'}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Type: {ack.emp_type || 'N/A'}
+                                                            </Typography>
+                                                            <Typography variant="body2">
+                                                                Acknowledged on: {dayjs(ack.timestamp).format('MMM D, YYYY h:mm A') || 'N/A'}
+                                                            </Typography>
+                                                        </Box>
+                                                    }
+                                                    arrow
+                                                    slotProps={{
+                                                        popper: {
+                                                        sx: {
+                                                            [`& .MuiTooltip-tooltip`]: {
+                                                            backgroundColor: '#198754', // Your custom color
+                                                            color: '#fff',              // Text color
+                                                            },
+                                                            [`& .MuiTooltip-arrow`]: {
+                                                            color: '#198754',           // Arrow color
+                                                            },
+                                                        }
+                                                        }
+                                                    }}
+                                                >
+                                                    <Avatar
+                                                        alt={`${ack.emp_first_name}_Avatar`}
+                                                        src={ack.emp_profile_pic ? `${location.origin}/storage/${ack.emp_profile_pic}` : '../../../../../images/avatarpic.jpg'}
+                                                        sx={{
+                                                            mr: 1,
+                                                            transition: 'background 0.2s, box-shadow 0.2s',
+                                                            cursor: 'pointer',
+                                                            '&:hover': {
+                                                                backgroundColor: '#198754', // Your desired hover color
+                                                                boxShadow: 3,               // Optional: adds a shadow on hover
+                                                            },
+                                                        }}
+                                                    />
+                                                </Tooltip>
+                                            ))}
+                                        </Box>
+                                        ) : (
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                -- No Acknowledgements --
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%'}}>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                            Waiting to be acknowledged by
+                                        </Typography>
+                                        {unAcknowledged.length > 0 ? (
+                                            <Box display="flex" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                                                {unAcknowledged.map((ack, index) => (
+                                                    <Tooltip
+                                                        key={ack.emp_id || index}
+                                                        title={
+                                                            <Box>
+                                                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }} color="#fff">
+                                                                    {`${ack.emp_first_name} ${ack.emp_middle_name || ''} ${ack.emp_last_name} ${ack.emp_suffix || ''}`.replace(/\s+/g, ' ').trim()}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Branch: {ack.branch || 'N/A'}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Department: {ack.department || 'N/A'}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Role: {ack.emp_role || 'N/A'}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Status: {ack.emp_status || 'N/A'}
+                                                                </Typography>
+                                                                <Typography variant="body2">
+                                                                    Type: {ack.emp_type || 'N/A'}
+                                                                </Typography>
+                                                            </Box>
+                                                        }
+                                                        arrow 
+                                                        slotProps={{
+                                                            popper: {
+                                                            sx: {
+                                                                [`& .MuiTooltip-tooltip`]: {
+                                                                backgroundColor: '#dc3545', // Your custom color
+                                                                color: '#fff',              // Text color
+                                                                },
+                                                                [`& .MuiTooltip-arrow`]: {
+                                                                color: '#dc3545',           // Arrow color
+                                                                },
+                                                            }
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Avatar
+                                                            alt={`${ack.emp_first_name}_Avatar`}
+                                                            src={ack.emp_profile_pic ? `${location.origin}/storage/${ack.emp_profile_pic}` : '../../../../../images/avatarpic.jpg'}
+                                                            sx={{
+                                                                mr: 1,
+                                                                transition: 'background 0.2s, box-shadow 0.2s',
+                                                                cursor: 'pointer',
+                                                                '&:hover': {
+                                                                    backgroundColor: '#dc3545',  // Your desired hover color
+                                                                    boxShadow: 3,               // Optional: adds a shadow on hover
+                                                                },
+                                                            }}
+                                                        />
+                                                    </Tooltip>
+                                                ))}
+                                            </Box>
+                                        ) : (
+                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                                -- Announcement Acknowledged by all recipients --
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                </Grid>
+                            ) : (
+                                <Grid size={12} align="center">
+                                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                        -- Acknowledgement Details Unavailable --
+                                    </Typography>
+                                </Grid>
+                            )}
                         </Grid>
                     </Box>
                 </DialogContent>

@@ -1,13 +1,11 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import Layout from "../../../components/Layout/Layout";
-import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import "../../../../../resources/css/calendar.css";
 import {
     Avatar,
     Typography,
     Divider,
     Grid,
-    useTheme,
     Paper,
     List,
     ListItem,
@@ -38,20 +36,29 @@ dayjs.extend(localizedFormat);
 import MainSection from "./MainSection";
 import SchedulesHolidays from "./SchedulesHolidays";
 import { useDashboard } from "./useDashboard";
-import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
+import { useMilestones } from "../Milestones/hook/useMilestones";
+import { useUser } from "../../../hooks/useUser";
 
 const Dashboard = () => {
+    const { user, isFetched: userIsFetched } = useUser();
     const { data, isFetched } = useUsers();
     const {
         data: dashboard,
         isFetched: isFetchedDashboard,
         isLoading,
     } = useDashboard();
+
+    console.log("Dashboard: ", dashboard);
+
+    const { data: milestones, isLoading: isLoadingMilestones } =
+        useMilestones();
+
+    console.log("User:", user);
+
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
         moment().format("YYYY-MM-DD")
     );
-    console.log("Selected Date: ", selectedDate);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -61,55 +68,60 @@ const Dashboard = () => {
 
     const presentUsers = useMemo(() => {
         if (!dashboard || !isFetched) return [];
-        const today = new Date();
-        const todayDate = today.toISOString().split("T")[0];
-        return dashboard.employees.filter((user) => {
-            if (!user.latest_attendance_log) {
+        return dashboard?.employees?.filter((user) => {
+            if (!user.attendance_logs[0]) {
                 return false;
             }
-            const attendanceDate = new Date(
-                user.latest_attendance_log?.timestamp
-            )
-                .toISOString()
-                .split("T")[0];
-            return attendanceDate === todayDate;
+            const attendanceDate = moment(
+                user.attendance_logs[0]?.timestamp
+            ).format("YYYY-MM-DD");
+
+            return attendanceDate === selectedDate;
         });
-    }, [dashboard, isFetched]);
+    }, [dashboard, selectedDate]);
 
     const lateUsers = useMemo(() => {
         if (!presentUsers || presentUsers.length === 0) return [];
 
         return presentUsers.filter((user) => {
-            const timeIn = new Date(user.latest_attendance_log?.timestamp);
-            const lateThreshold = new Date(timeIn);
-            lateThreshold.setHours(8, 0, 0, 0); // Set to 8:00:00 AM
+            const dutyInLogs = user.attendance_logs?.filter(
+                (log) => log.action === "Duty In"
+            );
 
-            return timeIn > lateThreshold;
+            if (!dutyInLogs || dutyInLogs.length === 0) return false;
+
+            // Get the earliest "Duty In" log
+            const firstDutyIn = dutyInLogs.sort((a, b) =>
+                moment(a.timestamp).diff(moment(b.timestamp))
+            )[0];
+
+            const timeIn = moment(firstDutyIn.timestamp);
+
+            // Get the scheduled time-in from work_hours (format: "08:30:00")
+            const scheduledTimeStr = user.work_hours?.first_time_in;
+            if (!scheduledTimeStr) return false;
+
+            const [hour, minute, second] = scheduledTimeStr
+                .split(":")
+                .map(Number);
+
+            // Set threshold time to the same day as timeIn but with scheduled time
+            const threshold = moment(timeIn).set({
+                hour,
+                minute,
+                second,
+                millisecond: 0,
+            });
+
+            return timeIn.isAfter(threshold);
         });
     }, [presentUsers]);
-
-    const absentUsers = useMemo(() => {
-        if (!dashboard || !isFetched) return [];
-        const today = new Date();
-        const todayDate = today.toISOString().split("T")[0];
-        return dashboard.employees.filter((user) => {
-            if (!user.latest_attendance_log) {
-                return false;
-            }
-            const attendanceDate = new Date(
-                user.latest_attendance_log?.timestamp
-            )
-                .toISOString()
-                .split("T")[0];
-            return attendanceDate !== todayDate;
-        });
-    }, [dashboard, isFetched]);
 
     const latestEmployees = useMemo(() => {
         if (data) {
             return data
                 ?.filter((user) => user.department_id !== null)
-                .slice(0, 3);
+                ?.slice(0, 3);
         }
     }, [data, isFetched]);
 
@@ -159,6 +171,25 @@ const Dashboard = () => {
         }
     }, [data, isFetched]);
 
+    function normalizeDate(date) {
+        return new Date(date.toISOString().split("T")[0]);
+    }
+    const onLeave = useMemo(() => {
+        if (dashboard) {
+            return dashboard.requests.filter((leave) => {
+                const checkDate = normalizeDate(new Date());
+                const startDate = normalizeDate(new Date(leave.duration_start));
+                const endDate = normalizeDate(new Date(leave.duration_end));
+
+                return (
+                    leave.status === "approved" &&
+                    checkDate >= startDate &&
+                    checkDate <= endDate
+                );
+            });
+        }
+    }, [dashboard]);
+
     const infoCardsData = [
         {
             title: "Total Employees",
@@ -168,25 +199,28 @@ const Dashboard = () => {
         },
         {
             title: "Present",
-            value: presentUsers.length,
+            value: presentUsers?.length,
             icon: <Check size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "Late",
-            value: lateUsers.length,
+            value: lateUsers?.length,
             icon: <Clock size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "On Leave",
-            value: 0,
+            value: onLeave?.length,
             icon: <CalendarCheck size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "Absent",
-            value: absentUsers.length,
+            value:
+                dashboard?.employees?.length -
+                presentUsers?.length -
+                onLeave?.length,
             icon: <CalendarMinus size={42} />,
             link: "/admin/attendance/today",
         },
@@ -195,8 +229,9 @@ const Dashboard = () => {
     return (
         <Layout>
             <Grid container spacing={3} sx={{ mb: 5 }}>
+                {/* MAIN DASHBOARD CARD */}
                 <Grid size={{ xs: 12, lg: 9 }}>
-                    {!isLoading ? (
+                    {!isLoading && userIsFetched ? (
                         <MainSection
                             infoCardsData={infoCardsData}
                             latestEmployees={latestEmployees}
@@ -204,6 +239,7 @@ const Dashboard = () => {
                             departments={departments}
                             branches={branches}
                             dashboardData={dashboard}
+                            user={user}
                         />
                     ) : (
                         <Stack spacing={3}>
@@ -223,6 +259,8 @@ const Dashboard = () => {
                         </Stack>
                     )}
                 </Grid>
+
+                {/* SCHEDULES & HOLIDAYS CARD */}
                 <Grid
                     size={{ xs: 12, lg: 3 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
@@ -234,6 +272,7 @@ const Dashboard = () => {
                     )}
                 </Grid>
 
+                {/* OVERVIEW SUMMARY CARD */}
                 <Grid
                     size={{ xs: 12, lg: 8 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
@@ -258,6 +297,7 @@ const Dashboard = () => {
                         </Tabs>
                     </Paper>
                 </Grid>
+                {/* BIRTHDAYS AND MILESTONES CARD */}
                 <Grid
                     size={{ xs: 12, lg: 4 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
@@ -283,21 +323,20 @@ const Dashboard = () => {
                                 bgcolor: "background.paper",
                             }}
                         >
-                            {latestEmployees?.map((emp, index) => (
-                                <React.Fragment>
+                            {dashboard?.milestones?.map((emp, index) => (
+                                <React.Fragment key={index}>
                                     <ListItem
-                                        key={index}
                                         alignItems="flex-start"
                                         secondaryAction={
                                             <>
-                                                <Typography variant="caption">
-                                                    Joined
-                                                </Typography>
-                                                <Typography>
-                                                    {moment(
-                                                        emp.created_at
-                                                    ).format("MMM. DD, YYYY")}
-                                                </Typography>
+                                                <Chip
+                                                    label={
+                                                        emp.type
+                                                            .charAt(0)
+                                                            .toUpperCase() +
+                                                        emp.type.slice(1)
+                                                    }
+                                                />
                                             </>
                                         }
                                         sx={{ px: 0 }}
@@ -306,9 +345,9 @@ const Dashboard = () => {
                                             <Avatar
                                                 alt="Remy Sharp"
                                                 src={
-                                                    emp.media
-                                                        ? emp.media?.[0]
-                                                              .original_url
+                                                    emp.user?.media
+                                                        ? emp.user?.media?.[0]
+                                                              ?.original_url
                                                         : ""
                                                 }
                                             />
@@ -319,8 +358,8 @@ const Dashboard = () => {
                                                     variant="body1"
                                                     sx={{ fontWeight: 600 }}
                                                 >
-                                                    {emp.first_name}{" "}
-                                                    {emp.last_name}
+                                                    {emp.user?.first_name}{" "}
+                                                    {emp.user?.last_name}
                                                 </Typography>
                                             }
                                             secondary={
@@ -333,9 +372,8 @@ const Dashboard = () => {
                                                             display: "inline",
                                                         }}
                                                     >
-                                                        {emp.job_title.name}
+                                                        {emp.description}
                                                     </Typography>
-                                                    <Chip label="Birthday" />
                                                 </React.Fragment>
                                             }
                                         />

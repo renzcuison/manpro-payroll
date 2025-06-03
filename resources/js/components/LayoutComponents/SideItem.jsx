@@ -50,7 +50,13 @@ const SideItem = ({ items }) => {
     };
 
     const StyledNav = styled(NavLink)(({ status }) => ({
-        backgroundColor: 'transparent',
+        display: "flex",
+        alignItems: "center",
+        padding: "12px 20px",
+        textDecoration: "none",
+        color: "green",
+        borderLeft: "4px solid transparent",
+        transition: "all 0.3s ease",
         ':hover': { backgroundColor: 'rgb(233, 171, 19,0.7)', '& #navName': { color: 'white' }},
     }));
 
@@ -68,7 +74,7 @@ const SideItem = ({ items }) => {
                         <div>
                             <StyledNav onClick={() => toggleChildNavOpen(link.id)}>
                                 <i style={{ color: '#2a800f' }}></i>
-                                <span id="navName" className="sidebar-mini-hide" style={{ fontSize }}> {link.text} </span>
+                                <span id="navName" className="sidebar-mini-hide" style={{ fontSize }} > {link.text} </span>
                                 <span style={{ float: 'right' }}>
                                     <i className="fa fa-angle-left" style={isOpen ? { transform: 'rotate(-90deg)' } : {}}></i>
                                 </span>
@@ -98,7 +104,7 @@ const SideItem = ({ items }) => {
         <div>
             <StyledNav onClick={toggleNavOpen}>
                 <i className={items.icon} style={{ color: '#2a800f' }}></i>
-                <span id="navName" className="sidebar-mini-hide">{items.text}</span>
+                <span id="navName" className="sidebar-mini-hide" style={{ color: "#2a800f" }} >{items.text}</span>
                 <span style={{ float: 'right' }}>
                     <i className="fa fa-angle-left" style={navOpen ? { transform: 'rotate(-90deg)' } : {}}></i>
                 </span>

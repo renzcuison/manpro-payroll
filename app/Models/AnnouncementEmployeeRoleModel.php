@@ -16,16 +16,11 @@ class AnnouncementEmployeeRoleModel extends Model
     protected $fillable = [
         'announcement_id',
         'role_id',
-        'user_id',
     ];
 
     public function announcement()
     {
         return $this->belongsTo(AnnouncementsModel::class, 'announcement_id');
-    }
-    public function user()
-    {
-        return $this->belongsTo(UsersModel::class, 'user_id');
     }
     public function role()
     {
