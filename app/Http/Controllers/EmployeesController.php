@@ -836,13 +836,19 @@ class EmployeesController extends Controller
 
         if ($formLink->used >= $formLink->limit) {
             $formLink->status = "Used";
-            $formLink->save();
+        } elseif ($formLink->used > 0 && $formLink->used < $formLink->limit) {
+            $formLink->status = "Partially Used";
+        } else {
+            $formLink->status = "Unused";
         }
 
         if (now()->greaterThan($formLink->expiration)) {
             $formLink->status = "Expired";
-            $formLink->save();
+        } else {
+            $formLink->status = "Unused";
         }
+
+        $formLink->save();
 
         return response()->json(['status' => 200, 'form_status' => $formLink->status]);
     }
