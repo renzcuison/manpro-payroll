@@ -36,6 +36,7 @@ const GroupLifeEmployees = () => {
         {
             employee: "Samuel Christian D. Nacar",
             dependents: "2",
+            enrollDate: "May 25, 2025",
             branch: "Davao",
             department: "Accounting Department",
             role: "Accounting Operations",
@@ -43,12 +44,12 @@ const GroupLifeEmployees = () => {
         {
             employee: "Samuel Christian D. Nacar",
             dependents: "2",
+            enrollDate: "May 25, 2025",
             branch: "Davao",
             department: "Finance Department",
             role: "Finance Operations",
         }
     ];
-    // const resultsCount = filteredRecords.length;
 
     const handleOnBackClick = () => {
         navigator(
@@ -85,7 +86,6 @@ const GroupLifeEmployees = () => {
 
                             
                     </Box>
-
 
                     <Grid container spacing={3}>
                         <Grid item xs={12} md={4} sx={{width: '100%', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)'}}>
@@ -145,12 +145,12 @@ const GroupLifeEmployees = () => {
                         </Grid>
                     </Grid>
                 
-            {openAssignEmployeeModal && (
-                <GroupLifeAssignEmployee
-                    open={openAssignEmployeeModal}
-                    close={setOpenAssignEmployeeModal}
-                />
-            )}
+                {openAssignEmployeeModal && (
+                    <GroupLifeAssignEmployee
+                        open={openAssignEmployeeModal}
+                        close={setOpenAssignEmployeeModal}
+                    />
+                )}
             </Box>
         </Layout>
     );

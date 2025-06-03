@@ -39,6 +39,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
+import DateRangePicker from '../../../components/DateRangePicker';
+
 const AttendanceSummary = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -127,6 +129,10 @@ const AttendanceSummary = () => {
         return fullName.includes(searchName.toLowerCase());
     });
 
+    const handleDateRangeChange = (start, end) => {
+        setFromDate(start);
+        setToDate(end);
+    };
     return (
         <Layout title={"AttendanceLogs"}>
             <Box
@@ -205,7 +211,7 @@ const AttendanceSummary = () => {
                                 spacing={2}
                             >
                                 <Grid>
-                                    <LocalizationProvider
+                                    {/* <LocalizationProvider
                                         dateAdapter={AdapterDayjs}
                                     >
                                         <FormControl fullWidth>
@@ -316,7 +322,11 @@ const AttendanceSummary = () => {
                                                 },
                                             }}
                                         />
-                                    </LocalizationProvider>
+                                    </LocalizationProvider> */}
+
+                                    <DateRangePicker 
+                                    onRangeChange={handleDateRangeChange} 
+                                    />
                                 </Grid>
                                 <Grid sx={{ maxWidth: 250, minWidth: 250 }}>
                                     <FormControl fullWidth>

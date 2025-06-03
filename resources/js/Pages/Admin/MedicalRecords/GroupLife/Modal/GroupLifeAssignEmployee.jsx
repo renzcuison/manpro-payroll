@@ -17,6 +17,9 @@ import {    Box,
 import axiosInstance, { getJWTHeader } from "@/utils/axiosConfig";
 import { useState, useEffect } from 'react';
 import 'react-quill/dist/quill.snow.css';
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 const GroupLifeAssignEmployee = ({ open, close }) => {
 
@@ -104,7 +107,7 @@ const headers = getJWTHeader(JSON.parse(storedUser));
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
+            <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '500px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Assign Employee</Typography>
@@ -124,7 +127,7 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                             }}>
                                                     
-                                                <Autocomplete
+                                                <Autocomplete sx={{width: 750}}
                                                     options={employees}
                                                     getOptionLabel={(employee) =>
                                                         `${employee.first_name} ${employee.middle_name || ""} ${employee.last_name} ${employee.suffix || ""}`.trim()
@@ -138,8 +141,6 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                             </FormControl>   
                                         </FormGroup>
 
-
-                                        
                                         <Button
                                             onClick={() => {
                                                 if (showDependents) {
@@ -155,9 +156,8 @@ const headers = getJWTHeader(JSON.parse(storedUser));
 
                                             {showDependents && (
                                         <><Box sx={{ height: 24 }} />
-                                        {/* Default Dependent */}
-                                        
 
+                                        {/* Default Dependent */}
                                         <Box sx={{ border: '1px solid #ccc', borderRadius: 1, p: 2, mb: 2,  }}>
                                                                                                                                     
                                             <Typography variant="subtitle1" sx={{ mb: 1 }}>Add Dependent</Typography>
@@ -205,8 +205,7 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                             </Grid>
                                         </Box>
 
-                                        {/* Additional dependents */}
-                              
+                                        {/* Additional dependents */}                              
                                         {dependents.slice(1).map((dep, index) => (
                                             <Box key={index + 1} sx={{ border: '1px solid #ccc', borderRadius: 1, p: 1, mb: 1 }}>
                                                 <Typography variant="subtitle1" sx={{ p: 1 }}>Additional Dependent</Typography>
@@ -248,7 +247,6 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                             variant="contained"
                                                             color="error"
                                                             onClick={() => handleRemoveDependent(index + 1)}
-                                                           
                                                             >
                                                             Remove
                                                         </Button>
@@ -269,10 +267,16 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                             Add Another Dependent
                                         </Button>
                                     </>
-                                    
                                 )}
-                                <Box sx={{ height: 50 }} />
+                                <Box sx={{ height: 24 }} />
+                                        <Box>
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DatePicker label="Enroll Date" />
+                                            </LocalizationProvider></Box>
+                                <Box sx={{ height: 24 }} />
+
                                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+
                                         <Button
                                             variant="contained"
                                             sx={{ backgroundColor: "#7a7a7a" }}

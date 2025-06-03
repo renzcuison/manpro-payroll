@@ -132,12 +132,12 @@ const PemeResponses = () => {
             return recordDueDate.isSame(dayjs(dueDate).startOf("day"));
         });
 
-    const resultsCount = filteredRecords.length;
+        const resultsCount = filteredRecords.length;
 
-    const handleDateRangeChange = (start, end) => {
-    setFromDate(start);
-    setToDate(end);
-    };
+        const handleDateRangeChange = (start, end) => {
+        setFromDate(start);
+        setToDate(end);
+        };
 
     return (
         <Layout title="Pre-Employment Medical Exam Type Responses">

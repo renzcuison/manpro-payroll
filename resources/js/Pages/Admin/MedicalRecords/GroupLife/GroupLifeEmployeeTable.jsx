@@ -52,6 +52,7 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search }) => {
                     <TableRow>
                         <TableCell align="center"> Employee </TableCell>
                         <TableCell align="center"> Dependents</TableCell>
+                        <TableCell align="center"> Enroll Date</TableCell>
                         <TableCell align="center"> Branch </TableCell>
                         <TableCell align="center"> Department</TableCell>
                         <TableCell align="center"> Role</TableCell>
@@ -88,6 +89,12 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search }) => {
                                         <TableCell align="center">
                                         {highlightMatch(
                                             response.dependents,
+                                            search
+                                        )}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                        {highlightMatch(
+                                            response.enrollDate,
                                             search
                                         )}
                                         </TableCell>
