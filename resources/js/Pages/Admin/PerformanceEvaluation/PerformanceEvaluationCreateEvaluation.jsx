@@ -44,14 +44,28 @@ const PerformanceEvaluationCreateEvaluation = () => {
     const { evaluator, primaryCommentor, secondaryCommentor } = formValues;
     
     // For each dropdown, filter out already-chosen people:
-    const evaluatorOptions = admins.filter(
-    admin => admin.id !== primaryCommentor && admin.id !== secondaryCommentor
+    // Additionally, filter admins to match branch and department (frontend filtering as backup)
+    const filteredAdmins = admins;
+
+    const evaluatorOptions = filteredAdmins.filter(
+    admin =>
+        admin.id !== primaryCommentor &&
+        admin.id !== secondaryCommentor &&
+        admin.id !== formValues.employeeName // Exclude the employee
     );
-    const primaryCommentorOptions = admins.filter(
-    admin => admin.id !== evaluator && admin.id !== secondaryCommentor
+
+    const primaryCommentorOptions = filteredAdmins.filter(
+    admin =>
+        admin.id !== evaluator &&
+        admin.id !== secondaryCommentor &&
+        admin.id !== formValues.employeeName
     );
-    const secondaryCommentorOptions = admins.filter(
-    admin => admin.id !== evaluator && admin.id !== primaryCommentor
+
+    const secondaryCommentorOptions = filteredAdmins.filter(
+    admin =>
+        admin.id !== evaluator &&
+        admin.id !== primaryCommentor &&
+        admin.id !== formValues.employeeName
     );
 
     const handleSubmit = async (e) => {
@@ -96,9 +110,17 @@ const PerformanceEvaluationCreateEvaluation = () => {
         if (name === 'branch') {
             updatedValues.department = '';
             updatedValues.employeeName = '';
+            // Optionally reset evaluator/commentors if you want to force new selection on branch change:
+            updatedValues.evaluator = '';
+            updatedValues.primaryCommentor = '';
+            updatedValues.secondaryCommentor = '';
         }
         if (name === 'department') {
             updatedValues.employeeName = '';
+            // Optionally reset evaluator/commentors if you want to force new selection on department change:
+            updatedValues.evaluator = '';
+            updatedValues.primaryCommentor = '';
+            updatedValues.secondaryCommentor = '';
         }
 
         setFormValues(updatedValues);
@@ -162,6 +184,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
         }
     };
 
+    // Fetch admins filtered by branch and department
     const fetchAdmins = async (branchId, departmentId) => {
         setLoadingAdmins(true);
         try {
@@ -182,17 +205,22 @@ const PerformanceEvaluationCreateEvaluation = () => {
         }
     };
 
-    // When branch changes, fetch departments and reset employee list
     useEffect(() => {
-        console.log('useEffect fired:', formValues.branch, formValues.department);
         if (formValues.branch && formValues.department) {
-            console.log('Calling fetchEmployees with:', formValues.branch, formValues.department);
             fetchEmployees(formValues.branch, formValues.department);
         } else {
             setEmployees([]);
             setFormValues(prev => ({ ...prev, employeeName: '' }));
         }
     }, [formValues.department, formValues.branch]);
+
+    useEffect(() => {
+        if (formValues.branch && formValues.department) {
+            fetchAdmins(formValues.branch, formValues.department);
+        } else {
+            setAdmins([]);
+        }
+    }, [formValues.branch, formValues.department]);
 
     useEffect(() => {
         setIsLoading(true);
@@ -205,24 +233,6 @@ const PerformanceEvaluationCreateEvaluation = () => {
             })
             .finally(() => setIsLoading(false));
     }, []);
-
-    useEffect(() => {
-        if (formValues.branch && formValues.department) {
-            fetchAdmins(formValues.branch, formValues.department);
-        } else {
-            setAdmins([]);
-        }
-    }, [formValues.branch, formValues.department]);
-
-    // When department changes, fetch employees
-    useEffect(() => {
-        if (formValues.branch && formValues.department) {
-            fetchEmployees(formValues.branch, formValues.department);
-        } else {
-            setEmployees([]);
-            setFormValues(prev => ({ ...prev, employeeName: '' }));
-        }
-    }, [formValues.department, formValues.branch]);
 
     // On mount, fetch branches and departments (no filter)
     useEffect(() => {
@@ -344,11 +354,15 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     value={formValues.evaluator}
                                     onChange={handleChange}
                                     >
-                                    {evaluatorOptions.map(admin => (
-                                        <MenuItem key={admin.id} value={admin.id}>
-                                        {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
-                                        </MenuItem>
-                                    ))}
+                                    {evaluatorOptions.length === 0 ? (
+                                        <MenuItem disabled>No evaluators found</MenuItem>
+                                    ) : (
+                                        evaluatorOptions.map(admin => (
+                                            <MenuItem key={admin.id} value={admin.id}>
+                                            {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
+                                            </MenuItem>
+                                        ))
+                                    )}
                                 </Select>
                             </FormControl>
                         </Grid>
@@ -378,11 +392,15 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     value={formValues.primaryCommentor}
                                     onChange={handleChange}
                                     >
-                                    {primaryCommentorOptions.map(admin => (
-                                        <MenuItem key={admin.id} value={admin.id}>
-                                        {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
-                                        </MenuItem>
-                                    ))}
+                                    {primaryCommentorOptions.length === 0 ? (
+                                        <MenuItem disabled>No primary evaluators found</MenuItem>
+                                    ) : (
+                                        primaryCommentorOptions.map(admin => (
+                                            <MenuItem key={admin.id} value={admin.id}>
+                                            {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
+                                            </MenuItem>
+                                        ))
+                                    )}
                                 </Select>
 
                             </FormControl>
@@ -396,11 +414,15 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     value={formValues.secondaryCommentor}
                                     onChange={handleChange}
                                     >
-                                    {secondaryCommentorOptions.map(admin => (
-                                        <MenuItem key={admin.id} value={admin.id}>
-                                        {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
-                                        </MenuItem>
-                                    ))}
+                                    {secondaryCommentorOptions.length === 0 ? (
+                                        <MenuItem disabled>No secondary evaluators found</MenuItem>
+                                    ) : (
+                                        secondaryCommentorOptions.map(admin => (
+                                            <MenuItem key={admin.id} value={admin.id}>
+                                            {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
+                                            </MenuItem>
+                                        ))
+                                    )}
                                 </Select>
                             </FormControl>
                         </Grid>
