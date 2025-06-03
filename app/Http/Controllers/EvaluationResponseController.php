@@ -56,10 +56,10 @@ class EvaluationResponseController extends Controller
                             allow_other_option, linear_scale_start, linear_scale_end, order,
                             options: {
                                 subcategory_id, id, label, order,
-                                option_answer: { id, response_id, option_id }
+                                option_answer: { response_id, option_id }
                             }[],
-                            percentage_answer: { id, response_id, subcategory_id, percentage, value, linear_scale_index } | null,
-                            text_answer: { id, response_id, subcategory_id, answer } | null
+                            percentage_answer: { response_id, subcategory_id, percentage, value, linear_scale_index } | null,
+                            text_answer: { response_id, subcategory_id, answer } | null
                         }[]
                     }[]
                 },
@@ -151,14 +151,13 @@ class EvaluationResponseController extends Controller
                                                     ->orderBy('order')
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
-                                                            $optionAnswer->select('id', 'response_id', 'option_id')
+                                                            $optionAnswer->select('response_id', 'option_id')
                                                     ])
                                             ,
                                             'percentageAnswer' => fn ($percentageAnswer) =>
                                                 $percentageAnswer
                                                 ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
                                                 ->select(
-                                                    'evaluation_percentage_answers.id',
                                                     'evaluation_percentage_answers.response_id',
                                                     'evaluation_percentage_answers.subcategory_id',
                                                     'evaluation_percentage_answers.percentage',
@@ -179,7 +178,7 @@ class EvaluationResponseController extends Controller
                                                 ))
                                             ,
                                             'textAnswer' => fn ($textAnswer) =>
-                                                $textAnswer->select('id', 'response_id', 'subcategory_id', 'answer')
+                                                $textAnswer->select('response_id', 'subcategory_id', 'answer')
                                         ])
                                         ->orderBy('order')
                                     ])
@@ -498,7 +497,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number,
+            response_id: number,
+            subcategory_id: number,
             percentage?: number,            // either percentage or value must be given
             value?: number                  // value means percentage is auto-calculated
         */
@@ -546,7 +546,8 @@ class EvaluationResponseController extends Controller
                     ."-evaluation_form_subcategories.linear_scale_start))"
                     ." as linear_scale_index"
                 ))
-                ->where('evaluation_percentage_answers.id', $request->id)
+                ->where('evaluation_percentage_answers.response_id', $request->response_id)
+                ->where('evaluation_percentage_answers.subcategory_id', $request->subcategory_id)
                 ->first()
             ;
 
@@ -620,13 +621,14 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number
+            response_id: number,
+            subcategory_id: number
         */
 
         // returns:
         /*
             evaluationPercentageAnswer: {
-                id, response_id, subcategory_id, percentage, value, linear_scale_index,
+                response_id, subcategory_id, percentage, value, linear_scale_index,
                 created_at, updated_at
             }
         */
@@ -645,10 +647,11 @@ class EvaluationResponseController extends Controller
 
             $evaluationPercentageAnswer = EvaluationPercentageAnswer
                 ::select(
-                    'id', 'response_id', 'subcategory_id', 'percentage',
+                    'response_id', 'subcategory_id', 'percentage',
                     'created_at', 'updated_at'
                 )
-                ->where('id', $request->id)
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->first()
             ;
             if( !$evaluationPercentageAnswer ) return response()->json([
@@ -681,7 +684,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationPercentageAnswers: {
-                id, response_id, subcategory_id, percentage, value, linear_scale_index,
+                response_id, subcategory_id, percentage, value, linear_scale_index,
                 created_at, updated_at
             }[]
         */
@@ -700,7 +703,7 @@ class EvaluationResponseController extends Controller
 
             $evaluationPercentageAnswers = EvaluationPercentageAnswer
                 ::select(
-                    'id', 'response_id', 'subcategory_id', 'percentage',
+                    'response_id', 'subcategory_id', 'percentage',
                     'created_at', 'updated_at'
                 )
                 ->where('subcategory_id', $request->subcategory_id)
@@ -738,7 +741,7 @@ class EvaluationResponseController extends Controller
 
         // returns:
         /*
-            evaluationPercentageAnswerID
+            evaluationResponseID, evaluationFormSubcategoryID
         */
 
         log::info('EvaluationResponseController::saveEvaluationPercentageAnswer');
@@ -821,7 +824,8 @@ class EvaluationResponseController extends Controller
 
             return response()->json([ 
                 'status' => 201,
-                'evaluationPercentageAnswerID' => $newEvaluationPercentageAnswer->id,
+                'evaluationResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id,
                 'message' => 'Evaluation Percentage Answer successfully created'
             ]);
 
@@ -842,14 +846,15 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number,
+            response_id: number,
+            subcategory_id: number
             answer: string
         */
 
         // returns:
         /*
             evaluationTextAnswer: {
-                id, response_id, subcategory_id, answer, created_at, updated_at, deleted_at
+                response_id, subcategory_id, answer, created_at, updated_at, deleted_at
             }
         */
 
@@ -873,8 +878,9 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $evaluationTextAnswer = EvaluationTextAnswer
-                ::select('*')
-                ->where('id', $request->id)
+                ::select()
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->first()
             ;
 
@@ -886,7 +892,7 @@ class EvaluationResponseController extends Controller
 
             $subcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type')
-                ->where('id', $request->subcategory_id)
+                ->where('id', $evaluationTextAnswer->subcategory_id)
                 ->first()
             ;
 
@@ -927,12 +933,14 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number
+            subcategory_id: number
         */
 
         // returns:
         /*
-            evaluationTextAnswer: { id, response_id, subcategory_id, answer, created_at, updated_at }
+            evaluationTextAnswer: {
+                response_id, subcategory_id, answer, created_at, updated_at
+            }
         */
 
         log::info('EvaluationResponseController::getEvaluationTextAnswer');
@@ -949,10 +957,11 @@ class EvaluationResponseController extends Controller
 
             $evaluationTextAnswer = EvaluationTextAnswer
                 ::select(
-                    'id', 'response_id', 'subcategory_id', 'answer',
+                    'response_id', 'subcategory_id', 'answer',
                     'created_at', 'updated_at'
                 )
-                ->where('id', $request->id)
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->first()
             ;
             if( !$evaluationTextAnswer ) return response()->json([
@@ -985,7 +994,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationTextAnswers: {
-                id, response_id, subcategory_id, answer, created_at, updated_at
+                response_id, subcategory_id, answer, created_at, updated_at
             }[]
         */
 
@@ -1003,7 +1012,7 @@ class EvaluationResponseController extends Controller
 
             $evaluationTextAnswers = EvaluationTextAnswer
                 ::select(
-                    'id', 'response_id', 'subcategory_id', 'answer',
+                    'response_id', 'subcategory_id', 'answer',
                     'created_at', 'updated_at'
                 )
                 ->where('subcategory_id', $request->subcategory_id)
@@ -1040,7 +1049,7 @@ class EvaluationResponseController extends Controller
 
         // returns:
         /*
-            evaluationTextAnswerID
+            evaluationResponseID, evaluationFormSubcategoryID
         */
 
         log::info('EvaluationResponseController::saveEvaluationTextAnswer');
@@ -1062,7 +1071,8 @@ class EvaluationResponseController extends Controller
 
             $subcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type')
-                ->where('id', $request->subcategory_id)
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->first()
             ;
 
@@ -1104,7 +1114,8 @@ class EvaluationResponseController extends Controller
 
             return response()->json([ 
                 'status' => 201,
-                'evaluationTextAnswerID' => $newEvaluationTextAnswer->id,
+                'evaluationResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id,
                 'message' => 'Evaluation Text Answer successfully created'
             ]);
 
@@ -1127,12 +1138,13 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number
+            response_id: number,
+            option_id: number
         */
 
         // returns:
         /*
-            evaluationOptionAnswer: { id, response_id, option_id, answer, created_at, updated_at }
+            evaluationOptionAnswer: { response_id, option_id, answer, created_at, updated_at }
         */
 
         log::info('EvaluationResponseController::getEvaluationOptionAnswer');
@@ -1149,9 +1161,10 @@ class EvaluationResponseController extends Controller
 
             $evaluationOptionAnswer = EvaluationOptionAnswer
                 ::select(
-                    'id', 'response_id', 'option_id', 'created_at', 'updated_at'
+                    'response_id', 'option_id', 'created_at', 'updated_at'
                 )
-                ->where('id', $request->id)
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->first()
             ;
             if( !$evaluationOptionAnswer ) return response()->json([
@@ -1187,7 +1200,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationOptionAnswers: {
-                id, response_id, option_id, created_at, updated_at
+                response_id, option_id, created_at, updated_at
             }[]
         */
 
@@ -1214,7 +1227,7 @@ class EvaluationResponseController extends Controller
                 ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                 ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                 ->select(
-                    'evaluation_option_answers.id', 'evaluation_option_answers.response_id',
+                    'evaluation_option_answers.response_id',
                     'evaluation_form_subcategories.id as subcategory_id',
                     'evaluation_option_answers.option_id',
                     'evaluation_option_answers.created_at', 'evaluation_option_answers.updated_at'
@@ -1265,7 +1278,7 @@ class EvaluationResponseController extends Controller
 
         // returns:
         /*
-            evaluationOptionAnswerID
+            evaluationResponseID, evaluationFormSubcategoryOptionID
         */
 
         log::info('EvaluationResponseController::saveEvaluationOptionAnswer');
@@ -1349,7 +1362,8 @@ class EvaluationResponseController extends Controller
 
             return response()->json([ 
                 'status' => 201,
-                'evaluationOptionAnswerID' => $newEvaluationOptionAnswer->id,
+                'evaluationResponseID' => $request->response_id,
+                'evaluationFormSubcategoryOptionID' => $request->option_id,
                 'message' => 'Evaluation Option Answer successfully created'
             ]);
 
@@ -1361,6 +1375,5 @@ class EvaluationResponseController extends Controller
             throw $e;
         }
     }
-
 
 }
