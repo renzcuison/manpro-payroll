@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import Layout from "../../../components/Layout/Layout";
 import "../../../../../resources/css/calendar.css";
 import {
@@ -46,16 +46,15 @@ const Dashboard = () => {
         isLoading,
     } = useDashboard();
 
-    const { data: milestones, isLoading: isLoadingMilestones } =
-        useMilestones();
-    console.log(milestones);
+    console.log(dashboard);
+
+    // const { data: milestones, isLoading: isLoadingMilestones } =
+    //     useMilestones();
 
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
         moment().format("YYYY-MM-DD")
     );
-
-    console.log(dashboard);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -63,54 +62,56 @@ const Dashboard = () => {
 
     const [adminName, setAdminName] = useState("Admin");
 
-    console.log("Selected date:", selectedDate);
-
     const presentUsers = useMemo(() => {
         if (!dashboard || !isFetched) return [];
         return dashboard?.employees?.filter((user) => {
-            if (!user.latest_attendance_log) {
+            if (!user.attendance_logs[0]) {
                 return false;
             }
+            const attendanceDate = moment(
+                user.attendance_logs[0]?.timestamp
+            ).format("YYYY-MM-DD");
 
-            const attendanceDate = new Date(
-                user.latest_attendance_log?.timestamp
-            )
-                .toISOString()
-                .split("T")[0];
             return attendanceDate === selectedDate;
         });
     }, [dashboard, selectedDate]);
-
-    console.log("Present users: ", presentUsers);
 
     const lateUsers = useMemo(() => {
         if (!presentUsers || presentUsers.length === 0) return [];
 
         return presentUsers.filter((user) => {
-            const timeIn = new Date(user.latest_attendance_log?.timestamp);
-            const lateThreshold = new Date(timeIn);
-            lateThreshold.setHours(8, 0, 0, 0); // Set to 8:00:00 AM
+            const dutyInLogs = user.attendance_logs?.filter(
+                (log) => log.action === "Duty In"
+            );
 
-            return timeIn > lateThreshold;
+            if (!dutyInLogs || dutyInLogs.length === 0) return false;
+
+            // Get the earliest "Duty In" log
+            const firstDutyIn = dutyInLogs.sort((a, b) =>
+                moment(a.timestamp).diff(moment(b.timestamp))
+            )[0];
+
+            const timeIn = moment(firstDutyIn.timestamp);
+
+            // Get the scheduled time-in from work_hours (format: "08:30:00")
+            const scheduledTimeStr = user.work_hours?.first_time_in;
+            if (!scheduledTimeStr) return false;
+
+            const [hour, minute, second] = scheduledTimeStr
+                .split(":")
+                .map(Number);
+
+            // Set threshold time to the same day as timeIn but with scheduled time
+            const threshold = moment(timeIn).set({
+                hour,
+                minute,
+                second,
+                millisecond: 0,
+            });
+
+            return timeIn.isAfter(threshold);
         });
     }, [presentUsers]);
-
-    const absentUsers = useMemo(() => {
-        if (!dashboard || !isFetched) return [];
-        const today = new Date();
-        const todayDate = today.toISOString().split("T")[0];
-        return dashboard?.employees?.filter((user) => {
-            if (!user.latest_attendance_log) {
-                return false;
-            }
-            const attendanceDate = new Date(
-                user.latest_attendance_log?.timestamp
-            )
-                .toISOString()
-                .split("T")[0];
-            return attendanceDate !== todayDate;
-        });
-    }, [dashboard, isFetched]);
 
     const latestEmployees = useMemo(() => {
         if (data) {
@@ -185,8 +186,6 @@ const Dashboard = () => {
         }
     }, [dashboard]);
 
-    console.log("On leave: ", onLeave);
-
     const infoCardsData = [
         {
             title: "Total Employees",
@@ -202,7 +201,7 @@ const Dashboard = () => {
         },
         {
             title: "Late",
-            value: lateUsers.length,
+            value: lateUsers?.length,
             icon: <Clock size={42} />,
             link: "/admin/attendance/today",
         },
@@ -222,8 +221,6 @@ const Dashboard = () => {
             link: "/admin/attendance/today",
         },
     ];
-
-    console.log(latestEmployees);
 
     return (
         <Layout>
@@ -321,7 +318,7 @@ const Dashboard = () => {
                                 bgcolor: "background.paper",
                             }}
                         >
-                            {milestones?.map((emp, index) => (
+                            {dashboard?.milestones?.map((emp, index) => (
                                 <React.Fragment key={index}>
                                     <ListItem
                                         alignItems="flex-start"

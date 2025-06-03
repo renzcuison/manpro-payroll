@@ -1,5 +1,14 @@
 <?php
 
+//test
+use App\Models\UsersModel;
+use App\Models\LeaveCreditsModel;
+use App\Models\ApplicationTypesModel;
+
+
+
+
+
 // New Controllers
 use App\Http\Controllers\ClientsController;
 use App\Http\Controllers\PayrollController;
@@ -147,6 +156,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
 
+        //test v
+        Route::get('/getLeaveCreditByUser/{username}', [EmployeesController::class,'getLeaveCreditByUser']);
+
+
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
         Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
         Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
@@ -155,6 +168,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeShortDetails', [EmployeesController::class, 'getEmployeeShortDetails']);
 
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
+        Route::post('/editMyProfilePicture', [EmployeesController::class, 'editMyProfilePicture']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
         Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
@@ -300,6 +314,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
         Route::post('/deleteLeaveCredits', [ApplicationsController::class, 'deleteLeaveCredits']);
+        Route::post('/updateLeaveCredits', [ApplicationsController::class,'updateLeaveCredits']);
 
 
         // Overtime Applications

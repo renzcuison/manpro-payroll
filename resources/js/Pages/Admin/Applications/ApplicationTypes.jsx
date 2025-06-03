@@ -16,6 +16,8 @@ import duration from "dayjs/plugin/duration";
 import ViewApplicationType from "../../../Modals/Applications/ViewApplicationType";
 import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
 
+import AddApplicationTypes from "./Modals/AddApplicationTypes";
+
 const ApplicationsTypes = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -71,9 +73,9 @@ const ApplicationsTypes = () => {
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'left' }}>
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}> Applications Types </Typography>
 
-                        {/* <Button variant="contained" color="primary" onClick={handleOpenAddApplicationType} > */}
-                            {/* <p className="m-0"><i className="fa fa-plus"></i> Add </p> */}
-                        {/* </Button> */}
+                        <Button variant="contained" color="primary" onClick={handleOpenAddApplicationType}>
+                            <p className="m-0"><i className="fa fa-plus"></i> Add </p>
+                        </Button> 
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -116,6 +118,11 @@ const ApplicationsTypes = () => {
             {openApplicationType && (
                 <ViewApplicationType open={openApplicationType} close={handleCloseApplicationType} applicationType={applicationType} />
             )}
+
+            {openAddApplicationType && (
+                <AddApplicationTypes open={openAddApplicationType} close={handleCloseAddApplicationType} />
+            )}
+
 
         </Layout>
     );

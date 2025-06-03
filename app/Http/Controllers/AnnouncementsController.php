@@ -122,6 +122,7 @@ class AnnouncementsController extends Controller
                     'acknowledged' => $acknowledgedCount,
                     'views' => $views,
                     'acknowledgements' => $acknowledgements,
+                    'scheduled_send_datetime' => $announcement->scheduled_send_datetime
                 ];
             });
 
@@ -593,7 +594,7 @@ class AnnouncementsController extends Controller
 
         if ($this->checkUser()) {
             $announcement = AnnouncementsModel::where('unique_code', $code)
-                ->select('id', 'announcement_types_id')
+                ->select('id', 'announcement_types_id', 'scheduled_send_datetime')
                 ->first();
 
             $branches = AnnouncementBranchesModel::where('announcement_id', $announcement->id)
@@ -612,6 +613,28 @@ class AnnouncementsController extends Controller
                 ->unique()
                 ->toArray();
 
+            // Fetch Roles
+            $roles = AnnouncementEmployeeRoleModel::where('announcement_id', $announcement->id)
+                ->join('employee_roles', 'announcement_employee_role.role_id', '=', 'employee_roles.id')
+                ->select('employee_roles.name')
+                ->pluck('name')
+                ->unique()
+                ->toArray();
+
+            // Fetch Employment Types
+            $employmentTypes = AnnouncementEmployeeTypeModel::where('announcement_id', $announcement->id)
+                ->select('employment_type')
+                ->pluck('employment_type')
+                ->unique()
+                ->toArray();
+
+            // Fetch Employment Statuses
+            $employmentStatuses = AnnouncementEmployeeStatusModel::where('announcement_id', $announcement->id)
+                ->select('employment_status')
+                ->pluck('employment_status')
+                ->unique()
+                ->toArray();
+
             $announcementTypeId = $announcement->announcement_types_id;
             $announcementTypeName = null;
             if ($announcementTypeId) {
@@ -619,7 +642,18 @@ class AnnouncementsController extends Controller
                 $announcementTypeName = $type ? $type->name : null;
             }
 
-            return response()->json(['status' => 200, 'branches' => $branches, 'departments' => $departments, 'announcement_type' => $announcementTypeName,]);
+            $scheduledSendDatetime = $announcement->scheduled_send_datetime;
+
+            return response()->json([
+                'status' => 200,
+                'branches' => $branches,
+                'departments' => $departments,
+                'roles' => $roles,
+                'employment_types' => $employmentTypes,
+                'employment_statuses' => $employmentStatuses,
+                'announcement_type' => $announcementTypeName,
+                'scheduled_send_datetime' => $scheduledSendDatetime,
+            ]);
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
@@ -828,11 +862,11 @@ class AnnouncementsController extends Controller
                     'emp_suffix' => $emp->suffix ?? '',
                     'emp_profile_pic' => $emp->profile_pic ?? null,
                     'timestamp' => $ack->created_at,
-                    'branch_acronym' => $emp->branch ? $emp->branch->acronym : null,
-                    'department_acronym' => $emp->department ? $emp->department->acronym : null,
+                    'branch' => $emp->branch ? $emp->branch->name : null,
+                    'department' => $emp->department ? $emp->department->name : null,
                     'emp_type' => $emp->employment_type ?? null,
                     'emp_status' => $emp->employment_status ?? null,
-                    'emp_role' => $emp->role ? $emp->role->acronym : null,
+                    'emp_role' => $emp->role ? $emp->role->name : null,
                 ];
             })->all();
 
@@ -864,11 +898,11 @@ class AnnouncementsController extends Controller
                         'emp_last_name' => $employee->last_name,
                         'emp_suffix' => $employee->suffix ?? '',
                         'emp_profile_pic' => $employee->profile_pic ?? null,
-                        'branch_acronym' => $employee->branch ? $employee->branch->acronym : null,
-                        'department_acronym' => $employee->department ? $employee->department->acronym : null,
+                        'branch' => $employee->branch ? $employee->branch->name : null,
+                        'department' => $employee->department ? $employee->department->name : null,
                         'emp_type' => $employee->employment_type ?? null,
                         'emp_status' => $employee->employment_status ?? null,
-                        'emp_role' => $employee->role ? $employee->role->acronym : null,
+                        'emp_role' => $employee->role ? $employee->role->name : null,
                     ];
                 })
                 ->all();
@@ -1028,6 +1062,9 @@ class AnnouncementsController extends Controller
             // Clean up old relations
             AnnouncementDepartmentsModel::where('announcement_id', $announcement->id)->delete();
             AnnouncementBranchesModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementEmployeeTypeModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementEmployeeRoleModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementEmployeeStatusModel::where('announcement_id', $announcement->id)->delete();
             AnnouncementRecipientModel::where('announcement_id', $announcement->id)->delete();
 
             // Departments
@@ -1043,6 +1080,30 @@ class AnnouncementsController extends Controller
                 AnnouncementBranchesModel::create([
                     'announcement_id' => $announcement->id,
                     'branch_id' => (int)$branchId
+                ]);
+            }
+
+            // Employee Types
+            foreach ($request->input('employment_types', []) as $employment_type) {
+                AnnouncementEmployeeTypeModel::create([
+                    'announcement_id' => $announcement->id,
+                    'employment_type' => $employment_type
+                ]);
+            }
+
+            // Employee Roles
+            foreach ($request->input('role_ids', []) as $roleId) {
+                AnnouncementEmployeeRoleModel::create([
+                    'announcement_id' => $announcement->id,
+                    'role_id' => (int)$roleId
+                ]);
+            }
+
+            // Employee Statuses
+            foreach ($request->input('employment_statuses', []) as $employment_status) {
+                AnnouncementEmployeeStatusModel::create([
+                    'announcement_id' => $announcement->id,
+                    'employment_status' => $employment_status
                 ]);
             }
 
