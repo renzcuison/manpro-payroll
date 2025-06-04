@@ -211,21 +211,24 @@ const OvertimeAppsList = () => {
                             <>
                                 <TableContainer style={{ overflowX: "auto" }} sx={{ minHeight: 400 }}>
                                     <Table>
-                                        <PageHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} headCells={headCells} />
+                                        {/* <PageHead order={order} orderBy={orderBy} onRequestSort={handleRequestSort} headCells={headCells} /> */}
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell align="center"> Employee </TableCell>
+                                                <TableCell align="center"> Branch </TableCell>
+                                                <TableCell align="center"> Department </TableCell>
+                                                <TableCell align="center"> Reason </TableCell>
+                                                <TableCell align="center"> Date </TableCell>
+                                                <TableCell align="center"> Time </TableCell>
+                                                <TableCell align="center"> Status </TableCell>
+                                            </TableRow>
+                                        </TableHead>
                                         <TableBody>
                                             {filteredOvertimes.length > 0 ? (
                                                 filteredOvertimes
                                                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                                     .map((overtime, index) => (
-                                                        <TableRow
-                                                            key={overtime.application}
-                                                            onClick={() => handleOpenViewOvertime(overtime)}
-                                                            sx={{
-                                                                p: 1,
-                                                                backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff",
-                                                                "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }
-                                                            }}
-                                                        >
+                                                        <TableRow key={overtime.application} onClick={() => handleOpenViewOvertime(overtime)} sx={{ p: 1, backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" } }} >
                                                             <TableCell>{overtime.emp_name}</TableCell>
                                                             <TableCell sx={{ textAlign: "center" }}>{overtime.emp_branch}</TableCell>
                                                             <TableCell sx={{ textAlign: "center" }}>{overtime.emp_department}</TableCell>
@@ -237,13 +240,7 @@ const OvertimeAppsList = () => {
                                                             <TableCell sx={{ textAlign: "center" }}>
                                                                 <Chip
                                                                     label={overtime.status}
-                                                                    color={
-                                                                        overtime.status === "Approved"
-                                                                            ? "success"
-                                                                            : overtime.status === "Declined"
-                                                                            ? "error"
-                                                                            : "warning"
-                                                                    }
+                                                                    color={ overtime.status === "Approved" ? "success" : overtime.status === "Declined" ? "error" : "warning" }
                                                                     sx={{ fontWeight: "bold", px: 1 }}
                                                                 />
                                                             </TableCell>
