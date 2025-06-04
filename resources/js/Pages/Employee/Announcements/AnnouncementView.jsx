@@ -108,13 +108,13 @@ const AnnouncementView = () => {
           const blob = new Blob([byteArray], { type: "image/png" });
           setImagePath(URL.createObjectURL(blob));
         } else {
-          setImagePath("../../../../images/ManProTab.png");
+          setImagePath("../../../../images/defaultThumbnail.jpg");
         }
         setImageLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching thumbnail:", error);
-        setImagePath("../../../../images/ManProTab.png");
+        setImagePath("../../../../images/defaultThumbnail.jpg");
         setImageLoading(false);
       });
   };
