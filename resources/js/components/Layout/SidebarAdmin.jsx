@@ -306,14 +306,12 @@ const Sidebar = ({ children, closeMini }) => {
                             </button>
                             <div className="content-header-item">
                                 <img src={manpro_logo} style={{ height: "30px", marginBottom: "20px" }} />
-                                <img src={manpro_logo} style={{ height: "30px", marginBottom: "20px" }} />
                             </div>
                         </div>
                     </div>
 
                     <div className="content-side content-side-full content-side-user px-10 align-parent" style={{ backgroundImage: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))", }} >
                         <div className="sidebar-mini-visible-b align-v animated fadeIn">
-                            <img className="img-avatar img-avatar32" src={avatar} alt="" />
                             <img className="img-avatar img-avatar32" src={avatar} alt="" />
                         </div>
                         <div className="sidebar-mini-hidden-b text-center">
