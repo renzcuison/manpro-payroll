@@ -1439,8 +1439,7 @@ class EvaluationFormController extends Controller
                         $labels[] = $label;
                         \App\Models\EvaluationFormSubcategoryOption::create([
                             'subcategory_id' => $newEvaluationFormSubcategory->id,
-                            'label' => $label,
-                            'order' => $optionOrder
+                            'label' => $label
                         ]);
                     }
                 }
@@ -1460,7 +1459,6 @@ class EvaluationFormController extends Controller
         }
     }
 
-    // evaluation form subcategory option
 
     public function deleteEvaluationFormSubcategoryOption(Request $request)
     {
@@ -1723,72 +1721,4 @@ class EvaluationFormController extends Controller
     }
 
     
-    // public function saveEvaluationFormSubcategoryOption(Request $request)
-    // {
-    //     log::info('EvaluationFormController::saveEvaluationFormSubcategoryOption');
-
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
-
-    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
-
-    //     try {
-
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
-
-    //         DB::beginTransaction();
-
-    //         $isEmptyName = !$request->label;
-
-    //         if( $isEmptyName ) return response()->json([ 
-    //             'status' => 400,
-    //             'message' => 'Evaluation Form Subcategory Option Label is required!'
-    //         ]);
-
-    //         $existingEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
-    //             ::where('subcategory_id', $request->subcategory_id)
-    //             ->where('label', $request->label)
-    //             ->first()
-    //         ;
-
-    //         if( $existingEvaluationFormSubcategoryOption ) return response()->json([ 
-    //             'status' => 409,
-    //             'message' => 'This Evaluation Form Subcategory Option Label is already in use!',
-    //             'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
-    //         ]);
-
-    //         $order = (
-    //             EvaluationFormSubcategoryOption::where('subcategory_id', $request->subcategory_id)->max('order')
-    //             ?? -1
-    //         ) + 1;
-
-    //         $newEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::create([
-    //             'subcategory_id' => $request->subcategory_id,
-    //             'label' => $request->label,
-    //             'order' => $order
-    //         ]);
-
-    //         DB::commit();
-
-    //         return response()->json([ 
-    //             'status' => 201,
-    //             'evaluationSubcategoryOptionID' => $newEvaluationFormSubcategoryOption->id,
-    //             'message' => 'Evaluation Form Subcategory Option successfully created'
-    //         ]);
-
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
-
-    //         throw $e;
-    //     }
-    // }
-
 }
