@@ -1,6 +1,7 @@
 import {
     SortableContext,
     sortableKeyboardCoordinates,
+    useSortable,
     verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import {
@@ -15,7 +16,6 @@ import {
     useSensors
 } from '@dnd-kit/core';
 import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import { useSortable } from '@dnd-kit/sortable';
 import { useState } from "react";
 
 function Droppable(props) {
@@ -85,9 +85,9 @@ export default function DragAndDropTest() {
         margin: '10px 0'
     }
     const [items, setItems] = useState([
-        { id: '1_1', content: <div style={{color:'red',...style}}>A</div>, order: 1 },
-        { id: '1_2', content: <div style={{color:'green',...style}}>B</div>, order: 2 },
-        { id: '1_3', content: <div style={{color:'blue',...style}}>C</div>, order:3 }
+        { content: <div style={{color:'red',...style}}>A</div>, order: 1, yh: "feef" },
+        { content: <div style={{color:'green',...style}}>B</div>, order: 2, yh: "i8u" },
+        { content: <div style={{color:'blue',...style}}>C</div>, order:3, yh: "efe" }
     ]);
     const [dragging, setDragging] = useState(false);
     const sensors = useSensors(
@@ -122,6 +122,7 @@ export default function DragAndDropTest() {
     function handleDragStart() {
         setDragging(true);
     }
+    const items2 = items.map(item => ({...item, id: item.yh}))
 
     return <DndContext
         sensors={ sensors }
@@ -129,13 +130,12 @@ export default function DragAndDropTest() {
         onDragStart={ handleDragStart }
         onDragEnd={ handleDragEnd }
         modifiers={[restrictToFirstScrollableAncestor, restrictToVerticalAxis]}
-    ><SortableContext items={ items } strategy={ verticalListSortingStrategy }>
+    ><SortableContext items={ items2 } strategy={ verticalListSortingStrategy }>
         <div style={{
-            background:'yellow',height:'500px',width:'500px',display:'block',overflow:'auto',
-            cursor: dragging ? 'move' : undefined
+            background:'yellow',height:'500px',width:'500px',display:'block',overflow:'auto'
         }}>{
-            items.map(({ id, content, order}) =>
-                <Sortable key={id} id={id} order={order}>
+            items2.map(({ id, content, order, yh}) =>
+                <Sortable key={yh} id={yh} order={order}>
                     { content }
                 </Sortable>
             )

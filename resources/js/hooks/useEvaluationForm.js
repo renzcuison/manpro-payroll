@@ -53,21 +53,28 @@ export function useEvaluationForm(form) {
         ;
     }
 
-    function moveSection(sectionId, order) {
+    function moveSection(oldOrder, newOrder) {
+        if(oldOrder === newOrder) return;
         axiosInstance
-            .post(`/moveEvaluationFormSection`, {
-                headers, params: { id: sectionId, order }
-            })
-            .then((response) => {
-                const { evaluationFormSection } = response.data;
-                if(!evaluationFormSection) return;
-                
-                setSections([...sections, evaluationFormSection]);
-            })
+            .post('/moveEvaluationFormSection', {
+                id: sections[oldOrder - 1].id,
+                order: newOrder
+            }, { headers })
             .catch(error => {
-                console.error('Error fetching section data:', error);
+                console.error('Error moving section: ', error);
+                setSections([...sections]);
             })
         ;
+        const moveUp = oldOrder < newOrder;
+        for(
+            let order = moveUp ? oldOrder + 1 : oldOrder - 1;
+            moveUp ? (order <= newOrder) : (order >= newOrder);
+            order += (moveUp ? 1 : -1) * 1
+        ) sections[order - 1].order = order + (moveUp ? -1 : 1);
+        const removed = sections.splice(oldOrder - 1, 1)[0];
+        removed.order = newOrder;
+        sections.splice(newOrder - 1, 0, removed);
+        setSections([...sections]);
     }
 
     function saveSection(section) {
