@@ -311,16 +311,16 @@ const AnnouncementView = () => {
             ) : (
               <Grid container columnSpacing={4} rowSpacing={2}>
                 {/* Thumbnail */}
-                <Grid size={12}>
+                <Grid size={12} sx={{ height: {xs: 240, md: 360, lg: 480}, width: "100%" }}>
                   <Box
                     sx={{
                       mb: 1,
                       position: "relative",
                       width: "100%",
-                      height: "70%",
-                      aspectRatio: "2 / 1",
+                      height: "100%",
                       borderRadius: "4px",
                       border: "2px solid #e0e0e0",
+                      overflow: "hidden",
                     }}
                   >
                     {imageLoading ? (
