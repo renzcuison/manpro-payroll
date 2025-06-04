@@ -35,7 +35,6 @@ const ApplicationsList = () => {
     const [rangeStartDate, setRangeStartDate] = useState(null);
     const [rangeEndDate, setRangeEndDate] = useState(null);
 
-    // Application List
     useEffect(() => {
         axiosInstance.get("/settings/getDepartments", { headers })
             .then((response) => {
@@ -54,17 +53,15 @@ const ApplicationsList = () => {
             });
     }, []);
 
-    // Application Details
+
     const [openApplicationManage, setOpenApplicationManage] = useState(null);
     const handleOpenApplicationManage = (appId) => {
         setOpenApplicationManage(appId);
     };
     const handleCloseApplicationManage = () => {
         setOpenApplicationManage(null);
-        fetchApplications();
     };
 
-    // Employee Avatars
     const [blobMap, setBlobMap] = useState({});
 
     const getAvatars = (applicationData) => {

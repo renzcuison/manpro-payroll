@@ -477,10 +477,6 @@ const Sidebar = ({ children, closeMini }) => {
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Payroll </span>
                                     </li>
-                                    <StyledNav to={`/admin/branches/branchlist`}>
-                                        <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide">Branches</span>
-                                    </StyledNav>
 
                                     {payrollItems.map((items, index) => {
                                         return (
