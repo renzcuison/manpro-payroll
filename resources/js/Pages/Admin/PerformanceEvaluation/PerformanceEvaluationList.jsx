@@ -17,10 +17,10 @@ const PerformanceEvaluationList = () => {
 
     // Pagination state
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
-    // ----- Menu Items
+    // Menu Items
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
     const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
@@ -37,7 +37,6 @@ const PerformanceEvaluationList = () => {
     }, []);
 
     // Fetch evaluation responses for the current user (as evaluatee or evaluator)
-    // In PerformanceEvaluationList.jsx
     useEffect(() => {
         setIsLoading(true);
         axiosInstance.get('/getEvaluationResponses', {
@@ -109,7 +108,10 @@ const PerformanceEvaluationList = () => {
                                 }}
                             >
                                 {performanceEvaluations.map(({ name }) => (
-                                    <MenuItem key={name} onClick={() => navigate(`/admin/performance-evaluation/form/${name}`)}>
+                                    <MenuItem key={name} onClick={() => {
+                                        handleMenuClose();
+                                        navigate(`/admin/performance-evaluation/form/${name}`);
+                                    }}>
                                         {name}
                                     </MenuItem>
                                 ))}
