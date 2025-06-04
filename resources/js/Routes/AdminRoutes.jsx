@@ -103,8 +103,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="department/departmentlist" element={<ProtectedRoute element={<DepartmentList />} user={user} />} />
             <Route path="department/:id" element={<ProtectedRoute element={<DepartmentDetails />} user={user} />} />
 
-            <Route path="branches/branchlist" element={<ProtectedRoute element={<BranchList />} user={user} />} />
-            <Route path="branches/:id" element={<ProtectedRoute element={<BranchDetails />} user={user} />} />
+            <Route path="branches" element={<ProtectedRoute element={<BranchList />} user={user} />} />
+            <Route path="branch/:id" element={<ProtectedRoute element={<BranchDetails />} user={user} />} />
 
             <Route path="attendance/logs" element={<ProtectedRoute element={<AttendanceLogs />} user={user} />} />
             <Route path="attendance/:user" element={<ProtectedRoute element={<AttendanceView />} user={user} />} />

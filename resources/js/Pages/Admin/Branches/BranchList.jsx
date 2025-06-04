@@ -1,33 +1,13 @@
 import React, { useEffect, useState } from "react";
-import {
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    Box,
-    Typography,
-    Button,
-    TextField,
-    Grid,
-    Checkbox,
-    ListItemText,
-    MenuItem,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    IconButton,
-    Menu,
-    Avatar,
-    Tooltip
-} from "@mui/material";
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Button, TextField, Grid, Checkbox, ListItemText, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Menu, Avatar, Tooltip } from "@mui/material";
 import { Link } from "react-router-dom";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 import Swal from "sweetalert2";
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+
+import AddNewBranchModal from '../Branches/Modals/AddNewBranchModal';
 
 const BranchList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -41,78 +21,63 @@ const BranchList = () => {
     const [fetchError, setFetchError] = useState(null);
 
     // Modal states
-    const [openModal, setOpenModal] = useState(false);
-    const [nameError, setNameError] = useState(false);
-    const [acronymError, setAcronymError] = useState(false);
-    const [name, setName] = useState("");
-    const [acronym, setAcronym] = useState("");
-    const [description, setDescription] = useState("");
+    const [openAddBranchModal, setOpenAddBranchModal] = useState(false);
 
     const [openSettingsModal, setOpenSettingsModal] = useState(false);
-    const [newPosition, setNewPosition] = useState({
-        name: "",
-        can_review_request: false,
-        can_approve_request: false,
-        can_note_request: false,
-        can_accept_request: false
-    });
+    const [newPosition, setNewPosition] = useState({ name: "", can_review_request: false, can_approve_request: false, can_note_request: false, can_accept_request: false });
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                setFetchError(null);
-
-                const [branchesRes, employeesRes, positionsRes] = await Promise.all([
-                    axiosInstance.get("/settings/getBranches", { headers }),
-                    axiosInstance.get('/employee/getEmployees', { headers }),
-                    axiosInstance.get('/settings/getBranchPositions', { headers })
-                ]);
-
-                setBranches(branchesRes.data?.branches || []);
-                setAllEmployees(employeesRes.data?.employees || []);
-                setBranchPositions(positionsRes.data?.positions || []);
-
-            } catch (error) {
-                console.error("Error in fetchData:", error);
-                setFetchError(error.message);
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Error loading data! Please try again.",
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         fetchData();
     }, []);
 
+    const fetchData = async () => {
+        try {
+            setFetchError(null);
+
+            const [branchesRes, employeesRes, positionsRes] = await Promise.all([
+                axiosInstance.get("/settings/getBranches", { headers }),
+                axiosInstance.get('/employee/getEmployees', { headers }),
+                axiosInstance.get('/settings/getBranchPositions', { headers })
+            ]);
+
+            setBranches(branchesRes.data?.branches || []);
+            setAllEmployees(employeesRes.data?.employees || []);
+            setBranchPositions(positionsRes.data?.positions || []);
+
+        } catch (error) {
+            console.error("Error in fetchData:", error);
+            setFetchError(error.message);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error loading data! Please try again.",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604'
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const filteredBranches = React.useMemo(() => {
-        return branches.filter(bran => 
-            bran.name?.toLowerCase().includes(searchKeyword.toLowerCase())
-        );
+        return branches.filter(bran => bran.name?.toLowerCase().includes(searchKeyword.toLowerCase()) );
     }, [branches, searchKeyword]);
 
     const getEmployeesForBranchPosition = (branchId, positionId) => {
         const branch = branches.find(b => b.id === branchId);
         if (!branch) return [];
 
-        return allEmployees.filter(emp => 
-            emp.branch?.trim().toLowerCase() === branch.name.trim().toLowerCase() && 
-            Number(emp.branch_position_id) === Number(positionId)
+        return allEmployees.filter(emp =>
+            emp.branch?.trim().toLowerCase() === branch.name.trim().toLowerCase() && Number(emp.branch_position_id) === Number(positionId)
         );
     };
 
     const renderEmployeeAvatars = (branchId, positionId) => {
         const employees = getEmployeesForBranchPosition(branchId, positionId);
-        
+
         if (employees.length === 0) {
             return (
                 <Box display="flex" justifyContent="center">
@@ -125,20 +90,11 @@ const BranchList = () => {
         return (
             <Box display="flex" justifyContent="center" flexWrap="wrap" gap={1}>
                 {employees.map(emp => (
-                    <Tooltip 
-                        key={emp.id} 
-                        title={`${emp.first_name} ${emp.last_name}`}
-                        arrow
-                    >
+                    <Tooltip key={emp.id} title={`${emp.first_name} ${emp.last_name}`} arrow >
                         {emp.avatar ? (
-                            <Avatar 
-                                src={`data:${emp.avatar_mime};base64,${emp.avatar}`}
-                                sx={{ width: 32, height: 32 }}
-                            />
+                            <Avatar src={`data:${emp.avatar_mime};base64,${emp.avatar}`} sx={{ width: 32, height: 32 }} />
                         ) : (
-                            <Avatar sx={{ width: 32, height: 32 }}>
-                                {emp.first_name?.charAt(0)}{emp.last_name?.charAt(0)}
-                            </Avatar>
+                            <Avatar sx={{ width: 32, height: 32 }}> {emp.first_name?.charAt(0)}{emp.last_name?.charAt(0)} </Avatar>
                         )}
                     </Tooltip>
                 ))}
@@ -147,80 +103,17 @@ const BranchList = () => {
     };
 
     // Modal handlers
-    const handleAddClick = (event) => {
+    const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
     };
 
-    const handleAddClose = () => {
+    const handleMenuClose = () => {
         setAnchorEl(null);
     };
 
-    const handleAddNew = () => {
-        handleAddClose();
-        setOpenModal(true);
-    };
-
     const handleSettings = () => {
-        handleAddClose();
+        handleMenuClose();
         setOpenSettingsModal(true);
-    };
-
-    // Branch CRUD operations
-    const validateBranchInput = () => {
-        const valid = name && acronym;
-        setNameError(!name);
-        setAcronymError(!acronym);
-        return valid;
-    };
-
-    const saveBranch = async (event) => {
-        event.preventDefault();
-        
-        if (!validateBranchInput()) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "Please fill all required fields!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-            return;
-        }
-
-        try {
-            const data = { name, acronym, description };
-            const response = await axiosInstance.post('/settings/saveBranch', data, { headers });
-
-            if (response.data.status === 200) {
-                setBranches(prev => [...prev, response.data.branch]);
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Branch saved successfully!",
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                });
-                setOpenModal(false);
-                resetBranchForm();
-            }
-        } catch (error) {
-            console.error("Error saving branch:", error);
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "Error saving branch!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        }
-    };
-
-    const resetBranchForm = () => {
-        setName("");
-        setAcronym("");
-        setDescription("");
-        setNameError(false);
-        setAcronymError(false);
     };
 
     // Position CRUD operations
@@ -240,7 +133,7 @@ const BranchList = () => {
                 const updatedPositions = [...branchPositions];
                 updatedPositions[index] = response.data.position;
                 setBranchPositions(updatedPositions);
-                
+
                 Swal.fire({
                     customClass: { container: 'my-swal' },
                     text: "Position updated successfully!",
@@ -314,8 +207,8 @@ const BranchList = () => {
             return (
                 <Box sx={{ p: 3, textAlign: 'center' }}>
                     <Typography color="error">Error loading data: {fetchError}</Typography>
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         onClick={() => window.location.reload()}
                         sx={{ mt: 2, backgroundColor: '#177604' }}
                     >
@@ -359,32 +252,18 @@ const BranchList = () => {
                         {filteredBranches.map((branch) => (
                             <TableRow key={branch.id} hover>
                                 <TableCell align="center">
-                                    <Link
-                                        to={`/admin/branches/${branch.id}`}
-                                        style={{
-                                            textDecoration: "none",
-                                            color: "inherit",
-                                            display: "block",
-                                            padding: "16px"
-                                        }}
-                                    >
-                                        <Typography>
-                                            {branch.name} ({branch.acronym})
-                                        </Typography>
-                                        {branch.description && (
-                                            <Typography variant="caption" color="textSecondary">
-                                                {branch.description}
-                                            </Typography>
-                                        )}
+                                    <Link to={`/admin/branch/${branch.id}`} style={{ textDecoration: "none", color: "inherit", display: "block", textAlign: "left" }} >
+                                        <Typography>{branch.name} ({branch.acronym})</Typography>
+                                        <Typography variant="caption" color="textSecondary"> {branch.description ?? ""} </Typography>
                                     </Link>
                                 </TableCell>
-                                
+
                                 {branchPositions.map(position => (
                                     <TableCell key={`${branch.id}-${position.id}`} align="center">
                                         {renderEmployeeAvatars(branch.id, position.id)}
                                     </TableCell>
                                 ))}
-                                
+
                                 <TableCell align="center">
                                     {branch.employees_count || "0"}
                                 </TableCell>
@@ -396,38 +275,28 @@ const BranchList = () => {
         );
     };
 
+    // Openning and Closing Modals
+    const handleOpenAddBranchModal = () => {
+        handleMenuClose();
+        setOpenAddBranchModal(true);
+    }
+    const handleCloseAddBranchModal = (reload) => {
+        setOpenAddBranchModal(false);
+    }
+
     return (
         <Layout title={"Branches"}>
             <Box sx={{ overflowX: "auto", width: "100%" }}>
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
-                    <Box
-                        sx={{
-                            mt: 5,
-                            display: "flex",
-                            justifyContent: "space-between",
-                            px: 1,
-                            alignItems: "center",
-                        }}
-                    >
+                    <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             Branches
                         </Typography>
 
                         <Grid item>
-                            <Button 
-                                variant="contained" 
-                                onClick={handleAddClick}
-                                sx={{ backgroundColor: '#177604', color: 'white' }}
-                                endIcon={<i className="fa fa-caret-down"></i>}
-                            >
-                                <i className="fa fa-plus mr-2"></i> Add
-                            </Button>
-                            <Menu
-                                anchorEl={anchorEl}
-                                open={open}
-                                onClose={handleAddClose}
-                            >
-                                <MenuItem onClick={handleAddNew}>
+                            <Button variant="contained" onClick={handleMenuOpen} endIcon={<ArrowDropDownIcon />} sx={{ backgroundColor: '#177604', color: 'white', '&:hover': { backgroundColor: '#126703' }}}>Menu</Button>
+                            <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose} >
+                                <MenuItem onClick={handleOpenAddBranchModal}>
                                     <ListItemText>Add New Branch</ListItemText>
                                 </MenuItem>
                                 <MenuItem onClick={handleSettings}>
@@ -437,14 +306,7 @@ const BranchList = () => {
                         </Grid>
                     </Box>
 
-                    <Box
-                        sx={{
-                            mt: 6,
-                            p: 3,
-                            bgcolor: "#ffffff",
-                            borderRadius: "8px",
-                        }}
-                    >
+                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
                         <Grid container spacing={2} sx={{ pb: 4 }}>
                             <Grid item xs={12} md={9}>
                                 <TextField
@@ -463,17 +325,9 @@ const BranchList = () => {
                         </Grid>
 
                         {renderBranchTable()}
-                        
+
                         {filteredBranches.length > 0 && (
-                            <Box
-                                display="flex"
-                                sx={{
-                                    py: 2,
-                                    pr: 2,
-                                    justifyContent: "flex-end",
-                                    alignItems: "center",
-                                }}
-                            >
+                            <Box display="flex" sx={{ py: 2, pr: 2, justifyContent: "flex-end", alignItems: "center" }} >
                                 <Typography sx={{ mr: 2 }}>
                                     Showing {filteredBranches.length} of {branches.length} branches
                                 </Typography>
@@ -483,116 +337,10 @@ const BranchList = () => {
                 </Box>
             </Box>
 
-                {/* Add Branch Modal */}
-                <Dialog
-                    open={openModal}
-                    onClose={() => {
-                        setOpenModal(false);
-                        resetBranchForm();
-                    }}
-                    fullWidth
-                    maxWidth="sm"  // Changed from md to sm for better proportions
-                    PaperProps={{
-                        style: {
-                        padding: '16px',
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
-                        minWidth: '800px',
-                        maxWidth: '1000px',
-                        marginBottom: '5%'
-                        }
-                    }}
-                >
-                    <DialogTitle>
-                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography variant="h5" fontWeight="bold">Add New Branch</Typography>
-                            <IconButton onClick={() => {
-                                setOpenModal(false);
-                                resetBranchForm();
-                            }}>
-                                <i className="si si-close"></i>
-                            </IconButton>
-                        </Box>
-                    </DialogTitle>
-                    <DialogContent>
-                        <Box 
-                            component="form" 
-                            sx={{ 
-                                mt: 3,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 2  // Adds consistent spacing between elements
-                            }} 
-                            onSubmit={saveBranch}
-                        >
-                            {/* Top row - Branch Name and Acronym */}
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                                <TextField
-                                    fullWidth
-                                    required
-                                    label="Branch Name"
-                                    variant="outlined"
-                                    value={name}
-                                    error={nameError}
-                                    onChange={(e) => setName(e.target.value)}
-                                    helperText={nameError ? "Branch name is required" : ""}
-                                    sx={{ flex: 2 }}  // Takes 2/3 of space
-                                />
-                                <TextField
-                                    fullWidth
-                                    required
-                                    label="Acronym"
-                                    variant="outlined"
-                                    value={acronym}
-                                    error={acronymError}
-                                    onChange={(e) => setAcronym(e.target.value)}
-                                    helperText={acronymError ? "Acronym is required" : ""}
-                                    sx={{ flex: 1 }}  // Takes 1/3 of space
-                                />
-                            </Box>
-
-                            {/* Full width Description field */}
-                            <TextField
-                                fullWidth
-                                label="Description"
-                                variant="outlined"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                multiline
-                                rows={4}
-                            />
-
-                            <DialogActions sx={{ mt: 2 }}>
-                                <Button 
-                                    variant="outlined" 
-                                    onClick={() => {
-                                        setOpenModal(false);
-                                        resetBranchForm();
-                                    }}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button 
-                                    type="submit" 
-                                    variant="contained" 
-                                    sx={{ backgroundColor: '#177604' }}
-                                >
-                                    Save Branch
-                                </Button>
-                            </DialogActions>
-                        </Box>
-                    </DialogContent>
-                </Dialog>
+            <AddNewBranchModal open={openAddBranchModal} close={handleCloseAddBranchModal}/>
 
             {/* Branch Positions Settings Modal */}
-            <Dialog
-                open={openSettingsModal}
-                onClose={() => setOpenSettingsModal(false)}
-                fullWidth
-                maxWidth="lg"
-                scroll="paper"
-            >
+            <Dialog open={openSettingsModal} onClose={() => setOpenSettingsModal(false)} fullWidth maxWidth="lg" scroll="paper" >
                 <DialogTitle>
                     <Box display="flex" justifyContent="space-between" alignItems="center">
                         <Typography variant="h5" fontWeight="bold">Branch Positions Settings</Typography>
@@ -623,7 +371,7 @@ const BranchList = () => {
                                                 <TextField
                                                     fullWidth
                                                     value={position.name}
-                                                    onChange={(e) => 
+                                                    onChange={(e) =>
                                                         handlePositionChange(index, 'name', e.target.value)
                                                     }
                                                 />
@@ -631,7 +379,7 @@ const BranchList = () => {
                                             <TableCell>
                                                 <Checkbox
                                                     checked={position.can_review_request}
-                                                    onChange={(e) => 
+                                                    onChange={(e) =>
                                                         handlePositionChange(index, 'can_review_request', e.target.checked)
                                                     }
                                                 />
@@ -639,7 +387,7 @@ const BranchList = () => {
                                             <TableCell>
                                                 <Checkbox
                                                     checked={position.can_approve_request}
-                                                    onChange={(e) => 
+                                                    onChange={(e) =>
                                                         handlePositionChange(index, 'can_approve_request', e.target.checked)
                                                     }
                                                 />
@@ -647,7 +395,7 @@ const BranchList = () => {
                                             <TableCell>
                                                 <Checkbox
                                                     checked={position.can_note_request}
-                                                    onChange={(e) => 
+                                                    onChange={(e) =>
                                                         handlePositionChange(index, 'can_note_request', e.target.checked)
                                                     }
                                                 />
@@ -655,16 +403,16 @@ const BranchList = () => {
                                             <TableCell>
                                                 <Checkbox
                                                     checked={position.can_accept_request}
-                                                    onChange={(e) => 
+                                                    onChange={(e) =>
                                                         handlePositionChange(index, 'can_accept_request', e.target.checked)
                                                     }
                                                 />
                                             </TableCell>
                                             <TableCell>
-                                                <Button 
-                                                    variant="contained" 
+                                                <Button
+                                                    variant="contained"
                                                     onClick={() => savePositionChanges(index)}
-                                                    sx={{ 
+                                                    sx={{
                                                         backgroundColor: '#177604',
                                                         '&:hover': { backgroundColor: '#126903' }
                                                     }}
@@ -687,8 +435,8 @@ const BranchList = () => {
                                     fullWidth
                                     label="Position Name"
                                     value={newPosition.name}
-                                    onChange={(e) => 
-                                        setNewPosition({...newPosition, name: e.target.value})
+                                    onChange={(e) =>
+                                        setNewPosition({ ...newPosition, name: e.target.value })
                                     }
                                 />
                             </Grid>
@@ -696,8 +444,8 @@ const BranchList = () => {
                                 <Box display="flex" alignItems="center">
                                     <Checkbox
                                         checked={newPosition.can_review_request}
-                                        onChange={(e) => 
-                                            setNewPosition({...newPosition, can_review_request: e.target.checked})
+                                        onChange={(e) =>
+                                            setNewPosition({ ...newPosition, can_review_request: e.target.checked })
                                         }
                                     />
                                     <Typography>Review</Typography>
@@ -707,8 +455,8 @@ const BranchList = () => {
                                 <Box display="flex" alignItems="center">
                                     <Checkbox
                                         checked={newPosition.can_approve_request}
-                                        onChange={(e) => 
-                                            setNewPosition({...newPosition, can_approve_request: e.target.checked})
+                                        onChange={(e) =>
+                                            setNewPosition({ ...newPosition, can_approve_request: e.target.checked })
                                         }
                                     />
                                     <Typography>Approve</Typography>
@@ -718,8 +466,8 @@ const BranchList = () => {
                                 <Box display="flex" alignItems="center">
                                     <Checkbox
                                         checked={newPosition.can_note_request}
-                                        onChange={(e) => 
-                                            setNewPosition({...newPosition, can_note_request: e.target.checked})
+                                        onChange={(e) =>
+                                            setNewPosition({ ...newPosition, can_note_request: e.target.checked })
                                         }
                                     />
                                     <Typography>Note</Typography>
@@ -729,18 +477,18 @@ const BranchList = () => {
                                 <Box display="flex" alignItems="center">
                                     <Checkbox
                                         checked={newPosition.can_accept_request}
-                                        onChange={(e) => 
-                                            setNewPosition({...newPosition, can_accept_request: e.target.checked})
+                                        onChange={(e) =>
+                                            setNewPosition({ ...newPosition, can_accept_request: e.target.checked })
                                         }
                                     />
                                     <Typography>Accept</Typography>
                                 </Box>
                             </Grid>
                             <Grid item xs={12} md={1}>
-                                <Button 
-                                    variant="contained" 
+                                <Button
+                                    variant="contained"
                                     onClick={addNewPosition}
-                                    sx={{ 
+                                    sx={{
                                         backgroundColor: '#177604',
                                         '&:hover': { backgroundColor: '#126903' }
                                     }}
