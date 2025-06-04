@@ -8,7 +8,7 @@ const EducationalBackground = ({education}) => {
     
     return(
         <Box component={Paper} sx={{ my: 4, p: 4, borderRadius: 5,  overflow: "auto" }}>
-            <Typography variant="h5" sx={{ mb: 4, fontWeight: "bold" }}>
+            <Typography variant="h5" sx={{ mb: 6, fontWeight: "bold" }}>
                 {" "}Educational Background{" "}
             </Typography>
 
@@ -16,11 +16,10 @@ const EducationalBackground = ({education}) => {
                 education.map((item, index) => (
                 <Grid container size={12} sx={{mt:2}} key={index}>
                     {/*<--Left Side-->*/}
-                    
                     <Grid container size={8}>
                         <Grid size={12}>
                             <Typography sx={{fontWeight:"bold", fontSize:16, alignItems:"center"}}>
-                                {item.degree_name}
+                                {item.program_name}
                             </Typography>
                         </Grid>
                         <Grid size={12}>
@@ -34,7 +33,7 @@ const EducationalBackground = ({education}) => {
                     <Grid container size={4}>  
                         <Grid size={12}>
                             <Typography sx={{fontWeight:"bold", fontSize:16, alignItems:"center"}}>
-                                {item.degree_type} 
+                                {item.education_level} 
                             </Typography>
                         </Grid> 
                         <Grid size={12}>
