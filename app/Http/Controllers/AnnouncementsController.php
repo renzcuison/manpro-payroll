@@ -57,11 +57,19 @@ class AnnouncementsController extends Controller
         }
 
         try {
-            $announcements = AnnouncementsModel::with(['views.user', 'branches', 'departments', 'employeeRoles', 'employeeStatuses', 'employeeTypes'])
-                ->where('client_id', $user->client_id)
-                ->whereIn('status', ['Published', 'Pending', 'Hidden']) // Include Hidden
-                ->orderBy('created_at', 'desc')
-                ->get();
+        $announcements = AnnouncementsModel::with([
+            'views.user',
+            'branches',
+            'departments',
+            'employeeRoles',
+            'employeeStatuses',
+            'employeeTypes',
+            'acknowledgements.user' // <-- Add this line!
+        ])
+        ->where('client_id', $user->client_id)
+        ->whereIn('status', ['Published', 'Pending', 'Hidden'])
+        ->orderBy('created_at', 'desc')
+        ->get();
 
         $formattedAnnouncements = $announcements->map(function ($announcement) {
             $viewCount = $announcement->views->count();
@@ -69,9 +77,9 @@ class AnnouncementsController extends Controller
             $departmentIds = $announcement->departments->pluck('department_id')->toArray();
 
             // Get allowed roles, types, statuses
-            $allowedRoleIds = $announcement->employeeRoles->pluck('role_id')->toArray();
-            $allowedEmploymentTypes = $announcement->employeeTypes->pluck('employment_type')->toArray();
-            $allowedEmploymentStatuses = $announcement->employeeStatuses->pluck('employment_status')->toArray();
+            $allowedRoleIds = $announcement->employeeRoles ? $announcement->employeeRoles->pluck('role_id')->toArray() : [];
+            $allowedEmploymentTypes = $announcement->employeeTypes ? $announcement->employeeTypes->pluck('employment_type')->toArray() : [];
+            $allowedEmploymentStatuses = $announcement->employeeStatuses ? $announcement->employeeStatuses->pluck('employment_status')->toArray() : [];
 
             $recipientCount = UsersModel::where('user_type', 'Employee')
                 ->where(function ($query) use ($branchIds, $departmentIds) {
@@ -152,7 +160,7 @@ class AnnouncementsController extends Controller
                 'viewed' => $viewCount,
                 'recipients' => $recipientCount,
                 'acknowledged' => $acknowledgedCount,
-                'views' => $views,
+                'views' => $views ? $views->values()->all() : [],
                 'acknowledgements' => $acknowledgements,
                 'scheduled_send_datetime' => $announcement->scheduled_send_datetime
             ];
