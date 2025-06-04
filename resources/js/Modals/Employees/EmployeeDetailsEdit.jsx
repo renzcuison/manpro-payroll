@@ -1,14 +1,15 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Divider } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, TextField, Typography, FormGroup, FormControl, MenuItem, Divider } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../utils/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { CgAdd, CgTrash } from "react-icons/cg";  
+import EmployeeEducationFields from './EmployeeEducationFields';
 import Swal from 'sweetalert2';
 import moment from 'moment';
 import dayjs from 'dayjs';
+import LoadingSpinner from '../../components/LoadingStates/LoadingSpinner';
 
 const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const navigate = useNavigate();
@@ -56,8 +57,9 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const [selectedStatus, setSelectedStatus] = useState(employee.employment_status);
 
     //Education Form Field Values and Handlers
+    const [isLoading, setIsLoading] = useState(true);
     const [educations, setEducations] = useState([]);
-    const educationFields = {school_name: "", degree_name: "", degree_type: "", year_graduated: ""}
+    const educationFields = {school_name: "", education_level: "", program_name: "", year_graduated: ""};
     const [updateIds, setUpdateIds] = useState([]); //ids to update
     const [deleteIds, setDeleteIds] = useState([]); //ids to delete 
 
@@ -67,12 +69,14 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             .then((response) => {
                 if (response.data.status === 200) {
                     const educationBackgrounds = response.data.educations
-                    setEducations(educationBackgrounds);             
+                    setEducations(educationBackgrounds);
+                    setIsLoading(false);           
                 }
             })
             .catch((error) => {
                 console.error("Error fetching education background:", error);
                 setEducations(null);
+                setIsLoading(false);
         })
     }
 
@@ -93,14 +97,28 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const handleAddFields = () => {
         setEducations([...educations, educationFields]); 
     }
-    const handleRemoveFields = (removalIndx) => {
-        const updatedFields = educations.filter((_, index) => index != removalIndx)
-        setEducations(educations.length > 0 ? updatedFields : [educationFields]);
-        if("id" in educations[removalIndx]){
-            setDeleteIds(prevIds => [...prevIds, educations[removalIndx].id]);
-        }
-        setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
-        
+    const handleRemoveFields = (indxToRemove) => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: "Do you want to delete this field?",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Confirm",
+            confirmButtonColor: "#177604",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const updatedFields = educations.filter((_, index) => index != indxToRemove)
+                setEducations(educations.length > 0 ? updatedFields : [educationFields]);
+                if("id" in educations[indxToRemove]){
+                    setDeleteIds(prevIds => [...prevIds, educations[indxToRemove].id]);
+                }
+                setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
+                setIsFieldsChanged(true);
+            }
+        });
     }
 
     const populateDropdown = () => {
@@ -148,6 +166,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
         event.preventDefault();
         const addEducations = educations.filter(e => !e.id);
         const updateEducations = educations.filter(e=> updateIds.includes(e.id));
+        const formDateOnly = (date) => date ? dayjs(date).format('YYYY-MM-DD'): null;
         const data = {
             userName: employee.user_name,
 
@@ -173,8 +192,8 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             selectedWorkGroup: selectedWorkGroup,
             selectedType: selectedType,
             selectedStatus: selectedStatus,
-            startDate: startDate,
-            endDate: endDate,
+            startDate: formDateOnly(startDate),
+            endDate: formDateOnly(endDate),
             addEducations: addEducations, 
             updateEducations: updateEducations,
             deleteEducationIds: deleteIds,
@@ -210,6 +229,8 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             });
     };
 
+
+
     return (
         <>
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' } }}>
@@ -221,8 +242,10 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={saveInput} noValidate autoComplete="off" encType="multipart/form-data" >
-
+                    { isLoading ? 
+                    (<LoadingSpinner></LoadingSpinner>)
+                    :
+                    (<Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={saveInput} noValidate autoComplete="off" encType="multipart/form-data" >
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{ '& label.Mui-focused': {color: '#97a5ba'}, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}}, }}>
                             <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
@@ -343,56 +366,11 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
 
                         <Divider sx={{ my: 4 }} />
                         {/*<--Educational Forms Field-->*/}
+                        
 
                         <FormGroup row={true} className="d-flex" sx={{ '& label.Mui-focused': {color: '#97a5ba'}, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}}, }}> 
-                            <Typography variant="h4" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Education </Typography>
-                            <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
-
-                            <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
-                                {educations.map((item, index) => (
-                                <Grid container spacing={2} size ={12} key={index} alignItems="center">
-                                    <Grid size={3}>
-                                        <FormControl fullWidth>
-                                            <TextField label="School Name" value={item.school_name} onChange={(e)=>handleChange(index, "school_name", e.target.value)} />
-                                        </FormControl>
-                                    </Grid>
-
-                                    <Grid size={3}>
-                                        <FormControl fullWidth>
-                                            <TextField label="Degree Name" value={item.degree_name} onChange={(e)=>handleChange(index, "degree_name", e.target.value)} />
-                                        </FormControl>
-                                    </Grid>
-
-                                    <Grid size={3}>
-                                        <FormControl fullWidth>
-                                            <TextField
-                                                select
-                                                id="gender"
-                                                label="Degree"
-                                                value={item.degree_type}
-                                                variant="outlined"
-                                                onChange={(e) => {handleChange(index, "degree_type", e.target.value) }}
-                                            >
-                                                <MenuItem value={"College/Bachelors"}>{"College/Bachelors"}</MenuItem>
-                                                <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
-                                                <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
-                                            </TextField>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid size={2}>
-                                        <FormControl fullWidth>
-                                            <TextField label="Year Graduated" value={item.year_graduated} onChange={(e)=>handleChange(index, "year_graduated", e.target.value)} />
-                                        </FormControl>
-                                    </Grid>
-
-                                    <Grid size={1}>
-                                        <Box display="flex" justifyContent="space-between" gap={1}>
-                                            <Button onClick={() => handleRemoveFields(index)} variant="text" startIcon={<CgTrash style={{ color: 'red' }} />}> </Button>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                                ))}    
-                            </Grid>
+                            <EmployeeEducationFields educations={educations} handleChange={handleChange} handleAddFields={handleAddFields} handleRemoveFields={handleRemoveFields}>
+                            </EmployeeEducationFields>
                         </FormGroup>
 
                         <Divider sx={{ my: 4 }} />
@@ -508,6 +486,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                                         slotProps={{ textField: { variant: 'outlined' } }}
                                     />
                                 </LocalizationProvider>
+                                
                             </FormControl>
                         </FormGroup>
 
@@ -670,7 +649,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                             </Button>
                         </Box>
 
-                    </Box>
+                    </Box>)}
                 </DialogContent>
             </Dialog >
         </>

@@ -385,6 +385,11 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span id="navName" className="sidebar-mini-hide"> Schedules & Holidays </span>
                                     </StyledNav>
 
+                                    <StyledNav to={`/admin/department/departmentlist`}>
+                                        <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide">Departments</span>
+                                    </StyledNav>
+
                                     <StyledNav to={`/admin/perimeters`}>
                                         <i className="fa fa-map-o" style={{ color: "#2a800f" }} ></i>
                                         <span id="navName" className="sidebar-mini-hide"> {" "}Perimeter{" "} </span>
@@ -435,6 +440,10 @@ const Sidebar = ({ children, closeMini }) => {
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Payroll </span>
                                     </li>
+                                    <StyledNav to={`/admin/branches/branchlist`}>
+                                        <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide">Branches</span>
+                                    </StyledNav>
 
                                     {payrollItems.map((items, index) => {
                                         return (
