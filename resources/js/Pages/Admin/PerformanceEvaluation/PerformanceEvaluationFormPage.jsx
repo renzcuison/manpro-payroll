@@ -69,49 +69,49 @@ const PerformanceEvaluationFormPage = () => {
     handleSettingsClose();
   };
 
-  const handleEditSave = async () => {
-    if (!newName.trim()) {
-      Swal.fire({
-        text: "Form Name is required!",
-        icon: "error",
-        confirmButtonColor: '#177604',
-      });
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('id', formId);
-    formData.append('name', newName);
-
+const handleEditSave = async () => {
+  if (!newName.trim()) {
     Swal.fire({
-      title: "Are you sure?",
-      text: "You want to save this evaluation form?",
-      icon: "warning",
-      showConfirmButton: true,
-      confirmButtonText: 'Save',
+      text: "Form Name is required!",
+      icon: "error",
       confirmButtonColor: '#177604',
-      showCancelButton: true,
-      cancelButtonText: 'Cancel',
-    }).then(async (res) => {
-      if (res.isConfirmed) {
-        try {
-          const response = await axiosInstance.post('/editEvaluationForm', formData, { headers });
-          if (response.data.status === 200) {
-            Swal.fire({
-              text: "Evaluation form updated successfully!",
-              icon: "success",
-              confirmButtonText: 'Proceed',
-              confirmButtonColor: '#177604',
-            }).then(() => {
-              navigate(`/admin/performance-evaluation/form/${newName}`);
-            });
-          }
-        } catch (error) {
-          console.error("Error while editing form:", error);
-        }
-      }
     });
-  };
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('id', formId);
+  formData.append('name', newName);
+
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You want to save this evaluation form?",
+    icon: "warning",
+    showConfirmButton: true,
+    confirmButtonText: 'Save',
+    confirmButtonColor: '#177604',
+    showCancelButton: true,
+    cancelButtonText: 'Cancel',
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      try {
+        const response = await axiosInstance.post('/editEvaluationForm', formData, { headers });
+        if (response.data.status === 200) {
+          setEditOpen(false); // <-- close dialog immediately
+          await Swal.fire({
+            text: "Evaluation form updated successfully!",
+            icon: "success",
+            confirmButtonText: 'Proceed',
+            confirmButtonColor: '#177604',
+          });
+          navigate(`/admin/performance-evaluation/form/${newName}`);
+        }
+      } catch (error) {
+        console.error("Error while editing form:", error);
+      }
+    }
+  });
+};
 
   // Delete Form Handlers
   const handleDeleteMenuClick = () => {
@@ -119,40 +119,40 @@ const PerformanceEvaluationFormPage = () => {
     handleSettingsClose();
   };
 
-  const handleDeleteConfirm = async () => {
-    const formData = new FormData();
-    formData.append('id', formId);
+  // Delete Form Handlers
+const handleDeleteConfirm = async () => {
+  const formData = new FormData();
+  formData.append('id', formId);
 
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You want to delete this evaluation form?",
-      icon: "warning",
-      showConfirmButton: true,
-      confirmButtonText: 'Delete',
-      confirmButtonColor: '#d32f2f',
-      showCancelButton: true,
-      cancelButtonText: 'Cancel',
-    }).then(async (res) => {
-      if (res.isConfirmed) {
-        try {
-          const response = await axiosInstance.post('/deleteEvaluationForm', formData, { headers });
-          if (response.data.status === 200) {
-            Swal.fire({
-              text: "Evaluation form deleted successfully!",
-              icon: "success",
-              confirmButtonText: 'Proceed',
-              confirmButtonColor: '#177604',
-            }).then(() => {
-              setDeleteOpen(false);
-              navigate('/performance-evaluation');
-            });
-          }
-        } catch (error) {
-          console.error("Error while deleting form:", error);
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You want to delete this evaluation form?",
+    icon: "warning",
+    showConfirmButton: true,
+    confirmButtonText: 'Delete',
+    confirmButtonColor: '#d32f2f',
+    showCancelButton: true,
+    cancelButtonText: 'Cancel',
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      try {
+        const response = await axiosInstance.post('/deleteEvaluationForm', formData, { headers });
+        if (response.data.status === 200) {
+          setDeleteOpen(false); // <-- close dialog immediately
+          await Swal.fire({
+            text: "Evaluation form deleted successfully!",
+            icon: "success",
+            confirmButtonText: 'Proceed',
+            confirmButtonColor: '#177604',
+          });
+          navigate('/admin/performance-evaluation');
         }
+      } catch (error) {
+        console.error("Error while deleting form:", error);
       }
-    });
-  };
+    }
+  });
+};
 
   // Section modal
   const handleOpenAddSectionModal = () => setAddSectionOpen(true);
@@ -192,7 +192,7 @@ const PerformanceEvaluationFormPage = () => {
             position: 'absolute',
             top: 25,
             right: 30,
-            border: '1px solid #BEBEBE',
+            // border: '0px solid #BEBEBE',
             borderRadius: '50%',
             padding: '5px',
             color: '#BEBEBE',

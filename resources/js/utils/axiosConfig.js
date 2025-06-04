@@ -3,8 +3,10 @@ import axios from "axios";
 // LIVE MANPRO - unrbqdtuvg - cknevjydbm
 // const baseURL = "https://team.manpromanagement.com/api";
 
-// // STAGING MANPRO - anxrqwcazv
+// STAGING MANPRO - anxrqwcazv
 // const baseURL = "https://phplaravel-719501-5268927.cloudwaysapps.com/api";
+
+const baseURL = "http://192.168.79.75:8000/api";
 
 // LOCAL MANPRO
 // const baseURL = "http://localhost:8000/api";
