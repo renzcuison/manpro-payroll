@@ -128,7 +128,6 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     };
 
     return (
-        
         <Accordion
             expanded={expanded}
             onChange={onSectionClick}
@@ -200,7 +199,15 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     </Box>
                 )}
             </AccordionSummary>
-            <AccordionDetails sx={{ bgcolor: '#fff', mb: 2, mx: 2 , borderTop: 'none', borderRadius: '0 0 20px 20px', p: 3, pt: 4}}>
+            <AccordionDetails sx={{
+                bgcolor: '#fff',
+                borderRadius: '0 0 20px 20px',
+                mb: 2,
+                mx: 2,
+                borderTop: 'none',
+                p: 3,
+                pt: 4
+            }}>
                 <Paper
                     elevation={0}
                     sx={{
@@ -235,7 +242,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 InputLabelProps={{
                                     style: { color: '#eab31a' }
                                 }}
-                                sx={{ mb: 2, mx: 2, mt: 2}}
+                                sx={{ mb: 2, mx: 2, mt: 2 }}
                                 required
                             />
                         ) : (
@@ -348,7 +355,6 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                 onSave={handleSaveSubcategory}
             />
         </Accordion>
-        
     );
 };
 

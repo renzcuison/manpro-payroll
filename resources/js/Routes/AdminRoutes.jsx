@@ -45,6 +45,7 @@ import PerformanceEvaluationFormAddSection from "../Pages/Admin/PerformanceEvalu
 import PerformanceEvaluationFormSaveEvaluation from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormSaveEvaluation";
 import PerformanceEvaluationFormAddSubcategory from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddSubcategory";
 import PerformanceEvaluationFormPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationFormPage';  // Import the new page
+import PeEvalTest from '../Pages/Admin/PerformanceEvaluation/PeEvalTest';  // Import the new page
 
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
 import PerformanceEvaluationForm from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationForm";
@@ -142,6 +143,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
             <Route path="performance-evaluation/forms/:name" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
             <Route path="performance-evaluation/drag-and-drop-test" element={<ProtectedRoute element={<DragAndDropTest />} user={user} />} />
+            <Route path="performance-evaluation/evalTest" element={<ProtectedRoute element={<PeEvalTest />} user={user} />} />
 
             <Route path="documents" element={<ProtectedRoute element={<Documents />} user={user} />} />
 
