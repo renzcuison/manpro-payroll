@@ -200,9 +200,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     </Box>
                 )}
             </AccordionSummary>
-            <AccordionDetails sx={{ bgcolor: '#fff', borderRadius: 0, pt: 0, mb: 2, mx: 2 , borderTop: 'none',
-        borderRadius: '0 0 20px 20px',  p: 3,
-        pt: 4}}>
+            <AccordionDetails sx={{ bgcolor: '#fff', mb: 2, mx: 2 , borderTop: 'none', borderRadius: '0 0 20px 20px', p: 3, pt: 4}}>
                 <Paper
                     elevation={0}
                     sx={{

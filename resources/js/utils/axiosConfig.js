@@ -8,7 +8,7 @@ import axios from "axios";
 
 // LOCAL MANPRO
 const baseURL = "http://localhost:8000/api";
-// const baseURL = "http://192.168.79.20:8000/api";
+// const baseURL = "http://192.168.79.75:8000/api";
 
 console.log("Base URL: " + baseURL);
 

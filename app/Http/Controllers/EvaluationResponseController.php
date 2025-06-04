@@ -36,7 +36,10 @@ class EvaluationResponseController extends Controller
             secondary_commentor_id?: number,
             form_id?: number,
             period_start_at?: string,
-            period_end_at?: string
+            period_end_at?: string,
+            evaluator_comment?: string
+            primary_comment?: string,
+            secondary_comment?: string
         */
 
         // returns:
@@ -49,6 +52,9 @@ class EvaluationResponseController extends Controller
                 secondary_commentor_id, secondary_last_name, secondary_first_name, secondary_middle_name,
                 period_start_date,
                 period_end_date,
+                evaluator_comment,
+                primary_comment,
+                secondary_comment,
                 signature_filepath,
                 created_at, updated_at,
                 status,                 // returns 'pending' always for now
@@ -187,6 +193,13 @@ class EvaluationResponseController extends Controller
 
             if($request->form_id) $evaluationResponse->form_id = $request->form_id;
 
+            if($request->has('evaluator_comment'))
+                $evaluationResponse->evaluator_comment = $request->evaluator_comment;
+            if($request->has('primary_comment'))
+                $evaluationResponse->primary_comment = $request->primary_comment;
+            if($request->has('secondary_comment'))
+                $evaluationResponse->secondary_comment = $request->secondary_comment;
+
             $evaluationResponse->save();
             DB::commit();
 
@@ -226,6 +239,9 @@ class EvaluationResponseController extends Controller
                 ->selectRaw("date_format(evaluation_responses.period_end_at, '%b %d, %Y') as period_end_date")
                 ->addSelect(
                     'evaluation_responses.signature_filepath',
+                    'evaluation_responses.evaluator_comment',
+                    'evaluation_responses.primary_comment',
+                    'evaluation_responses.secondary_comment',
                     'evaluation_responses.created_at',
                     'evaluation_responses.updated_at',
                     DB::raw("'Pending' as status")
@@ -333,6 +349,9 @@ class EvaluationResponseController extends Controller
                 period_start_date,
                 period_end_date,
                 signature_filepath,
+                evaluator_comment,
+                primary_comment,
+                secondary_comment,
                 created_at, updated_at,
                 status,                 // returns 'pending' always for now
                 evaluationForm: {
@@ -402,6 +421,9 @@ class EvaluationResponseController extends Controller
                 ->selectRaw("date_format(evaluation_responses.period_end_at, '%b %d, %Y') as period_end_date")
                 ->addSelect(
                     'evaluation_responses.signature_filepath',
+                    'evaluation_responses.evaluator_comment',
+                    'evaluation_responses.primary_comment',
+                    'evaluation_responses.secondary_comment',
                     'evaluation_responses.created_at',
                     'evaluation_responses.updated_at',
                     DB::raw("'Pending' as status")
