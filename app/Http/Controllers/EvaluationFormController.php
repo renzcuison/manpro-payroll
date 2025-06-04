@@ -1418,29 +1418,31 @@ class EvaluationFormController extends Controller
 
             $newEvaluationFormSubcategory = \App\Models\EvaluationFormSubcategory::create($data);
 
-            // Handle options if provided
-            if ($request->options && is_array($request->options)) {
-                $labels = [];
-                foreach ($request->options as $optionOrder => $option) {
-                    $label = $option["label"] ?? null;
-                    if (!$label) {
-                        return response()->json([
-                            'status' => 400,
-                            'message' => 'Evaluation Form Subcategory Option Labels are required!'
+            // Only save options for multiple_choice and checkbox
+            if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox'])) {
+                if ($request->options && is_array($request->options)) {
+                    $labels = [];
+                    foreach ($request->options as $optionOrder => $option) {
+                        $label = $option["label"] ?? null;
+                        if (!$label) {
+                            return response()->json([
+                                'status' => 400,
+                                'message' => 'Evaluation Form Subcategory Option Labels are required!'
+                            ]);
+                        }
+                        if (in_array($label, $labels)) {
+                            return response()->json([
+                                'status' => 409,
+                                'message' => 'Evaluation Form Subcategory Option Labels must be unique!'
+                            ]);
+                        }
+                        $labels[] = $label;
+                        \App\Models\EvaluationFormSubcategoryOption::create([
+                            'subcategory_id' => $newEvaluationFormSubcategory->id,
+                            'label' => $label,
+                            'order' => $optionOrder
                         ]);
                     }
-                    if (in_array($label, $labels)) {
-                        return response()->json([
-                            'status' => 409,
-                            'message' => 'Evaluation Form Subcategory Option Labels must be unique!'
-                        ]);
-                    }
-                    $labels[] = $label;
-                    \App\Models\EvaluationFormSubcategoryOption::create([
-                        'subcategory_id' => $newEvaluationFormSubcategory->id,
-                        'label' => $label,
-                        'order' => $optionOrder
-                    ]);
                 }
             }
 
