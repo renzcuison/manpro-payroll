@@ -17,7 +17,7 @@ const EmployeeEducationBackground = ({education}) => {
                     <Grid container size={8}>
                         <Grid size={12}>
                             <Typography sx={{fontWeight:"bold", fontSize:16, alignItems:"center"}}>
-                                {item.degree_name}
+                                {item.program_name}
                             </Typography>
                         </Grid>
                         <Grid size={12}>
@@ -31,7 +31,7 @@ const EmployeeEducationBackground = ({education}) => {
                     <Grid container size={4}>  
                         <Grid size={12}>
                             <Typography sx={{fontWeight:"bold", fontSize:16, alignItems:"center"}}>
-                                {item.degree_type} 
+                                {item.education_level} 
                             </Typography>
                         </Grid> 
                         <Grid size={12}>
