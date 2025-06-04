@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Button, Menu, MenuItem, TextField, Grid, Avatar, CircularProgress, Chip, } from "@mui/material";
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, MenuItem, TextField, Grid, Avatar, CircularProgress, Chip, } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 
@@ -31,6 +31,9 @@ const ApplicationsList = () => {
     const [filterByStatus, setFilterByStatus] = useState("");
     const [filterByBranch, setFilterByBranch] = useState("");
     const [filterByDepartment, setFilterByDepartment] = useState("");
+
+    const [rangeStartDate, setRangeStartDate] = useState(null);
+    const [rangeEndDate, setRangeEndDate] = useState(null);
 
     // Application List
     useEffect(() => {
@@ -125,7 +128,10 @@ const ApplicationsList = () => {
         const matchedDepartment = filterByDepartment === "" || application.emp_department === filterByDepartment;
         const matchedStatus = filterByStatus === "" || application.app_status === filterByStatus;
 
-        return matchedName && matchedBranch && matchedDepartment && matchedStatus;
+        const appDate = dayjs(application.app_date_requested);
+        const matchedDateRange = (!rangeStartDate || !rangeEndDate) || (appDate.isSameOrAfter(rangeStartDate, 'day') && appDate.isSameOrBefore(rangeEndDate, 'day'));
+
+        return matchedName && matchedBranch && matchedDepartment && matchedStatus && matchedDateRange;
     });
 
     return (
@@ -144,8 +150,18 @@ const ApplicationsList = () => {
                                     <TextField sx={{ width: "100%" }} id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value) } />
                                 </Grid>
 
-                                <Grid size={4}></Grid>
+                                <Grid size={2}></Grid>
 
+                                <Grid size={2}>
+                                    <DateRangePicker 
+                                        label="Filter by Date of Applications"
+                                        onRangeChange={(start, end) => {
+                                            setRangeStartDate(start);
+                                            setRangeEndDate(end);
+                                        }}
+                                    />
+                                </Grid>
+                                
                                 <Grid size={2}>
                                     <TextField select id="column-view-select" sx={{ width: "100%" }} label="Filter by Branch" value={filterByBranch} onChange={(event) => { setFilterByBranch( event.target.value ) }}>
                                         <MenuItem value="">All Branches</MenuItem>
@@ -189,8 +205,8 @@ const ApplicationsList = () => {
                                                 <TableCell align="center"> Employee </TableCell>
                                                 <TableCell align="center"> Branch </TableCell>
                                                 <TableCell align="center"> Department </TableCell>
-                                                <TableCell align="center"> Date of Application </TableCell>
                                                 <TableCell align="center"> Application Type </TableCell>
+                                                <TableCell align="center"> Date of Application </TableCell>
                                                 <TableCell align="center"> Duration </TableCell>
                                                 <TableCell align="center"> Status </TableCell>
                                             </TableRow>

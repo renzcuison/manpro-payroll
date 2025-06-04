@@ -18,7 +18,7 @@ const ranges = [
     { label: "Custom Range", custom: true }
 ];
 
-export default function DateRangePicker({onRangeChange}) {
+export default function DateRangePicker({onRangeChange, label = "Select Date"}) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [startDate, setStartDate] = useState(dayjs());
     const [endDate, setEndDate] = useState(dayjs());
@@ -57,7 +57,7 @@ export default function DateRangePicker({onRangeChange}) {
 
     return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <TextField label="Select Date Requested" value={formatDisplay()} onClick={handleClick} fullWidth readOnly />
+        <TextField label={label} value={formatDisplay()} onClick={handleClick} fullWidth readOnly />
 
         <Menu
             anchorEl={anchorEl}
