@@ -17,6 +17,8 @@ import dayjs from "dayjs";
 import AttendanceViewDetails from "./Modals/AttendanceViewDetails";
 import AddAttendanceModal from './Modals/AddAttendanceModal';
 
+import DateRangePicker from '../../../components/DateRangePicker';
+
 const AttendanceView = () => {
     const { user } = useParams();
     const storedUser = localStorage.getItem("nasya_user");
@@ -31,6 +33,8 @@ const AttendanceView = () => {
     const [employeeList, setEmployeeList] = useState([]);
     const currentDate = dayjs().format("YYYY-MM-DD");
     const selectedEmployeeId = employeeList.find((emp) => emp.emp_user_name === user)?.emp_id || employee?.emp_id || "";
+    
+    
     const navigate = useNavigate();
 
     const getEmployeeList = () => {
@@ -54,6 +58,8 @@ const AttendanceView = () => {
             getEmployeeAttendance();
         }
     }, [employee, summaryFromDate, summaryToDate]);
+
+
 
     const [openAttendanceDetails, setOpenAttendanceDetails] = useState(null);
 
@@ -119,6 +125,9 @@ const AttendanceView = () => {
     };
 
     const getEmployeeAttendance = () => {
+
+        if (!summaryFromDate || !summaryToDate || !employee) return;
+
         setIsLoading(true);
         axiosInstance.get("/attendance/getEmployeeAttendanceSummary", { headers, params: { employee: employee?.emp_id || employee.id, summary_from_date: summaryFromDate.format("YYYY-MM-DD"), summary_to_date: summaryToDate.format("YYYY-MM-DD") } })
             .then((response) => {
@@ -138,37 +147,58 @@ const AttendanceView = () => {
         return hours > 0 ? `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `${minutes}m`;
     };
 
-    const setPredefinedDates = (range) => {
-        const today = dayjs();
-        switch (range) {
-            case "today":
-                setSummaryFromDate(today);
-                setSummaryToDate(today);
-                break;
-            case "yesterday":
-                setSummaryFromDate(today.subtract(1, "day"));
-                setSummaryToDate(today.subtract(1, "day"));
-                break;
-            case "last7days":
-                setSummaryFromDate(today.subtract(6, "day"));
-                setSummaryToDate(today);
-                break;
-            case "last30days":
-                setSummaryFromDate(today.subtract(29, "day"));
-                setSummaryToDate(today);
-                break;
-            case "thisMonth":
-                setSummaryFromDate(today.startOf("month"));
-                setSummaryToDate(today);
-                break;
-            case "lastMonth":
-                setSummaryFromDate(today.subtract(1, "month").startOf("month"));
-                setSummaryToDate(today.subtract(1, "month").endOf("month"));
-                break;
-            default:
-                break;
+    // const setPredefinedDates = (range) => {
+    //     const today = dayjs();
+    //     switch (range) {
+    //         case "today":
+    //             setSummaryFromDate(today);
+    //             setSummaryToDate(today);
+    //             break;
+    //         case "yesterday":
+    //             setSummaryFromDate(today.subtract(1, "day"));
+    //             setSummaryToDate(today.subtract(1, "day"));
+    //             break;
+    //         case "last7days":
+    //             setSummaryFromDate(today.subtract(6, "day"));
+    //             setSummaryToDate(today);
+    //             break;
+    //         case "last30days":
+    //             setSummaryFromDate(today.subtract(29, "day"));
+    //             setSummaryToDate(today);
+    //             break;
+    //         case "thisMonth":
+    //             setSummaryFromDate(today.startOf("month"));
+    //             setSummaryToDate(today);
+    //             break;
+    //         case "lastMonth":
+    //             setSummaryFromDate(today.subtract(1, "month").startOf("month"));
+    //             setSummaryToDate(today.subtract(1, "month").endOf("month"));
+    //             break;
+    //         default:
+    //             break;
+    //     }
+    //     setSelectedRange(range);
+    // };
+
+    // const handleDateRangeChange = (from, to) => {
+
+    //     console.log("Selected Date Range:", from?.format?.("YYYY-MM-DD"), "to", to?.format?.("YYYY-MM-DD"));
+
+    //     setSummaryFromDate(from);
+    //     setSummaryToDate(to);
+    // };
+
+    
+    const handleDateRangeChange = (start, end) => {
+        if (!start && !end) {
+            setSummaryFromDate(dayjs("1900-01-01"));
+            setSummaryToDate(dayjs());
+            setSelectedRange("all");
+        } else if (start && end) {
+            setSummaryFromDate(start);
+            setSummaryToDate(end);
+            setSelectedRange("custom");
         }
-        setSelectedRange(range);
     };
 
 
@@ -222,9 +252,9 @@ const AttendanceView = () => {
                                             </Select>
                                         </FormControl>
                                     </Box>
-                                    <Grid container direction="row" justifyContent="flex-end" spacing={2} sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
-                                        <Grid item xs={2}>
-                                            <FormControl fullWidth>
+                                    <Grid container direction="row" justifyContent="flex-end" spacing={2} sx={{ pb: 4}}>
+                                        {/* <Grid item xs={2}>
+                                            {/* <FormControl fullWidth>
                                                 <InputLabel id="date-range-select-label">Date Range</InputLabel>
                                                 <Select
                                                     labelId="date-range-select-label"
@@ -241,10 +271,11 @@ const AttendanceView = () => {
                                                     <MenuItem value="lastMonth">Last Month</MenuItem>
                                                     <MenuItem value="custom">Custom Range</MenuItem>
                                                 </Select>
-                                            </FormControl>
-                                        </Grid>
+                                            </FormControl> 
+                                        </Grid> */}
                                         <Grid item xs={4}>
-                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <DateRangePicker selectedRange={selectedRange} onRangeChange={handleDateRangeChange} />
+                                            {/* <LocalizationProvider dateAdapter={AdapterDayjs}>
                                                 <DatePicker
                                                     label="From Date"
                                                     value={summaryFromDate}
@@ -269,7 +300,7 @@ const AttendanceView = () => {
                                                     renderInput={(params) => <TextField {...params} />}
                                                     sx={{ mr: 2, width: '150px' }}
                                                 />
-                                            </LocalizationProvider>
+                                            </LocalizationProvider> */}
                                         </Grid>
                                     </Grid>
                                 </Box>
