@@ -410,10 +410,10 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
                                     
-                                    {/* <StyledNav to={`/admin/department/departmentlist`}> */}
-                                        {/* <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i> */}
-                                        {/* <span id="navName" className="sidebar-mini-hide">Departments</span> */}
-                                    {/* </StyledNav> */}
+                                    <StyledNav to={`/admin/department/departmentlist`}>
+                                        <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide">Departments</span>
+                                    </StyledNav>
 
                                     <StyledNav to={`/admin/branches/branchlist`}>
                                         <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i> 
@@ -438,11 +438,6 @@ const Sidebar = ({ children, closeMini }) => {
                                     <StyledNav to={`/admin/schedules`}>
                                         <i className="fa fa-calendar" style={{ color: "#2a800f" }} ></i>
                                         <span id="navName" className="sidebar-mini-hide"> Schedules & Holidays </span>
-                                    </StyledNav>
-
-                                    <StyledNav to={`/admin/department/departmentlist`}>
-                                        <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide">Departments</span>
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/perimeters`}>

@@ -5,6 +5,10 @@ import axiosInstance, { getJWTHeader }  from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 import { SearchIcon } from "lucide-react";
 import { set } from "lodash";
+import PositionAddMiniModal from './PositionAddMiniModal';
+import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+
 
 const DepartmentAssignPosition = ({open, onClose, departmentId}) =>{
     const storedUser = localStorage.getItem("nasya_user");
@@ -17,8 +21,16 @@ const DepartmentAssignPosition = ({open, onClose, departmentId}) =>{
     const [employeeIdsToAdd, setEmployeeIdsToAdd] = useState([]); //for employees to be added to that specific position
     const [employeeIdsToRemove, setEmployeeIdsToRemove] = useState([]); //for removing employees currently assigned in that position
     const [assignedEmployees, setAssignedEmployees] = useState([]); //employees that are (HOPEFULLY) assigned
-    const [unassignedEmployees, setUnassignedEmployees] = useState([]); //employees belonging to this department but not assigned yet
-    
+    const [unassignedEmployees, setUnassignedEmployees] = useState([]); //employees belonging to this department but not assigned yet, or those w/o a department yet
+    const [newPosition, setNewPosition] = useState({
+        name: "",
+        can_review_request: false,
+        can_approve_request: false,
+        can_note_request: false,
+        can_accept_request: false
+    });
+    const [openAddModal, setOpenAddModal] = useState(false); //opening the position add modal
+
     //just wanting to make a more dynamic button and alert messages without cluttering the component
     const getButtonLabel = () => {
         if (tabIndex === 0) {
@@ -35,20 +47,17 @@ const DepartmentAssignPosition = ({open, onClose, departmentId}) =>{
         }
     }
 
-    //fetching data
+    //[1] -- fetching data
     useEffect(() => {
         getAssignedEmployeesByDepartment();
         getDepartmentPosition();
     }, []);
-
-
     const refreshModal = () => {
         setEmployeeIdsToAdd([]);
         setEmployeeIdsToRemove([]);
         getAssignedEmployeesByDepartment();
         getDepartmentPosition();
     }
-
     const getAssignedEmployeesByDepartment = () => {
         axiosInstance.get(`/settings/getEmployeesByDepartment/${departmentId}`, {headers})
         .then((response) => {
@@ -76,11 +85,77 @@ const DepartmentAssignPosition = ({open, onClose, departmentId}) =>{
                 setPositions([]);
             });
     }
+    //[End of 1]
+
+    //[2] --for new position adding handlers
+    const addNewPosition = () => {
+        if (!newPosition.name) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Position name is required!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+        Swal.fire({
+            customClass: { container: 'my-swal' },
+            title: "Are you sure?",
+            text: "This position will be added",
+            icon: "warning",
+            showConfirmButton: true,
+            showCancelButton:true,
+            confirmButtonText: "Confirm",
+            cancelButtonText: "Cancel",
+            confirmButtonColor: '#177604',
+        }).then((res) => {
+            if(res.isConfirmed){
+                axiosInstance.post('/settings/saveDepartmentPositions', newPosition, { headers })
+                .then(response => {
+                    if (response.data.status === 200) {
+                        setPositions(prev => [...prev, response.data.positions]);
+                        setNewPosition({
+                            name: "",
+                            can_review_request: false,
+                            can_approve_request: false,
+                            can_note_request: false,
+                            can_accept_request: false
+                        });
+                        Swal.fire({
+                            customClass: { container: 'my-swal' },
+                            text: "Position added successfully!",
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#177604',
+                        }).then(() =>{
+                            setOpenAddModal(false);
+                        });
+                        
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding position:', error);
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Error adding position!",
+                        icon: "error",
+                        showConfirmButton: true,
+                        confirmButtonColor: '#177604',
+                    });
+                });
+            }
+        });
+    }
+    //[End of 2]
+    
+    //[3] -- Employee Helper Functions
     const getEmployeeName = () => {
         const employee = tabIndex === 0 ? unassignedEmployees.find(e => e.id): assignedEmployees.find(e => e.id);
         return employee ? `${employee.first_name} ${employee.last_name}` : '';
     };
-    //render employee avatars
+
     const renderAvatar = (employee) => {
         if (employee.avatar) {
           return (
@@ -96,7 +171,8 @@ const DepartmentAssignPosition = ({open, onClose, departmentId}) =>{
             {employee.last_name?.charAt(0)}
           </Avatar>
         );
-      };
+    };
+    //[End of 3]
 
     //adds employee id into these useStates (dependent on tabIndex), else removes them upon unchecking
     const handleEmployeeToggle = (employee_id) => {
@@ -124,8 +200,16 @@ const DepartmentAssignPosition = ({open, onClose, departmentId}) =>{
 
     //changes the id of the selected position
     const handlePositionChange = (event) => {
-        setSelectedPositionId(event.target.value);
+        const value = event.target.value
         setEmployeeIdsToRemove([]);
+
+        if(value === 'add_new'){
+            setOpenAddModal(true)
+            setSelectedPositionId('')
+        }
+        else{
+            setSelectedPositionId(value);
+        }
     }
 
     //handle switching tabs
@@ -268,6 +352,49 @@ const DepartmentAssignPosition = ({open, onClose, departmentId}) =>{
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={handleSave} noValidate autoComplete="off" encType="multipart/form-data" >
                         {/*Position Selection Section*/}
+
+                        {openAddModal ? (
+                            <Box
+                                display="flex" flexDirection='column' alignItems="center" justifyContent="space-between" minHeight={80}
+                                sx={{ border: '1px solid #ccc',  borderRadius: 2, p: 2, width: '100%' }}
+                            >
+                                <Box width='100%'
+                                sx={{
+                                    flexGrow: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                }}
+                                >
+                                    <PositionAddMiniModal
+                                        newPosition={newPosition}
+                                        setNewPosition={setNewPosition}
+                                        addNewPosition={addNewPosition}
+                                        disableSaveButton={true}
+                                    />
+                                </Box>
+                            
+                                <Box display='flex' justifyContent='center' gap={2} sx={{mt:2}}>
+                                    <Button
+                                        variant="contained"
+                                        onClick={addNewPosition}
+                                        sx={{ backgroundColor: "#177604", color: "white" }}
+                                    >
+                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i>
+                                        Add
+                                        </p>    
+                                    </Button>
+
+                                    <Button
+                                        variant="contained"
+                                        onClick={() => setOpenAddModal(false)}
+                                        sx={{ backgroundColor: "#A6A6A6", color: "white" }}
+                                    >   
+                                        <p className='m-0'><i className="si si-close"></i> Cancel </p>
+                                    </Button>
+                                </Box>
+                          </Box>
+
+                        ):(
                         <FormControl fullWidth>
                             <TextField
                                 label="Select Position"
@@ -284,8 +411,13 @@ const DepartmentAssignPosition = ({open, onClose, departmentId}) =>{
                                         {pos.name}
                                     </MenuItem>
                                 ))}
+                                <MenuItem value= 'add_new' sx={{color:'green', my: 2}}>
+                                    <AddCircleOutlineOutlinedIcon sx={{mr:2}}/>
+                                    <Typography>Add a New Position</Typography>
+                                </MenuItem>
                             </TextField>
                         </FormControl>
+                        )}
 
                         <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 3, mb:1}}>
                             <Tabs value={tabIndex} onChange={handleTabChanges} aria-label="assignment tabs">

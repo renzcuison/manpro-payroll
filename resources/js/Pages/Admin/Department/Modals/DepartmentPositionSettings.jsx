@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {Table,TableHead,TableBody,TableCell,TableContainer,TableRow,Box,Typography,Button,TextField,Grid,Checkbox,Dialog,DialogTitle,DialogContent,IconButton,} from "@mui/material";
 import axiosInstance, { getJWTHeader }  from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
+import PositionAddMiniModal from "./PositionAddMiniModal";
 
 const DepartmentPositionSettings = ({open, close}) => {
 
@@ -9,6 +10,7 @@ const DepartmentPositionSettings = ({open, close}) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [positions, setPositions] = useState([]);
+
     const [newPosition, setNewPosition] = useState({
         name: "",
         can_review_request: false,
@@ -147,7 +149,7 @@ const DepartmentPositionSettings = ({open, close}) => {
                         <Typography variant="h6" sx={{ mb: 3 }}>Existing Positions</Typography>
                         
                         <TableContainer>
-                            <Table>
+                            <Table stickyHeader>
                                 <TableHead>
                                     <TableRow>
                                         <TableCell sx={{ fontWeight: 'bold' }}>Position Name</TableCell>
@@ -211,64 +213,9 @@ const DepartmentPositionSettings = ({open, close}) => {
                             </Table>
                         </TableContainer>
 
-                        <Typography variant="h6" sx={{ mt: 5, mb: 3 }}>Add New Position</Typography>
-                        <Box component="form" sx={{ mb: 3 }}>
-                            <Grid container spacing={2} alignItems="center">
-                                <Grid item xs={12} md={3}>
-                                    <TextField
-                                        fullWidth
-                                        label="Position Name"
-                                        value={newPosition.name}
-                                        onChange={(e) => setNewPosition({...newPosition, name: e.target.value})}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={2}>
-                                    <Box display="flex" alignItems="center" height="100%">
-                                        <Checkbox
-                                            checked={newPosition.can_review_request}
-                                            onChange={(e) => setNewPosition({...newPosition, can_review_request: e.target.checked})}
-                                        />
-                                        <Typography>Can Review</Typography>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={12} md={2}>
-                                    <Box display="flex" alignItems="center" height="100%">
-                                        <Checkbox
-                                            checked={newPosition.can_approve_request}
-                                            onChange={(e) => setNewPosition({...newPosition, can_approve_request: e.target.checked})}
-                                        />
-                                        <Typography>Can Approve</Typography>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={12} md={2}>
-                                    <Box display="flex" alignItems="center" height="100%">
-                                        <Checkbox
-                                            checked={newPosition.can_note_request}
-                                            onChange={(e) => setNewPosition({...newPosition, can_note_request: e.target.checked})}
-                                        />
-                                        <Typography>Can Note</Typography>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={12} md={2}>
-                                    <Box display="flex" alignItems="center" height="100%">
-                                        <Checkbox
-                                            checked={newPosition.can_accept_request}
-                                            onChange={(e) => setNewPosition({...newPosition, can_accept_request: e.target.checked})}
-                                        />
-                                        <Typography>Can Accept</Typography>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={12} md={2}>
-                                    <Button 
-                                        variant="contained" 
-                                        onClick={addNewPosition}
-                                        sx={{ backgroundColor: '#177604', color: 'white' }}
-                                    >
-                                        Add
-                                    </Button>
-                                </Grid>
-                            </Grid>
-                        </Box>
+                        <Typography variant="h6" sx={{ mt: 5, mb: 3 }}>Add New Position</Typography>    
+                        <PositionAddMiniModal newPosition={newPosition} setNewPosition={setNewPosition} addNewPosition={addNewPosition} disableSaveButton={false}>
+                        </PositionAddMiniModal>
                     </Box>
                 </DialogContent>
             </Dialog>
