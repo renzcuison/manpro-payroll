@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import {
     Box,
     Typography,
@@ -16,14 +15,15 @@ import Swal from 'sweetalert2';
 import { useEvaluationForm } from '../../../hooks/useEvaluationForm';
 import CloseIcon from '@mui/icons-material/Close'; 
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams();
-    const { creatorName, createdDate, formId, loading, notFound, sections, saveSection } =
-        useEvaluationForm({ name: formName })
-    ;
+    const {
+        creatorName, createdDate, formId, loading, notFound, sections,
+        moveSection, saveSection
+    } = useEvaluationForm({ name: formName });
     const navigate = useNavigate();
 
-    // Section modal state
     const [addSectionOpen, setAddSectionOpen] = useState(false);
 
     const handleSettings = () => {
@@ -55,7 +55,7 @@ const PerformanceEvaluationFormPage = () => {
     return (
         <Layout title="Performance Evaluation Form">
             <Box sx={{ mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative', maxWidth: '1000px', mx: 'auto', boxShadow: 3 }}>
-<               IconButton
+                <IconButton
                     onClick={() => navigate(-1)}
                     sx={{
                         position: 'absolute',

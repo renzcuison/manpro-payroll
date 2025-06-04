@@ -12,6 +12,7 @@ export function useEvaluationForm(form) {
     const [createdDate, setCreatedDate] = useState();  
     const [loading, setLoading] = useState(true);
     const [sections, setSections] = useState([]);
+    const [dragging, setDragging] = useState(false);
     const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
@@ -52,6 +53,10 @@ export function useEvaluationForm(form) {
         ;
     }
 
+    function moveSection(sectionId, order) {
+        
+    }
+
     function saveSection(section) {
         axiosInstance
             .post('/saveEvaluationFormSection', {
@@ -74,9 +79,14 @@ export function useEvaluationForm(form) {
         ;
     }
 
+    function toggleDragging() {
+        setDragging(!dragging);
+    }
+
     return {
-        creatorName, createdDate, formId, formName, loading, notFound, sections,
-        saveSection
+        creatorName, createdDate, dragging, formId, formName, loading, notFound,
+        sections,
+        moveSection, saveSection, toggleDragging
     };
 
 }

@@ -811,6 +811,8 @@ class EvaluationFormController extends Controller
             return response()->json([ 
                 'status' => 200,
                 'evaluationFormSection' => $evaluationFormSection,
+                'oldOrder' => $oldOrder,
+                'newOrder' => $newOrder,
                 'message' => 'Evaluation Form Section successfully moved'
             ]);
 
@@ -1211,6 +1213,8 @@ class EvaluationFormController extends Controller
             return response()->json([ 
                 'status' => 200,
                 'evaluationFormSubcategory' => $evaluationFormSubcategory,
+                'oldOrder' => $oldOrder,
+                'newOrder' => $newOrder,
                 'message' => 'Evaluation Form Subcategory successfully moved'
             ]);
 
@@ -1492,6 +1496,7 @@ class EvaluationFormController extends Controller
     //         throw $e;
     //     }
     // }
+    
     public function saveEvaluationFormSubcategory(Request $request)
     {
         Log::info('EvaluationFormController::saveEvaluationFormSubcategory');
@@ -1925,6 +1930,8 @@ class EvaluationFormController extends Controller
             return response()->json([ 
                 'status' => 200,
                 'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption,
+                'oldOrder' => $oldOrder,
+                'newOrder' => $newOrder,
                 'message' => 'Evaluation Form Subcategory Option successfully moved'
             ]);
 

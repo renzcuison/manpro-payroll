@@ -1,10 +1,22 @@
 import {
-    DndContext, DragOverlay, useDraggable, useDroppable
-} from "@dnd-kit/core";
-import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from "@dnd-kit/modifiers";
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import {
+    DndContext, 
+    closestCenter,
+    KeyboardSensor,
+    MouseSensor,
+    TouchSensor,
+    useDraggable,
+    useDroppable,
+    useSensor,
+    useSensors
+} from '@dnd-kit/core';
+import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { useSortable } from '@dnd-kit/sortable';
 import { useState } from "react";
-
-
 
 function Droppable(props) {
     const {isOver, setNodeRef} = useDroppable({
@@ -43,7 +55,95 @@ function Draggable(props) {
     return <div ref={setNodeRef} style={style} {...listeners} {...attributes}>{props.children}{props.indexActive}</div>
 }
 
+function Sortable(props) {
+    const {
+        attributes, listeners, transform, transition,
+        setNodeRef
+    } = useSortable({
+        id: props.id,
+        data: { order: props.order }
+    });
+    const { x = 0, y = 0, scaleX = 1, scaleY = 1 } = transform ?? {};
+    const style = {
+        transform: `translate(${ x }px, ${ y }px) scale(${ scaleX }, ${ scaleY })`,
+        transition
+    };
+    return (
+        <div ref={ setNodeRef } style={ style } { ...attributes } { ...listeners }>
+            { props.children }
+        </div>
+    );
+
+}
+
 export default function DragAndDropTest() {
+    const style={
+        display: 'block',
+        width: '500px',
+        height: '50px',
+        background: 'pink',
+        margin: '10px 0'
+    }
+    const [items, setItems] = useState([
+        { id: '1_1', content: <div style={{color:'red',...style}}>A</div>, order: 1 },
+        { id: '1_2', content: <div style={{color:'green',...style}}>B</div>, order: 2 },
+        { id: '1_3', content: <div style={{color:'blue',...style}}>C</div>, order:3 }
+    ]);
+    const [dragging, setDragging] = useState(false);
+    const sensors = useSensors(
+        useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
+        useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    );
+
+    function handleDragEnd(event) {
+        setDragging(false);
+        if(!event.active || !event.over) return;
+        const {
+            active: { data: { current: { order: orderActive } } },
+            over: { data: { current: { order: orderOver } } },
+        } = event;
+        if( orderActive === orderOver ) return;
+        const moveUp = orderActive < orderOver;
+        for(
+            let order = moveUp ? orderActive + 1 : orderActive - 1;
+            moveUp ? (order <= orderOver) : (order >= orderOver);
+            order += (moveUp ? 1 : -1) * 1
+        ) {
+            const item = items[order - 1];
+            item.order = order + (moveUp ? -1 : 1);
+        }
+        const removed = items.splice(orderActive - 1, 1)[0];
+        removed.order = orderOver;
+        items.splice(orderOver - 1, 0, removed);
+        setItems([...items]);
+    }
+
+    function handleDragStart() {
+        setDragging(true);
+    }
+
+    return <DndContext
+        sensors={ sensors }
+        collisionDetection={ closestCenter }
+        onDragStart={ handleDragStart }
+        onDragEnd={ handleDragEnd }
+        modifiers={[restrictToFirstScrollableAncestor, restrictToVerticalAxis]}
+    ><SortableContext items={ items } strategy={ verticalListSortingStrategy }>
+        <div style={{
+            background:'yellow',height:'500px',width:'500px',display:'block',overflow:'auto',
+            cursor: dragging ? 'move' : undefined
+        }}>{
+            items.map(({ id, content, order}) =>
+                <Sortable key={id} id={id} order={order}>
+                    { content }
+                </Sortable>
+            )
+        }</div>
+    </SortableContext></DndContext>;
+}
+
+function DragAndDropTestOld() {
     const [data, setData] = useState([
         {order:1, value:"a"}, {order:2, value:"b"}, {order:3, value:"c"}
     ]);
