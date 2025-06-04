@@ -12,6 +12,7 @@ export function useEvaluationForm(form) {
     const [createdDate, setCreatedDate] = useState();  
     const [loading, setLoading] = useState(true);
     const [sections, setSections] = useState([]);
+    const [dragging, setDragging] = useState(false);
     const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
@@ -52,6 +53,30 @@ export function useEvaluationForm(form) {
         ;
     }
 
+    function moveSection(oldOrder, newOrder) {
+        if(oldOrder === newOrder) return;
+        axiosInstance
+            .post('/moveEvaluationFormSection', {
+                id: sections[oldOrder - 1].id,
+                order: newOrder
+            }, { headers })
+            .catch(error => {
+                console.error('Error moving section: ', error);
+                setSections([...sections]);
+            })
+        ;
+        const moveUp = oldOrder < newOrder;
+        for(
+            let order = moveUp ? oldOrder + 1 : oldOrder - 1;
+            moveUp ? (order <= newOrder) : (order >= newOrder);
+            order += (moveUp ? 1 : -1) * 1
+        ) sections[order - 1].order = order + (moveUp ? -1 : 1);
+        const removed = sections.splice(oldOrder - 1, 1)[0];
+        removed.order = newOrder;
+        sections.splice(newOrder - 1, 0, removed);
+        setSections([...sections]);
+    }
+
     function saveSection(section) {
         axiosInstance
             .post('/saveEvaluationFormSection', {
@@ -74,9 +99,14 @@ export function useEvaluationForm(form) {
         ;
     }
 
+    function toggleDragging() {
+        setDragging(!dragging);
+    }
+
     return {
-        creatorName, createdDate, formId, formName, loading, notFound, sections,
-        saveSection
+        creatorName, createdDate, dragging, formId, formName, loading, notFound,
+        sections,
+        moveSection, saveSection, toggleDragging
     };
 
 }

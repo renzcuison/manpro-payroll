@@ -17,7 +17,7 @@ import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
 
-const PerformanceEvaluationFormSection = ({ section }) => {
+const PerformanceEvaluationFormSection = ({ section, dragging }) => {
     const {
         sectionId,
         sectionName, setSectionName,
@@ -229,7 +229,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     <Box
                         sx={{
                             width: "100%",
-                            cursor: "pointer",
+                            cursor: dragging ? 'move' : 'pointer',
                             fontWeight: "bold",
                             fontSize: 20,
                             color: 'white',
