@@ -54,7 +54,20 @@ export function useEvaluationForm(form) {
     }
 
     function moveSection(sectionId, order) {
-        
+        axiosInstance
+            .post(`/moveEvaluationFormSection`, {
+                headers, params: { id: sectionId, order }
+            })
+            .then((response) => {
+                const { evaluationFormSection } = response.data;
+                if(!evaluationFormSection) return;
+                
+                setSections([...sections, evaluationFormSection]);
+            })
+            .catch(error => {
+                console.error('Error fetching section data:', error);
+            })
+        ;
     }
 
     function saveSection(section) {
