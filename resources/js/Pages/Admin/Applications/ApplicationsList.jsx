@@ -11,14 +11,16 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
+import { useApplications } from "./hooks/useApplications";
+
 import ApplicationManage from "./Modals/ApplicationManage";
 
 const ApplicationsList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [applications, setApplications] = useState([]);
+    const { data, isLoading, error, refetch } = useApplications();
+    const applications = data?.applications || [];
 
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -29,8 +31,6 @@ const ApplicationsList = () => {
 
     // Application List
     useEffect(() => {
-        fetchApplications();
-
         axiosInstance.get("/settings/getDepartments", { headers })
             .then((response) => {
                 const fetchedDepartments = response.data.departments;
@@ -47,20 +47,6 @@ const ApplicationsList = () => {
                 console.error("Error fetching branches:", error);
             });
     }, []);
-
-    const fetchApplications = () => {
-        axiosInstance.get("/applications/getApplications", { headers })
-            .then((response) => {
-                const applicationData = response.data.applications;
-                setApplications(applicationData);
-                getAvatars(applicationData);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching applications:", error);
-                setIsLoading(false);
-            });
-    };
 
     // Application Details
     const [openApplicationManage, setOpenApplicationManage] = useState(null);

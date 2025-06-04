@@ -3,7 +3,7 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
-export function useEmployees() {
+export function useApplications() {
     return useQuery(["applications"], async () => {
         const { data } = await axiosInstance.get("/applications/getApplications", {
             headers,
