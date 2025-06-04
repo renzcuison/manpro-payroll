@@ -148,16 +148,6 @@ const ApplicationsList = () => {
                                 </Grid>
 
                                 <Grid size={2}></Grid>
-
-                                <Grid size={2}>
-                                    <DateRangePicker 
-                                        label="Filter by Date of Applications"
-                                        onRangeChange={(start, end) => {
-                                            setRangeStartDate(start);
-                                            setRangeEndDate(end);
-                                        }}
-                                    />
-                                </Grid>
                                 
                                 <Grid size={2}>
                                     <TextField select id="column-view-select" sx={{ width: "100%" }} label="Filter by Branch" value={filterByBranch} onChange={(event) => { setFilterByBranch( event.target.value ) }}>
@@ -185,6 +175,16 @@ const ApplicationsList = () => {
                                         <MenuItem value="Declined">Declined</MenuItem>
                                         <MenuItem value="Cancelled">Cancelled</MenuItem>
                                     </TextField>
+                                </Grid>
+
+                                <Grid size={2}>
+                                    <DateRangePicker 
+                                        label="Filter by Date of Applications"
+                                        onRangeChange={(start, end) => {
+                                            setRangeStartDate(start);
+                                            setRangeEndDate(end);
+                                        }}
+                                    />
                                 </Grid>
                             </Grid>
                         </Grid>

@@ -38,7 +38,7 @@ const OvertimeAppsList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [overtimes, setOvertimes] = useState([]);
     const [order, setOrder] = useState("asc");
-    const [orderBy, setOrderBy] = useState("emp_name");
+    const [orderBy, setOrderBy] = useState("date");
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [openViewOvertime, setOpenViewOvertime] = useState(false);
@@ -160,16 +160,6 @@ const OvertimeAppsList = () => {
                                 </Grid>
 
                                 <Grid size={2}></Grid>
-
-                                <Grid size={2}>
-                                    <DateRangePicker 
-                                        label="Filter by Date of Applications"
-                                        onRangeChange={(start, end) => {
-                                            setRangeStartDate(start);
-                                            setRangeEndDate(end);
-                                        }}
-                                    />
-                                </Grid>
                                 
                                 <Grid size={2}>
                                     <TextField select id="column-view-select" sx={{ width: "100%" }} label="Filter by Branch" value={filterByBranch} onChange={(event) => { setFilterByBranch( event.target.value ) }}>
@@ -198,6 +188,16 @@ const OvertimeAppsList = () => {
                                         <MenuItem value="Declined">Declined</MenuItem>
                                         <MenuItem value="Cancelled">Cancelled</MenuItem>
                                     </TextField>
+                                </Grid>
+
+                                <Grid size={2}>
+                                    <DateRangePicker 
+                                        label="Filter by Date of Applications"
+                                        onRangeChange={(start, end) => {
+                                            setRangeStartDate(start);
+                                            setRangeEndDate(end);
+                                        }}
+                                    />
                                 </Grid>
 
                             </Grid>
@@ -232,7 +232,9 @@ const OvertimeAppsList = () => {
                                                             <TableCell>{overtime.emp_name}</TableCell>
                                                             <TableCell sx={{ textAlign: "center" }}>{overtime.emp_branch}</TableCell>
                                                             <TableCell sx={{ textAlign: "center" }}>{overtime.emp_department}</TableCell>
-                                                            <TableCell sx={{ textAlign: "center" }}>{overtime.reason}</TableCell>
+                                                            <TableCell sx={{ textAlign: "center", maxWidth: "200px", overflow: "hidden",  textOverflow: "ellipsis",  whiteSpace: "nowrap" }}>
+                                                                {overtime.reason.length > 100 ? `${overtime.reason.slice(0, 100)}...` : overtime.reason}
+                                                            </TableCell>
                                                             <TableCell sx={{ textAlign: "center" }}>{dayjs(overtime.time_in).format("MMMM D, YYYY")}</TableCell>
                                                             <TableCell sx={{ textAlign: "center" }}>
                                                                 {dayjs(overtime.time_in).format("hh:mm:ss A")} - {dayjs(overtime.time_out).format("hh:mm:ss A")}
