@@ -37,8 +37,10 @@ import MainSection from "./MainSection";
 import SchedulesHolidays from "./SchedulesHolidays";
 import { useDashboard } from "./useDashboard";
 import { useMilestones } from "../Milestones/hook/useMilestones";
+import { useUser } from "../../../hooks/useUser";
 
 const Dashboard = () => {
+    const { user, isFetched: userIsFetched } = useUser();
     const { data, isFetched } = useUsers();
     const {
         data: dashboard,
@@ -46,10 +48,12 @@ const Dashboard = () => {
         isLoading,
     } = useDashboard();
 
-    console.log(dashboard);
+    console.log("Dashboard: ", dashboard);
 
-    // const { data: milestones, isLoading: isLoadingMilestones } =
-    //     useMilestones();
+    const { data: milestones, isLoading: isLoadingMilestones } =
+        useMilestones();
+
+    console.log("User:", user);
 
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
@@ -227,7 +231,7 @@ const Dashboard = () => {
             <Grid container spacing={3} sx={{ mb: 5 }}>
                 {/* MAIN DASHBOARD CARD */}
                 <Grid size={{ xs: 12, lg: 9 }}>
-                    {!isLoading ? (
+                    {!isLoading && userIsFetched ? (
                         <MainSection
                             infoCardsData={infoCardsData}
                             latestEmployees={latestEmployees}
@@ -235,6 +239,7 @@ const Dashboard = () => {
                             departments={departments}
                             branches={branches}
                             dashboardData={dashboard}
+                            user={user}
                         />
                     ) : (
                         <Stack spacing={3}>
