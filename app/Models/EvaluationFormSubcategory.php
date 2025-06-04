@@ -23,6 +23,8 @@ class EvaluationFormSubcategory extends Model
         'allow_other_option',
         'linear_scale_start',
         'linear_scale_end',
+        'linear_scale_start_label',
+        'linear_scale_end_label', 
         'deleted_at'
     ];
 
