@@ -317,9 +317,9 @@ const PerformanceEvaluationFormPage = () => {
                             onDragStart={ toggleDragging }
                             onDragEnd={ handleDragEnd }
                             modifiers={[restrictToFirstScrollableAncestor, restrictToVerticalAxis]}
-                        ><SortableContext items={ sections.map(section=>({ ...section, id: 'section'+section.id })) } strategy={ verticalListSortingStrategy }>
+                        ><SortableContext items={ sections.map(section=>({ ...section, id: 'section_'+section.id })) } strategy={ verticalListSortingStrategy }>
                             <Box sx={{ mt: 2, overflow: 'auto' }}>
-                                {sections.map((section) => <Sortable key={section.id} id={'section'+section.id} order={section.order}>
+                                {sections.map((section) => <Sortable key={section.id} id={'section_'+section.id} order={section.order}>
                                     <PerformanceEvaluationFormSection section={section} dragging={dragging}/>
                                 </Sortable>)}
                             </Box>

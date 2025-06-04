@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 
 export default function Sortable(props) {
