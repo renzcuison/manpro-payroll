@@ -192,6 +192,30 @@ export function useEvaluationFormSubcategory(subcategory) {
             })
     }
 
+    function moveOption(oldOrder, newOrder) {
+        if(oldOrder === newOrder) return;
+        axiosInstance
+            .post('/moveEvaluationFormSubcategoryOption', {
+                id: options[oldOrder - 1].id,
+                order: newOrder
+            }, { headers })
+            .catch(error => {
+                console.error('Error moving subcategory option: ', error);
+                setOptions([...options]);
+            })
+        ;
+        const moveUp = oldOrder < newOrder;
+        for(
+            let order = moveUp ? oldOrder + 1 : oldOrder - 1;
+            moveUp ? (order <= newOrder) : (order >= newOrder);
+            order += (moveUp ? 1 : -1) * 1
+        ) options[order - 1].order = order + (moveUp ? -1 : 1);
+        const removed = options.splice(oldOrder - 1, 1)[0];
+        removed.order = newOrder;
+        options.splice(newOrder - 1, 0, removed);
+        setOptions([...options]);
+    }
+
     function saveOption(label) {
         if(isNew)
             setOptions([ ...options, { label } ]);
@@ -226,7 +250,7 @@ export function useEvaluationFormSubcategory(subcategory) {
         ;
     }
 
-    let returnData = {
+    return {
         subcategory: {
             id: subcategoryId,
             section_id: sectionId,
@@ -240,7 +264,7 @@ export function useEvaluationFormSubcategory(subcategory) {
             linear_scale_start_label: linearScaleStartLabel,
             linear_scale_end_label: linearScaleEndLabel,
             options
-        },
+        }, editSubcategory, saveSubcategory,
         subcategoryId,
         subcategoryName, setSubcategoryName,
         responseType: getSubcategorySelectValue(subcategoryType), switchResponseType,
@@ -252,13 +276,7 @@ export function useEvaluationFormSubcategory(subcategory) {
         linearScaleStartLabel, setLinearScaleStartLabel,
         linearScaleEndLabel, setLinearScaleEndLabel,
         order,
-        options, deleteOption, editOption, saveOption
+        options, deleteOption, editOption, moveOption, saveOption
     };
-    if(isNew)
-        returnData = { ...returnData, saveSubcategory };
-    else
-        returnData = { ...returnData, editSubcategory };
-
-    return returnData;
 
 }

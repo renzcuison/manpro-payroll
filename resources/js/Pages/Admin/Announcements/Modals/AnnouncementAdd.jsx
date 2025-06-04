@@ -616,7 +616,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                             }}
                                         >
                                             <Typography noWrap>
-                                                Documents
+                                                Documents (Optional)
                                             </Typography>
                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                 <input
