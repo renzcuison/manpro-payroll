@@ -264,7 +264,7 @@ class LoanApplicationsController extends Controller
                     LoanApplicationFilesModel::create([
                         'loan_application_id' => $loan->id,
                         'type' => 'Image',
-                        'path' => $filePath,
+                        'path' => $filePath, 
                     ]);
                 }
             }
