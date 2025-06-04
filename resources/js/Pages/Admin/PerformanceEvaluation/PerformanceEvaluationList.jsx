@@ -5,15 +5,18 @@ import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
 
+
 const PerformanceEvaluationList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const user = JSON.parse(storedUser);
     const headers = getJWTHeader(user);
 
+
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [evaluationResponses, setEvaluationResponses] = useState([]);
     const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
+
 
     // Pagination state
     const [page, setPage] = useState(0);
@@ -26,8 +29,10 @@ const PerformanceEvaluationList = () => {
     const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
 
+
     // Modal state for New Form
     const [modalOpen, setModalOpen] = useState(false);
+
 
     // Fetch evaluation forms for menu dropdown
     useEffect(() => {
@@ -35,6 +40,7 @@ const PerformanceEvaluationList = () => {
             .then((response) => setPerformanceEvaluation(response.data.evaluationForms || []))
             .catch(() => setPerformanceEvaluation([]));
     }, []);
+
 
     // Fetch evaluation responses for the current user (as evaluatee or evaluator)
     useEffect(() => {
@@ -62,9 +68,11 @@ const PerformanceEvaluationList = () => {
         .finally(() => setIsLoading(false));
     }, [page, rowsPerPage]);
 
+
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
+
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -131,7 +139,7 @@ const PerformanceEvaluationList = () => {
                             onOpen={() => setModalOpen(true)}
                             onSuccess={formName => navigate(`form/${formName}`)}
                         />
- 
+
                         {isLoading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
                                 <CircularProgress />
@@ -191,5 +199,6 @@ const PerformanceEvaluationList = () => {
         </Layout>
     );
 }
+
 
 export default PerformanceEvaluationList;
