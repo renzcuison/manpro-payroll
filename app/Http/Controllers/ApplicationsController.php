@@ -54,6 +54,8 @@ class ApplicationsController extends Controller
 
             foreach ($apps as $app) {
                 $employee = $app->user;
+                $branch = $employee->branch;
+                $department = $employee->department;
                 $type = $app->type;
 
                 $applications[] = [
@@ -65,10 +67,13 @@ class ApplicationsController extends Controller
                     'app_date_requested' => $app->created_at,
                     'app_status' => $app->status,
                     'emp_user_name' => $employee->user_name,
+                    'emp_name' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
                     'emp_first_name' => $employee->first_name,
                     'emp_middle_name' => $employee->middle_name,
                     'emp_last_name' => $employee->last_name,
                     'emp_suffix' => $employee->suffix,
+                    'emp_branch' => $branch->name,
+                    'emp_department' => $department->name,
                 ];
             }
 
