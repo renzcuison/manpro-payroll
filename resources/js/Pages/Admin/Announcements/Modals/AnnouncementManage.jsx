@@ -18,6 +18,7 @@ import {
     Avatar
 } from "@mui/material";
 import { MoreVert, Download } from "@mui/icons-material";
+import CloseIcon from '@mui/icons-material/Close';
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useNavigate } from "react-router-dom";
@@ -62,6 +63,9 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
 
     const [acknowledgements, setAcknowledgements] = useState([]);
     const [unAcknowledged, setUnAcknowledged] = useState([]);
+
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewFile, setPreviewFile] = useState(null);
 
     // ----------- Additional Details
     useEffect(() => {
@@ -434,20 +438,34 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     }, [imagePath]);
 
     useEffect(() => {
-    if (!announceInfo?.unique_code) return;
-    axiosInstance
-        .get(`/announcements/getAcknowledgements/${announceInfo.unique_code}`, { headers })
-        .then((response) => {
-            console.log("Fetched acknowledgements:", response.data.acknowledgements);
-            setAcknowledgements(response.data.acknowledgements || []);
-            setUnAcknowledged(response.data.unacknowledged || []);
-        })
-        .catch((error) => {
-            console.error("Error fetching acknowledgements:", error);
-            setAcknowledgements([]);
-            setUnAcknowledged([]);
-        });
-}, [announceInfo?.unique_code]);
+        if (!announceInfo?.unique_code) return;
+        axiosInstance
+            .get(`/announcements/getAcknowledgements/${announceInfo.unique_code}`, { headers })
+            .then((response) => {
+                console.log("Fetched acknowledgements:", response.data.acknowledgements);
+                setAcknowledgements(response.data.acknowledgements || []);
+                setUnAcknowledged(response.data.unacknowledged || []);
+            })
+            .catch((error) => {
+                console.error("Error fetching acknowledgements:", error);
+                setAcknowledgements([]);
+                setUnAcknowledged([]);
+            });
+    }, [announceInfo?.unique_code]);
+
+    // ---------------- File Preview
+    const handlePreviewFile = (filename, id, mimeType) => {
+        axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
+            .then((response) => {
+                const blob = new Blob([response.data], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                setPreviewFile({ url, mimeType, filename });
+                setPreviewOpen(true);
+            })
+            .catch((error) => {
+                console.error("Error previewing file:", error);
+            });
+    };
 
     return (
         <>
@@ -743,8 +761,10 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                             style={{
                                                                 height: "100%",
                                                                 width: "100%",
-                                                                objectFit: "cover"
+                                                                objectFit: "cover",
+                                                                cursor: "pointer"
                                                             }}
+                                                            onClick={() => handlePreviewFile(attachment.filename, attachment.id, attachment.mime || "application/pdf")}
                                                         />
                                                         <ImageListItemBar
                                                             subtitle={attachment.filename}
@@ -943,6 +963,42 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         uniCode={openAnnouncementAcknowledgements}
                     />
                 )}
+            </Dialog>
+
+            <Dialog open={previewOpen} onClose={() => {
+                    if (previewFile?.url) URL.revokeObjectURL(previewFile.url);
+                    setPreviewOpen(false);
+                    setPreviewFile(null);
+                }} maxWidth="md" fullWidth>
+                <DialogTitle>
+                    {previewFile?.filename}
+                    <IconButton
+                        aria-label="close"
+                        onClick={() => {
+                            if (previewFile?.url) URL.revokeObjectURL(previewFile.url);
+                            setPreviewOpen(false);
+                            setPreviewFile(null);
+                        }}
+                        sx={{ position: 'absolute', right: 8, top: 8 }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers sx={{ minHeight: 700 }}>
+                    {previewFile?.mimeType?.includes("pdf") ? (
+                        <iframe
+                            src={previewFile.url}
+                            title="PDF Preview"
+                            width="100%"
+                            height="95%"
+                            style={{ border: "none" }}
+                        />
+                    ) : (
+                        <Typography>
+                            Preview not supported for this file type. Please download to view.
+                        </Typography>
+                    )}
+                </DialogContent>
             </Dialog>
         </>
     );

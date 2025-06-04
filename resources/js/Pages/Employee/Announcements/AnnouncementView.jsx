@@ -23,6 +23,9 @@ import Swal from "sweetalert2";
 import InfoBox from "../../../components/General/InfoBox";
 import { useNavigate, useParams } from "react-router-dom";
 
+const [previewOpen, setPreviewOpen] = useState(false);
+const [previewFile, setPreviewFile] = useState(null);
+
 import PdfImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
 import XlsImage from "../../../../../public/media/assets/Excel_file_icon.png";
@@ -513,14 +516,16 @@ const AnnouncementView = () => {
                           return (
                             <ImageListItem key={attachment.id} sx={{ aspectRatio: "1/1", width: "100%" }}>
                               <img
-                                src={fileIcon}
-                                alt={attachment.filename}
-                                loading="lazy"
-                                style={{
-                                  height: "100%",
-                                  width: "100%",
-                                  objectFit: "cover",
-                                }}
+                                  src={fileIcon}
+                                  alt={attachment.filename}
+                                  loading="lazy"
+                                  style={{
+                                      height: "100%",
+                                      width: "100%",
+                                      objectFit: "cover",
+                                      cursor: "pointer"
+                                  }}
+                                  onClick={() => handlePreviewFile(attachment.filename, attachment.id, attachment.mime || "application/pdf")}
                               />
                               <ImageListItemBar
                                 subtitle={attachment.filename}
@@ -565,6 +570,41 @@ const AnnouncementView = () => {
           </Box>
         </Box>
       </Box>
+        <Dialog open={previewOpen} onClose={() => {
+              if (previewFile?.url) URL.revokeObjectURL(previewFile.url);
+              setPreviewOpen(false);
+              setPreviewFile(null);
+          }} maxWidth="md" fullWidth>
+          <DialogTitle>
+              {previewFile?.filename}
+              <IconButton
+                  aria-label="close"
+                  onClick={() => {
+                      if (previewFile?.url) URL.revokeObjectURL(previewFile.url);
+                      setPreviewOpen(false);
+                      setPreviewFile(null);
+                  }}
+                  sx={{ position: 'absolute', right: 8, top: 8 }}
+              >
+                  <CloseIcon />
+              </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ minHeight: 600 }}>
+              {previewFile?.mimeType?.includes("pdf") ? (
+                  <iframe
+                      src={previewFile.url}
+                      title="PDF Preview"
+                      width="100%"
+                      height="500px"
+                      style={{ border: "none" }}
+                  />
+              ) : (
+                  <Typography>
+                      Preview not supported for this file type. Please download to view.
+                  </Typography>
+              )}
+          </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
