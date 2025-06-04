@@ -11,6 +11,8 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
+import DateRangePicker from '../../../components/DateRangePicker';
+
 import { useApplications } from "./hooks/useApplications";
 
 import ApplicationManage from "./Modals/ApplicationManage";
@@ -26,6 +28,7 @@ const ApplicationsList = () => {
     const [departments, setDepartments] = useState([]);
 
     const [searchName, setSearchName] = useState("");
+    const [filterByStatus, setFilterByStatus] = useState("");
     const [filterByBranch, setFilterByBranch] = useState("");
     const [filterByDepartment, setFilterByDepartment] = useState("");
 
@@ -120,8 +123,9 @@ const ApplicationsList = () => {
 
         const matchedBranch = filterByBranch === "" || application.emp_branch === filterByBranch;
         const matchedDepartment = filterByDepartment === "" || application.emp_department === filterByDepartment;
+        const matchedStatus = filterByStatus === "" || application.app_status === filterByStatus;
 
-        return matchedName && matchedBranch && matchedDepartment;
+        return matchedName && matchedBranch && matchedDepartment && matchedStatus;
     });
 
     return (
@@ -140,7 +144,7 @@ const ApplicationsList = () => {
                                     <TextField sx={{ width: "100%" }} id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value) } />
                                 </Grid>
 
-                                <Grid size={6}></Grid>
+                                <Grid size={4}></Grid>
 
                                 <Grid size={2}>
                                     <TextField select id="column-view-select" sx={{ width: "100%" }} label="Filter by Branch" value={filterByBranch} onChange={(event) => { setFilterByBranch( event.target.value ) }}>
@@ -157,6 +161,16 @@ const ApplicationsList = () => {
                                         {departments.map((department) => (
                                             <MenuItem key={department.id} value={department.name} > {" "} {department.name}{" "} </MenuItem>
                                         ))}
+                                    </TextField>
+                                </Grid>
+
+                                <Grid size={2}>
+                                    <TextField select id="column-view-select" sx={{ width: "100%" }} label="Filter by Status" value={filterByStatus} onChange={(event) => { setFilterByStatus( event.target.value ) }}>
+                                        <MenuItem value="">All Status</MenuItem>
+                                        <MenuItem value="Pending">Pending</MenuItem>
+                                        <MenuItem value="Approved">Approved</MenuItem>
+                                        <MenuItem value="Declined">Declined</MenuItem>
+                                        <MenuItem value="Cancelled">Cancelled</MenuItem>
                                     </TextField>
                                 </Grid>
                             </Grid>
