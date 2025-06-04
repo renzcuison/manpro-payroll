@@ -12,10 +12,11 @@ import dayjs from 'dayjs';
 import { Edit } from '@mui/icons-material';
 import { useQueryClient } from '@tanstack/react-query';
 import { CgAdd, CgTrash } from "react-icons/cg";  
+import EducationFields from './EducationFields';
 
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 
-const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
+const ProfileEdit = ({ open, close, employee, medScreen }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -35,19 +36,16 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
  
     const [contact, setContact] = useState(employee.contact_number || '');
     const [address, setAddress] = useState(employee.address || '');
-    const [profilePic, setProfilePic] = useState(avatar || "../../../../../images/avatarpic.jpg");
     
-    // const [newProfilePic, setNewProfilePic] = useState('');
-
-    //Education Form Field Values and Handlers
+    //[1]--Education Form Field Values and Handlers
     const [educations, setEducations] = useState([])
-    const educationFields = {school_name: "", degree_name: "", degree_type: "", year_graduated: ""}
+    const educationFields = {school_name: "", education_level: "", program_name: "", year_graduated: ""}
     const [isFieldsChanged, setIsFieldsChanged] = useState(false); //handle any changes to the fields
     const [updateIds, setUpdateIds] = useState([]); //ids to update
     const [deleteIds, setDeleteIds] = useState([]); //ids to delete
-
+    
     useEffect(() => {
-        axiosInstance.get('/employee/getEducationBackground', { headers })
+        axiosInstance.get('/settings/getEmployeeDepartment', { headers })
             .then((response) => {
                 if(response.status === 200){
                     const educations = response.data.educations;
@@ -76,15 +74,30 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
     const handleAddFields = () => {
         setEducations([...educations, educationFields]); 
     }
-    const handleRemoveFields = (removalIndx) => {
-        const updatedFields = educations.filter((_, index) => index != removalIndx)
-        setEducations(educations.length > 0 ? updatedFields : [educationFields]);
-        if("id" in educations[removalIndx]){
-            setDeleteIds(prevIds => [...prevIds, educations[removalIndx].id]);
-        }
-        setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
-        setIsFieldsChanged(true);
+    const handleRemoveFields = (indxToRemove) => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: "Do you want to delete this field?",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Confirm",
+            confirmButtonColor: "#177604",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const updatedFields = educations.filter((_, index) => index != indxToRemove)
+                setEducations(educations.length > 0 ? updatedFields : [educationFields]);
+                if("id" in educations[indxToRemove]){
+                    setDeleteIds(prevIds => [...prevIds, educations[indxToRemove].id]);
+                }
+                setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
+                setIsFieldsChanged(true);
+            }
+        });
     }
+    //End of [1]
 
     // Form Errors
     const [firstNameError, setFirstNameError] = useState(false);
@@ -293,48 +306,8 @@ const ProfileEdit = ({ open, close, employee, avatar, medScreen }) => {
                                     }
                                     
                                     {/* Educational Backgrounds*/}
-
-                                    <Typography variant="h4" sx={{ marginLeft: { xs: 0, md: 1 }, fontWeight: 'bold' }}> Education </Typography>
-                                    <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
-
-                                    <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
-                                        {educations.map((item, index) => (
-                                        <Grid container spacing={2} size ={12} key={index} alignItems="center">
-                                            <Grid size={3}>
-                                                <FormControl fullWidth>
-                                                    <TextField label="School Name" value={item.school_name} onChange={(e)=>handleChange(index, "school_name", e.target.value)} />
-                                                </FormControl>
-                                            </Grid>
-
-                                            <Grid size={3}>
-                                                <FormControl fullWidth>
-                                                    <TextField label="Degree Name" value={item.degree_name} onChange={(e)=>handleChange(index, "degree_name", e.target.value)} />
-                                                </FormControl>
-                                            </Grid>
-
-                                            <Grid size={3}>
-                                                <FormControl fullWidth>
-                                                    <TextField select id="gender" label="Degree" value={item.degree_type} variant="outlined" onChange={(e) => { handleChange(index, "degree_type", e.target.value) }} >
-                                                        <MenuItem value={"College/Bachelors"}>{"College/Bachelors"}</MenuItem>
-                                                        <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
-                                                        <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
-                                                    </TextField>
-                                                </FormControl>
-                                            </Grid>
-                                            <Grid size={2}>
-                                                <FormControl fullWidth>
-                                                    <TextField label="Year Graduated" value={item.year_graduated} onChange={(e)=>handleChange(index, "year_graduated", e.target.value)} />
-                                                </FormControl>
-                                            </Grid>
-
-                                            <Grid size={1}>
-                                                <Box display="flex" justifyContent="space-between" gap={1}>
-                                                    <Button onClick={() => handleRemoveFields(index)} variant="text" startIcon={<CgTrash style={{ color: 'red' }} />}> </Button>
-                                                </Box>
-                                            </Grid>
-                                        </Grid>
-                                        ))}    
-                                    </Grid>
+                                    <EducationFields educations={educations} handleChange={handleChange} handleAddFields={handleAddFields} handleRemoveFields={handleRemoveFields}>
+                                    </EducationFields>
                                 </Grid>
 
                                 {/* Submit Button */}
