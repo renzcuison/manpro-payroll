@@ -317,6 +317,7 @@ const AnnouncementView = () => {
                       mb: 1,
                       position: "relative",
                       width: "100%",
+                      height: "70%",
                       aspectRatio: "2 / 1",
                       borderRadius: "4px",
                       border: "2px solid #e0e0e0",
