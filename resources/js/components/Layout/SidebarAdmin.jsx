@@ -302,7 +302,6 @@ const Sidebar = ({ children, closeMini }) => {
                         </div>
                         <div className="content-header-section text-center align-parent sidebar-mini-hidden">
                             <button type="button" className="btn btn-circle btn-dual-secondary d-lg-none align-v-r" data-toggle="layout" data-action="sidebar_close" onClick={closeMini} >
-                            <button type="button" className="btn btn-circle btn-dual-secondary d-lg-none align-v-r" data-toggle="layout" data-action="sidebar_close" onClick={closeMini} >
                                 <i className="fa fa-times text-danger"></i>
                             </button>
                             <div className="content-header-item">
