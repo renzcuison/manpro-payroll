@@ -14,6 +14,9 @@ import {
   Tooltip,
   useTheme,
   useMediaQuery,
+  Dialog,
+  DialogTitle, 
+  DialogContent
 } from "@mui/material";
 import { MoreVert, Download, CheckCircle } from "@mui/icons-material";
 import dayjs from "dayjs";
@@ -22,9 +25,7 @@ import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 import InfoBox from "../../../components/General/InfoBox";
 import { useNavigate, useParams } from "react-router-dom";
-
-const [previewOpen, setPreviewOpen] = useState(false);
-const [previewFile, setPreviewFile] = useState(null);
+import CloseIcon from '@mui/icons-material/Close';
 
 import PdfImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
@@ -50,6 +51,8 @@ const AnnouncementView = () => {
   const [imageLoading, setImageLoading] = useState(true);
   const [images, setImages] = useState([]);
   const [attachments, setAttachments] = useState([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
 
   useEffect(() => {
     getAnnouncementDetails();
@@ -242,6 +245,20 @@ const AnnouncementView = () => {
     } else {
       return blobMap[id];
     }
+  };
+
+  // ---------------- File Preview
+  const handlePreviewFile = (filename, id, mimeType) => {
+      axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
+          .then((response) => {
+              const blob = new Blob([response.data], { type: mimeType });
+              const url = URL.createObjectURL(blob);
+              setPreviewFile({ url, mimeType, filename });
+              setPreviewOpen(true);
+          })
+          .catch((error) => {
+              console.error("Error previewing file:", error);
+          });
   };
 
   // Image Cleanup
