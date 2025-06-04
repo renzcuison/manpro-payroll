@@ -5,29 +5,34 @@ import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
 
+
 const PerformanceEvaluationList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const user = JSON.parse(storedUser);
     const headers = getJWTHeader(user);
+
 
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [evaluationResponses, setEvaluationResponses] = useState([]);
     const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
 
+
     // Pagination state
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
-    // ----- Menu Items
+    // Menu Items
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
     const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
 
+
     // Modal state for New Form
     const [modalOpen, setModalOpen] = useState(false);
+
 
     // Fetch evaluation forms for menu dropdown
     useEffect(() => {
@@ -36,8 +41,8 @@ const PerformanceEvaluationList = () => {
             .catch(() => setPerformanceEvaluation([]));
     }, []);
 
+
     // Fetch evaluation responses for the current user (as evaluatee or evaluator)
-    // In PerformanceEvaluationList.jsx
     useEffect(() => {
         setIsLoading(true);
         axiosInstance.get('/getEvaluationResponses', {
@@ -63,9 +68,11 @@ const PerformanceEvaluationList = () => {
         .finally(() => setIsLoading(false));
     }, [page, rowsPerPage]);
 
+
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
+
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -109,7 +116,10 @@ const PerformanceEvaluationList = () => {
                                 }}
                             >
                                 {performanceEvaluations.map(({ name }) => (
-                                    <MenuItem key={name} onClick={() => navigate(`/admin/performance-evaluation/form/${name}`)}>
+                                    <MenuItem key={name} onClick={() => {
+                                        handleMenuClose();
+                                        navigate(`/admin/performance-evaluation/form/${name}`);
+                                    }}>
                                         {name}
                                     </MenuItem>
                                 ))}
@@ -189,5 +199,6 @@ const PerformanceEvaluationList = () => {
         </Layout>
     );
 }
+
 
 export default PerformanceEvaluationList;
