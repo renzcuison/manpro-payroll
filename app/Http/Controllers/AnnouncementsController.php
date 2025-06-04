@@ -380,14 +380,19 @@ class AnnouncementsController extends Controller
                     }
                 }
 
-                // Adding Files - Images
-                if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $index => $file) {
-                        $isThumbnail = $index == $request->input('thumbnail');
-                        $collection = $isThumbnail ? 'thumbnails' : 'images';
+                // Thumbnail (single file)
+                if ($request->hasFile('thumbnail')) {
+                    $announcement->addMedia($request->file('thumbnail'))
+                        ->withCustomProperties(['type' => 'Thumbnail'])
+                        ->toMediaCollection('thumbnails');
+                }
+
+                // Images (multiple files)
+                if ($request->hasFile('images')) {
+                    foreach ($request->file('images') as $file) {
                         $announcement->addMedia($file)
-                            ->withCustomProperties(['type' => $isThumbnail ? 'Thumbnail' : 'Image'])
-                            ->toMediaCollection($collection);
+                            ->withCustomProperties(['type' => 'Image'])
+                            ->toMediaCollection('images');
                     }
                 }
 
@@ -831,6 +836,7 @@ class AnnouncementsController extends Controller
                 ];
             })->all();
 
+            // Thumbnails
             $thumbnails = $announcement->getMedia('thumbnails')->map(function ($media) {
                 return [
                     'id' => $media->id,
@@ -840,8 +846,6 @@ class AnnouncementsController extends Controller
                     'mime' => $media->mime_type,
                 ];
             })->all();
-
-            $imageData = array_merge($images, $thumbnails);
 
             // Documents
             $attachmentData = $announcement->getMedia('documents')->map(function ($media) {
@@ -854,7 +858,8 @@ class AnnouncementsController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'images' => $imageData,
+                'images' => $images, // <-- Only images here
+                'thumbnails' => $thumbnails, // <-- Thumbnails separate
                 'attachments' => $attachmentData,
             ]);
         } else {
