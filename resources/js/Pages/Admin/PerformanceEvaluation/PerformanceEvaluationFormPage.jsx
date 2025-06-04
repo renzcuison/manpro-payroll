@@ -20,8 +20,7 @@ import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationF
 import PerformanceEvaluationFormSection from './Subsections/PerformanceEvaluationFormSection';
 import Swal from 'sweetalert2';
 import { useEvaluationForm } from '../../../hooks/useEvaluationForm';
-import CloseIcon from '@mui/icons-material/Close'; 
-import { useNavigate } from 'react-router-dom';
+import CloseIcon from '@mui/icons-material/Close';
 import { useState } from 'react';
 
 const PerformanceEvaluationFormPage = () => {
