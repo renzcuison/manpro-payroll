@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogTitle, TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, Typography, IconButton, Box } from '@mui/material';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
@@ -10,10 +10,8 @@ import AddIcon from '@mui/icons-material/Add';
 import { useEvaluationFormSubcategory } from '../../../../hooks/useEvaluationFormSubcategory';
 
 const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
-
     const {
         subcategory,
-        subcategoryId,
         subcategoryName, setSubcategoryName,
         responseType, switchResponseType,
         subcategoryDescription, setSubcategoryDescription,
@@ -25,7 +23,8 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
         linearScaleEndLabel, setLinearScaleEndLabel,
         order,
         options, deleteOption, editOption, saveOption,
-        saveSubcategory
+        saveSubcategory,
+        editOptionExtra
     } = useEvaluationFormSubcategory();
 
     const handleSave = () => {
@@ -45,6 +44,10 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
         deleteOption(index);
     };
 
+    const handleOptionExtraChange = (index, event) => {
+        editOptionExtra(index, event.target.value);
+    };
+
     return (
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth 
             sx={{
@@ -56,25 +59,20 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
             }}
         >
             <DialogTitle sx={{ paddingTop: '50px', paddingBottom:'50px' }}>
-                
-                {/* Add Sub-Category Title */}
                 <Typography
                     variant="h4"
                     sx={{
                         textAlign: 'left',
-                        fontFamily: 'Roboto, sans-serif', // Set font to Roboto
+                        fontFamily: 'Roboto, sans-serif',
                         fontWeight: 'bold',
                     }}
                 >
                     ADD SUB-CATEGORY
                 </Typography>
-
-                {/* Thin line beneath the title */}
                 <Box sx={{ borderBottom: '1px solid #ccc', marginTop: '5px' }}></Box>
             </DialogTitle>
             
             <DialogContent>
-                {/* Sub-Category Name and Type */}
                 <Grid container spacing={3} sx={{ mb: 3 }} >
                     <Grid item xs={6} sx={{ width: '100%' , maxWidth: '528px' }}>
                         <TextField
@@ -115,7 +113,6 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                     </Grid>
                 </Grid>
 
-                {/* Description */}
                 <Box sx={{ mb: 2, width:'100%', maxWidth: '935px' }} >
                     <TextField
                         label="Description"
@@ -129,21 +126,29 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                     />
                 </Box>
 
-                {/* Options for Multiple Choice or Checkbox */}
                 {(responseType === 'multipleChoice' || responseType === 'checkbox') && (
                     <Box sx={{ mb: 2 }}>
-                        {options.map(({ label }, index) => (
-                            <Grid container spacing={2} key={index} sx={{ mb: 2 }}>
-                                {/* Display option number */}
+                        {options.map(({ label, extra }, index) => (
+                            <Grid container spacing={2} key={index} sx={{ mb: 2 }} alignItems="center">
                                 <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                     <Typography variant="body1">{index + 1}.</Typography>
                                 </Grid>
-                                <Grid item xs={9}>
+                                <Grid item xs={7}>
                                     <TextField
                                         variant="outlined"
                                         fullWidth
                                         value={label}
                                         onChange={(e) => handleOptionChange(index, e)}
+                                    />
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <TextField
+                                        variant="outlined"
+                                        placeholder="Extra"
+                                        value={extra || ""}
+                                        onChange={(e) => handleOptionExtraChange(index, e)}
+                                        sx={{ width: 80 }}
+                                        size="small"
                                     />
                                 </Grid>
                                 <Grid item xs={2}>
@@ -157,7 +162,6 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                             </Grid>
                         ))}
 
-                        {/* Add Option Button */}
                         <Typography
                             onClick={handleAddOption}
                             sx={{
@@ -172,16 +176,11 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                     </Box>
                 )}
 
-                {/* Linear Scale Options (updated with Select for min and max values) */}
                 {responseType === 'linearScale' && (
                     <Box sx={{ mb: 2 }}>
-                        
-
-                        {/* Min and Max Values */}
                         <Grid container spacing={2} sx={{ mt: 2 }}>
                             <Grid item xs={5}>
                                 <FormControl fullWidth>
-                                    {/* <InputLabel>Min Value</InputLabel> */}
                                     <Select
                                         value={linearScaleStart}
                                         onChange={(e) => setLinearScaleStart(+e.target.value)}
@@ -198,7 +197,6 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                             </Grid>
                             <Grid item xs={5}>
                                 <FormControl fullWidth>
-                                    {/* <InputLabel>Max Value</InputLabel> */}
                                     <Select
                                         value={linearScaleEnd}
                                         onChange={(e) => setLinearScaleEnd(+e.target.value)}
@@ -211,8 +209,6 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                                 </FormControl>
                             </Grid>
                         </Grid>
-
-                        {/* Labels for Min and Max Values */}
                         <Grid container spacing={2} sx={{ mt: 2 }}>
                             <Grid item xs={5}>
                                 <TextField
@@ -236,7 +232,6 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                     </Box>
                 )}
 
-                {/* Cancel and Save Buttons */}
                 <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                     <Button
                         onClick={onClose}
@@ -247,9 +242,9 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            width: '120px', // Set fixed width
-                            height: '35px', // Set fixed height
-                            fontSize: '14px', // Ensure consistent font size
+                            width: '120px',
+                            height: '35px',
+                            fontSize: '14px',
                         }}
                         startIcon={
                             <CloseIcon sx={{ 
@@ -272,9 +267,9 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            width: '120px', // Set fixed width
-                            height: '35px', // Set fixed height
-                            fontSize: '14px', // Ensure consistent font size
+                            width: '120px',
+                            height: '35px',
+                            fontSize: '14px',
                         }}
                         startIcon={
                             <AddIcon sx={{
