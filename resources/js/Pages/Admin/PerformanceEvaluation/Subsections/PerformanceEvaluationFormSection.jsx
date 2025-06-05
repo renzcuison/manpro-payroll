@@ -13,6 +13,7 @@ import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluatio
 import PerformanceEvaluationRating from './PerformanceEvaluationRating';
 import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvaluationFormAddSubcategory';
 import Swal from 'sweetalert2';
+import { useClickAway } from '../Test/useClickAway';
 import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
@@ -54,7 +55,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     const [editingSubcategoryId, setEditingSubcategoryId] = useState(null);
     const subcategoryInputRef = useRef(null);
 
-<<<<<<< HEAD
     function handleExitEditMode() {
         if (sectionName?.trim()) {
             toggleEditableSection();
@@ -68,21 +68,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                 if (inputRef.current) inputRef.current.focus();
             });
         }
-    }
-    // Save handlers for inline editing
-    const handleSaveSectionName = (event) => {
-        const sectionName = event.target.value.trim();
-        setSectionName(sectionName)
-        if (!sectionName) {
->>>>>>> Gian-Development
-            Swal.fire({
-                text: "Section Name is required!",
-                icon: "error",
-                confirmButtonColor: '#177604',
-            });
-            return;
-        }
-<<<<<<< HEAD
     }
 
     // Only activate click away handler when in edit mode
@@ -140,12 +125,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
             if (response?.data?.status?.toString().startsWith("2")) {
                 toggleEditableSection();
             }
-=======
-        editSection({ name: sectionName }, inputRef).then((response) => {
-            if (response?.data?.status?.toString().startsWith("2")) {
-                toggleEditableSection();
-            }
->>>>>>> Gian-Development
         });
     };
 
@@ -355,7 +334,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                         value={sectionName}
                         onChange={ (e) => setSectionName(e.target.value) }
                         onClick={ (e) => e.stopPropagation() }
-                        onBlur={ handleSaveSectionName }
+                        onBlur={ handleExitEditMode }
                         onKeyUp={ (e) => e.preventDefault() }
                         ref={inputRef}
                         sx={{
