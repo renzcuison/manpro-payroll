@@ -20,13 +20,13 @@ import {
 dayjs.extend(weekday);
 dayjs.extend(isSameOrBefore);
 
-const GradientProgressBar = ({ currentProgress, completeProgress, status }) => {
-    const progress = (currentProgress / completeProgress) * 100;
-
+const GradientProgressBar = ({ percentage, status }) => {
     const gradient =
         status === "Rejected"
             ? "linear-gradient(to right, #b71c1c, #ff5252)" // red gradient
             : "linear-gradient(to right, #177604, #E9AE20)"; // default
+
+    const progress = Number(percentage);
 
     return (
         <Box sx={{ width: "100%" }}>
@@ -181,21 +181,22 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                         {highlightMatch(formattedDate, search)}
                                     </TableCell>
                                     <TableCell align="center">
-                                        {dayjs(response.dueDate).format(
-                                            "MMMM D, YYYY"
-                                        )}{" "}
-                                        <p></p> {getDueStatus(response.dueDate)}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {dayjs(response.nextSchedule).format(
+                                        {dayjs(response.expiry_date).format(
                                             "MMMM D, YYYY"
                                         )}{" "}
                                         <p></p>{" "}
-                                        {getDueStatus(response.nextSchedule)}
+                                        {getDueStatus(response.expiry_date)}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {dayjs(response.next_schedule).format(
+                                            "MMMM D, YYYY"
+                                        )}{" "}
+                                        <p></p>{" "}
+                                        {getDueStatus(response.next_schedule)}
                                     </TableCell>
                                     <TableCell align="center">
                                         {highlightMatch(
-                                            response.employee,
+                                            response.respondent,
                                             search
                                         )}
                                     </TableCell>
@@ -222,17 +223,14 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                             }}
                                         >
                                             <GradientProgressBar
-                                                currentProgress={
-                                                    response.currentProgress
-                                                }
-                                                completeProgress={
-                                                    response.fullProgress
+                                                percentage={
+                                                    response.progress.percent
                                                 }
                                                 status={response.status}
                                             ></GradientProgressBar>
                                             <Typography>
-                                                {response.currentProgress} /{" "}
-                                                {response.fullProgress}
+                                                {response.progress.completed} /{" "}
+                                                {response.progress.total}
                                             </Typography>
                                         </Box>
                                     </TableCell>

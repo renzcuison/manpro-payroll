@@ -29,6 +29,7 @@ const SelectForm = ({
         <FormGroup inputprops={{ readOnly: readOnly }}>
             <FormControl>
                 <TextField
+                    sx={{ backgroundColor: "#f5f5f5" }}
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     label="Question Name"
@@ -256,7 +257,6 @@ const PemeRecordsForm = () => {
             .get(`/peme/${PemeID}/questionnaire`, { headers })
             .then((response) => {
                 setPemeForms(response.data);
-                console.log("PEME Records FORM:", response.data);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -272,6 +272,7 @@ const PemeRecordsForm = () => {
             });
     }, []);
 
+    // For backend
     const handleSaveForm = async (formToSave) => {
         const storedUser = localStorage.getItem("nasya_user");
         const headers = getJWTHeader(JSON.parse(storedUser));
@@ -331,19 +332,17 @@ const PemeRecordsForm = () => {
                         setIsLoading(false);
                     }
 
-                    // ✅ Now reset fields here
                     setFormName("");
                     setFormType([]);
                     setFileSize(10); // reset to default value
                 }
             });
-
-            // Refresh backend
         } catch (error) {
             console.error("Error posting form:", error);
         }
     };
 
+    // For frontend
     const handleAddForm = () => {
         if (formName === "" || formType.length === 0) {
             Swal.fire({
@@ -372,15 +371,16 @@ const PemeRecordsForm = () => {
         setFileSize("");
     };
 
-    const handleDeleteForm = (index, isInitial = false) => {
+    const handleDeleteForm = (form, index, isInitial = false) => {
+        console.log(form.question);
         Swal.fire({
             customClass: { container: "my-swal" },
             title: "Are you sure?",
-            text: "You want to delete this form?",
+            text: `You want to delete ${form.question}?`,
             icon: "warning",
             showConfirmButton: true,
             confirmButtonText: "Delete",
-            confirmButtonColor: "#d33", // red color
+            confirmButtonColor: "#d33",
             showCancelButton: true,
             cancelButtonText: "Cancel",
         }).then(async (res) => {
@@ -437,15 +437,139 @@ const PemeRecordsForm = () => {
         });
     };
 
+    const [isEdit, setIsEdit] = useState(false);
+    // DECONSTRUCT THE INITIAL FORM
+    const [editingInitialId, setEditingInitialId] = useState(null);
+    const [editFormName, setEditFormName] = useState("");
+    const [editFormType, setEditFormType] = useState([]);
+    const [editFileSize, setEditFileSize] = useState(10);
+
+    //EDIT INITIAL FORM
+    const handleEditInitialForm = (form) => {
+        setEditingInitialId(form.tempId);
+        setEditFormName(form.question);
+        setEditFormType(
+            form.input_types.map((item) =>
+                typeof item === "string" ? item : item.input_type
+            )
+        );
+        setEditFileSize(
+            form.input_types.find(
+                (item) => (item.input_type ?? item) === "attachment"
+            )?.file_size_limit ?? 10
+        );
+    };
+
+    //SAVE EDITS IN INITIAL FORM
+    const handleSaveInitialEditedForm = (form) => {
+        setIsEdit(true);
+        setInitialForms((prev) =>
+            prev.map((f) =>
+                f.tempId === form.tempId
+                    ? {
+                          ...f,
+                          question: editFormName,
+                          input_types: editFormType,
+                          file_size_limit: editFileSize,
+                      }
+                    : f
+            )
+        );
+        setEditingInitialId(null);
+        setEditFormName("");
+        setEditFormType([]);
+        setEditFileSize(10);
+    };
+
+    //DECONSTRUCT THE SAVED FORM
+    const [editingSavedId, setEditingSavedId] = useState(null);
+    const [editSavedFormName, setEditSavedFormName] = useState("");
+    const [editSavedFormType, setEditSavedFormType] = useState([]);
+    const [editSavedFileSize, setEditSavedFileSize] = useState(10);
+
+    //EDIT SAVED FORMS FROM DB
+    const handleEditSavedForm = (form) => {
+        setIsEdit(false);
+
+        setEditingSavedId(form.id);
+        setEditSavedFormName(form.question);
+        setEditSavedFormType(form.input_types.map((item) => item.input_type));
+        setEditSavedFileSize(
+            form.input_types.find((item) => item.input_type === "attachment")
+                ?.file_size_limit ?? 10
+        );
+    };
+
+    //SAVE EDITS TO DB
+    const handleSaveSavedForm = async (form) => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: `You want to save edits for ${form.question}?`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Save",
+            confirmButtonColor: "#2b8a3e",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then(async (res) => {
+            if (res.isConfirmed) {
+                const storedUser = localStorage.getItem("nasya_user");
+                const headers = getJWTHeader(JSON.parse(storedUser));
+                console.log("FINAL SAVED FORM", form);
+                try {
+                    const payload = {
+                        question: editSavedFormName,
+                        input_types: editSavedFormType,
+                        file_size_limit: editSavedFileSize,
+                    };
+                    await axiosInstance.put(
+                        `/peme/${PemeID}/question/${form.id}`,
+                        payload,
+                        { headers }
+                    );
+
+                    // Update local state
+                    setPemeForms((prev) => ({
+                        ...prev,
+                        questions: prev.questions.map((f) =>
+                            f.id === form.id ? { ...f, ...payload } : f
+                        ),
+                    }));
+
+                    setEditingSavedId(null);
+                    setEditSavedFormName("");
+                    setEditSavedFormType([]);
+                    setEditSavedFileSize(10);
+
+                    Swal.fire({
+                        icon: "success",
+                        text: "Form updated successfully.",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+                } catch (error) {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Failed to update form. Please try again.",
+                        icon: "error",
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    });
+                }
+            }
+        });
+    };
+
     const handleConfirmQuestionnaire = () => {
         navigator(
             `/admin/medical-records/peme-records/peme-responses/${PemeID}`
         );
     };
+
     return (
         <Layout>
             <Box>
-                {/* Header */}
                 <Box
                     sx={{
                         display: "flex",
@@ -468,19 +592,54 @@ const PemeRecordsForm = () => {
                             onClick={handleConfirmQuestionnaire}
                             variant="contained"
                         >
-                            Confirm Questionnaire
+                            Confirm
                         </Button>
                     </Box>
 
                     {/* FORM */}
                     <Box
                         sx={{
-                            maxHeight: 700,
+                            boxShadow: 1,
+                            padding: 4,
+                            backgroundColor: "white",
+                            marginTop: 4,
+                        }}
+                    >
+                        <SelectForm
+                            formName={formName}
+                            setFormName={setFormName}
+                            formType={formType}
+                            setFormType={setFormType}
+                            fileSize={fileSize}
+                            setFileSize={setFileSize}
+                            readOnly={false}
+                        />
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "end",
+                            }}
+                        >
+                            <Button
+                                onClick={handleAddForm}
+                                variant="contained"
+                                sx={{
+                                    display: "flex",
+                                    gap: 1,
+                                    alignSelf: "end",
+                                }}
+                            >
+                                New form <i className="fa fa-plus pr-2"></i>
+                            </Button>
+                        </Box>
+                    </Box>
+                    {/* INITIAL FORM */}
+                    <Box
+                        sx={{
+                            maxHeight: 500,
                             overflowY: "scroll",
-                            marginTop: 6,
                             padding: 2,
                             backgroundColor: "white",
-                            borderRadius: 2,
                             boxShadow: 1,
                         }}
                     >
@@ -492,156 +651,259 @@ const PemeRecordsForm = () => {
                                 gap: 2,
                             }}
                         >
-                            <Box sx={{ boxShadow: 1, padding: 4 }}>
-                                <SelectForm
-                                    formName={formName}
-                                    setFormName={setFormName}
-                                    formType={formType}
-                                    setFormType={setFormType}
-                                    fileSize={fileSize}
-                                    setFileSize={setFileSize}
-                                    readOnly={false}
-                                />
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "end",
-                                    }}
-                                >
-                                    <Button
-                                        onClick={handleAddForm}
-                                        variant="contained"
-                                        sx={{
-                                            display: "flex",
-                                            gap: 1,
-                                            alignSelf: "end",
-                                        }}
-                                    >
-                                        New form{" "}
-                                        <i className="fa fa-plus pr-2"></i>
-                                    </Button>
-                                </Box>
-                            </Box>
-                            {/* INITIAL FORM */}
-                            {initialForms.map((form, index) => (
-                                <Box
-                                    key={form.tempId}
-                                    sx={{
-                                        backgroundColor: "#fafafa",
-                                        padding: 4,
-                                        boxShadow: 1,
-                                    }}
-                                >
-                                    <SelectForm
-                                        formName={form.question}
-                                        setFormName={setFormName}
-                                        formType={form.input_types.map((item) =>
-                                            typeof item === "string"
-                                                ? item
-                                                : item.input_type
-                                        )}
-                                        fileSize={
-                                            form.input_types.find(
-                                                (item) =>
-                                                    (item.input_type ??
-                                                        item) === "attachment"
-                                            )?.file_size_limit ?? 10
-                                        }
-                                        setFileSize={setFileSize}
-                                        readOnly={true}
-                                    />
+                            {initialForms.map((form, index) => {
+                                //Track ID being edited
+                                const isEditing =
+                                    editingInitialId === form.tempId;
+                                return (
                                     <Box
+                                        key={form.tempId}
                                         sx={{
-                                            display: "flex",
-                                            justifyContent: "end",
-                                            gap: 2,
+                                            transition: "all",
+                                            transitionDuration: ".3s",
+                                            border: 2,
+                                            borderColor: `${
+                                                isEditing
+                                                    ? "green"
+                                                    : "transparent"
+                                            }`,
+                                            backgroundColor: "#fafafa",
+
+                                            padding: 4,
+                                            boxShadow: 1,
                                         }}
                                     >
-                                        <Button
-                                            variant="contained"
-                                            onClick={() => handleSaveForm(form)}
-                                        >
-                                            Save
-                                        </Button>
-                                        <Button
-                                            onClick={() =>
-                                                handleDeleteForm(index, true)
+                                        <SelectForm
+                                            formName={
+                                                isEditing
+                                                    ? editFormName
+                                                    : form.question
                                             }
+                                            setFormName={
+                                                isEditing
+                                                    ? setEditFormName
+                                                    : () => {}
+                                            }
+                                            formType={
+                                                isEditing
+                                                    ? editFormType
+                                                    : form.input_types.map(
+                                                          (item) =>
+                                                              typeof item ===
+                                                              "string"
+                                                                  ? item
+                                                                  : item.input_type
+                                                      )
+                                            }
+                                            setFormType={
+                                                isEditing
+                                                    ? setEditFormType
+                                                    : () => {}
+                                            }
+                                            fileSize={
+                                                isEditing
+                                                    ? editFileSize
+                                                    : form.input_types.find(
+                                                          (item) =>
+                                                              (item.input_type ??
+                                                                  item) ===
+                                                              "attachment"
+                                                      )?.file_size_limit ?? 10
+                                            }
+                                            setFileSize={
+                                                isEditing
+                                                    ? setEditFileSize
+                                                    : () => {}
+                                            }
+                                            readOnly={!isEditing}
+                                        />
+                                        <Box
                                             sx={{
-                                                transition: ".3s",
-                                                fontSize: "26px",
-                                                color: "#7a7a7a",
-                                                borderRadius: "100%",
-                                                backgroundColor: "transparent",
-                                                "&:hover": {
-                                                    backgroundColor:
-                                                        "transparent",
-                                                    color: "#3d3d3d",
-                                                },
-                                                boxShadow: "none",
+                                                display: "flex",
+                                                justifyContent: "end",
+                                                gap: 2,
                                             }}
                                         >
-                                            <i className="fa fa-trash-o" />
-                                        </Button>
+                                            {isEditing ? (
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={() =>
+                                                        handleSaveInitialEditedForm(
+                                                            form
+                                                        )
+                                                    }
+                                                >
+                                                    Save Edit
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={() =>
+                                                        handleEditInitialForm(
+                                                            form
+                                                        )
+                                                    }
+                                                >
+                                                    Edit
+                                                </Button>
+                                            )}
+                                            <Button
+                                                variant="contained"
+                                                onClick={() =>
+                                                    handleSaveForm(form)
+                                                }
+                                            >
+                                                Save
+                                            </Button>
+                                            <Button
+                                                onClick={() =>
+                                                    handleDeleteForm(
+                                                        form,
+                                                        index,
+                                                        true
+                                                    )
+                                                }
+                                                sx={{
+                                                    transition: ".3s",
+                                                    fontSize: "26px",
+                                                    color: "#7a7a7a",
+                                                    borderRadius: "100%",
+                                                    backgroundColor:
+                                                        "transparent",
+                                                    "&:hover": {
+                                                        backgroundColor:
+                                                            "transparent",
+                                                        color: "#3d3d3d",
+                                                    },
+                                                    boxShadow: "none",
+                                                }}
+                                            >
+                                                <i className="fa fa-trash-o" />
+                                            </Button>
+                                        </Box>
                                     </Box>
-                                </Box>
-                            ))}
+                                );
+                            })}
                             {/* SAVED FORM */}
-                            {pemeForms.questions.map((form, index) => (
-                                <Box
-                                    key={index}
-                                    sx={{
-                                        backgroundColor: "#ebebeb",
-                                        padding: 4,
-                                        boxShadow: 1,
-                                    }}
-                                >
-                                    <SelectForm
-                                        formName={form.question}
-                                        setFormName={setFormName}
-                                        formType={form.input_types.map(
-                                            (item) => item.input_type
-                                        )}
-                                        fileSize={
-                                            form.input_types.find(
-                                                (item) =>
-                                                    item.input_type ===
-                                                    "attachment"
-                                            )?.file_size_limit ?? 10
-                                        }
-                                        setFileSize={setFileSize}
-                                        readOnly={true}
-                                    />
+                            {pemeForms.questions.map((form, index) => {
+                                const isEditing = editingSavedId === form.id;
+                                return (
                                     <Box
+                                        key={form.id}
                                         sx={{
-                                            display: "flex",
-                                            justifyContent: "end",
-                                            gap: 2,
+                                            transition: "all",
+                                            transitionDuration: ".3s",
+                                            border: 2,
+                                            borderColor: `${
+                                                isEditing
+                                                    ? "green"
+                                                    : "transparent"
+                                            }`,
+                                            backgroundColor: "#f0f0f0",
+
+                                            padding: 4,
+                                            boxShadow: 1,
                                         }}
                                     >
-                                        <Button
-                                            onClick={() =>
-                                                handleDeleteForm(index, false)
+                                        <SelectForm
+                                            formName={
+                                                isEditing
+                                                    ? editSavedFormName
+                                                    : form.question
                                             }
+                                            setFormName={
+                                                isEditing
+                                                    ? setEditSavedFormName
+                                                    : () => {}
+                                            }
+                                            formType={
+                                                isEditing
+                                                    ? editSavedFormType
+                                                    : form.input_types.map(
+                                                          (item) =>
+                                                              item.input_type
+                                                      )
+                                            }
+                                            setFormType={
+                                                isEditing
+                                                    ? setEditSavedFormType
+                                                    : () => {}
+                                            }
+                                            fileSize={
+                                                isEditing
+                                                    ? editSavedFileSize
+                                                    : form.input_types.find(
+                                                          (item) =>
+                                                              item.input_type ===
+                                                              "attachment"
+                                                      )?.file_size_limit ?? 10
+                                            }
+                                            setFileSize={
+                                                isEditing
+                                                    ? setEditSavedFileSize
+                                                    : () => {}
+                                            }
+                                            readOnly={!isEditing}
+                                        />
+                                        <Box
                                             sx={{
-                                                transition: ".3s",
-                                                fontSize: "26px",
-                                                color: "#7a7a7a",
-                                                borderRadius: "100%",
-                                                backgroundColor: "transparent",
-                                                "&:hover": {
-                                                    backgroundColor:
-                                                        "transparent",
-                                                    color: "#3d3d3d",
-                                                },
-                                                boxShadow: "none",
+                                                display: "flex",
+                                                justifyContent: "end",
+                                                gap: 2,
                                             }}
                                         >
-                                            <i className="fa fa-trash-o" />
-                                        </Button>
+                                            {isEditing ? (
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={() =>
+                                                        handleSaveSavedForm(
+                                                            form
+                                                        )
+                                                    }
+                                                >
+                                                    Save
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={() =>
+                                                        handleEditSavedForm(
+                                                            form
+                                                        )
+                                                    }
+                                                >
+                                                    Edit
+                                                </Button>
+                                            )}
+                                            <Button
+                                                onClick={() =>
+                                                    handleDeleteForm(
+                                                        form,
+                                                        index,
+                                                        false
+                                                    )
+                                                }
+                                                sx={{
+                                                    transition: ".3s",
+                                                    fontSize: "26px",
+                                                    color: "#7a7a7a",
+                                                    borderRadius: "100%",
+                                                    backgroundColor:
+                                                        "transparent",
+                                                    "&:hover": {
+                                                        backgroundColor:
+                                                            "transparent",
+                                                        color: "#3d3d3d",
+                                                    },
+                                                    boxShadow: "none",
+                                                }}
+                                            >
+                                                <i className="fa fa-trash-o" />
+                                            </Button>
+                                        </Box>
                                     </Box>
-                                </Box>
-                            ))}
+                                );
+                            })}
                         </Box>
                         <Box
                             sx={{
