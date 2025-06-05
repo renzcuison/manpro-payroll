@@ -657,7 +657,9 @@ class EvaluationResponseController extends Controller
                 'status' => 201,
                 'evaluationResponseID' => $newEvaluationResponse->id,
                 'message' => 'Evaluation Response successfully created'
+                
             ]);
+            Log::info('New EvaluationResponse:', ['id' => $newEvaluationResponse->id, 'data' => $newEvaluationResponse->toArray()]);
 
         } catch (\Exception $e) {
             DB::rollBack();

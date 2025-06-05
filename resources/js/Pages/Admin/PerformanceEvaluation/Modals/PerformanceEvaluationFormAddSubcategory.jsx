@@ -144,7 +144,7 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                                 <Grid item xs={2}>
                                     <TextField
                                         variant="outlined"
-                                        placeholder="Extra"
+                                        placeholder="XXX"
                                         value={extra || ""}
                                         onChange={(e) => handleOptionExtraChange(index, e)}
                                         sx={{ width: 80 }}
