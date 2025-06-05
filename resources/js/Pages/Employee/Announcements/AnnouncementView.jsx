@@ -26,6 +26,7 @@ import Swal from "sweetalert2";
 import InfoBox from "../../../components/General/InfoBox";
 import { useNavigate, useParams } from "react-router-dom";
 import CloseIcon from '@mui/icons-material/Close';
+import mammoth from "mammoth";
 
 import PdfImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
@@ -53,6 +54,7 @@ const AnnouncementView = () => {
   const [attachments, setAttachments] = useState([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
+  const [docxHtml, setDocxHtml] = useState("");
 
   useEffect(() => {
     getAnnouncementDetails();
@@ -248,13 +250,30 @@ const AnnouncementView = () => {
   };
 
   // ---------------- File Preview
+  useEffect(() => {
+    if (!previewOpen) setDocxHtml("");
+  }, [previewOpen]);
+
   const handlePreviewFile = (filename, id, mimeType) => {
       axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
-          .then((response) => {
+          .then(async (response) => {
               const blob = new Blob([response.data], { type: mimeType });
               const url = URL.createObjectURL(blob);
-              setPreviewFile({ url, mimeType, filename });
-              setPreviewOpen(true);
+
+              if (
+                  mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                  filename.endsWith(".docx")
+              ) {
+                  const arrayBuffer = await blob.arrayBuffer();
+                  mammoth.convertToHtml({ arrayBuffer }).then(result => {
+                      setDocxHtml(result.value);
+                      setPreviewFile({ url, mimeType, filename });
+                      setPreviewOpen(true);
+                  });
+              } else {
+                  setPreviewFile({ url, mimeType, filename });
+                  setPreviewOpen(true);
+              }
           })
           .catch((error) => {
               console.error("Error previewing file:", error);
@@ -607,20 +626,24 @@ const AnnouncementView = () => {
               </IconButton>
           </DialogTitle>
           <DialogContent dividers sx={{ minHeight: 600 }}>
-              {previewFile?.mimeType?.includes("pdf") ? (
-                  <iframe
-                      src={previewFile.url}
-                      title="PDF Preview"
-                      width="100%"
-                      height="500px"
-                      style={{ border: "none" }}
-                  />
-              ) : (
-                  <Typography>
-                      Preview not supported for this file type. Please download to view.
-                  </Typography>
-              )}
-          </DialogContent>
+            {previewFile?.mimeType?.includes("pdf") && previewFile?.filename?.toLowerCase().endsWith(".pdf") ? (
+              <iframe
+                  src={previewFile.url}
+                  title="PDF Preview"
+                  width="100%"
+                  height="500px"
+                  style={{ border: "none" }}
+              />
+          ) : previewFile?.mimeType?.includes("word") || previewFile?.filename?.toLowerCase().endsWith(".docx") ? (
+              <Box sx={{ width: "100%", minHeight: 400, bgcolor: "#fafafa", p: 2, overflow: "auto" }}>
+                  <div dangerouslySetInnerHTML={{ __html: docxHtml }} />
+              </Box>
+          ) : (
+              <Typography>
+                  Preview not supported for this file type. Please download to view.
+              </Typography>
+          )}
+        </DialogContent>
       </Dialog>
     </Layout>
   );
