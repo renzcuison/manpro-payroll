@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PemeResponseDetails extends Model implements HasMedia
 {
@@ -22,7 +23,7 @@ class PemeResponseDetails extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('attachment')->singleFile();
+        $this->addMediaCollection('attachment');
     }
 
     public function response()
@@ -43,5 +44,10 @@ class PemeResponseDetails extends Model implements HasMedia
     public function getMediaDirectory(): string
     {
         return 'attachments/' . auth()->user()->user_name;
+    }
+
+    public function media(): MorphMany
+    {
+        return $this->morphMany(\Spatie\MediaLibrary\MediaCollections\Models\Media::class, 'model');
     }
 }

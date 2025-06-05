@@ -77,6 +77,7 @@ class PemeController extends Controller
                 "message" => "Exam created successfully.",
                 "peme" => [
                     "id" => Crypt::encrypt($peme->id),
+                    // "id" => $peme->id,
                     "name" => $peme->name,
                     "created_at" => $peme->created_at,
                 ],
@@ -118,6 +119,10 @@ class PemeController extends Controller
                     "client_id" => Crypt::encrypt($peme->client_id),
                     "user_id" => Crypt::encrypt($peme->user_id),
                     "medical_record_id" => Crypt::encrypt($peme->medical_record_id),
+                    // "id" => $peme->id,
+                    // "client_id" => $peme->client_id,
+                    // "user_id" => $peme->user_id,
+                    // "medical_record_id" => $peme->medical_record_id,
                     "name" => $peme->name,
                     "respondents" => $peme->respondents,
                     "isVisible" => $peme->isVisible,
@@ -143,6 +148,7 @@ class PemeController extends Controller
             ->map(function ($peme) {
                 return [
                     'id' => Crypt::encrypt($peme->id),
+                    // 'id' => $peme->id,
                     'name' => $peme->name,
                     'respondents' => $peme->respondents,
                 ];
@@ -151,3 +157,5 @@ class PemeController extends Controller
         return response()->json($data);
     }
 }
+
+

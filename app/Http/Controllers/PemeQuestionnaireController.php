@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+// use Illuminate\Support\Facades\Log;
 use App\Models\PemeQItem;
 use App\Models\PemeQType;
 use App\Models\Peme;
+
 
 class PemeQuestionnaireController extends Controller
 {
@@ -27,6 +28,7 @@ class PemeQuestionnaireController extends Controller
     {
 
         $pemeId = Crypt::decrypt($request->peme_id);
+        // $pemeId = $request->peme_id;
         $request->merge(['peme_id' => $pemeId]);
 
         $validated = $request->validate([
@@ -44,7 +46,7 @@ class PemeQuestionnaireController extends Controller
             return response()->json(
                 [
                     "message" =>
-                    "file_size_limit is required when using attachment input type.",
+                    "file_size_limit is required when using attachments.",
                 ],
                 422
             );
@@ -92,11 +94,14 @@ class PemeQuestionnaireController extends Controller
             "data" => [
                 "question" => [
                     "id" => Crypt::encrypt($question->id),
+                    // "id" => $question->id,
                     "peme_id" => Crypt::encrypt($question->peme_id),
+                    // "peme_id" => $question->peme_id,
                     "question" => $question->question,
                     "types" => $question->types->map(function ($type) {
                         return [
-                            "id" => Crypt::encrypt($type->id),
+                            // "id" => Crypt::encrypt($type->id),
+                            "id" => $type->id,
                             "input_type" => $type->input_type,
                             "file_size_limit" => $type->file_size_limit ?? null,
                         ];
@@ -126,7 +131,7 @@ class PemeQuestionnaireController extends Controller
             return response()->json(
                 [
                     "message" =>
-                    "file_size_limit is required when using attachment input type.",
+                    "file_size_limit is required when using attachments.",
                 ],
                 422
             );
@@ -181,11 +186,14 @@ class PemeQuestionnaireController extends Controller
                 "data" => [
                     "question" => [
                         "id" => Crypt::encrypt($question->id),
+                        // "id" => $question->id,
                         "peme_id" => Crypt::encrypt($question->peme_id),
+                        // "peme_id" => $question->peme_id,
                         "question" => $question->question,
                         "types" => $question->types->map(function ($type) {
                             return [
                                 "id" => Crypt::encrypt($type->id),
+                                // "id" => $type->id,
                                 "input_type" => $type->input_type,
                                 "file_size_limit" => $type->file_size_limit ?? null,
                             ];
@@ -199,9 +207,6 @@ class PemeQuestionnaireController extends Controller
 
     public function getQuestionnaire($pemeId)
     {
-        // log::info("PemeQuestionnaireController::getQuestionnaire");
-        // log::info($pemeId);
-        // log::info(Crypt::decrypt($pemeId));
 
         $pemeId = Crypt::decrypt($pemeId);
 
@@ -226,6 +231,7 @@ class PemeQuestionnaireController extends Controller
 
             return [
                 "id" => Crypt::encrypt($question->id),
+                // "id" => $question->id,
                 "question" => $question->question,
                 "input_types" => $inputTypes,
             ];
@@ -233,6 +239,7 @@ class PemeQuestionnaireController extends Controller
 
         return response()->json([
             "peme_id" => Crypt::encrypt($peme->id),
+            // "peme_id" => $peme->id,
             "peme" => $peme->name,
             "questions" => $questions,
         ]);
@@ -282,11 +289,14 @@ class PemeQuestionnaireController extends Controller
         return response()->json([
             "question" => [
                 "id" => Crypt::encrypt($question->id),
+                // "id" => $question->id,
                 "peme_id" => Crypt::encrypt($question->peme_id),
+                // "peme_id" => $question->peme_id,
                 "question" => $question->question,
                 "types" => $question->types->map(function ($type) {
                     return [
                         "id" => Crypt::encrypt($type->id),
+                        // "id" => $type->id,
                         "input_type" => $type->input_type,
                         "file_size_limit" => $type->file_size_limit ?? null,
                     ];

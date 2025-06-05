@@ -43,6 +43,8 @@ class PemeResponseDetailsController extends Controller
             return [
                 "id" => Crypt::encrypt($detail->id),
                 "user_id" => Crypt::encrypt($detail->response->user->id ?? null),
+                // "id" => $detail->id,
+                // "user_id" => $detail->response->user->id ?? null,
                 "question" => $detail->question->question ?? null,
                 "input_type" => $inputType,
                 "value" => $value,
@@ -55,7 +57,9 @@ class PemeResponseDetailsController extends Controller
     public function getResponseDetails($id)
     {
         try {
+
             $responseId = Crypt::decrypt($id);
+            // $responseId = $id;
 
             $details = PemeResponseDetails::with([
                 "question",
@@ -77,18 +81,25 @@ class PemeResponseDetailsController extends Controller
                     "peme_response_id" => Crypt::encrypt($detail->peme_response_id),
                     "peme_q_item_id" => Crypt::encrypt($detail->peme_q_item_id),
                     "peme_q_type_id" => Crypt::encrypt($detail->peme_q_type_id),
+                    // "id" => $detail->id,
+                    // "peme_response_id" => $detail->peme_response_id,
+                    // "peme_q_item_id" => $detail->peme_q_item_id,
+                    // "peme_q_type_id" => $detail->peme_q_type_id,
                     "question" => [
                         "id" => Crypt::encrypt($detail->question->id ?? null),
+                        // "id" => $detail->question->id ?? null,
                         "question" => $detail->question->question ?? null,
                     ],
                     "input_type" => [
                         "id" => Crypt::encrypt($detail->inputType->id ?? null),
+                        // "id" => $detail->inputType->id ?? null,
                         "input_type" => $detail->inputType->input_type ?? null,
                     ],
                     "value" => $value,
                     "media" => $detail->media->map(function ($media) {
                         return [
                             "id" => Crypt::encrypt($media->id),
+                            // "id" => $media->id,
                             "url" => $media->getFullUrl(),
                             "file_name" => $media->file_name,
                             "size" => $media->size,
@@ -100,7 +111,7 @@ class PemeResponseDetailsController extends Controller
             return response()->json($result);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Invalid response ID or data not found.',
+                'message' => 'Invalid ID or not found.',
                 'error' => $e->getMessage(),
             ], 400);
         }
@@ -125,7 +136,7 @@ class PemeResponseDetailsController extends Controller
 
         if ($existing) {
             return response()->json([
-                "message" => "This question already has a response for the given input type.",
+                "message" => "Item already answered.",
             ], 422);
         }
 
@@ -134,25 +145,33 @@ class PemeResponseDetailsController extends Controller
         $detail->load(['question', 'inputType', 'response.user']);
 
         return response()->json([
-            "message" => "Response detail saved successfully.",
+            "message" => "Response saved successfully.",
             "data" => [
                 "id" => Crypt::encrypt($detail->id),
                 "peme_response_id" => Crypt::encrypt($detail->peme_response_id),
                 "peme_q_item_id" => Crypt::encrypt($detail->peme_q_item_id),
                 "peme_q_type_id" => Crypt::encrypt($detail->peme_q_type_id),
+                // "id" => $detail->id,
+                // "peme_response_id" => $detail->peme_response_id,
+                // "peme_q_item_id" => $detail->peme_q_item_id,
+                // "peme_q_type_id" => $detail->peme_q_type_id,
                 "value" => $detail->value,
                 "question" => [
                     "id" => Crypt::encrypt($detail->question->id ?? null),
+                    // "id" => $detail->question->id ?? null,
                     "question" => $detail->question->question ?? null,
                 ],
                 "input_type" => [
                     "id" => Crypt::encrypt($detail->inputType->id ?? null),
+                    // "id" => $detail->inputType->id ?? null,
                     "input_type" => $detail->inputType->input_type ?? null,
                 ],
                 "response" => [
                     "id" => Crypt::encrypt($detail->response->id ?? null),
+                    // "id" => $detail->response->id ?? null,
                     "user" => [
                         "id" => Crypt::encrypt($detail->response->user->id ?? null),
+                        // "id" => $detail->response->user->id ?? null,
                         "name" => $detail->response->user->user_name ?? null,
                     ],
                 ],
@@ -162,34 +181,86 @@ class PemeResponseDetailsController extends Controller
 
     public function attachMedia(Request $request, $id)
     {
-
         $id = Crypt::decrypt($id);
 
         if (!$request->hasFile('file')) {
-            return response()->json(['message' => 'Attachment failed.'], 400);
+            return response()->json(['message' => 'Attachment failed. No files found.'], 400);
         }
 
-        $detail = PemeResponseDetails::with('inputType')->findOrFail($id);
+        $detail = PemeResponseDetails::with('question', 'inputType')->findOrFail($id);
+
+        $maxFiles = $detail->question->max_files ?? 1;
+
+        $existingCount = $detail->getMedia('attachments')->count();
+
+        $files = $request->file('file');
+
+        if (!is_array($files)) {
+            $files = [$files];
+        }
+
+        $newFilesCount = count($files);
+
+        if ($existingCount + $newFilesCount > $maxFiles) {
+            return response()->json([
+                'message' => "You can only upload up to {$maxFiles} file(s) for this question. You currently have {$existingCount} uploaded.",
+            ], 422);
+        }
+
 
         $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
+        $maxKilobytes = $fileSizeLimitMb ? intval($fileSizeLimitMb * 1024) : null;
 
-        if ($fileSizeLimitMb) {
-            $maxKilobytes = intval($fileSizeLimitMb * 1024);
-            $request->validate([
-                'file' => "required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:$maxKilobytes",
-            ]);
-        } else {
-            $request->validate([
-                'file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png',
-            ]);
+        foreach ($files as $file) {
+            $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
+            if ($maxKilobytes) {
+                $rules['file'] .= "|max:$maxKilobytes";
+            }
+            validator(['file' => $file], $rules)->validate();
         }
 
-        $detail->addMediaFromRequest('file')->toMediaCollection('attachments');
+        foreach ($files as $file) {
+            $detail->addMedia($file)->toMediaCollection('attachments');
+        }
 
         return response()->json([
-            'message' => 'Attachment successful.',
+            'message' => 'Files uploaded successfully.',
         ]);
     }
+
+
+
+    //   public function attachMedia(Request $request, $id)
+    // {
+
+    //     $id = Crypt::decrypt($id);
+
+    //     if (!$request->hasFile('file')) {
+    //         return response()->json(['message' => 'Attachment failed.'], 400);
+    //     }
+
+    //     $detail = PemeResponseDetails::with('inputType')->findOrFail($id);
+
+    //     $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
+
+    //     if ($fileSizeLimitMb) {
+    //         $maxKilobytes = intval($fileSizeLimitMb * 1024);
+    //         $request->validate([
+    //             'file' => "required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:$maxKilobytes",
+    //         ]);
+    //     } else {
+    //         $request->validate([
+    //             'file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png',
+    //         ]);
+    //     }
+
+    //     $detail->addMediaFromRequest('file')->toMediaCollection('attachments');
+
+    //     return response()->json([
+    //         'message' => 'Attachment successful.',
+    //     ]);
+    // }
+
 
     public function destroy($id)
     {
@@ -231,7 +302,7 @@ class PemeResponseDetailsController extends Controller
 
         if (!$detail) {
             return response()->json([
-                "message" => "Response detail not found."
+                "message" => "Response not found."
             ], 404);
         }
 
@@ -254,7 +325,7 @@ class PemeResponseDetailsController extends Controller
 
         if ($duplicateExists) {
             return response()->json([
-                "message" => "Another response with the same input type exists for this question."
+                "message" => "Another response exists for this question."
             ], 422);
         }
 
@@ -294,7 +365,9 @@ class PemeResponseDetailsController extends Controller
     public function show($id)
     {
         try {
+
             $decryptedId = Crypt::decrypt($id);
+            // $decryptedId = $id;
 
             $detail = PemeResponseDetails::with([
                 "question",
@@ -307,6 +380,10 @@ class PemeResponseDetailsController extends Controller
                 "peme_response_id" => Crypt::encrypt($detail->peme_response_id),
                 "peme_q_item_id" => Crypt::encrypt($detail->peme_q_item_id),
                 "peme_q_type_id" => Crypt::encrypt($detail->peme_q_type_id),
+                // "id" => $detail->id,
+                // "peme_response_id" => $detail->peme_response_id,
+                // "peme_q_item_id" => $detail->peme_q_item_id,
+                // "peme_q_type_id" => $detail->peme_q_type_id,
                 "value" => $detail->value,
                 "created_at" => $detail->created_at,
                 "updated_at" => $detail->updated_at,
@@ -315,6 +392,8 @@ class PemeResponseDetailsController extends Controller
                 "question" => [
                     "id" => Crypt::encrypt($detail->question->id ?? null),
                     "peme_id" => Crypt::encrypt($detail->question->peme_id ?? null),
+                    // "id" => $detail->question->id ?? null,
+                    // "peme_id" => $detail->question->peme_id ?? null,
                     "question" => $detail->question->question ?? null,
                     "created_at" => $detail->question->created_at ?? null,
                     "updated_at" => $detail->question->updated_at ?? null,
@@ -324,6 +403,8 @@ class PemeResponseDetailsController extends Controller
                 "input_type" => [
                     "id" => Crypt::encrypt($detail->inputType->id ?? null),
                     "peme_q_item_id" => Crypt::encrypt($detail->inputType->peme_q_item_id ?? null),
+                    // "id" => $detail->inputType->id ?? null,
+                    // "peme_q_item_id" => $detail->inputType->peme_q_item_id ?? null,
                     "input_type" => $detail->inputType->input_type ?? null,
                     "created_at" => $detail->inputType->created_at ?? null,
                     "updated_at" => $detail->inputType->updated_at ?? null,
@@ -335,6 +416,8 @@ class PemeResponseDetailsController extends Controller
                     return [
                         "id" => Crypt::encrypt($media->id),
                         "model_id" => Crypt::encrypt($media->model_id),
+                        // "id" => $media->id,
+                        // "model_id" => $media->model_id,
                         "uuid" => $media->uuid,
                         "collection_name" => $media->collection_name,
                         "name" => $media->name,
