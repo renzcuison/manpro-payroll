@@ -45,22 +45,24 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
     const [deleteIds, setDeleteIds] = useState([]); //ids to delete
     
     useEffect(() => {
-        axiosInstance.get('/settings/getEmployeeDepartment', { headers })
+        axiosInstance.get('/employee/getEducationBackground', { headers })
             .then((response) => {
                 if(response.status === 200){
                     const educations = response.data.educations;
-                    setEducations(educations);
+                    setEducations(educations || [educationFields]);
                     setIsLoading(false);
                 }
                 else{
-                    setEducations(educationFields);
+                    setEducations([educationFields]);
                     setIsLoading(false);
                 }
             }).catch((error) => {
                 console.error('Error fetching branches:', error);
-                setEducations(educationFields);
+                setEducations([educationFields]);
             });
     }, []);
+
+    console.log(educations);;
 
     const handleChange = (index, field, value) => {
         const updatedFields = [...educations];
@@ -306,7 +308,9 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
                                     }
                                     
                                     {/* Educational Backgrounds*/}
-                                    <EducationFields educations={educations} handleChange={handleChange} handleAddFields={handleAddFields} handleRemoveFields={handleRemoveFields}>
+                                    <EducationFields educations={educations} handleChange={handleChange} 
+                                    handleAddFields={handleAddFields} handleRemoveFields={handleRemoveFields}>
+
                                     </EducationFields>
                                 </Grid>
 

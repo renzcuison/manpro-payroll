@@ -369,8 +369,12 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                         
 
                         <FormGroup row={true} className="d-flex" sx={{ '& label.Mui-focused': {color: '#97a5ba'}, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}}, }}> 
-                            <EmployeeEducationFields educations={educations} handleChange={handleChange} handleAddFields={handleAddFields} handleRemoveFields={handleRemoveFields}>
-                            </EmployeeEducationFields>
+                            <FormControl fullWidth>
+                                <EmployeeEducationFields educations={educations} handleChange={handleChange}
+                                 handleAddFields={handleAddFields} handleRemoveFields={handleRemoveFields}>
+
+                                </EmployeeEducationFields>
+                            </FormControl>
                         </FormGroup>
 
                         <Divider sx={{ my: 4 }} />
