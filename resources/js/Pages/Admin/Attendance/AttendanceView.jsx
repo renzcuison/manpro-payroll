@@ -33,6 +33,8 @@ const AttendanceView = () => {
     const [employeeList, setEmployeeList] = useState([]);
     const currentDate = dayjs().format("YYYY-MM-DD");
     const selectedEmployeeId = employeeList.find((emp) => emp.emp_user_name === user)?.emp_id || employee?.emp_id || "";
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     
     
     const navigate = useNavigate();
@@ -147,39 +149,6 @@ const AttendanceView = () => {
         return hours > 0 ? `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `${minutes}m`;
     };
 
-    // const setPredefinedDates = (range) => {
-    //     const today = dayjs();
-    //     switch (range) {
-    //         case "today":
-    //             setSummaryFromDate(today);
-    //             setSummaryToDate(today);
-    //             break;
-    //         case "yesterday":
-    //             setSummaryFromDate(today.subtract(1, "day"));
-    //             setSummaryToDate(today.subtract(1, "day"));
-    //             break;
-    //         case "last7days":
-    //             setSummaryFromDate(today.subtract(6, "day"));
-    //             setSummaryToDate(today);
-    //             break;
-    //         case "last30days":
-    //             setSummaryFromDate(today.subtract(29, "day"));
-    //             setSummaryToDate(today);
-    //             break;
-    //         case "thisMonth":
-    //             setSummaryFromDate(today.startOf("month"));
-    //             setSummaryToDate(today);
-    //             break;
-    //         case "lastMonth":
-    //             setSummaryFromDate(today.subtract(1, "month").startOf("month"));
-    //             setSummaryToDate(today.subtract(1, "month").endOf("month"));
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    //     setSelectedRange(range);
-    // };
-
     // const handleDateRangeChange = (from, to) => {
 
     //     console.log("Selected Date Range:", from?.format?.("YYYY-MM-DD"), "to", to?.format?.("YYYY-MM-DD"));
@@ -190,6 +159,7 @@ const AttendanceView = () => {
 
     
     const handleDateRangeChange = (start, end) => {
+        console.log("Selected range in AttendanceView:", start?.format(), end?.format());
         if (!start && !end) {
             setSummaryFromDate(dayjs("1900-01-01"));
             setSummaryToDate(dayjs());
@@ -199,6 +169,15 @@ const AttendanceView = () => {
             setSummaryToDate(end);
             setSelectedRange("custom");
         }
+    };
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
 
@@ -253,54 +232,8 @@ const AttendanceView = () => {
                                         </FormControl>
                                     </Box>
                                     <Grid container direction="row" justifyContent="flex-end" spacing={2} sx={{ pb: 4}}>
-                                        {/* <Grid item xs={2}>
-                                            {/* <FormControl fullWidth>
-                                                <InputLabel id="date-range-select-label">Date Range</InputLabel>
-                                                <Select
-                                                    labelId="date-range-select-label"
-                                                    id="date-range-select"
-                                                    value={selectedRange}
-                                                    label="Date Range"
-                                                    onChange={(event) => setPredefinedDates(event.target.value)}
-                                                >
-                                                    <MenuItem value="today">Today</MenuItem>
-                                                    <MenuItem value="yesterday">Yesterday</MenuItem>
-                                                    <MenuItem value="last7days">Last 7 Days</MenuItem>
-                                                    <MenuItem value="last30days">Last 30 Days</MenuItem>
-                                                    <MenuItem value="thisMonth">This Month</MenuItem>
-                                                    <MenuItem value="lastMonth">Last Month</MenuItem>
-                                                    <MenuItem value="custom">Custom Range</MenuItem>
-                                                </Select>
-                                            </FormControl> 
-                                        </Grid> */}
                                         <Grid item xs={4}>
-                                            <DateRangePicker selectedRange={selectedRange} onRangeChange={handleDateRangeChange} />
-                                            {/* <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                <DatePicker
-                                                    label="From Date"
-                                                    value={summaryFromDate}
-                                                    onChange={(newValue) => {
-                                                        setSummaryFromDate(newValue);
-                                                        if (newValue.isAfter(summaryToDate)) {
-                                                            setSummaryToDate(newValue);
-                                                        }
-                                                        setSelectedRange("custom");
-                                                    }}
-                                                    renderInput={(params) => <TextField {...params} />}
-                                                    sx={{ mr: 2, width: '150px' }}
-                                                />
-                                                <DatePicker
-                                                    label="To Date"
-                                                    value={summaryToDate}
-                                                    onChange={(newValue) => {
-                                                        setSummaryToDate(newValue);
-                                                        setSelectedRange("custom");
-                                                    }}
-                                                    minDate={summaryFromDate}
-                                                    renderInput={(params) => <TextField {...params} />}
-                                                    sx={{ mr: 2, width: '150px' }}
-                                                />
-                                            </LocalizationProvider> */}
+                                            <DateRangePicker onRangeChange={handleDateRangeChange} />
                                         </Grid>
                                     </Grid>
                                 </Box>
@@ -320,7 +253,9 @@ const AttendanceView = () => {
                                         </TableHead>
                                         <TableBody>
                                             {summaryData.length > 0 ? (
-                                                summaryData.map((summary, index) => (
+                                                summaryData
+                                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                                .map((summary, index) => (
                                                     <TableRow
                                                         key={index}
                                                         onClick={() => handleOpenAttendanceDetails(summary)}
@@ -348,6 +283,15 @@ const AttendanceView = () => {
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
+                                <TablePagination
+                                rowsPerPageOptions={[5, 10, 25, 50]}
+                                component="div"
+                                count={summaryData.length}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                onPageChange={handleChangePage}
+                                onRowsPerPageChange={handleChangeRowsPerPage}
+                            />
                             </>
                         )}
                     </Box>
