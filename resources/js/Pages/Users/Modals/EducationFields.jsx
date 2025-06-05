@@ -1,71 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography,
      CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Avatar, Stack, Tooltip, Divider } from '@mui/material';
-import { CgAdd } from "react-icons/cg";  
+import { CgAdd, CgTrash } from "react-icons/cg";  
 
 
-function EducationFields({education}){
-    const [fields, setFields] = useState(education.length > 0 ? education.length: 1);
-    const handleAddField = () => {
-        setFields(count => count + 1);
-    };
-    const degreeList = ["Bachelor", "Masteral", "Doctoral"]
-
-    const [educationFields, setEducationFields] = useState(
-        education.length > 0 ? education : [{ degree: "", school: "", year: "" }]
-    );
+function EducationFields({educations, handleChange, handleAddFields, handleRemoveFields}){
     return(
-        <Grid container spacing={2} size={12} sx={{ maxHeight: 300, overflow: "auto" }}>
-            {[...Array(fields)].map((_, index) => (
-            <Grid container spacing={2} key={index} alignItems="center">
-                <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                        <TextField label="School Name" />
-                    </FormControl>
+        <Box>
+            <Box display="flex" sx={{mb:2}}>
+                <Typography variant="h5" sx={{ marginLeft: { xs: 0, md: 1 }, marginRight:{xs:1, md:2}, fontWeight: 'bold' }}> Educational Background </Typography>
+                <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
+            </Box>
+            <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
+                {educations.map((item, index) => (
+                <Grid container spacing={2} size ={12} key={index} alignItems="center">
+                    <Grid size={3}>
+                        <FormControl fullWidth>
+                            <TextField label="School Name" value={item.school_name} onChange={(e)=>handleChange(index, "school_name", e.target.value)} />
+                        </FormControl>
+                    </Grid>
+
+                    <Grid size={3}>
+                        <FormControl fullWidth>
+                            <TextField label="Program Name" value={item.program_name} onChange={(e)=>handleChange(index, "program_name", e.target.value)} />
+                        </FormControl>
+                    </Grid>
+
+                    <Grid size={3}>
+                        <FormControl fullWidth>
+                            <TextField select id="education_level" label="Level" value={item.education_level}
+                             variant="outlined" onChange={(e) => { handleChange(index, "education_level", e.target.value) }} >
+                                <MenuItem value={"Elementary"}>{"Elementary"}</MenuItem>
+                                <MenuItem value={"High School"}>{"High School"}</MenuItem>
+                                <MenuItem value={"Senior High School"}>{"Senior High School"}</MenuItem>
+                                <MenuItem value={"Associate"}>{"Associate"}</MenuItem>
+                                <MenuItem value={"Bachelor"}>{"Bachelor"}</MenuItem>
+                                <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
+                                <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
+                            </TextField>
+                        </FormControl>
+                    </Grid>
+                    <Grid size={2}>
+                        <FormControl fullWidth>
+                            <TextField label="Year Graduated" value={item.year_graduated} onChange={(e)=>handleChange(index, "year_graduated", e.target.value)} />
+                        </FormControl>
+                    </Grid>
+
+                    <Grid size={1}>
+                        <Box display="flex" justifyContent="space-between" gap={1}>
+                            <Button onClick={() => handleRemoveFields(index)} variant="text" startIcon={<CgTrash style={{ color: 'red' }} />}> </Button>
+                        </Box>
+                    </Grid>
                 </Grid>
-                <Grid item xs={12} md={4}>
-                    <FormControl fullWidth>
-                        <Select
-                            labelId="degree-select-label"
-                            id="degree-select"
-                            value={education[index].degree ?? degreeList[0]}
-                            label="Degree"
-                            onChange={(event) => {education[index].degree = event.target.value; console.log(event.target.value)}}
-                        >
-                            {degreeList.map((deg, index) => (
-                                <MenuItem key={index} value={deg}>{deg}</MenuItem>
-                            ))}
-                        </Select>
-                        {/* <Select
-                            labelId="degree-select-label"
-                            id="degree-select"
-                            value={education[index].degree ?? degreeList[0]}
-                            label="Degree"
-                            onChange={(event) => education[index].degree = )}
-                        >
-                            {degree.map((deg, index) => (
-                            <MenuItem key={index} value={deg}>
-                                {deg}
-                            </MenuItem>
-                            ))}
-                        </Select> */}
-                    </FormControl>
-                </Grid>
-                <Grid item xs={12} md={2}>
-                    <FormControl fullWidth>
-                        <TextField label="Year Graduated" />
-                    </FormControl>
-                </Grid>
-                {index === fields -1 && (
-                <Grid item xs={12} md={2}>
-                    <Button onClick={handleAddField} variant="text" startIcon={<CgAdd/>}>
-                        Add Field
-                    </Button>
-                </Grid>
-                )}
+                ))}    
             </Grid>
-            ))}      
-        </Grid>
+
+        </Box>
     );
 }
 export default EducationFields;

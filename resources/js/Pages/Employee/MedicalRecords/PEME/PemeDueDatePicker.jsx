@@ -80,7 +80,6 @@ const PemeDueDatePicker = ({ dueDate, setDueDate }) => {
                 <MenuItem sx={{ width: 220 }} onClick={() => handlePresetClick("today")}>Today</MenuItem>
                 <MenuItem onClick={() => handlePresetClick("yesterday")}>Yesterday</MenuItem>
                 <MenuItem onClick={() => handlePresetClick("last7")}>Last 7 Days</MenuItem>
-                <MenuItem onClick={() => handlePresetClick("clear")}>Clear</MenuItem>
                 <Divider />
                 <MenuItem onClick={() => handlePresetClick("thisWeek")}>This Week</MenuItem>
                 <MenuItem onClick={() => handlePresetClick("lastWeek")}>Last Week</MenuItem>
@@ -90,6 +89,7 @@ const PemeDueDatePicker = ({ dueDate, setDueDate }) => {
                 <MenuItem onClick={() => handlePresetClick("lastYear")}>Last Year</MenuItem>                   
                 <Divider />
                 <MenuItem onClick={() => setCustomOpen(true)}>Custom</MenuItem>
+                <MenuItem onClick={() => handlePresetClick("clear")}>Clear</MenuItem>
                 </>
 
             ) : (

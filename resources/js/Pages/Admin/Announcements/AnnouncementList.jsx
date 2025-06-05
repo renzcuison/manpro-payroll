@@ -535,6 +535,16 @@ const AnnouncementList = () => {
                               >
                                 {announcement.status}
                               </Typography>
+                              {announcement.status === "Pending" && announcement.scheduled_send_datetime && (
+                                <Typography
+                                  sx={{
+                                      fontWeight: "bold",
+                                      color: "#adb5bd"
+                                    }}
+                                  >
+                                  {dayjs(announcement.scheduled_send_datetime).format('MMM D, YYYY h:mm A')}
+                                </Typography>
+                              )}
                             </CardContent>
                             {/* Acknowledgement, Views, and Options */}
                             <CardActions

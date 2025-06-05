@@ -8,8 +8,14 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 
 import DateRangePicker from '../../../components/DateRangePicker';
+
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 const AttendanceLogs = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -17,6 +23,7 @@ const AttendanceLogs = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
+
     const [attendances, setAttendances] = useState([]);
 
     const [searchName, setSearchName] = useState('');
@@ -29,11 +36,24 @@ const AttendanceLogs = () => {
     }, [fromDate, toDate, selectedRange]);
 
     const getAttendanceLogs = () => {
-        axiosInstance.get('/attendance/getAttendanceLogs', {
-            headers, params: {
-                from_date: fromDate.format("YYYY-MM-DD"),
-                to_date: toDate.format("YYYY-MM-DD"),
-            },
+        // axiosInstance.get('/attendance/getAttendanceLogs', {
+        //     headers, params: {
+        //         from_date: fromDate.format("YYYY-MM-DD"),
+        //         to_date: toDate.format("YYYY-MM-DD"),
+        //     },
+         axiosInstance.get('/attendance/getAttendanceLogs', {
+            headers, 
+            
+            // params: {
+            //     from_date: fromDate.format("YYYY-MM-DD"),
+            //     to_date: toDate.format("YYYY-MM-DD"),
+            // },
+
+            params :
+            {
+                from_date: fromDate ? dayjs(fromDate).format("YYYY-MM-DD") : "",
+                to_date: toDate ? dayjs(toDate).format("YYYY-MM-DD") : "",
+                },
         })
             .then((response) => {
                 setAttendances(response.data.attendances || []);
@@ -71,6 +91,7 @@ const AttendanceLogs = () => {
     };
 
     const setPredefinedDates = (range) => {
+        console.log("Range selected:", range);
         const today = dayjs();
         switch (range) {
             case "today":
@@ -95,17 +116,45 @@ const AttendanceLogs = () => {
             case "lastMonth":
                 handleFilterChange("range", today.subtract(1, "month").startOf("month"), today.subtract(1, "month").endOf("month"));
                 break;
+
             case "custom":
                 break;
             default:
                 break;
+            
         }
+        
         setSelectedRange(range);
+    }
+
+    //
+    // const filteredAttendance = attendances.filter((attendance) => {
+    //     return attendance.name.toLowerCase().includes(searchName.toLowerCase());
+    // });
+    // is replaced with
+    const filteredAttendance = attendances.filter((attendance) => {
+        const attendanceDate = dayjs(attendance.timeStamp);
+        const matchesName = attendance.name.toLowerCase().includes(searchName.toLowerCase());
+
+        const isInDateRange =
+            (!fromDate || attendanceDate.isSameOrAfter(fromDate, 'day')) &&
+            (!toDate || attendanceDate.isSameOrBefore(toDate, 'day'));
+
+        return matchesName && isInDateRange;
+    });
+
+    const handleDateRangeChange = (start, end) => {
+        if (!start && !end) {
+            setFromDate(dayjs("1900-01-01"));
+            setToDate(dayjs());
+            setSelectedRange("all");
+        } else {
+            setFromDate(start);
+            setToDate(end);
+            setSelectedRange("custom");
+        }
     };
 
-    const filteredAttendance = attendances.filter((attendance) => {
-        return attendance.name.toLowerCase().includes(searchName.toLowerCase());
-    });
 
     return (
         <Layout title={"AttendanceLogs"}>
@@ -121,7 +170,7 @@ const AttendanceLogs = () => {
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
 
                             <Grid container direction="row" justifyContent="flex-start" size={8} spacing={2}>
-                                <DateRangePicker />
+                                <DateRangePicker onRangeChange={handleDateRangeChange} />
                             </Grid>
 
 

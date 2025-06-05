@@ -27,7 +27,7 @@ import BranchesChart from "./BranchesBarChart";
 import { useTodaysAttendance } from "./useDashboard";
 import { Link } from "react-router-dom";
 
-function MainSection({ infoCardsData, adminName, dashboardData }) {
+function MainSection({ infoCardsData, adminName, dashboardData, user }) {
     const theme = useTheme();
     const { data, isFetched, isLoading } = useUsers();
     const { data: attendance } = useTodaysAttendance();
@@ -131,12 +131,16 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                             fontWeight: "bold",
                         }}
                     >
-                        <Typewriter text={adminName} delay={300} infinite />
+                        <Typewriter
+                            text={user.first_name}
+                            delay={300}
+                            infinite
+                        />
                     </Box>
                 </Typography>
 
                 <Stack>
-                    {dashboardData.requests?.length > 0 ? (
+                    {dashboardData?.requests?.length > 0 ? (
                         <>
                             <Typography
                                 variant="subtitle1"
@@ -144,7 +148,7 @@ function MainSection({ infoCardsData, adminName, dashboardData }) {
                                     color: "#fff",
                                 }}
                             >
-                                You have {dashboardData.requests?.length}{" "}
+                                You have {dashboardData?.requests?.length}{" "}
                                 pending requests today! Let’s work on them and
                                 get everything done!
                             </Typography>

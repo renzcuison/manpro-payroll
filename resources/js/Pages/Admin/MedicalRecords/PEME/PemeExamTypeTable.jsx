@@ -9,9 +9,14 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 
+
 const highlightMatch = (text, keyword) => {
     if (!keyword) return text;
-    const regex = new RegExp(`(${keyword})`, "gi");
+
+    // Escape regex special characters in the keyword
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const regex = new RegExp(`(${escapedKeyword})`, "gi");
     const parts = text.split(regex);
 
     return parts.map((part, index) =>
@@ -32,7 +37,7 @@ const PemeExamTypeTable = ({ records, onRowClick, search }) => {
                 marginTop: 2,
                 overflowY: "scroll",
                 minHeight: 400,
-                maxHeight: 500,
+                maxHeight: 450,
             }}
             style={{ overflowX: "auto" }}
         >
@@ -41,12 +46,13 @@ const PemeExamTypeTable = ({ records, onRowClick, search }) => {
                     <TableRow>
                         <TableCell align="center">Date</TableCell>
                         <TableCell align="center">Exam</TableCell>
+                        <TableCell align="center">Respondents</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {records.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={6} align="center">
+                            <TableCell colSpan={3} align="center">
                                 <Typography>No Result Found</Typography>
                             </TableCell>
                         </TableRow>
@@ -65,7 +71,7 @@ const PemeExamTypeTable = ({ records, onRowClick, search }) => {
                             >
                                 <TableCell align="center">
                                     {highlightMatch(
-                                        dayjs(record.date).format(
+                                        dayjs(record.created_at).format(
                                             "MMMM D, YYYY"
                                         ),
                                         search
@@ -73,6 +79,9 @@ const PemeExamTypeTable = ({ records, onRowClick, search }) => {
                                 </TableCell>
                                 <TableCell align="center">
                                     {highlightMatch(record.name, search)}
+                                </TableCell>
+                                <TableCell align="center">
+                                    {highlightMatch(record.respondents)}
                                 </TableCell>
                             </TableRow>
                         ))

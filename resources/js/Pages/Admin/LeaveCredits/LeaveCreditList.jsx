@@ -23,7 +23,7 @@ const LeaveCreditList = () => {
 
     const fetchEmployees = () => {
         setIsLoading(true);
-        axiosInstance.get('/employee/getEmployeesLeaveCredits', { headers })
+        axiosInstance.get('/employee/getEmployeeLeaveCredits', { headers })
             .then((response) => {
                 const employeesData = response.data.employees;
                 setEmployees(employeesData);
@@ -45,7 +45,8 @@ const LeaveCreditList = () => {
 
     const filteredEmployees = employees.filter((employee) => {
         const fullName = `${employee?.last_name}, ${employee.first_name} ${employee.middle_name || ''} ${employee.suffix || ''}`.toLowerCase();
-        return fullName.includes(searchName.toLowerCase());
+        const match = fullName.includes(searchName.toLowerCase());
+        return match;
     });
 
     const handleChangePage = (event, newPage) => {
@@ -103,7 +104,7 @@ const LeaveCreditList = () => {
                                                 paginatedEmployees.map((employee, index) => (
                                                     <TableRow
                                                         key={employee.user_name}
-                                                        onClick={() => handleRowClick(employee)}  // pass whole object
+                                                        onClick={() => handleRowClick(employee)}
                                                         sx={{
                                                             backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff',
                                                             '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' }
@@ -139,7 +140,6 @@ const LeaveCreditList = () => {
                     </Box>
                 </Box>
             </Box>
-.
             {/* LeaveCreditView modal as before */}
             {selectedEmployee && (
                 <LeaveCreditDescription
