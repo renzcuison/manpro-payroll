@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; //added useEffect
 import { TextField, Menu, MenuItem, Box, Paper, Typography, Divider } from "@mui/material";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -18,7 +18,7 @@ const ranges = [
     { label: "Custom Range", custom: true }
 ];
 
-export default function DateRangePicker() {
+export default function DateRangePicker({onRangeChange, label = "Select Date"}) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [startDate, setStartDate] = useState(dayjs());
     const [endDate, setEndDate] = useState(dayjs());
@@ -36,18 +36,28 @@ export default function DateRangePicker() {
         } else {
             setStartDate(item.range[0]);
             setEndDate(item.range[1]);
+            onRangeChange?.(item.range[0], item.range[1]); // call existing onRangeChange prop function from another file and pass the selected start and end dates
             handleClose();
         }
     };
+
+    // set from user input in a controlled component
+    useEffect(() => {                       
+            if (showCustom && startDate && endDate) {
+                onRangeChange?.(startDate, endDate);
+            }
+        }, 
+    [startDate, endDate, showCustom]);
 
     const handleClose = () => {
         setAnchorEl(null);
         setShowCustom(false);
     };
+    
 
     return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <TextField label="Select Date Requested" value={formatDisplay()} onClick={handleClick} fullWidth readOnly />
+        <TextField label={label} value={formatDisplay()} onClick={handleClick} fullWidth readOnly />
 
         <Menu
             anchorEl={anchorEl}

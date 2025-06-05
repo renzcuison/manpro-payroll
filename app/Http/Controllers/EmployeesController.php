@@ -262,7 +262,7 @@ class EmployeesController extends Controller
             foreach ($client->employees as $employee) {
                 $employees[] = [
                     'user_name' => $employee->user_name,
-                    'name' => $employee->first_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
+                    'name' => $employee->first_name . ", " . $employee->last_name . " " . $employee->middle_name . " " . $employee->suffix,
                     'branch' => optional($employee->branch)->name . " (" . optional($employee->branch)->acronym . ")", 'N/A',
                     'department' => optional($employee->department)->name . " (" . optional($employee->department)->acronym . ")", 'N/A',
                     'total' => $employee->leaveCredits->sum('number'),

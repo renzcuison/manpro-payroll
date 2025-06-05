@@ -267,6 +267,48 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
+    const medicalRecords = [
+        {
+            id: 2,
+            text: "Medical Records",
+            icon: "fa fa-medkit",
+            children: [
+                {
+                    href: `/admin/medical-records/peme-records`,
+                    text: "PEME",
+                    icon: "fa fa-cogs",
+                },
+                {
+                    href: `/admin/medical-records/group-life-masterlist-records`,
+
+                    text: "Group Life Masterlist",
+                    icon: "fa fa-cogs",
+                },
+                {
+                    href: `/admin/medical-records/hmo-masterlist-records`,
+
+                    text: "HMO Masterlist",
+                    icon: "fa fa-cogs",
+                },
+            ],
+        },
+    ];
+
+    // const loanItems = [{
+    //     id: 8,
+    //     text: 'Performance Evaluation',
+    //     icon: 'fa fa-check',
+    //     children: [
+    //         {
+    //             href: `/member/evaluate`,
+    //             text: 'Evaluate',
+    //         }, {
+    //             href: `/member/evaluation`,
+    //             text: 'My Evaluation',
+    //         }
+    //     ]
+    // }]
+
     const evaluationItems = [
         {
             id: 9,
@@ -350,17 +392,17 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })} */}
 
-                                    <StyledNav to={`/admin/branches/branchlist`}>
+                                    <StyledNav to={`/admin/employees`}>
                                         <i className="si si-users" style={{ color: "#2a800f" }} ></i> 
                                         <span id="navName" className="sidebar-mini-hide">Employees</span> 
                                     </StyledNav> 
                                     
-                                    {/* <StyledNav to={`/admin/department/departmentlist`}> */}
-                                        {/* <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i> */}
-                                        {/* <span id="navName" className="sidebar-mini-hide">Departments</span> */}
-                                    {/* </StyledNav> */}
+                                    <StyledNav to={`/admin/department/departmentlist`}>
+                                        <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide">Departments</span>
+                                    </StyledNav>
 
-                                    <StyledNav to={`/admin/branches/branchlist`}>
+                                    <StyledNav to={`/admin/branches`}>
                                         <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i> 
                                         <span id="navName" className="sidebar-mini-hide">Branches</span> 
                                     </StyledNav> 
@@ -383,11 +425,6 @@ const Sidebar = ({ children, closeMini }) => {
                                     <StyledNav to={`/admin/schedules`}>
                                         <i className="fa fa-calendar" style={{ color: "#2a800f" }} ></i>
                                         <span id="navName" className="sidebar-mini-hide"> Schedules & Holidays </span>
-                                    </StyledNav>
-
-                                    <StyledNav to={`/admin/department/departmentlist`}>
-                                        <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide">Departments</span>
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/perimeters`}>
@@ -450,7 +487,14 @@ const Sidebar = ({ children, closeMini }) => {
                                             <SideItem key={index} items={items} />
                                         );
                                     })}
-
+                                    {medicalRecords.map((items, index) => {
+                                        return (
+                                            <SideItem
+                                                key={index}
+                                                items={items}
+                                            />
+                                        );
+                                    })}
 
                                     {/* <StyledNav to={`/admin/loan-management`} > */}
                                     {/* <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span> */}

@@ -36,8 +36,8 @@ import Swal from "sweetalert2";
 import moment from "moment";
 
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const MAX_DESCRIPTION_LENGTH = 512;
 
@@ -68,14 +68,20 @@ const AnnouncementAdd = ({ open, close }) => {
     // Attachment Handlers
     const handleAttachmentUpload = (input) => {
         const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, attachment.length, 5, 10485760, "document");
+        let validFiles = validateFiles(
+            files,
+            attachment.length,
+            5,
+            10485760,
+            "document"
+        );
         if (validFiles) {
-            setAttachment(prev => [...prev, ...files]);
+            setAttachment((prev) => [...prev, ...files]);
         }
     };
 
     const handleDeleteAttachment = (index) => {
-        setAttachment(prevAttachments =>
+        setAttachment((prevAttachments) =>
             prevAttachments.filter((_, i) => i !== index)
         );
     };
@@ -100,7 +106,13 @@ const AnnouncementAdd = ({ open, close }) => {
     };
 
     // Validate Files
-    const validateFiles = (newFiles, currentFileCount, countLimit, sizeLimit, docType) => {
+    const validateFiles = (
+        newFiles,
+        currentFileCount,
+        countLimit,
+        sizeLimit,
+        docType
+    ) => {
         if (newFiles.length + currentFileCount > countLimit) {
             document.activeElement.blur();
             Swal.fire({
@@ -124,7 +136,9 @@ const AnnouncementAdd = ({ open, close }) => {
                 Swal.fire({
                     customClass: { container: "my-swal" },
                     title: "File Too Large!",
-                    text: `Each ${docType} can only be up to ${docType == "image" ? "5 MB" : "10 MB"}.`,
+                    text: `Each ${docType} can only be up to ${
+                        docType == "image" ? "5 MB" : "10 MB"
+                    }.`,
                     icon: "error",
                     showConfirmButton: true,
                     confirmButtonColor: "#177604",
@@ -134,7 +148,7 @@ const AnnouncementAdd = ({ open, close }) => {
                 return true;
             }
         }
-    }
+    };
 
     const getFileSize = (size) => {
         if (size === 0) return "0 Bytes";
@@ -255,8 +269,8 @@ const AnnouncementAdd = ({ open, close }) => {
         if (thumbnail) formData.append("thumbnail", thumbnail);
         images.forEach(img => formData.append("images[]", img));
         if (attachment.length > 0) {
-            attachment.forEach(file => {
-                formData.append('attachment[]', file);
+            attachment.forEach((file) => {
+                formData.append("attachment[]", file);
             });
         }
 
@@ -298,9 +312,9 @@ const AnnouncementAdd = ({ open, close }) => {
                 maxWidth="md"
                 PaperProps={{
                     style: {
-                        backgroundColor: '#f8f9fa',
-                        boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px',
-                        borderRadius: '20px',
+                        backgroundColor: "#f8f9fa",
+                        boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
+                        borderRadius: "20px",
                         minWidth: { xs: "100%", sm: "700px" },
                         maxWidth: '800px',
                         marginBottom: '5%',
@@ -308,9 +322,19 @@ const AnnouncementAdd = ({ open, close }) => {
                     }
                 }}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }} >
-                        <Typography variant="h4" sx={{ ml: 1, mt: 2, fontWeight: "bold" }}>
-                            {" "}Create Announcement{" "}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Typography
+                            variant="h4"
+                            sx={{ ml: 1, mt: 2, fontWeight: "bold" }}
+                        >
+                            {" "}
+                            Create Announcement{" "}
                         </Typography>
                         <IconButton onClick={() => close(false)}>
                             <i className="si si-close"></i>
@@ -397,7 +421,9 @@ const AnnouncementAdd = ({ open, close }) => {
                                         placeholder="TITLE HERE*"
                                         value={title}
                                         onChange={(event) => {
-                                            if (event.target.value.length <= 128) {
+                                            if (
+                                                event.target.value.length <= 128
+                                            ) {
                                                 setTitle(event.target.value);
                                             }
                                         }}
@@ -598,7 +624,9 @@ const AnnouncementAdd = ({ open, close }) => {
                             <Grid size={12}>
                                 <FormControl fullWidth>
                                     <Box sx={{ width: "100%" }}>
-                                        <Stack direction="row" spacing={1}
+                                        <Stack
+                                            direction="row"
+                                            spacing={1}
                                             sx={{
                                                 justifyContent: "space-between",
                                                 alignItems: "center",
@@ -616,7 +644,9 @@ const AnnouncementAdd = ({ open, close }) => {
                                                     name="attachment"
                                                     multiple
                                                     style={{ display: "none" }}
-                                                    onChange={handleAttachmentUpload}
+                                                    onChange={
+                                                        handleAttachmentUpload
+                                                    }
                                                 />
                                                 <Button
                                                     variant="contained"
@@ -625,49 +655,84 @@ const AnnouncementAdd = ({ open, close }) => {
                                                     onClick={() => document.getElementById('attachment-upload').click()}
                                                 >
                                                     <p className="m-0">
-                                                        <i className="fa fa-plus"></i> Add
+                                                        <i className="fa fa-plus"></i>{" "}
+                                                        Add
                                                     </p>
                                                 </Button>
                                             </Box>
                                         </Stack>
-                                        <Stack direction="row" spacing={1}
+                                        <Stack
+                                            direction="row"
+                                            spacing={1}
                                             sx={{
                                                 justifyContent: "space-between",
                                                 alignItems: "center",
                                                 width: "100%",
-                                                mt: 1
+                                                mt: 1,
                                             }}
                                         >
-                                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                            <Typography
+                                                variant="caption"
+                                                sx={{ color: "text.secondary" }}
+                                            >
                                                 Max Limit: 5 Files, 10 MB Each
                                             </Typography>
                                             {attachment.length > 0 && (
-                                                <Typography variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
+                                                <Typography
+                                                    variant="caption"
+                                                    sx={{
+                                                        color: "text.secondary",
+                                                        mr: 1,
+                                                    }}
+                                                >
                                                     Remove
                                                 </Typography>
                                             )}
                                         </Stack>
                                         {/* Added Attachments */}
                                         {attachment.length > 0 && (
-                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
-                                                {attachment.map((file, index) => (
-                                                    <Box
-                                                        key={index}
-                                                        sx={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center',
-                                                            border: '1px solid #e0e0e0',
-                                                            borderRadius: '4px',
-                                                            padding: '4px 8px'
-                                                        }}
-                                                    >
-                                                        <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
-                                                        <IconButton onClick={() => handleDeleteAttachment(index)} size="small">
-                                                            <Cancel />
-                                                        </IconButton>
-                                                    </Box>
-                                                ))}
+                                            <Stack
+                                                direction="column"
+                                                spacing={1}
+                                                sx={{ mt: 1, width: "100%" }}
+                                            >
+                                                {attachment.map(
+                                                    (file, index) => (
+                                                        <Box
+                                                            key={index}
+                                                            sx={{
+                                                                display: "flex",
+                                                                justifyContent:
+                                                                    "space-between",
+                                                                alignItems:
+                                                                    "center",
+                                                                border: "1px solid #e0e0e0",
+                                                                borderRadius:
+                                                                    "4px",
+                                                                padding:
+                                                                    "4px 8px",
+                                                            }}
+                                                        >
+                                                            <Typography
+                                                                noWrap
+                                                            >{`${
+                                                                file.name
+                                                            }, ${getFileSize(
+                                                                file.size
+                                                            )}`}</Typography>
+                                                            <IconButton
+                                                                onClick={() =>
+                                                                    handleDeleteAttachment(
+                                                                        index
+                                                                    )
+                                                                }
+                                                                size="small"
+                                                            >
+                                                                <Cancel />
+                                                            </IconButton>
+                                                        </Box>
+                                                    )
+                                                )}
                                             </Stack>
                                         )}
                                     </Box>
@@ -679,7 +744,8 @@ const AnnouncementAdd = ({ open, close }) => {
                                 size={12}
                                 align="center"
                                 sx={{
-                                    justifyContent: "center", alignItems: "center",
+                                    justifyContent: "center",
+                                    alignItems: "center",
                                 }}
                             >
                                 <Button
@@ -692,8 +758,8 @@ const AnnouncementAdd = ({ open, close }) => {
                                     className="m-1"
                                 >
                                     <p className="m-0">
-                                        <i className="fa fa-floppy-o mr-2 mt-1"></i>
-                                        {" "}Save Announcement{" "}
+                                        <i className="fa fa-floppy-o mr-2 mt-1"></i>{" "}
+                                        Save Announcement{" "}
                                     </p>
                                 </Button>
                             </Grid>
