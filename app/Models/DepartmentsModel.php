@@ -25,7 +25,7 @@ class DepartmentsModel extends Model
         'leave_limit'
     ];
 
-        // Add this relationship to connect departments with their employees
+    // Add this relationship to connect departments with their employees
     public function employees()
     {
         return $this->hasMany(UsersModel::class, 'department_id');
@@ -45,4 +45,11 @@ class DepartmentsModel extends Model
     {
         return $this->belongsTo(UsersModel::class, 'approver_id');
     }
+
+    //positions
+    public function assignedPositions()
+    {
+        return $this->hasMany(DepartmentPositionAssignment::class, 'department_id');
+    }     
+    
 }

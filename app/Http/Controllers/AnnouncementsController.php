@@ -57,11 +57,19 @@ class AnnouncementsController extends Controller
         }
 
         try {
-            $announcements = AnnouncementsModel::with(['views.user', 'branches', 'departments', 'employeeRoles', 'employeeStatuses', 'employeeTypes'])
-                ->where('client_id', $user->client_id)
-                ->whereIn('status', ['Published', 'Pending', 'Hidden']) // Include Hidden
-                ->orderBy('created_at', 'desc')
-                ->get();
+        $announcements = AnnouncementsModel::with([
+            'views.user',
+            'branches',
+            'departments',
+            'employeeRoles',
+            'employeeStatuses',
+            'employeeTypes',
+            'acknowledgements.user' // <-- Add this line!
+        ])
+        ->where('client_id', $user->client_id)
+        ->whereIn('status', ['Published', 'Pending', 'Hidden'])
+        ->orderBy('created_at', 'desc')
+        ->get();
 
         $formattedAnnouncements = $announcements->map(function ($announcement) {
             $viewCount = $announcement->views->count();
@@ -69,9 +77,9 @@ class AnnouncementsController extends Controller
             $departmentIds = $announcement->departments->pluck('department_id')->toArray();
 
             // Get allowed roles, types, statuses
-            $allowedRoleIds = $announcement->employeeRoles->pluck('role_id')->toArray();
-            $allowedEmploymentTypes = $announcement->employeeTypes->pluck('employment_type')->toArray();
-            $allowedEmploymentStatuses = $announcement->employeeStatuses->pluck('employment_status')->toArray();
+            $allowedRoleIds = $announcement->employeeRoles ? $announcement->employeeRoles->pluck('role_id')->toArray() : [];
+            $allowedEmploymentTypes = $announcement->employeeTypes ? $announcement->employeeTypes->pluck('employment_type')->toArray() : [];
+            $allowedEmploymentStatuses = $announcement->employeeStatuses ? $announcement->employeeStatuses->pluck('employment_status')->toArray() : [];
 
             $recipientCount = UsersModel::where('user_type', 'Employee')
                 ->where(function ($query) use ($branchIds, $departmentIds) {
@@ -152,7 +160,7 @@ class AnnouncementsController extends Controller
                 'viewed' => $viewCount,
                 'recipients' => $recipientCount,
                 'acknowledged' => $acknowledgedCount,
-                'views' => $views,
+                'views' => $views ? $views->values()->all() : [],
                 'acknowledgements' => $acknowledgements,
                 'scheduled_send_datetime' => $announcement->scheduled_send_datetime
             ];
@@ -372,14 +380,19 @@ class AnnouncementsController extends Controller
                     }
                 }
 
-                // Adding Files - Images
-                if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $index => $file) {
-                        $isThumbnail = $index == $request->input('thumbnail');
-                        $collection = $isThumbnail ? 'thumbnails' : 'images';
+                // Thumbnail (single file)
+                if ($request->hasFile('thumbnail')) {
+                    $announcement->addMedia($request->file('thumbnail'))
+                        ->withCustomProperties(['type' => 'Thumbnail'])
+                        ->toMediaCollection('thumbnails');
+                }
+
+                // Images (multiple files)
+                if ($request->hasFile('images')) {
+                    foreach ($request->file('images') as $file) {
                         $announcement->addMedia($file)
-                            ->withCustomProperties(['type' => $isThumbnail ? 'Thumbnail' : 'Image'])
-                            ->toMediaCollection($collection);
+                            ->withCustomProperties(['type' => 'Image'])
+                            ->toMediaCollection('images');
                     }
                 }
 
@@ -436,18 +449,26 @@ class AnnouncementsController extends Controller
                     }
                 }
 
-                // Adding Files - Images
-                if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $index => $file) {
-                        $isThumbnail = $index == $request->input('thumbnail');
-                        if ($isThumbnail) {
-                            $announcement->clearMediaCollection('thumbnails');
-                        }
-                        $collection = $isThumbnail ? 'thumbnails' : 'images';
+                // ADD THIS: Handle Thumbnail (like in saveAnnouncement)
+                if ($request->hasFile('thumbnail')) {
+                    // Remove old thumbnail if exists
+                    $announcement->clearMediaCollection('thumbnails');
+                    $announcement->addMedia($request->file('thumbnail'))
+                        ->withCustomProperties(['type' => 'Thumbnail'])
+                        ->toMediaCollection('thumbnails');
+                }
+
+                // ADD THIS: Handle Images (like in saveAnnouncement)
+                if ($request->hasFile('images')) {
+                    foreach ($request->file('images') as $file) {
                         $announcement->addMedia($file)
-                            ->withCustomProperties(['type' => $isThumbnail ? 'Thumbnail' : 'Image'])
-                            ->toMediaCollection($collection);
+                            ->withCustomProperties(['type' => 'Image'])
+                            ->toMediaCollection('images');
                     }
+                }
+
+                if ($request->input('removeThumbnail')) {
+                    $announcement->clearMediaCollection('thumbnails');
                 }
 
                 DB::commit();
@@ -671,7 +692,7 @@ class AnnouncementsController extends Controller
     
     public function getAnnouncementPublishmentDetails($code)
     {
-        Log::info("AnnouncementsController::getAnnouncementPublishmentDetails");
+        // Log::info("AnnouncementsController::getAnnouncementPublishmentDetails");
 
         $user = Auth::user();
 
@@ -823,6 +844,7 @@ class AnnouncementsController extends Controller
                 ];
             })->all();
 
+            // Thumbnails
             $thumbnails = $announcement->getMedia('thumbnails')->map(function ($media) {
                 return [
                     'id' => $media->id,
@@ -832,8 +854,6 @@ class AnnouncementsController extends Controller
                     'mime' => $media->mime_type,
                 ];
             })->all();
-
-            $imageData = array_merge($images, $thumbnails);
 
             // Documents
             $attachmentData = $announcement->getMedia('documents')->map(function ($media) {
@@ -846,7 +866,8 @@ class AnnouncementsController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'images' => $imageData,
+                'images' => $images, // <-- Only images here
+                'thumbnails' => $thumbnails, // <-- Thumbnails separate
                 'attachments' => $attachmentData,
             ]);
         } else {

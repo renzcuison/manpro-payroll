@@ -63,6 +63,13 @@ use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\MilestoneController;
 use Illuminate\Support\Facades\Route;
 
+// Medical Records Controller
+// PEME
+use App\Http\Controllers\PemeController;
+use App\Http\Controllers\PemeQuestionnaireController;
+use App\Http\Controllers\PemeResponseController;
+use App\Http\Controllers\PemeResponseDetailsController;
+
 Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
@@ -123,15 +130,26 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
         Route::get('/getBranchPositions', [SettingsController::class, 'getBranchPositions']);
+        Route::get('/getEmployeesByDepartment/{id}', [SettingsController::class, 'getEmployeesByDepartment']);
         Route::post('/saveBranchPosition', [SettingsController::class, 'saveBranchPosition']);
         Route::post('/addBranchPositionAssignments', [SettingsController::class, 'addBranchPositionAssignments']);
         Route::post('/updateBranchPositionAssignments/{branchId}', [SettingsController::class, 'updateBranchPositionAssignments']);
 
+        //departments
         Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
-        Route::get('/getDepartment/{id}', [SettingsController::class, 'getDepartment']);
-        Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
-        Route::post('/editDepartment', [SettingsController::class, 'editDepartment']);
+        Route::get('/getDepartment/{departmentId}', [SettingsController::class, 'getDepartment']);
+        Route::get('/getAllDepartments', [SettingsController::class, 'getAllDepartments']);
+        Route::get('/getDepartmentDetails/{id}', [SettingsController::class, 'getDepartmentDetails']);
 
+        Route::get('/getDepartmentPositions', [SettingsController::class, 'getDepartmentPositions']);
+        Route::get('/getAssignedEmployeesByDepartment/{departmentId}', [SettingsController::class, 'getAssignedEmployeesByDepartment']);
+        Route::get('/getDepartmentWithEmployeePosition', [SettingsController::class, 'getDepartmentWithEmployeePosition']);
+        Route::post('/saveDepartmentPositions', [SettingsController::class, 'saveDepartmentPositions']);
+        Route::get('/getDepartment/{id}', [SettingsController::class, 'getDepartment']);
+        Route::post('/saveDepartment/{departmentId}', [SettingsController::class, 'saveDepartment']);
+        Route::post('/editDepartment', [SettingsController::class, 'editDepartment']);
+        Route::post('/updateDepartmentPositionAssignments/{departmentId}', [SettingsController::class, 'updateDepartmentPositionAssignments']);
+        //departments (end)
         Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
         Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
         Route::post('/editJobTitle', [SettingsController::class, 'editJobTitle']);
@@ -147,6 +165,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('employee')->group(function () {
 
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
+        Route::get('/getAssignableEmployees', [EmployeesController::class, 'getAssignableEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
 
   
@@ -374,6 +393,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/milestones', [MilestoneController::class, 'index']);
     });
+
 
     Route::prefix('trainings')->group(function () {
         // Trainings, Training Content
@@ -714,15 +734,49 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getSignatories', [SignatoryController::class, 'getSignatories']);
     Route::post('/saveSignatory', [SignatoryController::class, 'saveSignatory']);
 
+    // Route::post('/google/event', [GoogleController::class, 'addEvent']);
+    // Route::get('/google/events', [GoogleController::class, 'getEvents']);
+    // Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent']); 
+    // temp error-fix
+
+    // Medical Records
+    // PEME Dashboard 
+    Route::post('/pemes', [PemeController::class, 'createPeme']);
+    Route::get('/pemes', [PemeController::class, 'getPemeList']);
+    Route::get('/pemes/stats', [PemeController::class, 'getPemeStats']);
+
+    // PEME Questionnaire
+    Route::post('/peme/questionnaire', 
+    [PemeQuestionnaireController::class, 'store']);
+    Route::get('/peme/{pemeId}/questionnaire', [PemeQuestionnaireController::class, 'getQuestionnaire']);
+    Route::put('/questionnaire/{questionId}', [PemeQuestionnaireController::class, 'update']);
+    Route::delete('/questionnaire/{questionId}', [PemeQuestionnaireController::class, 'destroy']);
+    Route::get('/questionnaire/{questionId}', [PemeQuestionnaireController::class, 'show']);
+    
+    // PEME Responses
+    Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
+    Route::get('/peme-responses', [PemeResponseController::class, 'index']);
+    Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
+    Route::post('/peme-responses', [PemeResponseController::class, 'store']);
+    Route::patch('/peme-responses/{id}/status', [PemeResponseController::class, 'updateStatus']);
+    Route::get('/peme-responses/summary/{pemeId}', [PemeResponseController::class, 'summary']);
+    Route::post('/peme-responses/{id}/restore', [PemeResponseController::class, 'restore']);
+
+    // Response Details
+    Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
+    Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
+    Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
+    Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
+    Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);
+    Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
+    Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
+    Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
+
     Route::post('/google/event', [GoogleController::class, 'addEvent']);
     Route::get('/google/events', [GoogleController::class, 'getEvents']);
     Route::put('/google/event/{id}', [GoogleController::class, 'updateEvent']);
     Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent']);
-
-    Route::put('/public-event/{id}', [GoogleController::class, 'updatePublicEvent']);
-    Route::delete('/public-event/{id}', [GoogleController::class, 'deletePublicEvent']);
 });
-
 
 Route::get('/google/redirect', [GoogleController::class, 'redirectToGoogle']);
 Route::get('/google/callback', [GoogleController::class, 'handleGoogleCallback']);

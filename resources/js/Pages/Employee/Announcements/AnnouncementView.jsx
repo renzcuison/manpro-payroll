@@ -14,6 +14,9 @@ import {
   Tooltip,
   useTheme,
   useMediaQuery,
+  Dialog,
+  DialogTitle, 
+  DialogContent
 } from "@mui/material";
 import { MoreVert, Download, CheckCircle } from "@mui/icons-material";
 import dayjs from "dayjs";
@@ -22,6 +25,8 @@ import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 import InfoBox from "../../../components/General/InfoBox";
 import { useNavigate, useParams } from "react-router-dom";
+import CloseIcon from '@mui/icons-material/Close';
+import mammoth from "mammoth";
 
 import PdfImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
@@ -47,6 +52,9 @@ const AnnouncementView = () => {
   const [imageLoading, setImageLoading] = useState(true);
   const [images, setImages] = useState([]);
   const [attachments, setAttachments] = useState([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
+  const [docxHtml, setDocxHtml] = useState("");
 
   useEffect(() => {
     getAnnouncementDetails();
@@ -108,13 +116,13 @@ const AnnouncementView = () => {
           const blob = new Blob([byteArray], { type: "image/png" });
           setImagePath(URL.createObjectURL(blob));
         } else {
-          setImagePath("../../../../images/ManProTab.png");
+          setImagePath("../../../../images/defaultThumbnail.jpg");
         }
         setImageLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching thumbnail:", error);
-        setImagePath("../../../../images/ManProTab.png");
+        setImagePath("../../../../images/defaultThumbnail.jpg");
         setImageLoading(false);
       });
   };
@@ -241,6 +249,37 @@ const AnnouncementView = () => {
     }
   };
 
+  // ---------------- File Preview
+  useEffect(() => {
+    if (!previewOpen) setDocxHtml("");
+  }, [previewOpen]);
+
+  const handlePreviewFile = (filename, id, mimeType) => {
+      axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
+          .then(async (response) => {
+              const blob = new Blob([response.data], { type: mimeType });
+              const url = URL.createObjectURL(blob);
+
+              if (
+                  mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                  filename.endsWith(".docx")
+              ) {
+                  const arrayBuffer = await blob.arrayBuffer();
+                  mammoth.convertToHtml({ arrayBuffer }).then(result => {
+                      setDocxHtml(result.value);
+                      setPreviewFile({ url, mimeType, filename });
+                      setPreviewOpen(true);
+                  });
+              } else {
+                  setPreviewFile({ url, mimeType, filename });
+                  setPreviewOpen(true);
+              }
+          })
+          .catch((error) => {
+              console.error("Error previewing file:", error);
+          });
+  };
+
   // Image Cleanup
   useEffect(() => {
     return () => {
@@ -311,15 +350,16 @@ const AnnouncementView = () => {
             ) : (
               <Grid container columnSpacing={4} rowSpacing={2}>
                 {/* Thumbnail */}
-                <Grid size={12}>
+                <Grid size={12} sx={{ height: {xs: 240, md: 360, lg: 480}, width: "100%" }}>
                   <Box
                     sx={{
                       mb: 1,
                       position: "relative",
                       width: "100%",
-                      aspectRatio: "2 / 1",
+                      height: "100%",
                       borderRadius: "4px",
                       border: "2px solid #e0e0e0",
+                      overflow: "hidden",
                     }}
                   >
                     {imageLoading ? (
@@ -512,14 +552,16 @@ const AnnouncementView = () => {
                           return (
                             <ImageListItem key={attachment.id} sx={{ aspectRatio: "1/1", width: "100%" }}>
                               <img
-                                src={fileIcon}
-                                alt={attachment.filename}
-                                loading="lazy"
-                                style={{
-                                  height: "100%",
-                                  width: "100%",
-                                  objectFit: "cover",
-                                }}
+                                  src={fileIcon}
+                                  alt={attachment.filename}
+                                  loading="lazy"
+                                  style={{
+                                      height: "100%",
+                                      width: "100%",
+                                      objectFit: "cover",
+                                      cursor: "pointer"
+                                  }}
+                                  onClick={() => handlePreviewFile(attachment.filename, attachment.id, attachment.mime || "application/pdf")}
                               />
                               <ImageListItemBar
                                 subtitle={attachment.filename}
@@ -564,6 +606,45 @@ const AnnouncementView = () => {
           </Box>
         </Box>
       </Box>
+        <Dialog open={previewOpen} onClose={() => {
+              if (previewFile?.url) URL.revokeObjectURL(previewFile.url);
+              setPreviewOpen(false);
+              setPreviewFile(null);
+          }} maxWidth="md" fullWidth>
+          <DialogTitle>
+              {previewFile?.filename}
+              <IconButton
+                  aria-label="close"
+                  onClick={() => {
+                      if (previewFile?.url) URL.revokeObjectURL(previewFile.url);
+                      setPreviewOpen(false);
+                      setPreviewFile(null);
+                  }}
+                  sx={{ position: 'absolute', right: 8, top: 8 }}
+              >
+                  <CloseIcon />
+              </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ minHeight: 600 }}>
+            {previewFile?.mimeType?.includes("pdf") && previewFile?.filename?.toLowerCase().endsWith(".pdf") ? (
+              <iframe
+                  src={previewFile.url}
+                  title="PDF Preview"
+                  width="100%"
+                  height="500px"
+                  style={{ border: "none" }}
+              />
+          ) : previewFile?.mimeType?.includes("word") || previewFile?.filename?.toLowerCase().endsWith(".docx") ? (
+              <Box sx={{ width: "100%", minHeight: 400, bgcolor: "#fafafa", p: 2, overflow: "auto" }}>
+                  <div dangerouslySetInnerHTML={{ __html: docxHtml }} />
+              </Box>
+          ) : (
+              <Typography>
+                  Preview not supported for this file type. Please download to view.
+              </Typography>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
