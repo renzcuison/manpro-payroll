@@ -244,8 +244,10 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                             </Select>
                                                         </FormControl>
                                                     </Grid></FormControl>
-                                                    <Grid item xs={12} sm={2} >
-                                                        <Button sx={{marginLeft: 98}}
+
+                                                </Grid>
+                                                        <Grid item xs={12} sm={2} >
+                                                        <Button sx={{marginLeft: 85}}
                                                             variant="contained"
                                                             color="error"
                                                             onClick={() => handleRemoveDependent(index + 1)}
@@ -253,7 +255,6 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                             Remove
                                                         </Button>
                                                     </Grid>
-                                                </Grid>
                                             </Box>
                                         ))}
                                         {dependentWarning && (
