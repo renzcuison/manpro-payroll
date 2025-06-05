@@ -27,15 +27,17 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import GroupLifeEmployeeTable from "./GroupLifeEmployeeTable";
 import GroupLifeAssignEmployee from "./Modal/GroupLifeAssignEmployee";
+import GroupLifeEditEmployee from "./Modal/GroupLifeEditEmployee";
 
 const GroupLifeEmployees = () => {
     const navigator = useNavigate();
     const [search, setSearch] = React.useState("");
     const [openAssignEmployeeModal, setOpenAssignEmployeeModal] = useState(false);
+    const [openEditEmployeeModal, setOpenEditEmployeeModal] = useState(false);
     const employees = [
         {
             employee: "Samuel Christian D. Nacar",
-            dependents: "2",
+            dependents: "0",
             enrollDate: "May 25, 2025",
             branch: "Davao",
             department: "Accounting Department",
@@ -140,10 +142,20 @@ const GroupLifeEmployees = () => {
                             <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', }}>Assigned Employees</Typography>
                                         
                             <GroupLifeEmployeeTable
-                                employees={employees}/>
+                                employees={employees}
+                                onRowClick={() => setOpenEditEmployeeModal(true)}
+                                // onRowClick={handleOnBackClick}
+                                />
                             </Box>
                         </Grid>
                     </Grid>
+
+                    {openEditEmployeeModal && (
+                    <GroupLifeEditEmployee
+                        open={openEditEmployeeModal}
+                        close={setOpenEditEmployeeModal}
+                    />
+                )}
                 
                 {openAssignEmployeeModal && (
                     <GroupLifeAssignEmployee
