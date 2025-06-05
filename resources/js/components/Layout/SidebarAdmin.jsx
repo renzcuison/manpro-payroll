@@ -203,10 +203,6 @@ const Sidebar = ({ children, closeMini }) => {
                     text: "Announcement Types",
                 },
                 {
-                    href: `/admin/announcements/add?`,
-                    text: "Create Announcement",
-                },
-                {
                     href: `/admin/announcements?`,
                     text: "Announcement List",
                 },
@@ -218,7 +214,7 @@ const Sidebar = ({ children, closeMini }) => {
         {
             id: 5,
             text: "Work Shifts",
-            icon: "fa fa-calendar",
+            icon: "fa fa-clock-o",
             children: workshifts
                 .map((shift) => ({
                     id: shift.id,
@@ -266,6 +262,48 @@ const Sidebar = ({ children, closeMini }) => {
             ],
         },
     ];
+
+    const medicalRecords = [
+        {
+            id: 2,
+            text: "Medical Records",
+            icon: "fa fa-medkit",
+            children: [
+                {
+                    href: `/admin/medical-records/peme-records`,
+                    text: "PEME",
+                    icon: "fa fa-cogs",
+                },
+                {
+                    href: `/admin/medical-records/group-life-masterlist-records`,
+
+                    text: "Group Life Masterlist",
+                    icon: "fa fa-cogs",
+                },
+                {
+                    href: `/admin/medical-records/hmo-masterlist-records`,
+
+                    text: "HMO Masterlist",
+                    icon: "fa fa-cogs",
+                },
+            ],
+        },
+    ];
+
+    // const loanItems = [{
+    //     id: 8,
+    //     text: 'Performance Evaluation',
+    //     icon: 'fa fa-check',
+    //     children: [
+    //         {
+    //             href: `/member/evaluate`,
+    //             text: 'Evaluate',
+    //         }, {
+    //             href: `/member/evaluation`,
+    //             text: 'My Evaluation',
+    //         }
+    //     ]
+    // }]
 
     const evaluationItems = [
         {
@@ -350,20 +388,27 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })} */}
 
-                                    <StyledNav to={`/admin/branches/branchlist`}>
+                                    <StyledNav to={`/admin/employees`}>
                                         <i className="si si-users" style={{ color: "#2a800f" }} ></i> 
                                         <span id="navName" className="sidebar-mini-hide">Employees</span> 
                                     </StyledNav> 
                                     
-                                    {/* <StyledNav to={`/admin/department/departmentlist`}> */}
-                                        {/* <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i> */}
-                                        {/* <span id="navName" className="sidebar-mini-hide">Departments</span> */}
-                                    {/* </StyledNav> */}
+                                    <StyledNav to={`/admin/department/departmentlist`}>
+                                        <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide">Departments</span>
+                                    </StyledNav>
 
-                                    <StyledNav to={`/admin/branches/branchlist`}>
+                                    <StyledNav to={`/admin/branches`}>
                                         <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i> 
                                         <span id="navName" className="sidebar-mini-hide">Branches</span> 
                                     </StyledNav> 
+
+                                    
+                                    {workGroups.map((items, index) => {
+                                        return (
+                                            <SideItem key={index} items={items} />
+                                        );
+                                    })}
 
                                     <StyledNav to={`/admin/milestones`}>
                                         <i className="fa fa-external-link" style={{ color: "#2a800f" }} ></i>
@@ -380,14 +425,15 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
+                                    {workShifts.map((items, index) => {
+                                        return (
+                                            <SideItem key={index} items={items} />
+                                        );
+                                    })}
+
                                     <StyledNav to={`/admin/schedules`}>
                                         <i className="fa fa-calendar" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide"> Schedules & Holidays </span>
-                                    </StyledNav>
-
-                                    <StyledNav to={`/admin/department/departmentlist`}>
-                                        <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide">Departments</span>
+                                        <span id="navName" className="sidebar-mini-hide"> Calendar </span>
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/perimeters`}>
@@ -440,17 +486,12 @@ const Sidebar = ({ children, closeMini }) => {
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Payroll </span>
                                     </li>
-                                    <StyledNav to={`/admin/branches/branchlist`}>
-                                        <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide">Branches</span>
-                                    </StyledNav>
 
                                     {payrollItems.map((items, index) => {
                                         return (
                                             <SideItem key={index} items={items} />
                                         );
                                     })}
-
 
                                     {/* <StyledNav to={`/admin/loan-management`} > */}
                                     {/* <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span> */}
@@ -466,6 +507,36 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
+                                    <li className="nav-main-heading">
+                                        <span className="sidebar-mini-hidden text-dark"> Records </span>
+                                    </li>
+
+                                    {medicalRecords.map((items, index) => {
+                                        return (
+                                            <SideItem key={index} items={items} />
+                                        );
+                                    })}
+
+
+                                    <li className="nav-main-heading">
+                                        <span className="sidebar-mini-hidden text-dark"> Staffing </span>
+                                    </li>
+
+                                    <StyledNav to={`/staffing/onboarding`}>
+                                        <i className="fa fa-clipboard" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Onboarding </span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/staffing/offboarding`}>
+                                        <i className="fa fa-archive" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Offboarding </span>
+                                    </StyledNav>
+
+
+
+
+
+
                                     {/* <StyledNav to={`/admin/trainings`}> */}
                                     {/* <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i>{" "} */}
                                     {/* <span id="navName" className="sidebar-mini-hide" > Trainings </span> */}
@@ -474,35 +545,10 @@ const Sidebar = ({ children, closeMini }) => {
                                     {/* <StyledNav to={`/admin/documents`} className={isDocumentsActive || isDocumentEditActive ? 'active' : ''} > */}
                                     {/* <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span> */}
                                     {/* </StyledNav> */}
-{/* 
-                                    <StyledNav to={`/admin/performance-evaluation`} >
+
+                                    {/* <StyledNav to={`/admin/performance-evaluation`} >
                                     <i className="fa fa-check" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
                                     </StyledNav> */}
-
-                                    <li className="nav-main-heading">
-                                        <span className="sidebar-mini-hidden text-dark">
-                                            {" "}
-                                            Schedules{" "}
-                                        </span>
-                                    </li>
-
-                                    {workShifts.map((items, index) => {
-                                        return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
-                                        );
-                                    })}
-
-                                    {workGroups.map((items, index) => {
-                                        return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
-                                        );
-                                    })}
 
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark">
@@ -512,10 +558,7 @@ const Sidebar = ({ children, closeMini }) => {
 
                                     {settingsItems.map((items, index) => {
                                         return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
+                                            <SideItem key={index} items={items} />
                                         );
                                     })}
                                 </>

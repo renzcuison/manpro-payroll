@@ -39,6 +39,14 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
+import DateRangePicker from '../../../components/DateRangePicker';
+
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
+
 const AttendanceSummary = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -51,10 +59,41 @@ const AttendanceSummary = () => {
 
     const [searchName, setSearchName] = useState("");
 
+    const [fromDate, setFromDate] = useState(dayjs());
+    const [toDate, setToDate] = useState(dayjs());
+    const [selectedRange, setSelectedRange] = useState("today");
+
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [selectedBranch, setSelectedBranch] = useState(0);
     const [selectedDepartment, setSelectedDepartment] = useState(0);
+
+
+
+    useEffect(() => {
+        getAttendanceSummary();
+    }, [fromDate, toDate, selectedRange]);
+
+    const getAttendanceSummary = () => {
+
+         axiosInstance.get('/attendance/getAttendanceSummary', {
+            headers, 
+            params :
+            {
+                from_date: fromDate ? dayjs(fromDate).format("YYYY-MM-DD") : "",
+                to_date: toDate ? dayjs(toDate).format("YYYY-MM-DD") : "",
+                },
+        })
+            .then((response) => {
+                setAttendanceSummary(response.data.summary || []);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching attendance summary:', error);
+                setIsLoading(false);
+                setAttendances([]);
+            });
+    }
 
     // Attendance Summary List
     useEffect(() => {
@@ -118,15 +157,49 @@ const AttendanceSummary = () => {
     };
 
     // Filtering the attendance summary by search name
+    // const filteredAttendance = attendanceSummary.filter((attendance) => {
+    //     const fullName = `${attendance.emp_first_name} ${
+    //         attendance.emp_middle_name || ""
+    //     } ${attendance.emp_last_name} ${
+    //         attendance.emp_suffix || ""
+    //     }`.toLowerCase();
+    //     return fullName.includes(searchName.toLowerCase());
+    // });
+
+    // const handleDateRangeChange = (start, end) => {
+    //     setFromDate(start);
+    //     setToDate(end);
+    // };
+
     const filteredAttendance = attendanceSummary.filter((attendance) => {
+        const attendanceDate = dayjs(attendance.timeStamp);
         const fullName = `${attendance.emp_first_name} ${
             attendance.emp_middle_name || ""
         } ${attendance.emp_last_name} ${
             attendance.emp_suffix || ""
         }`.toLowerCase();
-        return fullName.includes(searchName.toLowerCase());
+        const matchesName = fullName.includes(searchName.toLowerCase());
+
+        const isInDateRange =
+            (!fromDate || attendanceDate.isSameOrAfter(fromDate, 'day')) &&
+            (!toDate || attendanceDate.isSameOrBefore(toDate, 'day'));
+
+        return matchesName && isInDateRange;
     });
 
+    
+        const handleDateRangeChange = (start, end) => {
+            if (!start && !end) {
+                setFromDate(dayjs("1900-01-01"));
+                setToDate(dayjs());
+                setSelectedRange("all");
+            } else {
+                setFromDate(start);
+                setToDate(end);
+                setSelectedRange("custom");
+            }
+        };
+    
     return (
         <Layout title={"AttendanceLogs"}>
             <Box
@@ -205,7 +278,7 @@ const AttendanceSummary = () => {
                                 spacing={2}
                             >
                                 <Grid>
-                                    <LocalizationProvider
+                                    {/* <LocalizationProvider
                                         dateAdapter={AdapterDayjs}
                                     >
                                         <FormControl fullWidth>
@@ -316,8 +389,14 @@ const AttendanceSummary = () => {
                                                 },
                                             }}
                                         />
-                                    </LocalizationProvider>
+                                    </LocalizationProvider> */}
+
                                 </Grid>
+
+                                <Grid>
+                                    <DateRangePicker onRangeChange={handleDateRangeChange} />
+                                </Grid>
+
                                 <Grid sx={{ maxWidth: 250, minWidth: 250 }}>
                                     <FormControl fullWidth>
                                         <InputLabel id="branch-select-label">

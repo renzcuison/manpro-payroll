@@ -137,6 +137,48 @@ class UserAuthController extends Controller
         return ['message' => 'Logged out'];
     }
 
+    public function changePass(Request $request)
+    {
+        log::info("UserAuthController::changePass");
+        log::info($request);
+
+        $userID = Auth::id();
+        $user = UsersModel::find($userID);
+
+        $currentPassMatched = false;
+        $newPassMatched = false;
+        $newPassSecure = false;
+
+        if (Hash::check($request->currentPass, $user->password)) {
+            $currentPassMatched = true;
+        } else {
+            log::error("Current password does not match.");
+            return response()->json(['status' => 400, 'message' => 'Current password is incorrect.']);
+        }
+
+        if ($request->newPass === $request->confirmNewPass) {
+            $newPassMatched = true;
+        } else {
+            log::error("New password and confirmation password do not match.");
+            return response()->json(['status' => 400, 'message' => 'New password and confirmation do not match.']);
+        }
+
+        if (preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $request->newPass)) {
+            $newPassSecure = true;
+        } else {
+            log::error("New password does not meet security requirements.");
+            return response()->json(['status' => 400, 'message' => 'Use a mix of uppercase and lowercase letters, numbers, special characters, and must be 8 characters long.']);
+        }
+
+        if ($currentPassMatched && $newPassMatched && $newPassSecure) {
+            $user->password = Hash::make($request->newPass);
+            $user->save();
+
+            return response()->json(['status' => 200, 'message' => 'New password saved successfully.']);
+        }
+    }
+
+
     protected function getUserDetailsById($user_id)
     {
         $user_details = UsersModel::find($user_id);
