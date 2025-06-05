@@ -104,6 +104,46 @@ const PerformanceEvaluationFormSection = ({ section }) => {
             });
             return;
         }
+        // Additional validation for linear scale fields
+        if (subcategory.subcategory_type === "linear_scale") {
+            if (
+                subcategory.linear_scale_start == null ||
+                subcategory.linear_scale_end == null ||
+                isNaN(subcategory.linear_scale_start) ||
+                isNaN(subcategory.linear_scale_end)
+            ) {
+                Swal.fire({
+                    text: "Linear Scale Start and End values are required and must be numbers!",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+            if (subcategory.linear_scale_start >= subcategory.linear_scale_end) {
+                Swal.fire({
+                    text: "Linear Scale Start must be less than End!",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+            if (!subcategory.linear_scale_start_label?.trim()) {
+                Swal.fire({
+                    text: "Linear Scale Start Label is required!",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+            if (!subcategory.linear_scale_end_label?.trim()) {
+                Swal.fire({
+                    text: "Linear Scale End Label is required!",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+        }
         saveSubcategory(subcategory);
     };
 
@@ -128,7 +168,6 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     };
 
     return (
-        
         <Accordion
             expanded={expanded}
             onChange={onSectionClick}
@@ -200,9 +239,15 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     </Box>
                 )}
             </AccordionSummary>
-            <AccordionDetails sx={{ bgcolor: '#fff', borderRadius: 0, pt: 0, mb: 2, mx: 2 , borderTop: 'none',
-        borderRadius: '0 0 20px 20px',  p: 3,
-        pt: 4}}>
+            <AccordionDetails sx={{
+                bgcolor: '#fff',
+                borderRadius: '0 0 20px 20px',
+                mb: 2,
+                mx: 2,
+                borderTop: 'none',
+                p: 3,
+                pt: 4
+            }}>
                 <Paper
                     elevation={0}
                     sx={{
@@ -237,7 +282,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                 InputLabelProps={{
                                     style: { color: '#eab31a' }
                                 }}
-                                sx={{ mb: 2, mx: 2, mt: 2}}
+                                sx={{ mb: 2, mx: 2, mt: 2 }}
                                 required
                             />
                         ) : (
@@ -350,7 +395,6 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                 onSave={handleSaveSubcategory}
             />
         </Accordion>
-        
     );
 };
 
