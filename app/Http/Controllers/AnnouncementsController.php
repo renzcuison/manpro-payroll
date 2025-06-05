@@ -449,18 +449,26 @@ class AnnouncementsController extends Controller
                     }
                 }
 
-                // Adding Files - Images
-                if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $index => $file) {
-                        $isThumbnail = $index == $request->input('thumbnail');
-                        if ($isThumbnail) {
-                            $announcement->clearMediaCollection('thumbnails');
-                        }
-                        $collection = $isThumbnail ? 'thumbnails' : 'images';
+                // ADD THIS: Handle Thumbnail (like in saveAnnouncement)
+                if ($request->hasFile('thumbnail')) {
+                    // Remove old thumbnail if exists
+                    $announcement->clearMediaCollection('thumbnails');
+                    $announcement->addMedia($request->file('thumbnail'))
+                        ->withCustomProperties(['type' => 'Thumbnail'])
+                        ->toMediaCollection('thumbnails');
+                }
+
+                // ADD THIS: Handle Images (like in saveAnnouncement)
+                if ($request->hasFile('images')) {
+                    foreach ($request->file('images') as $file) {
                         $announcement->addMedia($file)
-                            ->withCustomProperties(['type' => $isThumbnail ? 'Thumbnail' : 'Image'])
-                            ->toMediaCollection($collection);
+                            ->withCustomProperties(['type' => 'Image'])
+                            ->toMediaCollection('images');
                     }
+                }
+
+                if ($request->input('removeThumbnail')) {
+                    $announcement->clearMediaCollection('thumbnails');
                 }
 
                 DB::commit();
@@ -684,7 +692,7 @@ class AnnouncementsController extends Controller
     
     public function getAnnouncementPublishmentDetails($code)
     {
-        Log::info("AnnouncementsController::getAnnouncementPublishmentDetails");
+        // Log::info("AnnouncementsController::getAnnouncementPublishmentDetails");
 
         $user = Auth::user();
 
