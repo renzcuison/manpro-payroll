@@ -73,15 +73,19 @@ import GeneralSettings from "../Pages/Admin/Settings/GeneralSettings";
 import Documents from "../Pages/Admin/Documents";
 import AddNewPerimeter from "../Pages/Admin/Perimeters/AddRadiusPerimeter";
 import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
+
+import ScheduleModule from "../Pages/Admin/Schedules";
+import Milestones from "../Pages/Admin/Milestones";
+
 import PemeRecords from "../Pages/Admin/MedicalRecords/PEME/PemeRecords";
-import GroupLifeMasterlist from "../Pages/Admin/MedicalRecords/GroupLifeMasterlist";
-import HMOmasterlist from "../Pages/Admin/MedicalRecords/HMOmasterlist";
 import PemeRecordsForm from "../Pages/Admin/MedicalRecords/PEME/Forms/PemeRecordsForm";
 import PemeResponses from "../Pages/Admin/MedicalRecords/PEME/PemeResponses";
 import PemeQuestionnaireView from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnaireView";
 import PemeQuestionnairePreview from "../Pages/Admin/MedicalRecords/PEME/PemeQuestionnairePreview";
-import ScheduleModule from "../Pages/Admin/Schedules";
-import Milestones from "../Pages/Admin/Milestones";
+
+import GroupLifeMasterlist from "../Pages/Admin/MedicalRecords/GroupLife/GroupLifeMasterlist";
+import GroupLifeEmployees from "../Pages/Admin/MedicalRecords/GroupLife/GroupLifeEmployees";
+import HMOmasterlist from "../Pages/Admin/MedicalRecords/HMO/HMOmasterlist";
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -173,13 +177,13 @@ const AdminRoutes = ({ user }) => {
             />
 
             <Route
-                path="branches/branchlist"
+                path="branches"
                 element={
                     <ProtectedRoute element={<BranchList />} user={user} />
                 }
             />
             <Route
-                path="branches/:id"
+                path="branch/:id"
                 element={
                     <ProtectedRoute element={<BranchDetails />} user={user} />
                 }
@@ -457,6 +461,13 @@ const AdminRoutes = ({ user }) => {
             />
 
             <Route
+                path="workdays"
+                element={
+                    <ProtectedRoute element={<WorkDayView />} user={user} />
+                }
+            />
+
+            <Route
                 path="payroll/process"
                 element={
                     <ProtectedRoute element={<PayrollProcess />} user={user} />
@@ -523,43 +534,31 @@ const AdminRoutes = ({ user }) => {
             />
 
             <Route
+                path="medical-records/group-life-masterlist/group-life-employees/"
+                element={
+                    <ProtectedRoute
+                        element={<GroupLifeEmployees />}
+                        user={user}
+                    />
+                }
+            />
+
+            <Route
                 path="medical-records/hmo-masterlist-records"
                 element={
                     <ProtectedRoute element={<HMOmasterlist />} user={user} />
                 }
             />
-
-            <Route
-                path="payroll/process"
-                element={
-                    <ProtectedRoute element={<PayrollProcess />} user={user} />
-                }
-            />
-            <Route
-                path="payroll/records"
-                element={
-                    <ProtectedRoute element={<PayrollRecords />} user={user} />
-                }
-            />
-            <Route
-                path="payroll/summary"
-                element={
-                    <ProtectedRoute element={<PayrollSummary />} user={user} />
-                }
-            />
-
             <Route
                 path="loan-management"
                 element={<ProtectedRoute element={<LoanList />} user={user} />}
             />
-
             <Route
                 path="schedules"
                 element={
                     <ProtectedRoute element={<ScheduleModule />} user={user} />
                 }
             />
-
             <Route
                 path="milestones"
                 element={

@@ -45,7 +45,6 @@ const StyledNav = styled(NavLink)({
 });
 const Sidebar = ({ children, closeMini }) => {
     const { user, refetchUser, isLoading } = useUser();
-    const [openMenu, setOpenMenu] = useState(null);
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
@@ -127,22 +126,13 @@ const Sidebar = ({ children, closeMini }) => {
                     text: "Employees",
                 },
                 {
-                    href: `/admin/employees/benefits?`,
-                    text: "Benefits",
+                    href: `/admin/branches/branches?`,
+                    text: "Branch",
                 },
                 {
-                    href: `/admin/employees/allowance?`,
-                    text: "Allowance",
+                    href: `/admin/employees?`,
+                    text: "Milestones",
                 },
-                // {
-                // href: `/admin/employees/leave-credits?`,
-                // text: "Leave Credits",
-                // },
-                // {
-                // href: `/hr/employees-deductions?`,
-                // text: 'List of Deductions',
-                // icon: 'si si-user',
-                // },
             ],
         },
     ];
@@ -201,16 +191,8 @@ const Sidebar = ({ children, closeMini }) => {
             icon: "fa fa-pencil-square-o",
             children: [
                 {
-                    href: `/admin/application/types?`,
-                    text: "Application Types",
-                },
-                {
                     href: `/admin/applications?`,
                     text: "Application Request",
-                },
-                {
-                    href: `/admin/application/leave-credits?`,
-                    text: "Leave Credits",
                 },
                 {
                     href: `/admin/application/overtimes?`,
@@ -472,23 +454,44 @@ const Sidebar = ({ children, closeMini }) => {
                                         </span>
                                     </li>
 
-                                    {employeesItems.map((items, index) => {
+                                    {/* {employeesItems.map((items, index) => {
                                         return (
                                             <SideItem
                                                 key={index}
                                                 items={items}
                                             />
                                         );
-                                    })}
+                                    })} */}
 
-                                    {/* <StyledNav to={`/admin/department/departmentlist`}> */}
-                                    {/* <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i> */}
-                                    {/* <span id="navName" className="sidebar-mini-hide">Departments</span> */}
-                                    {/* </StyledNav> */}
+                                    <StyledNav to={`/admin/employees`}>
+                                        <i
+                                            className="si si-users"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            Employees
+                                        </span>
+                                    </StyledNav>
 
                                     <StyledNav
-                                        to={`/admin/branches/branchlist`}
+                                        to={`/admin/department/departmentlist`}
                                     >
+                                        <i
+                                            className="fa fa-building-o"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            Departments
+                                        </span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/admin/branches`}>
                                         <i
                                             className="fa fa-sitemap"
                                             style={{ color: "#2a800f" }}
@@ -546,20 +549,55 @@ const Sidebar = ({ children, closeMini }) => {
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/perimeters`}>
-                                        <i>
-                                            {" "}
-                                            <TrackChangesIcon
-                                                sx={{
-                                                    color: palette.success.main,
-                                                }}
-                                            />{" "}
-                                        </i>
+                                        <i
+                                            className="fa fa-map-o"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
                                         <span
                                             id="navName"
                                             className="sidebar-mini-hide"
                                         >
                                             {" "}
                                             Perimeter{" "}
+                                        </span>
+                                    </StyledNav>
+
+                                    {/* ---------------------------------------------------------------------------------------------------- */}
+
+                                    <li className="nav-main-heading">
+                                        <span className="sidebar-mini-hidden text-dark">
+                                            {" "}
+                                            Leave Management{" "}
+                                        </span>
+                                    </li>
+
+                                    <StyledNav to={`/admin/application/types`}>
+                                        <i
+                                            className="fa fa-list"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Types of Leave{" "}
+                                        </span>
+                                    </StyledNav>
+
+                                    <StyledNav
+                                        to={`/admin/application/leave-credits`}
+                                    >
+                                        <i
+                                            className="fa fa fa-hourglass-half"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Leave Credits{" "}
                                         </span>
                                     </StyledNav>
 
@@ -582,20 +620,62 @@ const Sidebar = ({ children, closeMini }) => {
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark">
                                             {" "}
-                                            Payroll{" "}
+                                            Compensation Management{" "}
                                         </span>
                                     </li>
 
-                                    {payrollItems.map((items, index) => {
-                                        return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
-                                        );
-                                    })}
+                                    <StyledNav to={`/admin/employees/benefits`}>
+                                        <i
+                                            className="fa fa-university"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Benefits{" "}
+                                        </span>
+                                    </StyledNav>
 
-                                    {applicationsItems.map((items, index) => {
+                                    <StyledNav
+                                        to={`/admin/employees/allowance`}
+                                    >
+                                        <i
+                                            className="fa fa-money"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            {" "}
+                                            Allowance{" "}
+                                        </span>
+                                    </StyledNav>
+
+                                    <li className="nav-main-heading">
+                                        <span className="sidebar-mini-hidden text-dark">
+                                            {" "}
+                                            Payroll{" "}
+                                        </span>
+                                    </li>
+                                    <StyledNav
+                                        to={`/admin/branches/branchlist`}
+                                    >
+                                        <i
+                                            className="fa fa-sitemap"
+                                            style={{ color: "#2a800f" }}
+                                        ></i>
+                                        <span
+                                            id="navName"
+                                            className="sidebar-mini-hide"
+                                        >
+                                            Branches
+                                        </span>
+                                    </StyledNav>
+
+                                    {payrollItems.map((items, index) => {
                                         return (
                                             <SideItem
                                                 key={index}
@@ -631,6 +711,11 @@ const Sidebar = ({ children, closeMini }) => {
                                             />
                                         );
                                     })}
+
+                                    {/* <StyledNav to={`/admin/trainings`}> */}
+                                    {/* <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i>{" "} */}
+                                    {/* <span id="navName" className="sidebar-mini-hide" > Trainings </span> */}
+                                    {/* </StyledNav> */}
 
                                     {/* <StyledNav to={`/admin/documents`} className={isDocumentsActive || isDocumentEditActive ? 'active' : ''} > */}
                                     {/* <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span> */}

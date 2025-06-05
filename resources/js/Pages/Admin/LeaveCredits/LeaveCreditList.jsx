@@ -104,7 +104,7 @@ const LeaveCreditList = () => {
                                                 paginatedEmployees.map((employee, index) => (
                                                     <TableRow
                                                         key={employee.user_name}
-                                                        onClick={() => handleRowClick(employee)}  // pass whole object
+                                                        onClick={() => handleRowClick(employee)}
                                                         sx={{
                                                             backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff',
                                                             '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' }

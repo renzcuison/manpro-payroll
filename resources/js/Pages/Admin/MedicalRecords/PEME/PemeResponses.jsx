@@ -9,6 +9,7 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import Layout from "../../../../components/Layout/Layout";
 import PemeResponsesTable from "./PemeResponsesTable";
 import PemeDueDatePicker from "./PemeDueDatePicker";
+import DateRangePicker from '../../../../components/DateRangePicker';
 
 // MUI components
 import {
@@ -145,7 +146,12 @@ const PemeResponses = () => {
             return recordDueDate.isSame(dayjs(dueDate).startOf("day"));
         });
 
-    const resultsCount = filteredRecords.length;
+        const resultsCount = filteredRecords.length;
+
+        const handleDateRangeChange = (start, end) => {
+        setFromDate(start);
+        setToDate(end);
+        };
 
     return (
         <Layout title="Pre-Employment Medical Exam Type Responses">
@@ -166,7 +172,7 @@ const PemeResponses = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {pemeRecords.peme}
+                            Respondents
                         </Typography>
                         <Box
                             sx={{
@@ -209,35 +215,10 @@ const PemeResponses = () => {
                     >
                         <Grid container spacing={2} gap={2}>
                             <Grid item>
-                                <LocalizationProvider
-                                    dateAdapter={AdapterDayjs}
-                                >
-                                    <DatePicker
-                                        label="From"
-                                        value={fromDate}
-                                        onChange={setFromDate}
-                                        slotProps={{
-                                            textField: { sx: { width: 200 } },
-                                        }}
-                                    />
-                                </LocalizationProvider>
+                                <DateRangePicker 
+                                onRangeChange={handleDateRangeChange} 
+                                />
                             </Grid>
-
-                            <Grid item>
-                                <LocalizationProvider
-                                    dateAdapter={AdapterDayjs}
-                                >
-                                    <DatePicker
-                                        label="To"
-                                        value={toDate}
-                                        onChange={setToDate}
-                                        slotProps={{
-                                            textField: { sx: { width: 200 } },
-                                        }}
-                                    />
-                                </LocalizationProvider>
-                            </Grid>
-
                             <Grid item>
                                 <PemeDueDatePicker
                                     dueDate={dueDate}
@@ -249,11 +230,10 @@ const PemeResponses = () => {
                         <Box sx={{ height: 24 }} />
                         <FormControl
                             variant="outlined"
-                            sx={{ width: 652, mb: 1 }}
+                            sx={{ width: 196, mb: 1 }}
                         >
                             <InputLabel htmlFor="custom-search">
-                                Search Date, Employee, Branch, Department, or
-                                Status
+                                Search
                             </InputLabel>
                             <OutlinedInput
                                 id="custom-search"
@@ -262,19 +242,13 @@ const PemeResponses = () => {
                                 endAdornment={
                                     search && (
                                         <InputAdornment position="end">
-                                            <Typography
-                                                variant="body2"
-                                                sx={{ color: "gray" }}
-                                            >
-                                                {resultsCount}{" "}
-                                                {resultsCount === 1
-                                                    ? "Result"
-                                                    : "Results"}
-                                            </Typography>
+                                        <Typography variant="body2" sx={{ color: 'gray' }}>
+                                            {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
+                                        </Typography>
                                         </InputAdornment>
                                     )
                                 }
-                                label="Search Date, Employee, Branch, Department, or Status"
+                                label="Search"
                             />
                         </FormControl>
 

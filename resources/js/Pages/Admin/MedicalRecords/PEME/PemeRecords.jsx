@@ -54,7 +54,7 @@ const PemeRecords = () => {
 
     const filteredRecords = pemeRecords.filter((record) =>
         [
-            dayjs(record.date).format("MMMM D, YYYY"),
+            dayjs(record.created_at).format("MMMM D, YYYY"), // format created_at for filtering
             record.exam || record.name,
         ].some((field) =>
             field?.toString().toLowerCase().includes(search.toLowerCase())
@@ -151,7 +151,6 @@ const PemeRecords = () => {
                                 minWidth: 280,
                                 backgroundColor: "white",
                                 borderRadius: 2,
-                                boxShadow: 1,
                                 padding: 2,
                                 flexShrink: 0,
                             }}
@@ -165,7 +164,6 @@ const PemeRecords = () => {
                                 minWidth: 300,
                                 backgroundColor: "white",
                                 borderRadius: 2,
-                                boxShadow: 1,
                                 padding: 2,
                                 overflow: "hidden",
                             }}
