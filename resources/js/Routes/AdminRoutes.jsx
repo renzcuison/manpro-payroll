@@ -88,6 +88,7 @@ import GroupLifeMasterlist from "../Pages/Admin/MedicalRecords/GroupLife/GroupLi
 import GroupLifeEmployees from "../Pages/Admin/MedicalRecords/GroupLife/GroupLifeEmployees";
 import HMOmasterlist from "../Pages/Admin/MedicalRecords/HMO/HMOmasterlist";
 
+import PerformanceEvaluationPreview from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationPreview'
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -100,6 +101,10 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
+
+            
+            <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview/>} user={user} />} />
+
             <Route
                 path="dashboard"
                 element={<ProtectedRoute element={<Dashboard />} user={user} />}
