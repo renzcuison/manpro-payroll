@@ -147,6 +147,7 @@ class UserAuthController extends Controller
 
         $currentPassMatched = false;
         $newPassMatched = false;
+        $newPassSecure = false;
 
         if (Hash::check($request->currentPass, $user->password)) {
             $currentPassMatched = true;
@@ -162,7 +163,14 @@ class UserAuthController extends Controller
             return response()->json(['status' => 400, 'message' => 'New password and confirmation do not match.']);
         }
 
-        if ($currentPassMatched && $newPassMatched) {
+        if (preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $request->newPass)) {
+            $newPassSecure = true;
+        } else {
+            log::error("New password does not meet security requirements.");
+            return response()->json(['status' => 400, 'message' => 'Use a mix of uppercase and lowercase letters, numbers, special characters, and must be 8 characters long.']);
+        }
+
+        if ($currentPassMatched && $newPassMatched && $newPassSecure) {
             $user->password = Hash::make($request->newPass);
             $user->save();
 

@@ -21,6 +21,8 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import BuildIcon from '@mui/icons-material/Build';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import LockIcon from '@mui/icons-material/Lock';
+
 
 
 import UserSummary from "./Components/UserSummary";
@@ -140,54 +142,70 @@ const ChangePassword = () => {
                         <List>
                             <ListItem>
                                 <ListItemIcon>
-                                    <BuildIcon sx={{ color: '#177604' }} />
+                                    <LockIcon sx={{ color: '#177604' }} />
                                 </ListItemIcon>
-                                <ListItemText
-                                    primary="Adaptable performance"
-                                    secondary="Boost your efficiency and simplify your tasks with our platform."
-                                    primaryTypographyProps={{ color: '#1f2937' }}
-                                    secondaryTypographyProps={{ color: '#6b7280' }}
+                                <ListItemText 
+                                    primary="Use a mix of characters" 
+                                    secondary="Ensure your password contains a mix of uppercase, lowercase letters, numbers, and special characters." 
+                                    primaryTypographyProps={{ color: '#1f2937' }} 
+                                    secondaryTypographyProps={{ color: '#6b7280' }} 
                                 />
                             </ListItem>
+
                             <ListItem>
                                 <ListItemIcon>
-                                    <BuildIcon sx={{ color: '#177604' }} />
+                                    <LockIcon sx={{ color: '#177604' }} />
                                 </ListItemIcon>
-                                <ListItemText
-                                    primary="Built to last"
-                                    secondary="Enjoy unmatched durability with lasting investment."
-                                    primaryTypographyProps={{ color: '#1f2937' }}
-                                    secondaryTypographyProps={{ color: '#6b7280' }}
+                                <ListItemText 
+                                    primary="Avoid common words" 
+                                    secondary="Do not use easily guessable words like 'password', your name, or common phrases." 
+                                    primaryTypographyProps={{ color: '#1f2937' }} 
+                                    secondaryTypographyProps={{ color: '#6b7280' }} 
                                 />
                             </ListItem>
+
                             <ListItem>
                                 <ListItemIcon>
-                                    <ThumbUpIcon sx={{ color: '#177604' }} />
+                                    <LockIcon sx={{ color: '#177604' }} />
                                 </ListItemIcon>
-                                <ListItemText
-                                    primary="Great user experience"
-                                    secondary="Intuitive interface for a smooth and easy-to-use experience."
-                                    primaryTypographyProps={{ color: '#1f2937' }}
-                                    secondaryTypographyProps={{ color: '#6b7280' }}
+                                <ListItemText 
+                                    primary="Make it long" 
+                                    secondary="The longer your password, the harder it is to crack. Aim for at least 8 characters." 
+                                    primaryTypographyProps={{ color: '#1f2937' }} 
+                                    secondaryTypographyProps={{ color: '#6b7280' }} 
                                 />
                             </ListItem>
+
                             <ListItem>
                                 <ListItemIcon>
-                                    <BuildIcon sx={{ color: '#177604' }} />
+                                    <LockIcon sx={{ color: '#177604' }} />
                                 </ListItemIcon>
-                                <ListItemText
-                                    primary="Innovative functionality"
-                                    secondary="Stay ahead with features that adapt to your needs."
-                                    primaryTypographyProps={{ color: '#1f2937' }}
-                                    secondaryTypographyProps={{ color: '#6b7280' }}
+                                <ListItemText 
+                                    primary="Use different passwords" 
+                                    secondary="Don’t use the same password for multiple accounts. Use a unique password for each service." 
+                                    primaryTypographyProps={{ color: '#1f2937' }} 
+                                    secondaryTypographyProps={{ color: '#6b7280' }} 
                                 />
                             </ListItem>
+
+                            <ListItem>
+                                <ListItemIcon>
+                                    <LockIcon sx={{ color: '#177604' }} />
+                                </ListItemIcon>
+                                <ListItemText 
+                                    primary="Change your passwords regularly" 
+                                    secondary="It's a good practice to update your passwords every few months." 
+                                    primaryTypographyProps={{ color: '#1f2937' }} 
+                                    secondaryTypographyProps={{ color: '#6b7280' }} 
+                                />
+                            </ListItem>
+
                         </List>
                     </Box>
 
                     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', p: 4, backgroundColor: 'white', maxWidth: "40%" }} >
                         
-                        <Typography variant="h4" component="h1" sx={{ mb: 2, color: '#177604' }}>
+                        <Typography variant="h4" component="h1" sx={{ mb: 4, color: '#177604' }}>
                             <strong>Change Password</strong>
                         </Typography>
 
@@ -195,7 +213,7 @@ const ChangePassword = () => {
                             fullWidth
                             label="Current Password"
                             type={showCurrentPass ? 'text' : 'password'}
-                            sx={{ my: 1 }}
+                            sx={{ mt: 3, mb: 1 }}
                             InputLabelProps={{ style: { color: '#1f2937' } }}
                             InputProps={{ 
                                 style: { color: '#1f2937' },
@@ -214,7 +232,7 @@ const ChangePassword = () => {
                             label="New Password"
                             type={showNewPass ? 'text' : 'password'}
                             placeholder="••••••"
-                            sx={{ my: 1 }}
+                            sx={{ my: 2 }}
                             InputLabelProps={{ style: { color: '#1f2937' } }}
                             InputProps={{ 
                                 style: { color: '#1f2937' },
@@ -233,7 +251,7 @@ const ChangePassword = () => {
                             label="Confirm New Password"
                             type={showConfirmNewPass ? 'text' : 'password'}
                             placeholder="••••••"
-                            sx={{ my: 1 }}
+                            sx={{ mt: 1, mb: 3 }}
                             InputLabelProps={{ style: { color: '#1f2937' } }}
                             InputProps={{ 
                                 style: { color: '#1f2937' },
@@ -251,7 +269,7 @@ const ChangePassword = () => {
                             type="button"
                             fullWidth
                             variant="contained"
-                            sx={{ backgroundColor: '#177604', my: 2, color: 'white', '&:hover': { backgroundColor: '#145d03' } }}
+                            sx={{ backgroundColor: '#177604', mt: 4, color: 'white', '&:hover': { backgroundColor: '#145d03' } }}
                             onClick={checkInput}
                             disabled={disableChangePass}
                         >
