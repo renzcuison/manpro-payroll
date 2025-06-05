@@ -116,24 +116,32 @@ const AnnouncementView = () => {
           const blob = new Blob([byteArray], { type: "image/png" });
           setImagePath(URL.createObjectURL(blob));
         } else {
-          setImagePath("../../../../images/defaultThumbnail.jpg");
+          setImagePath(null);
         }
         setImageLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching thumbnail:", error);
-        setImagePath("../../../../images/defaultThumbnail.jpg");
+        setImagePath(null);
         setImageLoading(false);
       });
   };
 
   // Announcement Files
+  const [thumbnail, setThumbnail] = useState(null); // <-- Add this
+
   const getAnnouncementFiles = () => {
     axiosInstance
       .get(`/announcements/getEmployeeAnnouncementFiles/${code}`, { headers })
       .then((response) => {
         setImages(response.data.images || []);
         setAttachments(response.data.attachments || []);
+        // Use the first thumbnail if available
+        if (response.data.thumbnails && response.data.thumbnails.length > 0) {
+          setThumbnail(response.data.thumbnails[0]);
+        } else {
+          setThumbnail(null);
+        }
       })
       .catch((error) => {
         console.error("Error fetching files:", error);
@@ -349,7 +357,8 @@ const AnnouncementView = () => {
               </Box>
             ) : (
               <Grid container columnSpacing={4} rowSpacing={2}>
-                {/* Thumbnail */}
+              {/* Thumbnail */}
+              {imageLoading ? (
                 <Grid size={12} sx={{ height: {xs: 240, md: 360, lg: 480}, width: "100%" }}>
                   <Box
                     sx={{
@@ -362,13 +371,27 @@ const AnnouncementView = () => {
                       overflow: "hidden",
                     }}
                   >
-                    {imageLoading ? (
-                      <Box sx={{ display: "flex", placeSelf: "center", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                        <CircularProgress />
-                      </Box>
-                    ) : (
+                    <Box sx={{ display: "flex", placeSelf: "center", justifyContent: "center", alignItems: "center", height: "100%" }}>
+                      <CircularProgress />
+                    </Box>
+                  </Box>
+                </Grid>
+              ) : (
+                thumbnail && (
+                  <Grid size={12} sx={{ height: {xs: 240, md: 360, lg: 480}, width: "100%" }}>
+                    <Box
+                      sx={{
+                        mb: 1,
+                        position: "relative",
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: "4px",
+                        border: "2px solid #e0e0e0",
+                        overflow: "hidden",
+                      }}
+                    >
                       <img
-                        src={imagePath}
+                        src={renderImage(thumbnail.id, thumbnail.data, thumbnail.mime)}
                         alt={`${announcement.title} thumbnail`}
                         style={{
                           width: "100%",
@@ -377,9 +400,10 @@ const AnnouncementView = () => {
                           borderRadius: "4px",
                         }}
                       />
-                    )}
-                  </Box>
-                </Grid>
+                    </Box>
+                  </Grid>
+                )
+              )}
                 {/* Core Information */}
                 <Grid container size={12} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
                   {/* Header and Action Menu */}
