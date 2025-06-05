@@ -99,30 +99,6 @@ export function useEvaluationFormSection(section) {
             })
     }
 
-    function moveSubcategory(oldOrder, newOrder) {
-        if(oldOrder === newOrder) return;
-        axiosInstance
-            .post('/moveEvaluationFormSubcategory', {
-                id: subcategories[oldOrder - 1].id,
-                order: newOrder
-            }, { headers })
-            .catch(error => {
-                console.error('Error moving subcategory: ', error);
-                setSubcategories([...subcategories]);
-            })
-        ;
-        const moveUp = oldOrder < newOrder;
-        for(
-            let order = moveUp ? oldOrder + 1 : oldOrder - 1;
-            moveUp ? (order <= newOrder) : (order >= newOrder);
-            order += (moveUp ? 1 : -1) * 1
-        ) subcategories[order - 1].order = order + (moveUp ? -1 : 1);
-        const removed = subcategories.splice(oldOrder - 1, 1)[0];
-        removed.order = newOrder;
-        subcategories.splice(newOrder - 1, 0, removed);
-        setSubcategories([...subcategories]);
-    }
-
     function saveSubcategory(subcategory) {
         if(!sectionCategory) Swal.fire({
             text: "A category must first be made in this section",
@@ -162,14 +138,14 @@ export function useEvaluationFormSection(section) {
         ;
     }
 
-    return {
+    let returnData = {
         section: {
             id: sectionId,
             name: sectionName,
             category: sectionCategory,
             order,
             subcategories
-        }, editSection,
+        },
         sectionId,
         sectionName, setSectionName,
         editableSectionName, toggleEditableSection,
@@ -177,7 +153,14 @@ export function useEvaluationFormSection(section) {
         editableCategory, toggleEditableCategory,
         expanded, toggleExpand,
         order,
-        subcategories, moveSubcategory, saveSubcategory
+        subcategories, saveSubcategory
     };
+
+    if(isNew)
+        undefined;
+    else
+        returnData = { ...returnData, editSection };
+
+    return returnData;
 
 }

@@ -1,25 +1,24 @@
 import { AccordionSummaryMouseSensor } from './Sensors/AccordionSummaryMouseSensor';
-import React, { useState } from 'react';
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import {
-    Box,
-    Typography,
-    CardContent,
-    Menu,
-    MenuItem,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button,
-    TextField
+  Box,
+  Typography,
+  CardContent,
+  Menu,
+  MenuItem,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField
 } from '@mui/material';
 import CheckUser from '../../Errors/Error404';
 import CloseIcon from '@mui/icons-material/Close';
 import {
     DndContext, 
     closestCenter,
-    MouseSensor,
     TouchSensor,
     useSensor,
     useSensors
@@ -28,19 +27,10 @@ import Layout from '../../../components/Layout/Layout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationFormAddSection';
 import PerformanceEvaluationFormSection from './Subsections/PerformanceEvaluationFormSection';
-import {
-    restrictToFirstScrollableAncestor,
-    restrictToVerticalAxis
-} from '@dnd-kit/modifiers';
-import Sortable from './Subsections/Sortable';
-import {
-    SortableContext,
-    sortableKeyboardCoordinates,
-    verticalListSortingStrategy
-} from '@dnd-kit/sortable';
 import Swal from 'sweetalert2';
 import { useEvaluationForm } from '../../../hooks/useEvaluationForm';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useState } from 'react';
 
 const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams();
@@ -57,6 +47,10 @@ const PerformanceEvaluationFormPage = () => {
         setDraggedSectionId
     } = useEvaluationForm({ name: formName });
     const navigate = useNavigate();
+
+    // JWT token from localStorage
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
 
     // Settings menu
     const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
@@ -87,69 +81,49 @@ const PerformanceEvaluationFormPage = () => {
         handleSettingsClose();
     };
 
-  const handleEditSave = async () => {
+    const handleEditSave = async () => {
     if (!newName.trim()) {
-      Swal.fire({
+        Swal.fire({
         text: "Form Name is required!",
         icon: "error",
         confirmButtonColor: '#177604',
-      });
-      return;
+        });
+        return;
     }
 
     const formData = new FormData();
     formData.append('id', formId);
     formData.append('name', newName);
 
-    try {
-      const resp = await fetch('/api/editEvaluationForm', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' },
-        body: formData,
-      });
-
-      if (resp.status === 401 || resp.status === 403) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Unauthenticated',
-          text: 'Please login to continue.',
-          confirmButtonColor: '#177604',
-        }).then(() => {
-          navigate('/login');
-        });
-        return;
-      }
-
-      const data = await resp.json();
-
-      if (data.status === 200) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: data.message || "Form updated successfully!",
-          confirmButtonColor: '#177604',
-        }).then(() => {
-          setEditOpen(false);
-          window.location.reload();
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: data.message || "There was a problem updating the form.",
-          confirmButtonColor: '#177604',
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error?.message || "Network error. Please try again.",
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You want to save this evaluation form?",
+        icon: "warning",
+        showConfirmButton: true,
+        confirmButtonText: 'Save',
         confirmButtonColor: '#177604',
-      });
-    }
-  };
+        showCancelButton: true,
+        cancelButtonText: 'Cancel',
+    }).then(async (res) => {
+        if (res.isConfirmed) {
+        try {
+            const response = await axiosInstance.post('/editEvaluationForm', formData, { headers });
+            if (response.data.status === 200) {
+            setEditOpen(false); // <-- close dialog immediately
+            await Swal.fire({
+                text: "Evaluation form updated successfully!",
+                icon: "success",
+                confirmButtonText: 'Proceed',
+                confirmButtonColor: '#177604',
+            });
+            navigate(`/admin/performance-evaluation/form/${newName}`);
+            }
+        } catch (error) {
+            console.error("Error while editing form:", error);
+        }
+        }
+    });
+    };
 
     // Delete Form Handlers
     const handleDeleteMenuClick = () => {
@@ -271,6 +245,8 @@ const PerformanceEvaluationFormPage = () => {
                         right: 30,
                         color: '#bdbdbd',
                         borderRadius: '50%',
+                        padding: '5px',
+                        color: '#BEBEBE',
                     }}
                     aria-controls={settingsOpen ? 'settings-menu' : undefined}
                     aria-haspopup="true"
@@ -290,8 +266,8 @@ const PerformanceEvaluationFormPage = () => {
                     <MenuItem onClick={handleDeleteMenuClick}>Delete Form</MenuItem>
                     <MenuItem
                         onClick={() => {
-                        handleSettingsClose();
-                        navigate(-1);
+                            handleSettingsClose();
+                            setTimeout(() => navigate('/admin/performance-evaluation'), 100);
                         }}
                     >Close Form</MenuItem>
                 </Menu>
@@ -340,7 +316,6 @@ const PerformanceEvaluationFormPage = () => {
                         </Box>
                     </CardContent>
                 )}
-
                 {/* Add Section Modal */}
                 <PerformanceEvaluationFormAddSection
                     open={addSectionOpen}
@@ -348,32 +323,29 @@ const PerformanceEvaluationFormPage = () => {
                     onSave={handleSaveSection}
                 />
 
-                {/* Edit Form Dialog */}
-                <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
-                    <DialogTitle>Edit Form Name</DialogTitle>
-                    <DialogContent>
-                        <TextField
-                            label="Form Name"
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            fullWidth
-                            autoFocus
-                        />
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-                        <Button variant="contained" onClick={handleEditSave}>
-                            Save
-                        </Button>
-                    </DialogActions>
-                </Dialog>
+        {/* Edit Form Dialog */}
+        <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
+          <DialogTitle>Edit Form Name</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Form Name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              fullWidth
+              autoFocus
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button variant="contained" onClick={handleEditSave}>
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
           <DialogTitle>Delete Form?</DialogTitle>
-          <DialogContent>
-            <Typography>Are you sure you want to delete this form?</Typography>
-          </DialogContent>
           <DialogActions>
             <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
             <Button variant="contained" color="error" onClick={handleDeleteConfirm}>
