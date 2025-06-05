@@ -98,15 +98,6 @@ class EvaluationFormController extends Controller
 
         $user = DB::table('users')->select()->where('id', $userID)->first();
 
-        try {
-
-            if( $user === null ) return response()->json([ 
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
-
-        \Log::info('EvaluationFormController::deleteEvaluationForm');
-
         if (!Auth::check()) {
             return response()->json([ 
                 'status' => 403,
@@ -160,7 +151,7 @@ class EvaluationFormController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error deleting evaluation form: ' . $e->getMessage());
+            log::error('Error deleting evaluation form: ' . $e->getMessage());
             throw $e;
         }
     }
