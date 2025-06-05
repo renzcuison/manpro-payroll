@@ -131,7 +131,6 @@ class EvaluationResponseController extends Controller
                         ->with(['sections' => fn ($section) =>
                             $section
                                 ->select('form_id', 'id', 'name', 'category', 'order')
-                                ->orderBy('order')
                                 ->with(['subcategories' => fn ($subcategory) =>
                                     $subcategory
                                         ->select(
@@ -145,20 +144,18 @@ class EvaluationResponseController extends Controller
                                             'options' => fn ($option) =>
                                                 $option
                                                     ->select(
-                                                        'subcategory_id', 'id',
-                                                        'label', 'order'
+                                                        'subcategory_id', 'label', 'score', 'order'
                                                     )
                                                     ->orderBy('order')
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
-                                                            $optionAnswer->select('id', 'response_id', 'option_id')
+                                                            $optionAnswer->select('response_id', 'option_id')
                                                     ])
                                             ,
                                             'percentageAnswer' => fn ($percentageAnswer) =>
                                                 $percentageAnswer
                                                 ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
                                                 ->select(
-                                                    'evaluation_percentage_answers.id',
                                                     'evaluation_percentage_answers.response_id',
                                                     'evaluation_percentage_answers.subcategory_id',
                                                     'evaluation_percentage_answers.percentage',
@@ -179,10 +176,10 @@ class EvaluationResponseController extends Controller
                                                 ))
                                             ,
                                             'textAnswer' => fn ($textAnswer) =>
-                                                $textAnswer->select('id', 'response_id', 'subcategory_id', 'answer')
+                                                $textAnswer->select('response_id', 'subcategory_id', 'answer')
                                         ])
                                         ->orderBy('order')
-                                    ])
+                                ])
                                 ->orderBy('order')
                         ])
                 ])
