@@ -140,23 +140,23 @@ const PerformanceEvaluationForm = () => {
               </Box>
             )}
 
-{subcategory.responseType === 'multipleChoice' && (
-  <Box sx={{ mb: 2 }}>
-    <RadioGroup
-      value={subcategory.selectedValue || ''} // This ensures only one radio button is selected
-      onChange={(e) => handleMultipleChoiceChange(subcategory.id, e.target.value)} // Handle change by updating the correct subcategory's selectedValue
-    >
-      {subcategory.options.map((option, index) => (
-        <FormControlLabel
-          key={index}
-          value={option} // Each radio button gets a unique value
-          control={<Radio />}
-          label={option}
-        />
-      ))}
-    </RadioGroup>
-  </Box>
-)}
+            {subcategory.responseType === 'multipleChoice' && (
+              <Box sx={{ mb: 2 }}>
+                <RadioGroup
+                  value={subcategory.selectedValue || ''} // This ensures only one radio button is selected
+                  onChange={(e) => handleMultipleChoiceChange(subcategory.id, e.target.value)} // Handle change by updating the correct subcategory's selectedValue
+                >
+                  {subcategory.options.map((option, index) => (
+                    <FormControlLabel
+                      key={index}
+                      value={option} // Each radio button gets a unique value
+                      control={<Radio />}
+                      label={option}
+                    />
+                  ))}
+                </RadioGroup>
+              </Box>
+            )}
 
 
 
