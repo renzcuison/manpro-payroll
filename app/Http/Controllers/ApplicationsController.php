@@ -691,7 +691,7 @@ class ApplicationsController extends Controller
 
     public function getOvertimeApplications()
     {
-        Log::info("ApplicationsController::getOvertimeApplications");
+        // Log::info("ApplicationsController::getOvertimeApplications");
         $user = Auth::user();
 
         if ($this->checkUser()) {

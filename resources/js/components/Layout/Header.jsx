@@ -15,7 +15,7 @@ const Header = ({ toogleSidebar }) => {
 	};
 
 	const handleChangePassword = async () => {
-		navigate(`/change-password`);
+		navigate(`/profile/change-password`);
 	};
 
 	const handleLogout = async () => {
