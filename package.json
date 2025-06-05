@@ -63,6 +63,7 @@
         "mammoth": "^1.9.1",
         "material-table": "^1.63.0",
         "moment": "^2.29.4",
+        "quill": "^2.0.3",
         "react-bootstrap": "^2.10.10",
         "react-chartjs-2": "^5.2.0",
         "react-currency-formatter": "^1.1.0",
