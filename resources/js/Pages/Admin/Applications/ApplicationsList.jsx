@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, CircularProgress, Chip, Avatar } from "@mui/material";
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, MenuItem, TextField, Grid, Avatar, CircularProgress, Chip, } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 
@@ -11,33 +11,48 @@ dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 dayjs.extend(duration);
 
+import DateRangePicker from '../../../components/DateRangePicker';
+
+import { useApplications } from "./hooks/useApplications";
+
 import ApplicationManage from "./Modals/ApplicationManage";
 
 const ApplicationsList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [applications, setApplications] = useState([]);
+    const { data, isLoading, error, refetch } = useApplications();
+    const applications = data?.applications || [];
+
+    const [branches, setBranches] = useState([]);
+    const [departments, setDepartments] = useState([]);
+
+    const [searchName, setSearchName] = useState("");
+    const [filterByStatus, setFilterByStatus] = useState("");
+    const [filterByBranch, setFilterByBranch] = useState("");
+    const [filterByDepartment, setFilterByDepartment] = useState("");
+
+    const [rangeStartDate, setRangeStartDate] = useState(null);
+    const [rangeEndDate, setRangeEndDate] = useState(null);
 
     // Application List
     useEffect(() => {
-        fetchApplications();
-    }, []);
-
-    const fetchApplications = () => {
-        axiosInstance.get("/applications/getApplications", { headers })
+        axiosInstance.get("/settings/getDepartments", { headers })
             .then((response) => {
-                const applicationData = response.data.applications;
-                setApplications(applicationData);
-                getAvatars(applicationData);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching applications:", error);
-                setIsLoading(false);
+                const fetchedDepartments = response.data.departments;
+                setDepartments(fetchedDepartments);
+            }).catch((error) => {
+                console.error("Error fetching departments:", error);
             });
-    };
+
+        axiosInstance.get("/settings/getBranches", { headers })
+            .then((response) => {
+                const fetchedBranches = response.data.branches;
+                setBranches(fetchedBranches);
+            }).catch((error) => {
+                console.error("Error fetching branches:", error);
+            });
+    }, []);
 
     // Application Details
     const [openApplicationManage, setOpenApplicationManage] = useState(null);
@@ -105,40 +120,100 @@ const ApplicationsList = () => {
         };
     }, [blobMap]);
 
+    const filteredApplications = applications.filter((application) => {
+        const fullName = application.emp_name?.toLowerCase() || "";
+        const matchedName = fullName.includes(searchName.toLowerCase());
+
+        const matchedBranch = filterByBranch === "" || application.emp_branch === filterByBranch;
+        const matchedDepartment = filterByDepartment === "" || application.emp_department === filterByDepartment;
+        const matchedStatus = filterByStatus === "" || application.app_status === filterByStatus;
+
+        const appDate = dayjs(application.app_date_requested);
+        const matchedDateRange = (!rangeStartDate || !rangeEndDate) || (appDate.isSameOrAfter(rangeStartDate, 'day') && appDate.isSameOrBefore(rangeEndDate, 'day'));
+
+        return matchedName && matchedBranch && matchedDepartment && matchedStatus && matchedDateRange;
+    });
 
     return (
         <Layout title={"ApplicationsList"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap", }} >
-                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                <Box sx={{ mx: "auto", width: "100%", maxWidth: "1500px" }}>
+
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }}>
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {" "}Applications{" "}
-                        </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>Applications</Typography>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }}>
+                        <Grid container sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                            <Grid container size={12} spacing={2}>
+                                <Grid size={2}>
+                                    <TextField sx={{ width: "100%" }} id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value) } />
+                                </Grid>
+
+                                <Grid size={2}></Grid>
+
+                                <Grid size={2}>
+                                    <DateRangePicker 
+                                        label="Filter by Date of Applications"
+                                        onRangeChange={(start, end) => {
+                                            setRangeStartDate(start);
+                                            setRangeEndDate(end);
+                                        }}
+                                    />
+                                </Grid>
+                                
+                                <Grid size={2}>
+                                    <TextField select id="column-view-select" sx={{ width: "100%" }} label="Filter by Branch" value={filterByBranch} onChange={(event) => { setFilterByBranch( event.target.value ) }}>
+                                        <MenuItem value="">All Branches</MenuItem>
+                                        {branches.map((branch) => (
+                                            <MenuItem key={branch.id} value={branch.name}>{" "}{branch.name}{" "}</MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+
+                                <Grid size={2}>
+                                    <TextField select id="column-view-select" sx={{ width: "100%" }} label="Filter by Department" value={filterByDepartment} onChange={(event) => { setFilterByDepartment( event.target.value ) }}>
+                                        <MenuItem value="">All Departments</MenuItem>
+                                        {departments.map((department) => (
+                                            <MenuItem key={department.id} value={department.name} > {" "} {department.name}{" "} </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+
+                                <Grid size={2}>
+                                    <TextField select id="column-view-select" sx={{ width: "100%" }} label="Filter by Status" value={filterByStatus} onChange={(event) => { setFilterByStatus( event.target.value ) }}>
+                                        <MenuItem value="">All Status</MenuItem>
+                                        <MenuItem value="Pending">Pending</MenuItem>
+                                        <MenuItem value="Approved">Approved</MenuItem>
+                                        <MenuItem value="Declined">Declined</MenuItem>
+                                        <MenuItem value="Cancelled">Cancelled</MenuItem>
+                                    </TextField>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                        
                         {isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
                                 <CircularProgress />
                             </Box>
                         ) : (
                             <>
-                                {" "}
                                 <TableContainer style={{ overflowX: "auto" }} sx={{ minHeight: 400 }} >
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center" sx={{ width: "18%" }}> Employee </TableCell>
-                                                <TableCell align="center" sx={{ width: "18%" }}> Date of Application </TableCell>
-                                                <TableCell align="center" sx={{ width: "18%" }}> Application Type </TableCell>
-                                                <TableCell align="center" sx={{ width: "18%" }}> Start Date/Time </TableCell>
-                                                <TableCell align="center" sx={{ width: "18%" }}> End Date/Time </TableCell>
-                                                <TableCell align="center" sx={{ width: "10%" }}> Status </TableCell>
+                                                <TableCell align="center"> Employee </TableCell>
+                                                <TableCell align="center"> Branch </TableCell>
+                                                <TableCell align="center"> Department </TableCell>
+                                                <TableCell align="center"> Application Type </TableCell>
+                                                <TableCell align="center"> Date of Application </TableCell>
+                                                <TableCell align="center"> Duration </TableCell>
+                                                <TableCell align="center"> Status </TableCell>
                                             </TableRow>
                                         </TableHead>
 
                                         <TableBody>
-                                            {applications.length > 0 ? (applications.map(
+                                            {filteredApplications.length > 0 ? (filteredApplications.map(
                                                 (application, index) => {
                                                     const createDate = dayjs(application.app_date_requested).format("MMM D, YYYY h:mm A");
                                                     const startDate = dayjs(application.app_duration_start).format("MMM D, YYYY h:mm A");
@@ -152,14 +227,16 @@ const ApplicationsList = () => {
                                                         >
                                                             <TableCell align="left">
                                                                 <Box display="flex" sx={{ alignItems: "center" }}>
-                                                                    <Avatar alt={`${application.emp_first_name}_Avatar`} src={renderProfile(application.emp_user_name)} sx={{ mr: 1, height: "36px", width: "36px" }} />
-                                                                    {application.emp_first_name}{" "}{application.emp_middle_name || ""}{" "}{application.emp_last_name}{" "}{application.emp_suffix || ""}
+                                                                    <Avatar alt={`${application.emp_first_name}_Avatar`} src={renderProfile(application.emp_user_name)} sx={{ mr: 1, height: "36px", width: "36px" }} />{application.emp_name}
                                                                 </Box>
                                                             </TableCell>
+
+                                                            <TableCell align="center">{application.emp_branch || "-"}</TableCell>
+                                                            <TableCell align="center">{application.emp_department || "-"}</TableCell>
+
                                                             <TableCell align="center">{application.app_type_name || "-"}</TableCell>
                                                             <TableCell align="center">{createDate || "-"}</TableCell>
-                                                            <TableCell align="center">{startDate || "-"}</TableCell>
-                                                            <TableCell align="center">{endDate || "-"}</TableCell>
+                                                            <TableCell align="center">{startDate || "-"} - {endDate || "-"}</TableCell>
                                                             <TableCell align="center">
                                                                 {application.app_status ? (
                                                                     <Chip label={application.app_status}
@@ -179,7 +256,7 @@ const ApplicationsList = () => {
                                                     );
                                                 }
                                             )) : <TableRow>
-                                                <TableCell colSpan={6} align="center" sx={{ color: "text.secondary", p: 1 }}> No Applications Found </TableCell>
+                                                <TableCell colSpan={7} align="center" sx={{ color: "text.secondary", p: 1 }}> No Applications Found </TableCell>
                                             </TableRow>}
 
                                         </TableBody>

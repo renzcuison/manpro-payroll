@@ -4,5 +4,9 @@
   "dev": true,
   "minify": false,
   "urlRandomness": null,
-  "https": false
+  "https": false,
+    "editor.formatOnSave": true,
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+  }
 }

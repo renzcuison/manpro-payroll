@@ -23,7 +23,9 @@
         "resolve-url-loader": "5.0.0",
         "sass": "^1.32.11",
         "sass-loader": "^11.0.1",
-        "vite": "^6.2.4"
+        "vite": "^6.2.4",
+        "@prettier/plugin-php": "0.14.3",
+        "prettier": "2.0.5"
     },
     "dependencies": {
         "@babel/runtime": "^7.19.4",
