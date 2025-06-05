@@ -78,6 +78,8 @@ import Perimeter from "../Pages/Admin/Perimeters/Perimeters";
 import ScheduleModule from "../Pages/Admin/Schedules";
 import Milestones from "../Pages/Admin/Milestones";
 
+import PerformanceEvaluationPreview from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationPreview";
+
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
 
@@ -89,6 +91,9 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
+
+            <Route path="performance-evaluation/preview" element={<ProtectedRoute element={<PerformanceEvaluationPreview />} user={user} />} />
+            
             <Route path="dashboard" element={ <ProtectedRoute element={<Dashboard />} user={user} /> } />
 
             <Route path="employee/:user" element={<ProtectedRoute element={<EmployeeView />} user={user} />} />
