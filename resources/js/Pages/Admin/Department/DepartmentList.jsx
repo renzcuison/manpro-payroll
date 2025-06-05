@@ -106,6 +106,7 @@ const DepartmentList = () => {
         setOpenSettingsModal(true);
     };
 
+    // console.log(departments)
     return (
         <Layout title={"Departments"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
@@ -129,10 +130,10 @@ const DepartmentList = () => {
                                 color="primary"
                                 onClick={handleAddClick}
                                 sx={{ backgroundColor: '#177604', color: 'white' }}
-                                endIcon={<i className="fa fa-caret-down"></i>}
+                                endIcon={<  i className="fa fa-caret-down"></i>}
                             >
                                 <p className="m-0">
-                                    Actions
+                                    Menu
                                 </p>
                             </Button>
                             <Menu
@@ -165,7 +166,7 @@ const DepartmentList = () => {
                             <Grid item xs={9}>
                                 <TextField
                                     fullWidth
-                                    label="Search Departments"
+                                    label="Search Department"
                                     variant="outlined"
                                     value={searchKeyword}
                                     onChange={(e) => setSearchKeyword(e.target.value)}
@@ -201,21 +202,28 @@ const DepartmentList = () => {
                                                 ) : (
                                                 null
                                                 )}
-                                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>No. of Assigned Employees</TableCell>
+                                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>No. of Employees</TableCell>
                                             </TableRow>
                                         </TableHead>
 
                                         <TableBody>
                                             {filteredDepartments.length > 0 ? (
                                                 filteredDepartments.map((dep) => {
-                                                // Flatten all employees from assigned_positions
-                                                const allEmployees = dep.assigned_positions?.flatMap(pos => pos.employees || []) || [];
-
+                                                
+                                                //get all employees <used for counting>
+                                                const allEmployees = [
+                                                    ...(dep.assigned_positions?.flatMap(pos => pos.employees || []) || []),
+                                                    ...(dep.unassigned_employees || [])
+                                                  ];
+                                    
                                                 // Group by department_position_id
-                                                const groupedByPosition = departmentPositions.reduce((acc, pos) => {
-                                                    acc[pos.id] = allEmployees.filter(emp => emp.department_position_id === pos.id);
+                                                const groupedByPosition = dep.assigned_positions?.reduce((acc, pos) => {
+                                                    acc[pos.id] = pos.employees || [];
                                                     return acc;
                                                 }, {});
+                                                
+                                                //store unassigned <will be useful for later implementation>
+                                                const groupedUnassigned = dep.unassigned_employees || [];
 
                                                 return (
                                                     <TableRow key={dep.id} sx={{
@@ -234,7 +242,6 @@ const DepartmentList = () => {
                                                                 width: "100%",
                                                                 height: "100%",
                                                                 padding: "16px",
-                                                                
                                                             }}
                                                             >
                                                                 <Box display="flex" alignItems="center" justifyContent="center" >
@@ -246,7 +253,6 @@ const DepartmentList = () => {
                                                     {/* Per-Position Employee Avatars */}
                                                     {departmentPositions.map((position) => {
                                                         const employees = groupedByPosition[position.id] || [];
-
                                                         return (
                                                         <TableCell key={position.id} align="center">
                                                             {employees.length > 0 ? (
@@ -280,8 +286,9 @@ const DepartmentList = () => {
                                                     {/* Total Employee Count */}
                                                         <TableCell align="center">{allEmployees.length}</TableCell>
                                                     </TableRow>
-                                                );
-                                                })
+                                                    );
+                                                    }
+                                                    )
                                             ) : (
                                                 <TableRow>
                                                 <TableCell colSpan={2 + departmentPositions.length}>

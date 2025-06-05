@@ -116,11 +116,10 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                     setDeleteIds(prevIds => [...prevIds, educations[indxToRemove].id]);
                 }
                 setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
-                setIsFieldsChanged(true);
             }
         });
     }
-
+ 
     const populateDropdown = () => {
         axiosInstance.get('/settings/getRoles', { headers })
             .then((response) => {
@@ -167,6 +166,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
         const addEducations = educations.filter(e => !e.id);
         const updateEducations = educations.filter(e=> updateIds.includes(e.id));
         const formDateOnly = (date) => date ? dayjs(date).format('YYYY-MM-DD'): null;
+        const isSomeFieldsEmpty = educations.some(edu => Object.values(edu).some(val => val === '' || val === null || val === undefined));
         const data = {
             userName: employee.user_name,
 
@@ -199,7 +199,18 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             deleteEducationIds: deleteIds,
         }; 
 
-        axiosInstance.post('/employee/editEmployeeDetails', data, { headers })
+        if(isSomeFieldsEmpty){
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: `The education fields must be filled.`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+            return;
+        }
+        else{
+            axiosInstance.post('/employee/editEmployeeDetails', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
@@ -227,6 +238,9 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                     confirmButtonColor: '#177604',
                 });
             });
+        }
+
+        
     };
 
 
@@ -369,8 +383,12 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                         
 
                         <FormGroup row={true} className="d-flex" sx={{ '& label.Mui-focused': {color: '#97a5ba'}, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}}, }}> 
-                            <EmployeeEducationFields educations={educations} handleChange={handleChange} handleAddFields={handleAddFields} handleRemoveFields={handleRemoveFields}>
-                            </EmployeeEducationFields>
+                            <FormControl fullWidth>
+                                <EmployeeEducationFields educations={educations} handleChange={handleChange}
+                                 handleAddFields={handleAddFields} handleRemoveFields={handleRemoveFields}>
+
+                                </EmployeeEducationFields>
+                            </FormControl>
                         </FormGroup>
 
                         <Divider sx={{ my: 4 }} />

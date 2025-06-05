@@ -18,7 +18,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import EditIcon from "@mui/icons-material/Edit";
 
 function UserInformation({ user }) {
-    console.log(user.media);
 
     const queryClient = useQueryClient();
     const fileInputRef = useRef();
@@ -29,15 +28,10 @@ function UserInformation({ user }) {
     const profilePic = user?.media?.length ? user.media[0]?.original_url : user?.avatar || "../../../../../images/avatarpic.jpg";
 
     const triggerFileInput = () => {
-        console.log("triggerFileInput()");
-
-        console.log('Profile Pic:', profilePic);
-
         fileInputRef.current.click();
     };
 
     const handleUpload = (event) => {
-        console.log("handleUpload()");
 
         const file = event.target.files[0];
         if (file) {
@@ -65,15 +59,9 @@ function UserInformation({ user }) {
                     customClass: { container: "my-swal" },
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Save
-                        console.log(file);
-                        setNewProfilePic(file);
-                        // Render
-                        const reader = new FileReader();
-                        reader.readAsDataURL(file);
-
-                        //Upload
-                        saveProfilePic(event);
+                       //send file immediately, storing it in a useState might not save it when it is now sent
+                       //to the backend
+                        saveProfilePic(event, file);
                     }
                 });
             }
@@ -85,7 +73,7 @@ function UserInformation({ user }) {
         const formData = new FormData();
 
         formData.append('id', user.id);
-        formData.append('profile_pic', newProfilePic);
+        formData.append('profile_picture', file);
 
         axiosInstance.post('/employee/editMyProfilePicture', formData, { headers })
             .then(response => {
@@ -99,7 +87,6 @@ function UserInformation({ user }) {
                         confirmButtonColor: "#177604",
                     }).then((res) => {
                         queryClient.invalidateQueries(["user"]);
-                        close(true);
                     });
                 }
             })

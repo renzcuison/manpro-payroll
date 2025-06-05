@@ -177,6 +177,15 @@ export function useEvaluationFormSubcategory(subcategory) {
 
     }
 
+    function editOptionExtra(optionIndex, extra) {
+        if (isNew) {
+            options[optionIndex].extra = extra;
+            setOptions([ ...options ]);
+        } else {
+            // TODO: If you want to support editing option extra on the backend, implement here.
+        }
+    }
+
     function getOption(optionId) {
         axiosInstance
             .get(`/getEvaluationFormSubcategoryOption`, {
@@ -252,7 +261,7 @@ export function useEvaluationFormSubcategory(subcategory) {
         linearScaleStartLabel, setLinearScaleStartLabel,
         linearScaleEndLabel, setLinearScaleEndLabel,
         order,
-        options, deleteOption, editOption, saveOption
+        options, deleteOption, editOption, saveOption, editOptionExtra
     };
     if(isNew)
         returnData = { ...returnData, saveSubcategory };
