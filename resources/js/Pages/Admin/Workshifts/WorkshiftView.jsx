@@ -439,11 +439,14 @@ const WorkshiftView = () => {
                         </Box>
                     ) : (
                         <>
+                            {/*Shift name and type section*/}
                             <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                mb:1,
                                 '& label.Mui-focused': {color: '#97a5ba'},
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
                             }}>
-                                <FormControl sx={{ marginBottom: 3, width: '50%', marginRight: 6,'& label.Mui-focused': { color: '#97a5ba' },
+                                <FormControl sx={{ marginBottom: 3, width: {lg:'50%', md:'100%', xs:'100%'},
+                                 marginRight: {md:0, lg: 3},'& label.Mui-focused': { color: '#97a5ba' },
                                     '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                 }}>
                                     <TextField
@@ -458,7 +461,7 @@ const WorkshiftView = () => {
                                     />
                                 </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '42%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: {lg:'45.5%', md:'100%', xs:'100%'}, '& label.Mui-focused': { color: '#97a5ba' },
                                     '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                                 }}>
                                     <TextField
@@ -476,6 +479,7 @@ const WorkshiftView = () => {
                                 </FormControl>
                             </FormGroup>
 
+                            {/*shift type conditioning section */}
                             <Typography>Work Hours</Typography>
                             {shiftType === "regular" && (
                                 <>
@@ -485,7 +489,7 @@ const WorkshiftView = () => {
                                             '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
                                         },
                                     }}>
-                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: 6, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },
@@ -541,7 +545,7 @@ const WorkshiftView = () => {
                                             '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
                                         },
                                     }}>
-                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: 6, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },
@@ -601,7 +605,7 @@ const WorkshiftView = () => {
                                             '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
                                         },
                                     }}>
-                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: 6, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },
@@ -618,7 +622,7 @@ const WorkshiftView = () => {
                                             />
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '20%', alignSelf:'flex-end','& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end','& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },
@@ -635,7 +639,7 @@ const WorkshiftView = () => {
                                             </LocalizationProvider>
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '20%', alignSelf:'flex-end','& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end','& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },
@@ -659,7 +663,7 @@ const WorkshiftView = () => {
                                             '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
                                         },
                                     }}>
-                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: 6, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },
@@ -676,7 +680,7 @@ const WorkshiftView = () => {
                                             />
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '20%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },
@@ -693,7 +697,7 @@ const WorkshiftView = () => {
                                             </LocalizationProvider>
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '20%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },
@@ -721,7 +725,7 @@ const WorkshiftView = () => {
                                             '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
                                         },
                                     }}>
-                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: 6, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },
@@ -736,7 +740,7 @@ const WorkshiftView = () => {
                                             />
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '20%', alignSelf:'flex-end',  '& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end',  '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },
@@ -752,7 +756,7 @@ const WorkshiftView = () => {
                                             </LocalizationProvider>
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '20%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': {
                                                 '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
                                             },

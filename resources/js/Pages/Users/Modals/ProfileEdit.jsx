@@ -13,6 +13,7 @@ import { Edit } from '@mui/icons-material';
 import { useQueryClient } from '@tanstack/react-query';
 import { CgAdd, CgTrash } from "react-icons/cg";  
 import EducationFields from './EducationFields';
+import _ from "lodash";
 
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 
@@ -39,8 +40,9 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
     
     //[1]--Education Form Field Values and Handlers
     const [educations, setEducations] = useState([])
+    const [originalEducations, setOriginalEducations] = useState([]); //used for comparison
     const educationFields = {school_name: "", education_level: "", program_name: "", year_graduated: ""}
-    const [isFieldsChanged, setIsFieldsChanged] = useState(false); //handle any changes to the fields
+
     const [updateIds, setUpdateIds] = useState([]); //ids to update
     const [deleteIds, setDeleteIds] = useState([]); //ids to delete
     
@@ -50,20 +52,21 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
                 if(response.status === 200){
                     const educations = response.data.educations;
                     setEducations(educations || [educationFields]);
+                    setOriginalEducations(educations || [educationFields])
                     setIsLoading(false);
                 }
                 else{
                     setEducations([educationFields]);
+                    setOriginalEducations([educationFields]);
+                    setOriginalEducations
                     setIsLoading(false);
                 }
             }).catch((error) => {
                 console.error('Error fetching branches:', error);
                 setEducations([educationFields]);
+                setOriginalEducations([educationFields]);
             });
     }, []);
-
-    console.log(educations);;
-
     const handleChange = (index, field, value) => {
         const updatedFields = [...educations];
         updatedFields[index][field] = value;
@@ -71,7 +74,6 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
         if("id" in updatedFields[index]){
             setUpdateIds(prevIds => [...prevIds, updatedFields[index].id]);
         }
-        setIsFieldsChanged(true);
     }
     const handleAddFields = () => {
         setEducations([...educations, educationFields]); 
@@ -95,7 +97,6 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
                     setDeleteIds(prevIds => [...prevIds, educations[indxToRemove].id]);
                 }
                 setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
-                setIsFieldsChanged(true);
             }
         });
     }
@@ -113,6 +114,10 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
 
     const [contactError, setContactError] = useState(false);
     const [addressError, setAddressError] = useState(false);
+
+    const isFieldsChanged = () => {
+        return !_.isEqual(educations, originalEducations)
+    }
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -132,9 +137,10 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
         const baseBirthDate = dayjs(employee.birth_date).isSame(dayjs(birthDate));
         const baseContact = (employee.contact_number || '') == contact;
         const baseAddress = (employee.address || '') == address;
-
+        const isSomeFieldsEmpty = educations.some(edu => Object.values(edu).some(val => val === '' || val === null || val === undefined));
+        
+        document.activeElement.blur();
         if (!firstName || !lastName || !birthDate || !gender) {
-            document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
                 text: `All Required Fields must be filled!`,
@@ -142,8 +148,16 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
                 showConfirmButton: true,
                 confirmButtonColor: "#177604",
             });
-        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && baseBirthDate && baseContact && baseAddress && !isFieldsChanged) {
-            document.activeElement.blur();
+        } else if (isSomeFieldsEmpty) {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: `The education fields must be filled.`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+        } else if (baseFirstName && baseMiddleName && baseLastName && baseSuffix && baseGender && 
+            baseBirthDate && baseContact && baseAddress && !isFieldsChanged()) {
             Swal.fire({
                 customClass: { container: "my-swal" },
                 text: `There is nothing to update.`,
@@ -152,7 +166,6 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
                 confirmButtonColor: "#177604",
             });
         } else {
-            document.activeElement.blur();
             Swal.fire({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
@@ -171,50 +184,50 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
         }
     }
 
-    const saveInput = (event) => {
-        event.preventDefault();
-        const addEducations = educations.filter(e => !e.id);
-        const updateEducations = educations.filter(e=> updateIds.includes(e.id));
-        
-        const formData = new FormData();
-        formData.append('id', employee.id);
-        formData.append('first_name', firstName);
-        formData.append('middle_name', middleName);
-        formData.append('last_name', lastName);
-        formData.append('suffix', suffix)
-        formData.append("birth_date", birthDate.format("YYYY-MM-DD HH:mm:ss"));
-        formData.append('gender', gender);
-        formData.append('contact_number', contact);
-        formData.append('address', address);
-        // formData.append('profile_pic', profilePic);
-        if(addEducations.length > 0){
-            formData.append('add_educations', JSON.stringify(addEducations));
+        const saveInput = (event) => {
+            event.preventDefault();
+            const addEducations = educations.filter(e => !e.id);
+            const updateEducations = educations.filter(e=> updateIds.includes(e.id));
+            
+            const formData = new FormData();
+            formData.append('id', employee.id);
+            formData.append('first_name', firstName);
+            formData.append('middle_name', middleName);
+            formData.append('last_name', lastName);
+            formData.append('suffix', suffix)
+            formData.append("birth_date", birthDate.format("YYYY-MM-DD HH:mm:ss"));
+            formData.append('gender', gender);
+            formData.append('contact_number', contact);
+            formData.append('address', address);
+            // formData.append('profile_pic', profilePic);
+            if(addEducations.length > 0){
+                formData.append('add_educations', JSON.stringify(addEducations));
+            }
+            if(updateIds.length > 0){
+                formData.append('update_educations', JSON.stringify(updateEducations));
+            }
+            if(deleteIds.length > 0){
+                formData.append('delete_educations_id', JSON.stringify(deleteIds));
+            }
+            axiosInstance.post('/employee/editMyProfile', formData, { headers })
+                .then(response => {
+                    if (response.data.status === 200) {
+                        Swal.fire({
+                            customClass: { container: 'my-swal' },
+                            text: "Employee Profile Updated Successfully!",
+                            icon: "success",
+                            showConfirmButton: true,
+                            confirmButtonText: 'Proceed',
+                            confirmButtonColor: '#177604',
+                        }).then((res) => {
+                            close(true);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
         }
-        if(updateIds.length > 0){
-            formData.append('update_educations', JSON.stringify(updateEducations));
-        }
-        if(deleteIds.length > 0){
-            formData.append('delete_educations_id', JSON.stringify(deleteIds));
-        }
-        axiosInstance.post('/employee/editMyProfile', formData, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Employee Profile Updated Successfully!",
-                        icon: "success",
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then((res) => {
-                        close(true);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    }
 
     return (
         <>
