@@ -162,8 +162,10 @@ class EmployeesController extends Controller
             // $employees = $user->company->users;
 
             $client = ClientsModel::find($user->client_id);
-            $employees = $client->employees;
+            // $employees = $client->employees;
             // $employees = $user->company->users;
+
+            $employees = UsersModel::where('client_id', $client->id)->orderBy('last_name', 'desc')->get();
 
             $client = ClientsModel::find($user->client_id);
             $employees = $client->employees;
