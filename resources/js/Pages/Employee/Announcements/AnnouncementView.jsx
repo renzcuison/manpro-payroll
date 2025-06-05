@@ -128,12 +128,20 @@ const AnnouncementView = () => {
   };
 
   // Announcement Files
+  const [thumbnail, setThumbnail] = useState(null); // <-- Add this
+
   const getAnnouncementFiles = () => {
     axiosInstance
       .get(`/announcements/getEmployeeAnnouncementFiles/${code}`, { headers })
       .then((response) => {
         setImages(response.data.images || []);
         setAttachments(response.data.attachments || []);
+        // Use the first thumbnail if available
+        if (response.data.thumbnails && response.data.thumbnails.length > 0) {
+          setThumbnail(response.data.thumbnails[0]);
+        } else {
+          setThumbnail(null);
+        }
       })
       .catch((error) => {
         console.error("Error fetching files:", error);
@@ -349,8 +357,8 @@ const AnnouncementView = () => {
               </Box>
             ) : (
               <Grid container columnSpacing={4} rowSpacing={2}>
-                {/* Thumbnail */}
-                {imageLoading ? (
+              {/* Thumbnail */}
+              {imageLoading ? (
                 <Grid size={12} sx={{ height: {xs: 240, md: 360, lg: 480}, width: "100%" }}>
                   <Box
                     sx={{
@@ -369,7 +377,7 @@ const AnnouncementView = () => {
                   </Box>
                 </Grid>
               ) : (
-                imagePath && (
+                thumbnail && (
                   <Grid size={12} sx={{ height: {xs: 240, md: 360, lg: 480}, width: "100%" }}>
                     <Box
                       sx={{
@@ -383,7 +391,7 @@ const AnnouncementView = () => {
                       }}
                     >
                       <img
-                        src={imagePath}
+                        src={renderImage(thumbnail.id, thumbnail.data, thumbnail.mime)}
                         alt={`${announcement.title} thumbnail`}
                         style={{
                           width: "100%",

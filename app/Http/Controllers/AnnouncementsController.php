@@ -904,8 +904,6 @@ class AnnouncementsController extends Controller
             ];
         })->all();
 
-        $imageData = array_merge($images, $thumbnails);
-
         // Documents
         $attachmentData = $announcement->getMedia('documents')->map(function ($media) {
             return [
@@ -917,7 +915,8 @@ class AnnouncementsController extends Controller
 
         return response()->json([
             'status' => 200,
-            'images' => $imageData,
+            'images' => $images, // Only images, no thumbnails
+            'thumbnails' => $thumbnails, // Thumbnails separate
             'attachments' => $attachmentData,
         ]);
     }
