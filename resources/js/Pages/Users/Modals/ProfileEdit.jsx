@@ -50,15 +50,14 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
         axiosInstance.get('/employee/getEducationBackground', { headers })
             .then((response) => {
                 if(response.status === 200){
-                    const educations = response.data.educations;
-                    setEducations(educations || [educationFields]);
-                    setOriginalEducations(educations || [educationFields])
+                    const education = response.data.educations;
+                    setEducations(education);
+                    setOriginalEducations(JSON.parse(JSON.stringify(education)));
                     setIsLoading(false);
                 }
                 else{
                     setEducations([educationFields]);
                     setOriginalEducations([educationFields]);
-                    setOriginalEducations
                     setIsLoading(false);
                 }
             }).catch((error) => {
@@ -100,6 +99,7 @@ const ProfileEdit = ({ open, close, employee, medScreen }) => {
             }
         });
     }
+
     //End of [1]
 
     // Form Errors
