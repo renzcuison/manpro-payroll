@@ -16,6 +16,7 @@ import Swal from 'sweetalert2';
 import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
+import { useClickAway } from '../Test/useClickAway'; 
 
 const PerformanceEvaluationFormSection = ({ section }) => {
     const {
@@ -48,22 +49,64 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     const handleOpenAddSubcategoryModal = () => setAddSubcategoryOpen(true);
     const handleCloseAddSubcategoryModal = () => setAddSubcategoryOpen(false);
 
-    // Save handlers for inline editing
-    const handleSaveSectionName = (newName) => {
-        if (!newName?.trim()) {
+    function handleExitEditMode() {
+        if (sectionName?.trim()) {
+            toggleEditableSection();
+        } else {
+            // Show error and refocus if empty
             Swal.fire({
                 text: "Section Name is required!",
                 icon: "error",
                 confirmButtonColor: '#177604',
+            }).then(() => {
+                if (inputRef.current) inputRef.current.focus();
             });
-            return;
         }
-        editSection({ name: newName }, inputRef).then((response) => {
-            if (response?.data?.status?.toString().startsWith("2")) {
-                toggleEditableSection();
+    }
+
+    // Only activate click away handler when in edit mode
+    useClickAway(inputRef, () => {
+        if (editableSectionName) {
+            if (sectionName?.trim()) {
+                toggleEditableSection(); // exit edit mode if valid
+            } else {
+                Swal.fire({
+                    text: "Section Name is required!",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    setTimeout(() => {
+                        if (inputRef.current) inputRef.current.focus();
+                    }, 0);
+                });
             }
+        }
+    });
+
+    // Save handlers for inline editing
+const handleSaveSectionName = (newName) => {
+    if (!newName?.trim()) {
+        Swal.fire({
+            text: "Section Name is required!",
+            icon: "error",
+            confirmButtonColor: '#177604',
+        }).then(() => {
+            // Refocus after error (give time for Swal to close)
+            setTimeout(() => {
+                if (inputRef.current) inputRef.current.focus();
+            }, 0);
         });
-    };
+        // DO NOT exit edit mode!
+        return;
+    }
+    editSection({ name: newName }, inputRef).then((response) => {
+        if (response?.data?.status?.toString().startsWith("2")) {
+            toggleEditableSection(); // Only exit on success
+        }
+    });
+};
+
+
 
     const handleSaveCategoryName = (newCategory) => {
         if (!newCategory?.trim()) {
