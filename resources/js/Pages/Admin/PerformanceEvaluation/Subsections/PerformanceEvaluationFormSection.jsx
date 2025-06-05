@@ -16,9 +16,8 @@ import Swal from 'sweetalert2';
 import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
-import { useClickAway } from '../Test/useClickAway'; 
 
-const PerformanceEvaluationFormSection = ({ section }) => {
+const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     const {
         sectionId,
         sectionName, setSectionName,
@@ -32,6 +31,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     } = useEvaluationFormSection(section);
 
     const inputRef = useRef(null);
+    const sectionNameWrapperRef = useRef(null);
 
     // Section header click (single: expand/collapse, double: edit)
     const onSectionClick = useClickHandler({
@@ -49,64 +49,24 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     const handleOpenAddSubcategoryModal = () => setAddSubcategoryOpen(true);
     const handleCloseAddSubcategoryModal = () => setAddSubcategoryOpen(false);
 
-    function handleExitEditMode() {
-        if (sectionName?.trim()) {
-            toggleEditableSection();
-        } else {
-            // Show error and refocus if empty
+    // Save handlers for inline editing
+    const handleSaveSectionName = (event) => {
+        const sectionName = event.target.value.trim();
+        setSectionName(sectionName)
+        if (!sectionName) {
             Swal.fire({
                 text: "Section Name is required!",
                 icon: "error",
                 confirmButtonColor: '#177604',
-            }).then(() => {
-                if (inputRef.current) inputRef.current.focus();
             });
+            return;
         }
-    }
-
-    // Only activate click away handler when in edit mode
-    useClickAway(inputRef, () => {
-        if (editableSectionName) {
-            if (sectionName?.trim()) {
-                toggleEditableSection(); // exit edit mode if valid
-            } else {
-                Swal.fire({
-                    text: "Section Name is required!",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                }).then(() => {
-                    setTimeout(() => {
-                        if (inputRef.current) inputRef.current.focus();
-                    }, 0);
-                });
+        editSection({ name: sectionName }, inputRef).then((response) => {
+            if (response?.data?.status?.toString().startsWith("2")) {
+                toggleEditableSection();
             }
-        }
-    });
-
-    // Save handlers for inline editing
-const handleSaveSectionName = (newName) => {
-    if (!newName?.trim()) {
-        Swal.fire({
-            text: "Section Name is required!",
-            icon: "error",
-            confirmButtonColor: '#177604',
-        }).then(() => {
-            // Refocus after error (give time for Swal to close)
-            setTimeout(() => {
-                if (inputRef.current) inputRef.current.focus();
-            }, 0);
         });
-        // DO NOT exit edit mode!
-        return;
-    }
-    editSection({ name: newName }, inputRef).then((response) => {
-        if (response?.data?.status?.toString().startsWith("2")) {
-            toggleEditableSection(); // Only exit on success
-        }
-    });
-};
-
-
+    };
 
     const handleSaveCategoryName = (newCategory) => {
         if (!newCategory?.trim()) {
@@ -210,7 +170,7 @@ const handleSaveSectionName = (newName) => {
         return map[type] || type;
     };
 
-    return (
+    return <>
         <Accordion
             expanded={expanded}
             onChange={onSectionClick}
@@ -230,7 +190,9 @@ const handleSaveSectionName = (newName) => {
                 aria-controls={`section-content-${sectionId}`}
                 id={`section-header-${sectionId}`}
                 sx={{
-                    bgcolor: '#eab31a',
+                    position: 'relative',
+                    width: '100%',
+                    bgcolor: '#eab31a!important',
                     color: 'white',
                     borderTopLeftRadius: 12,
                     borderTopRightRadius: 12,
@@ -242,45 +204,60 @@ const handleSaveSectionName = (newName) => {
                     '& .MuiAccordionSummary-content': { my: 0, alignItems: 'center' },
                     boxShadow: 'none',
                     px: 3,
+                    overflow: 'hidden'
                 }}
             >
-                {editableSectionName ? (
+                <Box
+                    sx={{
+                        display: 'inline-block',
+                        maxWidth: (sectionNameWrapperRef.current?.parentElement.offsetWidth ?? 0)+`px`,
+                        position: 'relative',
+                        cursor: draggedId ? 'move' : 'pointer',
+                        fontWeight: "bold",
+                        fontSize: 20,
+                        color: 'white'
+                    }}
+                    ref={ sectionNameWrapperRef }
+                >
+                    <Typography
+                        sx={{
+                            maxWidth: '100%',
+                            fontSize: 20,
+                            fontWeight: "bold",
+                            letterSpacing: '0.5px',
+                            padding: '4px 0 5px',
+                            visibility: 'hidden',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >{ sectionName.replaceAll(' ', `\u00A0`) }</Typography>
                     <TextField
-                        autoFocus
-                        label="Section Name"
                         fullWidth
                         variant="standard"
                         value={sectionName}
-                        onChange={(e) => setSectionName(e.target.value)}
-                        onBlur={(e) => handleSaveSectionName(e.target.value)}
+                        onChange={ (e) => setSectionName(e.target.value) }
+                        onClick={ (e) => e.stopPropagation() }
+                        onBlur={ handleSaveSectionName }
+                        onKeyUp={ (e) => e.preventDefault() }
                         ref={inputRef}
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            transform: 'translateY(calc(-50% - 1px))',
+                            overflow: 'hidden'
+                        }}
                         InputProps={{
                             disableUnderline: true,
                             style: {
                                 color: 'white',
-                                fontWeight: 'bold',
-                                fontSize: 18,
-                                background: 'transparent'
+                                fontSize: 20,
+                                fontWeight: "bold",
+                                
+                                letterSpacing: '0.5px'
                             }
-                        }}
-                        InputLabelProps={{
-                            style: { color: '#fff8e1' }
                         }}
                         required
                     />
-                ) : (
-                    <Box
-                        sx={{
-                            width: "100%",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                            fontSize: 20,
-                            color: 'white',
-                        }}
-                    >
-                        {sectionName}
-                    </Box>
-                )}
+                </Box>
             </AccordionSummary>
             <AccordionDetails sx={{
                 bgcolor: '#fff',
@@ -343,7 +320,7 @@ const handleSaveSectionName = (newName) => {
                                     mt: 2,
                                     mb: 2,
                                     mx: 2,
-                                    cursor: "pointer",
+                                    cursor: draggedId ? 'move' : 'pointer',
                                     boxShadow: 2
                                 }}
                                 onDoubleClick={toggleEditableCategory}
@@ -400,7 +377,7 @@ const handleSaveSectionName = (newName) => {
                                 </Box>
                             </AccordionSummary>
                             <AccordionDetails sx={{ px: 3, pb: 2 }}>
-                                <PerformanceEvaluationRating subcategory={subcategory} />
+                                {/* <PerformanceEvaluationRating subcategory={subcategory} /> */}
                             </AccordionDetails>
                         </Accordion>
                     ))}
@@ -427,18 +404,18 @@ const handleSaveSectionName = (newName) => {
                     </Box>
                 </Paper>
             </AccordionDetails>
-            <PerformanceEvaluationFormAddCategory
-                open={addCategoryOpen}
-                onClose={handleCloseAddCategoryModal}
-                onSave={handleSaveCategory}
-            />
-            <PerformanceEvaluationFormAddSubcategory
-                open={addSubcategoryOpen}
-                onClose={handleCloseAddSubcategoryModal}
-                onSave={handleSaveSubcategory}
-            />
         </Accordion>
-    );
+        <PerformanceEvaluationFormAddCategory
+            open={addCategoryOpen}
+            onClose={handleCloseAddCategoryModal}
+            onSave={handleSaveCategory}
+        />
+        <PerformanceEvaluationFormAddSubcategory
+            open={addSubcategoryOpen}
+            onClose={handleCloseAddSubcategoryModal}
+            onSave={handleSaveSubcategory}
+        />
+    </>;
 };
 
 export default PerformanceEvaluationFormSection;
