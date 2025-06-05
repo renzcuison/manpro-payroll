@@ -127,7 +127,7 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                             }}>
 
-                                                <Typography>Samuel Christian D. Nacar</Typography>
+                                                <Typography><strong><h5>Employee Name:</h5></strong> Samuel Christian D. Nacar</Typography>
                                                     
                                                 {/* <Autocomplete sx={{width: 750}}
                                                     options={employees}
