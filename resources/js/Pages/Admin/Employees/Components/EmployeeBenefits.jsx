@@ -12,6 +12,11 @@ const EmployeeBenefits = ({ userName, headers }) => {
     const [benefits, setBenefits] = useState([]);
 
     useEffect(() => {
+        getEmployeeBenefits();
+    }, []);
+    
+
+    const getEmployeeBenefits = () => {
         axiosInstance.get(`/benefits/getEmployeeBenefits`, { headers, params: { username: userName } })
             .then((response) => {
                 setBenefits(response.data.benefits);
@@ -19,16 +24,20 @@ const EmployeeBenefits = ({ userName, headers }) => {
             .catch((error) => {
                 console.error('Error fetching benefits:', error);
             });
-    }, []);
+    }
 
     const handleOpenAddEmployeeBenefit = () => {
         console.log("handleOpenAddEmployeeBenefit()");
         setOpenEmployeeAddBenefit(true);
     }
-    const handleCloseAddEmployeeBenefit = () => {
-        console.log("handleCloseAddEmployeeBenefit()");
+
+    const handleCloseAddEmployeeBenefit = (reload) => {
         setOpenEmployeeAddBenefit(false);
+        if(reload){
+            getEmployeeBenefits();
+        }
     }
+    console.log(benefits);
 
     return (
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -43,17 +52,6 @@ const EmployeeBenefits = ({ userName, headers }) => {
 
             <TableContainer>
                 <Table size="small">
-                    {/* <TableHead>
-                        <TableRow>
-                            <TableCell align="center" rowSpan={2}>Benefit</TableCell>
-                            <TableCell align="center" rowSpan={2}>Number</TableCell>
-                            <TableCell align="center" colSpan={2}>Contribution</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell align="center">Employer</TableCell>
-                            <TableCell align="center">Employee</TableCell>
-                        </TableRow>
-                    </TableHead> */}
                     <TableHead>
                         <TableRow>
                             <TableCell align="center">Benefit</TableCell>
@@ -73,10 +71,10 @@ const EmployeeBenefits = ({ userName, headers }) => {
                                         <Typography>{benefit.number}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography> </Typography>
+                                        <Typography>{(benefit.employer_contribution).toFixed(2)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography> </Typography>
+                                        <Typography>{(benefit.employee_contribution).toFixed(2)}</Typography>                               
                                     </TableCell>
                                 </TableRow>
                             ))) :
