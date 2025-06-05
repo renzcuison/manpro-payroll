@@ -116,13 +116,13 @@ const AnnouncementView = () => {
           const blob = new Blob([byteArray], { type: "image/png" });
           setImagePath(URL.createObjectURL(blob));
         } else {
-          setImagePath("../../../../images/defaultThumbnail.jpg");
+          setImagePath(null);
         }
         setImageLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching thumbnail:", error);
-        setImagePath("../../../../images/defaultThumbnail.jpg");
+        setImagePath(null);
         setImageLoading(false);
       });
   };
@@ -350,6 +350,7 @@ const AnnouncementView = () => {
             ) : (
               <Grid container columnSpacing={4} rowSpacing={2}>
                 {/* Thumbnail */}
+                {imageLoading ? (
                 <Grid size={12} sx={{ height: {xs: 240, md: 360, lg: 480}, width: "100%" }}>
                   <Box
                     sx={{
@@ -362,11 +363,25 @@ const AnnouncementView = () => {
                       overflow: "hidden",
                     }}
                   >
-                    {imageLoading ? (
-                      <Box sx={{ display: "flex", placeSelf: "center", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                        <CircularProgress />
-                      </Box>
-                    ) : (
+                    <Box sx={{ display: "flex", placeSelf: "center", justifyContent: "center", alignItems: "center", height: "100%" }}>
+                      <CircularProgress />
+                    </Box>
+                  </Box>
+                </Grid>
+              ) : (
+                imagePath && (
+                  <Grid size={12} sx={{ height: {xs: 240, md: 360, lg: 480}, width: "100%" }}>
+                    <Box
+                      sx={{
+                        mb: 1,
+                        position: "relative",
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: "4px",
+                        border: "2px solid #e0e0e0",
+                        overflow: "hidden",
+                      }}
+                    >
                       <img
                         src={imagePath}
                         alt={`${announcement.title} thumbnail`}
@@ -377,9 +392,10 @@ const AnnouncementView = () => {
                           borderRadius: "4px",
                         }}
                       />
-                    )}
-                  </Box>
-                </Grid>
+                    </Box>
+                  </Grid>
+                )
+              )}
                 {/* Core Information */}
                 <Grid container size={12} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
                   {/* Header and Action Menu */}
