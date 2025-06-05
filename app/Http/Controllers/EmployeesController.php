@@ -647,6 +647,7 @@ class EmployeesController extends Controller
         try {
             if ($request->hasFile('profile_picture')) {
                 // Optional: clear existing media first
+                // $user->clearMediaCollection('profile_pic');  //if using the old media collection. enable this line
                 $user->clearMediaCollection('profile_pictures');
 
                 // Save new profile picture
