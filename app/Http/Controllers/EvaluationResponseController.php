@@ -467,11 +467,11 @@ class EvaluationResponseController extends Controller
                 )
                 ->addSelect(DB::raw("'Pending' as status"));
 
-            // Only show evaluations for the current user if they are the evaluatee or evaluator
-            $evaluationResponses = $evaluationResponses->where(function($query) use ($userID) {
-                $query->where('evaluation_responses.evaluatee_id', $userID)
-                    ->orWhere('evaluation_responses.evaluator_id', $userID);
-            });
+            // // Only show evaluations for the current user if they are the evaluatee or evaluator
+            // $evaluationResponses = $evaluationResponses->where(function($query) use ($userID) {
+            //     $query->where('evaluation_responses.evaluatee_id', $userID)
+            //         ->orWhere('evaluation_responses.evaluator_id', $userID);
+            // });
 
             if ($request->form_id)
                 $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
