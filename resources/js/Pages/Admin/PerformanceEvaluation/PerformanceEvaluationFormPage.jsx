@@ -137,59 +137,39 @@ const PerformanceEvaluationFormPage = () => {
         handleSettingsClose();
     };
 
-  const handleDeleteConfirm = async () => {
-    const formData = new FormData();
-    formData.append('id', formId);
+const handleDeleteConfirm = async () => {
+  const formData = new FormData();
+  formData.append('id', formId);
 
-    try {
-      const resp = await fetch('/api/deleteEvaluationForm', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' },
-        body: formData,
-      });
-
-      if (resp.status === 401 || resp.status === 403) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Unauthenticated',
-          text: 'Please login to continue.',
-          confirmButtonColor: '#177604',
-        }).then(() => {
-          navigate('/login');
-        });
-        return;
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You want to delete this evaluation form?",
+    icon: "warning",
+    showConfirmButton: true,
+    confirmButtonText: 'Delete',
+    confirmButtonColor: '#d32f2f',
+    showCancelButton: true,
+    cancelButtonText: 'Cancel',
+  }).then(async (res) => {
+    if (res.isConfirmed) {
+      try {
+        const response = await axiosInstance.post('/deleteEvaluationForm', formData, { headers });
+        if (response.data.status === 200) {
+          setDeleteOpen(false); // <-- close dialog immediately
+          await Swal.fire({
+            text: "Evaluation form deleted successfully!",
+            icon: "success",
+            confirmButtonText: 'Proceed',
+            confirmButtonColor: '#177604',
+          });
+          navigate('/admin/performance-evaluation');
+        }
+      } catch (error) {
+        console.error("Error while deleting form:", error);
       }
-
-      const data = await resp.json();
-
-      if (data.status === 200) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: data.message || "Form deleted successfully.",
-          confirmButtonColor: '#177604',
-        }).then(() => {
-          setDeleteOpen(false);
-          navigate('/evaluation-forms');
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: data.message || "Unable to delete form.",
-          confirmButtonColor: '#177604',
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error?.message || "Network error. Please try again.",
-        confirmButtonColor: '#177604',
-      });
     }
-  };
+  });
+};
 
     // Section modal
     const handleOpenAddSectionModal = () => setAddSectionOpen(true);

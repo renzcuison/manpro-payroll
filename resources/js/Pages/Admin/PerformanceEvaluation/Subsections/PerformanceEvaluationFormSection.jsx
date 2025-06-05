@@ -16,7 +16,6 @@ import Swal from 'sweetalert2';
 import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
-import { useClickAway } from '../Test/useClickAway'; 
 
 const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     const {
@@ -55,6 +54,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     const [editingSubcategoryId, setEditingSubcategoryId] = useState(null);
     const subcategoryInputRef = useRef(null);
 
+<<<<<<< HEAD
     function handleExitEditMode() {
         if (sectionName?.trim()) {
             toggleEditableSection();
@@ -68,6 +68,21 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                 if (inputRef.current) inputRef.current.focus();
             });
         }
+    }
+    // Save handlers for inline editing
+    const handleSaveSectionName = (event) => {
+        const sectionName = event.target.value.trim();
+        setSectionName(sectionName)
+        if (!sectionName) {
+>>>>>>> Gian-Development
+            Swal.fire({
+                text: "Section Name is required!",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+<<<<<<< HEAD
     }
 
     // Only activate click away handler when in edit mode
@@ -125,6 +140,12 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
             if (response?.data?.status?.toString().startsWith("2")) {
                 toggleEditableSection();
             }
+=======
+        editSection({ name: sectionName }, inputRef).then((response) => {
+            if (response?.data?.status?.toString().startsWith("2")) {
+                toggleEditableSection();
+            }
+>>>>>>> Gian-Development
         });
     };
 
