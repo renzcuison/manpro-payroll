@@ -777,7 +777,7 @@ class EvaluationFormController extends Controller
                 EvaluationFormSection
                     ::where('form_id', $evaluationFormSection->form_id)
                     ->max('order')
-                ?? -1
+                ?? 0
             ) + 1;
             if( $newOrder >= $tempOrder || $newOrder < 0 ) return response()->json([ 
                 'status' => 400,
@@ -866,7 +866,7 @@ class EvaluationFormController extends Controller
 
             $order = (
                 EvaluationFormSection::where('form_id', $request->form_id)->max('order')
-                ?? -1
+                ?? 0
             ) + 1;
 
             $newEvaluationFormSection = EvaluationFormSection::create([
@@ -1178,7 +1178,7 @@ class EvaluationFormController extends Controller
                 EvaluationFormSubcategory
                     ::where('section_id', $evaluationFormSubcategory->section_id)
                     ->max('order')
-                ?? -1
+                ?? 0
             ) + 1;
             if( $newOrder >= $tempOrder || $newOrder < 0 ) return response()->json([ 
                 'status' => 400,
@@ -1267,7 +1267,7 @@ class EvaluationFormController extends Controller
 
     //         $order = (
     //             \App\Models\EvaluationFormSubcategory::where('section_id', $request->section_id)->max('order')
-    //             ?? -1
+    //             ?? 0
     //         ) + 1;
 
     //         $subcategoryTypes = [
@@ -1418,7 +1418,7 @@ class EvaluationFormController extends Controller
 
             $order = (
                 EvaluationFormSubcategory::where('section_id', $request->section_id)->max('order')
-                ?? -1
+                ?? 0
             ) + 1;
 
             $subcategoryTypes = [
@@ -1762,7 +1762,7 @@ class EvaluationFormController extends Controller
                 EvaluationFormSubcategoryOption
                     ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
                     ->max('order')
-                ?? -1
+                ?? 0
             ) + 1;
             if($newOrder >= $tempOrder || $newOrder < 0) return response()->json([ 
                 'status' => 400,
@@ -1871,7 +1871,7 @@ class EvaluationFormController extends Controller
 
             $order = (
                 EvaluationFormSubcategoryOption::where('subcategory_id', $request->subcategory_id)->max('order')
-                ?? -1
+                ?? 0
             ) + 1;
 
             $newEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::create([

@@ -17,7 +17,7 @@ import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
 
-const PerformanceEvaluationFormSection = ({ section }) => {
+const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     const {
         sectionId,
         sectionName, setSectionName,
@@ -31,6 +31,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     } = useEvaluationFormSection(section);
 
     const inputRef = useRef(null);
+    const sectionNameWrapperRef = useRef(null);
 
     // Section header click (single: expand/collapse, double: edit)
     const onSectionClick = useClickHandler({
@@ -49,8 +50,10 @@ const PerformanceEvaluationFormSection = ({ section }) => {
     const handleCloseAddSubcategoryModal = () => setAddSubcategoryOpen(false);
 
     // Save handlers for inline editing
-    const handleSaveSectionName = (newName) => {
-        if (!newName?.trim()) {
+    const handleSaveSectionName = (event) => {
+        const sectionName = event.target.value.trim();
+        setSectionName(sectionName)
+        if (!sectionName) {
             Swal.fire({
                 text: "Section Name is required!",
                 icon: "error",
@@ -58,7 +61,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
             });
             return;
         }
-        editSection({ name: newName }, inputRef).then((response) => {
+        editSection({ name: sectionName }, inputRef).then((response) => {
             if (response?.data?.status?.toString().startsWith("2")) {
                 toggleEditableSection();
             }
@@ -187,7 +190,9 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                 aria-controls={`section-content-${sectionId}`}
                 id={`section-header-${sectionId}`}
                 sx={{
-                    bgcolor: '#eab31a',
+                    position: 'relative',
+                    width: '100%',
+                    bgcolor: '#eab31a!important',
                     color: 'white',
                     borderTopLeftRadius: 12,
                     borderTopRightRadius: 12,
@@ -199,39 +204,59 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                     '& .MuiAccordionSummary-content': { my: 0, alignItems: 'center' },
                     boxShadow: 'none',
                     px: 3,
+                    overflow: 'hidden'
                 }}
             >
                 <Box
                     sx={{
-                        width: "100%",
-                        cursor: 'pointer',
+                        display: 'inline-block',
+                        maxWidth: (sectionNameWrapperRef.current?.parentElement.offsetWidth ?? 0)+`px`,
+                        position: 'relative',
+                        cursor: draggedId ? 'move' : 'pointer',
                         fontWeight: "bold",
                         fontSize: 20,
-                        color: 'white',
+                        color: 'white'
                     }}
-                >{
-                    editableSectionName ? <TextField
-                        autoFocus
+                    ref={ sectionNameWrapperRef }
+                >
+                    <Typography
+                        sx={{
+                            maxWidth: '100%',
+                            fontSize: 20,
+                            fontWeight: "bold",
+                            letterSpacing: '0.5px',
+                            padding: '4px 0 5px',
+                            visibility: 'hidden',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >{ sectionName.replaceAll(' ', `\u00A0`) }</Typography>
+                    <TextField
                         fullWidth
                         variant="standard"
                         value={sectionName}
-                        onChange={(e) => setSectionName(e.target.value)}
-                        onBlur={(e) => handleSaveSectionName(e.target.value)}
+                        onChange={ (e) => setSectionName(e.target.value) }
+                        onClick={ (e) => e.stopPropagation() }
+                        onBlur={ handleSaveSectionName }
+                        onKeyUp={ (e) => e.preventDefault() }
                         ref={inputRef}
+                        sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            transform: 'translateY(calc(-50% - 1px))',
+                            overflow: 'hidden'
+                        }}
                         InputProps={{
                             disableUnderline: true,
                             style: {
                                 color: 'white',
                                 fontSize: 20,
                                 fontWeight: "bold",
-                                background: 'transparent',
+                                
                                 letterSpacing: '0.5px'
                             }
                         }}
                         required
                     />
-                    : <span>{sectionName}</span>
-                }
                 </Box>
             </AccordionSummary>
             <AccordionDetails sx={{
@@ -295,7 +320,7 @@ const PerformanceEvaluationFormSection = ({ section }) => {
                                     mt: 2,
                                     mb: 2,
                                     mx: 2,
-                                    cursor: "pointer",
+                                    cursor: draggedId ? 'move' : 'pointer',
                                     boxShadow: 2
                                 }}
                                 onDoubleClick={toggleEditableCategory}
