@@ -1,3 +1,4 @@
+import { AccordionSummaryMouseSensor } from './Sensors/AccordionSummaryMouseSensor';
 import React, { useState } from 'react';
 import {
     Box,
@@ -18,9 +19,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import {
     DndContext, 
     closestCenter,
-    KeyboardSensor,
     MouseSensor,
-    PointerSensor,
     TouchSensor,
     useSensor,
     useSensors
@@ -230,8 +229,9 @@ const PerformanceEvaluationFormPage = () => {
     // Section moving
 
     const sensors = useSensors(
-        useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
-        useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
+        // useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
+        useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+        useSensor(AccordionSummaryMouseSensor, { activationConstraint: { distance: 10 } })
     );
     const handleDragStart = (event) => {
         setDraggedSectionId(event.active?.id ?? null);
