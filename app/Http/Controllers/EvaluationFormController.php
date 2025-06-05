@@ -1537,7 +1537,9 @@ class EvaluationFormController extends Controller
                         $labels[] = $label;
                         \App\Models\EvaluationFormSubcategoryOption::create([
                             'subcategory_id' => $newEvaluationFormSubcategory->id,
-                            'label' => $label
+                            'label' => $label,
+                            'order' => $optionOrder + 1
+                            // 'score' =>
                         ]);
                     }
                 }
