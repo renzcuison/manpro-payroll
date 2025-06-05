@@ -528,9 +528,12 @@ class EmployeesController extends Controller
 
         if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated) {
             $user = Auth::user();
-            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)
+            ->first();
             log::info($employee);
-            $educations = EmployeeEducation::where('employee_id', $employee->id)->get();
+            $educations = EmployeeEducation::where('employee_id', $employee->id)
+            ->select('id', 'employee_id', 'school_name', 'education_level', 'program_name', 'year_graduated')
+            ->get();
             return response()->json(['educations' => $educations, 'status' => 200]);
         }
     }
@@ -541,7 +544,9 @@ class EmployeesController extends Controller
 
         $user = Auth::user();
 
-        $educations = EmployeeEducation::where('employee_id', $user->id)->get();
+        $educations = EmployeeEducation::where('employee_id', $user->id)
+        ->select('id', 'employee_id', 'school_name', 'education_level', 'program_name', 'year_graduated')
+        ->get();
 
         return response()->json([ 'educations' => $educations, 'status' => 200 ]);
     }
@@ -644,6 +649,7 @@ class EmployeesController extends Controller
         try {
             if ($request->hasFile('profile_picture')) {
                 // Optional: clear existing media first
+                // $user->clearMediaCollection('profile_pic');  //if using the old media collection. enable this line
                 $user->clearMediaCollection('profile_pictures');
 
                 // Save new profile picture
