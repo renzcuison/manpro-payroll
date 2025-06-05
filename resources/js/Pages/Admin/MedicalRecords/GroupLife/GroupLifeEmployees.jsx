@@ -42,14 +42,6 @@ const GroupLifeEmployees = () => {
             branch: "Davao",
             department: "Accounting Department",
             role: "Accounting Operations",
-        },
-        {
-            employee: "Samuel Christian D. Nacar",
-            dependents: "2",
-            enrollDate: "May 25, 2025",
-            branch: "Davao",
-            department: "Finance Department",
-            role: "Finance Operations",
         }
     ];
 
