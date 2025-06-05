@@ -1,34 +1,9 @@
 import React, { useEffect, useState } from "react";
-import {
-    Box,
-    Typography,
-    Grid,
-    Paper,
-    Avatar,
-    Button,
-    Menu,
-    MenuItem,
-    useMediaQuery,
-    useTheme,
-    IconButton,
-    Stack,
-    Divider,
-    TableContainer,
-    Table,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody,
-} from "@mui/material";
+import { Box, Typography, Grid, Button, Menu, MenuItem, useMediaQuery, useTheme, } from "@mui/material";
 import Layout from "../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
 import { useUser } from "../../hooks/useUser";
-import {
-    useNavigate,
-    useParams,
-    useSearchParams,
-    Link,
-} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import UserSummary from "./Components/UserSummary";
 import UserInformation from "./Components/UserInformation";
@@ -50,6 +25,7 @@ const Profile = () => {
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
+    
     const [openProfileEditModal, setOpenProfileEditModal] = useState(false);
     const [education, setEducation] = useState([]);
 
@@ -78,8 +54,7 @@ const Profile = () => {
     }, []);
 
     const getEducationalBackground = () => {
-        axiosInstance
-            .get(`/employee/getEducationBackground`, { headers })
+        axiosInstance.get(`/employee/getEducationBackground`, { headers })
             .then((response) => {
                 if (response.data.status === 200) {
                     const educationBackgrounds = response.data.educations;
@@ -95,61 +70,21 @@ const Profile = () => {
     return (
         <Layout title={"ProfileView"}>
             {/*<--Main Box-->*/}
-            <Box
-                sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}
-            >
-                <Box>
-                    <Box
-                        sx={{
-                            mt: 5,
-                            display: "flex",
-                            justifyContent: "space-between",
-                            px: 1,
-                            alignItems: "center",
-                        }}
-                    >
-                        <Typography
-                            variant="h4"
-                            sx={{
-                                fontWeight: "bold",
-                                display: "flex",
-                                alignItems: "center",
-                            }}
-                        >
-                            <Link
-                                to="/dashboard"
-                                style={{
-                                    textDecoration: "none",
-                                    color: "inherit",
-                                }}
-                            >
-                                <i
-                                    className="fa fa-chevron-left"
-                                    aria-hidden="true"
-                                    style={{
-                                        fontSize: "80%",
-                                        cursor: "pointer",
-                                    }}
-                                ></i>
+            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap", }} >
+                <Box sx={{ mx: "auto", width: "100%", maxWidth: "1500px" }}>
+                    <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
+                        <Typography variant="h4" sx={{ fontWeight: "bold", display: "flex", alignItems: "center" }} >
+                            <Link to="/dashboard" style={{ textDecoration: "none", color: "inherit" }} >
+                                <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: "80%", cursor: "pointer" }} ></i>
                             </Link>
                             &nbsp; User Profile
                         </Typography>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleOpenActions}
-                        >
-                            {" "}
-                            Actions{" "}
+                        <Button variant="contained" color="primary" onClick={handleOpenActions} >
+                            {" "}Actions{" "}
                         </Button>
-                        <Menu
-                            anchorEl={anchorEl}
-                            open={open}
-                            onClose={handleCloseActions}
-                        >
+                        <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             <MenuItem onClick={handleOpenProfileEditModal}>
-                                {" "}
-                                Edit Profile{" "}
+                                {" "}Edit Profile{" "}
                             </MenuItem>
                         </Menu>
                     </Box>
@@ -158,38 +93,22 @@ const Profile = () => {
                         {/*<----Left side---->*/}
                         <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>
                             <UserInformation user={user}></UserInformation>
-                            <ProfileBenefits
-                                userName={user.user_name}
-                                headers={headers}
-                            ></ProfileBenefits>
-                            <EmployeeDeductions
-                                userName={user.user_name}
-                                headers={headers}
-                            ></EmployeeDeductions>
+                            <ProfileBenefits userName={user.user_name} headers={headers}></ProfileBenefits>
+                            <EmployeeDeductions userName={user.user_name} headers={headers}></EmployeeDeductions>
                         </Grid>
 
                         {/*<---Right Side---->*/}
                         <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
                             <UserSummary user={user}></UserSummary>
-                            <EducationalBackground
-                                education={education}
-                            ></EducationalBackground>
-                            <UserEmploymentDetails
-                                user={user}
-                            ></UserEmploymentDetails>
+                            <EducationalBackground education={education}></EducationalBackground>
+                            <UserEmploymentDetails user={user}></UserEmploymentDetails>
                         </Grid>
                     </Grid>
                 </Box>
             </Box>
 
             {openProfileEditModal && (
-                <ProfileEdit
-                    open={openProfileEditModal}
-                    close={handleCloseProfileEditModal}
-                    employee={user}
-                    avatar={user?.media[0]?.original_url}
-                    medScreen={medScreen}
-                />
+                <ProfileEdit open={openProfileEditModal} close={handleCloseProfileEditModal} employee={user} avatar={user?.media[0]?.original_url} medScreen={medScreen} />
             )}
         </Layout>
     );

@@ -202,197 +202,25 @@ const AttendanceSummary = () => {
     
     return (
         <Layout title={"AttendanceLogs"}>
-            <Box
-                sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}
-            >
+            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
                 <Box>
-                    <Box
-                        sx={{
-                            mt: 5,
-                            display: "flex",
-                            justifyContent: "space-between",
-                            px: 1,
-                            alignItems: "center",
-                        }}
-                    >
+                    <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {" "}
-                            Attendance Summary{" "}
+                            {" "}Attendance Summary{" "}
                         </Typography>
-                        <></>
                     </Box>
 
-                    <Box
-                        sx={{
-                            mt: 6,
-                            p: 3,
-                            bgcolor: "#ffffff",
-                            borderRadius: "8px",
-                        }}
-                    >
+                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
                         {/* Filters */}
-                        <Grid
-                            container
-                            direction="row"
-                            justifyContent="space-between"
-                            sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}
-                        >
-                            <Grid
-                                container
-                                direction="row"
-                                justifyContent="flex-start"
-                                xs={4}
-                                spacing={2}
-                            >
+                        <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                            <Grid container direction="row" justifyContent="flex-start" xs={4} spacing={2} >
                                 <Grid>
-                                    <FormControl
-                                        sx={{
-                                            width: "100%",
-                                            "& label.Mui-focused": {
-                                                color: "#97a5ba",
-                                            },
-                                            "& .MuiOutlinedInput-root": {
-                                                "&.Mui-focused fieldset": {
-                                                    borderColor: "#97a5ba",
-                                                },
-                                            },
-                                        }}
-                                    >
-                                        <TextField
-                                            id="searchName"
-                                            label="Search Employee Name"
-                                            variant="outlined"
-                                            value={searchName}
-                                            onChange={(e) =>
-                                                setSearchName(e.target.value)
-                                            }
-                                        />
+                                    <FormControl sx={{ width: "100%", "& label.Mui-focused": { color: "#97a5ba" }, "& .MuiOutlinedInput-root": { "&.Mui-focused fieldset": { borderColor: "#97a5ba" }}}} >
+                                        <TextField id="searchName" label="Search Employee Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Grid>
                             </Grid>
-                            <Grid
-                                container
-                                direction="row"
-                                justifyContent="flex-end"
-                                xs={4}
-                                spacing={2}
-                            >
-                                <Grid>
-                                    {/* <LocalizationProvider
-                                        dateAdapter={AdapterDayjs}
-                                    >
-                                        <FormControl fullWidth>
-                                            <TextField
-                                                select
-                                                id="month-select"
-                                                label="Month"
-                                                value={month}
-                                                onChange={(event) =>
-                                                    setMonth(event.target.value)
-                                                }
-                                            >
-                                                {[
-                                                    {
-                                                        value: 0,
-                                                        label: "January",
-                                                    },
-                                                    {
-                                                        value: 1,
-                                                        label: "February",
-                                                    },
-                                                    {
-                                                        value: 2,
-                                                        label: "March",
-                                                    },
-                                                    {
-                                                        value: 3,
-                                                        label: "April",
-                                                    },
-                                                    { value: 4, label: "May" },
-                                                    { value: 5, label: "June" },
-                                                    { value: 6, label: "July" },
-                                                    {
-                                                        value: 7,
-                                                        label: "August",
-                                                    },
-                                                    {
-                                                        value: 8,
-                                                        label: "September",
-                                                    },
-                                                    {
-                                                        value: 9,
-                                                        label: "October",
-                                                    },
-                                                    {
-                                                        value: 10,
-                                                        label: "November",
-                                                    },
-                                                    {
-                                                        value: 11,
-                                                        label: "December",
-                                                    },
-                                                ].map((monthOption) => {
-                                                    const currentYear =
-                                                        dayjs().year();
-                                                    const currentMonth =
-                                                        dayjs().month();
-                                                    const isCurrentYearSelected =
-                                                        year
-                                                            ? dayjs(
-                                                                  year
-                                                              ).year() ===
-                                                              currentYear
-                                                            : false;
-                                                    const isMonthDisabled =
-                                                        isCurrentYearSelected &&
-                                                        monthOption.value >
-                                                            currentMonth;
-
-                                                    return (
-                                                        <MenuItem
-                                                            key={
-                                                                monthOption.value
-                                                            }
-                                                            value={
-                                                                monthOption.value
-                                                            }
-                                                            disabled={
-                                                                isMonthDisabled
-                                                            }
-                                                        >
-                                                            {monthOption.label}
-                                                        </MenuItem>
-                                                    );
-                                                })}
-                                            </TextField>
-                                        </FormControl>
-                                    </LocalizationProvider>
-                                </Grid>
-                                <Grid>
-                                    <LocalizationProvider
-                                        dateAdapter={AdapterDayjs}
-                                    >
-                                        <DatePicker
-                                            label="Year"
-                                            value={year}
-                                            views={["year"]}
-                                            maxDate={dayjs()}
-                                            onChange={(newValue) => {
-                                                setYear(newValue);
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField {...params} />
-                                            )}
-                                            slotProps={{
-                                                textField: {
-                                                    readOnly: true,
-                                                },
-                                            }}
-                                        />
-                                    </LocalizationProvider> */}
-
-                                </Grid>
-
+                            <Grid container direction="row" justifyContent="flex-end" xs={4} spacing={2} >
                                 <Grid>
                                     <DateRangePicker onRangeChange={handleDateRangeChange} />
                                 </Grid>
@@ -402,27 +230,12 @@ const AttendanceSummary = () => {
                                         <InputLabel id="branch-select-label">
                                             Branch
                                         </InputLabel>
-                                        <Select
-                                            labelId="branch-select-label"
-                                            id="branch-select"
-                                            value={selectedBranch}
-                                            label="Branch"
-                                            onChange={(event) =>
-                                                setSelectedBranch(
-                                                    Number(event.target.value)
-                                                )
-                                            }
-                                        >
+                                        <Select labelId="branch-select-label" id="branch-select" value={selectedBranch} label="Branch" onChange={(event) => setSelectedBranch( Number(event.target.value) ) } >
                                             <MenuItem value={0}>
                                                 All Branches
                                             </MenuItem>
                                             {branches.map((branch) => (
-                                                <MenuItem
-                                                    key={branch.id}
-                                                    value={branch.id}
-                                                >
-                                                    {branch.name}
-                                                </MenuItem>
+                                                <MenuItem key={branch.id} value={branch.id}> {branch.name} </MenuItem>
                                             ))}
                                         </Select>
                                     </FormControl>
@@ -432,27 +245,12 @@ const AttendanceSummary = () => {
                                         <InputLabel id="department-select-label">
                                             Department
                                         </InputLabel>
-                                        <Select
-                                            labelId="department-select-label"
-                                            id="department-select"
-                                            value={selectedDepartment}
-                                            label="Department"
-                                            onChange={(event) =>
-                                                setSelectedDepartment(
-                                                    Number(event.target.value)
-                                                )
-                                            }
-                                        >
+                                        <Select labelId="department-select-label" id="department-select" value={selectedDepartment} label="Department" onChange={(event) => setSelectedDepartment( Number(event.target.value) ) } >
                                             <MenuItem value={0}>
                                                 All Departments
                                             </MenuItem>
                                             {departments.map((department) => (
-                                                <MenuItem
-                                                    key={department.id}
-                                                    value={department.id}
-                                                >
-                                                    {department.name}
-                                                </MenuItem>
+                                                <MenuItem key={department.id} value={department.id} > {department.name} </MenuItem>
                                             ))}
                                         </Select>
                                     </FormControl>
@@ -461,125 +259,43 @@ const AttendanceSummary = () => {
                         </Grid>
                         {/* Table */}
                         {isLoading ? (
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    minHeight: 200,
-                                }}
-                            >
+                            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }} >
                                 <CircularProgress />
                             </Box>
                         ) : (
-                            <TableContainer
-                                style={{ overflowX: "auto" }}
-                                sx={{ minHeight: 400, maxHeight: 500 }}
-                            >
+                            <TableContainer style={{ overflowX: "auto" }} sx={{ minHeight: 400, maxHeight: 500 }} >
                                 <Table stickyHeader aria-label="simple table">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell align="center">
-                                                Name
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                Branch
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                Department
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                Role
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                Hours
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                Tardiness
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                Absences
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                Overtime
-                                            </TableCell>
+                                            <TableCell align="center"> Name </TableCell>
+                                            <TableCell align="center"> Branch </TableCell>
+                                            <TableCell align="center"> Department </TableCell>
+                                            <TableCell align="center"> Role </TableCell>
+                                            <TableCell align="center"> Hours </TableCell>
+                                            <TableCell align="center"> Tardiness </TableCell>
+                                            <TableCell align="center"> Absences </TableCell>
+                                            <TableCell align="center"> Overtime </TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {!Array.isArray(filteredAttendance) ||
-                                        filteredAttendance.length === 0 ? (
+                                        {!Array.isArray(filteredAttendance) || filteredAttendance.length === 0 ? (
                                             <TableRow>
-                                                <TableCell
-                                                    colSpan={8}
-                                                    align="center"
-                                                >
+                                                <TableCell colSpan={8} align="center" >
                                                     No attendance records found.
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             filteredAttendance.map(
                                                 (attendance) => (
-                                                    <TableRow
-                                                        key={attendance.emp_id}
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/admin/attendance/${attendance.emp_user_name}`
-                                                            )
-                                                        }
-                                                        sx={{
-                                                            "&:last-child td, &:last-child th":
-                                                                { border: 0 },
-                                                            textDecoration:
-                                                                "none",
-                                                            color: "inherit",
-                                                            "&:hover": {
-                                                                backgroundColor:
-                                                                    "rgba(0, 0, 0, 0.1)",
-                                                                cursor: "pointer",
-                                                            },
-                                                        }}
-                                                    >
-                                                        <TableCell align="left">
-                                                            {" "}
-                                                            {
-                                                                attendance.emp_first_name
-                                                            }{" "}
-                                                            {attendance.emp_middle_name ||
-                                                                ""}{" "}
-                                                            {
-                                                                attendance.emp_last_name
-                                                            }{" "}
-                                                            {attendance.emp_suffix ||
-                                                                ""}{" "}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {attendance.emp_branch ||
-                                                                "-"}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {attendance.emp_department ||
-                                                                "-"}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {attendance.emp_role ||
-                                                                "-"}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {formatTime(
-                                                                attendance.total_rendered
-                                                            )}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {formatTime(
-                                                                attendance.total_late
-                                                            )}
-                                                        </TableCell>
-                                                        <TableCell align="center">{`${attendance.total_absences} days`}</TableCell>
-                                                        <TableCell align="center">
-                                                            {formatTime(
-                                                                attendance.total_overtime
-                                                            )}
-                                                        </TableCell>
+                                                    <TableRow key={attendance.emp_id} onClick={() => navigate( `/admin/attendance/${attendance.emp_user_name}` )} sx={{ "&:last-child td, &:last-child th": { border: 0 }, textDecoration: "none", color: "inherit", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}} >
+                                                        <TableCell align="left"> {" "}{attendance.emp_first_name}{" "}{attendance.emp_middle_name || ""}{" "}{attendance.emp_last_name}{" "}{attendance.emp_suffix || ""}{" "} </TableCell>
+                                                        <TableCell align="center"> {attendance.emp_branch || "-"} </TableCell>
+                                                        <TableCell align="center"> {attendance.emp_department || "-"} </TableCell>
+                                                        <TableCell align="center"> {attendance.emp_role || "-"} </TableCell>
+                                                        <TableCell align="center"> {formatTime( attendance.total_rendered )} </TableCell>
+                                                        <TableCell align="center"> {formatTime( attendance.total_late )} </TableCell>
+                                                        <TableCell align="center"> {`${attendance.total_absences} days`} </TableCell>
+                                                        <TableCell align="center"> {formatTime( attendance.total_overtime )} </TableCell>
                                                     </TableRow>
                                                 )
                                             )

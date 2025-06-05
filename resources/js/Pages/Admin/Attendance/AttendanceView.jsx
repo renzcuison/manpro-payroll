@@ -148,15 +148,6 @@ const AttendanceView = () => {
         const minutes = absTime % 60;
         return hours > 0 ? `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `${minutes}m`;
     };
-
-    // const handleDateRangeChange = (from, to) => {
-
-    //     console.log("Selected Date Range:", from?.format?.("YYYY-MM-DD"), "to", to?.format?.("YYYY-MM-DD"));
-
-    //     setSummaryFromDate(from);
-    //     setSummaryToDate(to);
-    // };
-
     
     const handleDateRangeChange = (start, end) => {
         console.log("Selected range in AttendanceView:", start?.format(), end?.format());
@@ -180,6 +171,17 @@ const AttendanceView = () => {
         setPage(0);
     };
 
+    const [rangeStartDate, setRangeStartDate] = useState(null);
+    const [rangeEndDate, setRangeEndDate] = useState(null);
+
+    const filteredSummaryData = summaryData.filter((record) => {
+        const attendanceDate = dayjs(record.date_attended);
+        const matchedDateRange = (!rangeStartDate || !rangeEndDate) ||
+            (attendanceDate.isSameOrAfter(rangeStartDate, 'day') &&
+            attendanceDate.isSameOrBefore(rangeEndDate, 'day'));
+
+        return matchedDateRange;
+    });
 
     return (
         <Layout title={"EmployeeView"}>
@@ -252,29 +254,33 @@ const AttendanceView = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {summaryData.length > 0 ? (
-                                                summaryData
-                                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                                .map((summary, index) => (
-                                                    <TableRow
-                                                        key={index}
-                                                        onClick={() => handleOpenAttendanceDetails(summary)}
-                                                        sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" } }}
-                                                    >
-                                                        <TableCell align="center">{dayjs(summary.date).format("MMMM D, YYYY")}</TableCell>
-                                                        <TableCell align="center">{summary.time_in ? dayjs(summary.time_in).format("hh:mm:ss A") : "-"}</TableCell>
-                                                        <TableCell align="center">{summary.time_out ? dayjs(summary.time_out).format("hh:mm:ss A") : (summary.time_in && summary.date !== currentDate) ? "Failed to Time Out" : "-"}</TableCell>
-                                                        <TableCell align="center">{formatTime(summary.total_rendered)}</TableCell>
-                                                        <TableCell align="center">{summary.overtime_in ? dayjs(summary.overtime_in).format("hh:mm:ss A") : "-"}</TableCell>
-                                                        <TableCell align="center">{summary.overtime_out ? dayjs(summary.overtime_out).format("hh:mm:ss A") : summary.overtime_in ? "Failed to Time Out" : "-"}</TableCell>
-                                                        <TableCell align="center">{formatTime(summary.total_overtime)}</TableCell>
-                                                        <TableCell align="center">
-                                                            <Typography sx={{ color: summary.date === currentDate ? "#177604" : summary.late_time > 0 ? "#f44336" : null }}>
-                                                                {summary.date === currentDate ? "Day Ongoing" : formatTime(summary.late_time)}
-                                                            </Typography>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
+                                            {filteredSummaryData.length > 0 ? (
+                                                filteredSummaryData
+                                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                                    .map((summary, index) => (
+                                                        <TableRow
+                                                            key={index}
+                                                            onClick={() => handleOpenAttendanceDetails(summary)}
+                                                            sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" } }}
+                                                        >
+                                                            <TableCell align="center">{dayjs(summary.date).format("MMMM D, YYYY")}</TableCell>
+                                                            <TableCell align="center">{summary.time_in ? dayjs(summary.time_in).format("hh:mm:ss A") : "-"}</TableCell>
+                                                            <TableCell align="center">
+                                                                {summary.time_out ? dayjs(summary.time_out).format("hh:mm:ss A") : (summary.time_in && summary.date !== currentDate) ? "Failed to Time Out" : "-"}
+                                                            </TableCell>
+                                                            <TableCell align="center">{formatTime(summary.total_rendered)}</TableCell>
+                                                            <TableCell align="center">{summary.overtime_in ? dayjs(summary.overtime_in).format("hh:mm:ss A") : "-"}</TableCell>
+                                                            <TableCell align="center">
+                                                                {summary.overtime_out ? dayjs(summary.overtime_out).format("hh:mm:ss A") : summary.overtime_in ? "Failed to Time Out" : "-"}
+                                                            </TableCell>
+                                                            <TableCell align="center">{formatTime(summary.total_overtime)}</TableCell>
+                                                            <TableCell align="center">
+                                                                <Typography sx={{ color: summary.date === currentDate ? "#177604" : summary.late_time > 0 ? "#f44336" : null }}>
+                                                                    {summary.date === currentDate ? "Day Ongoing" : formatTime(summary.late_time)}
+                                                                </Typography>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))
                                             ) : (
                                                 <TableRow>
                                                     <TableCell colSpan={8} align="center" sx={{ color: "text.secondary", p: 1 }}>No Attendance Found</TableCell>
