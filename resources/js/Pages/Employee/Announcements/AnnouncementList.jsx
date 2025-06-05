@@ -46,8 +46,12 @@ const AnnouncementList = () => {
     const fetchAnnouncements = () => {
         axiosInstance.get('/announcements/getEmployeeAnnouncements', { headers })
             .then((response) => {
-                setAnnouncements(response.data.announcements);
-                setTotalAnnouncements(response.data.announcements.length);
+                // Sort by updated_at descending (newest first)
+                const sorted = response.data.announcements.sort(
+                    (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
+                );
+                setAnnouncements(sorted);
+                setTotalAnnouncements(sorted.length);
                 setAnnouncementReload(false);
                 setIsLoading(false);
             })
@@ -55,7 +59,6 @@ const AnnouncementList = () => {
                 console.error('Error fetching announcements:', error);
                 setIsLoading(false);
             });
-
     }
 
     useEffect(() => {
