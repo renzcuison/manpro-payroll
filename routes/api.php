@@ -86,6 +86,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // ---------------------------------------------------------------- Client routes ----------------------------------------------------------------
     Route::get('/auth', [UserAuthController::class, 'index']);
     Route::post('/logout', [UserAuthController::class, 'logout']);
+    Route::post('/changePass', [UserAuthController::class, 'changePass']);
 
     Route::prefix('branches')->group(function () {
         Route::get('/getBranches', [BranchController::class, 'getBranches']);
@@ -568,9 +569,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/update_profile', [MemberSettingsController::class, 'updateProfile']);
     Route::get('/get_user', [MemberSettingsController::class, 'getUserData']);
     Route::post('/picture', [MemberSettingsController::class, 'updatePicture']);
-
-    // Member Change Password
-    Route::post('/change_password', [MemberSettingsController::class, 'changePassword']);
 
     // Member Dashboard
     Route::get('/dashboard_recentMemberAttendance', [MemberDashboardController::class, 'getMemberAttendances']);
