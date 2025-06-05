@@ -231,13 +231,7 @@ const PerformanceEvaluationFormPage = () => {
 
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
-        useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
-        // useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-        // useSensor(SmartPointerSensor),
-        // useSensor(PointerSensor),
-        // useSensor(KeyboardSensor, {
-        //     coordinateGetter: sortableKeyboardCoordinates,
-        // })
+        useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
     );
     const handleDragStart = (event) => {
         setDraggedSectionId(event.active?.id ?? null);
@@ -321,11 +315,11 @@ const PerformanceEvaluationFormPage = () => {
                             collisionDetection={ closestCenter }
                             onDragStart={ handleDragStart }
                             onDragEnd={ handleDragEnd }
-                            modifiers={[restrictToFirstScrollableAncestor, restrictToVerticalAxis]}
+                            modifiers={ [restrictToFirstScrollableAncestor, restrictToVerticalAxis] }
                         ><SortableContext items={ sections.map(section=>({ ...section, id: 'section_'+section.id })) } strategy={ verticalListSortingStrategy }>
                             <Box sx={{ mt: 2, overflow: 'auto' }}>
                                 {sections.map((section) => <Sortable key={section.id} id={'section_'+section.id} order={section.order} draggedId={draggedSectionId}>
-                                    <PerformanceEvaluationFormSection section={section}/>
+                                    <PerformanceEvaluationFormSection section={section} draggedId={draggedSectionId}/>
                                 </Sortable>)}
                             </Box>
                         </SortableContext></DndContext>
