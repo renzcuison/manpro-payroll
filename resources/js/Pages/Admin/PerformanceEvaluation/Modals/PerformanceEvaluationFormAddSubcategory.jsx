@@ -46,6 +46,7 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
     };
 
     return (
+        
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth 
             sx={{
                 '& .MuiPaper-root': {
@@ -289,7 +290,6 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                         Save
                     </Button>
                 </Box>
-
             </DialogContent>
         </Dialog>
     );

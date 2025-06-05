@@ -10,9 +10,9 @@ export function useEvaluationFormSection(section) {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [isNew, setIsNew] = useState(true);
     const [sectionId, setSectionId] = useState();
-    const [sectionName, setSectionName] = useState();
+    const [sectionName, setSectionName] = useState('');
     const [editableSectionName, setEditableSectionName] = useState(false);
-    const [sectionCategory, setSectionCategory] = useState();
+    const [sectionCategory, setSectionCategory] = useState('');
     const [editableCategory, setEditableCategory] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [order, setOrder] = useState();

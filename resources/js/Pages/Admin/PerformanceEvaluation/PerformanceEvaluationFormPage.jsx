@@ -19,9 +19,8 @@ import {
     closestCenter,
     KeyboardSensor,
     MouseSensor,
+    PointerSensor,
     TouchSensor,
-    useDraggable,
-    useDroppable,
     useSensor,
     useSensors
 } from '@dnd-kit/core';
@@ -49,14 +48,14 @@ const PerformanceEvaluationFormPage = () => {
     const {
         creatorName,
         createdDate,
-        dragging,
+        draggedSectionId,
         formId,
         loading,
         notFound,
         sections,
         moveSection,
         saveSection,
-        toggleDragging
+        setDraggedSectionId
     } = useEvaluationForm({ name: formName });
     const navigate = useNavigate();
 
@@ -233,17 +232,23 @@ const PerformanceEvaluationFormPage = () => {
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
         useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+        // useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+        // useSensor(SmartPointerSensor),
+        // useSensor(PointerSensor),
+        // useSensor(KeyboardSensor, {
+        //     coordinateGetter: sortableKeyboardCoordinates,
+        // })
     );
+    const handleDragStart = (event) => {
+        setDraggedSectionId(event.active?.id ?? null);
+    };
     const handleDragEnd = (event) => {
-        toggleDragging();
+        setDraggedSectionId(null);
         if(!event.active || !event.over) return;
-        const {
-            active: { id, data: { current: { order: oldOrder } } },
-            over: { data: { current: { order: newOrder } } },
-        } = event;
-        if(oldOrder === newOrder) return;
-        moveSection(oldOrder, newOrder);
+        moveSection(
+            event.active.data.current.order,
+            event.over.data.current.order
+        );
     }
 
     if (notFound) return <CheckUser />;
@@ -260,7 +265,7 @@ const PerformanceEvaluationFormPage = () => {
                     maxWidth: '1000px',
                     mx: 'auto',
                     boxShadow: 3,
-                    cursor: dragging ? 'move' : undefined
+                    cursor: draggedSectionId ? 'move' : undefined
                 }}
             >
                 {/* Settings Icon with Dropdown Menu */}
@@ -314,13 +319,13 @@ const PerformanceEvaluationFormPage = () => {
                         <DndContext
                             sensors={ sensors }
                             collisionDetection={ closestCenter }
-                            onDragStart={ toggleDragging }
+                            onDragStart={ handleDragStart }
                             onDragEnd={ handleDragEnd }
                             modifiers={[restrictToFirstScrollableAncestor, restrictToVerticalAxis]}
                         ><SortableContext items={ sections.map(section=>({ ...section, id: 'section_'+section.id })) } strategy={ verticalListSortingStrategy }>
                             <Box sx={{ mt: 2, overflow: 'auto' }}>
-                                {sections.map((section) => <Sortable key={section.id} id={'section_'+section.id} order={section.order}>
-                                    <PerformanceEvaluationFormSection section={section} dragging={dragging}/>
+                                {sections.map((section) => <Sortable key={section.id} id={'section_'+section.id} order={section.order} draggedId={draggedSectionId}>
+                                    <PerformanceEvaluationFormSection section={section}/>
                                 </Sortable>)}
                             </Box>
                         </SortableContext></DndContext>

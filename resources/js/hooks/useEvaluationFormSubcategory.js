@@ -11,10 +11,10 @@ export function useEvaluationFormSubcategory(subcategory) {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [isNew, setIsNew] = useState(true);
     const [subcategoryId, setSubcategoryId] = useState();
-    const [subcategoryName, setSubcategoryName] = useState();
+    const [subcategoryName, setSubcategoryName] = useState('');
     const [sectionId, setSectionId] = useState();
     const [subcategoryType, setSubcategoryType] = useState();
-    const [subcategoryDescription, setSubcategoryDescription] = useState();
+    const [subcategoryDescription, setSubcategoryDescription] = useState('');
     const [required, setRequired] = useState(true);
     const [allowOtherOption, setAllowOtherOption] = useState(false);
     const [linearScaleStart, setLinearScaleStart] = useState(1);

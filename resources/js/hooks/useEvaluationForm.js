@@ -7,12 +7,12 @@ export function useEvaluationForm(form) {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [formId, setFormId] = useState();
-    const [formName, setFormName] = useState();
-    const [creatorName, setCreatorName] = useState();
+    const [formName, setFormName] = useState('');
+    const [creatorName, setCreatorName] = useState('');
     const [createdDate, setCreatedDate] = useState();  
     const [loading, setLoading] = useState(true);
     const [sections, setSections] = useState([]);
-    const [dragging, setDragging] = useState(false);
+    const [draggedSectionId, setDraggedSectionId] = useState(null);
     const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
@@ -99,14 +99,10 @@ export function useEvaluationForm(form) {
         ;
     }
 
-    function toggleDragging() {
-        setDragging(!dragging);
-    }
-
     return {
-        creatorName, createdDate, dragging, formId, formName, loading, notFound,
+        creatorName, createdDate, draggedSectionId, formId, formName, loading, notFound,
         sections,
-        moveSection, saveSection, toggleDragging
+        moveSection, saveSection, setDraggedSectionId
     };
 
 }

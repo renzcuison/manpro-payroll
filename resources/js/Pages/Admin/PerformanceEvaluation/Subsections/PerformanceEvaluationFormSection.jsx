@@ -17,7 +17,7 @@ import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
 
-const PerformanceEvaluationFormSection = ({ section, dragging }) => {
+const PerformanceEvaluationFormSection = ({ section }) => {
     const {
         sectionId,
         sectionName, setSectionName,
@@ -167,7 +167,7 @@ const PerformanceEvaluationFormSection = ({ section, dragging }) => {
         return map[type] || type;
     };
 
-    return (
+    return <>
         <Accordion
             expanded={expanded}
             onChange={onSectionClick}
@@ -201,10 +201,17 @@ const PerformanceEvaluationFormSection = ({ section, dragging }) => {
                     px: 3,
                 }}
             >
-                {editableSectionName ? (
-                    <TextField
+                <Box
+                    sx={{
+                        width: "100%",
+                        cursor: 'pointer',
+                        fontWeight: "bold",
+                        fontSize: 20,
+                        color: 'white',
+                    }}
+                >{
+                    editableSectionName ? <TextField
                         autoFocus
-                        label="Section Name"
                         fullWidth
                         variant="standard"
                         value={sectionName}
@@ -215,29 +222,17 @@ const PerformanceEvaluationFormSection = ({ section, dragging }) => {
                             disableUnderline: true,
                             style: {
                                 color: 'white',
-                                fontWeight: 'bold',
-                                fontSize: 18,
-                                background: 'transparent'
+                                fontSize: 20,
+                                fontWeight: "bold",
+                                background: 'transparent',
+                                letterSpacing: '0.5px'
                             }
-                        }}
-                        InputLabelProps={{
-                            style: { color: '#fff8e1' }
                         }}
                         required
                     />
-                ) : (
-                    <Box
-                        sx={{
-                            width: "100%",
-                            cursor: dragging ? 'move' : 'pointer',
-                            fontWeight: "bold",
-                            fontSize: 20,
-                            color: 'white',
-                        }}
-                    >
-                        {sectionName}
-                    </Box>
-                )}
+                    : <span>{sectionName}</span>
+                }
+                </Box>
             </AccordionSummary>
             <AccordionDetails sx={{
                 bgcolor: '#fff',
@@ -357,7 +352,7 @@ const PerformanceEvaluationFormSection = ({ section, dragging }) => {
                                 </Box>
                             </AccordionSummary>
                             <AccordionDetails sx={{ px: 3, pb: 2 }}>
-                                <PerformanceEvaluationRating subcategory={subcategory} />
+                                {/* <PerformanceEvaluationRating subcategory={subcategory} /> */}
                             </AccordionDetails>
                         </Accordion>
                     ))}
@@ -384,18 +379,18 @@ const PerformanceEvaluationFormSection = ({ section, dragging }) => {
                     </Box>
                 </Paper>
             </AccordionDetails>
-            <PerformanceEvaluationFormAddCategory
-                open={addCategoryOpen}
-                onClose={handleCloseAddCategoryModal}
-                onSave={handleSaveCategory}
-            />
-            <PerformanceEvaluationFormAddSubcategory
-                open={addSubcategoryOpen}
-                onClose={handleCloseAddSubcategoryModal}
-                onSave={handleSaveSubcategory}
-            />
         </Accordion>
-    );
+        <PerformanceEvaluationFormAddCategory
+            open={addCategoryOpen}
+            onClose={handleCloseAddCategoryModal}
+            onSave={handleSaveCategory}
+        />
+        <PerformanceEvaluationFormAddSubcategory
+            open={addSubcategoryOpen}
+            onClose={handleCloseAddSubcategoryModal}
+            onSave={handleSaveSubcategory}
+        />
+    </>;
 };
 
 export default PerformanceEvaluationFormSection;

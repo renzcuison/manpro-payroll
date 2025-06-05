@@ -1472,27 +1472,29 @@ class EvaluationFormController extends Controller
                 'evaluationFormSubcategoryOptionID' => $request->id
             ]);
 
-            $isEmptyName = !$request->label;
+            if($request->has('label')) {
+                $isEmptyName = ($request->label === "");
+                if( $isEmptyName ) return response()->json([ 
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Option Label is required!'
+                ]);
 
-            if( $isEmptyName ) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Form Subcategory Option Label is required!'
-            ]);
-
-            $existingEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
-                ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
-                ->where('label', $request->label)
-                ->where('id', '!=', $request->id)
-                ->first()
-            ;
-
-            if( $existingEvaluationFormSubcategoryOption ) return response()->json([ 
-                'status' => 409,
-                'message' => 'This Evaluation Form Subcategory Option Label is already in use!',
-                'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
-            ]);
-
-            $evaluationFormSubcategoryOption->label = $request->label;
+                $existingEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
+                    ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
+                    ->where('label', $request->label)
+                    ->where('id', '!=', $request->id)
+                    ->first()
+                ;
+                if( $existingEvaluationFormSubcategoryOption ) return response()->json([ 
+                    'status' => 409,
+                    'message' => 'This Evaluation Form Subcategory Option Label is already in use!',
+                    'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
+                ]);
+                $evaluationFormSubcategoryOption->label = $request->label;
+            }
+            if($request->has('score'))
+                $evaluationFormSubcategoryOption->score = (double) $request->score;
+            
             $evaluationFormSubcategoryOption->save();
 
             DB::commit();
@@ -1710,6 +1712,12 @@ class EvaluationFormController extends Controller
                 'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
             ]);
 
+            $isEmptyScore = !$request->has('score');
+            if ($isEmptyScore) return response()->json([
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Option Score is required!'
+            ]);
+
             $order = (
                 EvaluationFormSubcategoryOption::where('subcategory_id', $request->subcategory_id)->max('order')
                 ?? -1
@@ -1718,6 +1726,7 @@ class EvaluationFormController extends Controller
             $newEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::create([
                 'subcategory_id' => $request->subcategory_id,
                 'label' => $request->label,
+                'score' => (double) $request->score,
                 'order' => $order
             ]);
 
