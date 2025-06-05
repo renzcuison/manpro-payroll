@@ -27,6 +27,12 @@ import Layout from '../../../components/Layout/Layout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PerformanceEvaluationFormAddSection from './Modals/PerformanceEvaluationFormAddSection';
 import PerformanceEvaluationFormSection from './Subsections/PerformanceEvaluationFormSection';
+import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import Sortable from './Subsections/Sortable';
+import {
+    SortableContext,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import Swal from 'sweetalert2';
 import { useEvaluationForm } from '../../../hooks/useEvaluationForm';
 import { useNavigate, useParams } from 'react-router-dom';

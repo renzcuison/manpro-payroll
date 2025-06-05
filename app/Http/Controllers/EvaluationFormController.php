@@ -324,7 +324,7 @@ class EvaluationFormController extends Controller
                                     $option
                                         ->select(
                                             'subcategory_id', 'id',
-                                            'label', 'order'
+                                            'label', 'score', 'order'
                                         )
                                         ->orderBy('order')
                                 ])
@@ -696,7 +696,7 @@ class EvaluationFormController extends Controller
                             $option
                                 ->select(
                                     'subcategory_id', 'id',
-                                    'label', 'order'
+                                    'label', 'score', 'order'
                                 )
                                 ->orderBy('order')
                         ])
@@ -921,7 +921,7 @@ class EvaluationFormController extends Controller
     //                 $option
     //                     ->select(
     //                         'subcategory_id', 'id',
-    //                         'label', 'order'
+    //                         'label', 'score', 'order'
     //                     )
     //                     ->orderBy('order')
     //             ])
@@ -946,59 +946,6 @@ class EvaluationFormController extends Controller
     //     }
     
     // }
-
-    public function getEvaluationFormSubcategory(Request $request)
-    {
-        \Log::info('EvaluationFormController::getEvaluationFormSubcategory');
-
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
-
-        $user = DB::table('users')->where('id', $userID)->first();
-
-        try {
-            $evaluationFormSubcategory = \App\Models\EvaluationFormSubcategory
-                ::select(
-                    'section_id', 'id',
-                    'name', 'subcategory_type', 'description',
-                    'required', 'allow_other_option',
-                    'linear_scale_start', 'linear_scale_end',
-                    'linear_scale_start_label', // <-- added
-                    'linear_scale_end_label',   // <-- added
-                    'order'
-                )
-                ->where('id', $request->id)
-                ->with(['options' => function ($option) {
-                    $option
-                        ->select(
-                            'subcategory_id', 'id',
-                            'label', 'order'
-                        )
-                        ->orderBy('order');
-                }])
-                ->first();
-
-            if (!$evaluationFormSubcategory) {
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'Evaluation Form Subcategory not found!'
-                ]);
-            }
-            return response()->json([
-                'status' => 200,
-                'message' => 'Evaluation Form Subcategory successfully retrieved.',
-                'evaluationFormSubcategory' => $evaluationFormSubcategory
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Error retrieving evaluation form subcategory: ' . $e->getMessage());
-            throw $e;
-        }
-    }
 
     public function deleteEvaluationFormSubcategory(Request $request)
     {
@@ -1197,8 +1144,7 @@ class EvaluationFormController extends Controller
                     'name', 'subcategory_type', 'description',
                     'required', 'allow_other_option',
                     'linear_scale_start', 'linear_scale_end',
-                    'linear_scale_start_label', // <-- added
-                    'linear_scale_end_label',   // <-- added
+                    'linear_scale_start_label', 'linear_scale_end_label',
                     'order'
                 )
                 ->where('id', $request->id)
@@ -1206,7 +1152,7 @@ class EvaluationFormController extends Controller
                     $option
                         ->select(
                             'subcategory_id', 'id',
-                            'label', 'order'
+                            'label', 'score', 'order'
                         )
                         ->orderBy('order');
                 }])
@@ -1695,7 +1641,7 @@ class EvaluationFormController extends Controller
             DB::beginTransaction();
 
             $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
-                ::select( 'id', 'subcategory_id', 'label', 'order', 'created_at', 'updated_at' )
+                ::select( 'id', 'subcategory_id', 'label', 'score', 'order', 'created_at', 'updated_at' )
                 ->where('id', $request->id)
                 ->first()
             ;
@@ -1767,7 +1713,7 @@ class EvaluationFormController extends Controller
             $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
                 ::select(
                     'subcategory_id', 'id',
-                    'label', 'order'
+                    'label', 'score', 'order'
                 )
                 ->where('id', $request->id)
                 ->orderBy('order')
@@ -1828,7 +1774,7 @@ class EvaluationFormController extends Controller
             DB::beginTransaction();
 
             $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
-                ::select('id', 'subcategory_id', 'label', 'order', 'created_at', 'updated_at')
+                ::select('id', 'subcategory_id', 'label', 'score', 'order', 'created_at', 'updated_at')
                 ->where('id', $request->id)
                 ->first()
             ;
