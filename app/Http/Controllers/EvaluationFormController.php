@@ -105,53 +105,62 @@ class EvaluationFormController extends Controller
                 'message' => 'Unauthorized access!'
             ]);
 
+        \Log::info('EvaluationFormController::deleteEvaluationForm');
+
+        if (!Auth::check()) {
+            return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+        }
+
+        $userID = Auth::id();
+
+        try {
             DB::beginTransaction();
 
-            $evaluationForm = EvaluationForm
-                ::join('users', 'evaluation_forms.id', '=', 'users.id')
-                ->select(
-                    'evaluation_forms.id',
-                    'evaluation_forms.name', 
-                    'evaluation_forms.creator_id',
-                    'users.user_name as creator_user_name',
-                    'evaluation_forms.created_at',
-                    'evaluation_forms.updated_at',
-                    'evaluation_forms.deleted_at'
-                )
-                ->where('evaluation_forms.id', $request->id)
-                ->first()
-            ;
+            $evaluationForm = EvaluationForm::find($request->id);
 
-            if( !$evaluationForm ) return response()->json([ 
-                'status' => 404,
-                'message' => 'Evaluation Form not found!',
-                'evaluationFormID' => $request->id
-            ]);
+            if (!$evaluationForm) {
+                return response()->json([ 
+                    'status' => 404,
+                    'message' => 'Evaluation Form not found!',
+                    'evaluationFormID' => $request->id
+                ]);
+            }
 
-            if( $evaluationForm->deleted_at ) return response()->json([ 
-                'status' => 405,
-                'message' => 'Evaluation Form already deleted!',
-                'evaluationForm' => $evaluationForm
-            ]);
+            if ($evaluationForm->deleted_at) {
+                return response()->json([ 
+                    'status' => 405,
+                    'message' => 'Evaluation Form already deleted!',
+                    'evaluationForm' => $evaluationForm
+                ]);
+            }
 
-            $now = date('Y-m-d H:i');
-            $evaluationForm->deleted_at = $now;
+            $evaluationForm->deleted_at = now();
             $evaluationForm->save();
+
+            // Get creator name for response
+            $creator = \DB::table('users')->where('id', $evaluationForm->creator_id)->first();
 
             DB::commit();
 
             return response()->json([ 
                 'status' => 200,
-                'evaluationForm' => $evaluationForm,
+                'evaluationForm' => [
+                    'id' => $evaluationForm->id,
+                    'name' => $evaluationForm->name,
+                    'creator_id' => $evaluationForm->creator_id,
+                    'creator_user_name' => $creator ? $creator->user_name : null,
+                    'created_at' => $evaluationForm->created_at,
+                    'updated_at' => $evaluationForm->updated_at,
+                    'deleted_at' => $evaluationForm->deleted_at,
+                ],
                 'message' => 'Evaluation Form successfully deleted'
             ]);
-
-
         } catch (\Exception $e) {
             DB::rollBack();
-
-            Log::error('Error saving work shift: ' . $e->getMessage());
-
+            \Log::error('Error deleting evaluation form: ' . $e->getMessage());
             throw $e;
         }
     }

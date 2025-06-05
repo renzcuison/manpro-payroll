@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
     Box,
     Typography,
@@ -41,24 +42,19 @@ import {
 } from '@dnd-kit/sortable';
 import Swal from 'sweetalert2';
 import { useEvaluationForm } from '../../../hooks/useEvaluationForm';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 
 const PerformanceEvaluationFormPage = () => {
-    const { formName } = useParams();
-    const {
-        creatorName,
-        createdDate,
-        dragging,
-        formId,
-        loading,
-        notFound,
-        sections,
-        moveSection,
-        saveSection,
-        toggleDragging
-    } = useEvaluationForm({ name: formName });
-    const navigate = useNavigate();
+  const { formName } = useParams();
+  const {
+    creatorName,
+    createdDate,
+    formId,
+    loading,
+    notFound,
+    sections,
+    saveSection,
+  } = useEvaluationForm({ name: formName });
+  const navigate = useNavigate();
 
     // Settings menu
     const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
@@ -89,69 +85,69 @@ const PerformanceEvaluationFormPage = () => {
         handleSettingsClose();
     };
 
-    const handleEditSave = async () => {
-        if (!newName.trim()) {
+  const handleEditSave = async () => {
+    if (!newName.trim()) {
+      Swal.fire({
+        text: "Form Name is required!",
+        icon: "error",
+        confirmButtonColor: '#177604',
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('id', formId);
+    formData.append('name', newName);
+
+    try {
+      const resp = await fetch('/api/editEvaluationForm', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' },
+        body: formData,
+      });
+
+      if (resp.status === 401 || resp.status === 403) {
         Swal.fire({
-            text: "Form Name is required!",
-            icon: "error",
-            confirmButtonColor: '#177604',
+          icon: 'warning',
+          title: 'Unauthenticated',
+          text: 'Please login to continue.',
+          confirmButtonColor: '#177604',
+        }).then(() => {
+          navigate('/login');
         });
         return;
-        }
+      }
 
-        const formData = new FormData();
-        formData.append('id', formId);
-        formData.append('name', newName);
+      const data = await resp.json();
 
-        try {
-        const resp = await fetch('/api/editEvaluationForm', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' },
-            body: formData,
-        });
-
-        if (resp.status === 401 || resp.status === 403) {
-            Swal.fire({
-            icon: 'warning',
-            title: 'Unauthenticated',
-            text: 'Please login to continue.',
-            confirmButtonColor: '#177604',
-            }).then(() => {
-            navigate('/login');
-            });
-            return;
-        }
-
-        const data = await resp.json();
-
-        if (data.status === 200) {
-            Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: data.message || "Form updated successfully!",
-            confirmButtonColor: '#177604',
-            }).then(() => {
-            setEditOpen(false);
-            window.location.reload();
-            });
-        } else {
-            Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.message || "There was a problem updating the form.",
-            confirmButtonColor: '#177604',
-            });
-        }
-        } catch (error) {
+      if (data.status === 200) {
         Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error?.message || "Network error. Please try again.",
-            confirmButtonColor: '#177604',
+          icon: 'success',
+          title: 'Success',
+          text: data.message || "Form updated successfully!",
+          confirmButtonColor: '#177604',
+        }).then(() => {
+          setEditOpen(false);
+          window.location.reload();
         });
-        }
-    };
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.message || "There was a problem updating the form.",
+          confirmButtonColor: '#177604',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error?.message || "Network error. Please try again.",
+        confirmButtonColor: '#177604',
+      });
+    }
+  };
 
     // Delete Form Handlers
     const handleDeleteMenuClick = () => {
@@ -159,59 +155,59 @@ const PerformanceEvaluationFormPage = () => {
         handleSettingsClose();
     };
 
-    const handleDeleteConfirm = async () => {
-        const formData = new FormData();
-        formData.append('id', formId);
+  const handleDeleteConfirm = async () => {
+    const formData = new FormData();
+    formData.append('id', formId);
 
-        try {
-        const resp = await fetch('/api/deleteEvaluationForm', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' },
-            body: formData,
-        });
+    try {
+      const resp = await fetch('/api/deleteEvaluationForm', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' },
+        body: formData,
+      });
 
-        if (resp.status === 401 || resp.status === 403) {
-            Swal.fire({
-            icon: 'warning',
-            title: 'Unauthenticated',
-            text: 'Please login to continue.',
-            confirmButtonColor: '#177604',
-            }).then(() => {
-            navigate('/login');
-            });
-            return;
-        }
-
-        const data = await resp.json();
-
-        if (data.status === 200) {
-            Swal.fire({
-            icon: 'success',
-            title: 'Deleted!',
-            text: data.message || "Form deleted successfully.",
-            confirmButtonColor: '#177604',
-            }).then(() => {
-            setDeleteOpen(false);
-            navigate('/evaluation-forms');
-            });
-        } else {
-            Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.message || "Unable to delete form.",
-            confirmButtonColor: '#177604',
-            });
-        }
-        } catch (error) {
+      if (resp.status === 401 || resp.status === 403) {
         Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error?.message || "Network error. Please try again.",
-            confirmButtonColor: '#177604',
+          icon: 'warning',
+          title: 'Unauthenticated',
+          text: 'Please login to continue.',
+          confirmButtonColor: '#177604',
+        }).then(() => {
+          navigate('/login');
         });
-        }
-    };
+        return;
+      }
+
+      const data = await resp.json();
+
+      if (data.status === 200) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: data.message || "Form deleted successfully.",
+          confirmButtonColor: '#177604',
+        }).then(() => {
+          setDeleteOpen(false);
+          navigate('/evaluation-forms');
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.message || "Unable to delete form.",
+          confirmButtonColor: '#177604',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error?.message || "Network error. Please try again.",
+        confirmButtonColor: '#177604',
+      });
+    }
+  };
 
     // Section modal
     const handleOpenAddSectionModal = () => setAddSectionOpen(true);
@@ -248,54 +244,55 @@ const PerformanceEvaluationFormPage = () => {
 
     if (notFound) return <CheckUser />;
 
-    return (
-        <Layout title="Performance Evaluation Form">
-            <Box
-                sx={{
-                    mt: 5,
-                    p: 3,
-                    bgcolor: 'white',
-                    borderRadius: '8px',
-                    position: 'relative',
-                    maxWidth: '1000px',
-                    mx: 'auto',
-                    boxShadow: 3,
-                    cursor: dragging ? 'move' : undefined
-                }}
-            >
-                {/* Settings Icon with Dropdown Menu */}
-                <IconButton
-                    onClick={handleSettingsClick}
-                    sx={{
-                        position: 'absolute',
-                        top: 25,
-                        right: 30,
-                        color: '#bdbdbd',
-                        borderRadius: '50%',
-                    }}
-                    aria-controls={settingsOpen ? 'settings-menu' : undefined}
-                    aria-haspopup="true"
-                    aria-expanded={settingsOpen ? 'true' : undefined}
-                >
-                    <SettingsIcon sx={{ fontSize: 28 }} />
-                </IconButton>
-                <Menu
-                    id="settings-menu"
-                    anchorEl={settingsAnchorEl}
-                    open={settingsOpen}
-                    onClose={handleSettingsClose}
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                >
-                    <MenuItem onClick={handleEditMenuClick}>Edit Form</MenuItem>
-                    <MenuItem onClick={handleDeleteMenuClick}>Delete Form</MenuItem>
-                    <MenuItem
-                        onClick={() => {
-                        handleSettingsClose();
-                        navigate(-1);
-                        }}
-                    >Close Form</MenuItem>
-                </Menu>
+  return (
+    <Layout title="Performance Evaluation Form">
+      <Box
+        sx={{
+          mt: 5,
+          p: 3,
+          bgcolor: 'white',
+          borderRadius: '8px',
+          position: 'relative',
+          maxWidth: '1000px',
+          mx: 'auto',
+          boxShadow: 3,
+        }}
+      >
+        {/* Settings Icon with Dropdown Menu */}
+        <IconButton
+          onClick={handleSettingsClick}
+          sx={{
+            position: 'absolute',
+            top: 25,
+            right: 30,
+            color: '#bdbdbd',
+            borderRadius: '50%',
+          }}
+          aria-controls={settingsOpen ? 'settings-menu' : undefined}
+          aria-haspopup="true"
+          aria-expanded={settingsOpen ? 'true' : undefined}
+        >
+          <SettingsIcon sx={{ fontSize: 28 }} />
+        </IconButton>
+        <Menu
+          id="settings-menu"
+          anchorEl={settingsAnchorEl}
+          open={settingsOpen}
+          onClose={handleSettingsClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <MenuItem onClick={handleEditMenuClick}>Edit Form</MenuItem>
+          <MenuItem onClick={handleDeleteMenuClick}>Delete Form</MenuItem>
+          <MenuItem
+            onClick={() => {
+              handleSettingsClose();
+              navigate(-1);
+            }}
+          >
+            Close Form
+          </MenuItem>
+        </Menu>
 
                 {loading ? (
                     <Typography variant="h6">Loading...</Typography>
@@ -369,22 +366,22 @@ const PerformanceEvaluationFormPage = () => {
                     </DialogActions>
                 </Dialog>
 
-                {/* Delete Confirmation Dialog */}
-                <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
-                    <DialogTitle>Delete Form?</DialogTitle>
-                    <DialogContent>
-                        <Typography>Are you sure you want to delete this form?</Typography>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
-                        <Button variant="contained" color="error" onClick={handleDeleteConfirm}>
-                            Delete
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            </Box>
-        </Layout>
-    );
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
+          <DialogTitle>Delete Form?</DialogTitle>
+          <DialogContent>
+            <Typography>Are you sure you want to delete this form?</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button variant="contained" color="error" onClick={handleDeleteConfirm}>
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </Layout>
+  );
 };
 
 export default PerformanceEvaluationFormPage;
