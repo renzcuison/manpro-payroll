@@ -11,7 +11,8 @@ class EvaluationPercentageAnswer extends Model
 
     protected $table = 'evaluation_percentage_answers';
 
-    protected $primaryKey = ['response_id', 'subcategory_id'];
+    protected $primaryKey = null;
+    public $incrementing = false;
 
     protected $fillable = [
         'response_id',

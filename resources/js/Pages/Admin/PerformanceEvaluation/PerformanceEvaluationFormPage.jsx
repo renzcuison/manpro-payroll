@@ -36,7 +36,7 @@ import {
 import Swal from 'sweetalert2';
 import { useEvaluationForm } from '../../../hooks/useEvaluationForm';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams();
@@ -225,6 +225,18 @@ const PerformanceEvaluationFormPage = () => {
         );
     }
 
+    // const [a, setA] = useState();
+
+    // useEffect(() => {
+    //     axiosInstance.get(`/getEvaluationResponse`, { headers, params: {id:1} })
+    //     .then((response) => {
+    //         const { evaluationResponse } = response.data;
+    //         if(!evaluationResponse) return;
+    //         console.log(evaluationResponse)
+    //         setA(evaluationResponse)
+    //     })
+    // }, [])
+
     if (notFound) return <CheckUser />;
 
     return (
@@ -359,7 +371,26 @@ const PerformanceEvaluationFormPage = () => {
             </Button>
           </DialogActions>
         </Dialog>
-      </Box>
+            </Box>
+            {/* {
+                a ? <Box>
+                    {a.form.sections.map(section => <div>
+                        Section: { section.name }<br/>
+                        {
+                            section.subcategories.map(subcategory => {
+                                return <>
+                                    
+                                    -----------{subcategory.textAnswer ? "yes text" : "no text"}<br/>
+                                    -----------{subcategory.percentageAnswer ? "yes percentage" : "no percentage"}<br/>
+                                    -----------{subcategory.options ? "yes options" : "no options"}<br/>
+                                </>
+                            })
+                        }
+                        <br/>
+                    </div>)}
+                    <br/>
+                </Box> : undefined
+            } */}
     </Layout>
   );
 };
