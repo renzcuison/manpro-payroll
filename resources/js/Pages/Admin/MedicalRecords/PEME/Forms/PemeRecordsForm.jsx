@@ -418,7 +418,7 @@ const PemeRecordsForm = () => {
 
                         Swal.fire({
                             icon: "success",
-                            text: "Form deleted successfully.",
+                            text: "Question deleted successfully.",
                             showConfirmButton: false,
                             timer: 1500,
                         });
@@ -544,7 +544,7 @@ const PemeRecordsForm = () => {
 
                     Swal.fire({
                         icon: "success",
-                        text: "Form updated successfully.",
+                        text: "Question updated successfully.",
                         showConfirmButton: false,
                         timer: 1500,
                     });

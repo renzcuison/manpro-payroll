@@ -51,7 +51,7 @@ const AnnouncementAdd = ({ open, close }) => {
     const [description, setDescription] = useState("");
     const [attachment, setAttachment] = useState([]);
     const [thumbnail, setThumbnail] = useState(null); // single file
-    const [images, setImages] = useState([]);        // array of files
+    const [images, setImages] = useState([]); // array of files
     const [tab, setTab] = useState(0);
 
     // Form Errors
@@ -90,19 +90,28 @@ const AnnouncementAdd = ({ open, close }) => {
     const handleImageUpload = (input) => {
         const files = Array.from(input.target.files);
         // Filter out the thumbnail if it's already selected
-        const filtered = files.filter(file =>
-            !(thumbnail && file.name === thumbnail.name && file.size === thumbnail.size)
+        const filtered = files.filter(
+            (file) =>
+                !(
+                    thumbnail &&
+                    file.name === thumbnail.name &&
+                    file.size === thumbnail.size
+                )
         );
-        let validFiles = validateFiles(filtered, images.length, 10, 5242880, "image");
+        let validFiles = validateFiles(
+            filtered,
+            images.length,
+            10,
+            5242880,
+            "image"
+        );
         if (validFiles) {
-            setImages(prev => [...prev, ...filtered]);
+            setImages((prev) => [...prev, ...filtered]);
         }
     };
 
     const handleDeleteImage = (index) => {
-        setImages(prevImages =>
-            prevImages.filter((_, i) => i !== index)
-        );
+        setImages((prevImages) => prevImages.filter((_, i) => i !== index));
     };
 
     // Validate Files
@@ -287,12 +296,8 @@ const AnnouncementAdd = ({ open, close }) => {
         const formData = new FormData();
         formData.append("title", title);
         formData.append("description", description);
-        formData.append("thumbnail", 0);
-        image.forEach((file) => {
-            formData.append("image[]", file);
-        });
         if (thumbnail) formData.append("thumbnail", thumbnail);
-        images.forEach(img => formData.append("images[]", img));
+        images.forEach((img) => formData.append("images[]", img));
         if (attachment.length > 0) {
             attachment.forEach((file) => {
                 formData.append("attachment[]", file);
@@ -406,30 +411,11 @@ const AnnouncementAdd = ({ open, close }) => {
                                     type="file"
                                     style={{ display: "none" }}
                                     onChange={(e) => {
-                                        const files = Array.from(
-                                            e.target.files
-                                        );
-                                        if (files.length > 0) {
-                                            let validFiles = validateFiles(
-                                                files,
-                                                image.length,
-                                                10,
-                                                5242880,
-                                                "image"
-                                            );
-                                            if (validFiles) {
-                                                setImage((prev) => [
-                                                    files[0],
-                                                    ...prev.slice(1),
-                                                ]);
-                                            }
-                                        }
-                                    onChange={e => {
                                         const file = e.target.files[0];
                                         if (file) setThumbnail(file);
                                     }}
                                 />
-                                {image.length > 0 ? (
+                                {thumbnail ? (
                                     <Box
                                         sx={{
                                             display: "flex",
@@ -441,8 +427,6 @@ const AnnouncementAdd = ({ open, close }) => {
                                             padding: 1,
                                         }}
                                     >
-                                {thumbnail ? (
-                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", width: "100%", height: "100%", padding: 1 }}>
                                         <img
                                             src={URL.createObjectURL(thumbnail)}
                                             alt="Thumbnail Preview"
@@ -466,9 +450,6 @@ const AnnouncementAdd = ({ open, close }) => {
                                             }}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setImage((prev) =>
-                                                    prev.slice(1)
-                                                );
                                                 setThumbnail(null);
                                             }}
                                         >
@@ -730,7 +711,7 @@ const AnnouncementAdd = ({ open, close }) => {
                                             >
                                                 Max Limit: 10 Files, 5 MB Each
                                             </Typography>
-                                            {image.length > 0 && (
+                                            {images.length > 0 && (
                                                 <Stack
                                                     direction="row"
                                                     spacing={1}
@@ -742,24 +723,18 @@ const AnnouncementAdd = ({ open, close }) => {
                                                                 "text.secondary",
                                                         }}
                                                     >
-                                            {images.length > 0 && (
-                                                <Stack direction="row" spacing={1}>
-                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                                         Remove
                                                     </Typography>
                                                 </Stack>
                                             )}
                                         </Stack>
                                         {/* Added Images */}
-                                        {image.length > 0 && (
+                                        {images.length > 0 && (
                                             <Stack
                                                 direction="column"
                                                 spacing={1}
                                                 sx={{ mt: 1, width: "100%" }}
                                             >
-                                                {image.map((file, index) => (
-                                        {images.length > 0 && (
-                                            <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
                                                 {images.map((file, index) => (
                                                     <Box
                                                         key={index}

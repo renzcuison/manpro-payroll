@@ -206,31 +206,40 @@ const PemeQuestionnaireView = () => {
             confirmButtonColor: "#2b8a3e",
             showCancelButton: true,
             cancelButtonText: "Cancel",
-        }).then(async () => {
-            try {
-                const payload = {
-                    expiry_date: expirationDate,
-                    next_schedule: nextSchedule,
+        }).then(async (res) => {
+            if (res.isConfirmed) {
+                try {
+                    const payload = {
+                        expiry_date: expirationDate,
+                        next_schedule: nextSchedule,
 
-                    status: status,
-                };
-                console.log(payload);
+                        status: status,
+                    };
+                    console.log(payload);
 
-                await axiosInstance.patch(
-                    `/peme-responses/${PemeResponseID}/status`,
-                    payload,
-                    { headers }
-                );
+                    await axiosInstance.patch(
+                        `/peme-responses/${PemeResponseID}/status`,
+                        payload,
+                        { headers }
+                    );
 
-                console.log("payload", payload);
-            } catch (error) {
-                Swal.fire({
-                    title: "Error",
-                    text: "Failed to save changes. Please try again.",
-                    icon: "error",
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                });
+                    console.log("payload", payload);
+
+                    Swal.fire({
+                        icon: "success",
+                        text: "Changes updated successfully.",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+                } catch (error) {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Failed to save changes. Please try again.",
+                        icon: "error",
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    });
+                }
             }
         });
     };
@@ -446,7 +455,7 @@ const PemeQuestionnaireView = () => {
                         >
                             <MenuItem value={"Pending"}>Pending</MenuItem>
                             <MenuItem value={"Clear"}>Clear</MenuItem>
-                            <MenuItem value={"Fail"}>Fail</MenuItem>
+                            <MenuItem value={"Rejected"}>Rejected</MenuItem>
                         </Select>
                     </FormControl>
 

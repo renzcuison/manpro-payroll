@@ -45,7 +45,6 @@ import PerformanceEvaluationFormAddSection from "../Pages/Admin/PerformanceEvalu
 import PerformanceEvaluationFormSaveEvaluation from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormSaveEvaluation";
 import PerformanceEvaluationFormAddSubcategory from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddSubcategory";
 import PerformanceEvaluationFormPage from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationFormPage"; // Import the new page
-import PerformanceEvaluationFormPage from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationFormPage"; // Import the new page
 import PeEvalTest from "../Pages/Admin/PerformanceEvaluation/PeEvalTest"; // Import the new page
 
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
