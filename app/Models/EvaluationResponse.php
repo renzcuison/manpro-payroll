@@ -22,7 +22,13 @@ class EvaluationResponse extends Model
         'evaluator_id',
         'primary_commentor_id',
         'secondary_commentor_id',
-        'form_id'
+        'form_id',
+        'status',
+        'current_step',
+        'evaluator_completed_at',
+        'first_commentor_completed_at',
+        'second_commentor_completed_at',
+        'evaluatee_acknowledged_at',
     ];
 
     public function evaluatee()
