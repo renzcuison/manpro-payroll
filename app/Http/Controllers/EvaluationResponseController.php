@@ -189,10 +189,15 @@ class EvaluationResponseController extends Controller
                 'status' => 404,
                 'message' => 'Evaluation Response not found!'
             ]);
+
+            $evaluationForm = $evaluationResponse->form;
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Response successfully retrieved.',
-                'evaluationResponse' => $evaluationResponse
+                'evaluationResponse' => [
+                ...$evaluationResponse->toArray(),
+                'evaluationForm' => $evaluationForm ? $evaluationForm->toArray() : null,
+            ]
             ]);
 
         } catch (\Exception $e) {

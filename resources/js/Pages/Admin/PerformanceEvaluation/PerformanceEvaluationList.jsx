@@ -230,6 +230,9 @@ const PerformanceEvaluationList = () => {
                                                         hover
                                                         style={{ cursor: 'pointer' }}
                                                         onClick={() => navigate(`/admin/performance-evaluation/answer/${row.id}`)}
+                                                        sx={{
+                                                        backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper'
+                                                        }}
                                                     >
                                                         <TableCell align="center">{row.date}</TableCell>
                                                         <TableCell align="center">{`${row.last_name}, ${row.first_name} ${row.middle_name || ''}`}</TableCell>

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\UsersModel;
 use App\Models\EvaluationForm;
 use App\Models\EvaluationFormSection;
 use App\Models\EvaluationFormCategory;
