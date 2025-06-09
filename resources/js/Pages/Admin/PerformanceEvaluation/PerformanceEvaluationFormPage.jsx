@@ -267,7 +267,7 @@ const handleDeleteConfirm = async () => {
                             handleSettingsClose();
                             setTimeout(() => navigate('/admin/performance-evaluation'), 100);
                         }}
-                    >Close Form</MenuItem>
+                    >Exit Form</MenuItem>
                 </Menu>
 
                 {loading ? (

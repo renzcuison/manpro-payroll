@@ -140,7 +140,7 @@ const PerformanceEvaluationList = () => {
                                         edge="end"
                                         size="small"
                                         >
-                                        <ClearIcon />
+                                            <ClearIcon />
                                         </IconButton>
                                     </InputAdornment>
                                     )
