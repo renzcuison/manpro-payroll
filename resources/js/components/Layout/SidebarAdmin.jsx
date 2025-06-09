@@ -719,6 +719,13 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
+                                    <li className="nav-main-heading">
+                                        <span className="sidebar-mini-hidden text-dark"> Performance Management </span>
+                                    </li>
+
+                                    <StyledNav to={`/admin/performance-evaluation`} >
+                                        <i className="fa fa-check" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
+                                    </StyledNav>
 
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Staffing </span>
@@ -749,10 +756,6 @@ const Sidebar = ({ children, closeMini }) => {
                                     {/* </StyledNav> */}
                                     {/* 
                                     <StyledNav to={`/admin/performance-evaluation`} >
-
-                                    {/* <StyledNav to={`/admin/performance-evaluation`} >
-                                    <i className="fa fa-check" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
-                                    </StyledNav> */}
 
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark">

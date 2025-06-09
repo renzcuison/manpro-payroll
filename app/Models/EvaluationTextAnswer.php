@@ -11,7 +11,7 @@ class EvaluationTextAnswer extends Model
 
     protected $table = 'evaluation_text_answers';
 
-    protected $primaryKey = 'id';
+    protected $primaryKey = ['response_id', 'subcategory_id'];
 
     protected $fillable = [
         'response_id',

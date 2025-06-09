@@ -493,6 +493,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/moveEvaluationFormSection', [EvaluationFormController::class, 'moveEvaluationFormSection']);
     Route::post('/saveEvaluationFormSection', [EvaluationFormController::class, 'saveEvaluationFormSection']);
 
+
+
     // Route::post('/deleteEvaluationFormCategory', [EvaluationFormController::class, 'deleteEvaluationFormCategory']);
     // Route::post('/editEvaluationFormCategory', [EvaluationFormController::class, 'editEvaluationFormCategory']);
     // Route::get('/getEvaluationFormCategory', [EvaluationFormController::class, 'getEvaluationFormCategory']);
@@ -808,8 +810,5 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/settings/getRoles', [AnnouncementsController::class, 'getRoles']);
 
 });
-
-
-
 
 require __DIR__ . '/super-admin.php';

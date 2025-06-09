@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Button, TextField, Grid, Checkbox, ListItemText, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Menu, Avatar, Tooltip } from "@mui/material";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import LoadingSpinner from "../../../../components/LoadingStates/LoadingSpinner";
+import PositionAddMiniModal from "./PositionAddMiniModal";
 import Swal from "sweetalert2";
+import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 
 const BranchPositionsModal = ({ open, close }) => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -162,41 +164,9 @@ const BranchPositionsModal = ({ open, close }) => {
                         </TableContainer>
                     </Box>
 
-                    <Box>
-                        <Typography variant="h6" gutterBottom>Add New Position</Typography>
-                        <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12} md={3}>
-                                <TextField fullWidth label="Position Name" value={newPosition.name} onChange={(e) => setNewPosition({ ...newPosition, name: e.target.value }) } />
-                            </Grid>
-                            <Grid item xs={12} md={2}>
-                                <Box display="flex" alignItems="center">
-                                    <Checkbox checked={newPosition.can_review_request} onChange={(e) => setNewPosition({ ...newPosition, can_review_request: e.target.checked }) } />
-                                    <Typography>Review</Typography>
-                                </Box>
-                            </Grid>
-                            <Grid item xs={12} md={2}>
-                                <Box display="flex" alignItems="center">
-                                    <Checkbox checked={newPosition.can_approve_request} onChange={(e) => setNewPosition({ ...newPosition, can_approve_request: e.target.checked }) } />
-                                    <Typography>Approve</Typography>
-                                </Box>
-                            </Grid>
-                            <Grid item xs={12} md={2}>
-                                <Box display="flex" alignItems="center">
-                                    <Checkbox checked={newPosition.can_note_request} onChange={(e) => setNewPosition({ ...newPosition, can_note_request: e.target.checked }) } />
-                                    <Typography>Note</Typography>
-                                </Box>
-                            </Grid>
-                            <Grid item xs={12} md={2}>
-                                <Box display="flex" alignItems="center">
-                                    <Checkbox checked={newPosition.can_accept_request} onChange={(e) => setNewPosition({ ...newPosition, can_accept_request: e.target.checked }) } />
-                                    <Typography>Accept</Typography>
-                                </Box>
-                            </Grid>
-                            <Grid item xs={12} md={1}>
-                                <Button variant="contained" onClick={addNewPosition} sx={{ backgroundColor: '#177604', '&:hover': { backgroundColor: '#126903' } }} > Add </Button>
-                            </Grid>
-                        </Grid>
-                    </Box>
+                    <PositionAddMiniModal newPosition={newPosition} setNewPosition={setNewPosition} addNewPosition={addNewPosition} disableSaveButton={false}>
+                    </PositionAddMiniModal>
+
                 </DialogContent>
             </Dialog>
         </>
