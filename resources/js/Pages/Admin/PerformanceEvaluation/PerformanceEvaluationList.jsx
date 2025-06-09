@@ -170,7 +170,7 @@ const PerformanceEvaluationList = () => {
                                                         key={row.id}
                                                         hover
                                                         style={{ cursor: 'pointer' }}
-                                                        onClick={() => navigate(`/admin/performance-evaluation/response/${row.id}`)}
+                                                        onClick={() => navigate(`/admin/performance-evaluation/answer/${row.id}`)}
                                                     >
                                                         <TableCell align="center">{row.date}</TableCell>
                                                         <TableCell align="center">{`${row.last_name}, ${row.first_name} ${row.middle_name || ''}`}</TableCell>
