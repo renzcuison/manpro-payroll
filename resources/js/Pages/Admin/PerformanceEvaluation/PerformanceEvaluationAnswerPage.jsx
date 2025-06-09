@@ -4,6 +4,7 @@ import {
   Box, Typography, Button, CircularProgress, Divider, Grid,
   FormControlLabel, Radio, RadioGroup, Checkbox, TextField, IconButton, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
+import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -29,7 +30,6 @@ const PerformanceEvaluationAnswerPage = () => {
         if (resResponse.data.status === 200 && resResponse.data.evaluationResponse) {
           setResponseMeta(resResponse.data.evaluationResponse);
 
-          // The new controller returns the form as evaluationResponse.form
           const formData = resResponse.data.evaluationResponse.form;
           setForm(formData);
 
@@ -248,10 +248,12 @@ const PerformanceEvaluationAnswerPage = () => {
           </Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
-          Evaluatee: {evalLastName}, {evalFirstName} {evalMiddleName}
+          Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluator: {evaluatorName}
+          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
+            evaluator => getFullName(evaluator)
+          ).join(' & ') : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
