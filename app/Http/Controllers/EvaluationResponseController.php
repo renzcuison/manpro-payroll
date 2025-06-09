@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UsersModel;
 use App\Models\User;
 use App\Models\EvaluationForm;
 use App\Models\EvaluationFormSection;
@@ -29,6 +30,8 @@ class EvaluationResponseController extends Controller
 
         // edit evaluation response
 
+
+
     public function getEvaluationResponse(Request $request)
     {
         // inputs:
@@ -39,7 +42,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationResponse: {
-                id, form_id, evaluatee_id, datetime,
+                id, evaluatee_id, datetime,
                 period_start_date, period_end_date,
                 signature_filepath,
                 created_at, updated_at,
@@ -51,7 +54,7 @@ class EvaluationResponseController extends Controller
                 commentors: {
                     commentor_id, response_id, last_name, first_name, middle_name, comment, order, signature_filepath
                 }[],
-                form: {
+                form_id, creator_user_name, form: {
                     id, name, creator_id, creator_user_name,
                     sections: {
                         form_id, id, name, category, order,
@@ -84,17 +87,19 @@ class EvaluationResponseController extends Controller
         try {
 
             $evaluationResponse = EvaluationResponse
-                ::select('id', 'form_id', 'evaluatee_id')
-                ->selectRaw("date_format(updated_at, '%b %d, %Y - %h:%i %p') as datetime")
-                ->selectRaw("date_format(period_start_at, '%b %d, %Y') as period_start_date")
-                ->selectRaw("date_format(period_end_at, '%b %d, %Y') as period_end_date")
+                ::join('evaluation_forms', 'evaluation_forms.id', '=', 'evaluation_responses.form_id')
+                ->join('users', 'users.id', '=', 'evaluation_forms.creator_id')
+                ->select('evaluation_responses.id', 'evaluation_responses.evaluatee_id')
+                ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y - %h:%i %p') as datetime")
+                ->selectRaw("date_format(evaluation_responses.period_start_at, '%b %d, %Y') as period_start_date")
+                ->selectRaw("date_format(evaluation_responses.period_end_at, '%b %d, %Y') as period_end_date")
                 ->addSelect(
-                    'signature_filepath',
-                    'created_at',
-                    'updated_at',
+                    'evaluation_responses.signature_filepath',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at',
                     DB::raw("'Pending' as status")
                 )
-                ->with(['evaluatee' => fn ($evaluatee) =>
+                ->with(['evaluation_responses.evaluatee' => fn ($evaluatee) =>
                     $evaluatee->select('id', 'last_name', 'first_name', 'middle_name')
                 ])
                 ->with(['evaluators' => fn ($evaluatee) =>
@@ -123,6 +128,7 @@ class EvaluationResponseController extends Controller
                         )
                         ->orderBy('order')
                 ])
+                ->addSelect('evaluation_responses.form_id', 'users.user_name as creator_user_name')
                 ->with(['form' => fn ($evaluationForm) =>
                     $evaluationForm
                         ->join('users', 'evaluation_forms.id', '=', 'users.id')
@@ -194,20 +200,114 @@ class EvaluationResponseController extends Controller
                 'status' => 404,
                 'message' => 'Evaluation Response not found!'
             ]);
+            if (!$evaluationResponse) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Evaluation Response not found!'
+                ]);
+            }
+
+            $creator_user_name = $form && $form->creator ? $form->creator->user_name : null;
+
+            $evaluationForm = null;
+            if ($form) {
+                $evaluationForm = [
+                    'id' => $form->id,
+                    'name' => $form->name,
+                    'creator_id' => $form->creator_id,
+                    'creator_user_name' => $creator_user_name,
+                    'sections' => [],
+                ];
+                foreach ($form->sections as $section) {
+                    $sectionArr = [
+                        'form_id' => $section->form_id,
+                        'id' => $section->id,
+                        'name' => $section->name,
+                        'category' => $section->category,
+                        'order' => $section->order,
+                        'subcategories' => [],
+                    ];
+                    foreach ($section->subcategories as $subcat) {
+                        $percentage_answer = EvaluationPercentageAnswer::where([
+                            ['response_id', $evaluationResponse->id],
+                            ['subcategory_id', $subcat->id]
+                        ])->first();
+                        $text_answer = EvaluationTextAnswer::where([
+                            ['response_id', $evaluationResponse->id],
+                            ['subcategory_id', $subcat->id]
+                        ])->first();
+
+                        $options = [];
+                        foreach ($subcat->options as $option) {
+                            $option_answer = EvaluationOptionAnswer::where([
+                                ['response_id', $evaluationResponse->id],
+                                ['option_id', $option->id]
+                            ])->first();
+                            $options[] = [
+                                'subcategory_id' => $option->subcategory_id,
+                                'id' => $option->id,
+                                'label' => $option->label,
+                                'order' => $option->order,
+                                'option_answer' => $option_answer
+                                    ? [
+                                        'response_id' => $option_answer->response_id,
+                                        'option_id' => $option_answer->option_id
+                                    ] : null
+                            ];
+                        }
+
+                        $sectionArr['subcategories'][] = [
+                            'section_id' => $subcat->section_id,
+                            'id' => $subcat->id,
+                            'name' => $subcat->name,
+                            'subcategory_type' => $subcat->subcategory_type,
+                            'description' => $subcat->description,
+                            'required' => $subcat->required,
+                            'allow_other_option' => $subcat->allow_other_option,
+                            'linear_scale_start' => $subcat->linear_scale_start,
+                            'linear_scale_end' => $subcat->linear_scale_end,
+                            'order' => $subcat->order,
+                            'options' => $options,
+                            'percentage_answer' => $percentage_answer
+                                ? [
+                                    'response_id' => $percentage_answer->response_id,
+                                    'subcategory_id' => $percentage_answer->subcategory_id,
+                                    'percentage' => $percentage_answer->percentage,
+                                    'value' =>
+                                        ($percentage_answer->percentage !== null && $subcat->linear_scale_start !== null && $subcat->linear_scale_end !== null)
+                                            ? round($percentage_answer->percentage * ($subcat->linear_scale_end - $subcat->linear_scale_start) + $subcat->linear_scale_start)
+                                            : null,
+                                    'linear_scale_index' =>
+                                        ($percentage_answer->percentage !== null && $subcat->linear_scale_start !== null && $subcat->linear_scale_end !== null)
+                                            ? round($percentage_answer->percentage * ($subcat->linear_scale_end - $subcat->linear_scale_start))
+                                            : null,
+                                ]
+                                : null,
+                            'text_answer' => $text_answer
+                                ? [
+                                    'response_id' => $text_answer->response_id,
+                                    'subcategory_id' => $text_answer->subcategory_id,
+                                    'answer' => $text_answer->answer
+                                ]
+                                : null,
+                        ];
+                    }
+                    $evaluationForm['sections'][] = $sectionArr;
+                }
+            }
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Response successfully retrieved.',
                 'evaluationResponse' => $evaluationResponse
             ]);
-
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Error saving work shift: ' . $e->getMessage());
-
-            throw $e;
+            Log::error('Error getting evaluation response: ' . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Server error: ' . $e->getMessage(),
+            ], 500);
         }
-    
     }
 
      public function getEvaluationResponses(Request $request)
@@ -419,17 +519,11 @@ class EvaluationResponseController extends Controller
             period_end_at: string
         */
 
-        // returns:
-        /*
-            evaluationResponseID
-        */
-
-        log::info('EvaluationResponseController::saveEvaluationResponse');
-
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
+        if (!Auth::check()) {
+            return response()->json([
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
         }
 
         $user = DB::table('users')->select()->where('id', $userID)->first();
@@ -452,21 +546,19 @@ class EvaluationResponseController extends Controller
 
             $periodStartAtSec = strtotime($request->period_start_at);
             $periodEndAtSec = strtotime($request->period_end_at);
-            $request->period_start_at = date(
-                'Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800
-            );
-            $request->period_end_at = date(
-                'Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800
-            );
-            if($periodStartAtSec>$periodEndAtSec) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Period Start Date cannot be more than Period End Date!'
-            ]);
+            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800);
+            $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800);
+
+            if ($periodStartAtSec > $periodEndAtSec) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Evaluation Period Start Date cannot be more than Period End Date!'
+                ]);
+            }
 
             DB::beginTransaction();
-            
-            $conflictingEvaluationResponse = EvaluationResponse
-                ::where('evaluatee_id', $request->evaluatee_id)
+
+            $conflictingEvaluationResponse = EvaluationResponse::where('evaluatee_id', $request->evaluatee_id)
                 ->where('form_id', $request->form_id)
                 ->where('period_start_at', '<', $request->period_end_at)
                 ->where('period_end_at', '>', $request->period_start_at)
@@ -482,7 +574,9 @@ class EvaluationResponseController extends Controller
                 'evaluatee_id' => $request->evaluatee_id,
                 'form_id' => $request->form_id,
                 'period_start_at' => $request->period_start_at,
-                'period_end_at' => $request->period_end_at
+                'period_end_at' => $request->period_end_at,
+                'status' => 'pending',
+                'current_step' => 'evaluator'
             ]);
 
             foreach ($request->evaluators as $index => $evaluator_id) {
@@ -503,19 +597,14 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 201,
                 'evaluationResponseID' => $newEvaluationResponse->id,
                 'message' => 'Evaluation Response successfully created'
-                
             ]);
-            Log::info('New EvaluationResponse:', ['id' => $newEvaluationResponse->id, 'data' => $newEvaluationResponse->toArray()]);
-
         } catch (\Exception $e) {
             DB::rollBack();
-
-            Log::error('Error saving work shift: ' . $e->getMessage());
-
+            Log::error('Error saving evaluation response: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -543,6 +632,72 @@ class EvaluationResponseController extends Controller
         // get evaluation commentors
 
         // save evaluation commentor
+    public function advanceWorkflow(Request $request, $id)
+    {
+        $evaluation = EvaluationResponse::find($id);
+        if (!$evaluation) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation not found'
+            ]);
+        }
+
+        $userID = Auth::id();
+        $now = now();
+
+        // Advance step based on current_step
+        switch ($evaluation->current_step) {
+            case 'evaluator':
+                if ($evaluation->evaluator_id != $userID) {
+                    return response()->json(['status' => 403, 'message' => 'Not authorized']);
+                }
+                $evaluation->update([
+                    'status' => 'for_commentor1',
+                    'current_step' => 'first_commentor',
+                    'evaluator_completed_at' => $now
+                ]);
+                break;
+            case 'first_commentor':
+                if ($evaluation->primary_commentor_id != $userID) {
+                    return response()->json(['status' => 403, 'message' => 'Not authorized']);
+                }
+                $evaluation->update([
+                    'status' => 'for_commentor2',
+                    'current_step' => 'second_commentor',
+                    'first_commentor_completed_at' => $now
+                ]);
+                break;
+            case 'second_commentor':
+                if ($evaluation->secondary_commentor_id != $userID) {
+                    return response()->json(['status' => 403, 'message' => 'Not authorized']);
+                }
+                $evaluation->update([
+                    'status' => 'for_acknowledgement',
+                    'current_step' => 'evaluatee',
+                    'second_commentor_completed_at' => $now
+                ]);
+                break;
+            case 'evaluatee':
+                if ($evaluation->evaluatee_id != $userID) {
+                    return response()->json(['status' => 403, 'message' => 'Not authorized']);
+                }
+                $evaluation->update([
+                    'status' => 'completed',
+                    'current_step' => null,
+                    'evaluatee_acknowledged_at' => $now
+                ]);
+                break;
+            default:
+                return response()->json(['status' => 400, 'message' => 'Workflow is already completed or invalid step.']);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Evaluation advanced to the next step.',
+            'evaluation' => $evaluation
+        ]);
+    }
+
 
     // evaluation form percentage answer
 
@@ -1239,8 +1394,11 @@ class EvaluationResponseController extends Controller
     
     }
 
+
+
     public function getEvaluationOptionAnswers(Request $request)
     {
+        log::info('EvaluationResponseController::getEvaluationOptionAnswers');
 
         // inputs:
         /*
@@ -1255,8 +1413,6 @@ class EvaluationResponseController extends Controller
                 response_id, option_id, created_at, updated_at
             }[]
         */
-
-        log::info('EvaluationResponseController::getEvaluationOptionAnswers');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -1317,7 +1473,65 @@ class EvaluationResponseController extends Controller
 
             throw $e;
         }
-    
+        
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+            if (
+                !$request->response_id && !$request->subcategory_id && !$request->option_id
+            ) return response()->json([
+                'status' => 400,
+                'message' => 'Either Response ID, Subcategory ID, or Option ID must be given!'
+            ]);
+
+            $evaluationOptionAnswers = EvaluationOptionAnswer
+                ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
+                ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
+                ->select(
+                    'evaluation_option_answers.response_id',
+                    'evaluation_option_answers.option_id',
+                    'evaluation_form_subcategories.id as subcategory_id',
+                    'evaluation_option_answers.created_at',
+                    'evaluation_option_answers.updated_at'
+                );
+
+            if ($request->response_id)
+                $evaluationOptionAnswers = $evaluationOptionAnswers->where(
+                    'evaluation_option_answers.response_id', $request->response_id
+                );
+            if ($request->subcategory_id)
+                $evaluationOptionAnswers = $evaluationOptionAnswers->where(
+                    'evaluation_form_subcategories.id', $request->subcategory_id
+                );
+            if ($request->option_id)
+                $evaluationOptionAnswers = $evaluationOptionAnswers->where(
+                    'evaluation_option_answers.option_id', $request->option_id
+                );
+            $evaluationOptionAnswers = $evaluationOptionAnswers->get();
+
+            if (!$evaluationOptionAnswers || $evaluationOptionAnswers->isEmpty()) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Option Answers not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Option Answers successfully retrieved.',
+                'evaluationOptionAnswers' => $evaluationOptionAnswers
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error getting evaluation option answers: ' . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Server error: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function saveEvaluationOptionAnswer(Request $request)

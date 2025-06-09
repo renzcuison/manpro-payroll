@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\UsersModel;
 use App\Models\EvaluationForm;
 use App\Models\EvaluationFormSection;
 use App\Models\EvaluationFormCategory;
@@ -1540,8 +1540,8 @@ class EvaluationFormController extends Controller
                         EvaluationFormSubcategoryOption::create([
                             'subcategory_id' => $newEvaluationFormSubcategory->id,
                             'label' => $label,
-                            'score' => $option["score"] ?? 1,
                             'order' => $optionOrder + 1
+                            // 'score' =>
                         ]);
                     }
                 }

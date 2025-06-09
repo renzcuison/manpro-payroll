@@ -19,6 +19,7 @@ class EvaluationResponse extends Model
         'period_start_at',
         'period_end_at',
         'signature_filepath',
+        'evaluatee_acknowledged_at',
         'deleted_at'
     ];
 

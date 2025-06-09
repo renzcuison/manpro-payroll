@@ -89,6 +89,7 @@ Route::get('/getFormLinkStatus', [EmployeesController::class, 'getFormLinkStatus
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::post('/advanceEvaluationWorkflow/{id}', [EvaluationResponseController::class, 'advanceWorkflow']);
 
     // ---------------------------------------------------------------- Client routes ----------------------------------------------------------------
     Route::get('/auth', [UserAuthController::class, 'index']);
@@ -488,6 +489,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEvaluationForm', [EvaluationFormController::class, 'getEvaluationForm']);
     Route::get('/getEvaluationForms', [EvaluationFormController::class, 'getEvaluationForms']);
     Route::post('/saveEvaluationForm', [EvaluationFormController::class, 'saveEvaluationForm']);
+    Route::post('/advanceEvaluationWorkflow/{id}', [EvaluationResponseController::class, 'advanceWorkflow']);
+    Route::post('/deleteEvaluationResponse', [EvaluationResponseController::class, 'deleteEvaluationResponse']);
 
     Route::post('/deleteEvaluationFormSection', [EvaluationFormController::class, 'deleteEvaluationFormSection']);
     Route::post('/editEvaluationFormSection', [EvaluationFormController::class, 'editEvaluationFormSection']);

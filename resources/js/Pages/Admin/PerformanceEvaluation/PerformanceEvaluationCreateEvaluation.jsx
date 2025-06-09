@@ -1,9 +1,11 @@
 import Layout from '../../../components/Layout/Layout';
-import { Box, TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, Typography, IconButton } from '@mui/material';
+import { Box, TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, Typography, IconButton, Divider } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 // Import SweetAlert2
 import Swal from 'sweetalert2';
@@ -22,8 +24,11 @@ const PerformanceEvaluationCreateEvaluation = () => {
         evaluationForm: '',
         periodFrom: '',
         periodTo: '',
-        date: ''
+        date: new Date().toISOString().slice(0, 10)
     });
+
+    // Dynamic commenters state (start with primary and secondary)
+    const [extraCommentors, setExtraCommentors] = useState([]);
 
     // State for employees, branches, and departments
     const [employees, setEmployees] = useState([]);
@@ -47,28 +52,49 @@ const PerformanceEvaluationCreateEvaluation = () => {
     // Additionally, filter admins to match branch and department (frontend filtering as backup)
     const filteredAdmins = admins;
 
+    // Collect all selected commenter ids to exclude from other dropdowns
+    const allCommentorIds = [
+        formValues.primaryCommentor,
+        formValues.secondaryCommentor,
+        ...extraCommentors
+    ].filter(Boolean);
+
     const evaluatorOptions = filteredAdmins.filter(
-    admin =>
-        admin.id !== primaryCommentor &&
-        admin.id !== secondaryCommentor &&
-        admin.id !== formValues.employeeName // Exclude the employee
+        admin =>
+            !allCommentorIds.includes(admin.id) &&
+            admin.id !== formValues.employeeName // Exclude the employee
     );
 
     const primaryCommentorOptions = filteredAdmins.filter(
-    admin =>
-        admin.id !== evaluator &&
-        admin.id !== secondaryCommentor &&
-        admin.id !== formValues.employeeName
+        admin =>
+            admin.id !== evaluator &&
+            admin.id !== formValues.secondaryCommentor &&
+            !extraCommentors.includes(admin.id) &&
+            admin.id !== formValues.employeeName
     );
 
     const secondaryCommentorOptions = filteredAdmins.filter(
-    admin =>
-        admin.id !== evaluator &&
-        admin.id !== primaryCommentor &&
-        admin.id !== formValues.employeeName
+        admin =>
+            admin.id !== evaluator &&
+            admin.id !== formValues.primaryCommentor &&
+            !extraCommentors.includes(admin.id) &&
+            admin.id !== formValues.employeeName
     );
 
-    
+    // For each extra commenter, filter to only those not already selected in previous fields
+    const getExtraCommentorOptions = (currentIdx) => {
+        // Exclude: employee, evaluator, primary, secondary, all other extra commenters except self
+        const excludedIds = [
+            formValues.employeeName,
+            formValues.evaluator,
+            formValues.primaryCommentor,
+            formValues.secondaryCommentor,
+            ...extraCommentors.filter((id, idx) => idx !== currentIdx)
+        ].filter(Boolean);
+        return filteredAdmins.filter(
+            admin => !excludedIds.includes(admin.id)
+        );
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -78,13 +104,14 @@ const PerformanceEvaluationCreateEvaluation = () => {
             evaluator_id: formValues.evaluator,
             primary_commentor_id: formValues.primaryCommentor,
             secondary_commentor_id: formValues.secondaryCommentor,
+            extra_commentor_ids: extraCommentors, // <--- Pass array of additional commenters
             form_id: formValues.evaluationForm,
             period_start_at: formValues.periodFrom + ' 00:00:00',
             period_end_at: formValues.periodTo + ' 23:59:59'
         };
         try {
             const response = await axiosInstance.post('/saveEvaluationResponse', payload, { headers });
-            // Show sucqcess SweetAlert
+            // Show success SweetAlert
             Swal.fire({
                 icon: 'success',
                 title: 'Evaluation Response Saved!',
@@ -116,6 +143,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
             updatedValues.evaluator = '';
             updatedValues.primaryCommentor = '';
             updatedValues.secondaryCommentor = '';
+            setExtraCommentors([]);
         }
         if (name === 'department') {
             updatedValues.employeeName = '';
@@ -123,11 +151,29 @@ const PerformanceEvaluationCreateEvaluation = () => {
             updatedValues.evaluator = '';
             updatedValues.primaryCommentor = '';
             updatedValues.secondaryCommentor = '';
+            setExtraCommentors([]);
         }
 
         setFormValues(updatedValues);
 
-        console.log('handleChange:', name, value, updatedValues);
+        //console.log('handleChange:', name, value, updatedValues);
+    };
+
+    // For extra commenters
+    const handleExtraCommentorChange = (idx, value) => {
+        setExtraCommentors((prev) => {
+            const updated = [...prev];
+            updated[idx] = value;
+            return updated;
+        });
+    };
+
+    const handleAddCommentor = () => {
+        setExtraCommentors((prev) => [...prev, '']);
+    };
+
+    const handleRemoveCommentor = (idx) => {
+        setExtraCommentors((prev) => prev.filter((_, i) => i !== idx));
     };
 
     const [performanceEvaluation, setEvaluationForm] = useState([]);
@@ -168,13 +214,13 @@ const PerformanceEvaluationCreateEvaluation = () => {
 
     // Fetch employees filtered by branch and/or department
     const fetchEmployees = async (branchId, departmentId) => {
-        console.log('fetchEmployees called!', branchId, departmentId);
+        //console.log('fetchEmployees called!', branchId, departmentId);
         try {
             const params = {};
             if (branchId) params.branch_id = branchId;
             if (departmentId) params.department_id = departmentId;
             const response = await axiosInstance.get('/getEmployeesName', { params, headers });
-            console.log('Employees API response:', response);
+            //console.log('Employees API response:', response);
             if (response.data.status === 200) {
                 setEmployees(response.data.employees);
             } else {
@@ -243,12 +289,12 @@ const PerformanceEvaluationCreateEvaluation = () => {
     }, []);
 
     // Debug
-    useEffect(() => {
-        console.log('Branches:', branches);
-    }, [branches]);
-    useEffect(() => {
-        console.log('Departments:', departments);
-    }, [departments]);
+    // useEffect(() => {
+    //     console.log('Branches:', branches);
+    // }, [branches]);
+    // useEffect(() => {
+    //     console.log('Departments:', departments);
+    // }, [departments]);
 
     return (
         <Layout title={"Create Evaluation Form"}>
@@ -383,54 +429,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
                         </Grid>
                     </Grid>
 
-                    {/* Third Row (Commentors) */}
-                    <Grid container spacing={3} sx={{ mt: 3 }}>
-                        <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
-                            <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Primary Evaluator</InputLabel>
-                                <Select
-                                    label="Primary Commentor"
-                                    name="primaryCommentor"
-                                    value={formValues.primaryCommentor}
-                                    onChange={handleChange}
-                                    >
-                                    {primaryCommentorOptions.length === 0 ? (
-                                        <MenuItem disabled>No primary evaluators found</MenuItem>
-                                    ) : (
-                                        primaryCommentorOptions.map(admin => (
-                                            <MenuItem key={admin.id} value={admin.id}>
-                                            {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
-                                            </MenuItem>
-                                        ))
-                                    )}
-                                </Select>
-
-                            </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
-                            <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Secondary Evaluator</InputLabel>
-                                <Select
-                                    label="Secondary Commentor"
-                                    name="secondaryCommentor"
-                                    value={formValues.secondaryCommentor}
-                                    onChange={handleChange}
-                                    >
-                                    {secondaryCommentorOptions.length === 0 ? (
-                                        <MenuItem disabled>No secondary evaluators found</MenuItem>
-                                    ) : (
-                                        secondaryCommentorOptions.map(admin => (
-                                            <MenuItem key={admin.id} value={admin.id}>
-                                            {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
-                                            </MenuItem>
-                                        ))
-                                    )}
-                                </Select>
-                            </FormControl>
-                        </Grid>
-                    </Grid>
-
-                    {/* Fourth Row (Evaluation Form, Period From/To) */}
+                    {/* Third Row (Evaluation Form, Period From/To) */}
                     <Grid container spacing={3} sx={{ mt: 3 }}>
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
                             <FormControl fullWidth variant="outlined" required>
@@ -484,6 +483,98 @@ const PerformanceEvaluationCreateEvaluation = () => {
                         </Grid>
                     </Grid>
 
+                    {/* Fourth Row (Commentors) */}
+                    <Grid container spacing={3} sx={{ mt: 3 }}>
+                        <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
+                            <FormControl fullWidth variant="outlined" required>
+                                <InputLabel>Primary Evaluator</InputLabel>
+                                <Select
+                                    label="Primary Commentor"
+                                    name="primaryCommentor"
+                                    value={formValues.primaryCommentor}
+                                    onChange={handleChange}
+                                    >
+                                    {primaryCommentorOptions.length === 0 ? (
+                                        <MenuItem disabled>No commenters found</MenuItem>
+                                    ) : (
+                                        primaryCommentorOptions.map(admin => (
+                                            <MenuItem key={admin.id} value={admin.id}>
+                                            {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
+                                            </MenuItem>
+                                        ))
+                                    )}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
+                            <FormControl fullWidth variant="outlined" required>
+                                <InputLabel>Secondary Evaluator</InputLabel>
+                                <Select
+                                    label="Secondary Commentor"
+                                    name="secondaryCommentor"
+                                    value={formValues.secondaryCommentor}
+                                    onChange={handleChange}
+                                    >
+                                    {secondaryCommentorOptions.length === 0 ? (
+                                        <MenuItem disabled>No commenters found</MenuItem>
+                                    ) : (
+                                        secondaryCommentorOptions.map(admin => (
+                                            <MenuItem key={admin.id} value={admin.id}>
+                                            {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
+                                            </MenuItem>
+                                        ))
+                                    )}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                    </Grid>
+
+                    {/* Dynamic Extra Commenters */}
+                    {extraCommentors.length > 0 && (
+  <Divider sx={{ mt: 4, mb: 2 }} />
+)}
+                    <Grid container spacing={3} sx={{ mt: 3 }}>
+                        {extraCommentors.map((commentor, idx) => (
+                            <Grid item xs={12} md={6} key={idx} sx={{ width: '100%', maxWidth: '463px', display: 'flex', alignItems: 'center' }}>
+                                <FormControl fullWidth variant="outlined" required>
+                                    <InputLabel>{`Additional Commenter #${idx + 1}`}</InputLabel>
+                                    <Select
+                                        label={`Additional Commenter #${idx + 1}`}
+                                        value={commentor}
+                                        onChange={e => handleExtraCommentorChange(idx, e.target.value)}
+                                    >
+                                        {getExtraCommentorOptions(idx).length === 0 ? (
+                                            <MenuItem disabled>No commenters found</MenuItem>
+                                        ) : (
+                                            getExtraCommentorOptions(idx).map(admin => (
+                                                <MenuItem key={admin.id} value={admin.id}>
+                                                    {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
+                                                </MenuItem>
+                                            ))
+                                        )}
+                                    </Select>
+                                </FormControl>
+                                <IconButton
+                                    aria-label="remove"
+                                    onClick={() => handleRemoveCommentor(idx)}
+                                    sx={{ ml: 1, mt: 1 }}
+                                >
+                                    <RemoveIcon />
+                                </IconButton>
+                            </Grid>
+                        ))}
+                    </Grid>
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                            type="button"
+                            variant="outlined"
+                            color="primary"
+                            startIcon={<AddIcon />}
+                            onClick={handleAddCommentor}
+                        >
+                            Add Commenter
+                        </Button>
+                    </Box>
                     {/* Submit Button */}
                     <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
                         <Button
