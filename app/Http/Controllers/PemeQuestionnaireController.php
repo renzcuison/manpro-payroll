@@ -241,6 +241,9 @@ class PemeQuestionnaireController extends Controller
             "peme_id" => Crypt::encrypt($peme->id),
             // "peme_id" => $peme->id,
             "peme" => $peme->name,
+            "isVisible" => $peme->isVisible,
+            "isMultiple" => $peme->isMultiple,
+            "isEditable" => $peme->isEditable,
             "questions" => $questions,
         ]);
     }

@@ -740,6 +740,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/createPeme', [PemeController::class, 'createPeme']);
     Route::get('/getPemeList', [PemeController::class, 'getPemeList']);
     Route::get('/getPemeStats', [PemeController::class, 'getPemeStats']);
+    Route::patch('/updatePemeSettings/{id}', [PemeController::class, 'updatePemeSettings']);
+    Route::delete('/deletePeme/{id}', [PemeController::class, 'deletePeme']);
+
 
     // PEME Questionnaire
     Route::post(

@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\PemeResponse;
+use App\Models\Peme;
+use App\Models\PemeResponseDetails;
 
 class PemeResponseController extends Controller
 {
@@ -56,7 +58,7 @@ class PemeResponseController extends Controller
                 "branch" => $response->peme->user->branch->name ?? 'null',
                 "department" => $response->peme->user->department->name ?? 'null',
             ];
-        });  
+        });
 
         return response()->json($responses);
     }
@@ -95,7 +97,7 @@ class PemeResponseController extends Controller
             ->distinct('user_id')
             ->count('user_id');
 
-        \App\Models\Peme::where('id', $validated['peme_id'])
+        Peme::where('id', $validated['peme_id'])
             ->update(['respondents' => $respondentsCount]);
 
         return response()->json(
@@ -169,7 +171,7 @@ class PemeResponseController extends Controller
             'details'
         ])->findOrFail($id);
 
-        $allDetails = \App\Models\PemeResponseDetails::whereHas('response', function ($query) use ($response) {
+        $allDetails = PemeResponseDetails::whereHas('response', function ($query) use ($response) {
             $query->where('peme_id', $response->peme_id);
         })
             ->with(['media', 'response'])
@@ -267,7 +269,7 @@ class PemeResponseController extends Controller
             ->distinct('user_id')
             ->count('user_id');
 
-        \App\Models\Peme::where('id', $pemeId)
+        Peme::where('id', $pemeId)
             ->update(['respondents' => $respondentsCount]);
 
         return response()->json([
@@ -283,7 +285,7 @@ class PemeResponseController extends Controller
         $pemeResponse = PemeResponse::with(['peme.questions.types', 'user'])
             ->findOrFail($responseId);
 
-        $allDetails = \App\Models\PemeResponseDetails::whereHas('response', function ($query) use ($pemeResponse) {
+        $allDetails = PemeResponseDetails::whereHas('response', function ($query) use ($pemeResponse) {
             $query->where('peme_id', $pemeResponse->peme_id);
         })
             ->with(['media', 'response'])
@@ -367,7 +369,7 @@ class PemeResponseController extends Controller
             ->distinct('user_id')
             ->count('user_id');
 
-        \App\Models\Peme::where('id', $pemeId)
+        Peme::where('id', $pemeId)
             ->update(['respondents' => $respondentsCount]);
 
         return response()->json([
