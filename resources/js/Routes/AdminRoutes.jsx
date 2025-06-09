@@ -90,7 +90,7 @@ import HMOmasterlist from "../Pages/Admin/MedicalRecords/HMO/HMOmasterlist";
 
 import PerformanceEvaluationPreview from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationPreview'
 import PerformanceEvaluationResponsePage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationResponsePage';
-import PerformanceEvaluationAnswerPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationAnswerPage;'
+import PerformanceEvaluationAnswerPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationAnswerPage';
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();

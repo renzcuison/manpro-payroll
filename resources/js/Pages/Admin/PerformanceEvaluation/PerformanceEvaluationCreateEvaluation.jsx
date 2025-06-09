@@ -24,7 +24,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
         evaluationForm: '',
         periodFrom: '',
         periodTo: '',
-        date: ''
+        date: new Date().toISOString().slice(0, 10)
     });
 
     // Dynamic commenters state (start with primary and secondary)
