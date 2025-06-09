@@ -13,7 +13,7 @@ const flattenSubcategories = (form) => {
                 subcategories.push({
                     ...sub,
                     sectionName: section.name,
-                });
+                });x
             });
         }
     });

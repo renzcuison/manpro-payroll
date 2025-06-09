@@ -202,7 +202,11 @@ const PerformanceEvaluationList = () => {
                         ) : (
                             <>
                                 <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                    <Table aria-label="simple table">
+                                    <Table aria-label="simple table"  sx={{
+                                            '& .MuiTableCell-root': {
+                                            borderBottom: 'none',
+                                            },
+                                        }}>
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center">DATE</TableCell>
@@ -220,12 +224,15 @@ const PerformanceEvaluationList = () => {
                                                     </TableCell>
                                                 </TableRow>
                                             ) : (
-                                                evaluationResponses.map(row => (
+                                                evaluationResponses.map((row, idx) => (
                                                     <TableRow 
                                                         key={row.id}
                                                         hover
                                                         style={{ cursor: 'pointer' }}
                                                         onClick={() => navigate(`/admin/performance-evaluation/answer/${row.id}`)}
+                                                        sx={{
+                                                        backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper'
+                                                        }}
                                                     >
                                                         <TableCell align="center">{row.date}</TableCell>
                                                         <TableCell align="center">{`${row.last_name}, ${row.first_name} ${row.middle_name || ''}`}</TableCell>
