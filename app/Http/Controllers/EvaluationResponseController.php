@@ -9,6 +9,8 @@ use App\Models\EvaluationFormCategory;
 use App\Models\EvaluationFormSubcategory;
 use App\Models\EvaluationFormSubcategoryOption;
 use App\Models\EvaluationResponse;
+use App\Models\EvaluationEvaluator;
+use App\Models\EvaluationCommentor;
 use App\Models\EvaluationOptionAnswer;
 use App\Models\EvaluationPercentageAnswer;
 use App\Models\EvaluationTextAnswer;
@@ -37,17 +39,19 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationResponse: {
-                id, datetime,
-                evaluatee_id, evaluatee_last_name, evaluatee_first_name, evaluatee_middle_name,
-                evaluator_id, evaluator_last_name, evaluator_first_name, evaluator_middle_name,
-                primary_commentor_id, primary_last_name, primary_first_name, primary_middle_name,
-                secondary_commentor_id, secondary_last_name, secondary_first_name, secondary_middle_name,
-                period_start_date,
-                period_end_date,
+                id, form_id, evaluatee_id, datetime,
+                period_start_date, period_end_date,
                 signature_filepath,
                 created_at, updated_at,
                 status,                 // returns 'pending' always for now
-                evaluationForm: {
+                evaluatee: { id, response_id, last_name, first_name, middle_name },
+                evaluators: {
+                    evaluator_id, response_id, last_name, first_name, middle_name, comment, order, signature_filepath
+                }[],
+                commentors: {
+                    commentor_id, response_id, last_name, first_name, middle_name, comment, order, signature_filepath
+                }[],
+                form: {
                     id, name, creator_id, creator_user_name,
                     sections: {
                         form_id, id, name, category, order,
@@ -80,45 +84,45 @@ class EvaluationResponseController extends Controller
         try {
 
             $evaluationResponse = EvaluationResponse
-                ::join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
-                ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
-                ->join('users as evaluators', 'evaluation_responses.evaluator_id', '=', 'evaluators.id')
-                ->join('users as primary_commentors', 'evaluation_responses.primary_commentor_id', '=', 'primary_commentors.id')
-                ->join('users as secondary_commentors', 'evaluation_responses.secondary_commentor_id', '=', 'secondary_commentors.id')
-                ->select(
-                    'evaluation_responses.id',
-                    'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name'
-                )
-                ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y - %h:%i %p') as datetime")
+                ::select('id', 'form_id', 'evaluatee_id')
+                ->selectRaw("date_format(updated_at, '%b %d, %Y - %h:%i %p') as datetime")
+                ->selectRaw("date_format(period_start_at, '%b %d, %Y') as period_start_date")
+                ->selectRaw("date_format(period_end_at, '%b %d, %Y') as period_end_date")
                 ->addSelect(
-                    'evaluatees.id as evaluatee_id',
-                    'evaluatees.last_name as evaluatee_last_name',
-                    'evaluatees.first_name as evaluatee_first_name',
-                    'evaluatees.middle_name as evaluatee_middle_name',
-
-                    'evaluators.id as evaluator_id',
-                    'evaluators.last_name as evaluator_last_name',
-                    'evaluators.first_name as evaluator_first_name',
-                    'evaluators.middle_name as evaluator_middle_name',
-
-                    'primary_commentors.id as primary_commentor_id',
-                    'primary_commentors.last_name as primary_commentor_last_name',
-                    'primary_commentors.first_name as primary_commentor_first_name',
-                    'primary_commentors.middle_name as primary_commentor_middle_name',
-
-                    'secondary_commentors.id as secondary_commentor_id',
-                    'secondary_commentors.last_name as secondary_commentor_last_name',
-                    'secondary_commentors.first_name as secondary_commentor_first_name',
-                    'secondary_commentors.middle_name as secondary_commentor_middle_name'
-                )
-                ->selectRaw("date_format(evaluation_responses.period_start_at, '%b %d, %Y') as period_start_date")
-                ->selectRaw("date_format(evaluation_responses.period_end_at, '%b %d, %Y') as period_end_date")
-                ->addSelect(
-                    'evaluation_responses.signature_filepath',
-                    'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at',
+                    'signature_filepath',
+                    'created_at',
+                    'updated_at',
                     DB::raw("'Pending' as status")
                 )
+                ->with(['evaluatee' => fn ($evaluatee) =>
+                    $evaluatee->select('id', 'last_name', 'first_name', 'middle_name')
+                ])
+                ->with(['evaluators' => fn ($evaluatee) =>
+                    $evaluatee
+                        ->join('users', 'evaluation_evaluators.evaluator_id', '=', 'users.id')
+                        ->select(
+                            'evaluation_evaluators.evaluator_id',
+                            'evaluation_evaluators.response_id',
+                            'users.last_name', 'users.first_name', 'users.middle_name',
+                            'evaluation_evaluators.comment',
+                            'evaluation_evaluators.order',
+                            'evaluation_evaluators.signature_filepath'
+                        )
+                        ->orderBy('order')
+                ])
+                ->with(['commentors' => fn ($evaluatee) =>
+                    $evaluatee
+                        ->join('users', 'evaluation_commentors.commentor_id', '=', 'users.id')
+                        ->select(
+                            'evaluation_commentors.commentor_id',
+                            'evaluation_commentors.response_id',
+                            'users.last_name', 'users.first_name', 'users.middle_name',
+                            'evaluation_commentors.comment',
+                            'evaluation_commentors.order',
+                            'evaluation_commentors.signature_filepath'
+                        )
+                        ->orderBy('order')
+                ])
                 ->with(['form' => fn ($evaluationForm) =>
                     $evaluationForm
                         ->join('users', 'evaluation_forms.id', '=', 'users.id')
@@ -183,6 +187,7 @@ class EvaluationResponseController extends Controller
                                 ->orderBy('order')
                         ])
                 ])
+                ->where('id', $request->id)
                 ->first()
             ;
             if( !$evaluationResponse ) return response()->json([
@@ -207,24 +212,37 @@ class EvaluationResponseController extends Controller
 
      public function getEvaluationResponses(Request $request)
     {
+         // inputs:
         /*
             page: number = 1,                   // counting starts at 1
             limit: number = 10,
             form_id?: number,                   // gets all if none given
-            evaluatee_id?: number,
+            user_id?: number,                   // finds for any response they are included
+            evaluatee_id?: number,              // either user_id, evaluatee_id, evaluator_id, or commentor_id must be given
             evaluator_id?: number,
-            primary_commentor_id?: number,
-            secondary_commentor_id?: number,
-            commentor_id?: number,              // for both primary or secondary
-            search: string,
+            commentor_id?: number,
+            search: string,                     // searches for form name, date, evalautee name, department name, branch name, or status
             order_by: {
                 key:
                     'updated_at' | 'form_name' | 'last_name' | 'first_name' |
-                    'middle_name' | 'department_name' |
-                    'branch_name' |
-                    'status',               // pending first -> finished last
+                    'middle_name' | 'department_name' | 'branch_name' |
+                    'status'                    // pending first -> finished last
+                ,
                 sort_order: 'asc' | 'desc' = 'asc'
             }[];
+        */
+
+        // outputs:
+        /*
+            evaluationResponses: {
+                id, form_id, form_name, date, role,
+                evaluatee_id, evaluatee: { id, last_name, first_name, middle_name },
+                department_id, department_name, branch_id, branch_name, status,
+                created_at, updated_at
+            }[],
+            pageResponseCount,
+            totalResponseCount,
+            maxPageCount
         */
 
         Log::info('EvaluationResponseController::getEvaluationResponses');
@@ -238,6 +256,15 @@ class EvaluationResponseController extends Controller
         $user = DB::table('users')->where('id', $userID)->first();
 
         try {
+            if(
+                $request->user_id === null && $request->evaluatee_id === null
+                && $request->evaluator_id === null && $request->commentor_id === null
+            ) return response()->json([
+                'status' => 400,
+                'message' => 'Either Evaluatee ID, Evaluator ID, or Commentor ID must be given!'
+            ]);
+            if($request->page === null) $request->page = 1;
+            if($request->limit === null) $request->limit = 10;
             if ($request->page < 1 || $request->limit < 1)
                 return response()->json([
                     'status' => 404,
@@ -249,73 +276,70 @@ class EvaluationResponseController extends Controller
                 ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
                 ->join('departments', 'evaluatees.department_id', '=', 'departments.id')
                 ->join('branches', 'evaluatees.branch_id', '=', 'branches.id')
-                ->join('users as evaluators', 'evaluation_responses.evaluator_id', '=', 'evaluators.id')
-                ->join('users as primary_commentors', 'evaluation_responses.primary_commentor_id', '=', 'primary_commentors.id')
-                ->join('users as secondary_commentors', 'evaluation_responses.secondary_commentor_id', '=', 'secondary_commentors.id')
-                ->select(
-                    'evaluation_responses.id',
-                    'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name'
-                )
+                ->join('evaluation_evaluators as evaluators', 'evaluation_responses.id', '=', 'evaluators.response_id')
+                ->join('evaluation_commentors as commentors', 'evaluation_responses.id', '=', 'commentors.response_id')
+                ->select('evaluation_responses.id', 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name')
                 ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
+                ->selectRaw(
+                    '
+                        CASE
+                            WHEN evaluation_responses.evaluatee_id = ? THEN "Evaluatee"
+                            WHEN evaluators.evaluator_id = ? THEN "Evaluator"
+                            WHEN commentors.commentor_id = ? THEN "Commentor"
+                        ELSE "Idunno" END as role
+                    ',
+                    [$request->user_id, $request->user_id, $request->user_id]
+                )
+                ->addSelect('evaluatee_id')
+                ->with(['evaluatee' => fn ($evaluatee) =>
+                    $evaluatee->select('id', 'last_name', 'first_name', 'middle_name')
+                ])
                 ->addSelect(
-                    'evaluatees.id as evaluatee_id', 'evaluatees.last_name as last_name',
-                    'evaluatees.first_name as first_name', 'evaluatees.middle_name as middle_name',
                     'departments.id as department_id', 'departments.name as department_name',
                     'branches.id as branch_id', 'branches.name as branch_name',
-                    'evaluators.id as evaluator_id',
-                    'primary_commentors.id as primary_commentor_id',
-                    'secondary_commentors.id as secondary_commentor_id',
-                    'evaluation_responses.period_start_at',
-                    'evaluation_responses.period_end_at',
+                    DB::raw("'Pending' as status"),
                     'evaluation_responses.created_at',
                     'evaluation_responses.updated_at'
                 )
-                ->addSelect(DB::raw("'Pending' as status"));
+            ;
 
-            // // Only show evaluations for the current user if they are the evaluatee or evaluator
-            // $evaluationResponses = $evaluationResponses->where(function($query) use ($userID) {
-            //     $query->where('evaluation_responses.evaluatee_id', $userID)
-            //         ->orWhere('evaluation_responses.evaluator_id', $userID);
-            // });
-
-            if ($request->form_id)
+            
+            if($request->search)
+                $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
+                    $query
+                        ->where('evaluation_forms.name', 'LIKE', "%$request->search%")
+                        ->orWhere(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
+                        ->orWhere(
+                            DB::raw('CONCAT(
+                                evaluatees.first_name, " ",
+                                IF(ISNULL(evaluatees.middle_name), "", CONCAT(evaluatees.middle_name, " ")),
+                                evaluatees.last_name
+                            )'),
+                            'LIKE', "%$request->search%"
+                        )
+                        ->orWhere('departments.name', 'LIKE', "%$request->search%")
+                        ->orWhere('branches.name', 'LIKE', "%$request->search%")
+                        // status
+                    ;
+                });
+            
+            if ($request->form_id !== null)
                 $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
-            if ($request->evaluatee_id)
+            if ($request->evaluatee_id !== null)
                 $evaluationResponses = $evaluationResponses->where('evaluation_responses.evaluatee_id', $request->evaluatee_id);
-            if ($request->evaluator_id)
-                $evaluationResponses = $evaluationResponses->where('evaluation_responses.evaluator_id', $request->evaluator_id);
-            if ($request->primary_commentor_id)
-                $evaluationResponses = $evaluationResponses->where('evaluation_responses.primary_commentor_id', $request->primary_commentor_id);
-            if ($request->secondary_commentor_id)
-                $evaluationResponses = $evaluationResponses->where('evaluation_responses.secondary_commentor_id', $request->secondary_commentor_id);
-            if ($request->commentor_id)
-                $evaluationResponses = $evaluationResponses
-                    ->where(function ($query) use ($request) {
-                        $query->where('evaluation_responses.primary_commentor_id', $request->commentor_id)
-                            ->orWhere('evaluation_responses.secondary_commentor_id', $request->commentor_id);
-                    });
-
-            if ($request->search) {
-                $evaluationResponses = $evaluationResponses
-                    ->where(function ($query) use ($request) {
-                        $query->where(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
-                            ->orWhere('evaluation_forms.name', 'LIKE', "%$request->search%")
-                            ->orWhere('evaluatees.last_name', 'LIKE', "%$request->search%")
-                            ->orWhere('evaluatees.first_name', 'LIKE', "%$request->search%")
-                            ->orWhere('evaluatees.middle_name', 'LIKE', "%$request->search%")
-                            ->orWhere('departments.name', 'LIKE', "%$request->search%")
-                            ->orWhere('branches.name', 'LIKE', "%$request->search%");
-                    });
-                // status searching can be implemented later
-            }
-
-            $sortOrder = $request->sort_order ?? 'asc';
-            $sortOrderReverse = $sortOrder == 'asc' ? 'desc' : 'asc';
-            if ($sortOrder != 'asc' && $sortOrder != 'desc')
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'Sort order is invalid!'
-                ]);
+            if ($request->evaluator_id !== null)
+                $evaluationResponses = $evaluationResponses->where('evaluators.evaluator_id', $request->evaluator_id);
+            if ($request->commentor_id !== null)
+                $evaluationResponses = $evaluationResponses->where('commentors.commentor_id', $request->commentor_id);
+            if($request->user_id !== null)
+                $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
+                    $query
+                        ->where('evaluation_responses.evaluatee_id', $request->user_id)
+                        ->orWhere('evaluators.evaluator_id', $request->user_id)
+                        ->orWhere('commentors.commentor_id', $request->user_id)
+                    ;
+                });
+            $evaluationResponses = $evaluationResponses->groupBy('evaluators.response_id', 'commentors.response_id');
 
             if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
                 $sortOrder = $order_by_param['sort_order'] ?? 'asc';
@@ -357,7 +381,7 @@ class EvaluationResponseController extends Controller
             $limit = $request->limit ?? 10;
             $totalResponseCount = $evaluationResponses->count();
             $maxPageCount = ceil($totalResponseCount / $limit);
-            if ($page > $maxPageCount && $totalResponseCount !== 0)
+            if ($page > $maxPageCount || $totalResponseCount == 0)
                 return response()->json([
                     'status' => 404,
                     'message' => 'No evaluation responses exist!'
@@ -388,10 +412,9 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             evaluatee_id: number,
-            evaluator_id: number,
-            primary_commentor_id: number,
-            secondary_commentor_id: number,
             form_id: number,
+            evaluators: number[],
+            commentors: number[],
             period_start_at: string,
             period_end_at: string
         */
@@ -413,9 +436,18 @@ class EvaluationResponseController extends Controller
 
         try {
 
-            if( $user === null ) return response()->json([ 
+            if($user === null) return response()->json([ 
                 'status' => 403,
                 'message' => 'Unauthorized access!'
+            ]);
+
+            if(!$request->evaluators) return response()->json([ 
+                'status' => 400,
+                'message' => 'Evaluators are required!'
+            ]);
+            if(!$request->commentors) return response()->json([ 
+                'status' => 400,
+                'message' => 'Commentors are required!'
             ]);
 
             $periodStartAtSec = strtotime($request->period_start_at);
@@ -443,18 +475,31 @@ class EvaluationResponseController extends Controller
             if($conflictingEvaluationResponse) return response()->json([ 
                 'status' => 400,
                 'message' => 'This Evaluation is in conflict with another!',
-                'evaluationResponseID' => $conflictingEvaluationResponse->id
+                'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
             ]);
 
             $newEvaluationResponse = EvaluationResponse::create([
                 'evaluatee_id' => $request->evaluatee_id,
-                'evaluator_id' => $request->evaluator_id,
-                'primary_commentor_id' => $request->primary_commentor_id,
-                'secondary_commentor_id' => $request->secondary_commentor_id,
                 'form_id' => $request->form_id,
                 'period_start_at' => $request->period_start_at,
                 'period_end_at' => $request->period_end_at
             ]);
+
+            foreach ($request->evaluators as $index => $evaluator_id) {
+                EvaluationEvaluator::create([
+                    'response_id' => $newEvaluationResponse->id,
+                    'evaluator_id' => $evaluator_id,
+                    'order' => $index + 1
+                ]);
+            }
+
+            foreach ($request->commentors as $index => $commentor_id) {
+                EvaluationCommentor::create([
+                    'response_id' => $newEvaluationResponse->id,
+                    'commentor_id' => $commentor_id,
+                    'order' => $index + 1
+                ]);
+            }
 
             DB::commit();
 
@@ -474,6 +519,30 @@ class EvaluationResponseController extends Controller
             throw $e;
         }
     }
+
+    // evaluation evaluator
+
+        // delete evaluation evaluator
+
+        // edit evaluation evaluator
+
+        // get evaluation evaluator
+
+        // get evaluation evaluators
+
+        // save evaluation evaluator
+
+    // evaluation commentor
+
+        // delete evaluation commentor
+
+        // edit evaluation commentor
+
+        // get evaluation commentor
+
+        // get evaluation commentors
+
+        // save evaluation commentor
 
     // evaluation form percentage answer
 
