@@ -5,6 +5,7 @@ import {
   FormControlLabel, Radio, RadioGroup, Checkbox, TextField, IconButton, Accordion, AccordionSummary, AccordionDetails,
   Menu, MenuItem, Paper
 } from '@mui/material';
+import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -30,7 +31,7 @@ const PerformanceEvaluationAnswerPage = () => {
         if (resResponse.data.status === 200 && resResponse.data.evaluationResponse) {
           setResponseMeta(resResponse.data.evaluationResponse);
 
-          const formData = resResponse.data.evaluationResponse.evaluationForm;
+          const formData = resResponse.data.evaluationResponse.form;
           setForm(formData);
 
           // Build a categories state: { [subCategoryId]: { ...subcat, selectedValue, selectedValues, userResponse } }
@@ -121,7 +122,27 @@ const PerformanceEvaluationAnswerPage = () => {
     'checkbox': 'Checkbox',
     'short_answer': 'Short Answer',
     'long_answer': 'Long Answer',
-    };
+  };
+
+  // Workflow advancement after submission
+  const advanceWorkflow = async () => {
+    try {
+      // This endpoint should match your backend route for advancing the workflow
+      const res = await axiosInstance.post(
+        `/advanceWorkflow/${responseMeta.id}`,
+        {},
+        { headers }
+      );
+      if (res.data.status === 200) {
+        alert('Evaluation workflow advanced to next step.');
+        navigate(-1);
+      } else {
+        alert(res.data.message || 'Failed to advance workflow.');
+      }
+    } catch (err) {
+      alert('Failed to advance workflow: ' + (err?.response?.data?.message ?? err.message));
+    }
+  };
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -182,7 +203,7 @@ const PerformanceEvaluationAnswerPage = () => {
     if (hasError) {
       alert(errorMsg);
     } else {
-      alert('Evaluation submitted!');
+      await advanceWorkflow();
     }
   };
 
@@ -205,6 +226,17 @@ const PerformanceEvaluationAnswerPage = () => {
       </Layout>
     );
   }
+
+  // Safely get evaluatee/evaluator names from nested objects (per new controller output)
+  const evalLastName = responseMeta.evaluatee?.last_name || responseMeta.evaluatee_last_name || '';
+  const evalFirstName = responseMeta.evaluatee?.first_name || responseMeta.evaluatee_first_name || '';
+  const evalMiddleName = responseMeta.evaluatee?.middle_name || responseMeta.evaluatee_middle_name || '';
+  // For evaluator, you may want to display all evaluators, but for now use first if present
+  const evaluatorList = Array.isArray(responseMeta.evaluators) ? responseMeta.evaluators : [];
+  const mainEvaluator = evaluatorList.length > 0 ? evaluatorList[0] : {};
+  const evaluatorName = mainEvaluator.last_name
+    ? `${mainEvaluator.last_name}, ${mainEvaluator.first_name}${mainEvaluator.middle_name ? ' ' + mainEvaluator.middle_name : ''}`
+    : `${responseMeta.evaluator_last_name || ''}, ${responseMeta.evaluator_first_name || ''}${responseMeta.evaluator_middle_name ? ' ' + responseMeta.evaluator_middle_name : ''}`;
 
   return (
     <Layout title="Performance Evaluation Form">
@@ -261,10 +293,12 @@ const PerformanceEvaluationAnswerPage = () => {
         </Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
-          Evaluatee: {responseMeta.evaluatee_last_name}, {responseMeta.evaluatee_first_name} {responseMeta.evaluatee_middle_name || ""}
+          Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluator: {responseMeta.evaluator_last_name}, {responseMeta.evaluator_first_name} {responseMeta.evaluator_middle_name || ""}
+          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
+            evaluator => getFullName(evaluator)
+          ).join(' & ') : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
@@ -299,7 +333,7 @@ const PerformanceEvaluationAnswerPage = () => {
                     minHeight: 0,
                     mt: 3,
                     borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px', // Rounded corners for section header
+                    borderTopRightRadius: '8px',
                     '& .MuiAccordionSummary-content': {
                         margin: 0,
                         alignItems: "center"

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress, Divider, TextField, InputAdornment, IconButton } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
+import { getFullName } from '../../../utils/user-utils';
 import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -18,7 +19,7 @@ const PerformanceEvaluationList = () => {
     const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
 
     // Pagination state
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState(0); // 0-based for TablePagination
     const [rowsPerPage] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
@@ -42,13 +43,13 @@ const PerformanceEvaluationList = () => {
             .catch(() => setPerformanceEvaluation([]));
     }, []);
 
-    // Fetch evaluation responses for the current user (as evaluatee or evaluator)
+    // Fetch evaluation responses for the current user (as evaluatee or evaluator or commentor)
     useEffect(() => {
         setIsLoading(true);
         axiosInstance.get('/getEvaluationResponses', {
             headers,
             params: {
-                page: page + 1,
+                page: page + 1, // backend is 1-based
                 limit: rowsPerPage,
                 search: searchValue
             }
@@ -101,91 +102,91 @@ const PerformanceEvaluationList = () => {
                     {/* White Box Containing the Buttons and Table */}
                     <Box sx={{ mt: 2, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         {/* Buttons and Search */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                        {/* Left: Create Evaluation */}
-                        <Button
-                            variant="contained"
-                            color="success"
-                            onClick={() => navigate('/admin/performance-evaluation/create-evaluation')}
-                        >
-                            <i className="fa"></i> Create Evaluation
-                        </Button>
-
-                        {/* Right group: Search and Forms */}
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            {/* Search Field */}
-                            <Box
-                            component="form"
-                            onSubmit={handleSearchSubmit}
-                            sx={{ mr: 1, width: 260 }}
-                            >
-                            <TextField
-                                placeholder="Search..."
-                                value={searchInput}
-                                onChange={handleSearchChange}
-                                size="small"
-                                fullWidth
-                                InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                    <SearchIcon />
-                                    </InputAdornment>
-                                ),
-                                endAdornment: (
-                                    searchInput && (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                        aria-label="clear search"
-                                        onClick={handleClearSearch}
-                                        edge="end"
-                                        size="small"
-                                        >
-                                            <ClearIcon />
-                                        </IconButton>
-                                    </InputAdornment>
-                                    )
-                                )
-                                }}
-                            />
-                            </Box>
-                            {/* Forms Dropdown Button */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            {/* Left: Create Evaluation */}
                             <Button
-                            id="performance-evaluation-menu"
-                            variant="contained"
-                            color="success"
-                            aria-controls={open ? 'perf-eval-menu' : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={open ? 'true' : undefined}
-                            onClick={handleMenuOpen}
+                                variant="contained"
+                                color="success"
+                                onClick={() => navigate('/admin/performance-evaluation/create-evaluation')}
                             >
-                            Forms <i className="fa fa-caret-down ml-2"></i>
+                                <i className="fa"></i> Create Evaluation
                             </Button>
-                            <Menu
-                            id="perf-eval-menu"
-                            anchorEl={anchorEl}
-                            open={open}
-                            onClose={handleMenuClose}
-                            MenuListProps={{
-                                'aria-labelledby': 'performance-evaluation-menu',
-                            }}
-                            >
-                            {performanceEvaluations.map(({ name }) => (
-                                <MenuItem key={name} onClick={() => {
-                                handleMenuClose();
-                                navigate(`/admin/performance-evaluation/form/${name}`);
-                                }}>
-                                {name}
+                            {/* Right group: Search and Forms */}
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                {/* Search Field */}
+                                <Box
+                                component="form"
+                                onSubmit={handleSearchSubmit}
+                                sx={{ mr: 1, width: 260 }}
+                                >
+                                <TextField
+                                    placeholder="Search..."
+                                    value={searchInput}
+                                    onChange={handleSearchChange}
+                                    size="small"
+                                    fullWidth
+                                    InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                        <SearchIcon />
+                                        </InputAdornment>
+                                    ),
+                                    endAdornment: (
+                                        searchInput && (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                            aria-label="clear search"
+                                            onClick={handleClearSearch}
+                                            edge="end"
+                                            size="small"
+                                            >
+                                                <ClearIcon />
+                                            </IconButton>
+                                        </InputAdornment>
+                                        )
+                                    )
+                                    }}
+                                />
+                                </Box>
+                                {/* Forms Dropdown Button */}
+                                <Button
+                                id="performance-evaluation-menu"
+                                variant="contained"
+                                color="success"
+                                aria-controls={open ? 'perf-eval-menu' : undefined}
+                                aria-haspopup="true"
+                                aria-expanded={open ? 'true' : undefined}
+                                onClick={handleMenuOpen}
+                                >
+                                Forms <i className="fa fa-caret-down ml-2"></i>
+                                </Button>
+                                <Menu
+                                id="perf-eval-menu"
+                                anchorEl={anchorEl}
+                                open={open}
+                                onClose={handleMenuClose}
+                                MenuListProps={{
+                                    'aria-labelledby': 'performance-evaluation-menu',
+                                }}
+                                >
+                                {performanceEvaluations.map(({ id, name }) => (
+                                    <MenuItem key={id || name} onClick={() => {
+                                    handleMenuClose();
+                                    // Use id or name as appropriate for navigation
+                                    navigate(`/admin/performance-evaluation/form/${id || name}`);
+                                    }}>
+                                    {name}
+                                    </MenuItem>
+                                ))}
+                                <Divider sx={{ my: 1 }} />
+                                <MenuItem
+                                    onClick={() => { setModalOpen(true); handleMenuClose(); }}
+                                    sx={{ display: 'flex', alignItems: 'center' }}
+                                >
+                                    <Typography variant="body1" sx={{ mr: 1, fontWeight: 'bold' }}>+</Typography> New Form
                                 </MenuItem>
-                            ))}
-                            <Divider sx={{ my: 1 }} />
-                            <MenuItem
-                                onClick={() => { setModalOpen(true); handleMenuClose(); }}
-                                sx={{ display: 'flex', alignItems: 'center' }}
-                            >
-                                <Typography variant="body1" sx={{ mr: 1, fontWeight: 'bold' }}>+</Typography> New Form
-                            </MenuItem>
-                            </Menu>
-                        </Box>
+                                </Menu>
+                            </Box>
                         </Box>
                         {/* Modal for New Form */}
                         <PerformanceEvaluationAdd
@@ -235,7 +236,7 @@ const PerformanceEvaluationList = () => {
                                                         }}
                                                     >
                                                         <TableCell align="center">{row.date}</TableCell>
-                                                        <TableCell align="center">{`${row.last_name}, ${row.first_name} ${row.middle_name || ''}`}</TableCell>
+                                                        <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
                                                         <TableCell align="center">{row.department_name}</TableCell>
                                                         <TableCell align="center">{row.branch_name}</TableCell>
                                                         <TableCell align="center">{row.status}</TableCell>

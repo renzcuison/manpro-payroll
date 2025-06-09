@@ -16,9 +16,9 @@ class EvaluationFormSubcategory extends Model
     protected $fillable = [
         'section_id',
         'name',
+        'description',
         'order',
         'subcategory_type',
-        'description',
         'required',
         'allow_other_option',
         'linear_scale_start',
