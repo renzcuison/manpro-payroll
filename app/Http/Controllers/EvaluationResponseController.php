@@ -135,6 +135,8 @@ class EvaluationResponseController extends Controller
                             'allow_other_option' => $subcat->allow_other_option,
                             'linear_scale_start' => $subcat->linear_scale_start,
                             'linear_scale_end' => $subcat->linear_scale_end,
+                            'linear_scale_start_label' => $subcat->linear_scale_start_label,
+                            'linear_scale_end_label' => $subcat->linear_scale_end_label,
                             'order' => $subcat->order,
                             'options' => $options,
                             'percentage_answer' => $percentage_answer

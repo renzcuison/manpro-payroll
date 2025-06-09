@@ -313,6 +313,7 @@ class EvaluationFormController extends Controller
                         ->orderBy('order')
                         ->with(['subcategories' => fn ($subcategory) =>
                             $subcategory
+                                ->whereNull('deleted_at')
                                 ->select(
                                     'section_id', 'id',
                                     'name', 'subcategory_type', 'description',
@@ -685,6 +686,7 @@ class EvaluationFormController extends Controller
                 ->where('id', $request->id)
                 ->with(['subcategories' => fn ($subcategory) =>
                     $subcategory
+                        ->whereNull('deleted_at')
                         ->select(
                             'section_id', 'id',
                             'name', 'subcategory_type', 'description',
@@ -694,6 +696,7 @@ class EvaluationFormController extends Controller
                         )
                         ->with(['options' => fn ($option) =>
                             $option
+                                ->whereNull('deleted_at')
                                 ->select(
                                     'subcategory_id', 'id',
                                     'label', 'score', 'order'

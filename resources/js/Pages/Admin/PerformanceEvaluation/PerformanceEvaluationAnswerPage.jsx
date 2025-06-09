@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Button, CircularProgress, Divider, Grid,
-  FormControlLabel, Radio, RadioGroup, Checkbox, TextField, IconButton, Accordion, AccordionSummary, AccordionDetails
+  FormControlLabel, Radio, RadioGroup, Checkbox, TextField, IconButton, Accordion, AccordionSummary, AccordionDetails,
+  Menu, MenuItem, Paper
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const PerformanceEvaluationAnswerPage = () => {
   const { id } = useParams();
@@ -102,6 +103,17 @@ const PerformanceEvaluationAnswerPage = () => {
       [subCategoryId]: { ...prev[subCategoryId], userResponse: value }
     }));
   };
+
+  // Handlers for Settings menu
+    const handleSettingsClick = (event) => {
+        setSettingsAnchorEl(event.currentTarget);
+    };
+    const handleSettingsClose = () => {
+        setSettingsAnchorEl(null);
+    };
+
+    const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
+    const settingsOpen = Boolean(settingsAnchorEl);
 
   const responseTypeMap = {
     'linear_scale': 'Linear Scale',
@@ -199,7 +211,7 @@ const PerformanceEvaluationAnswerPage = () => {
       <Box
         sx={{
           mt: 5,
-          p: 3,
+          p: 5,
           bgcolor: 'white',
           borderRadius: '8px',
           maxWidth: '1000px',
@@ -207,13 +219,46 @@ const PerformanceEvaluationAnswerPage = () => {
           boxShadow: 3,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <IconButton onClick={() => navigate(-1)} size="large" sx={{ mr: 1 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, position: 'relative' }}>
+          {/* Settings Icon with Dropdown Menu */}
+                <IconButton
+                    onClick={handleSettingsClick}
+                    sx={{
+                        position: 'absolute',
+                        top: 5,
+                        right: 10,
+                        color: '#bdbdbd',
+                        borderRadius: '50%',
+                        padding: '5px',
+                        color: '#BEBEBE',
+                    }}
+                    aria-controls={settingsOpen ? 'settings-menu' : undefined}
+                    aria-haspopup="true"
+                    aria-expanded={settingsOpen ? 'true' : undefined}
+                >
+                    <SettingsIcon sx={{ fontSize: 28 }} />
+                </IconButton>
+                <Menu
+                    id="settings-menu"
+                    anchorEl={settingsAnchorEl}
+                    open={settingsOpen}
+                    onClose={handleSettingsClose}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                >
+                    <MenuItem
+                        onClick={() => {
+                            handleSettingsClose();
+                            setTimeout(() => navigate('/admin/performance-evaluation'), 100);
+                        }}
+                    >Exit Form</MenuItem>
+                </Menu>
+          {/* <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
             Performance Evaluation Answer Form
-          </Typography>
+          </Typography> */}
+        <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
+          {form.name}
+        </Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
           Evaluatee: {responseMeta.evaluatee_last_name}, {responseMeta.evaluatee_first_name} {responseMeta.evaluatee_middle_name || ""}
@@ -224,9 +269,9 @@ const PerformanceEvaluationAnswerPage = () => {
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
         </Typography>
-        <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
+        {/* <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
           {form.name}
-        </Typography>
+        </Typography> */}
 
         <Box component="form" onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
           {(!form.sections || form.sections.length === 0) && (
@@ -252,6 +297,7 @@ const PerformanceEvaluationAnswerPage = () => {
                     borderBottom: '1px solid #ffe082',
                     cursor: 'default',
                     minHeight: 0,
+                    mt: 3,
                     borderTopLeftRadius: '8px',
                     borderTopRightRadius: '8px', // Rounded corners for section header
                     '& .MuiAccordionSummary-content': {
@@ -260,29 +306,67 @@ const PerformanceEvaluationAnswerPage = () => {
                     }
                     }}
                 >
-                <Box sx={{my: 1}}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: "white" }}>
+                <Box sx={{my: 2}}>
+                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: "white" }}>
                     {section.name}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "white" }}>
-                    Category: {section.category}
-                  </Typography>
+                  
                 </Box>
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 2 }}>
+                {section.category ? (
+                    <Paper
+                        elevation={2}
+                        sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        bgcolor: '#f3f3f3',
+                        borderRadius: 2,
+                        borderLeft: '8px solid #eab31a',
+                        px: 2,
+                        pt: 2,
+                        pb: 2,
+                        mt: 2,
+                        mb: 2,
+                        mx: 2,
+                        boxShadow: 2
+                        }}
+                    >
+                        <Typography
+                        variant="h6"
+                        sx={{
+                            fontWeight: 'bold',
+                            color: '#222'
+                        }}
+                        >
+                        {section.category}
+                        </Typography>
+                    </Paper>
+                    ) : (
+                    <Box sx={{ textAlign: "center", mt: 3, color: "#aaa", fontStyle: "italic", mb: 2 }}>
+                        No category in this section.
+                    </Box>
+                    )}
                 {(section.subcategories || []).length === 0 ? (
                   <Typography color="text.secondary" sx={{ mb: 2 }}>No subcategories in this section.</Typography>
                 ) : (
                   section.subcategories.map((subCategory) => (
                     <Box
                       key={subCategory.id}
-                      sx={{ mb: 3, border: '1px solid #ddd', borderRadius: 2, p: 2, bgcolor: 'white' }}
+                      sx={{ mb: 3, border: '1px solid #ddd', borderRadius: 2,  px: 2,
+                        pt: 2,
+                        pb: 2,
+                        mt: 2,
+                        mb: 2,
+                        mx: 2, 
+                        bgcolor: '#f3f3f3',
+                        boxShadow: 2 }}
                     >
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                        Subcategory: {subCategory.name}
+                      <Typography variant="h6" color="black" sx={{ mb: 0.5 }}>
+                        {subCategory.name}
                       </Typography>
-                        <Typography variant="body1">Type: {responseTypeMap[subCategory.subcategory_type] || 'Unknown'}</Typography>
-                        <Typography variant="body2">Description: {subCategory.description}</Typography>
+                        <Typography variant="body2">Type: {responseTypeMap[subCategory.subcategory_type] || 'Unknown'}</Typography>
+                        <Typography variant="body2" >Description: {subCategory.description}</Typography>
 
                       {subCategory.subcategory_type === 'linear_scale' && (
                         <Box sx={{ mb: 2 }}>
