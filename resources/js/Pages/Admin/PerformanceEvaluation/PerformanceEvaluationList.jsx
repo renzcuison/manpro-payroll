@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress, Divider, TextField, InputAdornment, IconButton } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
+import { getFullName } from '../../../utils/user-utils';
 import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -235,9 +236,7 @@ const PerformanceEvaluationList = () => {
                                                         }}
                                                     >
                                                         <TableCell align="center">{row.date}</TableCell>
-                                                        <TableCell align="center">{
-                                                            `${row.evaluatee.last_name}, ${row.evaluatee.first_name}${row.evaluatee.middle_name ? ' ' + row.evaluatee.middle_name : ''}`
-                                                        }</TableCell>
+                                                        <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
                                                         <TableCell align="center">{row.department_name}</TableCell>
                                                         <TableCell align="center">{row.branch_name}</TableCell>
                                                         <TableCell align="center">{row.status}</TableCell>

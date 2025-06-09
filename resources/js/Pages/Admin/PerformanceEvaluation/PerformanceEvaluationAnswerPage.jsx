@@ -413,6 +413,7 @@ import {
   Box, Typography, Button, CircularProgress, Divider, Grid,
   FormControlLabel, Radio, RadioGroup, Checkbox, TextField, IconButton, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
+import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -438,7 +439,7 @@ const PerformanceEvaluationAnswerPage = () => {
         if (resResponse.data.status === 200 && resResponse.data.evaluationResponse) {
           setResponseMeta(resResponse.data.evaluationResponse);
 
-          const formData = resResponse.data.evaluationResponse.evaluationForm;
+          const formData = resResponse.data.evaluationResponse.form;
           setForm(formData);
 
           // Build a categories state: { [subCategoryId]: { ...subcat, selectedValue, selectedValues, userResponse } }
@@ -645,10 +646,12 @@ const PerformanceEvaluationAnswerPage = () => {
           </Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
-          Evaluatee: {responseMeta.evaluatee_last_name}, {responseMeta.evaluatee_first_name} {responseMeta.evaluatee_middle_name || ""}
+          Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluator: {responseMeta.evaluator_last_name}, {responseMeta.evaluator_first_name} {responseMeta.evaluator_middle_name || ""}
+          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
+            evaluator => getFullName(evaluator)
+          ).join(' & ') : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
