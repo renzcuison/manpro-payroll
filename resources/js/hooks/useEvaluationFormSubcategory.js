@@ -235,7 +235,7 @@ export function useEvaluationFormSubcategory(subcategory) {
         ;
     }
 
-    let returnData = {
+    return {
         subcategory: {
             id: subcategoryId,
             section_id: sectionId,
@@ -251,7 +251,7 @@ export function useEvaluationFormSubcategory(subcategory) {
             options
         },
         subcategoryId,
-        subcategoryName, setSubcategoryName,
+        subcategoryName, setSubcategoryName, editSubcategory, saveSubcategory,
         responseType: getSubcategorySelectValue(subcategoryType), switchResponseType,
         subcategoryDescription, setSubcategoryDescription,
         required, toggleRequired,
@@ -263,11 +263,5 @@ export function useEvaluationFormSubcategory(subcategory) {
         order,
         options, deleteOption, editOption, saveOption, editOptionExtra
     };
-    if(isNew)
-        returnData = { ...returnData, saveSubcategory };
-    else
-        returnData = { ...returnData, editSubcategory };
-
-    return returnData;
 
 }

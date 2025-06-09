@@ -29,8 +29,6 @@ class EvaluationResponseController extends Controller
 
         // edit evaluation response
 
-
-
     public function getEvaluationResponse(Request $request)
     {
         // inputs:
@@ -525,6 +523,7 @@ class EvaluationResponseController extends Controller
         // get evaluation commentors
 
         // save evaluation commentor
+    
     public function advanceWorkflow(Request $request, $id)
     {
         $evaluation = EvaluationResponse::find($id);
@@ -590,7 +589,6 @@ class EvaluationResponseController extends Controller
             'evaluation' => $evaluation
         ]);
     }
-
 
     // evaluation form percentage answer
 
@@ -944,7 +942,82 @@ class EvaluationResponseController extends Controller
 
     // evaluation form text answer
 
-        // delete evaluation form text answer
+    public function deleteEvaluationTextAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            subcategory_id: number
+        */
+
+        // returns:
+        /*
+            evaluationTextAnswer: {
+                response_id, subcategory_id, answer, created_at, updated_at, deleted_at
+            }
+        */
+
+        log::info('EvaluationFormController::deleteEvaluationTextAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationTextAnswer = EvaluationTextAnswer
+                ::select()
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
+                ->first()
+            ;
+
+            if( !$evaluationTextAnswer ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Text Answer not found!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationSubcategoryID' => $request->subcategory_id
+            ]);
+
+            if( $evaluationTextAnswer->deleted_at ) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation Text Answer already deleted!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationSubcategoryID' => $request->subcategory_id
+            ]);
+
+            $now = date('Y-m-d H:i');
+            $evaluationTextAnswer->deleted_at = $now;
+            $evaluationTextAnswer->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'message' => 'Evaluation Text Answer successfully deleted',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationSubcategoryID' => $request->subcategory_id
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     public function editEvaluationTextAnswer(Request $request)
     {
@@ -1286,8 +1359,6 @@ class EvaluationResponseController extends Controller
         }
     
     }
-
-
 
     public function getEvaluationOptionAnswers(Request $request)
     {

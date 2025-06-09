@@ -417,6 +417,7 @@ import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
 
 const PerformanceEvaluationAnswerPage = () => {
   const { id } = useParams();
@@ -426,6 +427,10 @@ const PerformanceEvaluationAnswerPage = () => {
   const headers = getJWTHeader(user);
 
   const [responseMeta, setResponseMeta] = useState(null);
+  const {
+    evaluationResponse, subcategories,
+    saveEvaluationResponse, setPercentageAnswer, setTextAnswer
+  } = useEvaluationResponse(id);
   const [form, setForm] = useState(null);
   const [categories, setCategories] = useState({});
   const [loading, setLoading] = useState(true);
@@ -540,68 +545,71 @@ const PerformanceEvaluationAnswerPage = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event) => {
+    
+    event.preventDefault();
     setSubmitting(true);
     let hasError = false;
     let errorMsg = '';
 
-    for (const subCategoryId in categories) {
-      const sc = categories[subCategoryId];
-      try {
-        if (sc.subcategory_type === 'linear_scale') {
-          if (!sc.selectedValue) continue;
-          const percentage = (
-            (parseInt(sc.selectedValue, 10) - sc.linear_scale_start) /
-            (sc.linear_scale_end - sc.linear_scale_start)
-          );
-          await axiosInstance.post('/saveEvaluationPercentageAnswer', {
-            response_id: responseMeta.id,
-            subcategory_id: sc.id,
-            percentage,
-          }, { headers });
-        } else if (sc.subcategory_type === 'multiple_choice') {
-          if (!sc.selectedValue) continue;
-          const selectedOption = (sc.options || []).find(opt => opt.label === sc.selectedValue);
-          if (selectedOption) {
-            await axiosInstance.post('/saveEvaluationOptionAnswer', {
-              response_id: responseMeta.id,
-              option_id: selectedOption.id,
-            }, { headers });
-          }
-        } else if (sc.subcategory_type === 'checkbox') {
-          if (!Array.isArray(sc.selectedValues)) continue;
-          for (const value of sc.selectedValues) {
-            const selectedOption = (sc.options || []).find(opt => opt.label === value);
-            if (selectedOption) {
-              await axiosInstance.post('/saveEvaluationOptionAnswer', {
-                response_id: responseMeta.id,
-                option_id: selectedOption.id,
-              }, { headers });
-            }
-          }
-        } else if (sc.subcategory_type === 'short_answer' || sc.subcategory_type === 'long_answer') {
-          if (!sc.userResponse) continue;
-          await axiosInstance.post('/saveEvaluationTextAnswer', {
-            response_id: responseMeta.id,
-            subcategory_id: sc.id,
-            answer: sc.userResponse,
-          }, { headers });
-        }
-      } catch (e) {
-        hasError = true;
-        errorMsg = e?.response?.data?.message || 'Failed to submit some answers.';
-        break;
-      }
-    }
+    await saveEvaluationResponse();
+    // for (const subCategoryId in categories) {
+    //   const sc = categories[subCategoryId];
+    //   try {
+    //     if (sc.subcategory_type === 'linear_scale') {
+    //       if (!sc.selectedValue) continue;
+    //       const percentage = (
+    //         (parseInt(sc.selectedValue, 10) - sc.linear_scale_start) /
+    //         (sc.linear_scale_end - sc.linear_scale_start)
+    //       );
+    //       await axiosInstance.post('/saveEvaluationPercentageAnswer', {
+    //         response_id: responseMeta.id,
+    //         subcategory_id: sc.id,
+    //         percentage,
+    //       }, { headers });
+    //     } else if (sc.subcategory_type === 'multiple_choice') {
+    //       if (!sc.selectedValue) continue;
+    //       const selectedOption = (sc.options || []).find(opt => opt.label === sc.selectedValue);
+    //       if (selectedOption) {
+    //         await axiosInstance.post('/saveEvaluationOptionAnswer', {
+    //           response_id: responseMeta.id,
+    //           option_id: selectedOption.id,
+    //         }, { headers });
+    //       }
+    //     } else if (sc.subcategory_type === 'checkbox') {
+    //       if (!Array.isArray(sc.selectedValues)) continue;
+    //       for (const value of sc.selectedValues) {
+    //         const selectedOption = (sc.options || []).find(opt => opt.label === value);
+    //         if (selectedOption) {
+    //           await axiosInstance.post('/saveEvaluationOptionAnswer', {
+    //             response_id: responseMeta.id,
+    //             option_id: selectedOption.id,
+    //           }, { headers });
+    //         }
+    //       }
+    //     } else if (sc.subcategory_type === 'short_answer' || sc.subcategory_type === 'long_answer') {
+    //       if (!sc.userResponse) continue;
+    //       await axiosInstance.post('/saveEvaluationTextAnswer', {
+    //         response_id: responseMeta.id,
+    //         subcategory_id: sc.id,
+    //         answer: sc.userResponse,
+    //       }, { headers });
+    //     }
+    //   } catch (e) {
+    //     hasError = true;
+    //     errorMsg = e?.response?.data?.message || 'Failed to submit some answers.';
+    //     break;
+    //   }
+    // }
 
     setSubmitting(false);
 
-    if (hasError) {
-      alert(errorMsg);
-    } else {
-      // Advance to next workflow step after successful submit
-      await advanceWorkflow();
-    }
+    // if (hasError) {
+    //   alert(errorMsg);
+    // } else {
+    //   // Advance to next workflow step after successful submit
+    //   await advanceWorkflow();
+    // }
   };
 
   if (loading) {
@@ -660,7 +668,7 @@ const PerformanceEvaluationAnswerPage = () => {
           {form.name}
         </Typography>
 
-        <Box component="form" onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
+        <Box component="form" onSubmit={e => handleSubmit(e)}>
           {(!form.sections || form.sections.length === 0) && (
             <Typography>No sections available for this form.</Typography>
           )}
@@ -794,8 +802,8 @@ const PerformanceEvaluationAnswerPage = () => {
                             fullWidth
                             multiline
                             rows={2}
-                            value={categories[subCategory.id]?.userResponse || ''}
-                            onChange={(e) => handleShortAnswerChange(subCategory.id, e.target.value)}
+                            value={subcategories[subCategory.id].text_answer?.answer || ''}
+                            onChange={(e) => setTextAnswer(subCategory.id, e.target.value)}
                           />
                         </Box>
                       )}
