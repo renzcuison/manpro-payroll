@@ -1908,7 +1908,7 @@ class EvaluationFormController extends Controller
             $newEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::create([
                 'subcategory_id' => $request->subcategory_id,
                 'label' => $request->label,
-                'score' => (double) $request->score,
+                'score' => (double) $request->score ?? 1,
                 'order' => $order
             ]);
 
