@@ -523,6 +523,7 @@ const PemeRecordsForm = () => {
                         input_types: editSavedFormType,
                         file_size_limit: editSavedFileSize,
                     };
+                    ``;
                     await axiosInstance.put(
                         `/peme/${PemeID}/question/${form.id}`,
                         payload,
