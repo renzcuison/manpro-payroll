@@ -97,7 +97,7 @@ const PerformanceEvaluationResponsePage = () => {
             <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 Evaluatee: {response.evaluatee_last_name}, {response.evaluatee_first_name} {response.evaluatee_middle_name || ""}
             </Typography>
-            <Typography variant="subtitle2" sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 Evaluator: {response.evaluator_last_name}, {response.evaluator_first_name} {response.evaluator_middle_name || ""}
             </Typography>
 
@@ -185,16 +185,6 @@ const PerformanceEvaluationResponsePage = () => {
             ) : (
                 <Typography>No sections found for this evaluation form.</Typography>
             )}
-
-            {/* Comments (uncomment if needed)
-            <Divider sx={{ my: 3 }}/>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>Evaluator Comment:</Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>{response.evaluator_comment || <i style={{ color: "#bbb" }}>None</i>}</Typography>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>Primary Commentor:</Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>{response.primary_comment || <i style={{ color: "#bbb" }}>None</i>}</Typography>
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>Secondary Commentor:</Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>{response.secondary_comment || <i style={{ color: "#bbb" }}>None</i>}</Typography>
-            */}
         </Box>
     );
 };
