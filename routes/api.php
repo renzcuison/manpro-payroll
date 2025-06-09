@@ -63,6 +63,13 @@ use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\MilestoneController;
 use Illuminate\Support\Facades\Route;
 
+// PEME Controllers
+use App\Http\Controllers\PemeController;
+use App\Http\Controllers\PemeQuestionnaireController;
+use App\Http\Controllers\PemeResponseController;
+use App\Http\Controllers\PemeResponseDetailsController;
+
+
 Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);

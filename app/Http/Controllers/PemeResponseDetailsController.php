@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\Rule;
-// use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Validator;
 // use Illuminate\Validation\ValidationException;
 
 class PemeResponseDetailsController extends Controller
@@ -203,7 +203,7 @@ class PemeResponseDetailsController extends Controller
 
         if ($existingCount + $newFilesCount > $maxFiles) {
             return response()->json([
-                'message' => "You can only upload up to {$maxFiles} file(s) for this question. You currently have {$existingCount} uploaded.",
+                'message' => "You can only upload up to {$maxFiles} file(s) for this question. You currently have {$existingCount} uploaded."
             ], 422);
         }
 
@@ -216,7 +216,7 @@ class PemeResponseDetailsController extends Controller
             if ($maxKilobytes) {
                 $rules['file'] .= "|max:$maxKilobytes";
             }
-            validator(['file' => $file], $rules)->validate();
+            Validator::make(['file' => $file], $rules)->validate();
         }
 
         foreach ($files as $file) {

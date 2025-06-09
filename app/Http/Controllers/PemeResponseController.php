@@ -56,7 +56,7 @@ class PemeResponseController extends Controller
                 "branch" => $response->peme->user->branch->name ?? 'null',
                 "department" => $response->peme->user->department->name ?? 'null',
             ];
-        });
+        });  
 
         return response()->json($responses);
     }
