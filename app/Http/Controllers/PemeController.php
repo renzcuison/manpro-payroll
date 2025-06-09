@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\Peme;
+use App\Models\PemeResponse;
 use Carbon\Carbon;
 
 class PemeController extends Controller
@@ -88,7 +88,7 @@ class PemeController extends Controller
 
     public function getPemeList()
     {
-        Log::info("PemeController::getPemeList");
+        // Log::info("PemeController::getPemeList");
 
         if (!$this->checkUser()) {
             return response()->json(["message" => "Unauthorized"], 403);
@@ -114,6 +114,11 @@ class PemeController extends Controller
             ->orderBy("created_at", "desc")
             ->get()
             ->map(function ($peme) {
+
+                $respondentCount = PemeResponse::where('peme_id', $peme->id)
+                    ->distinct('user_id')
+                    ->count('user_id');
+
                 return [
                     "id" => Crypt::encrypt($peme->id),
                     "client_id" => Crypt::encrypt($peme->client_id),
@@ -126,7 +131,7 @@ class PemeController extends Controller
                     "name" => $peme->name,
                     "respondents" => $peme->respondents,
                     "isVisible" => $peme->isVisible,
-                    "isEditable" => $peme->isEditable,
+                    "isEditable" => $respondentCount > 0 ? 0 : $peme->isEditable,
                     "isMultiple" => $peme->isMultiple,
                     "created_at" => $peme->created_at,
                     "updated_at" => $peme->updated_at,
@@ -156,6 +161,89 @@ class PemeController extends Controller
 
         return response()->json($data);
     }
+
+    public function updatePemeSettings(Request $request, $id)
+    {
+        if (!$this->checkUser()) {
+            return response()->json(["message" => "Unauthorized"], 403);
+        }
+
+        $validatedData = $request->validate([
+            'isVisible' => 'sometimes|boolean',
+            'isEditable' => 'sometimes|boolean',
+            'isMultiple' => 'sometimes|boolean',
+        ]);
+
+        try {
+            $pemeId = Crypt::decrypt($id);
+        } catch (\Exception $e) {
+            return response()->json(["message" => "Invalid ID"], 400);
+        }
+
+        $peme = Peme::find($pemeId);
+
+        if (!$peme) {
+            return response()->json(["message" => "PEME record not found"], 404);
+        }
+
+        $respondentCount = PemeResponse::where('peme_id', $peme->id)
+            ->distinct('user_id')
+            ->count('user_id');
+
+        if (array_key_exists('isVisible', $validatedData)) {
+            $peme->isVisible = $validatedData['isVisible'];
+        }
+
+        if (array_key_exists('isEditable', $validatedData)) {
+            if ($respondentCount > 0) {
+                $peme->isEditable = 0;
+            } else {
+                $peme->isEditable = $validatedData['isEditable'];
+            }
+        } else {
+            if ($respondentCount > 0) {
+                $peme->isEditable = 0;
+            }
+        }
+
+        if (array_key_exists('isMultiple', $validatedData)) {
+            $peme->isMultiple = $validatedData['isMultiple'];
+        }
+
+        $peme->save();
+
+        return response()->json([
+            "message" => "Response settings updated successfully.",
+            "peme" => [
+                "id" => Crypt::encrypt($peme->id),
+                "isVisible" => $peme->isVisible,
+                "isEditable" => $peme->isEditable,
+                "isMultiple" => $peme->isMultiple,
+            ]
+        ]);
+    }
+
+
+    public function deletePeme($id)
+    {
+        if (!$this->checkUser()) {
+            return response()->json(["message" => "Unauthorized"], 403);
+        }
+
+        try {
+            $pemeId = Crypt::decrypt($id);
+        } catch (\Exception $e) {
+            return response()->json(["message" => "Invalid ID"], 400);
+        }
+
+        $peme = Peme::find($pemeId);
+
+        if (!$peme) {
+            return response()->json(["message" => "PEME not found"], 404);
+        }
+
+        $peme->delete();
+
+        return response()->json(["message" => "PEME record deleted."]);
+    }
 }
-
-

@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('peme', function (Blueprint $table) {
-            $table->boolean('isVisible')->default(0);
-            $table->boolean('isEditable')->default(0);
-            $table->boolean('isMultiple')->default(0);
+            $table->boolean('isVisible')->default(1);
+            $table->boolean('isEditable')->default(1);
+            $table->boolean('isMultiple')->default(1);
         });
     }
 
