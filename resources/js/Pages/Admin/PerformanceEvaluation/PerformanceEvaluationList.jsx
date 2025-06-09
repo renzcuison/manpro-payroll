@@ -235,7 +235,9 @@ const PerformanceEvaluationList = () => {
                                                         }}
                                                     >
                                                         <TableCell align="center">{row.date}</TableCell>
-                                                        <TableCell align="center">{`${row.last_name}, ${row.first_name} ${row.middle_name || ''}`}</TableCell>
+                                                        <TableCell align="center">{
+                                                            `${row.evaluatee.last_name}, ${row.evaluatee.first_name}${row.evaluatee.middle_name ? ' ' + row.evaluatee.middle_name : ''}`
+                                                        }</TableCell>
                                                         <TableCell align="center">{row.department_name}</TableCell>
                                                         <TableCell align="center">{row.branch_name}</TableCell>
                                                         <TableCell align="center">{row.status}</TableCell>

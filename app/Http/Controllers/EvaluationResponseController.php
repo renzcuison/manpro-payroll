@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\UsersModel;
-use App\Models\User;
 use App\Models\EvaluationForm;
 use App\Models\EvaluationFormSection;
 use App\Models\EvaluationFormCategory;
@@ -99,7 +98,7 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.updated_at',
                     DB::raw("'Pending' as status")
                 )
-                ->with(['evaluation_responses.evaluatee' => fn ($evaluatee) =>
+                ->with(['evaluatee' => fn ($evaluatee) =>
                     $evaluatee->select('id', 'last_name', 'first_name', 'middle_name')
                 ])
                 ->with(['evaluators' => fn ($evaluatee) =>
@@ -193,7 +192,7 @@ class EvaluationResponseController extends Controller
                                 ->orderBy('order')
                         ])
                 ])
-                ->where('id', $request->id)
+                ->where('evaluation_responses.id', $request->id)
                 ->first()
             ;
             if( !$evaluationResponse ) return response()->json([
@@ -205,95 +204,6 @@ class EvaluationResponseController extends Controller
                     'status' => 404,
                     'message' => 'Evaluation Response not found!'
                 ]);
-            }
-
-            $creator_user_name = $form && $form->creator ? $form->creator->user_name : null;
-
-            $evaluationForm = null;
-            if ($form) {
-                $evaluationForm = [
-                    'id' => $form->id,
-                    'name' => $form->name,
-                    'creator_id' => $form->creator_id,
-                    'creator_user_name' => $creator_user_name,
-                    'sections' => [],
-                ];
-                foreach ($form->sections as $section) {
-                    $sectionArr = [
-                        'form_id' => $section->form_id,
-                        'id' => $section->id,
-                        'name' => $section->name,
-                        'category' => $section->category,
-                        'order' => $section->order,
-                        'subcategories' => [],
-                    ];
-                    foreach ($section->subcategories as $subcat) {
-                        $percentage_answer = EvaluationPercentageAnswer::where([
-                            ['response_id', $evaluationResponse->id],
-                            ['subcategory_id', $subcat->id]
-                        ])->first();
-                        $text_answer = EvaluationTextAnswer::where([
-                            ['response_id', $evaluationResponse->id],
-                            ['subcategory_id', $subcat->id]
-                        ])->first();
-
-                        $options = [];
-                        foreach ($subcat->options as $option) {
-                            $option_answer = EvaluationOptionAnswer::where([
-                                ['response_id', $evaluationResponse->id],
-                                ['option_id', $option->id]
-                            ])->first();
-                            $options[] = [
-                                'subcategory_id' => $option->subcategory_id,
-                                'id' => $option->id,
-                                'label' => $option->label,
-                                'order' => $option->order,
-                                'option_answer' => $option_answer
-                                    ? [
-                                        'response_id' => $option_answer->response_id,
-                                        'option_id' => $option_answer->option_id
-                                    ] : null
-                            ];
-                        }
-
-                        $sectionArr['subcategories'][] = [
-                            'section_id' => $subcat->section_id,
-                            'id' => $subcat->id,
-                            'name' => $subcat->name,
-                            'subcategory_type' => $subcat->subcategory_type,
-                            'description' => $subcat->description,
-                            'required' => $subcat->required,
-                            'allow_other_option' => $subcat->allow_other_option,
-                            'linear_scale_start' => $subcat->linear_scale_start,
-                            'linear_scale_end' => $subcat->linear_scale_end,
-                            'order' => $subcat->order,
-                            'options' => $options,
-                            'percentage_answer' => $percentage_answer
-                                ? [
-                                    'response_id' => $percentage_answer->response_id,
-                                    'subcategory_id' => $percentage_answer->subcategory_id,
-                                    'percentage' => $percentage_answer->percentage,
-                                    'value' =>
-                                        ($percentage_answer->percentage !== null && $subcat->linear_scale_start !== null && $subcat->linear_scale_end !== null)
-                                            ? round($percentage_answer->percentage * ($subcat->linear_scale_end - $subcat->linear_scale_start) + $subcat->linear_scale_start)
-                                            : null,
-                                    'linear_scale_index' =>
-                                        ($percentage_answer->percentage !== null && $subcat->linear_scale_start !== null && $subcat->linear_scale_end !== null)
-                                            ? round($percentage_answer->percentage * ($subcat->linear_scale_end - $subcat->linear_scale_start))
-                                            : null,
-                                ]
-                                : null,
-                            'text_answer' => $text_answer
-                                ? [
-                                    'response_id' => $text_answer->response_id,
-                                    'subcategory_id' => $text_answer->subcategory_id,
-                                    'answer' => $text_answer->answer
-                                ]
-                                : null,
-                        ];
-                    }
-                    $evaluationForm['sections'][] = $sectionArr;
-                }
             }
 
             return response()->json([
@@ -317,10 +227,6 @@ class EvaluationResponseController extends Controller
             page: number = 1,                   // counting starts at 1
             limit: number = 10,
             form_id?: number,                   // gets all if none given
-            user_id?: number,                   // finds for any response they are included
-            evaluatee_id?: number,              // either user_id, evaluatee_id, evaluator_id, or commentor_id must be given
-            evaluator_id?: number,
-            commentor_id?: number,
             search: string,                     // searches for form name, date, evalautee name, department name, branch name, or status
             order_by: {
                 key:
@@ -347,22 +253,16 @@ class EvaluationResponseController extends Controller
 
         Log::info('EvaluationResponseController::getEvaluationResponses');
 
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
-
-        $user = DB::table('users')->where('id', $userID)->first();
-
         try {
-            if(
-                $request->user_id === null && $request->evaluatee_id === null
-                && $request->evaluator_id === null && $request->commentor_id === null
-            ) return response()->json([
-                'status' => 400,
-                'message' => 'Either Evaluatee ID, Evaluator ID, or Commentor ID must be given!'
-            ]);
+
+            if (Auth::check()) {
+                $userID = Auth::id();
+            } else {
+                $userID = null;
+            }
+
+            $user = DB::table('users')->where('id', $userID)->first();
+
             if($request->page === null) $request->page = 1;
             if($request->limit === null) $request->limit = 10;
             if ($request->page < 1 || $request->limit < 1)
@@ -388,7 +288,7 @@ class EvaluationResponseController extends Controller
                             WHEN commentors.commentor_id = ? THEN "Commentor"
                         ELSE "Idunno" END as role
                     ',
-                    [$request->user_id, $request->user_id, $request->user_id]
+                    [$user->id, $user->id, $user->id]
                 )
                 ->addSelect('evaluatee_id')
                 ->with(['evaluatee' => fn ($evaluatee) =>
@@ -411,9 +311,9 @@ class EvaluationResponseController extends Controller
                         ->orWhere(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
                         ->orWhere(
                             DB::raw('CONCAT(
-                                evaluatees.first_name, " ",
-                                IF(ISNULL(evaluatees.middle_name), "", CONCAT(evaluatees.middle_name, " ")),
-                                evaluatees.last_name
+                                evaluatees.last_name, ", ",
+                                evaluatees.first_name,
+                                IF(ISNULL(evaluatees.middle_name), "", CONCAT(" ", evaluatees.middle_name))
                             )'),
                             'LIKE', "%$request->search%"
                         )
@@ -425,20 +325,13 @@ class EvaluationResponseController extends Controller
             
             if ($request->form_id !== null)
                 $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
-            if ($request->evaluatee_id !== null)
-                $evaluationResponses = $evaluationResponses->where('evaluation_responses.evaluatee_id', $request->evaluatee_id);
-            if ($request->evaluator_id !== null)
-                $evaluationResponses = $evaluationResponses->where('evaluators.evaluator_id', $request->evaluator_id);
-            if ($request->commentor_id !== null)
-                $evaluationResponses = $evaluationResponses->where('commentors.commentor_id', $request->commentor_id);
-            if($request->user_id !== null)
-                $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
-                    $query
-                        ->where('evaluation_responses.evaluatee_id', $request->user_id)
-                        ->orWhere('evaluators.evaluator_id', $request->user_id)
-                        ->orWhere('commentors.commentor_id', $request->user_id)
-                    ;
-                });
+            $evaluationResponses = $evaluationResponses->where(function ($query) use ($request, $user) {
+                $query
+                    ->where('evaluation_responses.evaluatee_id', $user->id)
+                    ->orWhere('evaluators.evaluator_id', $user->id)
+                    ->orWhere('commentors.commentor_id', $user->id)
+                ;
+            });
             $evaluationResponses = $evaluationResponses->groupBy('evaluators.response_id', 'commentors.response_id');
 
             if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
