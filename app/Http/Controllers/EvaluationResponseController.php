@@ -390,7 +390,187 @@ class EvaluationResponseController extends Controller
     //     }
     // }
 
-        public function getEvaluationResponse(Request $request)
+    //     public function getEvaluationResponse(Request $request)
+    // {
+    //     Log::info('EvaluationResponseController::getEvaluationResponse');
+
+    //     try {
+    //         $evaluationResponse = EvaluationResponse::find($request->id);
+
+    //         if (!$evaluationResponse) {
+    //             return response()->json([
+    //                 'status' => 404,
+    //                 'message' => 'Evaluation Response not found!'
+    //             ]);
+    //         }
+
+    //         // Use the new UsersModel for all user lookups
+    //         $evaluatee = UsersModel::find($evaluationResponse->evaluatee_id);
+    //         $evaluator = UsersModel::find($evaluationResponse->evaluator_id);
+    //         $primary = UsersModel::find($evaluationResponse->primary_commentor_id);
+    //         $secondary = UsersModel::find($evaluationResponse->secondary_commentor_id);
+
+    //         $datetime = $evaluationResponse->updated_at
+    //             ? date('M d, Y - h:i A', strtotime($evaluationResponse->updated_at))
+    //             : null;
+    //         $period_start_date = $evaluationResponse->period_start_at
+    //             ? date('M d, Y', strtotime($evaluationResponse->period_start_at))
+    //             : null;
+    //         $period_end_date = $evaluationResponse->period_end_at
+    //             ? date('M d, Y', strtotime($evaluationResponse->period_end_at))
+    //             : null;
+
+    //         $form = EvaluationForm::with([
+    //             'creator:id,user_name',
+    //             'sections' => function ($query) {
+    //                 $query->whereNull('deleted_at')
+    //                     ->orderBy('order')
+    //                     ->with(['subcategories' => function ($q) {
+    //                         $q->whereNull('deleted_at')
+    //                             ->orderBy('order')
+    //                             ->with([
+    //                                 'options' => function ($oq) {
+    //                                     $oq->whereNull('deleted_at')->orderBy('order');
+    //                                 }
+    //                             ]);
+    //                     }]);
+    //             }
+    //         ])->find($evaluationResponse->form_id);
+
+    //         $creator_user_name = $form && $form->creator ? $form->creator->user_name : null;
+
+    //         // Build the form object for response
+    //         $evaluationForm = null;
+    //         if ($form) {
+    //             $evaluationForm = [
+    //                 'id' => $form->id,
+    //                 'name' => $form->name,
+    //                 'creator_id' => $form->creator_id,
+    //                 'creator_user_name' => $creator_user_name,
+    //                 'sections' => [],
+    //             ];
+    //             foreach ($form->sections as $section) {
+    //                 $sectionArr = [
+    //                     'form_id' => $section->form_id,
+    //                     'id' => $section->id,
+    //                     'name' => $section->name,
+    //                     'category' => $section->category,
+    //                     'order' => $section->order,
+    //                     'subcategories' => [],
+    //                 ];
+    //                 foreach ($section->subcategories as $subcat) {
+    //                     $percentage_answer = EvaluationPercentageAnswer::where([
+    //                         ['response_id', $evaluationResponse->id],
+    //                         ['subcategory_id', $subcat->id]
+    //                     ])->first();
+    //                     $text_answer = EvaluationTextAnswer::where([
+    //                         ['response_id', $evaluationResponse->id],
+    //                         ['subcategory_id', $subcat->id]
+    //                     ])->first();
+
+    //                     $options = [];
+    //                     foreach ($subcat->options as $option) {
+    //                         $option_answer = EvaluationOptionAnswer::where([
+    //                             ['response_id', $evaluationResponse->id],
+    //                             ['option_id', $option->id]
+    //                         ])->first();
+    //                         $options[] = [
+    //                             'subcategory_id' => $option->subcategory_id,
+    //                             'id' => $option->id,
+    //                             'label' => $option->label,
+    //                             'order' => $option->order,
+    //                             'option_answer' => $option_answer
+    //                                 ? [
+    //                                     'id' => $option_answer->id,
+    //                                     'response_id' => $option_answer->response_id,
+    //                                     'option_id' => $option_answer->option_id
+    //                                 ] : null
+    //                         ];
+    //                     }
+
+    //                     $sectionArr['subcategories'][] = [
+    //                         'section_id' => $subcat->section_id,
+    //                         'id' => $subcat->id,
+    //                         'name' => $subcat->name,
+    //                         'subcategory_type' => $subcat->subcategory_type,
+    //                         'description' => $subcat->description,
+    //                         'required' => $subcat->required,
+    //                         'allow_other_option' => $subcat->allow_other_option,
+    //                         'linear_scale_start' => $subcat->linear_scale_start,
+    //                         'linear_scale_end' => $subcat->linear_scale_end,
+    //                         'order' => $subcat->order,
+    //                         'options' => $options,
+    //                         'percentage_answer' => $percentage_answer
+    //                             ? [
+    //                                 'id' => $percentage_answer->id,
+    //                                 'response_id' => $percentage_answer->response_id,
+    //                                 'subcategory_id' => $percentage_answer->subcategory_id,
+    //                                 'percentage' => $percentage_answer->percentage,
+    //                                 'value' =>
+    //                                     ($percentage_answer->percentage !== null && $subcat->linear_scale_start !== null && $subcat->linear_scale_end !== null)
+    //                                         ? round($percentage_answer->percentage * ($subcat->linear_scale_end - $subcat->linear_scale_start) + $subcat->linear_scale_start)
+    //                                         : null,
+    //                                 'linear_scale_index' =>
+    //                                     ($percentage_answer->percentage !== null && $subcat->linear_scale_start !== null && $subcat->linear_scale_end !== null)
+    //                                         ? round($percentage_answer->percentage * ($subcat->linear_scale_end - $subcat->linear_scale_start))
+    //                                         : null,
+    //                             ]
+    //                             : null,
+    //                         'text_answer' => $text_answer
+    //                             ? [
+    //                                 'id' => $text_answer->id,
+    //                                 'response_id' => $text_answer->response_id,
+    //                                 'subcategory_id' => $text_answer->subcategory_id,
+    //                                 'answer' => $text_answer->answer
+    //                             ]
+    //                             : null,
+    //                     ];
+    //                 }
+    //                 $evaluationForm['sections'][] = $sectionArr;
+    //             }
+    //         }
+
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Response successfully retrieved.',
+    //             'evaluationResponse' => [
+    //                 'id' => $evaluationResponse->id,
+    //                 'datetime' => $datetime,
+    //                 'evaluatee_id' => $evaluatee ? $evaluatee->id : null,
+    //                 'evaluatee_last_name' => $evaluatee ? $evaluatee->last_name : null,
+    //                 'evaluatee_first_name' => $evaluatee ? $evaluatee->first_name : null,
+    //                 'evaluatee_middle_name' => $evaluatee ? $evaluatee->middle_name : null,
+    //                 'evaluator_id' => $evaluator ? $evaluator->id : null,
+    //                 'evaluator_last_name' => $evaluator ? $evaluator->last_name : null,
+    //                 'evaluator_first_name' => $evaluator ? $evaluator->first_name : null,
+    //                 'evaluator_middle_name' => $evaluator ? $evaluator->middle_name : null,
+    //                 'primary_commentor_id' => $primary ? $primary->id : null,
+    //                 'primary_last_name' => $primary ? $primary->last_name : null,
+    //                 'primary_first_name' => $primary ? $primary->first_name : null,
+    //                 'primary_middle_name' => $primary ? $primary->middle_name : null,
+    //                 'secondary_commentor_id' => $secondary ? $secondary->id : null,
+    //                 'secondary_last_name' => $secondary ? $secondary->last_name : null,
+    //                 'secondary_first_name' => $secondary ? $secondary->first_name : null,
+    //                 'secondary_middle_name' => $secondary ? $secondary->middle_name : null,
+    //                 'period_start_date' => $period_start_date,
+    //                 'period_end_date' => $period_end_date,
+    //                 'signature_filepath' => $evaluationResponse->signature_filepath,
+    //                 'created_at' => $evaluationResponse->created_at,
+    //                 'updated_at' => $evaluationResponse->updated_at,
+    //                 'status' => 'Pending',
+    //                 'evaluationForm' => $evaluationForm,
+    //             ]
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         Log::error('Error getting evaluation response: ' . $e->getMessage());
+    //         return response()->json([
+    //             'status' => 500,
+    //             'message' => 'Server error: ' . $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
+ public function getEvaluationResponse(Request $request)
     {
         Log::info('EvaluationResponseController::getEvaluationResponse');
 
@@ -404,7 +584,6 @@ class EvaluationResponseController extends Controller
                 ]);
             }
 
-            // Use the new UsersModel for all user lookups
             $evaluatee = UsersModel::find($evaluationResponse->evaluatee_id);
             $evaluator = UsersModel::find($evaluationResponse->evaluator_id);
             $primary = UsersModel::find($evaluationResponse->primary_commentor_id);
@@ -439,7 +618,6 @@ class EvaluationResponseController extends Controller
 
             $creator_user_name = $form && $form->creator ? $form->creator->user_name : null;
 
-            // Build the form object for response
             $evaluationForm = null;
             if ($form) {
                 $evaluationForm = [
@@ -481,7 +659,6 @@ class EvaluationResponseController extends Controller
                                 'order' => $option->order,
                                 'option_answer' => $option_answer
                                     ? [
-                                        'id' => $option_answer->id,
                                         'response_id' => $option_answer->response_id,
                                         'option_id' => $option_answer->option_id
                                     ] : null
@@ -502,7 +679,6 @@ class EvaluationResponseController extends Controller
                             'options' => $options,
                             'percentage_answer' => $percentage_answer
                                 ? [
-                                    'id' => $percentage_answer->id,
                                     'response_id' => $percentage_answer->response_id,
                                     'subcategory_id' => $percentage_answer->subcategory_id,
                                     'percentage' => $percentage_answer->percentage,
@@ -518,7 +694,6 @@ class EvaluationResponseController extends Controller
                                 : null,
                             'text_answer' => $text_answer
                                 ? [
-                                    'id' => $text_answer->id,
                                     'response_id' => $text_answer->response_id,
                                     'subcategory_id' => $text_answer->subcategory_id,
                                     'answer' => $text_answer->answer
@@ -1524,193 +1699,361 @@ class EvaluationResponseController extends Controller
     
     }
 
+    // public function getEvaluationOptionAnswers(Request $request)
+    // {
+
+    //     // inputs:
+    //     /*
+    //         response_id?: number,      // either form_id, subcategory_id, or option_id must be given
+    //         subcategory_id?: number,
+    //         option_id?: number
+    //     */
+
+    //     // returns:
+    //     /*
+    //         evaluationOptionAnswers: {
+    //             id, response_id, option_id, created_at, updated_at
+    //         }[]
+    //     */
+
+    //     log::info('EvaluationResponseController::getEvaluationOptionAnswers');
+
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+    
+    //     $user = DB::table('users')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if(
+    //             !$request->response_id && !$request->subcategory_id && !$request->option_id
+    //         ) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Either Response ID, Subcategory ID, or Option ID must be given!'
+    //         ]);
+            
+    //         $evaluationOptionAnswers = EvaluationOptionAnswer
+    //             ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
+    //             ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
+    //             ->select(
+    //                 'evaluation_option_answers.id', 'evaluation_option_answers.response_id',
+    //                 'evaluation_form_subcategories.id as subcategory_id',
+    //                 'evaluation_option_answers.option_id',
+    //                 'evaluation_option_answers.created_at', 'evaluation_option_answers.updated_at'
+    //             )
+    //         ;
+            
+    //         if($request->response_id)
+    //             $evaluationOptionAnswers = $evaluationOptionAnswers->where(
+    //                 'evaluation_option_answers.response_id', $request->response_id
+    //             );
+    //         if($request->subcategory_id)
+    //             $evaluationOptionAnswers = $evaluationOptionAnswers->where(
+    //                 'evaluation_form_subcategories.id', $request->subcategory_id
+    //             );
+    //         if($request->option_id)
+    //             $evaluationOptionAnswers = $evaluationOptionAnswers->where(
+    //                 'evaluation_option_answers.option_id', $request->option_id
+    //             );
+    //         $evaluationOptionAnswers = $evaluationOptionAnswers->get();
+
+    //         if( !$evaluationOptionAnswers ) return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation Option Answers not found!'
+    //         ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Option Answers successfully retrieved.',
+    //             'evaluationOptionAnswers' => $evaluationOptionAnswers
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
+
+    //         throw $e;
+    //     }
+    
+    // }
+
     public function getEvaluationOptionAnswers(Request $request)
-    {
+{
+    Log::info('EvaluationResponseController::getEvaluationOptionAnswers');
 
-        // inputs:
-        /*
-            response_id?: number,      // either form_id, subcategory_id, or option_id must be given
-            subcategory_id?: number,
-            option_id?: number
-        */
-
-        // returns:
-        /*
-            evaluationOptionAnswers: {
-                id, response_id, option_id, created_at, updated_at
-            }[]
-        */
-
-        log::info('EvaluationResponseController::getEvaluationOptionAnswers');
-
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
-    
-        $user = DB::table('users')->where('id', $userID)->first();
-
-        try {
-
-            if(
-                !$request->response_id && !$request->subcategory_id && !$request->option_id
-            ) return response()->json([
-                'status' => 400,
-                'message' => 'Either Response ID, Subcategory ID, or Option ID must be given!'
-            ]);
-            
-            $evaluationOptionAnswers = EvaluationOptionAnswer
-                ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
-                ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
-                ->select(
-                    'evaluation_option_answers.id', 'evaluation_option_answers.response_id',
-                    'evaluation_form_subcategories.id as subcategory_id',
-                    'evaluation_option_answers.option_id',
-                    'evaluation_option_answers.created_at', 'evaluation_option_answers.updated_at'
-                )
-            ;
-            
-            if($request->response_id)
-                $evaluationOptionAnswers = $evaluationOptionAnswers->where(
-                    'evaluation_option_answers.response_id', $request->response_id
-                );
-            if($request->subcategory_id)
-                $evaluationOptionAnswers = $evaluationOptionAnswers->where(
-                    'evaluation_form_subcategories.id', $request->subcategory_id
-                );
-            if($request->option_id)
-                $evaluationOptionAnswers = $evaluationOptionAnswers->where(
-                    'evaluation_option_answers.option_id', $request->option_id
-                );
-            $evaluationOptionAnswers = $evaluationOptionAnswers->get();
-
-            if( !$evaluationOptionAnswers ) return response()->json([
-                'status' => 404,
-                'message' => 'Evaluation Option Answers not found!'
-            ]);
-            return response()->json([
-                'status' => 200,
-                'message' => 'Evaluation Option Answers successfully retrieved.',
-                'evaluationOptionAnswers' => $evaluationOptionAnswers
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Error saving work shift: ' . $e->getMessage());
-
-            throw $e;
-        }
-    
+    if (Auth::check()) {
+        $userID = Auth::id();
+    } else {
+        $userID = null;
     }
+    $user = DB::table('users')->where('id', $userID)->first();
 
-    public function saveEvaluationOptionAnswer(Request $request)
-    {
-        // inputs:
-        /*
-            option_id: number,
-            response_id: number
-        */
+    try {
+        if (
+            !$request->response_id && !$request->subcategory_id && !$request->option_id
+        ) return response()->json([
+            'status' => 400,
+            'message' => 'Either Response ID, Subcategory ID, or Option ID must be given!'
+        ]);
 
-        // returns:
-        /*
-            evaluationOptionAnswerID
-        */
+        $evaluationOptionAnswers = EvaluationOptionAnswer
+            ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
+            ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
+            ->select(
+                'evaluation_option_answers.response_id',
+                'evaluation_option_answers.option_id',
+                'evaluation_form_subcategories.id as subcategory_id',
+                'evaluation_option_answers.created_at',
+                'evaluation_option_answers.updated_at'
+            );
 
-        log::info('EvaluationResponseController::saveEvaluationOptionAnswer');
+        if ($request->response_id)
+            $evaluationOptionAnswers = $evaluationOptionAnswers->where(
+                'evaluation_option_answers.response_id', $request->response_id
+            );
+        if ($request->subcategory_id)
+            $evaluationOptionAnswers = $evaluationOptionAnswers->where(
+                'evaluation_form_subcategories.id', $request->subcategory_id
+            );
+        if ($request->option_id)
+            $evaluationOptionAnswers = $evaluationOptionAnswers->where(
+                'evaluation_option_answers.option_id', $request->option_id
+            );
+        $evaluationOptionAnswers = $evaluationOptionAnswers->get();
 
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+        if (!$evaluationOptionAnswers || $evaluationOptionAnswers->isEmpty()) return response()->json([
+            'status' => 404,
+            'message' => 'Evaluation Option Answers not found!'
+        ]);
+        return response()->json([
+            'status' => 200,
+            'message' => 'Evaluation Option Answers successfully retrieved.',
+            'evaluationOptionAnswers' => $evaluationOptionAnswers
+        ]);
 
-        $user = DB::table('users')->select('*')->where('id', $userID)->first();
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Error getting evaluation option answers: ' . $e->getMessage());
+        return response()->json([
+            'status' => 500,
+            'message' => 'Server error: ' . $e->getMessage(),
+        ], 500);
+    }
+}
 
-        try {
+    // public function saveEvaluationOptionAnswer(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         option_id: number,
+    //         response_id: number
+    //     */
 
-            if( $user === null ) return response()->json([ 
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
+    //     // returns:
+    //     /*
+    //         evaluationOptionAnswerID
+    //     */
 
-            $subcategory = EvaluationFormSubcategoryOption
-                ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
-                ->select(
-                    'evaluation_form_subcategories.id',
-                    'evaluation_form_subcategories.subcategory_type'
-                )
-                ->where('evaluation_form_subcategory_options.id', $request->option_id)
-                ->first()
-            ;
+    //     log::info('EvaluationResponseController::saveEvaluationOptionAnswer');
 
-            switch($subcategory->subcategory_type) {
-                case "linear_scale":
-                case "long_answer":
-                case "short_answer":
-                    return response()->json([
-                        'status' => 400,
-                        'message' => 'This subcategory does not accept choice answers!',
-                        'evaluationFormSubcategoryID' => $subcategory->id
-                    ]);
-                    break;
-                case "checkbox":
-                    $existingOptionAnswer = EvaluationOptionAnswer
-                        ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
-                        ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
-                        ->select('evaluation_option_answers.id')
-                        ->where('evaluation_option_answers.option_id', '=', $request->option_id)
-                        ->where('evaluation_option_answers.response_id', '=', $request->response_id)
-                        ->first()
-                    ;
-                    if($existingOptionAnswer) return response()->json([ 
-                        'status' => 409,
-                        'message' => 'The same option answer was already created for this subcategory!',
-                        'evaluationOptionAnswerID' => $existingOptionAnswer->id
-                    ]);
-                    break;
-                case "dropdown":
-                case "multiple_choice":
-                    $existingOptionAnswer = EvaluationOptionAnswer
-                        ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
-                        ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
-                        ->select('evaluation_option_answers.id')
-                        ->where('evaluation_option_answers.response_id', '=', $request->response_id)
-                        ->first()
-                    ;
-                    if($existingOptionAnswer) return response()->json([ 
-                        'status' => 409,
-                        'message' => 'An option answer was already created for this subcategory!',
-                        'evaluationOptionAnswerID' => $existingOptionAnswer->id
-                    ]);
-                    break;
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    //     try {
+
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         $subcategory = EvaluationFormSubcategoryOption
+    //             ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
+    //             ->select(
+    //                 'evaluation_form_subcategories.id',
+    //                 'evaluation_form_subcategories.subcategory_type'
+    //             )
+    //             ->where('evaluation_form_subcategory_options.id', $request->option_id)
+    //             ->first()
+    //         ;
+
+    //         switch($subcategory->subcategory_type) {
+    //             case "linear_scale":
+    //             case "long_answer":
+    //             case "short_answer":
+    //                 return response()->json([
+    //                     'status' => 400,
+    //                     'message' => 'This subcategory does not accept choice answers!',
+    //                     'evaluationFormSubcategoryID' => $subcategory->id
+    //                 ]);
+    //                 break;
+    //             case "checkbox":
+    //                 $existingOptionAnswer = EvaluationOptionAnswer
+    //                     ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
+    //                     ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
+    //                     ->select('evaluation_option_answers.id')
+    //                     ->where('evaluation_option_answers.option_id', '=', $request->option_id)
+    //                     ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+    //                     ->first()
+    //                 ;
+    //                 if($existingOptionAnswer) return response()->json([ 
+    //                     'status' => 409,
+    //                     'message' => 'The same option answer was already created for this subcategory!',
+    //                     'evaluationOptionAnswerID' => $existingOptionAnswer->id
+    //                 ]);
+    //                 break;
+    //             case "dropdown":
+    //             case "multiple_choice":
+    //                 $existingOptionAnswer = EvaluationOptionAnswer
+    //                     ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
+    //                     ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
+    //                     ->select('evaluation_option_answers.id')
+    //                     ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+    //                     ->first()
+    //                 ;
+    //                 if($existingOptionAnswer) return response()->json([ 
+    //                     'status' => 409,
+    //                     'message' => 'An option answer was already created for this subcategory!',
+    //                     'evaluationOptionAnswerID' => $existingOptionAnswer->id
+    //                 ]);
+    //                 break;
                 
-            }
+    //         }
 
-            DB::beginTransaction();
+    //         DB::beginTransaction();
 
-            $newEvaluationOptionAnswer = EvaluationOptionAnswer::create([
-                'response_id' => $request->response_id,
-                'option_id' => $request->option_id
-            ]);
+    //         $newEvaluationOptionAnswer = EvaluationOptionAnswer::create([
+    //             'response_id' => $request->response_id,
+    //             'option_id' => $request->option_id
+    //         ]);
 
-            DB::commit();
+    //         DB::commit();
 
-            return response()->json([ 
-                'status' => 201,
-                'evaluationOptionAnswerID' => $newEvaluationOptionAnswer->id,
-                'message' => 'Evaluation Option Answer successfully created'
-            ]);
+    //         return response()->json([ 
+    //             'status' => 201,
+    //             'evaluationOptionAnswerID' => $newEvaluationOptionAnswer->id,
+    //             'message' => 'Evaluation Option Answer successfully created'
+    //         ]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
 
-            Log::error('Error saving work shift: ' . $e->getMessage());
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
 
-            throw $e;
-        }
+    //         throw $e;
+    //     }
+    // }
+    public function saveEvaluationOptionAnswer(Request $request)
+{
+    Log::info('EvaluationResponseController::saveEvaluationOptionAnswer');
+
+    if (Auth::check()) {
+        $userID = Auth::id();
+    } else {
+        $userID = null;
     }
+
+    $user = DB::table('users')->select('*')->where('id', $userID)->first();
+
+    try {
+        if ($user === null) return response()->json([
+            'status' => 403,
+            'message' => 'Unauthorized access!'
+        ]);
+
+        $subcategory = EvaluationFormSubcategoryOption
+            ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
+            ->select(
+                'evaluation_form_subcategories.id as subcategory_id',
+                'evaluation_form_subcategories.subcategory_type'
+            )
+            ->where('evaluation_form_subcategory_options.id', $request->option_id)
+            ->first();
+
+        if (!$subcategory) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Subcategory not found!'
+            ]);
+        }
+
+        switch ($subcategory->subcategory_type) {
+            case "linear_scale":
+            case "long_answer":
+            case "short_answer":
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'This subcategory does not accept choice answers!',
+                    'evaluationFormSubcategoryID' => $subcategory->subcategory_id
+                ]);
+            case "checkbox":
+                $existingOptionAnswer = EvaluationOptionAnswer
+                    ::where('option_id', '=', $request->option_id)
+                    ->where('response_id', '=', $request->response_id)
+                    ->first();
+                if ($existingOptionAnswer) return response()->json([
+                    'status' => 409,
+                    'message' => 'The same option answer was already created for this subcategory!',
+                    'evaluationOptionAnswer' => [
+                        'response_id' => $existingOptionAnswer->response_id,
+                        'option_id' => $existingOptionAnswer->option_id,
+                    ]
+                ]);
+                break;
+            case "dropdown":
+            case "multiple_choice":
+                // Only one option answer per subcategory and response
+                $existingOptionAnswer = EvaluationOptionAnswer
+                    ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
+                    ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                    ->where('evaluation_form_subcategory_options.subcategory_id', '=', $subcategory->subcategory_id)
+                    ->select('evaluation_option_answers.response_id', 'evaluation_option_answers.option_id')
+                    ->first();
+                if ($existingOptionAnswer) return response()->json([
+                    'status' => 409,
+                    'message' => 'An option answer was already created for this subcategory!',
+                    'evaluationOptionAnswer' => [
+                        'response_id' => $existingOptionAnswer->response_id,
+                        'option_id' => $existingOptionAnswer->option_id,
+                    ]
+                ]);
+                break;
+        }
+
+        DB::beginTransaction();
+
+        $newEvaluationOptionAnswer = EvaluationOptionAnswer::create([
+            'response_id' => $request->response_id,
+            'option_id' => $request->option_id
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'status' => 201,
+            'evaluationOptionAnswer' => [
+                'response_id' => $newEvaluationOptionAnswer->response_id,
+                'option_id' => $newEvaluationOptionAnswer->option_id
+            ],
+            'message' => 'Evaluation Option Answer successfully created'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Error saving evaluation option answer: ' . $e->getMessage());
+        return response()->json([
+            'status' => 500,
+            'message' => 'Server error: ' . $e->getMessage(),
+        ], 500);
+    }
+}
 
 
 }
