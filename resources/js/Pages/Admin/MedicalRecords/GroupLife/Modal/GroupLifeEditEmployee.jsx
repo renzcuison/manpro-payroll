@@ -185,23 +185,25 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                     }}>
                                                     <Grid item xs={12} sm={5}>
                                                         <FormControl fullWidth>
-                                                            <InputLabel>Relationship</InputLabel>
-                                                            <Select
+                                                            <Autocomplete
+                                                                freeSolo
+                                                                options={relationshipOptions}
                                                                 value={dependents[0]?.relationship || ""}
-                                                                label="Relationship"
-                                                                onChange={(e) => {
+                                                                onChange={(event, newValue) => {
                                                                     const updated = [...dependents];
                                                                     if (!updated[0]) updated[0] = { name: "", relationship: "" };
-                                                                    updated[0].relationship = e.target.value;
+                                                                    updated[0].relationship = newValue || "";
                                                                     setDependents(updated);
-                                                                    fullWidth
                                                                 }}
-                                                            >
-                                                                {relationshipOptions.map((rel) => (
-                                                                    <MenuItem key={rel} value={rel}>{rel}</MenuItem>
-                                                                ))}
-                                                            </Select>
-                                                            
+                                                                renderInput={(params) => (
+                                                                    <TextField
+                                                                    {...params}
+                                                                    label="Relationship"
+                                                                    fullWidth
+                                                                    />
+                                                                )}
+                                                                fullWidth
+                                                                />
                                                     </FormControl>
                                                 </Grid></FormControl>
                                             </Grid>

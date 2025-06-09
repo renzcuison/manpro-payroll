@@ -11,14 +11,16 @@ import {    Box,
             InputLabel, 
             MenuItem, 
             OutlinedInput,
-            InputAdornment  
+            InputAdornment,
+            Autocomplete,
+            Select  
         } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import 'react-quill/dist/quill.snow.css';
 
-const GroupLifeAddModal = ({ open, close }) => {
+const GroupLifeAddModal = ({ open, close, onAddRow, listOfCompanies }) => {
 
     const navigate = useNavigate();
 
@@ -29,6 +31,7 @@ const GroupLifeAddModal = ({ open, close }) => {
     const [employerPercentageShareError, setEmployerPercentageShareError] = useState(false);
 
     const [groupLifeName, setGroupLifeName] = useState('');
+    const [planType, setPlanType] = useState('');
     const [paymentType, setPaymentType] = useState('');
     const [employeeAmountShare, setEmployeeAmountShare] = useState('');
     const [employerAmountShare, setEmployerAmountShare] = useState('');
@@ -60,13 +63,44 @@ const GroupLifeAddModal = ({ open, close }) => {
     const formattedValue = formatCurrency(e.target.value);
     setValue(formattedValue);
     };
-   
+
+    const listOfPlanTypes = [
+        { planTypeMenuItem: 'Prepaid Funeral Plan'},
+        { planTypeMenuItem: 'Final Expense Insurance'}
+    ];
+
+    const handleSave = () => {
+        const cleanNumber = (value) =>
+        Number(value.replace(/[^\d.]/g, "")) || 0;
+
+        const newRow = {
+            groupLifeName,
+            planType,
+            paymentType,
+            employeeShare: paymentType === "Amount" ? cleanNumber(employeeAmountShare) : cleanNumber(employeePercentageShare),
+            employerShare: paymentType === "Amount" ? cleanNumber(employerAmountShare) : cleanNumber(employerPercentageShare),
+            shareType: paymentType
+        };
+        // Send newRow up to parent
+        if (onAddRow) {
+            onAddRow(newRow);
+        }
+        // Reset form fields
+        setGroupLifeName("");
+        setPlanType("");
+        setPaymentType("Amount");
+        setEmployeeAmountShare("");
+        setEmployerAmountShare("");
+        setEmployeePercentageShare("");
+        setEmployerPercentageShare("");
+    };
+
     return (
         <>
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Group Life</Typography>
+                                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Group Life Plan</Typography>
                                         <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                                     </Box>
                                 </DialogTitle>
@@ -80,23 +114,52 @@ const GroupLifeAddModal = ({ open, close }) => {
                                 '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                                 }}>
-                                <FormControl sx={{ marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
+                                <FormControl sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
                                     '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                 }}>
-                                <TextField
-                                    required
-                                    id="groupLifeName"
-                                    label="Group Life Name"
-                                    variant="outlined"
-                                    value={groupLifeName}
-                                    error={groupLifeNameError}
-                                    onChange={(e) => setGroupLifeName(e.target.value)}
+
+                                <FormControl>
+                                    <InputLabel id="group-life-company-label">Group Life Company</InputLabel>
+                                        <Select
+                                        value={groupLifeName}
+                                        onChange={e => setGroupLifeName(e.target.value)}
+                                        >
+                                        {listOfCompanies.map((option, idx) => (
+                                            <MenuItem key={option.companyMenuItem + idx} value={option.companyMenuItem}>
+                                            {option.companyMenuItem}
+                                            </MenuItem>
+                                        ))}
+                                        </Select>
+                                    </FormControl>
+                                
+                                </FormControl>
+                                <FormControl  sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                                }}>
+                                <Autocomplete
+                                freeSolo
+                                disabled={!groupLifeName}
+                                value={planType}
+                                options={listOfPlanTypes.map(option => option.planTypeMenuItem)}
+                                onChange={(event, newValue) => setPlanType(newValue || "")}
+                                renderInput={params => (
+                                    <TextField
+                                    {...params}
+                                    label="Plan Type"
+                                    onBlur={e => {
+                                        if (e.target.value && e.target.value !== planType) {
+                                        setPlanType(e.target.value);
+                                        }
+                                    }}
+                                    />
+                                )}
                                 />
                                 </FormControl>                            
-                                <FormControl sx={{ marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
+                                <FormControl sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
                                         '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                     }}>
                                     <TextField
+                                        disabled={!groupLifeName}
                                         required
                                         select
                                         id="paymentType"
@@ -110,45 +173,45 @@ const GroupLifeAddModal = ({ open, close }) => {
                                     </FormControl>
                                     </FormGroup>
                                         {paymentType === "Amount" && (
-                                                        <>
-                                                            <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                                                '& label.Mui-focused': { color: '#97a5ba' },
-                                                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                                            }}>
-                                                                <FormControl sx={{
-                                                                    marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                                                }}>
-                                                                    <InputLabel htmlFor="employeeAmountShare">Employee Share</InputLabel>
-                                                                    <OutlinedInput
-                                                                        required
-                                                                        id="employeeAmountShare"
-                                                                        label="Employee Share"
-                                                                        value={employeeAmountShare}
-                                                                        error={employeeAmountShareError}
-                                                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                                                        onChange={(e) => handleInputChange(e, setEmployeeAmountShare)}
-                                                                    />
-                                                                </FormControl>
-                            
-                                                                <FormControl sx={{
-                                                                    marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                                                }}>
-                                                                    <InputLabel htmlFor="employerAmountShare">Employer Share</InputLabel>
-                                                                    <OutlinedInput
-                                                                        required
-                                                                        id="employerAmountShare"
-                                                                        label="Employer Share"
-                                                                        value={employerAmountShare}
-                                                                        error={employerAmountShareError}
-                                                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                                                        onChange={(e) => handleInputChange(e, setEmployerAmountShare)}
-                                                                    />
-                                                                </FormControl>
-                                                            </FormGroup>
-                                                        </>
-                                                    )}
+                                            <>
+                                            <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                                '& label.Mui-focused': { color: '#97a5ba' },
+                                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                            }}>
+                                                <FormControl sx={{
+                                                    marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                                }}>
+                                                    <InputLabel htmlFor="employeeAmountShare">Employee Share</InputLabel>
+                                                    <OutlinedInput
+                                                        required
+                                                        id="employeeAmountShare"
+                                                        label="Employee Share"
+                                                        value={employeeAmountShare}
+                                                        error={employeeAmountShareError}
+                                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
+                                                        onChange={(e) => handleInputChange(e, setEmployeeAmountShare)}
+                                                    />
+                                                </FormControl>
+            
+                                                <FormControl sx={{
+                                                    marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                                }}>
+                                                    <InputLabel htmlFor="employerAmountShare">Employer Share</InputLabel>
+                                                    <OutlinedInput
+                                                        required
+                                                        id="employerAmountShare"
+                                                        label="Employer Share"
+                                                        value={employerAmountShare}
+                                                        error={employerAmountShareError}
+                                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
+                                                        onChange={(e) => handleInputChange(e, setEmployerAmountShare)}
+                                                    />
+                                                </FormControl>
+                                            </FormGroup>
+                                        </>
+                                    )}
 
                                         {paymentType === "Percentage" && (
                                         <>
@@ -193,8 +256,8 @@ const GroupLifeAddModal = ({ open, close }) => {
                                 
 
                                 <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                    <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Group Life </p>
+                                <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={handleSave}>
+                                    <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                                 </Button>
                                 </Box>
                     </Box>
