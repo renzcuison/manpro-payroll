@@ -212,7 +212,7 @@ const PerformanceEvaluationList = () => {
                                                 <TableCell align="center">STATUS</TableCell>
                                             </TableRow>
                                         </TableHead>
-                                        <TableBody>
+                                       <TableBody>
                                             {evaluationResponses.length === 0 ? (
                                                 <TableRow>
                                                     <TableCell colSpan={5} align="center">
@@ -221,7 +221,12 @@ const PerformanceEvaluationList = () => {
                                                 </TableRow>
                                             ) : (
                                                 evaluationResponses.map(row => (
-                                                    <TableRow key={row.id}>
+                                                    <TableRow 
+                                                        key={row.id}
+                                                        hover
+                                                        style={{ cursor: 'pointer' }}
+                                                        onClick={() => navigate(`/admin/performance-evaluation/response/${row.id}`)}
+                                                    >
                                                         <TableCell align="center">{row.date}</TableCell>
                                                         <TableCell align="center">{`${row.last_name}, ${row.first_name} ${row.middle_name || ''}`}</TableCell>
                                                         <TableCell align="center">{row.department_name}</TableCell>

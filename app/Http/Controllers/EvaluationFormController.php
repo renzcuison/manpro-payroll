@@ -1538,8 +1538,8 @@ class EvaluationFormController extends Controller
                         \App\Models\EvaluationFormSubcategoryOption::create([
                             'subcategory_id' => $newEvaluationFormSubcategory->id,
                             'label' => $label,
-                            'score' => $option["score"] ?? 1,
                             'order' => $optionOrder + 1
+                            // 'score' =>
                         ]);
                     }
                 }
