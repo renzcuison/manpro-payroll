@@ -20,6 +20,7 @@ import PemeDueDatePicker from "./PemeDueDatePicker";
 import PemeRecordsAddModal from "./Modals/PemeRecordsAddModal";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
 const PemeResponses = () => {
     const navigator = useNavigate();
@@ -27,19 +28,45 @@ const PemeResponses = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    const [pemeResponses, setPemeResponses] = useState([]);
     const [pemeRecords, setPemeRecords] = useState([]);
+
     const [isLoading, setIsLoading] = useState(true);
     const [fromDate, setFromDate] = React.useState(null);
     const [toDate, setToDate] = React.useState(null);
     const [dueDate, setDueDate] = React.useState(null);
 
+    // GET EXAMS TAKEN BY EMPLOYEE
     useEffect(() => {
         axiosInstance
-            .get("/pemes", { headers })
+            .get("/peme-responses", { headers })
+            .then((response) => {
+                setPemeResponses(response.data);
+                setIsLoading(false);
+                console.log("RESPONSES", response.data);
+            })
+            .catch((error) => {
+                console.error("Error fetching PEME responses:", error);
+                Swal.fire({
+                    title: "Error",
+                    text:
+                        "Failed to fetch PEME records. Please try again later.",
+                    icon: "error",
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                });
+                setIsLoading(false);
+            });
+    }, []);
+
+    // GET AVAILABLE EXAMS CREATED BY ADMIN
+    useEffect(() => {
+        axiosInstance
+            .get("/getPemeList", { headers })
             .then((response) => {
                 setPemeRecords(response.data);
                 setIsLoading(false);
-                console.log("DATA", response.data);
+                console.log("EXAMS", response.data);
             })
             .catch((error) => {
                 console.error("Error fetching PEME records:", error);
@@ -68,7 +95,7 @@ const PemeResponses = () => {
     };
 
     // Handle dropdown changes for due date filtering
-    const filteredRecords = pemeRecords
+    const filteredRecords = pemeResponses
         .filter((response) =>
             [
                 dayjs(response.date).format("MMMM D, YYYY"),
@@ -289,6 +316,7 @@ const PemeResponses = () => {
                             <PemeRecordsAddModal
                                 open={openAddPemeRecordsModal}
                                 close={handleCloseAddPemeRecordsModal}
+                                records={pemeRecords}
                             />
                         )}
                         {/* Spacing after date pickers */}

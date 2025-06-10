@@ -1,21 +1,60 @@
-import { Dialog, Typography, DialogTitle, Box, DialogContent, FormControl, Select, MenuItem, InputLabel, Button} from "@mui/material";
+import {
+    Dialog,
+    Typography,
+    DialogTitle,
+    Box,
+    DialogContent,
+    FormControl,
+    Select,
+    MenuItem,
+    InputLabel,
+    Button,
+} from "@mui/material";
 import React from "react";
+import axiosInstance from "@/utils/axiosConfig";
 import { useNavigate } from "react-router-dom";
 
-const PemeRecordsAddModal = ({ open, close }) => {
+const PemeRecordsAddModal = ({ open, close, records }) => {
     const navigator = useNavigate();
 
     const [selectedRecord, setSelectedRecord] = React.useState("");
+    const [selectedExamID, setSelectedExamID] = React.useState();
 
-    const handleSubmit = () => {
-        console.log("Record Name:", selectedRecord);
-        navigator("/employee/medical-records/peme/peme-responses");
-        // Backend Save Logic
+    const getJWTHeader = (user) => {
+        return {
+            Authorization: `Bearer ${user.token}`,
+        };
     };
 
     const handleSelectChange = (event) => {
         setSelectedRecord(event.target.value);
-        console.log("Selected Record:", event.target.value);
+        const selectedExam = records.find(
+            (exam) => exam.id === event.target.value
+        );
+
+        setSelectedExamID(event.target.value);
+        console.log("Selected Exam ID:", selectedExamID);
+        console.log("Selected Exam Name:", selectedExam?.name);
+    };
+
+    const handleSubmit = async () => {
+        const storedUser = localStorage.getItem("nasya_user");
+        const headers = getJWTHeader(JSON.parse(storedUser));
+        try {
+            const payload = {
+                peme_id: selectedExamID,
+            };
+            console.log(payload);
+            const response = await axiosInstance.post(
+                "/peme-responses",
+                payload,
+                { headers }
+            );
+            console.log("Successfully created questionnaire:", response.data);
+        } catch (error) {
+            console.error("Error creating questionnaire:", error);
+            return null;
+        }
     };
 
     return (
@@ -24,7 +63,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
             onClose={close}
             fullWidth
             maxWidth="md"
-            SlotProps={{
+            slotProps={{
                 sx: {
                     backgroundColor: "#f8f9fa",
                     boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
@@ -57,20 +96,35 @@ const PemeRecordsAddModal = ({ open, close }) => {
                             paddingY: 2,
                         }}
                     >
-                    <FormControl fullWidth>
-                        <InputLabel id="record-name-label">Select Type of Exam</InputLabel>
-                        <Select
-                            labelId="record-name-label"
-                            id="record-name"
-                            value={selectedRecord}
-                            label="Select Type of Exam"
-                            onChange={handleSelectChange}
-                        >
-                            
-                            <MenuItem value="exam1">Annual Physical Exam</MenuItem>
-                            <MenuItem value="exam2">Drug Test</MenuItem>
-                        </Select>
-                    </FormControl>
+                        <FormControl fullWidth>
+                            <InputLabel id="record-name-label">
+                                Select Type of Exam
+                            </InputLabel>
+                            <Select
+                                labelId="record-name-label"
+                                id="record-name"
+                                value={selectedRecord}
+                                label="Select Type of Exam"
+                                onChange={handleSelectChange}
+                                MenuProps={{
+                                    PaperProps: {
+                                        style: {
+                                            maxHeight: 320,
+                                        },
+                                    },
+                                }}
+                            >
+                                {records.map((exam) => (
+                                    <MenuItem
+                                        key={exam.id}
+                                        value={exam.id} // <-- use exam.id here
+                                        sx={{ paddingY: 2 }}
+                                    >
+                                        {exam.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
                         <Box
                             sx={{
                                 display: "flex",
