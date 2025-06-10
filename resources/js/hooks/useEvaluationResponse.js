@@ -131,25 +131,24 @@ export function useEvaluationResponse(responseId) {
 
     function setPercentageAnswer(subcategoryId, value) {
         const subcategory = subcategories[subcategoryId];
-        if(!subcategory.percentage_answer && value) subcategory.percentage_answer = {
+        if(!subcategory.percentage_answer && value != null) subcategory.percentage_answer = {
                 response_id: evaluationResponse.id,
                 subcategory_id: subcategoryId,
                 value,
                 action: 'create'
             }
-        else if(subcategory.percentage_answer?.action === 'create' && value)
+        else if(subcategory.percentage_answer?.action === 'create' && value != null)
             subcategory.percentage_answer.value = value;
-        else if(subcategory.percentage_answer?.action === 'create' && !value)
+        else if(subcategory.percentage_answer?.action === 'create' && value == null)
             subcategory.percentage_answer = null;
-        else if(subcategory.percentage_answer && value) {
+        else if(subcategory.percentage_answer && value != null) {
             subcategory.percentage_answer.value = value;
             subcategory.percentage_answer.action = 'update';
         }
-        else if(subcategory.percentage_answer && !value) {
+        else if(subcategory.percentage_answer && value == null) {
             subcategory.percentage_answer.value = null;
             subcategory.percentage_answer.action = 'delete';
         }
-        console.log(subcategory)
         reloadEvaluationResponse();
     }
 
