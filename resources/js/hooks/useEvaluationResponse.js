@@ -207,6 +207,4 @@ export function useEvaluationResponse(responseId) {
         savePercentageAnswer, setPercentageAnswer, setTextAnswer
     };
 
-    
-
 }

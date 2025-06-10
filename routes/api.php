@@ -132,6 +132,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
         Route::get('/getBranchPositions', [SettingsController::class, 'getBranchPositions']);
+        Route::get('/getUsers', [SettingsController::class, 'getUsers']);
         Route::get('/getEmployeesByDepartment/{id}', [SettingsController::class, 'getEmployeesByDepartment']);
         Route::post('/saveBranchPosition', [SettingsController::class, 'saveBranchPosition']);
         Route::post('/addBranchPositionAssignments', [SettingsController::class, 'addBranchPositionAssignments']);
