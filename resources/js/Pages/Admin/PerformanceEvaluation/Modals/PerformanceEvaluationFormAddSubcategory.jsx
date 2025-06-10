@@ -23,8 +23,7 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
         linearScaleEndLabel, setLinearScaleEndLabel,
         order,
         options, deleteOption, editOption, saveOption,
-        saveSubcategory,
-        editOptionExtra
+        saveSubcategory//, editOptionScore
     } = useEvaluationFormSubcategory();
 
     const handleSave = () => {
@@ -33,7 +32,7 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
     };
 
     const handleOptionChange = (index, event) => {
-        editOption(index, event.target.value);
+        editOption(index, event.target.value, options[index].score);
     };
 
     const handleAddOption = () => {
@@ -44,8 +43,8 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
         deleteOption(index);
     };
 
-    const handleOptionExtraChange = (index, event) => {
-        editOptionExtra(index, event.target.value);
+    const handleOptionScoreChange = (index, event) => {
+        editOption(index, options[index].label, +event.target.value);
     };
 
     return (
@@ -147,7 +146,7 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                                         variant="outlined"
                                         placeholder="XXX"
                                         value={extra || ""}
-                                        onChange={(e) => handleOptionExtraChange(index, e)}
+                                        onChange={(e) => handleOptionScoreChange(index, e)}
                                         sx={{ width: 80 }}
                                         size="small"
                                     />

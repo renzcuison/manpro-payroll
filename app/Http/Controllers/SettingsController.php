@@ -370,6 +370,61 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
         ]);
     }
 
+    public function getUsers(Request $request)
+    {
+        // inputs:
+        /*
+            department_id?: number,
+            branch_id?: number,
+            user_type: 'Admin' | 'Employee'
+        */
+
+        // returns:
+        /*
+            users: {
+                id, user_name, last_name, first_name, middle_name, suffix
+            }
+        */
+
+        if (!$this->checkUser()) return response()->json([
+            'status' => 403,
+            'message' => 'Unauthorized access!'
+        ], 403);
+        $user = Auth::user();
+
+        if($request->user_type != 'Admin' && $request->user_type != 'Employee') return response()->json([ 
+            'status' => 404,
+            'message' => 'Invalid user type input!',
+            'user_type' => $request->user_type
+        ]);
+        $employees = UsersModel
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ->where('client_id', $user->client_id)
+            ->where('user_type', $request->user_type)
+        ;
+        if($request->department_id !== null)
+            $employees = $employees->where('department_id', $request->department_id);
+        if($request->branch_id !== null)
+            $employees = $employees->where('branch_id', $request->branch_id);
+        $employees = $employees
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->orderBy('middle_name')
+            ->orderBy('suffix')
+            ->get()
+        ;
+        if(!$employees) return response()->json([ 
+            'status' => 404,
+            'message' => 'Employees not found!'
+        ]);
+        return response()->json([
+            'status' => 200,
+            'message' => 'Employees successfully retrieved.',
+            'users' => $employees
+        ]);
+
+    }
+
     //get each of the department's details, along with their assigned employees per department position
     public function getDepartmentWithEmployeePosition(Request $request)
     {

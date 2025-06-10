@@ -160,7 +160,7 @@ export function useEvaluationFormSection(section) {
         ;
     }
 
-function deleteSubcategory(subcategoryId) {
+    function deleteSubcategory(subcategoryId) {
         if (!subcategoryId) {
             Swal.fire("Error", "Invalid subcategory ID", "error");
             return;

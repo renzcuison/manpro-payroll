@@ -213,12 +213,12 @@ class EvaluationResponseController extends Controller
                 signature_filepath,
                 created_at, updated_at,
                 status,                 // returns 'pending' always for now
-                evaluatee: { id, response_id, last_name, first_name, middle_name },
+                evaluatee: { id, response_id, last_name, first_name, middle_name, suffix },
                 evaluators: {
-                    evaluator_id, response_id, last_name, first_name, middle_name, comment, order, signature_filepath
+                    evaluator_id, response_id, last_name, first_name, middle_name, suffix, comment, order, signature_filepath
                 }[],
                 commentors: {
-                    commentor_id, response_id, last_name, first_name, middle_name, comment, order, signature_filepath
+                    commentor_id, response_id, last_name, first_name, middle_name, suffix, comment, order, signature_filepath
                 }[],
                 form_id, creator_user_name, form: {
                     id, name, creator_id, creator_user_name,
@@ -266,7 +266,7 @@ class EvaluationResponseController extends Controller
                     DB::raw("'Pending' as status")
                 )
                 ->with(['evaluatee' => fn ($evaluatee) =>
-                    $evaluatee->select('id', 'last_name', 'first_name', 'middle_name')
+                    $evaluatee->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
                 ])
                 ->with(['evaluators' => fn ($evaluatee) =>
                     $evaluatee
@@ -274,7 +274,7 @@ class EvaluationResponseController extends Controller
                         ->select(
                             'evaluation_evaluators.evaluator_id',
                             'evaluation_evaluators.response_id',
-                            'users.last_name', 'users.first_name', 'users.middle_name',
+                            'users.last_name', 'users.first_name', 'users.middle_name', 'users.suffix',
                             'evaluation_evaluators.comment',
                             'evaluation_evaluators.order',
                             'evaluation_evaluators.signature_filepath'
@@ -287,7 +287,7 @@ class EvaluationResponseController extends Controller
                         ->select(
                             'evaluation_commentors.commentor_id',
                             'evaluation_commentors.response_id',
-                            'users.last_name', 'users.first_name', 'users.middle_name',
+                            'users.last_name', 'users.first_name', 'users.middle_name', 'users.suffix',
                             'evaluation_commentors.comment',
                             'evaluation_commentors.order',
                             'evaluation_commentors.signature_filepath'
@@ -389,7 +389,7 @@ class EvaluationResponseController extends Controller
         }
     }
 
-     public function getEvaluationResponses(Request $request)
+    public function getEvaluationResponses(Request $request)
     {
          // inputs:
         /*
@@ -400,7 +400,7 @@ class EvaluationResponseController extends Controller
             order_by: {
                 key:
                     'updated_at' | 'form_name' | 'last_name' | 'first_name' |
-                    'middle_name' | 'department_name' | 'branch_name' |
+                    'middle_name' | 'suffix' | 'department_name' | 'branch_name' |
                     'status'                    // pending first -> finished last
                 ,
                 sort_order: 'asc' | 'desc' = 'asc'
@@ -411,7 +411,7 @@ class EvaluationResponseController extends Controller
         /*
             evaluationResponses: {
                 id, form_id, form_name, date, role,
-                evaluatee_id, evaluatee: { id, last_name, first_name, middle_name },
+                evaluatee_id, evaluatee: { id, last_name, first_name, middle_name, suffix },
                 department_id, department_name, branch_id, branch_name, status,
                 created_at, updated_at
             }[],
@@ -441,13 +441,12 @@ class EvaluationResponseController extends Controller
                 ]);
 
             $evaluationResponses = EvaluationResponse
-                ::join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
+                ::leftJoin('evaluation_evaluators as evaluators', 'evaluation_responses.id', '=', 'evaluators.response_id')
+                ->leftJoin('evaluation_commentors as commentors', 'evaluation_responses.id', '=', 'commentors.response_id')
+                ->join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
                 ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
-                ->join('departments', 'evaluatees.department_id', '=', 'departments.id')
-                ->join('branches', 'evaluatees.branch_id', '=', 'branches.id')
-                ->join('evaluation_evaluators as evaluators', 'evaluation_responses.id', '=', 'evaluators.response_id')
-                ->join('evaluation_commentors as commentors', 'evaluation_responses.id', '=', 'commentors.response_id')
-                ->whereNull('evaluation_responses.deleted_at')
+                ->leftJoin('departments', 'evaluatees.department_id', '=', 'departments.id')
+                ->leftJoin('branches', 'evaluatees.branch_id', '=', 'branches.id')
                 ->select('evaluation_responses.id', 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name')
                 ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
                 ->selectRaw(
@@ -456,14 +455,14 @@ class EvaluationResponseController extends Controller
                             WHEN evaluation_responses.evaluatee_id = ? THEN "Evaluatee"
                             WHEN evaluators.evaluator_id = ? THEN "Evaluator"
                             WHEN commentors.commentor_id = ? THEN "Commentor"
-                        ELSE "Idunno" END as role
+                        ELSE "None" END as role
                     ',
                     [$user->id, $user->id, $user->id]
                 )
                 ->addSelect('evaluatee_id')
                 ->addSelect('evaluation_responses.deleted_at')
                 ->with(['evaluatee' => fn ($evaluatee) =>
-                    $evaluatee->select('id', 'last_name', 'first_name', 'middle_name')
+                    $evaluatee->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
                 ])
                 ->addSelect(
                     'departments.id as department_id', 'departments.name as department_name',
@@ -472,8 +471,8 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.created_at',
                     'evaluation_responses.updated_at'
                 )
+                ->whereNull('evaluation_responses.deleted_at')
             ;
-
             
             if($request->search)
                 $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
@@ -484,7 +483,8 @@ class EvaluationResponseController extends Controller
                             DB::raw('CONCAT(
                                 evaluatees.last_name, ", ",
                                 evaluatees.first_name,
-                                IF(ISNULL(evaluatees.middle_name), "", CONCAT(" ", evaluatees.middle_name))
+                                IF(ISNULL(evaluatees.middle_name), "", CONCAT(" ", evaluatees.middle_name)),
+                                IF(ISNULL(evaluatees.suffix), "", CONCAT(" ", evaluatees.suffix))
                             )'),
                             'LIKE', "%$request->search%"
                         )
@@ -496,18 +496,26 @@ class EvaluationResponseController extends Controller
             
             if ($request->form_id !== null)
                 $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
-            $evaluationResponses = $evaluationResponses->where(function ($query) use ($request, $user) {
+            $evaluationResponses = $evaluationResponses->where(function ($query) use ($user) {
                 $query
                     ->where('evaluation_responses.evaluatee_id', $user->id)
                     ->orWhere('evaluators.evaluator_id', $user->id)
                     ->orWhere('commentors.commentor_id', $user->id)
                 ;
             });
-            $evaluationResponses = $evaluationResponses->groupBy('evaluators.response_id', 'commentors.response_id');
+            $evaluationResponses = $evaluationResponses->groupBy('evaluation_responses.id');
+
+            // filter responses that are user's turn to edit only
+            //  $evaluationResponses = $evaluationResponses->where(function ($query) use ($user) {
+            //     $query
+            //         ->join('evaluation_evaluators as evaluator_line', 'evaluation_responses.id', '=', 'evaluator_line.response_id')
+            //         ->whereColumn('evaluator_line.response_id', 'evaluators.evaluator_id')
+            //         // ->orWhere('commentors.commentor_id', $user->id)
+            //     ;
+            // });
 
             if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
                 $sortOrder = $order_by_param['sort_order'] ?? 'asc';
-                $sortOrderReverse = $sortOrder == 'asc' ? 'desc' : 'asc';
                 if ($sortOrder != 'asc' && $sortOrder != 'desc')
                     return response()->json([
                         'status' => 400,
@@ -529,9 +537,12 @@ class EvaluationResponseController extends Controller
                     case 'middle_name':
                         $evaluationResponses = $evaluationResponses->orderBy('evaluatees.middle_name', $sortOrder);
                         break;
+                    case 'suffix':
+                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.suffix', $sortOrder);
+                        break;
                     // case 'status':
                     case 'updated_at':
-                        $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrderReverse);
+                        $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrder);
                         break;
                     default:
                         return response()->json([
@@ -550,6 +561,7 @@ class EvaluationResponseController extends Controller
                     'status' => 404,
                     'message' => 'No evaluation responses exist!'
                 ]);
+            
             $pageResponseCount =
                 ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
                 : $limit;
@@ -943,7 +955,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationEvaluator: {
-                response_id, evaluator_id, last_name, first_name, middle_name,
+                response_id, evaluator_id, last_name, first_name, middle_name, suffix,
                 comment, order, signature_filepath, created_at, updated_at
             }
         */
@@ -970,7 +982,8 @@ class EvaluationResponseController extends Controller
                     'evaluation_evaluators.signature_filepath',
                     'users.last_name',
                     'users.first_name',
-                    'users.middle_name'
+                    'users.middle_name',
+                    'users.suffix'
                 )
                 ->where('evaluation_evaluators.response_id', $request->response_id)
                 ->where('evaluation_evaluators.evaluator_id', $request->evaluator_id)
@@ -1006,7 +1019,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationEvaluators: {
-                response_id, evaluator_id, last_name, first_name, middle_name
+                response_id, evaluator_id, last_name, first_name, middle_name, suffix
             }[]
         */
 
@@ -1029,7 +1042,8 @@ class EvaluationResponseController extends Controller
                     'evaluation_evaluators.evaluator_id',
                     'users.last_name',
                     'users.first_name',
-                    'users.middle_name'
+                    'users.middle_name',
+                    'users.suffix'
                 )
                 ->where('evaluation_evaluators.response_id', $request->response_id)
                 ->get()
@@ -1320,7 +1334,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationCommentor: {
-                response_id, commentor_id, last_name, first_name, middle_name,
+                response_id, commentor_id, last_name, first_name, middle_name, suffix,
                 comment, order, signature_filepath, created_at, updated_at
             }
         */
@@ -1347,7 +1361,8 @@ class EvaluationResponseController extends Controller
                     'evaluation_commentors.signature_filepath',
                     'users.last_name',
                     'users.first_name',
-                    'users.middle_name'
+                    'users.middle_name',
+                    'users.suffix'
                 )
                 ->where('evaluation_commentors.response_id', $request->response_id)
                 ->where('evaluation_commentors.commentor_id', $request->commentor_id)
@@ -1383,7 +1398,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationCommentors: {
-                response_id, commentor_id, last_name, first_name, middle_name
+                response_id, commentor_id, last_name, first_name, middle_name, suffix
             }[]
         */
 
@@ -1406,7 +1421,8 @@ class EvaluationResponseController extends Controller
                     'evaluation_commentors.commentor_id',
                     'users.last_name',
                     'users.first_name',
-                    'users.middle_name'
+                    'users.middle_name',
+                    'users.suffix'
                 )
                 ->where('evaluation_commentors.response_id', $request->response_id)
                 ->get()

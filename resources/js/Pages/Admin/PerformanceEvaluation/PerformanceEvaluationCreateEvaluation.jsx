@@ -9,6 +9,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 // Import SweetAlert2
 import Swal from 'sweetalert2';
+import { getFullName } from '../../../utils/user-utils';
 
 const PerformanceEvaluationCreateEvaluation = () => {
     const navigate = useNavigate();
@@ -221,12 +222,14 @@ const PerformanceEvaluationCreateEvaluation = () => {
     // Fetch employees filtered by branch and/or department
     const fetchEmployees = async (branchId, departmentId) => {
         try {
-            const params = {};
-            if (branchId) params.branch_id = branchId;
-            if (departmentId) params.department_id = departmentId;
-            const response = await axiosInstance.get('/getEmployeesName', { params, headers });
+            const params = {
+                branch_id: branchId,
+                department_id: departmentId,
+                user_type: 'Employee'
+            };
+            const response = await axiosInstance.get('/settings/getUsers', { params, headers });
             if (response.data.status === 200) {
-                setEmployees(response.data.employees);
+                setEmployees(response.data.users);
             } else {
                 setEmployees([]);
             }
@@ -240,12 +243,13 @@ const PerformanceEvaluationCreateEvaluation = () => {
     const fetchAdmins = async (branchId, departmentId) => {
         setLoadingAdmins(true);
         try {
-            const params = {};
-            if (branchId) params.branch_id = branchId;
-            if (departmentId) params.department_id = departmentId;
-            const response = await axiosInstance.get('/getAdmins', { params, headers });
+            const params = {
+                branch_id: branchId,
+                user_type: 'Admin'
+            };
+            const response = await axiosInstance.get('/settings/getUsers', { params, headers });
             if (response.data.status === 200) {
-                setAdmins(response.data.admins);
+                setAdmins(response.data.users);
             } else {
                 setAdmins([]);
             }
@@ -324,9 +328,9 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     onChange={handleChange}
                                 >
                                     {loadingBranches ? (
-                                        <MenuItem disabled>Loading branches...</MenuItem>
+                                        <MenuItem value="" disabled>Loading branches...</MenuItem>
                                     ) : branches.length === 0 ? (
-                                        <MenuItem disabled>No branches found</MenuItem>
+                                        <MenuItem value="" disabled>No branches found</MenuItem>
                                     ) : (
                                         branches.map(branch => (
                                             <MenuItem key={branch.id} value={branch.id}>
@@ -349,9 +353,9 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     onChange={handleChange}
                                 >
                                     {loadingDepartments ? (
-                                        <MenuItem disabled>Loading departments...</MenuItem>
+                                        <MenuItem value="" disabled>Loading departments...</MenuItem>
                                     ) : departments.length === 0 ? (
-                                        <MenuItem disabled>No departments found</MenuItem>
+                                        <MenuItem value="" disabled>No departments found</MenuItem>
                                     ) : (
                                         departments.map(dept => (
                                             <MenuItem key={dept.id} value={dept.id}>
@@ -374,12 +378,10 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     onChange={handleChange}
                                 >
                                     {employees.length === 0 ? (
-                                        <MenuItem disabled>No employees found</MenuItem>
+                                        <MenuItem value="" disabled>No employees found</MenuItem>
                                     ) : (
                                         employees.map(emp => (
-                                            <MenuItem key={emp.id} value={emp.id}>
-                                                {`${emp.first_name} ${emp.middle_name || ''} ${emp.last_name}`.trim()}
-                                            </MenuItem>
+                                            <MenuItem key={emp.id} value={emp.id}>{getFullName(emp)}</MenuItem>
                                         ))
                                     )}
                                 </Select>
@@ -399,12 +401,10 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     onChange={handleChange}
                                     >
                                     {evaluatorOptions.length === 0 ? (
-                                        <MenuItem disabled>No evaluators found</MenuItem>
+                                        <MenuItem value="" disabled>No evaluators found</MenuItem>
                                     ) : (
                                         evaluatorOptions.map(admin => (
-                                            <MenuItem key={admin.id} value={admin.id}>
-                                            {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
-                                            </MenuItem>
+                                            <MenuItem key={admin.id} value={admin.id}>{getFullName(admin)}</MenuItem>
                                         ))
                                     )}
                                 </Select>
@@ -439,9 +439,9 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     onChange={handleChange}
                                 >
                                     {isLoading ? (
-                                        <MenuItem disabled>Loading forms...</MenuItem>
+                                        <MenuItem value="" disabled>Loading forms...</MenuItem>
                                     ) : performanceEvaluation.length === 0 ? (
-                                        <MenuItem disabled>No evaluation forms found</MenuItem>
+                                        <MenuItem value="" disabled>No evaluation forms found</MenuItem>
                                     ) : (
                                         performanceEvaluation.map(form => (
                                             <MenuItem key={form.id} value={form.id}>
@@ -492,12 +492,10 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     onChange={handleChange}
                                     >
                                     {primaryCommentorOptions.length === 0 ? (
-                                        <MenuItem disabled>No commenters found</MenuItem>
+                                        <MenuItem value="" disabled>No commenters found</MenuItem>
                                     ) : (
                                         primaryCommentorOptions.map(admin => (
-                                            <MenuItem key={admin.id} value={admin.id}>
-                                            {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
-                                            </MenuItem>
+                                            <MenuItem key={admin.id} value={admin.id}>{getFullName(admin)}</MenuItem>
                                         ))
                                     )}
                                 </Select>
@@ -513,12 +511,10 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     onChange={handleChange}
                                     >
                                     {secondaryCommentorOptions.length === 0 ? (
-                                        <MenuItem disabled>No commenters found</MenuItem>
+                                        <MenuItem value="" disabled>No commenters found</MenuItem>
                                     ) : (
                                         secondaryCommentorOptions.map(admin => (
-                                            <MenuItem key={admin.id} value={admin.id}>
-                                            {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
-                                            </MenuItem>
+                                            <MenuItem key={admin.id} value={admin.id}>{getFullName(admin)}</MenuItem>
                                         ))
                                     )}
                                 </Select>
@@ -541,12 +537,10 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                         onChange={e => handleExtraCommentorChange(idx, e.target.value)}
                                     >
                                         {getExtraCommentorOptions(idx).length === 0 ? (
-                                            <MenuItem disabled>No commenters found</MenuItem>
+                                            <MenuItem value="" disabled>No commenters found</MenuItem>
                                         ) : (
                                             getExtraCommentorOptions(idx).map(admin => (
-                                                <MenuItem key={admin.id} value={admin.id}>
-                                                    {`${admin.first_name} ${admin.middle_name || ''} ${admin.last_name}`.trim()}
-                                                </MenuItem>
+                                                <MenuItem key={admin.id} value={admin.id}>{getFullName(admin)}</MenuItem>
                                             ))
                                         )}
                                     </Select>

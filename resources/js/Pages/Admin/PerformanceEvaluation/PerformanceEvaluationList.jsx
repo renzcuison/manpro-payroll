@@ -51,7 +51,10 @@ const PerformanceEvaluationList = () => {
             params: {
                 page: page + 1, // backend is 1-based
                 limit: rowsPerPage,
-                search: searchValue
+                search: searchValue,
+                order_by: [
+                    { key: "updated_at", sort_order: "desc" }
+                ]
             }
         })
         .then((response) => {
