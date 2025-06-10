@@ -3,59 +3,58 @@ import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, Tab
 import dayjs from "dayjs";
 import axiosInstance from "../../../../utils/axiosConfig";
 
-const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
-    
-    const [allowances, setAllowances] = useState([]);
+const EmployeeIncentivesList = ({ userName, headers, onAdd }) => {
+    const [incentives, setIncentives] = useState([]);
 
     useEffect(() => {
-        axiosInstance.get(`/compensation/getEmployeeAllowance`, { headers, params: { username: userName },
+        axiosInstance.get(`/compensation/getEmployeeIncentives`, { headers, params: { username: userName },
             }).then((response) => {
-                setAllowances(response.data.allowances);
+                setIncentives(response.data.incentives);
             }).catch((error) => {
-                console.error("Error fetching allowances:", error);
+                console.error("Error fetching incentives:", error);
             });
     }, []);
 
+    console.log(incentives);
     return (
         <Box>
             <TableContainer>
                 <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow>
-                            <TableCell align="left">Allowance</TableCell>
+                            <TableCell align="left">Incentives</TableCell>
                             <TableCell align="center">Number</TableCell>
                             <TableCell align="center">Value</TableCell>
                             <TableCell align="center">Date Added</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {allowances.length > 0 ? (
-                            allowances.map((allowance, index) => (
+                        {incentives.length > 0 ? (
+                            incentives.map((incentive, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
-                                        <Typography>{allowance.name}</Typography>
+                                        <Typography>{incentive.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{allowance.number}</Typography>
+                                        <Typography>{incentive.number}</Typography>
                                     </TableCell>
-                                    {allowance.type === 'Amount' && 
+                                    {incentive.type === 'Amount' &&
                                     <TableCell align="center">
-                                        <Typography>₱{allowance.amount}</Typography>
+                                        <Typography>₱{incentive.amount}</Typography>
                                     </TableCell>}
-                                    
-                                    {allowance.type === 'Percentage' && 
+                                    {incentive.type === 'Percentage' &&
                                     <TableCell align="center">
-                                        <Typography>{allowance.percentage}%</Typography>
+                                        <Typography>{incentive.percentage}%</Typography>
                                     </TableCell>}
                                     <TableCell align="center">
-                                        <Typography>{dayjs(allowance.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
+                                        <Typography>{dayjs(incentive.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
                                     </TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                    No Allowance Found
+                                    No Incentives Found
                                 </TableCell>
                             </TableRow>
                         )}
@@ -66,7 +65,7 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
             <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
                 <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={onAdd} >
                     <p className="m-0">
-                        <i className="fa fa-plus"></i> Add Allowance
+                        <i className="fa fa-plus"></i> Add Incentives
                     </p>
                 </Button>
             </Box>
@@ -74,4 +73,4 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
     );
 };
 
-export default EmployeeAllowanceList;
+export default EmployeeIncentivesList;

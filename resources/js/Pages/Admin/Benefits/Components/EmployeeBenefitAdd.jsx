@@ -3,31 +3,31 @@ import { Box, Button, TableContainer, Table, TableHead, TableRow, MenuItem, Text
 import Swal from 'sweetalert2';
 import axiosInstance from "../../../../utils/axiosConfig";
 
-const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
+const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
 
-    const [allowanceError, setAllowanceError] = useState(false);
+    const [benefitError, setBenefitError] = useState(false);
     const [numberError, setNumberError] = useState(false);
 
-    const [allowances, setAllowances] = useState([]);
-    const [allowance, setAllowance] = useState('');
+    const [benefits, setBenefits] = useState([]);
+    const [benefit, setBenefit] = useState('');
     const [number, setNumber] = useState('');
 
     useEffect(() => {
-        axiosInstance.get('/compensation/getAllowances', { headers })
+        axiosInstance.get('/compensation/getBenefits', { headers })
             .then((response) => {
-                setAllowances(response.data.allowances);
+                setBenefits(response.data.benefits);
             }).catch((error) => {
-                console.error('Error fetching allowances:', error);
+                console.error('Error fetching benefits:', error);
             });
     }, []);
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!allowance) {
-            setAllowanceError(true);
+        if (!benefit) {
+            setBenefitError(true);
         } else {
-            setAllowanceError(false);
+            setBenefitError(false);
         }
 
         if (!number) {
@@ -36,7 +36,7 @@ const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
             setNumberError(false);
         }
 
-        if (allowance == '' || number == '') {
+        if (benefit == '' || number == '') {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -48,7 +48,7 @@ const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to add this allowance?",
+                text: "You want to save this benefit?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -66,14 +66,14 @@ const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
     const saveInput = (event) => {
         event.preventDefault();
 
-        const data = { userName: userName, allowance: allowance, number: number };
+        const data = { userName: userName, benefit: benefit, number: number };
 
-        axiosInstance.post('/compensation/saveEmployeeAllowance', data, { headers })
+        axiosInstance.post('/compensation/saveEmployeeBenefits', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Allowance added successfully!",
+                        text: "Benifit added successfully!",
                         icon: "success",
                         timer: 1000,
                         showConfirmButton: true,
@@ -102,14 +102,14 @@ const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
                     <TextField
                         required
                         select
-                        id="allowance"
-                        label="Allowance"
-                        value={allowance}
-                        error={allowanceError}
-                        onChange={(event) => setAllowance(event.target.value)}
+                        id="benefits"
+                        label="benefit"
+                        value={benefit}
+                        error={benefitError}
+                        onChange={(event) => setBenefit(event.target.value)}
                     >
-                        {allowances.map((allowance) => (
-                            <MenuItem key={allowance.id} value={allowance.id}> {allowance.name} </MenuItem>
+                        {benefits.map((benefit) => (
+                            <MenuItem key={benefit.id} value={benefit.id}> {benefit.name} </MenuItem>
                         ))}
                     </TextField>
                 </FormControl>
@@ -142,4 +142,4 @@ const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
     );
 };
 
-export default EmployeeAllowanceAdd;
+export default EmployeeBenefitAdd;

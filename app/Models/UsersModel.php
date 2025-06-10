@@ -152,6 +152,16 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->hasMany(EmployeeAllowancesModel::class, 'user_id');
     }
 
+    public function incentives()
+    {
+        return $this->hasMany(EmployeeIncentivesModel::class, 'user_id');
+    }
+
+    public function benefits()
+    {
+        return $this->hasMany(EmployeeBenefitsModel::class, 'user_id');
+    }
+
     public function leaveCredits()
     {
         return $this->hasMany(LeaveCreditsModel::class, 'user_id');
@@ -186,16 +196,7 @@ class UsersModel extends Authenticatable implements HasMedia
     {
         $this->addMediaCollection('profile_pictures')->singleFile();
     }
-      //employees assigned to department positions
-    public function assignedDepartmentPositions()
-    {
-        return $this->belongsToMany(
-            DepartmentPositionAssignment::class,
-            'employee_department_positions',
-            'employee_id',
-            'assignment_id'
-        );
-    }
+    
 
   
 }

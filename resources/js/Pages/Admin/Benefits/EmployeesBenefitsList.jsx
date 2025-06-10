@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, TablePagination, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
+import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
 
-import EmployeeAllowanceView from './Modals/EmployeeAllowanceView';
-import { useEmployeesAllowances } from '../../../hooks/useAllowance';
 
-const EmployeesAllowanceList = () => {
-    const { data, isLoading, error, refetch } = useEmployeesAllowances();
+import EmployeeBenefitView from './Modals/EmployeeBenefitView';
+import { useEmployeesBenefits } from '../../../hooks/useBenefits';
+
+
+const EmployeesBenefitsList = () => {
+    const { data, isLoading, error, refetch } = useEmployeesBenefits();
     const employees = data?.employees || [];
 
     const [searchName, setSearchName] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-
+    
     const handleRowClick = (employee) => {
         setSelectedEmployee(employee.user_name);
     };
@@ -25,11 +28,11 @@ const EmployeesAllowanceList = () => {
     };
 
     const filteredEmployees = employees.filter((employee) => {
-        const fullName = `${employee.last_name}, ${employee.first_name} ${employee.middle_name || ''} ${employee.suffix || ''}`.toLowerCase();
+        const fullName = `${employee.name}`.toLowerCase();
         return fullName.includes(searchName.toLowerCase());
     });
 
-    const handleChangePage = (event, newPage) => {
+    const handleChangePage = (_, newPage) => {
         setPage(newPage);
     };
 
@@ -39,16 +42,16 @@ const EmployeesAllowanceList = () => {
     };
 
     const paginatedEmployees = filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-   
-    return (
-        <Layout title={"LeaveCreditList"}>
+
+    return(
+        <Layout title={"EmployeeBenefitsList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Allowance </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Statutory Benefits</Typography>
 
-                        <Button variant="contained" color="primary" component={Link} to="/admin/employees/allowance-types">
+                        <Button variant="contained" color="primary" component={Link} to="/admin/employees/benefits-types">
                             <p className='m-0'><i class="fa fa-list" aria-hidden="true"></i> Types </p>
                         </Button>
                     </Box>
@@ -57,7 +60,7 @@ const EmployeesAllowanceList = () => {
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
                             <Grid container item direction="row" justifyContent="flex-start" xs={4} spacing={2}>
                                 <Grid item xs={6}>
-                                    <FormControl sx={{ width: '150%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}} >
+                                    <FormControl sx={{ width: '150%'}} >
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
                                     </FormControl>
                                 </Grid>
@@ -78,7 +81,8 @@ const EmployeesAllowanceList = () => {
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="left"> Employee Name </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Branch </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Department </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Amount </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employee Contribution </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employer Contribution </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -89,7 +93,8 @@ const EmployeesAllowanceList = () => {
                                                             <TableCell align="left">{employee.name || '-'}</TableCell>
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                            <TableCell align="center">₱{Number(employee.total || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="center">₱{Number(employee.employee_amount || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="center">₱{Number(employee.employer_amount || 0).toFixed(2)}</TableCell>
                                                         </TableRow>
                                                     );
                                                 })
@@ -122,13 +127,13 @@ const EmployeesAllowanceList = () => {
                         )}
                     </Box>
                 </Box>
-
                 {selectedEmployee && (
-                    <EmployeeAllowanceView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
+                    <EmployeeBenefitView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
                 )}
             </Box>
         </Layout>
-    );
-};
+    )
 
-export default EmployeesAllowanceList;
+}
+
+export default EmployeesBenefitsList;
