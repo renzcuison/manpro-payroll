@@ -1528,71 +1528,71 @@ class EvaluationResponseController extends Controller
         }
     }
     
-    public function advanceWorkflow(Request $request, $id)
-    {
-        $evaluation = EvaluationResponse::find($id);
-        if (!$evaluation) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'Evaluation not found'
-            ]);
-        }
+    // public function advanceWorkflow(Request $request, $id)
+    // {
+    //     $evaluation = EvaluationResponse::find($id);
+    //     if (!$evaluation) {
+    //         return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation not found'
+    //         ]);
+    //     }
 
-        $userID = Auth::id();
-        $now = now();
+    //     $userID = Auth::id();
+    //     $now = now();
 
-        // Advance step based on current_step
-        switch ($evaluation->current_step) {
-            case 'evaluator':
-                if ($evaluation->evaluator_id != $userID) {
-                    return response()->json(['status' => 403, 'message' => 'Not authorized']);
-                }
-                $evaluation->update([
-                    'status' => 'for_commentor1',
-                    'current_step' => 'first_commentor',
-                    'evaluator_completed_at' => $now
-                ]);
-                break;
-            case 'first_commentor':
-                if ($evaluation->primary_commentor_id != $userID) {
-                    return response()->json(['status' => 403, 'message' => 'Not authorized']);
-                }
-                $evaluation->update([
-                    'status' => 'for_commentor2',
-                    'current_step' => 'second_commentor',
-                    'first_commentor_completed_at' => $now
-                ]);
-                break;
-            case 'second_commentor':
-                if ($evaluation->secondary_commentor_id != $userID) {
-                    return response()->json(['status' => 403, 'message' => 'Not authorized']);
-                }
-                $evaluation->update([
-                    'status' => 'for_acknowledgement',
-                    'current_step' => 'evaluatee',
-                    'second_commentor_completed_at' => $now
-                ]);
-                break;
-            case 'evaluatee':
-                if ($evaluation->evaluatee_id != $userID) {
-                    return response()->json(['status' => 403, 'message' => 'Not authorized']);
-                }
-                $evaluation->update([
-                    'status' => 'completed',
-                    'current_step' => null,
-                    'evaluatee_acknowledged_at' => $now
-                ]);
-                break;
-            default:
-                return response()->json(['status' => 400, 'message' => 'Workflow is already completed or invalid step.']);
-        }
+    //     // Advance step based on current_step
+    //     switch ($evaluation->current_step) {
+    //         case 'evaluator':
+    //             if ($evaluation->evaluator_id != $userID) {
+    //                 return response()->json(['status' => 403, 'message' => 'Not authorized']);
+    //             }
+    //             $evaluation->update([
+    //                 'status' => 'for_commentor1',
+    //                 'current_step' => 'first_commentor',
+    //                 'evaluator_completed_at' => $now
+    //             ]);
+    //             break;
+    //         case 'first_commentor':
+    //             if ($evaluation->primary_commentor_id != $userID) {
+    //                 return response()->json(['status' => 403, 'message' => 'Not authorized']);
+    //             }
+    //             $evaluation->update([
+    //                 'status' => 'for_commentor2',
+    //                 'current_step' => 'second_commentor',
+    //                 'first_commentor_completed_at' => $now
+    //             ]);
+    //             break;
+    //         case 'second_commentor':
+    //             if ($evaluation->secondary_commentor_id != $userID) {
+    //                 return response()->json(['status' => 403, 'message' => 'Not authorized']);
+    //             }
+    //             $evaluation->update([
+    //                 'status' => 'for_acknowledgement',
+    //                 'current_step' => 'evaluatee',
+    //                 'second_commentor_completed_at' => $now
+    //             ]);
+    //             break;
+    //         case 'evaluatee':
+    //             if ($evaluation->evaluatee_id != $userID) {
+    //                 return response()->json(['status' => 403, 'message' => 'Not authorized']);
+    //             }
+    //             $evaluation->update([
+    //                 'status' => 'completed',
+    //                 'current_step' => null,
+    //                 'evaluatee_acknowledged_at' => $now
+    //             ]);
+    //             break;
+    //         default:
+    //             return response()->json(['status' => 400, 'message' => 'Workflow is already completed or invalid step.']);
+    //     }
 
-        return response()->json([
-            'status' => 200,
-            'message' => 'Evaluation advanced to the next step.',
-            'evaluation' => $evaluation
-        ]);
-    }
+    //     return response()->json([
+    //         'status' => 200,
+    //         'message' => 'Evaluation advanced to the next step.',
+    //         'evaluation' => $evaluation
+    //     ]);
+    // }
 
     // evaluation form percentage answer
 
