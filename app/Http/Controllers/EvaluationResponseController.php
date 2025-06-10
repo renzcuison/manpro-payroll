@@ -410,6 +410,14 @@ class EvaluationResponseController extends Controller
             period_end_at: string
         */
 
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
         if (!Auth::check()) {
             return response()->json([
                 'status' => 403,
@@ -417,7 +425,9 @@ class EvaluationResponseController extends Controller
             ]);
         }
 
-        $user = DB::table('users')->select()->where('id', $userID)->first();
+        $userID = Auth::id();
+
+
 
         try {
 
