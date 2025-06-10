@@ -1280,7 +1280,6 @@ class EvaluationFormController extends Controller
         }
     }
 
-
     // public function saveEvaluationFormSubcategory(Request $request)
     // {
     //     log::info('EvaluationFormController::saveEvaluationFormSubcategory');
@@ -1560,7 +1559,6 @@ class EvaluationFormController extends Controller
             throw $e;
         }
     }
-
 
     public function deleteEvaluationFormSubcategoryOption(Request $request)
     {

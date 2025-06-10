@@ -25,9 +25,178 @@ class EvaluationResponseController extends Controller
 
     // evaluation response
  
-        // delete evaluation response
+    public function deleteEvaluationResponse(Request $request)
+    {
+        // inputs:
+        /*
+            id: number
+        */
 
-        // edit evaluation response
+        // returns:
+        /*
+            evaluationResponse: {
+                id, evaluatee_id, form_id, period_start_at, period_end_at, signature_filepath,
+                created_at, updated_at, deleted_at
+            }
+        */
+
+        log::info('EvaluationResponseController::deleteEvaluationForm');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        if (!Auth::check()) {
+            return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+        }
+
+        $userID = Auth::id();
+
+        try {
+            DB::beginTransaction();
+
+            $evaluationResponse = EvaluationResponse::find($request->id);
+
+            if (!$evaluationResponse) {
+                return response()->json([ 
+                    'status' => 404,
+                    'message' => 'Evaluation Response not found!',
+                    'evaluationResponseID' => $request->id
+                ]);
+            }
+
+            if ($evaluationResponse->deleted_at) {
+                return response()->json([ 
+                    'status' => 405,
+                    'message' => 'Evaluation Response already deleted!',
+                    'evaluationResponse' => $evaluationResponse
+                ]);
+            }
+
+            $evaluationResponse->deleted_at = now();
+            $evaluationResponse->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationResponse' => $evaluationResponse,
+                'message' => 'Evaluation Response successfully deleted'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            log::error('Error deleting evaluation response: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function editEvaluationResponse(Request $request)
+    {
+        // inputs:
+        /*
+            id: number,
+            evaluatee_id?: number,
+            form_id?: number,
+            period_start_at?: string,
+            period_end_at?: string,
+        */
+        // output:
+        /*
+            evaluationResponse: {
+                id, evaluatee_id, form_id, period_start_at, period_end_at, signature_filepath,
+                created_at, updated_at
+            }
+        */
+
+        log::info('EvaluationResponseController::getEvaluationResponse');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            if($user === null) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationResponse = EvaluationResponse
+                ::select(
+                    'id', 'evaluatee_id', 'form_id', 'period_start_at', 'period_end_at',
+                    'signature_filepath', 'created_at', 'updated_at'
+                )
+                ->where('id', $request->id)
+                ->first()
+            ;
+            if( !$evaluationResponse ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Response not found!',
+                'evaluationResponseID' => $request->id
+            ]);
+
+            $periodStartAtSec = strtotime($request->period_start_at ?? $evaluationResponse->period_start_at);
+            $periodEndAtSec = strtotime($request->period_end_at ?? $evaluationResponse->period_end_at);
+            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800);
+            $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800);
+
+            if ($periodStartAtSec > $periodEndAtSec) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Evaluation Period Start Date cannot be more than Period End Date!'
+                ]);
+            }
+
+            $conflictingEvaluationResponse = EvaluationResponse
+                ::where('evaluatee_id', $request->evaluatee_id ?? $evaluationResponse->evaluatee_id)
+                ->where('form_id', $request->form_id ?? $evaluationResponse->form_id)
+                ->where('id', '!=', $request->id)
+                ->where('period_start_at', '<', $request->period_end_at ?? $evaluationResponse->period_end_at)
+                ->where('period_end_at', '>', $request->period_start_at ?? $evaluationResponse->period_start_at)
+                ->first()
+            ;
+            if($conflictingEvaluationResponse) return response()->json([ 
+                'status' => 400,
+                'message' => 'This Evaluation is in conflict with another!',
+                'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
+            ]);
+
+            if($request->evaluatee_id !== null)
+                $evaluationResponse->evaluatee_id = $request->evaluatee_id;
+            if($request->form_id !== null)
+                $evaluationResponse->form_id = $request->form_id;
+            if($request->period_end_at !== null)
+                $evaluationResponse->period_end_at = $request->period_end_at;
+            if($request->period_start_at !== null)
+                $evaluationResponse->period_start_at = $request->period_start_at;
+
+            $evaluationResponse->save();
+            DB::commit();
+
+            return response()->json([
+                'status' => 201,
+                'message' => 'Evaluation Response successfully updated',
+                'evaluationResponse' => $evaluationResponse
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error saving evaluation response: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 
     public function getEvaluationResponse(Request $request)
     {
@@ -409,12 +578,15 @@ class EvaluationResponseController extends Controller
             period_start_at: string,
             period_end_at: string
         */
+        // output:
+        // { evaluationResponseID }
 
-        if (!Auth::check()) {
-            return response()->json([
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
+        log::info('EvaluationResponseController::getEvaluationResponse');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
         }
 
         $user = DB::table('users')->select()->where('id', $userID)->first();
@@ -502,27 +674,757 @@ class EvaluationResponseController extends Controller
 
     // evaluation evaluator
 
-        // delete evaluation evaluator
+    public function deleteEvaluationEvaluator(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            evaluator_id: number
+        */
 
-        // edit evaluation evaluator
+        // returns:
+        /*
+            evaluationEvaluator: {
+                response_id, evaluator_id, comment, order, signature_filepath, created_at,
+                updated_at, deleted_at
+            }
+        */
 
-        // get evaluation evaluator
+        log::info('EvaluationResponseController::deleteEvaluationEvaluator');
 
-        // get evaluation evaluators
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
 
-        // save evaluation evaluator
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationEvaluator = EvaluationEvaluator
+                ::select('*')
+                ->where('response_id', $request->response_id)
+                ->where('evaluator_id', $request->evaluator_id)
+                ->first()
+            ;
+
+            if( !$evaluationEvaluator ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Evaluator not found!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationEvaluatorID' => $request->evaluator_id
+            ]);
+
+            if( $evaluationEvaluator->deleted_at ) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation Evaluator already deleted!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationEvaluatorID' => $request->evaluator_id
+            ]);
+
+            $now = date('Y-m-d H:i');
+            $evaluationEvaluator->deleted_at = $now;
+            $evaluationEvaluator->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'message' => 'Evaluation Evaluator successfully deleted',
+                'evaluationEvaluator' => $evaluationEvaluator
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    public function editEvaluationEvaluator(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            evaluator_id: number,
+            comment?: string,
+            signature_filepath?: string
+        */
+
+        // returns:
+        /*
+            evaluationEvaluator: {
+                response_id, evaluator_id, comment, order, signature_filepath, created_at, updated_at
+            }
+        */
+
+        log::info('EvaluationResponseController::editEvaluationEvaluator');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationEvaluator = EvaluationEvaluator
+                ::select(
+                    'response_id', 'evaluator_id', 'comment', 'order', 'signature_filepath',
+                    'created_at', 'updated_at'
+                )
+                ->where('response_id', $request->response_id)
+                ->where('evaluator_id', $request->evaluator_id)
+                ->first()
+            ;
+
+            if(!$evaluationEvaluator) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Evaluator not found!',
+                'evaluationEvaluatorID' => $request->evaluator_id
+            ]);
+
+            if($request->comment !== null)
+                $evaluationEvaluator->comment = $request->comment;
+            if($request->signature_filepath !== null)
+                $evaluationEvaluator->signature_filepath = $request->signature_filepath;
+            $evaluationEvaluator->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationEvaluator' => $evaluationEvaluator,
+                'message' => 'Evaluation Evaluator successfully updated'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    public function getEvaluationEvaluator(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            evaluator_id: number,
+        */
+
+        // returns:
+        /*
+            evaluationEvaluator: {
+                response_id, evaluator_id, last_name, first_name, middle_name,
+                comment, order, signature_filepath, created_at, updated_at
+            }
+        */
+
+        log::info('EvaluationResponseController::getEvaluationEvaluator');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationEvaluator = EvaluationEvaluator
+                ::join('users', 'users.id', '=', 'evaluation_evaluators.evaluator_id')
+                ->select(
+                    'evaluation_evaluators.response_id',
+                    'evaluation_evaluators.evaluator_id',
+                    'evaluation_evaluators.comment',
+                    'evaluation_evaluators.order',
+                    'evaluation_evaluators.signature_filepath',
+                    'users.last_name',
+                    'users.first_name',
+                    'users.middle_name'
+                )
+                ->where('evaluation_evaluators.response_id', $request->response_id)
+                ->where('evaluation_evaluators.evaluator_id', $request->evaluator_id)
+                ->first()
+            ;
+            if( !$evaluationEvaluator ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Evaluator not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Evaluator successfully retrieved.',
+                'evaluationEvaluator' => $evaluationEvaluator
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function getEvaluationEvaluators(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number
+        */
+
+        // returns:
+        /*
+            evaluationEvaluators: {
+                response_id, evaluator_id, last_name, first_name, middle_name
+            }[]
+        */
+
+        log::info('EvaluationResponseController::getEvaluationEvaluators');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationEvaluators = EvaluationEvaluator
+                ::join('users', 'users.id', '=', 'evaluation_evaluators.evaluator_id')
+                ->select(
+                    'evaluation_evaluators.response_id',
+                    'evaluation_evaluators.evaluator_id',
+                    'users.last_name',
+                    'users.first_name',
+                    'users.middle_name'
+                )
+                ->where('evaluation_evaluators.response_id', $request->response_id)
+                ->get()
+            ;
+            if( !$evaluationEvaluators ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Evaluators not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Evaluators successfully retrieved.',
+                'evaluationEvaluators' => $evaluationEvaluators
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function saveEvaluationEvaluator(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            evaluator_id: number
+        */
+
+        // returns:
+        /*
+            evaluationEvaluatorID
+        */
+
+        log::info('EvaluationResponseController::saveEvaluationEvaluator');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            $evaluationResponse = EvaluationResponse
+                ::where('id', $request->response_id)
+                ->first()
+            ;
+            if(!$evaluationResponse) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Response not found!',
+                'evaluationResponseID' => $request->response_id
+            ]);
+            if($evaluationResponse->evaluatee_id === $request->evaluator_id) return response()->json([ 
+                'status' => 400,
+                'message' => 'This user has already been assigned as the evaluatee here!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationEvaluateeID' => $request->evaluator_id
+            ]);
+            
+            $existingFormEvaluator = EvaluationEvaluator
+                ::where('response_id', $request->response_id)
+                ->where('evaluator_id', $request->evaluator_id)
+                ->first()
+            ;
+            if($existingFormEvaluator) return response()->json([
+                'status' => 409,
+                'message' => 'This user has already been assigned as an evaluator here!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationEvaluatorID' => $request->evaluator_id
+            ]);
+
+            $existingFormCommentor = EvaluationCommentor
+                ::where('response_id', $request->response_id)
+                ->where('commentor_id', $request->evaluator_id)
+                ->first()
+            ;
+            if($existingFormCommentor) return response()->json([
+                'status' => 409,
+                'message' => 'This user has already been assigned as an commentor here!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationCommentorID' => $request->evaluator_id
+            ]);
+
+            DB::beginTransaction();
+
+            $order = (
+                EvaluationEvaluator::where('response_id', $request->response_id)->max('order')
+                ?? 0
+            ) + 1;
+
+            $newEvaluationEvaluator = EvaluationEvaluator::create([
+                'response_id' => $request->response_id,
+                'evaluator_id' => $request->evaluator_id,
+                'order' => $order
+            ]);
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 201,
+                'message' => 'Evaluation Evaluator successfully created',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationEvaluatorID' => $request->evaluator_id
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     // evaluation commentor
 
-        // delete evaluation commentor
+    public function deleteEvaluationCommentor(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            commentor_id: number
+        */
 
-        // edit evaluation commentor
+        // returns:
+        /*
+            evaluationCommentor: {
+                response_id, commentor_id, comment, order, signature_filepath, created_at,
+                updated_at, deleted_at
+            }
+        */
 
-        // get evaluation commentor
+        log::info('EvaluationResponseController::deleteEvaluationCommentor');
 
-        // get evaluation commentors
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
 
-        // save evaluation commentor
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationCommentor = EvaluationCommentor
+                ::select()
+                ->where('response_id', $request->response_id)
+                ->where('commentor_id', $request->commentor_id)
+                ->first()
+            ;
+
+            if( !$evaluationCommentor ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Commentor not found!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationCommentorID' => $request->commentor_id
+            ]);
+
+            if( $evaluationCommentor->deleted_at ) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation Commentor already deleted!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationCommentorID' => $request->commentor_id
+            ]);
+
+            $now = date('Y-m-d H:i');
+            $evaluationCommentor->deleted_at = $now;
+            $evaluationCommentor->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'message' => 'Evaluation Commentor successfully deleted',
+                'evaluationCommentor' => $evaluationCommentor
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    public function editEvaluationCommentor(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            commentor_id: number,
+            comment?: string,
+            signature_filepath?: string
+        */
+
+        // returns:
+        /*
+            evaluationCommentor: {
+                response_id, commentor_id, comment, order, signature_filepath, created_at, updated_at
+            }
+        */
+
+        log::info('EvaluationResponseController::editEvaluationCommentor');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationCommentor = EvaluationCommentor
+                ::select(
+                    'response_id', 'commentor_id', 'comment', 'order', 'signature_filepath',
+                    'created_at', 'updated_at'
+                )
+                ->where('response_id', $request->response_id)
+                ->where('commentor_id', $request->commentor_id)
+                ->first()
+            ;
+
+            if(!$evaluationCommentor) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Commentor not found!',
+                'evaluationCommentorID' => $request->commentor_id
+            ]);
+
+            if($request->comment !== null)
+                $evaluationCommentor->comment = $request->comment;
+            if($request->signature_filepath !== null)
+                $evaluationCommentor->signature_filepath = $request->signature_filepath;
+            $evaluationCommentor->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationCommentor' => $evaluationCommentor,
+                'message' => 'Evaluation Commentor successfully updated'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    public function getEvaluationCommentor(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            commentor_id: number,
+        */
+
+        // returns:
+        /*
+            evaluationCommentor: {
+                response_id, commentor_id, last_name, first_name, middle_name,
+                comment, order, signature_filepath, created_at, updated_at
+            }
+        */
+
+        log::info('EvaluationResponseController::getEvaluationCommentor');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationCommentor = EvaluationCommentor
+                ::join('users', 'users.id', '=', 'evaluation_commentors.commentor_id')
+                ->select(
+                    'evaluation_commentors.response_id',
+                    'evaluation_commentors.commentor_id',
+                    'evaluation_commentors.comment',
+                    'evaluation_commentors.order',
+                    'evaluation_commentors.signature_filepath',
+                    'users.last_name',
+                    'users.first_name',
+                    'users.middle_name'
+                )
+                ->where('evaluation_commentors.response_id', $request->response_id)
+                ->where('evaluation_commentors.commentor_id', $request->commentor_id)
+                ->first()
+            ;
+            if( !$evaluationCommentor ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Commentor not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Commentor successfully retrieved.',
+                'evaluationCommentor' => $evaluationCommentor
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function getEvaluationCommentors(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number
+        */
+
+        // returns:
+        /*
+            evaluationCommentors: {
+                response_id, commentor_id, last_name, first_name, middle_name
+            }[]
+        */
+
+        log::info('EvaluationResponseController::getEvaluationCommentors');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+    
+        $user = DB::table('users')->where('id', $userID)->first();
+
+        try {
+
+            $evaluationCommentors = EvaluationCommentor
+                ::join('users', 'users.id', '=', 'evaluation_commentors.commentor_id')
+                ->select(
+                    'evaluation_commentors.response_id',
+                    'evaluation_commentors.commentor_id',
+                    'users.last_name',
+                    'users.first_name',
+                    'users.middle_name'
+                )
+                ->where('evaluation_commentors.response_id', $request->response_id)
+                ->get()
+            ;
+            if( !$evaluationCommentors ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Commentors not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Commentors successfully retrieved.',
+                'evaluationCommentors' => $evaluationCommentors
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    
+    }
+
+    public function saveEvaluationCommentor(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            commentor_id: number
+        */
+
+        // returns:
+        /*
+            evaluationCommentorID
+        */
+
+        log::info('EvaluationResponseController::saveEvaluationCommentor');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            $evaluationResponse = EvaluationResponse
+                ::where('id', $request->response_id)
+                ->first()
+            ;
+            if(!$evaluationResponse) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Response not found!',
+                'evaluationResponseID' => $request->response_id
+            ]);
+            if($evaluationResponse->evaluatee_id === $request->commentor_id) return response()->json([ 
+                'status' => 400,
+                'message' => 'This user has already been assigned as the evaluatee here!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationEvaluateeID' => $request->commentor_id
+            ]);
+            
+            $existingFormCommentor = EvaluationCommentor
+                ::where('response_id', $request->response_id)
+                ->where('commentor_id', $request->commentor_id)
+                ->first()
+            ;
+            if($existingFormCommentor) return response()->json([
+                'status' => 409,
+                'message' => 'This user has already been assigned as an commentor here!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationCommentorID' => $request->commentor_id
+            ]);
+
+            $existingFormEvaluator = EvaluationEvaluator
+                ::where('response_id', $request->response_id)
+                ->where('evaluator_id', $request->commentor_id)
+                ->first()
+            ;
+            if($existingFormEvaluator) return response()->json([
+                'status' => 409,
+                'message' => 'This user has already been assigned as an commentor here!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationEvaluatorID' => $request->commentor_id
+            ]);
+
+            DB::beginTransaction();
+
+            $order = (
+                EvaluationCommentor::where('response_id', $request->response_id)->max('order')
+                ?? 0
+            ) + 1;
+
+            $newEvaluationCommentor = EvaluationCommentor::create([
+                'response_id' => $request->response_id,
+                'commentor_id' => $request->commentor_id,
+                'order' => $order
+            ]);
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 201,
+                'message' => 'Evaluation Commentor successfully created',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationCommentorID' => $request->commentor_id
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
     
     public function advanceWorkflow(Request $request, $id)
     {
@@ -592,7 +1494,81 @@ class EvaluationResponseController extends Controller
 
     // evaluation form percentage answer
 
-        // delete evaluation form percentage answer
+    public function deleteEvaluationPercentageAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            subcategory_id: number
+        */
+
+        // returns:
+        /*
+            evaluationPercentageAnswer: {
+                response_id, subcategory_id, percentage, created_at, updated_at, deleted_at
+            }
+        */
+
+        log::info('EvaluationResponseController::deleteEvaluationPercentageAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationPercentageAnswer = EvaluationPercentageAnswer
+                ::select()
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
+                ->first()
+            ;
+
+            if( !$evaluationPercentageAnswer ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Percentage Answer not found!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationSubcategoryID' => $request->subcategory_id
+            ]);
+
+            if( $evaluationPercentageAnswer->deleted_at ) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation Percentage Answer already deleted!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationSubcategoryID' => $request->subcategory_id
+            ]);
+
+            $now = date('Y-m-d H:i');
+            $evaluationPercentageAnswer->deleted_at = $now;
+            $evaluationPercentageAnswer->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'message' => 'Evaluation Percentage Answer successfully deleted',
+                'evaluationPercentageAnswer' => $evaluationPercentageAnswer
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     public function editEvaluationPercentageAnswer(Request $request)
     {
@@ -957,7 +1933,7 @@ class EvaluationResponseController extends Controller
             }
         */
 
-        log::info('EvaluationFormController::deleteEvaluationTextAnswer');
+        log::info('EvaluationResponseController::deleteEvaluationTextAnswer');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -1006,8 +1982,7 @@ class EvaluationResponseController extends Controller
             return response()->json([ 
                 'status' => 200,
                 'message' => 'Evaluation Text Answer successfully deleted',
-                'evaluationResponseID' => $request->response_id,
-                'evaluationSubcategoryID' => $request->subcategory_id
+                'evaluationTextAnswer' => $evaluationTextAnswer
             ]);
 
         } catch (\Exception $e) {
@@ -1305,9 +2280,186 @@ class EvaluationResponseController extends Controller
 
     // evaluation form option answer
 
-        // delete evaluation form option answer
+    public function deleteEvaluationOptionAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            option_id: number
+        */
 
-        // edit evaluation form option answer
+        // returns:
+        /*
+            evaluationOptionAnswer: {
+                response_id, option_id,
+                created_at, updated_at, deleted_at
+            }
+        */
+
+        log::info('EvaluationOptionAnswerController::deleteEvaluationOptionAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationOptionAnswer = EvaluationOptionAnswer
+                ::select()
+                ->where('response_id', $request->response_id)
+                ->where('option_id', $request->option_id)
+                ->first()
+            ;
+
+            if( !$evaluationOptionAnswer ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Option Answer not found!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationSubcategoryOptionID' => $request->option_id
+            ]);
+
+            if( $evaluationOptionAnswer->deleted_at ) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation Option Answer already deleted!',
+                'evaluationOptionAnswer' => $evaluationOptionAnswer
+            ]);
+
+            echo $evaluationOptionAnswer;
+
+            $now = date('Y-m-d H:i');
+            $evaluationOptionAnswer->deleted_at = $now;
+            $evaluationOptionAnswer->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationOptionAnswer' => $evaluationOptionAnswer,
+                'message' => 'Evaluation Option Answer successfully deleted'
+            ]);
+
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
+
+    public function editEvaluationOptionAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            option_id: number,
+            new_option_id: number
+        */
+
+        // returns:
+        /*
+            evaluationOptionAnswer: {
+                response_id, option_id, created_at, updated_at, deleted_at
+            }
+        */
+
+        log::info('EvaluationResponseController::editEvaluationOptionAnswer');
+
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        try {
+
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+
+            DB::beginTransaction();
+
+            $evaluationOptionAnswer = EvaluationOptionAnswer
+                ::select()
+                ->where('response_id', $request->response_id)
+                ->where('option_id', $request->option_id)
+                ->first()
+            ;
+
+            if(!$evaluationOptionAnswer) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Option Answer not found!',
+                'evaluationFormResponseID' => $request->response_id,
+                'evaluationFormOptionID' => $request->option_id
+            ]);
+
+            $evaluationFormSubcategory = EvaluationFormSubcategoryOption
+                ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
+                ->select('evaluation_form_subcategories.id', 'evaluation_form_subcategories.subcategory_type')
+                ->first()
+            ;
+
+            switch($evaluationFormSubcategory->subcategory_type) {
+                case "linear_scale":
+                case "long_answer":
+                case "short_answer":
+                    return response()->json([
+                        'status' => 400,
+                        'message' => 'This subcategory does not accept choice answers!',
+                        'evaluationFormSubcategoryID' => $evaluationFormSubcategory->id
+                    ]);
+                    break;
+                case "checkbox":
+                case "multiple_choice":
+                    $existingOptionAnswer = EvaluationOptionAnswer
+                        ->select('response_id', 'option_id')
+                        ->where('response_id', '=', $request->response_id)
+                        ->where('option_id', '=', $request->option_id)
+                        ->first()
+                    ;
+                    if($existingOptionAnswer) return response()->json([ 
+                        'status' => 409,
+                        'message' => 'The same option answer was already created for this subcategory!',
+                        'evaluationResponseID' => $request->response_id,
+                        'evaluationFormSubcategoryOptionID' => $erequest->option_id
+                    ]);
+                    break;
+            }
+
+            $evaluationOptionAnswer->option_id  = $request->new_option_id;
+            $evaluationOptionAnswer->save();
+
+            DB::commit();
+
+            return response()->json([ 
+                'status' => 200,
+                'evaluationOptionAnswer' => $evaluationOptionAnswer,
+                'message' => 'Evaluation Option Answer successfully updated'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error saving work shift: ' . $e->getMessage());
+
+            throw $e;
+        }
+    }
 
     public function getEvaluationOptionAnswer(Request $request)
     {

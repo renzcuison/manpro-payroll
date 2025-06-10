@@ -489,8 +489,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEvaluationForm', [EvaluationFormController::class, 'getEvaluationForm']);
     Route::get('/getEvaluationForms', [EvaluationFormController::class, 'getEvaluationForms']);
     Route::post('/saveEvaluationForm', [EvaluationFormController::class, 'saveEvaluationForm']);
-    Route::post('/advanceEvaluationWorkflow/{id}', [EvaluationResponseController::class, 'advanceWorkflow']);
-    Route::post('/deleteEvaluationResponse', [EvaluationResponseController::class, 'deleteEvaluationResponse']);
 
     Route::post('/deleteEvaluationFormSection', [EvaluationFormController::class, 'deleteEvaluationFormSection']);
     Route::post('/editEvaluationFormSection', [EvaluationFormController::class, 'editEvaluationFormSection']);
@@ -498,20 +496,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/moveEvaluationFormSection', [EvaluationFormController::class, 'moveEvaluationFormSection']);
     Route::post('/saveEvaluationFormSection', [EvaluationFormController::class, 'saveEvaluationFormSection']);
 
-
-
-    // Route::post('/deleteEvaluationFormCategory', [EvaluationFormController::class, 'deleteEvaluationFormCategory']);
-    // Route::post('/editEvaluationFormCategory', [EvaluationFormController::class, 'editEvaluationFormCategory']);
-    // Route::get('/getEvaluationFormCategory', [EvaluationFormController::class, 'getEvaluationFormCategory']);
-    // Route::post('/moveEvaluationFormCategory', [EvaluationFormController::class, 'moveEvaluationFormCategory']);
-    // Route::post('/saveEvaluationFormCategory', [EvaluationFormController::class, 'saveEvaluationFormCategory']);
-
     Route::post('/deleteEvaluationFormSubcategory', [EvaluationFormController::class, 'deleteEvaluationFormSubcategory']);
     Route::post('/editEvaluationFormSubcategory', [EvaluationFormController::class, 'editEvaluationFormSubcategory']);
     Route::get('/getEvaluationFormSubcategory', [EvaluationFormController::class, 'getEvaluationFormSubcategory']);
     Route::post('/moveEvaluationFormSubcategory', [EvaluationFormController::class, 'moveEvaluationFormSubcategory']);
     Route::post('/saveEvaluationFormSubcategory', [EvaluationFormController::class, 'saveEvaluationFormSubcategory']);
 
+    Route::post('/advanceEvaluationWorkflow/{id}', [EvaluationResponseController::class, 'advanceWorkflow']);
     Route::post('/deleteEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'deleteEvaluationFormSubcategoryOption']);
     Route::post('/editEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'editEvaluationFormSubcategoryOption']);
     Route::get('/getEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'getEvaluationFormSubcategoryOption']);
@@ -526,6 +517,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEvaluationResponse', [EvaluationResponseController::class, 'getEvaluationResponse']);
     Route::get('/getEvaluationResponses', [EvaluationResponseController::class, 'getEvaluationResponses']);
     Route::post('/saveEvaluationResponse', [EvaluationResponseController::class, 'saveEvaluationResponse']);
+
+    Route::post('/deleteEvaluationEvaluator', [EvaluationResponseController::class, 'deleteEvaluationEvaluator']);
+    Route::post('/editEvaluationEvaluator', [EvaluationResponseController::class, 'editEvaluationEvaluator']);
+    Route::get('/getEvaluationEvaluator', [EvaluationResponseController::class, 'getEvaluationEvaluator']);
+    Route::get('/getEvaluationEvaluators', [EvaluationResponseController::class, 'getEvaluationEvaluators']);
+    Route::post('/saveEvaluationEvaluator', [EvaluationResponseController::class, 'saveEvaluationEvaluator']);
+
+    Route::post('/deleteEvaluationCommentor', [EvaluationResponseController::class, 'deleteEvaluationCommentor']);
+    Route::post('/editEvaluationCommentor', [EvaluationResponseController::class, 'editEvaluationCommentor']);
+    Route::get('/getEvaluationCommentor', [EvaluationResponseController::class, 'getEvaluationCommentor']);
+    Route::get('/getEvaluationCommentors', [EvaluationResponseController::class, 'getEvaluationCommentors']);
+    Route::post('/saveEvaluationCommentor', [EvaluationResponseController::class, 'saveEvaluationCommentor']);
 
     Route::post('/deleteEvaluationTextAnswer', [EvaluationResponseController::class, 'deleteEvaluationTextAnswer']);
     Route::post('/editEvaluationTextAnswer', [EvaluationResponseController::class, 'editEvaluationTextAnswer']);
