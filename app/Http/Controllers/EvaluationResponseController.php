@@ -567,6 +567,108 @@ class EvaluationResponseController extends Controller
         }
     }
 
+    // public function saveEvaluationResponse(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         evaluatee_id: number,
+    //         form_id: number,
+    //         evaluators: number[],
+    //         commentors: number[],
+    //         period_start_at: string,
+    //         period_end_at: string
+    //     */
+
+    //     if (!Auth::check()) {
+    //         return response()->json([
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+    //     }
+
+    //     $user = DB::table('users')->select()->where('id', $userID)->first();
+
+    //     try {
+
+    //         if($user === null) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+
+    //         if(!$request->evaluators) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Evaluators are required!'
+    //         ]);
+    //         if(!$request->commentors) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'Commentors are required!'
+    //         ]);
+
+    //         $periodStartAtSec = strtotime($request->period_start_at);
+    //         $periodEndAtSec = strtotime($request->period_end_at);
+    //         $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800);
+    //         $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800);
+
+    //         if ($periodStartAtSec > $periodEndAtSec) {
+    //             return response()->json([
+    //                 'status' => 400,
+    //                 'message' => 'Evaluation Period Start Date cannot be more than Period End Date!'
+    //             ]);
+    //         }
+
+    //         DB::beginTransaction();
+
+    //         $conflictingEvaluationResponse = EvaluationResponse::where('evaluatee_id', $request->evaluatee_id)
+    //             ->where('form_id', $request->form_id)
+    //             ->where('period_start_at', '<', $request->period_end_at)
+    //             ->where('period_end_at', '>', $request->period_start_at)
+    //             ->first()
+    //         ;
+    //         if($conflictingEvaluationResponse) return response()->json([ 
+    //             'status' => 400,
+    //             'message' => 'This Evaluation is in conflict with another!',
+    //             'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
+    //         ]);
+
+    //         $newEvaluationResponse = EvaluationResponse::create([
+    //             'evaluatee_id' => $request->evaluatee_id,
+    //             'form_id' => $request->form_id,
+    //             'period_start_at' => $request->period_start_at,
+    //             'period_end_at' => $request->period_end_at,
+    //             'status' => 'pending',
+    //             'current_step' => 'evaluator'
+    //         ]);
+
+    //         foreach ($request->evaluators as $index => $evaluator_id) {
+    //             EvaluationEvaluator::create([
+    //                 'response_id' => $newEvaluationResponse->id,
+    //                 'evaluator_id' => $evaluator_id,
+    //                 'order' => $index + 1
+    //             ]);
+    //         }
+
+    //         foreach ($request->commentors as $index => $commentor_id) {
+    //             EvaluationCommentor::create([
+    //                 'response_id' => $newEvaluationResponse->id,
+    //                 'commentor_id' => $commentor_id,
+    //                 'order' => $index + 1
+    //             ]);
+    //         }
+
+    //         DB::commit();
+
+    //         return response()->json([
+    //             'status' => 201,
+    //             'evaluationResponseID' => $newEvaluationResponse->id,
+    //             'message' => 'Evaluation Response successfully created'
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         Log::error('Error saving evaluation response: ' . $e->getMessage());
+    //         throw $e;
+    //     }
+    // }
+
     public function saveEvaluationResponse(Request $request)
     {
         // inputs:
@@ -671,7 +773,7 @@ class EvaluationResponseController extends Controller
             throw $e;
         }
     }
-
+    
     // evaluation evaluator
 
     public function deleteEvaluationEvaluator(Request $request)

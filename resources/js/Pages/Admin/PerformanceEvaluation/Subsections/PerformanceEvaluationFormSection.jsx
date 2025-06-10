@@ -6,9 +6,22 @@ import {
     AccordionSummary,
     AccordionDetails,
     Paper,
-    TextField
+    TextField,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    Grid,
+    IconButton
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import LinearScaleIcon from '@mui/icons-material/LinearScale';
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import ShortTextIcon from '@mui/icons-material/ShortText';
+import TextFieldsIcon from '@mui/icons-material/TextFields';
+import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
 import PerformanceEvaluationRating from './PerformanceEvaluationRating';
 import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvaluationFormAddSubcategory';
@@ -17,6 +30,14 @@ import { useClickAway } from '../Test/useClickAway';
 import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
+
+const RESPONSE_TYPE_OPTIONS = [
+    { value: "linear_scale", label: "Linear Scale", icon: <LinearScaleIcon sx={{ mr: 2 }} /> },
+    { value: "multiple_choice", label: "Multiple Choice", icon: <RadioButtonCheckedIcon sx={{ mr: 2 }} /> },
+    { value: "checkbox", label: "Checkbox", icon: <CheckBoxIcon sx={{ mr: 2 }} /> },
+    { value: "short_answer", label: "Short Text", icon: <ShortTextIcon sx={{ mr: 2 }} /> },
+    { value: "long_answer", label: "Long Text", icon: <TextFieldsIcon sx={{ mr: 2 }} /> }
+];
 
 const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     const {
@@ -28,7 +49,8 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
         expanded, toggleExpand,
         order,
         subcategories, saveSubcategory,
-        editSection
+        editSection,
+        deleteSubcategory
     } = useEvaluationFormSection(section);
 
     const inputRef = useRef(null);
@@ -52,14 +74,18 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     const [addSubcategoryOpen, setAddSubcategoryOpen] = useState(false);
     const handleOpenAddSubcategoryModal = () => setAddSubcategoryOpen(true);
     const handleCloseAddSubcategoryModal = () => setAddSubcategoryOpen(false);
+
+    // Subcategory editing state
+    const [expandedSubcategory, setExpandedSubcategory] = useState(null);
     const [editingSubcategoryId, setEditingSubcategoryId] = useState(null);
+    const [subcategoryDraft, setSubcategoryDraft] = useState({});
+    const [subcategoryOptions, setSubcategoryOptions] = useState([]);
     const subcategoryInputRef = useRef(null);
 
     function handleExitEditMode() {
         if (sectionName?.trim()) {
             toggleEditableSection();
         } else {
-            // Show error and refocus if empty
             Swal.fire({
                 text: "Section Name is required!",
                 icon: "error",
@@ -74,7 +100,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     useClickAway(inputRef, () => {
         if (editableSectionName) {
             if (sectionName?.trim()) {
-                toggleEditableSection(); // exit edit mode if valid
+                toggleEditableSection();
             } else {
                 Swal.fire({
                     text: "Section Name is required!",
@@ -92,7 +118,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     useClickAway(categoryInputRef, () => {
         if (!editingCategory) return;
         if (categoryDraft.trim()) {
-            // Optionally, save to server here
             setEditingCategory(false);
             setSectionCategory(categoryDraft);
             editSection({ category: categoryDraft });
@@ -167,7 +192,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
             });
             return;
         }
-        // Additional validation for linear scale fields
         if (subcategory.subcategory_type === "linear_scale") {
             if (
                 subcategory.linear_scale_start == null ||
@@ -210,13 +234,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
         saveSubcategory(subcategory);
     };
 
-    // Collapsible subcategory state
-    const [expandedSubcategory, setExpandedSubcategory] = useState(null);
-    const handleSubcategoryToggle = (id) => (event, isExpanded) => {
-        setExpandedSubcategory(isExpanded ? id : null);
-    };
-
-    // Display for subcategory type
     const getSubcategoryTypeDisplay = (type) => {
         const map = {
             short_answer: "Short Text",
@@ -230,43 +247,108 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
         return map[type] || type;
     };
 
-    useClickAway(subcategoryInputRef, () => {
-    if (editingSubcategoryId !== null) {
-        const sub = subcategories.find(s => s.id === editingSubcategoryId);
-        if (sub && sub.name.trim()) {
-            setEditingSubcategoryId(null);
+    // Subcategory: show edit UI when expanded
+    const handleSubcategoryToggle = (id, subcategory) => (event, isExpanded) => {
+        setExpandedSubcategory(isExpanded ? id : null);
+        if (isExpanded) {
+            setEditingSubcategoryId(id);
+            // Clone all values for editing
+            setSubcategoryDraft({ ...subcategory });
+            setSubcategoryOptions(subcategory.options ? subcategory.options.map(opt => ({ ...opt })) : []);
         } else {
-            Swal.fire({
-                text: "Subcategory Name is required!",
-                icon: "error",
-                confirmButtonColor: '#177604',
-            }).then(() => {
-                setTimeout(() => {
-                    if (subcategoryInputRef.current) subcategoryInputRef.current.focus();
-                }, 0);
-            });
+            setEditingSubcategoryId(null);
+            setSubcategoryDraft({});
+            setSubcategoryOptions([]);
         }
-    }
-});
+    };
 
-    useClickAway(subcategoryInputRef, () => {
-    if (editingSubcategoryId !== null) {
-        const sub = subcategories.find(s => s.id === editingSubcategoryId);
-        if (sub && sub.name.trim()) {
-            setEditingSubcategoryId(null);
-        } else {
+    // Option editing
+    const handleOptionChange = (index, event) => {
+        const newOptions = [...subcategoryOptions];
+        newOptions[index].label = event.target.value;
+        setSubcategoryOptions(newOptions);
+    };
+
+    const handleAddOption = () => {
+        setSubcategoryOptions([...subcategoryOptions, { label: "", extra: "" }]);
+    };
+
+    const handleRemoveOption = (index) => {
+        const newOptions = [...subcategoryOptions];
+        newOptions.splice(index, 1);
+        setSubcategoryOptions(newOptions);
+    };
+
+    const handleOptionExtraChange = (index, event) => {
+        const newOptions = [...subcategoryOptions];
+        newOptions[index].extra = event.target.value;
+        setSubcategoryOptions(newOptions);
+    };
+
+    const handleSaveEditSubcategory = () => {
+        // Ensure the subcategory name is not empty
+        if (!subcategoryDraft.name?.trim()) {
             Swal.fire({
                 text: "Subcategory Name is required!",
                 icon: "error",
                 confirmButtonColor: '#177604',
-            }).then(() => {
-                setTimeout(() => {
-                    if (subcategoryInputRef.current) subcategoryInputRef.current.focus();
-                }, 0);
             });
+            return;
         }
-    }
-});
+
+        // Validate for linear scale fields if needed
+        if (subcategoryDraft.subcategory_type === "linear_scale") {
+            if (
+                subcategoryDraft.linear_scale_start == null ||
+                subcategoryDraft.linear_scale_end == null ||
+                subcategoryDraft.linear_scale_start_label?.trim() === "" ||
+                subcategoryDraft.linear_scale_end_label?.trim() === ""
+            ) {
+                Swal.fire({
+                    text: "All linear scale fields are required!",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+            if (+subcategoryDraft.linear_scale_start >= +subcategoryDraft.linear_scale_end) {
+                Swal.fire({
+                    text: "Linear Scale Start must be less than End!",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+        }
+
+        // If it's an existing subcategory (has an ID), update it
+        if (subcategoryDraft.id) {
+            const updatedSubcategory = {
+                ...subcategoryDraft,
+                options: (subcategoryDraft.subcategory_type === "multiple_choice" || subcategoryDraft.subcategory_type === "checkbox")
+                    ? subcategoryOptions
+                    : undefined
+            };
+            saveSubcategory(updatedSubcategory, "update");  // Ensure the function distinguishes between create/update
+        } else {
+            // If no ID, treat it as a new subcategory
+            saveSubcategory(subcategoryDraft, "create");
+        }
+
+        // Clear the form after saving
+        setEditingSubcategoryId(null);
+        setSubcategoryDraft({});
+        setSubcategoryOptions([]);
+        setExpandedSubcategory(null);
+    };
+
+
+    const handleCancelEditSubcategory = () => {
+        setEditingSubcategoryId(null);
+        setSubcategoryDraft({});
+        setSubcategoryOptions([]);
+        setExpandedSubcategory(null);
+    };
 
     return <>
         <Accordion
@@ -349,7 +431,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                 color: 'white',
                                 fontSize: 20,
                                 fontWeight: "bold",
-                                
                                 letterSpacing: '0.5px'
                             }
                         }}
@@ -387,7 +468,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                             variant="standard"
                             value={categoryDraft}
                             onChange={e => setCategoryDraft(e.target.value)}
-                            // REMOVE onBlur!
                             InputProps={{
                                 disableUnderline: true,
                                 style: {
@@ -435,6 +515,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                             >
                                 {sectionCategory}
                             </Typography>
+                            
                             </Paper>
                         )
                         ) : (
@@ -444,67 +525,282 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                         )}
                     {/* SUBCATEGORIES */}
                     {sectionCategory && subcategories.map((subcategory) => (
-                    <Accordion
-                        key={subcategory.id}
-                        expanded={expandedSubcategory === subcategory.id}
-                        onChange={handleSubcategoryToggle(subcategory.id)}
-                        sx={{
-                            mb: 2,
-                            boxShadow: 2,
-                            borderRadius: 2,
-                            background: "#f3f3f3",
-                            '&:before': { display: 'none' },
-                            mx: 2
-                        }}
-                    >
-                        <AccordionSummary
-                            expandIcon={<ExpandMoreIcon />}
+                        <Accordion
+                            key={subcategory.id}
+                            expanded={expandedSubcategory === subcategory.id}
+                            onChange={handleSubcategoryToggle(subcategory.id, subcategory)}
                             sx={{
-                                minHeight: 56,
+                                mb: 2,
+                                boxShadow: 2,
                                 borderRadius: 2,
-                                boxShadow: 'none',
-                                px: 3,
-                                py: 0,
+                                background: "#f3f3f3",
+                                '&:before': { display: 'none' },
+                                mx: 2
                             }}
                         >
-                            <Box sx={{ width: "100%" }}>
-                                {editingSubcategoryId === subcategory.id ? (
-                                    <TextField
-                                        inputRef={subcategoryInputRef}
-                                        autoFocus
-                                        value={subcategory.name}
-                                        onChange={e => {
-                                            // Update local state or, if from props, use a local editing value array
-                                            // Example: setSubcategories(prev => prev.map(s => s.id === subcategory.id ? {...s, name: e.target.value} : s));
-                                            // Or call a handler, e.g. handleChangeSubcategoryName(subcategory.id, e.target.value)
-                                        }}
-                                        // REMOVE onBlur!
-                                        variant="standard"
-                                        fullWidth
-                                        required
-                                        InputProps={{
-                                            style: { fontWeight: "bold", fontSize: 16 }
-                                        }}
-                                    />
-                                ) : (
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                sx={{
+                                    minHeight: 56,
+                                    borderRadius: 2,
+                                    boxShadow: 'none',
+                                    px: 3,
+                                    py: 0,
+                                }}
+                            >
+                                <Box sx={{ width: "100%" }}>
                                     <Typography
                                         variant="subtitle1"
-                                        sx={{ fontWeight: "bold", cursor: "pointer" }}
-                                        onDoubleClick={() => setEditingSubcategoryId(subcategory.id)}
+                                        sx={{ fontWeight: "bold" }}
                                     >
                                         {subcategory.name}
                                     </Typography>
+                                    <Typography variant="body2" sx={{ color: "#555" }}>
+                                        Response Type: {getSubcategoryTypeDisplay(subcategory.subcategory_type)}
+                                    </Typography>
+                                </Box>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ px: 3, pb: 2 }}>
+                                {expandedSubcategory === subcategory.id ? (
+                                    <Box sx={{ width: "100%" }}>
+                                        <Grid container spacing={3} sx={{ mb: 3 }}>
+                                            <Grid item xs={6} sx={{ width: '100%', maxWidth: '528px' }}>
+                                                <TextField
+                                                    label="Sub-Category Name"
+                                                    variant="outlined"
+                                                    fullWidth
+                                                    value={subcategoryDraft.name || ""}
+                                                    onChange={e => setSubcategoryDraft(d => ({ ...d, name: e.target.value }))}
+                                                    required
+                                                />
+                                            </Grid>
+                                            <Grid item xs={6} sx={{ width: '100%', maxWidth: '235px' }}>
+                                                <FormControl fullWidth>
+                                                    <InputLabel>Response Type</InputLabel>
+                                                    <Select
+                                                        value={subcategoryDraft.subcategory_type || ""}
+                                                        onChange={e => setSubcategoryDraft(d => ({ ...d, subcategory_type: e.target.value }))}
+                                                        label="Response Type"
+                                                        required
+                                                    >
+                                                        {RESPONSE_TYPE_OPTIONS.map(opt => (
+                                                            <MenuItem key={opt.value} value={opt.value}>
+                                                                {opt.icon}{opt.label}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
+                                        </Grid>
+                                        <Box sx={{ mb: 2, width: '100%', maxWidth: '935px' }}>
+                                            <TextField
+                                                label="Description"
+                                                variant="outlined"
+                                                fullWidth
+                                                multiline
+                                                rows={3}
+                                                value={subcategoryDraft.description || ""}
+                                                onChange={e => setSubcategoryDraft(d => ({ ...d, description: e.target.value }))}
+                                                required
+                                            />
+                                        </Box>
+                                        {(subcategoryDraft.subcategory_type === 'multiple_choice' || subcategoryDraft.subcategory_type === 'checkbox') && (
+                                            <Box sx={{ mb: 2 }}>
+                                                {subcategoryOptions.map(({ label, extra }, index) => (
+                                                    <Grid container spacing={2} key={index} sx={{ mb: 2 }} alignItems="center">
+                                                        <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                                                            <Typography variant="body1">{index + 1}.</Typography>
+                                                        </Grid>
+                                                        <Grid item xs={7}>
+                                                            <TextField
+                                                                variant="outlined"
+                                                                fullWidth
+                                                                value={label}
+                                                                onChange={e => handleOptionChange(index, e)}
+                                                            />
+                                                        </Grid>
+                                                        <Grid item xs={2}>
+                                                            <TextField
+                                                                variant="outlined"
+                                                                placeholder="XXX"
+                                                                value={extra || ""}
+                                                                onChange={e => handleOptionExtraChange(index, e)}
+                                                                sx={{ width: 80 }}
+                                                                size="small"
+                                                            />
+                                                        </Grid>
+                                                        <Grid item xs={2}>
+                                                            <IconButton
+                                                                onClick={() => handleRemoveOption(index)}
+                                                                sx={{ color: 'gray' }}
+                                                            >
+                                                                <CloseIcon />
+                                                            </IconButton>
+                                                        </Grid>
+                                                    </Grid>
+                                                ))}
+                                                <Typography
+                                                    onClick={handleAddOption}
+                                                    sx={{
+                                                        color: '#000000',
+                                                        fontSize: '14px',
+                                                        cursor: 'pointer',
+                                                        marginTop: '8px',
+                                                    }}
+                                                >
+                                                    {subcategoryOptions.length + 1}. Add Option
+                                                </Typography>
+                                            </Box>
+                                        )}
+                                        {subcategoryDraft.subcategory_type === 'linear_scale' && (
+                                            <Box sx={{ mb: 2 }}>
+                                                <Grid container spacing={2} sx={{ mt: 2 }}>
+                                                    <Grid item xs={5}>
+                                                        <FormControl fullWidth>
+                                                            <Select
+                                                                value={subcategoryDraft.linear_scale_start || ""}
+                                                                onChange={e => setSubcategoryDraft(d => ({ ...d, linear_scale_start: +e.target.value }))}
+                                                                label="Min Value"
+                                                            >
+                                                                <MenuItem value={0}>0</MenuItem>
+                                                                <MenuItem value={1}>1</MenuItem>
+                                                                <MenuItem value={2}>2</MenuItem>
+                                                            </Select>
+                                                        </FormControl>
+                                                    </Grid>
+                                                    <Grid item xs={2} sx={{ textAlign: 'center' }}>
+                                                        <Typography variant="h6">to</Typography>
+                                                    </Grid>
+                                                    <Grid item xs={5}>
+                                                        <FormControl fullWidth>
+                                                            <Select
+                                                                value={subcategoryDraft.linear_scale_end || ""}
+                                                                onChange={e => setSubcategoryDraft(d => ({ ...d, linear_scale_end: +e.target.value }))}
+                                                                label="Max Value"
+                                                            >
+                                                                <MenuItem value={3}>3</MenuItem>
+                                                                <MenuItem value={4}>4</MenuItem>
+                                                                <MenuItem value={5}>5</MenuItem>
+                                                            </Select>
+                                                        </FormControl>
+                                                    </Grid>
+                                                </Grid>
+                                                <Grid container spacing={2} sx={{ mt: 2 }}>
+                                                    <Grid item xs={5}>
+                                                        <TextField
+                                                            label="Label"
+                                                            variant="outlined"
+                                                            fullWidth
+                                                            value={subcategoryDraft.linear_scale_start_label || ""}
+                                                            onChange={e => setSubcategoryDraft(d => ({ ...d, linear_scale_start_label: e.target.value }))}
+                                                        />
+                                                    </Grid>
+                                                    <Grid item xs={5}>
+                                                        <TextField
+                                                            label="Label"
+                                                            variant="outlined"
+                                                            fullWidth
+                                                            value={subcategoryDraft.linear_scale_end_label || ""}
+                                                            onChange={e => setSubcategoryDraft(d => ({ ...d, linear_scale_end_label: e.target.value }))}
+                                                        />
+                                                    </Grid>
+                                                </Grid>
+                                            </Box>
+                                        )}
+                                        <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
+                                            <Box>
+                                                <Button
+                                                onClick={handleCancelEditSubcategory}
+                                                variant="contained"
+                                                sx={{
+                                                    backgroundColor: '#727F91',
+                                                    color: 'white',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    width: '120px',
+                                                    height: '35px',
+                                                    fontSize: '14px',
+                                                }}
+                                                startIcon={
+                                                    <CloseIcon sx={{
+                                                        fontSize: '1rem',
+                                                        fontWeight: 'bold',
+                                                        stroke: 'white',
+                                                        strokeWidth: 2,
+                                                        fill: 'none'
+                                                    }} />
+                                                }
+                                            >
+                                                Cancel
+                                            </Button>
+                                            </Box>
+                                            
+                                            <Box justifyContent="flex-end" display="flex" gap={1}>
+                                                <Button
+                                                onClick={e => {
+                                                    e.stopPropagation();
+                                                    deleteSubcategory(subcategory.id);
+                                                }}
+                                                variant="contained"
+                                                sx={{
+                                                    backgroundColor: '#727F91',
+                                                    color: 'white',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    width: '120px',
+                                                    height: '35px',
+                                                    fontSize: '14px',
+                                                }}
+                                                startIcon={
+                                                    <CloseIcon sx={{
+                                                        fontSize: '1rem',
+                                                        fontWeight: 'bold',
+                                                        stroke: 'white',
+                                                        strokeWidth: 2,
+                                                        fill: 'none'
+                                                    }} />
+                                                }
+                                            >
+                                                Delete
+                                            </Button>
+                                            
+                                            <Button
+                                                onClick={handleSaveEditSubcategory}
+                                                variant="contained"
+                                                sx={{
+                                                    backgroundColor: '#177604',
+                                                    color: 'white',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    width: '120px',
+                                                    height: '35px',
+                                                    fontSize: '14px',
+                                                }}
+                                                startIcon={
+                                                    <AddIcon sx={{
+                                                        fontSize: '1rem',
+                                                        fontWeight: 'bold',
+                                                        stroke: 'white',
+                                                        strokeWidth: 2,
+                                                        fill: 'none'
+                                                    }} />
+                                                }
+                                            >
+                                                Save
+                                            </Button>
+                                            </Box>
+                                            
+                                        </Box>
+                                    </Box>
+                                ) : (
+                                    <PerformanceEvaluationRating subcategory={subcategory} />
                                 )}
-                                <Typography variant="body2" sx={{ color: "#555" }}>
-                                    Response Type: {getSubcategoryTypeDisplay(subcategory.subcategory_type)}
-                                </Typography>
-                            </Box>
-                        </AccordionSummary>
-                        <AccordionDetails sx={{ px: 3, pb: 2 }}>
-                            <PerformanceEvaluationRating subcategory={subcategory} />
-                        </AccordionDetails>
-                    </Accordion>
-                ))}
+                            </AccordionDetails>
+                        </Accordion>
+                    ))}
 
                     {/* BUTTONS */}
                     <Box sx={{ textAlign: 'center', mt: sectionCategory ? 0 : 3 }}>

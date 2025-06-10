@@ -96,19 +96,26 @@ const PerformanceEvaluationCreateEvaluation = () => {
         );
     };
 
+    // ---------- UPDATED SUBMIT HANDLER ----------
     const handleSubmit = async (e) => {
         e.preventDefault();
         // Map form values to backend fields
+        const evaluators = formValues.evaluator ? [formValues.evaluator] : [];
+        const commentors = [
+            formValues.primaryCommentor,
+            formValues.secondaryCommentor,
+            ...extraCommentors
+        ].filter(Boolean);
+
         const payload = {
             evaluatee_id: formValues.employeeName,
-            evaluator_id: formValues.evaluator,
-            primary_commentor_id: formValues.primaryCommentor,
-            secondary_commentor_id: formValues.secondaryCommentor,
-            extra_commentor_ids: extraCommentors, // <--- Pass array of additional commenters
             form_id: formValues.evaluationForm,
+            evaluators,    // array - order matters
+            commentors,    // array - order matters
             period_start_at: formValues.periodFrom + ' 00:00:00',
             period_end_at: formValues.periodTo + ' 23:59:59'
         };
+
         try {
             const response = await axiosInstance.post('/saveEvaluationResponse', payload, { headers });
             // Show success SweetAlert
@@ -131,6 +138,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
             console.error('Error saving evaluation response:', error);
         }
     };
+    // ---------- END UPDATED SUBMIT HANDLER ----------
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -155,8 +163,6 @@ const PerformanceEvaluationCreateEvaluation = () => {
         }
 
         setFormValues(updatedValues);
-
-        //console.log('handleChange:', name, value, updatedValues);
     };
 
     // For extra commenters
@@ -214,13 +220,11 @@ const PerformanceEvaluationCreateEvaluation = () => {
 
     // Fetch employees filtered by branch and/or department
     const fetchEmployees = async (branchId, departmentId) => {
-        //console.log('fetchEmployees called!', branchId, departmentId);
         try {
             const params = {};
             if (branchId) params.branch_id = branchId;
             if (departmentId) params.department_id = departmentId;
             const response = await axiosInstance.get('/getEmployeesName', { params, headers });
-            //console.log('Employees API response:', response);
             if (response.data.status === 200) {
                 setEmployees(response.data.employees);
             } else {
@@ -287,14 +291,6 @@ const PerformanceEvaluationCreateEvaluation = () => {
         fetchBranches();
         fetchDepartments();
     }, []);
-
-    // Debug
-    // useEffect(() => {
-    //     console.log('Branches:', branches);
-    // }, [branches]);
-    // useEffect(() => {
-    //     console.log('Departments:', departments);
-    // }, [departments]);
 
     return (
         <Layout title={"Create Evaluation Form"}>
@@ -425,6 +421,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                 type="date"
                                 required
                                 InputLabelProps={{ shrink: true }}
+                                disabled
                             />
                         </Grid>
                     </Grid>
@@ -531,8 +528,8 @@ const PerformanceEvaluationCreateEvaluation = () => {
 
                     {/* Dynamic Extra Commenters */}
                     {extraCommentors.length > 0 && (
-  <Divider sx={{ mt: 4, mb: 2 }} />
-)}
+                        <Divider sx={{ mt: 4, mb: 2 }} />
+                    )}
                     <Grid container spacing={3} sx={{ mt: 3 }}>
                         {extraCommentors.map((commentor, idx) => (
                             <Grid item xs={12} md={6} key={idx} sx={{ width: '100%', maxWidth: '463px', display: 'flex', alignItems: 'center' }}>
