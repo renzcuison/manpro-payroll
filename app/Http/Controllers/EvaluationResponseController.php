@@ -144,7 +144,7 @@ class EvaluationResponseController extends Controller
                                             'section_id', 'id',
                                             'name', 'subcategory_type', 'description',
                                             'required', 'allow_other_option',
-                                            'linear_scale_start', 'linear_scale_end',
+                                            'linear_scale_start', 'linear_scale_end', 'linear_scale_end_label', 'linear_scale_start_label',
                                             'order'
                                         )
                                         ->with([
