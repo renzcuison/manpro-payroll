@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 
 const storedUser = localStorage.getItem("nasya_user");
@@ -19,5 +19,21 @@ export function useBenefits(){
             headers,
         });
         return data;
+    });
+}
+
+export function useEmployeeBenefits(userName){
+    return useQuery(["employeeBenefits", userName], async () => {
+        const {data} = await axiosInstance.get("compensation/getEmployeeBenefits", {
+            headers, params: {username: userName},
+        });
+        return data;
+    });
+}
+
+export function useSaveEmployeeBenefits() {
+    return useMutation(async (data) => {
+        const response = await axiosInstance.post('/compensation/saveEmployeeBenefits', data, { headers });
+        return response.data;
     });
 }

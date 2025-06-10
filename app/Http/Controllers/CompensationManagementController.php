@@ -79,7 +79,6 @@ class CompensationManagementController extends Controller
                 else if($type == 'Percentage'){
                     $amount += $baseSalary * ($incentive->incentive->percentage / 100);
                 }
-                $amount = $amount + $incentive->incentive->amount;
             }
 
             $employees[] = [
@@ -268,9 +267,21 @@ class CompensationManagementController extends Controller
         }
 
         $employee = UsersModel::where('user_name', $request->username)->first();
+        $baseSalary = floatval($employee->salary);
         $benefits = [];
 
         foreach($employee->benefits as $benefit){
+            $employee_amount = 0;
+            $employer_amount = 0;
+            $type = $benefit->benefit->type;
+            if($type == 'Amount'){
+                $employee_amount += $benefit->benefit->employee_amount;
+                $employer_amount += $benefit->benefit->employer_amount;
+            }
+            else{
+                $employee_amount += ($baseSalary * ($benefit->benefit->employee_percentage / 100));
+                $employer_amount += ($baseSalary * ($benefit->benefit->employer_percentage / 100));
+            }
             $benefits[] = [
                 'name' => $benefit->benefit->name,
                 'type' => $benefit->benefit->type,
@@ -279,6 +290,8 @@ class CompensationManagementController extends Controller
                 'employee_amount' => $benefit->benefit->employee_amount,
                 'employer_percentage' => $benefit->benefit->employer_percentage,
                 'employee_percentage' => $benefit->benefit->employee_percentage,
+                'employer_contribution' => $employer_amount,
+                'employee_contribution' => $employee_amount,
                 'created_at' => $benefit->created_at,
             ];
         }
@@ -503,15 +516,27 @@ class CompensationManagementController extends Controller
             return response()->json(['status' => 200, 'allowances' => null]);  
         }
         $employee = UsersModel::where('user_name', $request->username)->first();
+        $baseSalary = floatval($employee->salary);
+
         $allowances = [];
         
+        
         foreach($employee->allowances as $allowance){
+            $amount = 0;
+            $type = $allowance->allowance->type;
+            if($type == 'Amount'){
+                $amount += $allowance->allowance->amount;
+            }
+            else{
+                $amount += ($baseSalary * ($allowance->allowance->percentage / 100));
+            }
             $allowances[] = [
                 'name' => $allowance->allowance->name,
                 'number' => $allowance->number,
-                'type' => $allowance->allowance->type,
+                'type' => $type,
                 'amount' => $allowance->allowance->amount,
                 'percentage' => $allowance->allowance->percentage,
+                'calculated_amount' => $amount,
                 'created_at' => $allowance->created_at,
             ];
         }
@@ -539,7 +564,6 @@ class CompensationManagementController extends Controller
                 else if($type == 'Percentage'){
                     $amount += $baseSalary * ($allowance->allowance->percentage / 100);
                 }
-                $amount = $amount + $allowance->allowance->amount;
             }
 
             $employees[] = [

@@ -1,25 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
+import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import axiosInstance from "../../../../utils/axiosConfig";
+import { useAllowances, useSaveEmployeeAllowance } from "../../../../hooks/useAllowance";
 
 const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
+    const {data} = useAllowances();
+    const allowances = data?.allowances || [];
+    const saveEmployeeAllowance = useSaveEmployeeAllowance();
 
     const [allowanceError, setAllowanceError] = useState(false);
     const [numberError, setNumberError] = useState(false);
-
-    const [allowances, setAllowances] = useState([]);
     const [allowance, setAllowance] = useState('');
     const [number, setNumber] = useState('');
-
-    useEffect(() => {
-        axiosInstance.get('/compensation/getAllowances', { headers })
-            .then((response) => {
-                setAllowances(response.data.allowances);
-            }).catch((error) => {
-                console.error('Error fetching allowances:', error);
-            });
-    }, []);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -65,12 +57,10 @@ const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
         const data = { userName: userName, allowance: allowance, number: number };
-
-        axiosInstance.post('/compensation/saveEmployeeAllowance', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
+        saveEmployeeAllowance.mutate(data, {
+            onSuccess: (response) => {
+                if(response.status === 200){
                     Swal.fire({
                         customClass: { container: 'my-swal' },
                         text: "Allowance added successfully!",
@@ -80,13 +70,14 @@ const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        onClose();
+                        onClose(true);
                     });
                 }
-            })
-            .catch(error => {
+            },
+            onError: (error) =>{
                 console.error('Error:', error);
-            });
+            }
+        });
     };
 
     return (
