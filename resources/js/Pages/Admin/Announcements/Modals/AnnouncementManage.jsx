@@ -686,7 +686,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                 </Grid>
                             ): (
                                 <Grid container size={{ xs: 12 }} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
-                                    <Grid container spacing={1} sx={{ mb: 1 }}>
+                                    <Grid container size={{ xs: 12 }} spacing={1} sx={{ mb: 1 }}>
                                         {/* Title and Action Menu */}
                                         <Grid size={12}>
                                             <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
@@ -845,7 +845,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                                 </Grid>
                                             </Grid>
                                         ) : (
-                                            <Grid size={12} align="center">
+                                            <Grid size={12} align="center" sx={{ mt: 1 }}>
                                                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
                                                     -- Publishing Data Unavailable --
                                                 </Typography>
