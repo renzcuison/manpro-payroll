@@ -471,7 +471,6 @@ const PerformanceEvaluationAnswerPage = () => {
               </AccordionDetails>
             </Accordion>
           ))}
-          <Divider sx={{ my: 3 }} />
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <Button
               type="submit"
