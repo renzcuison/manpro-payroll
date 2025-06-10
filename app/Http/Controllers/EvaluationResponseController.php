@@ -316,6 +316,7 @@ class EvaluationResponseController extends Controller
                                             'linear_scale_start', 'linear_scale_end', 'linear_scale_end_label', 'linear_scale_start_label',
                                             'order'
                                         )
+                                        ->whereNull('deleted_at')
                                         ->with([
                                             'options' => fn ($option) =>
                                                 $option
