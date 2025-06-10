@@ -38,7 +38,7 @@ const EmployeeBenefits = ({ userName, headers }) => {
                 <Table size="small">
                     <TableHead>
                         <TableRow>
-                            <TableCell align="center">Benefit</TableCell>
+                            <TableCell align="left">Benefit</TableCell>
                             <TableCell align="center">Number</TableCell>
                             <TableCell align="center">Employer</TableCell>
                             <TableCell align="center">Employee</TableCell>
