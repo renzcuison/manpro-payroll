@@ -447,7 +447,7 @@ class EvaluationResponseController extends Controller
                 ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
                 ->leftJoin('departments', 'evaluatees.department_id', '=', 'departments.id')
                 ->leftJoin('branches', 'evaluatees.branch_id', '=', 'branches.id')
-                ->select('evaluation_responses.id as response_id', 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name')
+                ->select('evaluation_responses.id', 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name')
                 ->whereNull('evaluation_responses.deleted_at')
                 ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
                 ->selectRaw(
@@ -495,6 +495,9 @@ class EvaluationResponseController extends Controller
             
             if ($request->form_id !== null)
                 $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
+            
+            // filter out here
+
             $evaluationResponses = $evaluationResponses->where(function ($query) use ($request, $user) {
                 $query
                     ->where('evaluation_responses.evaluatee_id', $user->id)
