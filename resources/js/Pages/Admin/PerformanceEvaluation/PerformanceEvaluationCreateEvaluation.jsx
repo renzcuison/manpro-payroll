@@ -245,7 +245,8 @@ const PerformanceEvaluationCreateEvaluation = () => {
         try {
             const params = {
                 branch_id: branchId,
-                user_type: 'Admin'
+                department_id: departmentId,
+                user_type: 'AdminOrEmployee'
             };
             const response = await axiosInstance.get('/settings/getUsers', { params, headers });
             if (response.data.status === 200) {
