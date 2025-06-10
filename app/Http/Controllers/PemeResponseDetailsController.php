@@ -228,40 +228,6 @@ class PemeResponseDetailsController extends Controller
         ]);
     }
 
-
-
-    //   public function attachMedia(Request $request, $id)
-    // {
-
-    //     $id = Crypt::decrypt($id);
-
-    //     if (!$request->hasFile('file')) {
-    //         return response()->json(['message' => 'Attachment failed.'], 400);
-    //     }
-
-    //     $detail = PemeResponseDetails::with('inputType')->findOrFail($id);
-
-    //     $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
-
-    //     if ($fileSizeLimitMb) {
-    //         $maxKilobytes = intval($fileSizeLimitMb * 1024);
-    //         $request->validate([
-    //             'file' => "required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:$maxKilobytes",
-    //         ]);
-    //     } else {
-    //         $request->validate([
-    //             'file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png',
-    //         ]);
-    //     }
-
-    //     $detail->addMediaFromRequest('file')->toMediaCollection('attachments');
-
-    //     return response()->json([
-    //         'message' => 'Attachment successful.',
-    //     ]);
-    // }
-
-
     public function destroy($id)
     {
 

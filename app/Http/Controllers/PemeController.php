@@ -90,9 +90,9 @@ class PemeController extends Controller
     {
         // Log::info("PemeController::getPemeList");
 
-        if (!$this->checkUser()) {
-            return response()->json(["message" => "Unauthorized"], 403);
-        }
+        // if (!$this->checkUser()) {
+        //     return response()->json(["message" => "Unauthorized"], 403);
+        // }
 
         $user = Auth::user();
 

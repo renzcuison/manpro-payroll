@@ -25,46 +25,74 @@ class PemeResponseController extends Controller
 
     public function index()
     {
-
         $user = Auth::user();
 
-        $responses = $user->user_type === "Admin"
-            ? PemeResponse::with(['peme.user'])->latest()->get()
-            : PemeResponse::where("user_id", $user->id)
-            ->with(['peme.user'])
+        $responses = PemeResponse::where("user_id", $user->id)
+            ->with(['peme.questions.types', 'details', 'peme.user'])
             ->latest()
             ->get();
 
         $responses = $responses->map(function ($response) {
             $expiryDate = $response->expiry_date
-                ? $response->expiry_date->format("Y-m-d H:i:s")
+                ? $response->expiry_date->format("Y-m-d")
                 : null;
 
             $nextSchedule = $response->next_schedule
-                ? $response->next_schedule->format("Y-m-d H:i:s")
+                ? $response->next_schedule->format("Y-m-d")
                 : null;
 
+            $questions = $response->peme->questions ?? collect();
+            $details = $response->details ?? collect();
+
+            $detailMap = [];
+            foreach ($details as $detail) {
+                $qID = (int) $detail->peme_q_item_id;
+                $tID = (int) $detail->peme_q_type_id;
+                $detailMap[$qID][$tID] = $detail;
+            }
+
+            $totalQuestions = $questions->count();
+            $answeredQuestions = 0;
+
+            foreach ($questions as $question) {
+                $allAnswered = $question->types->every(function ($type) use ($question, $detailMap) {
+                    $matchedDetail = $detailMap[(int)$question->id][(int)$type->id] ?? null;
+                    return $matchedDetail && $matchedDetail->value !== null && trim($matchedDetail->value) !== '';
+                });
+
+                if ($allAnswered) {
+                    $answeredQuestions++;
+                }
+            }
+
             return [
+                "date" => $response->created_at->format("Y-m-d"),
                 "response_id" => Crypt::encrypt($response->id),
                 "peme_id" => Crypt::encrypt($response->peme_id),
-                "user_id" => Crypt::encrypt($response->user_id) ??
-                    'null',
-                // "response_id" => $response->id,
-                // "peme_id" => $response->peme_id,
-                // "user_id" => $response->user_id ?? 'null',
+                "peme" => $response->peme->name,
+                "user_id" => Crypt::encrypt($response->user_id) ?? 'null',
                 "expiry_date" => $expiryDate,
                 "next_schedule" => $nextSchedule,
                 "status" => ucfirst($response->status),
-                "branch" => $response->peme->user->branch->name ?? 'null',
-                "department" => $response->peme->user->department->name ?? 'null',
+                "progress" => [
+                    "completed" => $answeredQuestions,
+                    "total" => $totalQuestions,
+                    "percent" => $totalQuestions > 0 ? round(($answeredQuestions / $totalQuestions) * 100) : 0,
+                ]
             ];
         });
 
         return response()->json($responses);
     }
 
+
     public function store(Request $request)
     {
+
+        $request->merge([
+            'peme_id' => Crypt::decrypt($request->peme_id),
+        ]);
+
         $validated = $request->validate([
             "peme_id" => "required|exists:peme,id",
             "expiry_date" => "nullable|date",
@@ -120,6 +148,7 @@ class PemeResponseController extends Controller
             201
         );
     }
+
     public function updateResponse(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
