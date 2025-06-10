@@ -438,39 +438,39 @@ class AttendanceController extends Controller
         }
     }
 
-    //     public function editEmployeeAttendance(Request $request)
-    //     {
-    //         //Log::info("AttendanceController::editEmployeeAttendance");
-    //         //Log::info($request);
+    public function editEmployeeAttendance(Request $request)
+    {
+        //Log::info("AttendanceController::editEmployeeAttendance");
+        //Log::info($request);
 
-    //         $user = Auth::user();
-    //         $attendance = AttendanceLogsModel::with('user')->find($request->input('attendance_id'));
-    //         $employee = $attendance->user;
-    // sc
-    //         if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
-    //             try {
-    //                 DB::beginTransaction();
+        $user = Auth::user();
+        $attendance = AttendanceLogsModel::with('user')->find($request->input('attendance_id'));
+        $employee = $attendance->user;
 
-    //                 $newType = $request->input('new_type');
-    //                 $newTime = Carbon::parse($request->input('timestamp'));
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+            try {
+                DB::beginTransaction();
 
-    //                 $attendance->action = $newType;
-    //                 $attendance->timestamp = $newTime;
-    //                 $attendance->save();
+                $newType = $request->input('new_type');
+                $newTime = Carbon::parse($request->input('timestamp'));
 
-    //                 DB::commit();
+                $attendance->action = $newType;
+                $attendance->timestamp = $newTime;
+                $attendance->save();
 
-    //                 return response()->json(['status' => 200]);
-    //             } catch (\Exception $e) {
-    //                 DB::rollBack();
-    //                 Log::error('Error updating attendance', ['error' => $e->getMessage()]);
-    //                 return response()->json(['status' => 500, 'message' => 'Error updating attendance log'], 500);
-    //                 throw $e;
-    //             }
-    //         } else {
-    //             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-    //         }
-    //     }
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error updating attendance', ['error' => $e->getMessage()]);
+                return response()->json(['status' => 500, 'message' => 'Error updating attendance log'], 500);
+                throw $e;
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
 
     public function deleteEmployeeAttendance(Request $request)
     {
