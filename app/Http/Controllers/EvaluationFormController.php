@@ -9,6 +9,8 @@ use App\Models\EvaluationFormCategory;
 use App\Models\EvaluationFormSubcategory;
 use App\Models\EvaluationFormSubcategoryOption;
 use App\Models\EvaluationResponse;
+use App\Models\EvaluationEvaluator;
+use App\Models\EvaluationCommentor;
 use App\Models\EvaluationOptionAnswer;
 use App\Models\EvaluationPercentageAnswer;
 use App\Models\EvaluationTextAnswer;
@@ -1517,7 +1519,7 @@ class EvaluationFormController extends Controller
                 $data['linear_scale_end_label'] = null;
             }
 
-            $newEvaluationFormSubcategory = \App\Models\EvaluationFormSubcategory::create($data);
+            $newEvaluationFormSubcategory = EvaluationFormSubcategory::create($data);
 
             // Only save options for multiple_choice and checkbox
             if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox'])) {
@@ -1538,7 +1540,7 @@ class EvaluationFormController extends Controller
                             ]);
                         }
                         $labels[] = $label;
-                        \App\Models\EvaluationFormSubcategoryOption::create([
+                        EvaluationFormSubcategoryOption::create([
                             'subcategory_id' => $newEvaluationFormSubcategory->id,
                             'label' => $label,
                             'order' => $optionOrder + 1

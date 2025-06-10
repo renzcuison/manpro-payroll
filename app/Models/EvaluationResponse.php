@@ -14,25 +14,28 @@ class EvaluationResponse extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'deleted_at',
+        'evaluatee_id',
+        'form_id',
         'period_start_at',
         'period_end_at',
         'signature_filepath',
-        'evaluatee_id',
-        'evaluator_id',
-        'primary_commentor_id',
-        'secondary_commentor_id',
-        'form_id'
+        'evaluatee_acknowledged_at',
+        'deleted_at'
     ];
+
+    public function commentors()
+    {
+        return $this->hasMany(EvaluationCommentor::class, 'response_id');
+    }
 
     public function evaluatee()
     {
         return $this->belongsTo(UsersModel::class, 'evaluatee_id');
     }
 
-    public function evaluator()
+    public function evaluators()
     {
-        return $this->belongsTo(UsersModel::class, 'evaluator_id');
+        return $this->hasMany(EvaluationEvaluator::class, 'response_id');
     }
 
     public function form()
@@ -48,16 +51,6 @@ class EvaluationResponse extends Model
     public function percentageAnswers()
     {
         return $this->hasMany(EvaluationPercentageAnswer::class, 'response_id');
-    }
-
-    public function primaryCommentor()
-    {
-        return $this->belongsTo(UsersModel::class, 'primary_commentor_id');
-    }
-
-    public function secondaryCommentor()
-    {
-        return $this->belongsTo(UsersModel::class, 'secondary_commentor_id');
     }
 
     public function textAnswers()

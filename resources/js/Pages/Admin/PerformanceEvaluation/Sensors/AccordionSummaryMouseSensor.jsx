@@ -5,25 +5,13 @@ export class AccordionSummaryMouseSensor extends MouseSensor {
         {
             eventName: "onMouseDown",
             handler: ({ nativeEvent: event }) => {
-                if (event.button !== 0 || isInteractiveElement(event.target))
-                    return false;
+                if(event.button !== 0) return false;
+                const element = event.target;
+                if(!element) return false;
+                if(element.tagName.toLowerCase() === 'input') return false;
+                if(!element.closest('.MuiAccordion-heading')) return false;
                 return true;
             },
         },
     ];
-}
-
-function isInteractiveElement(element) {
-    const interactiveElements = [
-        "input",
-        "textarea"
-    ];
-    if (
-        element?.tagName &&
-        interactiveElements.includes(element.tagName.toLowerCase())
-    ) {
-        return true;
-    }
-
-    return false;
 }
