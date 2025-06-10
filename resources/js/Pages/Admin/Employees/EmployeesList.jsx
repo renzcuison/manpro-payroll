@@ -156,7 +156,6 @@ const EmployeesList = () => {
                                         label="Filter by Branch"
                                         value={filterByBranch}
                                         onChange={(event) => {
-                                            console.log( "Selected branch:", event.target.value );
                                             setFilterByBranch( event.target.value );
                                         }}
                                         sx={{ width: "100%" }}
@@ -177,7 +176,6 @@ const EmployeesList = () => {
                                         label="Filter by Department"
                                         value={filterByDepartment}
                                         onChange={(event) => {
-                                            console.log( "Selected department:", event.target.value );
                                             setFilterByDepartment(event.target.value);
                                         }}
                                         sx={{ width: "100%" }}
