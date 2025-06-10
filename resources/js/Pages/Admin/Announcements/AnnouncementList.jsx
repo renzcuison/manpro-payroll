@@ -332,7 +332,7 @@ const AnnouncementList = () => {
                                 variant="h6"
                                 component="div"
                                 noWrap
-                                sx={{ textOverflow: "ellipsis" }}
+                                sx={{ textOverflow: "ellipsis", fontWeight: 'bold', }}
                               >
                                 {announcement.title}
                               </Typography>
@@ -522,7 +522,7 @@ const AnnouncementList = () => {
                                 variant="h6"
                                 component="div"
                                 noWrap
-                                sx={{ textOverflow: "ellipsis" }}
+                                sx={{ textOverflow: "ellipsis", fontWeight: 'bold', }}
                               >
                                 {announcement.title}
                               </Typography>
@@ -658,7 +658,7 @@ const AnnouncementList = () => {
                   variant="h6"
                   component="div"
                   noWrap
-                  sx={{ textOverflow: "ellipsis" }}
+                  sx={{ textOverflow: "ellipsis", fontWeight: 'bold', }}
                 >
                   {announcement.title}
                 </Typography>
