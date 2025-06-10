@@ -245,9 +245,8 @@ const AnnouncementPending = () => {
                         <CardActionArea
                           onClick={() => handleOpenAnnouncementManage(announcement)}
                         >
-                          <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                            {/* Card Thumbnail */}
-                            {imageLoading ? (
+                          {imageLoading ? (
+                            <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
                               <Box
                                 sx={{
                                   display: "flex",
@@ -258,53 +257,163 @@ const AnnouncementPending = () => {
                               >
                                 <CircularProgress />
                               </Box>
-                            ) : (
-                              <CardMedia
-                                sx={{ height: "210px" }}
-                                image={
-                                  announcement.thumbnail
-                                    ? announcement.thumbnail
-                                    : "../../../images/defaultThumbnail.jpg"
-                                }
-                                title={`${announcement.title}_Thumbnail`}
-                              />
-                            )}
-                            {/* Card Content */}
-                            <CardContent>
-                              {/* Announcement Title */}
-                              <Typography
-                                variant="h6"
-                                component="div"
-                                noWrap
-                                sx={{ textOverflow: "ellipsis", fontWeight: 'bold', }}
-                              >
-                                {announcement.title}
-                              </Typography>
-                              {/* Announcement Status */}
-                              <Typography
+                              {/* Card Content */}
+                              <CardContent>
+                                <Typography
+                                  variant="h6"
+                                  component="div"
+                                  noWrap
+                                  sx={{ textOverflow: "ellipsis", fontWeight: 'bold', }}
+                                >
+                                  {announcement.title}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    fontWeight: "bold",
+                                    color: "#e9ae20"
+                                  }}
+                                >
+                                  {announcement.status}
+                                </Typography>
+                                {announcement.status === "Pending" && announcement.scheduled_send_datetime && (
+                                  <Typography
+                                    sx={{
+                                        fontWeight: "bold",
+                                        color: "#adb5bd"
+                                      }}
+                                    >
+                                    {dayjs(announcement.scheduled_send_datetime).format('MMM D, YYYY h:mm A')}
+                                  </Typography>
+                                )}
+                              </CardContent>
+                              {/* Acknowledgement, Views, and Options */}
+                              <CardActions
                                 sx={{
-                                  fontWeight: "bold",
-                                  color: "#e9ae20"
+                                  width: "100%",
+                                  paddingX: "16px",
+                                  alignItems: "center",
                                 }}
                               >
-                                {announcement.status}
-                              </Typography>
-                            </CardContent>
-                            {/* Acknowledgement, Views, and Options */}
-                            <CardActions
-                              sx={{
-                                width: "100%",
-                                paddingX: "16px",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
-                                <Typography variant="body2" color="text.secondary">
-                                    Not Yet Published
+                                <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
+                                  <Typography variant="body2" color="text.secondary">
+                                      Not Yet Published
+                                    </Typography>
+                                </Box>
+                              </CardActions>
+                            </Card>
+                          ) : announcement.thumbnail ? (
+                              // {/* with thumbnail */}
+                              <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                                <CardMedia
+                                  sx={{ height: "210px" }}
+                                  image={
+                                    announcement.thumbnail
+                                      ? announcement.thumbnail
+                                      : "../../../images/defaultThumbnail.jpg"
+                                  }
+                                  title={`${announcement.title}_Thumbnail`}
+                                />
+                                {/* Card Content */}
+                                <CardContent>
+                                  <Typography
+                                    variant="h6"
+                                    component="div"
+                                    noWrap
+                                    sx={{ textOverflow: "ellipsis", fontWeight: 'bold', }}
+                                  >
+                                    {announcement.title}
                                   </Typography>
-                              </Box>
-                            </CardActions>
-                          </Card>
+                                  <Typography
+                                    sx={{
+                                      fontWeight: "bold",
+                                      color: "#e9ae20"
+                                    }}
+                                  >
+                                    {announcement.status}
+                                  </Typography>
+                                  {announcement.status === "Pending" && announcement.scheduled_send_datetime && (
+                                    <Typography
+                                      sx={{
+                                          fontWeight: "bold",
+                                          color: "#adb5bd"
+                                        }}
+                                      >
+                                      {dayjs(announcement.scheduled_send_datetime).format('MMM D, YYYY h:mm A')}
+                                    </Typography>
+                                  )}
+                                </CardContent>
+                                {/* Acknowledgement, Views, and Options */}
+                                <CardActions
+                                  sx={{
+                                    width: "100%",
+                                    paddingX: "16px",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Not Yet Published
+                                      </Typography>
+                                  </Box>
+                                </CardActions>
+                              </Card>
+                            ) : (
+                              // {/* without thumbnail */}
+                              <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                                <Box
+                                  sx={{ height: "330px", py: 6, px: 2 }}
+                                >
+                                  {/* Card Content */}
+                                  <CardContent>
+                                    <Typography
+                                      variant="h5"
+                                      component="div"
+                                      sx={{
+                                        fontWeight: 'bold',
+                                        whiteSpace: 'normal',
+                                        wordBreak: 'break-word',
+                                        mb: 2 
+                                      }}
+                                    >
+                                      {announcement.title}
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        fontWeight: "bold",
+                                        color: "#e9ae20"
+                                      }}
+                                    >
+                                      {announcement.status}
+                                    </Typography>
+                                    {announcement.status === "Pending" && announcement.scheduled_send_datetime && (
+                                      <Typography
+                                        sx={{
+                                            fontWeight: "bold",
+                                            color: "#adb5bd"
+                                          }}
+                                        >
+                                        {dayjs(announcement.scheduled_send_datetime).format('MMM D, YYYY h:mm A')}
+                                      </Typography>
+                                    )}  
+                                  </CardContent>
+                                  {/* Acknowledgement, Views, and Options */}
+                                  <CardActions
+                                    sx={{
+                                      width: "100%",
+                                      paddingX: "16px",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
+                                      <Typography variant="body2" color="text.secondary">
+                                          Not Yet Published
+                                        </Typography>
+                                    </Box>
+                                  </CardActions>
+                                </Box>
+                              </Card>
+                            )
+                          }
                         </CardActionArea>
                       </Grid>
                     ))

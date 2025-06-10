@@ -246,137 +246,340 @@ const AnnouncementPublished = () => {
                         <CardActionArea
                           onClick={() => handleOpenAnnouncementManage(announcement)}
                         >
-                          <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                            {/* Card Thumbnail */}
                             {imageLoading ? (
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  height: "210px",
-                                }}
-                              >
-                                <CircularProgress />
-                              </Box>
-                            ) : (
-                              <CardMedia
-                                sx={{ height: "210px" }}
-                                image={
-                                  announcement.thumbnail
-                                    ? announcement.thumbnail
-                                    : "../../../images/defaultThumbnail.jpg"
-                                }
-                                title={`${announcement.title}_Thumbnail`}
-                              />
-                            )}
-                            {/* Card Content */}
-                            <CardContent>
-                              {/* Announcement Title */}
-                              <Typography
-                                variant="h6"
-                                component="div"
-                                noWrap
-                                sx={{ textOverflow: "ellipsis", fontWeight: 'bold', }}
-                              >
-                                {announcement.title}
-                              </Typography>
-                              {/* Announcement Status */}
-                              <Typography
-                                sx={{
-                                  fontWeight: "bold",
-                                  color: "#177604"
-                                }}
-                              >
-                                {announcement.status}
-                              </Typography>
-                            </CardContent>
-                            {/* Acknowledgement, Views, and Options */}
-                            <CardActions
-                              sx={{
-                                width: "100%",
-                                paddingX: "16px",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
-                                <Box display="flex" sx={{ alignItems: "center" }}>
-                                    <Person sx={{ color: "text.secondary", mr: 1 }} />
-                                    <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    >
-                                    {`${announcement.acknowledged || 0}/${announcement.recipients || 0} Acknowledged`}
-                                    </Typography>
-                                </Box>
+                              <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
                                 <Box
-                                    display="flex"
-                                    sx={{ alignItems: "center", mt: 1 }}
+                                  sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    height: "210px",
+                                  }}
                                 >
-                                    <Person sx={{ color: "text.secondary", mr: 1 }} />
-                                    <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    >
-                                    {`${announcement.viewed || 0}/${announcement.recipients || 0} Viewed`}
-                                    </Typography>
+                                  <CircularProgress />
                                 </Box>
-                                <Box
-                                    display="flex"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                    sx={{ mt: 1, width: "100%" }}
+                                {/* Card Content */}
+                                <CardContent>
+                                  <Typography
+                                    variant="h6"
+                                    component="div"
+                                    noWrap
+                                    sx={{ textOverflow: "ellipsis", fontWeight: 'bold', }}
+                                  >
+                                    {announcement.title}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      fontWeight: "bold",
+                                      color: "#177604"
+                                    }}
+                                  >
+                                    {announcement.status}
+                                  </Typography>
+                                </CardContent>
+                                {/* Acknowledgement, Views, and Options */}
+                                <CardActions
+                                  sx={{
+                                    width: "100%",
+                                    paddingX: "16px",
+                                    alignItems: "center",
+                                  }}
                                 >
-                                    <Box display="flex" alignItems="center">
-                                    <AvatarGroup
-                                        max={10}
-                                        sx={{ "& .MuiAvatar-root": { width: 24, height: 24 } }}
-                                    >
-                                        {announcement.views &&
-                                        announcement.views.map((view, idx) => (
-                                            <Avatar
-                                            key={idx}
-                                            src={view.profile_pic}
-                                            alt={`${view.first_name} ${view.last_name}`}
-                                            onError={(e) => {
-                                                console.error(`Failed to load avatar`, {
-                                                user_id: view.user_id,
-                                                name: `${view.first_name} ${view.last_name}`,
-                                                url: view.profile_pic,
-                                                error: e.message,
-                                                });
-                                                e.target.src = "/images/default-avatar.png";
-                                            }}
-                                            />
-                                        ))}
-                                    </AvatarGroup>
-                                    {announcement.viewed > 10 && (
-                                        <Typography
+                                  <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
+                                    <Box display="flex" sx={{ alignItems: "center" }}>
+                                      <Person sx={{ color: "text.secondary", mr: 1 }} />
+                                      <Typography
                                         variant="body2"
                                         color="text.secondary"
-                                        sx={{ ml: 1 }}
-                                        >
-                                        +{announcement.viewed - 10}
-                                        </Typography>
-                                    )}
+                                      >
+                                        {`${announcement.acknowledged || 0}/${announcement.recipients || 0} Acknowledged`}
+                                      </Typography>
                                     </Box>
-                                    {announcement.status !== "Pending" && announcement.viewed > 0 && (
-                                    <Button
-                                        size="small"
-                                        variant="text"
-                                        color="primary"
-                                        onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleOpenViewModal(announcement);
-                                        }}
+                                    <Box
+                                      display="flex"
+                                      sx={{ alignItems: "center", mt: 1 }}
                                     >
-                                        See More
-                                    </Button>
-                                    )}
-                                </Box>
-                              </Box>
-                            </CardActions>
-                          </Card>
+                                      <Person sx={{ color: "text.secondary", mr: 1 }} />
+                                      <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                      >
+                                        {`${announcement.viewed || 0}/${announcement.recipients || 0} Viewed`}
+                                      </Typography>
+                                    </Box>
+                                    <Box
+                                      display="flex"
+                                      justifyContent="space-between"
+                                      alignItems="center"
+                                      sx={{ mt: 1, width: "100%" }}
+                                    >
+                                      <Box display="flex" alignItems="center">
+                                        <AvatarGroup
+                                          max={10}
+                                          sx={{ "& .MuiAvatar-root": { width: 24, height: 24 } }}
+                                        >
+                                          {announcement.views &&
+                                            announcement.views.map((view, idx) => (
+                                              <Avatar
+                                                key={idx}
+                                                src={view.profile_pic}
+                                                alt={`${view.first_name} ${view.last_name}`}
+                                                onError={(e) => {
+                                                  e.target.src = "/images/default-avatar.png";
+                                                }}
+                                              />
+                                            ))}
+                                        </AvatarGroup>
+                                        {announcement.viewed > 10 && (
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{ ml: 1 }}
+                                          >
+                                            +{announcement.viewed - 10}
+                                          </Typography>
+                                        )}
+                                      </Box>
+                                      {announcement.status !== "Pending" && announcement.viewed > 0 && (
+                                        <Button
+                                          size="small"
+                                          variant="text"
+                                          color="primary"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleOpenViewModal(announcement);
+                                          }}
+                                        >
+                                          See More
+                                        </Button>
+                                      )}
+                                    </Box>
+                                  </Box>
+                                </CardActions>
+                              </Card>
+                            ) : announcement.thumbnail ? (
+                                // {/* with thumbnail */}
+                                <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                                  <CardMedia
+                                    sx={{ height: "210px" }}
+                                    image={
+                                      announcement.thumbnail
+                                        ? announcement.thumbnail
+                                        : "../../../images/defaultThumbnail.jpg"
+                                    }
+                                    title={`${announcement.title}_Thumbnail`}
+                                  />
+                                  {/* Card Content */}
+                                  <CardContent>
+                                    <Typography
+                                      variant="h6"
+                                      component="div"
+                                      noWrap
+                                      sx={{ textOverflow: "ellipsis", fontWeight: 'bold', }}
+                                    >
+                                      {announcement.title}
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        fontWeight: "bold",
+                                        color: "#177604"
+                                      }}
+                                    >
+                                      {announcement.status}
+                                    </Typography>
+                                  </CardContent>
+                                  {/* Acknowledgement, Views, and Options */}
+                                  <CardActions
+                                    sx={{
+                                      width: "100%",
+                                      paddingX: "16px",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
+                                      <Box display="flex" sx={{ alignItems: "center" }}>
+                                        <Person sx={{ color: "text.secondary", mr: 1 }} />
+                                        <Typography
+                                          variant="body2"
+                                          color="text.secondary"
+                                        >
+                                          {`${announcement.acknowledged || 0}/${announcement.recipients || 0} Acknowledged`}
+                                        </Typography>
+                                      </Box>
+                                      <Box
+                                        display="flex"
+                                        sx={{ alignItems: "center", mt: 1 }}
+                                      >
+                                        <Person sx={{ color: "text.secondary", mr: 1 }} />
+                                        <Typography
+                                          variant="body2"
+                                          color="text.secondary"
+                                        >
+                                          {`${announcement.viewed || 0}/${announcement.recipients || 0} Viewed`}
+                                        </Typography>
+                                      </Box>
+                                      <Box
+                                        display="flex"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        sx={{ mt: 1, width: "100%" }}
+                                      >
+                                        <Box display="flex" alignItems="center">
+                                          <AvatarGroup
+                                            max={10}
+                                            sx={{ "& .MuiAvatar-root": { width: 24, height: 24 } }}
+                                          >
+                                            {announcement.views &&
+                                              announcement.views.map((view, idx) => (
+                                                <Avatar
+                                                  key={idx}
+                                                  src={view.profile_pic}
+                                                  alt={`${view.first_name} ${view.last_name}`}
+                                                  onError={(e) => {
+                                                    e.target.src = "/images/default-avatar.png";
+                                                  }}
+                                                />
+                                              ))}
+                                          </AvatarGroup>
+                                          {announcement.viewed > 10 && (
+                                            <Typography
+                                              variant="body2"
+                                              color="text.secondary"
+                                              sx={{ ml: 1 }}
+                                            >
+                                              +{announcement.viewed - 10}
+                                            </Typography>
+                                          )}
+                                        </Box>
+                                        {announcement.status !== "Pending" && announcement.viewed > 0 && (
+                                          <Button
+                                            size="small"
+                                            variant="text"
+                                            color="primary"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleOpenViewModal(announcement);
+                                            }}
+                                          >
+                                            See More
+                                          </Button>
+                                        )}
+                                      </Box>
+                                    </Box>
+                                  </CardActions>
+                                </Card>
+                              ) : (
+                                // {/* without thumbnail */}
+                                <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                                  <Box
+                                    sx={{ height: "395px", py: 6, px: 2 }}
+                                  >
+                                    {/* Card Content */}
+                                    <CardContent>
+                                      <Typography
+                                        variant="h5"
+                                        component="div"
+                                        sx={{
+                                          fontWeight: 'bold',
+                                          whiteSpace: 'normal',
+                                          wordBreak: 'break-word',
+                                          mb: 2 
+                                        }}
+                                      >
+                                        {announcement.title}
+                                      </Typography>
+                                      <Typography
+                                        sx={{
+                                          fontWeight: "bold",
+                                          color: "#177604"
+                                        }}
+                                      >
+                                        {announcement.status}
+                                      </Typography>
+                                    </CardContent>
+                                    {/* Acknowledgement, Views, and Options */}
+                                    <CardActions
+                                      sx={{
+                                        width: "100%",
+                                        paddingX: "16px",
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      <Box display="flex" flexDirection="column" sx={{ width: "100%" }}>
+                                        <Box display="flex" sx={{ alignItems: "center" }}>
+                                          <Person sx={{ color: "text.secondary", mr: 1 }} />
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                          >
+                                            {`${announcement.acknowledged || 0}/${announcement.recipients || 0} Acknowledged`}
+                                          </Typography>
+                                        </Box>
+                                        <Box
+                                          display="flex"
+                                          sx={{ alignItems: "center", mt: 1 }}
+                                        >
+                                          <Person sx={{ color: "text.secondary", mr: 1 }} />
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                          >
+                                            {`${announcement.viewed || 0}/${announcement.recipients || 0} Viewed`}
+                                          </Typography>
+                                        </Box>
+                                        <Box
+                                          display="flex"
+                                          justifyContent="space-between"
+                                          alignItems="center"
+                                          sx={{ mt: 3, width: "100%" }}
+                                        >
+                                          <Box display="flex" alignItems="center">
+                                            <AvatarGroup
+                                              max={10}
+                                              sx={{ "& .MuiAvatar-root": { width: 24, height: 24 } }}
+                                            >
+                                              {announcement.views &&
+                                                announcement.views.map((view, idx) => (
+                                                  <Avatar
+                                                    key={idx}
+                                                    src={view.profile_pic}
+                                                    alt={`${view.first_name} ${view.last_name}`}
+                                                    onError={(e) => {
+                                                      e.target.src = "/images/default-avatar.png";
+                                                    }}
+                                                  />
+                                                ))}
+                                            </AvatarGroup>
+                                            {announcement.viewed > 10 && (
+                                              <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{ ml: 1 }}
+                                              >
+                                                +{announcement.viewed - 10}
+                                              </Typography>
+                                            )}
+                                          </Box>
+                                          {announcement.status !== "Pending" && announcement.viewed > 0 && (
+                                            <Button
+                                              size="small"
+                                              variant="text"
+                                              color="primary"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleOpenViewModal(announcement);
+                                              }}
+                                            >
+                                              See More
+                                            </Button>
+                                          )}
+                                        </Box>
+                                      </Box>
+                                    </CardActions>
+                                  </Box>
+                                </Card>
+                              )
+                            }
                         </CardActionArea>
                       </Grid>
                     ))
