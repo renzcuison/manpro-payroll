@@ -99,15 +99,26 @@ class CompensationManagementController extends Controller
         }
 
         $employee = UsersModel::where('user_name', $request->username)->first();
+        $baseSalary = floatval($employee->salary);
+
         $incentives = [];
 
         foreach($employee->incentives as $incentive){
+            $amount = 0;
+            $type = $incentive->incentive->type;
+            if($type == 'Amount'){
+                $amount += $incentive->incentive->amount;
+            }
+            else{
+                $amount += ($baseSalary * ($incentive->incentive->percentage / 100));
+            }
             $incentives[] = [
                 'name' => $incentive->incentive->name,
                 'number' => $incentive->number,
                 'type' => $incentive->incentive->type,
                 'amount' => $incentive->incentive->amount,
                 'percentage' => $incentive->incentive->percentage,
+                'calculated_amount' => $amount,
                 'created_at' => $incentive->created_at,
             ];
         }

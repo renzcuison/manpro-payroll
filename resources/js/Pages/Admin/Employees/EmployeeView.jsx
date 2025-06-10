@@ -17,6 +17,7 @@ import EmployeeHistory from './Components/EmployeeHistory';
 import EmployeeBenefits from './Components/EmployeeBenefits';
 import EmployeeDeductions from './Components/EmployeeDeductions';
 import EmployeeAllowances from './Components/EmployeeAllowances';
+import EmployeeIncentives from './Components/EmployeeIncentives';
 
 const EmployeeView = () => {
     const { user } = useParams();
@@ -246,6 +247,7 @@ const EmployeeView = () => {
                                 </Grid>
                             </Box>
                             <EmployeeAllowances userName={user}/>
+                            <EmployeeIncentives userName={user}/>
                             <EmployeeBenefits userName={user}/>
                             <EmployeeDeductions userName={user} headers={headers} />
                         </Grid>

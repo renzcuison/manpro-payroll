@@ -24,7 +24,7 @@ const EmployeeIncentivesList = ({ userName, headers, onAdd }) => {
                         <TableRow>
                             <TableCell align="left">Incentives</TableCell>
                             <TableCell align="center">Number</TableCell>
-                            <TableCell align="center">Value</TableCell>
+                            <TableCell align="center"><Amount></Amount></TableCell>
                             <TableCell align="center">Date Added</TableCell>
                         </TableRow>
                     </TableHead>
@@ -38,14 +38,10 @@ const EmployeeIncentivesList = ({ userName, headers, onAdd }) => {
                                     <TableCell align="center">
                                         <Typography>{incentive.number}</Typography>
                                     </TableCell>
-                                    {incentive.type === 'Amount' &&
                                     <TableCell align="center">
-                                        <Typography>₱{incentive.amount}</Typography>
-                                    </TableCell>}
-                                    {incentive.type === 'Percentage' &&
-                                    <TableCell align="center">
-                                        <Typography>{incentive.percentage}%</Typography>
-                                    </TableCell>}
+                                        <Typography>₱{(incentive.calculated_amount).toFixed(2)}</Typography>
+                                    </TableCell>
+                                    
                                     <TableCell align="center">
                                         <Typography>{dayjs(incentive.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
                                     </TableCell>

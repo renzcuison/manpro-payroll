@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import { useEmployeeAllowances } from "../../../../hooks/useAllowance";
+import { useEmployeeIncentives } from "../../../../hooks/useIncentives";
 import EmployeeAddAllowance from "../Modals/EmployeeAddAllowance";
+import EmployeeAddIncentives from "../Modals/EmployeeAddIncentives";
 
-const EmployeeAllowances = ({userName}) => {
-    const [openEmployeeAddAllowance, setOpenEmployeeAddAllowance] = useState(false);
-    const {data, isLoading, error, refetch} = useEmployeeAllowances(userName);
-    const allowances = data?.allowances || [];
+const EmployeeIncentives = ({userName}) => {
+    const [openEmployeeAddIncentives, setOpenEmployeeAddIncentives] = useState(false);
+    const {data, refetch} = useEmployeeIncentives(userName);
+    const incentives = data?.incentives || [];
 
     const handleOpenAddEmployeeAllowance = ()=>{
-        setOpenEmployeeAddAllowance(true);
+        setOpenEmployeeAddIncentives(true);
     }
     const handleCloseAddEmployeeAllowance = (reload) => {
-        setOpenEmployeeAddAllowance(false);
+        setOpenEmployeeAddIncentives(false);
         if(reload){
             refetch();
         }
@@ -20,7 +21,7 @@ const EmployeeAllowances = ({userName}) => {
     return(
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Allowances </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Incentives </Typography>
 
                 <Button variant="contained" color="primary" onClick={() => handleOpenAddEmployeeAllowance()}>
                     <p className='m-0'><i className="fa fa-plus"></i> Add </p>
@@ -31,14 +32,14 @@ const EmployeeAllowances = ({userName}) => {
                 <Table size="small">
                     <TableHead>
                         <TableRow>
-                            <TableCell align="left">Allowance</TableCell>
+                            <TableCell align="left">Incentive</TableCell>
                             <TableCell align="center">Number</TableCell>
                             <TableCell align="right">Amount</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {allowances.length > 0 ? (
-                            allowances.map((allowance, index) => (
+                        {incentives.length > 0 ? (
+                            incentives.map((allowance, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
                                         <Typography>{allowance.name}</Typography>
@@ -53,16 +54,16 @@ const EmployeeAllowances = ({userName}) => {
                             ))) :
                             <TableRow>
                                 <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }} >
-                                    No Allowances Found
+                                    No Incentives Found
                                 </TableCell>
                             </TableRow>
                         }
                     </TableBody>
                 </Table>
             </TableContainer>
-            {openEmployeeAddAllowance && <EmployeeAddAllowance userName={userName}
-            open={openEmployeeAddAllowance} onClose={handleCloseAddEmployeeAllowance}></EmployeeAddAllowance>}
+            {openEmployeeAddIncentives && <EmployeeAddIncentives userName={userName}
+            open={openEmployeeAddIncentives} onClose={handleCloseAddEmployeeAllowance}/>}
         </Box>
     )
 }
-export default EmployeeAllowances;
+export default EmployeeIncentives;

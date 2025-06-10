@@ -38,28 +38,12 @@ const EmployeeBenefitList = ({ userName, headers, onAdd }) => {
                                     <TableCell align="center">
                                         <Typography>{benefit.number}</Typography>
                                     </TableCell>
-                                    {benefit.type === 'Amount' &&
-                                    <>
-                                        <TableCell align="center">
-                                            <Typography>₱{benefit.employer_amount}</Typography>
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Typography>₱{benefit.employee_amount}</Typography>
-                                        </TableCell>
-                                    </>
-                                    }
-                                    
-                                    {benefit.type === 'Percentage' && 
-                                    <>
-                                        <TableCell align="center">
-                                            <Typography>{benefit.employer_percentage}%</Typography>
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <Typography>{benefit.employee_percentage}%</Typography>
-                                        </TableCell>
-                                    </>
-                                    }
-
+                                    <TableCell align="center">
+                                        <Typography>₱{(benefit.employer_contribution).toFixed(2)}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Typography>₱{(benefit.employee_contribution).toFixed(2)}</Typography>
+                                    </TableCell>
                                     <TableCell align="center">
                                         <Typography>{dayjs(benefit.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
                                     </TableCell>

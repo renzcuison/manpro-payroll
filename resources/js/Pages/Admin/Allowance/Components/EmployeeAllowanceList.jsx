@@ -24,7 +24,7 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
                         <TableRow>
                             <TableCell align="left">Allowance</TableCell>
                             <TableCell align="center">Number</TableCell>
-                            <TableCell align="center">Value</TableCell>
+                            <TableCell align="center">Amount</TableCell>
                             <TableCell align="center">Date Added</TableCell>
                         </TableRow>
                     </TableHead>
@@ -38,15 +38,9 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
                                     <TableCell align="center">
                                         <Typography>{allowance.number}</Typography>
                                     </TableCell>
-                                    {allowance.type === 'Amount' && 
                                     <TableCell align="center">
-                                        <Typography>₱{allowance.amount}</Typography>
-                                    </TableCell>}
-                                    
-                                    {allowance.type === 'Percentage' && 
-                                    <TableCell align="center">
-                                        <Typography>{allowance.percentage}%</Typography>
-                                    </TableCell>}
+                                        <Typography>₱{(allowance.calculated_amount).toFixed(2)}</Typography>
+                                    </TableCell>
                                     <TableCell align="center">
                                         <Typography>{dayjs(allowance.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
                                     </TableCell>
