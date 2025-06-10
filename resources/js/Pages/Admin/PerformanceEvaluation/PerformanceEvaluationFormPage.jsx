@@ -50,7 +50,7 @@ const PerformanceEvaluationFormPage = () => {
         sections,
         moveSection,
         saveSection,
-        setDraggedSectionId
+        setDraggedSectionId, 
     } = useEvaluationForm({ name: formName });
     const navigate = useNavigate();
 
@@ -207,15 +207,15 @@ const handleDeleteConfirm = async () => {
 
     // const [a, setA] = useState();
 
-    // useEffect(() => {
-    //     axiosInstance.get(`/getEvaluationResponse`, { headers, params: {id:1} })
-    //     .then((response) => {
-    //         const { evaluationResponse } = response.data;
-    //         if(!evaluationResponse) return;
-    //         console.log(evaluationResponse)
-    //         setA(evaluationResponse)
-    //     })
-    // }, [])
+    useEffect(() => {
+        axiosInstance.get(`/getEvaluationResponse`, { headers, params: {formName} })
+        .then((response) => {
+            const { evaluationResponse } = response.data;
+            if(!evaluationResponse) return;
+            console.log(evaluationResponse)
+            setA(evaluationResponse)
+        })
+    }, [])
 
     if (notFound) return <CheckUser />;
 

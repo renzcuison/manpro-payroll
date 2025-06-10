@@ -169,11 +169,11 @@ const PerformanceEvaluationList = () => {
                                     'aria-labelledby': 'performance-evaluation-menu',
                                 }}
                                 >
-                                {performanceEvaluations.map(({ id, name }) => (
-                                    <MenuItem key={id || name} onClick={() => {
+                                {performanceEvaluations.map(({name }) => (
+                                    <MenuItem key={name} onClick={() => {
                                     handleMenuClose();
                                     // Use id or name as appropriate for navigation
-                                    navigate(`/admin/performance-evaluation/form/${id || name}`);
+                                    navigate(`/admin/performance-evaluation/form/${name}`);
                                     }}>
                                     {name}
                                     </MenuItem>
