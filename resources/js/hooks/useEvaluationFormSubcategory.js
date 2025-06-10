@@ -167,24 +167,49 @@ export function useEvaluationFormSubcategory(subcategory) {
 
     }
 
-    function editOption(optionIndex, label) {
+    function editOption(optionIndex, label, score) {
 
         if(isNew) {
             options[ optionIndex ].label = label;
+            options[ optionIndex ].score = score;
             setOptions([ ...options ]);
-        } else
-            undefined; // edit later
+        } else axiosInstance
+            .post('/editEvaluationFormSubcategoryOption', {
+                id: subcategoryId,
+                ...options[optionIndex]
+            }, { headers })
+            .then((response) => {
+                if (response.data.status.toString().startsWith(4)) {
+                    Swal.fire({
+                        text: response.data.message,
+                        icon: "error",
+                        confirmButtonColor: '#177604',
+                        customClass: {
+                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error saving subcategory option:', error);
+                Swal.fire({
+                    text: "Error saving subcategory option",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+            })
+        ;
 
     }
 
-    function editOptionExtra(optionIndex, extra) {
-        if (isNew) {
-            options[optionIndex].extra = extra;
-            setOptions([ ...options ]);
-        } else {
-            // TODO: If you want to support editing option extra on the backend, implement here.
-        }
-    }
+    // function editOptionExtra(optionIndex, extra) {
+    //     if (isNew) {
+    //         options[optionIndex].extra = extra;
+    //         setOptions([ ...options ]);
+    //     } else {
+    //         // TODO: If you want to support editing option extra on the backend, implement here.
+    //     }
+    // }
 
     function getOption(optionId) {
         axiosInstance
@@ -201,12 +226,12 @@ export function useEvaluationFormSubcategory(subcategory) {
             })
     }
 
-    function saveOption(label) {
+    function saveOption(label, score) {
         if(isNew)
-            setOptions([ ...options, { label } ]);
+            setOptions([ ...options, { label, score } ]);
         else axiosInstance
             .post('/saveEvaluationFormSubcategoryOption', {
-                subcategory_id: subcategoryId, label
+                subcategory_id: subcategoryId, label, score
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
@@ -261,7 +286,7 @@ export function useEvaluationFormSubcategory(subcategory) {
         linearScaleStartLabel, setLinearScaleStartLabel,
         linearScaleEndLabel, setLinearScaleEndLabel,
         order,
-        options, deleteOption, editOption, saveOption, editOptionExtra
+        options, deleteOption, editOption, saveOption//, editOptionExtra
     };
 
 }

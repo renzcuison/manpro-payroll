@@ -1735,7 +1735,7 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
                 'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption,
                 'message' => 'Evaluation Form Subcategory Option successfully updated'

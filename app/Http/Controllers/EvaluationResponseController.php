@@ -439,13 +439,13 @@ class EvaluationResponseController extends Controller
                 ]);
 
             $evaluationResponses = EvaluationResponse
-                ::join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
-                ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
-                ->join('departments', 'evaluatees.department_id', '=', 'departments.id')
-                ->join('branches', 'evaluatees.branch_id', '=', 'branches.id')
-                ->join('evaluation_evaluators as evaluators', 'evaluation_responses.id', '=', 'evaluators.response_id')
+                ::join('evaluation_evaluators as evaluators', 'evaluation_responses.id', '=', 'evaluators.response_id')
                 ->join('evaluation_commentors as commentors', 'evaluation_responses.id', '=', 'commentors.response_id')
-                ->select('evaluation_responses.id', 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name')
+                ->join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
+                ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
+                ->leftJoin('departments', 'evaluatees.department_id', '=', 'departments.id')
+                ->leftJoin('branches', 'evaluatees.branch_id', '=', 'branches.id')
+                ->select('evaluation_responses.id as response_id', 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name')
                 ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
                 ->selectRaw(
                     '
@@ -453,7 +453,7 @@ class EvaluationResponseController extends Controller
                             WHEN evaluation_responses.evaluatee_id = ? THEN "Evaluatee"
                             WHEN evaluators.evaluator_id = ? THEN "Evaluator"
                             WHEN commentors.commentor_id = ? THEN "Commentor"
-                        ELSE "Idunno" END as role
+                        ELSE "None" END as role
                     ',
                     [$user->id, $user->id, $user->id]
                 )
@@ -469,7 +469,6 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.updated_at'
                 )
             ;
-
             
             if($request->search)
                 $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
@@ -499,8 +498,8 @@ class EvaluationResponseController extends Controller
                     ->orWhere('commentors.commentor_id', $user->id)
                 ;
             });
-            $evaluationResponses = $evaluationResponses->groupBy('evaluators.response_id', 'commentors.response_id');
 
+            $evaluationResponses = $evaluationResponses->groupBy('evaluation_responses.id', 'evaluators.response_id', 'commentors.response_id');
             if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
                 $sortOrder = $order_by_param['sort_order'] ?? 'asc';
                 $sortOrderReverse = $sortOrder == 'asc' ? 'desc' : 'asc';
@@ -546,6 +545,7 @@ class EvaluationResponseController extends Controller
                     'status' => 404,
                     'message' => 'No evaluation responses exist!'
                 ]);
+            
             $pageResponseCount =
                 ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
                 : $limit;
