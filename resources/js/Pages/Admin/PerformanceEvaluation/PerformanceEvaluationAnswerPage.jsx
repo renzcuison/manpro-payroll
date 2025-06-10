@@ -7,119 +7,46 @@ import {
 } from '@mui/material';
 import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
 
 const PerformanceEvaluationAnswerPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const storedUser = localStorage.getItem("nasya_user");
-  const user = JSON.parse(storedUser || '{}');
-  const headers = getJWTHeader(user);
 
-  const [responseMeta, setResponseMeta] = useState(null);
+  const { deleteEvaluationResponse } = useEvaluationResponse(id);
+
+    const handleDeleteMenuEvalForm = async () => {
+        const success = await deleteEvaluationResponse();
+        if (success) {
+            // Redirect away after delete, e.g. to the evaluation list
+            navigate('/admin/performance-evaluation');
+        }
+    };
+
   const {
     evaluationResponse, subcategories,
     saveEvaluationResponse, setPercentageAnswer, setTextAnswer
   } = useEvaluationResponse(id);
-  const [form, setForm] = useState(null);
-  const [categories, setCategories] = useState({});
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const resResponse = await axiosInstance.get('/getEvaluationResponse', { headers, params: { id } });
-        if (resResponse.data.status === 200 && resResponse.data.evaluationResponse) {
-          setResponseMeta(resResponse.data.evaluationResponse);
-
-          const formData = resResponse.data.evaluationResponse.form;
-          setForm(formData);
-
-          // Build a categories state: { [subCategoryId]: { ...subcat, selectedValue, selectedValues, userResponse } }
-          const newCategories = {};
-          if (formData && formData.sections) {
-            formData.sections.forEach(section => {
-              (section.subcategories || []).forEach(sub => {
-                newCategories[sub.id] = {
-                  ...sub,
-                  selectedValue: '',
-                  selectedValues: [],
-                  userResponse: '',
-                };
-              });
-            });
-          }
-          setCategories(newCategories);
-        } else {
-          setResponseMeta(null);
-          setForm(null);
-          setCategories({});
-        }
-      } catch (e) {
-        setResponseMeta(null);
-        setForm(null);
-        setCategories({});
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchData();
-  }, [id]);
-
-  // Input handlers
-  const handleLinearScaleChange = (subCategoryId, value) => {
-    setCategories(prev => ({
-      ...prev,
-      [subCategoryId]: { ...prev[subCategoryId], selectedValue: value }
-    }));
-  };
-  const handleMultipleChoiceChange = (subCategoryId, value) => {
-    setCategories(prev => ({
-      ...prev,
-      [subCategoryId]: { ...prev[subCategoryId], selectedValue: value }
-    }));
-  };
-  const handleCheckboxChange = (subCategoryId, option) => {
-    setCategories(prev => {
-      const selectedValues = Array.isArray(prev[subCategoryId].selectedValues)
-        ? prev[subCategoryId].selectedValues
-        : [];
-      const newValues = selectedValues.includes(option)
-        ? selectedValues.filter(v => v !== option)
-        : [...selectedValues, option];
-      return {
-        ...prev,
-        [subCategoryId]: { ...prev[subCategoryId], selectedValues: newValues }
-      };
-    });
-  };
-  const handleShortAnswerChange = (subCategoryId, value) => {
-    setCategories(prev => ({
-      ...prev,
-      [subCategoryId]: { ...prev[subCategoryId], userResponse: value }
-    }));
-  };
-  const handleLongAnswerChange = (subCategoryId, value) => {
-    setCategories(prev => ({
-      ...prev,
-      [subCategoryId]: { ...prev[subCategoryId], userResponse: value }
-    }));
-  };
+    if (evaluationResponse && evaluationResponse.form) {
+      setLoading(false);
+    }
+  }, [evaluationResponse]);
 
   // Handlers for Settings menu
-    const handleSettingsClick = (event) => {
-        setSettingsAnchorEl(event.currentTarget);
-    };
-    const handleSettingsClose = () => {
-        setSettingsAnchorEl(null);
-    };
-
-    const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
-    const settingsOpen = Boolean(settingsAnchorEl);
+  const handleSettingsClick = (event) => {
+    setSettingsAnchorEl(event.currentTarget);
+  };
+  const handleSettingsClose = () => {
+    setSettingsAnchorEl(null);
+  };
+  const settingsOpen = Boolean(settingsAnchorEl);
 
   const responseTypeMap = {
     'linear_scale': 'Linear Scale',
@@ -129,90 +56,28 @@ const PerformanceEvaluationAnswerPage = () => {
     'long_answer': 'Long Answer',
   };
 
-  // Workflow advancement after submission
-  const advanceWorkflow = async () => {
-    try {
-      // This endpoint should match your backend route for advancing the workflow
-      const res = await axiosInstance.post(
-        `/advanceWorkflow/${responseMeta.id}`,
-        {},
-        { headers }
-      );
-      if (res.data.status === 200) {
-        alert('Evaluation workflow advanced to next step.');
-        navigate(-1);
-      } else {
-        alert(res.data.message || 'Failed to advance workflow.');
-      }
-    } catch (err) {
-      alert('Failed to advance workflow: ' + (err?.response?.data?.message ?? err.message));
-    }
+  const handleRadioChange = (subcategoryId, value) => {
+    setPercentageAnswer(subcategoryId, value);
   };
 
+  // For multiple_choice (single select) and checkbox (multi-select), you may need to implement similar setOption/setOptions helpers in your hook as above for setTextAnswer/setPercentageAnswer.
+  // For now, we only handle short/long_answer (text) and linear_scale (percentage) subcategories.
+
+  const handleShortAnswerChange = (subcategoryId, value) => {
+    setTextAnswer(subcategoryId, value);
+  };
+  const handleLongAnswerChange = (subcategoryId, value) => {
+    setTextAnswer(subcategoryId, value);
+  };
+
+  // Submit Handler
   const handleSubmit = async (event) => {
-    
     event.preventDefault();
     setSubmitting(true);
-    let hasError = false;
-    let errorMsg = '';
-
     await saveEvaluationResponse();
-    // for (const subCategoryId in categories) {
-    //   const sc = categories[subCategoryId];
-    //   try {
-    //     if (sc.subcategory_type === 'linear_scale') {
-    //       if (!sc.selectedValue) continue;
-    //       const percentage = (
-    //         (parseInt(sc.selectedValue, 10) - sc.linear_scale_start) /
-    //         (sc.linear_scale_end - sc.linear_scale_start)
-    //       );
-    //       await axiosInstance.post('/saveEvaluationPercentageAnswer', {
-    //         response_id: responseMeta.id,
-    //         subcategory_id: sc.id,
-    //         percentage,
-    //       }, { headers });
-    //     } else if (sc.subcategory_type === 'multiple_choice') {
-    //       if (!sc.selectedValue) continue;
-    //       const selectedOption = (sc.options || []).find(opt => opt.label === sc.selectedValue);
-    //       if (selectedOption) {
-    //         await axiosInstance.post('/saveEvaluationOptionAnswer', {
-    //           response_id: responseMeta.id,
-    //           option_id: selectedOption.id,
-    //         }, { headers });
-    //       }
-    //     } else if (sc.subcategory_type === 'checkbox') {
-    //       if (!Array.isArray(sc.selectedValues)) continue;
-    //       for (const value of sc.selectedValues) {
-    //         const selectedOption = (sc.options || []).find(opt => opt.label === value);
-    //         if (selectedOption) {
-    //           await axiosInstance.post('/saveEvaluationOptionAnswer', {
-    //             response_id: responseMeta.id,
-    //             option_id: selectedOption.id,
-    //           }, { headers });
-    //         }
-    //       }
-    //     } else if (sc.subcategory_type === 'short_answer' || sc.subcategory_type === 'long_answer') {
-    //       if (!sc.userResponse) continue;
-    //       await axiosInstance.post('/saveEvaluationTextAnswer', {
-    //         response_id: responseMeta.id,
-    //         subcategory_id: sc.id,
-    //         answer: sc.userResponse,
-    //       }, { headers });
-    //     }
-    //   } catch (e) {
-    //     hasError = true;
-    //     errorMsg = e?.response?.data?.message || 'Failed to submit some answers.';
-    //     break;
-    //   }
-    // }
-
     setSubmitting(false);
-
-    if (hasError) {
-      alert(errorMsg);
-    } else {
-      await advanceWorkflow();
-    }
+    alert("Evaluation response saved successfully.");
+    navigate(-1);
   };
 
   if (loading) {
@@ -225,6 +90,11 @@ const PerformanceEvaluationAnswerPage = () => {
     );
   }
 
+  const form = evaluationResponse.form;
+  const responseMeta = evaluationResponse;
+
+  
+
   if (!form || !responseMeta) {
     return (
       <Layout title="Performance Evaluation Form">
@@ -234,17 +104,7 @@ const PerformanceEvaluationAnswerPage = () => {
       </Layout>
     );
   }
-
-  // Safely get evaluatee/evaluator names from nested objects (per new controller output)
-  const evalLastName = responseMeta.evaluatee?.last_name || responseMeta.evaluatee_last_name || '';
-  const evalFirstName = responseMeta.evaluatee?.first_name || responseMeta.evaluatee_first_name || '';
-  const evalMiddleName = responseMeta.evaluatee?.middle_name || responseMeta.evaluatee_middle_name || '';
-  // For evaluator, you may want to display all evaluators, but for now use first if present
-  const evaluatorList = Array.isArray(responseMeta.evaluators) ? responseMeta.evaluators : [];
-  const mainEvaluator = evaluatorList.length > 0 ? evaluatorList[0] : {};
-  const evaluatorName = mainEvaluator.last_name
-    ? `${mainEvaluator.last_name}, ${mainEvaluator.first_name}${mainEvaluator.middle_name ? ' ' + mainEvaluator.middle_name : ''}`
-    : `${responseMeta.evaluator_last_name || ''}, ${responseMeta.evaluator_first_name || ''}${responseMeta.evaluator_middle_name ? ' ' + responseMeta.evaluator_middle_name : ''}`;
+    
 
   return (
     <Layout title="Performance Evaluation Form">
@@ -261,44 +121,42 @@ const PerformanceEvaluationAnswerPage = () => {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, position: 'relative' }}>
           {/* Settings Icon with Dropdown Menu */}
-                <IconButton
-                    onClick={handleSettingsClick}
-                    sx={{
-                        position: 'absolute',
-                        top: 5,
-                        right: 10,
-                        color: '#bdbdbd',
-                        borderRadius: '50%',
-                        padding: '5px',
-                        color: '#BEBEBE',
-                    }}
-                    aria-controls={settingsOpen ? 'settings-menu' : undefined}
-                    aria-haspopup="true"
-                    aria-expanded={settingsOpen ? 'true' : undefined}
-                >
-                    <SettingsIcon sx={{ fontSize: 28 }} />
-                </IconButton>
-                <Menu
-                    id="settings-menu"
-                    anchorEl={settingsAnchorEl}
-                    open={settingsOpen}
-                    onClose={handleSettingsClose}
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                >
-                    <MenuItem
-                        onClick={() => {
-                            handleSettingsClose();
-                            setTimeout(() => navigate('/admin/performance-evaluation'), 100);
-                        }}
-                    >Exit Form</MenuItem>
-                </Menu>
-          {/* <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-            Performance Evaluation Answer Form
-          </Typography> */}
-        <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
-          {form.name}
-        </Typography>
+          <IconButton
+            onClick={handleSettingsClick}
+            sx={{
+              position: 'absolute',
+              top: 5,
+              right: 10,
+              color: '#bdbdbd',
+              borderRadius: '50%',
+              padding: '5px',
+              color: '#BEBEBE',
+            }}
+            aria-controls={settingsOpen ? 'settings-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={settingsOpen ? 'true' : undefined}
+          >
+            <SettingsIcon sx={{ fontSize: 28 }} />
+          </IconButton>
+          <Menu
+            id="settings-menu"
+            anchorEl={settingsAnchorEl}
+            open={settingsOpen}
+            onClose={handleSettingsClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem onClick={handleDeleteMenuEvalForm}>Delete Evaluation</MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleSettingsClose();
+                setTimeout(() => navigate('/admin/performance-evaluation'), 100);
+              }}
+            >Exit Evaluation</MenuItem>
+          </Menu>
+          <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
+            {form.name}
+          </Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
           Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
@@ -311,9 +169,6 @@ const PerformanceEvaluationAnswerPage = () => {
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
         </Typography>
-        {/* <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
-          {form.name}
-        </Typography> */}
 
         <Box component="form" onSubmit={e => handleSubmit(e)}>
           {(!form.sections || form.sections.length === 0) && (
@@ -335,80 +190,81 @@ const PerformanceEvaluationAnswerPage = () => {
             >
               <AccordionSummary
                 sx={{
-                    bgcolor: '#E9AE20',
-                    borderBottom: '1px solid #ffe082',
-                    cursor: 'default',
-                    minHeight: 0,
-                    mt: 3,
-                    borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px',
-                    '& .MuiAccordionSummary-content': {
-                        margin: 0,
-                        alignItems: "center"
-                    }
-                    }}
-                >
-                <Box sx={{my: 2}}>
+                  bgcolor: '#E9AE20',
+                  borderBottom: '1px solid #ffe082',
+                  cursor: 'default',
+                  minHeight: 0,
+                  mt: 3,
+                  borderTopLeftRadius: '8px',
+                  borderTopRightRadius: '8px',
+                  '& .MuiAccordionSummary-content': {
+                    margin: 0,
+                    alignItems: "center"
+                  }
+                }}
+              >
+                <Box sx={{ my: 2 }}>
                   <Typography variant="h5" sx={{ fontWeight: 'bold', color: "white" }}>
                     {section.name}
                   </Typography>
-                  
                 </Box>
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 2 }}>
                 {section.category ? (
-                    <Paper
-                        elevation={2}
-                        sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        bgcolor: '#f3f3f3',
-                        borderRadius: 2,
-                        borderLeft: '8px solid #eab31a',
-                        px: 2,
-                        pt: 2,
-                        pb: 2,
-                        mt: 2,
-                        mb: 2,
-                        mx: 2,
-                        boxShadow: 2
-                        }}
+                  <Paper
+                    elevation={2}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      bgcolor: '#f3f3f3',
+                      borderRadius: 2,
+                      borderLeft: '8px solid #eab31a',
+                      px: 2,
+                      pt: 2,
+                      pb: 2,
+                      mt: 2,
+                      mb: 2,
+                      mx: 2,
+                      boxShadow: 2
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 'bold',
+                        color: '#222'
+                      }}
                     >
-                        <Typography
-                        variant="h6"
-                        sx={{
-                            fontWeight: 'bold',
-                            color: '#222'
-                        }}
-                        >
-                        {section.category}
-                        </Typography>
-                    </Paper>
-                    ) : (
-                    <Box sx={{ textAlign: "center", mt: 3, color: "#aaa", fontStyle: "italic", mb: 2 }}>
-                        No category in this section.
-                    </Box>
-                    )}
+                      {section.category}
+                    </Typography>
+                  </Paper>
+                ) : (
+                  <Box sx={{ textAlign: "center", mt: 3, color: "#aaa", fontStyle: "italic", mb: 2 }}>
+                    No category in this section.
+                  </Box>
+                )}
                 {(section.subcategories || []).length === 0 ? (
                   <Typography color="text.secondary" sx={{ mb: 2 }}>No subcategories in this section.</Typography>
                 ) : (
                   section.subcategories.map((subCategory) => (
                     <Box
                       key={subCategory.id}
-                      sx={{ mb: 3, border: '1px solid #ddd', borderRadius: 2,  px: 2,
+                      sx={{
+                        mb: 3, border: '1px solid #ddd', borderRadius: 2, px: 2,
                         pt: 2,
                         pb: 2,
                         mt: 2,
                         mb: 2,
-                        mx: 2, 
+                        mx: 2,
                         bgcolor: '#f3f3f3',
-                        boxShadow: 2 }}
+                        boxShadow: 2
+                      }}
                     >
                       <Typography variant="h6" color="black" sx={{ mb: 0.5 }}>
                         {subCategory.name}
                       </Typography>
-                        <Typography variant="body2">Type: {responseTypeMap[subCategory.subcategory_type] || 'Unknown'}</Typography>
-                        <Typography variant="body2" >Description: {subCategory.description}</Typography>
+                      <Typography variant="body2">Type: {responseTypeMap[subCategory.subcategory_type] || 'Unknown'}</Typography>
+                      <Typography variant="body2" >Description: {subCategory.description}</Typography>
 
                       {subCategory.subcategory_type === 'linear_scale' && (
                         <Box sx={{ mb: 2 }}>
@@ -425,9 +281,9 @@ const PerformanceEvaluationAnswerPage = () => {
                                       <FormControlLabel
                                         control={
                                           <Radio
-                                            checked={categories[subCategory.id]?.selectedValue === value.toString()}
-                                            onChange={() => handleLinearScaleChange(subCategory.id, value.toString())}
-                                            value={value.toString()}
+                                            checked={subCategory.percentage_answer?.value === value}
+                                            onChange={() => handleRadioChange(subCategory.id, value)}
+                                            value={value}
                                           />
                                         }
                                         label={value}
@@ -445,41 +301,6 @@ const PerformanceEvaluationAnswerPage = () => {
                         </Box>
                       )}
 
-                      {subCategory.subcategory_type === 'multiple_choice' && (
-                        <Box sx={{ mb: 2 }}>
-                          <RadioGroup
-                            value={categories[subCategory.id]?.selectedValue || ''}
-                            onChange={(e) => handleMultipleChoiceChange(subCategory.id, e.target.value)}
-                          >
-                            {Array.isArray(subCategory.options) && subCategory.options.map((option, index) => (
-                              <FormControlLabel
-                                key={option.id || index}
-                                value={option.label}
-                                control={<Radio />}
-                                label={option.label}
-                              />
-                            ))}
-                          </RadioGroup>
-                        </Box>
-                      )}
-
-                      {subCategory.subcategory_type === 'checkbox' && (
-                        <Box sx={{ mb: 2 }}>
-                          {Array.isArray(subCategory.options) && subCategory.options.map((option, index) => (
-                            <FormControlLabel
-                              key={option.id || index}
-                              control={
-                                <Checkbox
-                                  checked={Array.isArray(categories[subCategory.id]?.selectedValues) ? categories[subCategory.id].selectedValues.includes(option.label) : false}
-                                  onChange={() => handleCheckboxChange(subCategory.id, option.label)}
-                                />
-                              }
-                              label={option.label}
-                            />
-                          ))}
-                        </Box>
-                      )}
-
                       {subCategory.subcategory_type === 'short_answer' && (
                         <Box sx={{ mb: 2 }}>
                           <TextField
@@ -488,8 +309,8 @@ const PerformanceEvaluationAnswerPage = () => {
                             fullWidth
                             multiline
                             rows={2}
-                            value={subcategories[subCategory.id].text_answer?.answer || ''}
-                            onChange={(e) => setTextAnswer(subCategory.id, e.target.value)}
+                            value={subCategory.text_answer?.answer || ''}
+                            onChange={(e) => handleShortAnswerChange(subCategory.id, e.target.value)}
                           />
                         </Box>
                       )}
@@ -502,11 +323,13 @@ const PerformanceEvaluationAnswerPage = () => {
                             fullWidth
                             multiline
                             rows={4}
-                            value={categories[subCategory.id]?.userResponse || ''}
+                            value={subCategory.text_answer?.answer || ''}
                             onChange={(e) => handleLongAnswerChange(subCategory.id, e.target.value)}
                           />
                         </Box>
                       )}
+
+                      {/* TODO: Add handling for multiple_choice and checkbox types, as needed, with corresponding hook support */}
                     </Box>
                   ))
                 )}
