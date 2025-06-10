@@ -10,9 +10,9 @@ export function useEvaluationFormSection(section) {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [isNew, setIsNew] = useState(true);
     const [sectionId, setSectionId] = useState();
-    const [sectionName, setSectionName] = useState();
+    const [sectionName, setSectionName] = useState('');
     const [editableSectionName, setEditableSectionName] = useState(false);
-    const [sectionCategory, setSectionCategory] = useState();
+    const [sectionCategory, setSectionCategory] = useState('');
     const [editableCategory, setEditableCategory] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [order, setOrder] = useState();
@@ -25,7 +25,7 @@ export function useEvaluationFormSection(section) {
         setSectionName(section.name);
         setSectionCategory(section.category);
         setOrder(section.order);
-        setSubcategories(section.subcategories);
+        setSubcategories(section.subcategories || []);
     }, [section?.id]);
 
     // section operations
@@ -49,7 +49,7 @@ export function useEvaluationFormSection(section) {
                         icon: "error",
                         confirmButtonColor: '#177604',
                         customClass: {
-                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                            popup: 'swal-popup-overlay'
                         }
                     }).then(result => {
                         if(!result.isConfirmed) return;
@@ -84,6 +84,19 @@ export function useEvaluationFormSection(section) {
 
     // subcategory operations
 
+    // Updated: replace in array if exists, otherwise append
+    function upsertSubcategory(subcategory) {
+        setSubcategories(prev => {
+            const exists = prev.some(sc => sc.id === subcategory.id);
+            if (exists) {
+                return prev.map(sc => sc.id === subcategory.id ? subcategory : sc);
+            } else {
+                return [...prev, subcategory];
+            }
+        });
+    }
+
+    // Updated: Just use upsert!
     function getSubcategory(subcategoryId) {
         axiosInstance
             .get(`/getEvaluationFormSubcategory`, {
@@ -92,19 +105,23 @@ export function useEvaluationFormSection(section) {
             .then((response) => {
                 const { evaluationFormSubcategory } = response.data;
                 if(!evaluationFormSubcategory) return;
-                setSubcategories([...subcategories, evaluationFormSubcategory]);
+                upsertSubcategory(evaluationFormSubcategory);
             })
             .catch(error => {
                 console.error('Error fetching subcategory data:', error);
             })
     }
 
+    // Updated: expect whole subcategory from backend for robust update
     function saveSubcategory(subcategory) {
-        if(!sectionCategory) Swal.fire({
-            text: "A category must first be made in this section",
-            icon: "error",
-            confirmButtonColor: '#177604',
-        });
+        if(!sectionCategory) {
+            Swal.fire({
+                text: "A category must first be made in this section",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
         axiosInstance
             .post('/saveEvaluationFormSubcategory', {
                 ...subcategory,
@@ -113,16 +130,21 @@ export function useEvaluationFormSection(section) {
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
-                    const { evaluationFormSubcategoryID } = response.data;
-                    if(!evaluationFormSubcategoryID) return;
-                    getSubcategory(evaluationFormSubcategoryID);
+                    const subcat = response.data.evaluationFormSubcategory;
+                    if(!subcat) {
+                        // fallback: old style, fetch by ID
+                        const { evaluationFormSubcategoryID } = response.data;
+                        if(evaluationFormSubcategoryID) getSubcategory(evaluationFormSubcategoryID);
+                        return;
+                    }
+                    upsertSubcategory(subcat);
                 } else if (response.data.status.toString().startsWith(4)) {
                     Swal.fire({
                         text: response.data.message,
                         icon: "error",
                         confirmButtonColor: '#177604',
                         customClass: {
-                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                            popup: 'swal-popup-overlay'
                         }
                     });
                 }
@@ -136,6 +158,37 @@ export function useEvaluationFormSection(section) {
                 });
             })
         ;
+    }
+
+    function deleteSubcategory(subcategoryId) {
+        if (!subcategoryId) {
+            Swal.fire("Error", "Invalid subcategory ID", "error");
+            return;
+        }
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This will delete the subcategory.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#aaa",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axiosInstance.post('/deleteEvaluationFormSubcategory', { id: subcategoryId }, { headers })
+                    .then(response => {
+                        if (response.data.status && response.data.status.toString().startsWith("2")) {
+                            setSubcategories(prev => prev.filter(sc => sc.id !== subcategoryId));
+                            Swal.fire("Deleted!", "Subcategory has been deleted.", "success");
+                        } else {
+                            Swal.fire("Error", response.data.message || "Error deleting subcategory", "error");
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire("Error", "Error deleting subcategory", "error");
+                    });
+            }
+        });
     }
 
     let returnData = {
@@ -153,14 +206,12 @@ export function useEvaluationFormSection(section) {
         editableCategory, toggleEditableCategory,
         expanded, toggleExpand,
         order,
-        subcategories, saveSubcategory
+        subcategories, saveSubcategory,
+        deleteSubcategory
     };
 
-    if(isNew)
-        undefined;
-    else
+    if(!isNew)
         returnData = { ...returnData, editSection };
 
     return returnData;
-
 }

@@ -7,11 +7,12 @@ export function useEvaluationForm(form) {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [formId, setFormId] = useState();
-    const [formName, setFormName] = useState();
-    const [creatorName, setCreatorName] = useState();
+    const [formName, setFormName] = useState('');
+    const [creatorName, setCreatorName] = useState('');
     const [createdDate, setCreatedDate] = useState();  
     const [loading, setLoading] = useState(true);
     const [sections, setSections] = useState([]);
+    const [draggedSectionId, setDraggedSectionId] = useState(null);
     const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
@@ -52,6 +53,30 @@ export function useEvaluationForm(form) {
         ;
     }
 
+    function moveSection(oldOrder, newOrder) {
+        if(oldOrder === newOrder) return;
+        axiosInstance
+            .post('/moveEvaluationFormSection', {
+                id: sections[oldOrder - 1].id,
+                order: newOrder
+            }, { headers })
+            .catch(error => {
+                console.error('Error moving section: ', error);
+                setSections([...sections]);
+            })
+        ;
+        const moveUp = oldOrder < newOrder;
+        for(
+            let order = moveUp ? oldOrder + 1 : oldOrder - 1;
+            moveUp ? (order <= newOrder) : (order >= newOrder);
+            order += (moveUp ? 1 : -1) * 1
+        ) sections[order - 1].order = order + (moveUp ? -1 : 1);
+        const removed = sections.splice(oldOrder - 1, 1)[0];
+        removed.order = newOrder;
+        sections.splice(newOrder - 1, 0, removed);
+        setSections([...sections]);
+    }
+
     function saveSection(section) {
         axiosInstance
             .post('/saveEvaluationFormSection', {
@@ -75,8 +100,9 @@ export function useEvaluationForm(form) {
     }
 
     return {
-        creatorName, createdDate, formId, formName, loading, notFound, sections,
-        saveSection
+        creatorName, createdDate, draggedSectionId, formId, formName, loading, notFound,
+        sections,
+        moveSection, saveSection, setDraggedSectionId
     };
 
 }

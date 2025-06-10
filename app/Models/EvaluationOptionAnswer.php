@@ -11,7 +11,8 @@ class EvaluationOptionAnswer extends Model
 
     protected $table = 'evaluation_option_answers';
 
-    protected $primaryKey = ['response_id', 'option_id'];
+    protected $primaryKey = null;
+    public $incrementing = false;
 
     protected $fillable = [
         'response_id',
