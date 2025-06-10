@@ -316,6 +316,7 @@ class EvaluationResponseController extends Controller
                                             'linear_scale_start', 'linear_scale_end', 'linear_scale_end_label', 'linear_scale_start_label',
                                             'order'
                                         )
+                                        ->whereNull('deleted_at')
                                         ->with([
                                             'options' => fn ($option) =>
                                                 $option
@@ -359,6 +360,7 @@ class EvaluationResponseController extends Controller
                                 ->orderBy('order')
                         ])
                 ])
+                ->whereNull('evaluation_responses.deleted_at')
                 ->where('evaluation_responses.id', $request->id)
                 ->first()
             ;
@@ -445,6 +447,7 @@ class EvaluationResponseController extends Controller
                 ->join('branches', 'evaluatees.branch_id', '=', 'branches.id')
                 ->join('evaluation_evaluators as evaluators', 'evaluation_responses.id', '=', 'evaluators.response_id')
                 ->join('evaluation_commentors as commentors', 'evaluation_responses.id', '=', 'commentors.response_id')
+                ->whereNull('evaluation_responses.deleted_at')
                 ->select('evaluation_responses.id', 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name')
                 ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
                 ->selectRaw(
@@ -458,6 +461,7 @@ class EvaluationResponseController extends Controller
                     [$user->id, $user->id, $user->id]
                 )
                 ->addSelect('evaluatee_id')
+                ->addSelect('evaluation_responses.deleted_at')
                 ->with(['evaluatee' => fn ($evaluatee) =>
                     $evaluatee->select('id', 'last_name', 'first_name', 'middle_name')
                 ])
