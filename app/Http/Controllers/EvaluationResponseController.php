@@ -543,10 +543,10 @@ class EvaluationResponseController extends Controller
                 }
             }
 
-            $evaluationResponses = $evaluationResponses->get();
-            foreach ($colors as $x) {
-                echo "$x <br>";
-            }
+            // $evaluationResponses = $evaluationResponses->get();
+            // foreach ($colors as $x) {
+            //     echo "$x <br>";
+            // }
             // filter responses that are user's turn to edit only
 
 
