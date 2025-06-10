@@ -115,6 +115,44 @@ export function useEvaluationResponse(responseId) {
         reloadEvaluationResponse();
     }
 
+    async function deleteEvaluationResponse() {
+        try {
+            const result = await Swal.fire({
+                title: "Are you sure?",
+                text: "This will permanently delete the evaluation response.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#aaa",
+                confirmButtonText: "Yes, delete it!"
+            });
+
+            if (!result.isConfirmed) return;
+
+            const response = await axiosInstance.post(
+                '/deleteEvaluationResponse',
+                { id: responseId },
+                { headers }
+            );
+            if (response.data.status && response.data.status.toString().startsWith("2")) {
+                Swal.fire("Deleted!", "Evaluation response has been deleted.", "success");
+                return true;
+            } else {
+                Swal.fire("Error", response.data.message || "Error deleting evaluation response", "error");
+                return false;
+            }
+        } catch (error) {
+            Swal.fire("Error", "Error deleting evaluation response", "error");
+            return false;
+        }
+    }
+
+    return {
+        evaluationResponse, subcategories,
+        saveEvaluationResponse, setPercentageAnswer, setTextAnswer,
+        deleteEvaluationResponse // <-- add this to exports
+    };
+
     async function saveTextAnswer(text_answer) {
         let response;
         switch(text_answer.action) {

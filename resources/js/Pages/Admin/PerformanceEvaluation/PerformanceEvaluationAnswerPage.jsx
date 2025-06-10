@@ -14,6 +14,16 @@ const PerformanceEvaluationAnswerPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const { deleteEvaluationResponse } = useEvaluationResponse(id);
+
+    const handleDeleteMenuEvalForm = async () => {
+        const success = await deleteEvaluationResponse();
+        if (success) {
+            // Redirect away after delete, e.g. to the evaluation list
+            navigate('/admin/performance-evaluation');
+        }
+    };
+
   const {
     evaluationResponse, subcategories,
     saveEvaluationResponse, setPercentageAnswer, setTextAnswer
@@ -83,6 +93,8 @@ const PerformanceEvaluationAnswerPage = () => {
   const form = evaluationResponse.form;
   const responseMeta = evaluationResponse;
 
+  
+
   if (!form || !responseMeta) {
     return (
       <Layout title="Performance Evaluation Form">
@@ -92,6 +104,7 @@ const PerformanceEvaluationAnswerPage = () => {
       </Layout>
     );
   }
+    
 
   return (
     <Layout title="Performance Evaluation Form">
@@ -133,12 +146,13 @@ const PerformanceEvaluationAnswerPage = () => {
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
+            <MenuItem onClick={handleDeleteMenuEvalForm}>Delete Evaluation</MenuItem>
             <MenuItem
               onClick={() => {
                 handleSettingsClose();
                 setTimeout(() => navigate('/admin/performance-evaluation'), 100);
               }}
-            >Exit Form</MenuItem>
+            >Exit Evaluation</MenuItem>
           </Menu>
           <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
             {form.name}
