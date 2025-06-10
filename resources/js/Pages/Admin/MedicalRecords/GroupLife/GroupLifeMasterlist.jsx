@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Grid,
     Box,
@@ -16,6 +16,8 @@ import GroupLifeAddCompanyModal from "./Modal/GroupLifeAddCompanyModal";
 import GroupLifeCompanyTable from "./GroupLifeCompanyTable";
 import GroupLifeOverview from "./GroupLifeOverview";
 import GroupLifeEmployees from "./GroupLifeEmployees";
+import axios from "axios";
+import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 
 const GroupLifeMasterlist = () => {
     const navigator = useNavigate();
@@ -23,11 +25,39 @@ const GroupLifeMasterlist = () => {
     const [openAddCompanyModal, setOpenAddCompanyModal] = useState(false);
     const [search, setSearch] = useState("");
 
-    const [listOfCompanies, setListOfCompanies] = useState([
-    { companyMenuItem: "St. Peter Life Plan" },
-    { companyMenuItem: "La Funeraria Paz" },
-    { companyMenuItem: "Loyola" }
-  ]);
+    const [listOfCompanies, setListOfCompanies] = useState([]);
+
+    const storedUser = localStorage.getItem("user");
+    const user = storedUser ? JSON.parse(storedUser) : null;
+
+    useEffect(() => {
+        if (!user) return;
+        axiosInstance
+            .get("/group-life-companies", { headers: { Authorization: `Bearer ${user.token}` } })
+            .then(res => {
+                setListOfCompanies(
+                    res.data.map(company => ({
+                        companyMenuItem: company.name,
+                        id: company.id
+                    }))
+                );
+            })
+            .catch(console.error);
+    }, [user]);
+
+    const refreshCompanies = () => {
+        if (!user) return;
+        axiosInstance.get('/group-life-companies', { headers: { Authorization: `Bearer ${user.token}` } })
+            .then(res => {
+                setListOfCompanies(
+                    res.data.map(company => ({
+                        companyMenuItem: company.name,
+                        id: company.id
+                    }))
+                );
+            })
+            .catch(console.error);
+    };
 
     const companies = [
             {
@@ -161,11 +191,12 @@ const GroupLifeMasterlist = () => {
                         open={true}
                         close={() => setOpenAddCompanyModal(false)}
                         onAddCompany={companyName => {
+                        refreshCompanies();
                         setListOfCompanies(prev => [
                             ...prev,
                             { companyMenuItem: companyName }
                         ]);
-                        setOpenAddCompanyModal(false);
+                        // setOpenAddCompanyModal(false);
                         }}
                     />
                     )}

@@ -70,6 +70,9 @@ use App\Http\Controllers\PemeQuestionnaireController;
 use App\Http\Controllers\PemeResponseController;
 use App\Http\Controllers\PemeResponseDetailsController;
 
+//Group Life Controller
+use App\Http\Controllers\GroupLifeCompanyController;
+
 Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
@@ -769,6 +772,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
     Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
     Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
+
+    // Group Life Company
+    Route::get('/group-life-companies', [GroupLifeCompanyController::class, 'index']);
+    Route::post('/group-life-companies', [GroupLifeCompanyController::class, 'store']);
 
     Route::post('/google/event', [GoogleController::class, 'addEvent']);
     Route::get('/google/events', [GoogleController::class, 'getEvents']);

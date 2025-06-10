@@ -121,6 +121,7 @@ const GroupLifeAddModal = ({ open, close, onAddRow, listOfCompanies }) => {
                                 <FormControl>
                                     <InputLabel id="group-life-company-label">Group Life Company</InputLabel>
                                         <Select
+                                        label="Group Life Company"
                                         value={groupLifeName}
                                         onChange={e => setGroupLifeName(e.target.value)}
                                         >
