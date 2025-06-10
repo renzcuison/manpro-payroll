@@ -49,7 +49,7 @@ const EmployeesIncentivesList = () => {
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Incentives</Typography>
 
                         <Button variant="contained" color="primary" component={Link} to="/admin/employees/incentives-types">
-                            <p className='m-0'><i class="fa fa-list" aria-hidden="true"></i> Types </p>
+                            <p className='m-0'><i className="fa fa-list" aria-hidden="true"></i> Types </p>
                         </Button>
                     </Box>
 

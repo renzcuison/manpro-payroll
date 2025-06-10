@@ -200,11 +200,10 @@ class CompensationManagementController extends Controller
 
             try {
                 DB::beginTransaction();
-                $employeeIncentives = EmployeeIncentivesModel::updateOrCreate([
+                EmployeeIncentivesModel::create([
                     "client_id" => $client->id,
                     "user_id" => $employee->id,
                     "incentive_id" => Crypt::decrypt($request->incentive),
-                ],[
                     "number" => $request->number,
                 ]);
                 DB::commit();
@@ -389,11 +388,10 @@ class CompensationManagementController extends Controller
             try {
                 DB::beginTransaction();
 
-                EmployeeBenefitsModel::updateOrCreate([
+                EmployeeBenefitsModel::create([
                     "client_id" => $client->id,
                     "user_id" => $employee->id,
                     "benefit_id" => Crypt::decrypt($request->benefit),
-                ],[
                     "number" => $request->number,
                 ]);
                 DB::commit();
@@ -407,7 +405,6 @@ class CompensationManagementController extends Controller
             }
         }
     }
-
     //---------------->[#endregion BENEFITS CONTROLLERS]
 
 
@@ -498,14 +495,12 @@ class CompensationManagementController extends Controller
             try {
                 DB::beginTransaction();
 
-                $employeeAllowance = EmployeeAllowancesModel::create([
+                EmployeeAllowancesModel::create([
                     "client_id" => $client->id,
                     "user_id" => $employee->id,
                     "allowance_id" => Crypt::decrypt($request->allowance),
                     "number" => $request->number,
                 ]);
-
-                log::info($employeeAllowance);
 
                 DB::commit();
 
@@ -514,7 +509,6 @@ class CompensationManagementController extends Controller
                 DB::rollBack();
 
                 Log::error("Error saving: " . $e->getMessage());
-
                 throw $e;
             }
         }

@@ -52,7 +52,7 @@ const EmployeesBenefitsList = () => {
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Statutory Benefits</Typography>
 
                         <Button variant="contained" color="primary" component={Link} to="/admin/employees/benefits-types">
-                            <p className='m-0'><i class="fa fa-list" aria-hidden="true"></i> Types </p>
+                            <p className='m-0'><i className="fa fa-list" aria-hidden="true"></i> Types </p>
                         </Button>
                     </Box>
 

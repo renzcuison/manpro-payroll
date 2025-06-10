@@ -172,20 +172,19 @@ const EmployeeView = () => {
                     </Box>
 
                     <Grid container spacing={4} sx={{ mt: 2 }}>
-                        <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> 
+                        <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> 
                             <EmployeeInformation employee={employee} imagePath={imagePath}/>
+                            <EmployeeBenefits userName={user}/>
                             <EmployeeAllowances userName={user}/>
                             <EmployeeIncentives userName={user}/>
-                            <EmployeeBenefits userName={user}/>
                             <EmployeeDeductions userName={user} headers={headers} />
                         </Grid>
 
-                        <Grid item size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
+                        <Grid size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
                             <EmployeeSummary employee={employee}/>
                             <EmploymentDetails employee={employee}/>
                             <EmployeeEducationBackground education={educations}/>
                             <EmployeeHistory userName={user} headers={headers} />
-
                         </Grid>
                     </Grid>   
                 </Box>
