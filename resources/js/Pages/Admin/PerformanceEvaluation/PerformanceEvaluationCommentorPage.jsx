@@ -132,6 +132,7 @@ const PerformanceEvaluationCommentorPage = () => {
     );
   }
 
+  // Render answer with legend
   const renderAnswer = (subCategory) => {
     switch (subCategory.subcategory_type) {
       case 'linear_scale':
@@ -193,52 +194,12 @@ const PerformanceEvaluationCommentorPage = () => {
           </Box>
         );
       case 'multiple_choice':
-        return (
-          <Box sx={{ mb: 2, mt: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              Answer:
-            </Typography>
-            {Array.isArray(subCategory.options) && subCategory.options.length > 0 ? (
-              subCategory.options.map(option =>
-                option.option_answer
-                  ? <Chip key={option.id} label={option.label} color="primary" sx={{ mr: 1, mb: 1 }} />
-                  : null
-              ).filter(Boolean).length > 0
-                ? subCategory.options.map(option =>
-                    option.option_answer
-                      ? <Chip key={option.id} label={option.label} color="primary" sx={{ mr: 1, mb: 1 }} />
-                      : null
-                  )
-                : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
-            ) : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>}
-          </Box>
-        );
       case 'checkbox':
-        return (
-          <Box sx={{ mb: 2, mt: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              Answers:
-            </Typography>
-            {Array.isArray(subCategory.options) && subCategory.options.length > 0 ? (
-              subCategory.options.map(option =>
-                option.option_answer
-                  ? <Chip key={option.id} label={option.label} color="primary" sx={{ mr: 1, mb: 1 }} />
-                  : null
-              ).filter(Boolean).length > 0
-                ? subCategory.options.map(option =>
-                    option.option_answer
-                      ? <Chip key={option.id} label={option.label} color="primary" sx={{ mr: 1, mb: 1 }} />
-                      : null
-                  )
-                : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
-            ) : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>}
-          </Box>
-        );
       case 'dropdown':
         return (
           <Box sx={{ mb: 2, mt: 1 }}>
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              Answer:
+              {subCategory.subcategory_type === 'checkbox' ? 'Answers:' : 'Answer:'}
             </Typography>
             {Array.isArray(subCategory.options) && subCategory.options.length > 0 ? (
               subCategory.options.map(option =>
@@ -253,6 +214,28 @@ const PerformanceEvaluationCommentorPage = () => {
                   )
                 : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
             ) : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>}
+
+            {/* Legend for multiple_choice, checkbox, dropdown */}
+            {(subCategory.subcategory_type === 'multiple_choice' ||
+              subCategory.subcategory_type === 'checkbox' ||
+              subCategory.subcategory_type === 'dropdown') && (
+              <Box sx={{ mb: 1, mt: 1 }}>
+                <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight: 'bold' }}>
+                  Legend:
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                  {subCategory.options?.map((opt, index) => (
+                    <Typography
+                      key={opt.id}
+                      variant="body2"
+                      sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}
+                    >
+                      {opt.label} - {opt.score ?? 1}{index !== subCategory.options.length - 1 && ','}
+                    </Typography>
+                  ))}
+                </Box>
+              </Box>
+            )}
           </Box>
         );
       default:
