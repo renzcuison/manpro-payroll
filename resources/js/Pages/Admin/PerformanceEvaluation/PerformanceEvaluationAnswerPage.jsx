@@ -25,8 +25,9 @@ const PerformanceEvaluationAnswerPage = () => {
     };
 
   const {
-    evaluationResponse, subcategories,
-    saveEvaluationResponse, setPercentageAnswer, setTextAnswer
+    evaluationResponse, options, subcategories,
+    saveEvaluationResponse, setPercentageAnswer, setTextAnswer,
+    deleteOptionAnswer, deleteOptionAnswers, setOptionAnswer
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);

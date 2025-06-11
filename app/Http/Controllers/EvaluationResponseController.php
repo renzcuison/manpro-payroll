@@ -23,6 +23,150 @@ use Illuminate\Support\Facades\Storage;
 class EvaluationResponseController extends Controller
 {
 
+    // evaluatees, evaluators, commentors
+
+    public function getCommentors(Request $request)
+    {
+        // inputs:
+        /*
+            department_id?: number,
+            branch_id?: number
+        */
+
+        // returns:
+        /*
+            users: {
+                id, last_name, first_name, middle_name, suffix
+            }
+        */
+
+        if (!$this->checkUser()) return response()->json([
+            'status' => 403,
+            'message' => 'Unauthorized access!'
+        ], 403);
+        $user = Auth::user();
+
+        $commentors = UsersModel
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ->where('client_id', $user->client_id)
+        ;
+        if($request->department_id !== null)
+            $commentors = $commentors->where('department_id', $request->department_id);
+        if($request->branch_id !== null)
+            $commentors = $commentors->where('branch_id', $request->branch_id);
+        $commentors = $commentors
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->orderBy('middle_name')
+            ->orderBy('suffix')
+            ->get()
+        ;
+        if(!$commentors) return response()->json([ 
+            'status' => 404,
+            'message' => 'Commentors not found!'
+        ]);
+        return response()->json([
+            'status' => 200,
+            'message' => 'Commentors successfully retrieved.',
+            'evaluatees' => $commentors
+        ]);
+    }
+
+    public function getEvaluatees(Request $request)
+    {
+        // inputs:
+        /*
+            department_id?: number,
+            branch_id?: number
+        */
+
+        // returns:
+        /*
+            users: {
+                id, last_name, first_name, middle_name, suffix
+            }
+        */
+
+        if (!$this->checkUser()) return response()->json([
+            'status' => 403,
+            'message' => 'Unauthorized access!'
+        ], 403);
+        $user = Auth::user();
+
+        $evaluatees = UsersModel
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ->where('client_id', $user->client_id)
+            ->where('user_type', 'Employee')
+        ;
+        if($request->department_id !== null)
+            $evaluatees = $evaluatees->where('department_id', $request->department_id);
+        if($request->branch_id !== null)
+            $evaluatees = $evaluatees->where('branch_id', $request->branch_id);
+        $evaluatees = $evaluatees
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->orderBy('middle_name')
+            ->orderBy('suffix')
+            ->get()
+        ;
+        if(!$evaluatees) return response()->json([ 
+            'status' => 404,
+            'message' => 'Evaluatees not found!'
+        ]);
+        return response()->json([
+            'status' => 200,
+            'message' => 'Evaluatees successfully retrieved.',
+            'evaluatees' => $evaluatees
+        ]);
+    }
+
+    public function getEvaluators(Request $request)
+    {
+        // inputs:
+        /*
+            department_id?: number,
+            branch_id?: number
+        */
+
+        // returns:
+        /*
+            users: {
+                id, last_name, first_name, middle_name, suffix
+            }
+        */
+
+        if (!$this->checkUser()) return response()->json([
+            'status' => 403,
+            'message' => 'Unauthorized access!'
+        ], 403);
+        $user = Auth::user();
+
+        $evaluators = UsersModel
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ->where('client_id', $user->client_id)
+        ;
+        if($request->department_id !== null)
+            $evaluators = $evaluators->where('department_id', $request->department_id);
+        if($request->branch_id !== null)
+            $evaluators = $evaluators->where('branch_id', $request->branch_id);
+        $evaluators = $evaluators
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->orderBy('middle_name')
+            ->orderBy('suffix')
+            ->get()
+        ;
+        if(!$evaluators) return response()->json([ 
+            'status' => 404,
+            'message' => 'Evaluators not found!'
+        ]);
+        return response()->json([
+            'status' => 200,
+            'message' => 'Evaluators successfully retrieved.',
+            'evaluatees' => $evaluators
+        ]);
+    }
+
     // evaluation response
  
     public function deleteEvaluationResponse(Request $request)
@@ -321,13 +465,13 @@ class EvaluationResponseController extends Controller
                                             'options' => fn ($option) =>
                                                 $option
                                                     ->select(
-                                                        'subcategory_id', 'label', 'score', 'order'
+                                                        'subcategory_id', 'id', 'label', 'score', 'order'
                                                     )
-                                                    ->orderBy('order')
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
                                                             $optionAnswer->select('response_id', 'option_id')
                                                     ])
+                                                    ->orderBy('order')
                                             ,
                                             'percentageAnswer' => fn ($percentageAnswer) =>
                                                 $percentageAnswer
