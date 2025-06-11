@@ -2606,8 +2606,6 @@ class EvaluationResponseController extends Controller
                 'evaluationOptionAnswer' => $evaluationOptionAnswer
             ]);
 
-            echo $evaluationOptionAnswer;
-
             $now = date('Y-m-d H:i');
             $evaluationOptionAnswer->deleted_at = $now;
             $evaluationOptionAnswer->save();
