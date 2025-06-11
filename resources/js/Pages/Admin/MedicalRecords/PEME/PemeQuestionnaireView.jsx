@@ -1,4 +1,5 @@
 import Layout from "../../../../components/Layout/Layout";
+import React, { useState, useEffect } from "react";
 import {
     Box,
     Button,
@@ -10,138 +11,263 @@ import {
     TextField,
     Select,
     MenuItem,
+    InputLabel,
 } from "@mui/material";
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { useNavigate, useParams } from "react-router-dom";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
+import dayjs from "dayjs";
+import { Bold } from "lucide-react";
+import Swal from "sweetalert2";
 
-const UploadForm = () => {
+const UploadForm = ({ fileSizeLimit, file, fileName }) => {
+    const limit = fileSizeLimit;
+
     return (
         <>
-            <input
-                accept="pdf/*"
-                style={{ display: "none" }}
-                id="contained-button-file"
-                type="file"
-            />
-            <label htmlFor="contained-button-file">
-                <Box
-                    sx={{
-                        cursor: "pointer",
-                        padding: 6,
-                        borderRadius: 1,
-                        backgroundColor: "#ccc",
-                        boxShadow: 1,
-                        "&:hover": {
-                            backgroundColor: "#a3a3a3",
-                        },
-                        transition: ".2s",
-                    }}
-                >
-                    <Typography
-                        variant="h5"
-                        sx={{
-                            textAlign: "center",
-                            color: "#525252",
-                        }}
-                    >
-                        Upload File
-                    </Typography>
-                </Box>
-            </label>
-        </>
-    );
-};
-
-const PassOrFail = () => {
-    return (
-        <>
+            <Typography variant="h7">
+                Max File Size: <strong>{limit}MB</strong>
+            </Typography>
             <Box
                 sx={{
-                    borderBottom: "solid",
-                    borderWidth: 1,
-                    borderColor: "#ccc",
+                    border: 1,
+                    padding: 2,
+                    borderRadius: 1,
+                    backgroundColor: "#e6e6e6",
                 }}
             >
-                <FormControl>
-                    <RadioGroup>
-                        <FormControlLabel
-                            value="Pass"
-                            control={<Radio />}
-                            label="Pass"
-                        />
-                        <FormControlLabel
-                            value="Fail"
-                            control={<Radio />}
-                            label="Fail"
-                        />
-                    </RadioGroup>
-                </FormControl>
+                {file ? (
+                    <a href={file} target="_blank" rel="noopener noreferrer">
+                        <Typography
+                            color="primary"
+                            sx={{
+                                boxShadow: 1,
+                                padding: 1,
+                                borderRadius: 1,
+                                display: "inline-block",
+                                backgroundColor: "#fafafa",
+                                cursor: "pointer",
+                            }}
+                        >
+                            {fileName}
+                        </Typography>
+                    </a>
+                ) : (
+                    <Typography>No file uploaded</Typography>
+                )}
             </Box>
         </>
     );
 };
 
-const Remarks = () => {
+const PassOrFail = ({ value }) => {
+    const normalizedValue =
+        value?.toLowerCase() === "pass"
+            ? "Pass"
+            : value?.toLowerCase() === "fail"
+            ? "Fail"
+            : "";
+
+    return (
+        <Box
+            sx={{ borderBottom: "solid", borderWidth: 1, borderColor: "#ccc" }}
+        >
+            <FormControl>
+                <RadioGroup value={normalizedValue}>
+                    <FormControlLabel
+                        value="Pass"
+                        control={<Radio />}
+                        label="Pass"
+                        onClick={(e) => e.preventDefault()}
+                    />
+                    <FormControlLabel
+                        value="Fail"
+                        control={<Radio />}
+                        label="Fail"
+                        onClick={(e) => e.preventDefault()}
+                    />
+                </RadioGroup>
+            </FormControl>
+        </Box>
+    );
+};
+
+const PostiveOrNegative = ({ value }) => {
+    const normalizedValue =
+        value?.toLowerCase() === "positive"
+            ? "Positive"
+            : value?.toLowerCase() === "negative"
+            ? "Negative"
+            : "";
+
+    return (
+        <Box
+            sx={{ borderBottom: "solid", borderWidth: 1, borderColor: "#ccc" }}
+        >
+            <FormControl>
+                <RadioGroup value={normalizedValue}>
+                    <FormControlLabel
+                        value="Positive"
+                        control={<Radio />}
+                        label="Positive"
+                        onClick={(e) => e.preventDefault()}
+                    />
+                    <FormControlLabel
+                        value="Negative"
+                        control={<Radio />}
+                        label="Negative"
+                        onClick={(e) => e.preventDefault()}
+                    />
+                </RadioGroup>
+            </FormControl>
+        </Box>
+    );
+};
+
+const Remarks = ({ value }) => {
     return (
         <>
-            <TextField label="Remarks" multiline rows={4}></TextField>
+            <TextField
+                label="Remarks"
+                disabled={false}
+                multiline
+                rows={4}
+                value={value || ""}
+            ></TextField>
         </>
     );
 };
 
-const TextBox = () => {
-    return (
-        <>
-            <TextField label="Description"></TextField>
-        </>
-    );
-};
-
-const PostiveOrNegative = () => {
-    return (
-        <>
-            <Box
-                sx={{
-                    borderBottom: "solid",
-                    borderWidth: 1,
-                    borderColor: "#ccc",
-                }}
-            >
-                <FormControl>
-                    <RadioGroup>
-                        <FormControlLabel
-                            value="Positive"
-                            control={<Radio />}
-                            label="Positive"
-                        />
-                        <FormControlLabel
-                            value="Negative"
-                            control={<Radio />}
-                            label="Negative"
-                        />
-                    </RadioGroup>
-                </FormControl>
-            </Box>
-        </>
-    );
+const TextBox = ({ value }) => {
+    return <TextField label="Description" value={value || ""} />;
 };
 
 const PemeQuestionnaireView = () => {
+    const [answers, setAnswers] = useState([]);
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+    const { PemeResponseID } = useParams();
+    const [isLoading, setIsLoading] = useState(true);
+    const [employeeResponse, setEmployeeResponse] = useState([]);
+    const [expirationDate, setExpirationDate] = useState(dayjs());
+    const [nextSchedule, setNextSchedule] = useState(dayjs());
+    const [status, setStatus] = useState("");
+    const [pemeResponses, setPemeResponses] = useState("");
+
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme-response/${PemeResponseID}/details`, {
+                headers,
+            })
+            .then((response) => {
+                setEmployeeResponse(response.data);
+                console.log(response.data);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching PEME records:", error);
+                setIsLoading(false);
+            });
+    }, []);
+
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme-responses/${PemeResponseID}`, { headers })
+            .then((response) => {
+                setPemeResponses([response.data]);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching PEME records:", error);
+                setIsLoading(false);
+            });
+    }, []);
+
+    useEffect(() => {
+        if (pemeResponses && pemeResponses[0]) {
+            const res = pemeResponses[0];
+            if (res.expiry_date) setExpirationDate(dayjs(res.expiry_date));
+            if (res.next_schedule) setNextSchedule(dayjs(res.next_schedule));
+            if (res.status) setStatus(res.status);
+        }
+    }, [pemeResponses]);
+
+    const handleOnConfirmClick = () => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: `You want to save changes?`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Save",
+            confirmButtonColor: "#2b8a3e",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then(async (res) => {
+            if (res.isConfirmed) {
+                try {
+                    const payload = {
+                        expiry_date: expirationDate,
+                        next_schedule: nextSchedule,
+
+                        status: status,
+                    };
+                    console.log(payload);
+
+                    await axiosInstance.patch(
+                        `/peme-responses/${PemeResponseID}/status`,
+                        payload,
+                        { headers }
+                    );
+
+                    console.log("payload", payload);
+
+                    Swal.fire({
+                        icon: "success",
+                        text: "Changes updated successfully.",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+                } catch (error) {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Failed to save changes. Please try again.",
+                        icon: "error",
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    });
+                }
+            }
+        });
+    };
+
+    const navigator = useNavigate();
+    const handleOnDeleteClick = () => {};
+    const handleOnCancelClick = () => {
+        navigator(
+            `/admin/medical-records/peme-records/peme-responses/${PemeResponseID}`
+        );
+    };
+
     return (
         <Layout>
             <Box
                 sx={{
                     backgroundColor: "white",
-                    padding: 4,
+                    paddingY: 6,
+                    paddingX: 12,
                     borderRadius: 1,
                     boxShadow: 1,
                     display: "flex",
                     flexDirection: "column",
-                    gap: 2,
+                    gap: 4,
                 }}
             >
+                {/* QUESTIONNAIRE */}
                 <Box
                     sx={{
                         display: "flex",
@@ -158,59 +284,185 @@ const PemeQuestionnaireView = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Questionnaire Name
+                            {employeeResponse.peme_name}
                         </Typography>
                         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                            Employee Name
+                            {employeeResponse.respondent}
                         </Typography>
                     </Box>
+                </Box>
+                {/* QUESTION */}
+                {Array.isArray(employeeResponse.details) &&
+                    employeeResponse.details.map((form, index) => (
+                        <Box
+                            key={index}
+                            sx={{
+                                backgroundColor: "#fafafa",
+                                paddingX: 8,
+                                paddingY: 6,
+                                borderRadius: 1,
+                                boxShadow: 1,
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 2,
+                            }}
+                        >
+                            {/* QUESTION NAME */}
+                            <Typography
+                                variant="h4"
+                                sx={{ fontWeight: "bold", marginBottom: 3 }}
+                            >
+                                {form.question_text}
+                            </Typography>
+                            {/* INPUT TYPES OF THAT QUESTION */}
+                            {Array.isArray(form.input_type) &&
+                                form.input_type.map((type, i) => {
+                                    const value = type.value || "";
+                                    let fileUrl, fileName;
 
-                    <div
-                        style={{
-                            display: "flex",
-                            gap: "12px",
+                                    {
+                                        Array.isArray(form.media) &&
+                                        form.media.length > 0 ? (
+                                            form.media.map((file, i) => (
+                                                <UploadForm
+                                                    key={i}
+                                                    fileSizeLimit={
+                                                        type.file_size_limit
+                                                    }
+                                                    file={file.url}
+                                                    fileName={file.file_name}
+                                                />
+                                            ))
+                                        ) : (
+                                            <UploadForm
+                                                fileSizeLimit={
+                                                    type.file_size_limit
+                                                }
+                                            />
+                                        );
+                                    }
+
+                                    switch (type.input_type) {
+                                        case "remarks":
+                                            return (
+                                                <Remarks
+                                                    key={i}
+                                                    value={value}
+                                                />
+                                            );
+                                        case "text":
+                                            return (
+                                                <TextBox
+                                                    key={i}
+                                                    value={value}
+                                                />
+                                            );
+                                        case "pass_fail":
+                                            return (
+                                                <PassOrFail
+                                                    key={i}
+                                                    value={value}
+                                                />
+                                            );
+                                        case "pos_neg":
+                                            return (
+                                                <PostiveOrNegative
+                                                    key={i}
+                                                    value={value}
+                                                />
+                                            );
+                                        case "attachment":
+                                            return (
+                                                <Box
+                                                    key={i}
+                                                    sx={{
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        gap: 1,
+                                                    }}
+                                                >
+                                                    {Array.isArray(
+                                                        form.media
+                                                    ) &&
+                                                    form.media.length > 0 ? (
+                                                        form.media.map(
+                                                            (file, j) => (
+                                                                <UploadForm
+                                                                    key={j}
+                                                                    fileSizeLimit={
+                                                                        type.file_size_limit
+                                                                    }
+                                                                    file={
+                                                                        file.url
+                                                                    }
+                                                                    fileName={
+                                                                        file.file_name
+                                                                    }
+                                                                />
+                                                            )
+                                                        )
+                                                    ) : (
+                                                        <UploadForm
+                                                            fileSizeLimit={
+                                                                type.file_size_limit
+                                                            }
+                                                        />
+                                                    )}
+                                                </Box>
+                                            );
+                                    }
+                                })}
+                        </Box>
+                    ))}
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: 2,
+                        alignItems: "center",
+                        marginTop: 2,
+                    }}
+                >
+                    <Button
+                        variant="contained"
+                        sx={{
+                            backgroundColor: "#7a7a7a",
                         }}
-                    ></div>
-                </Box>
-                <Box
-                    sx={{
-                        backgroundColor: "#f5f5f5",
-                        paddingX: 8,
-                        paddingY: 6,
-                        borderRadius: 1,
-                        boxShadow: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                    }}
-                >
-                    <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                        Drug Test
-                    </Typography>
-                    <UploadForm></UploadForm>
-                    <PassOrFail></PassOrFail>
-                    <Remarks></Remarks>
-                    <TextBox></TextBox>
-                </Box>
-                <Box
-                    sx={{
-                        display: "flex",
-                        gap: 2,
-                        marginTop: 6,
-                        marginBottom: 24,
-                    }}
-                >
+                        onClick={handleOnCancelClick}
+                    >
+                        Cancel
+                    </Button>
+
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker label="Expiration Date" />
+                        <DatePicker
+                            label="Expiration Date"
+                            value={expirationDate}
+                            onChange={setExpirationDate}
+                        />
                     </LocalizationProvider>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker label="Next Schedule" />
+                        <DatePicker
+                            label="Next Schedule"
+                            value={nextSchedule}
+                            onChange={setNextSchedule}
+                        />
                     </LocalizationProvider>
-                    <Select sx={{ width: 200 }}>
-                        <MenuItem sx={{ padding: 2 }}>Pending</MenuItem>
-                        <MenuItem sx={{ padding: 2 }}>Clear</MenuItem>
-                        <MenuItem sx={{ padding: 2 }}>Rejected</MenuItem>
-                    </Select>
+
+                    <FormControl sx={{ width: 200 }}>
+                        <InputLabel>Status</InputLabel>
+                        <Select
+                            value={status}
+                            label="Status"
+                            onChange={(e) => setStatus(e.target.value)}
+                        >
+                            <MenuItem value={"Pending"}>Pending</MenuItem>
+                            <MenuItem value={"Clear"}>Clear</MenuItem>
+                            <MenuItem value={"Rejected"}>Rejected</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <Button variant="contained" onClick={handleOnConfirmClick}>
+                        Confirm
+                    </Button>
                 </Box>
             </Box>
         </Layout>

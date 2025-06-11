@@ -100,9 +100,6 @@ const EmployeeView = () => {
         }
     }, []);
 
-    const formattedStartDate = employee.date_start ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_start)) : '';
-    const formattedEndDate = employee.date_end ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_end)) : '';
-
     const handleOpenActions = (event) => {
         setAnchorEl(event.currentTarget);
     };
@@ -182,7 +179,7 @@ const EmployeeView = () => {
 
                         <Grid size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
                             <EmployeeSummary employee={employee}/>
-                            <EmploymentDetails employee={employee}/>
+                            <EmployeeDetails employee={employee}/>
                             <EmployeeEducationBackground education={educations}/>
                             <EmployeeHistory userName={user} headers={headers} />
                         </Grid>
