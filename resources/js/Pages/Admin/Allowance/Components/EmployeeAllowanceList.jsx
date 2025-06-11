@@ -4,10 +4,11 @@ import dayjs from "dayjs";
 import axiosInstance from "../../../../utils/axiosConfig";
 
 const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
+    
     const [allowances, setAllowances] = useState([]);
 
     useEffect(() => {
-        axiosInstance.get(`/allowance/getEmployeeAllowance`, { headers, params: { username: userName },
+        axiosInstance.get(`/compensation/getEmployeeAllowance`, { headers, params: { username: userName },
             }).then((response) => {
                 setAllowances(response.data.allowances);
             }).catch((error) => {
@@ -18,7 +19,7 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
     return (
         <Box>
             <TableContainer>
-                <Table size="small">
+                <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow>
                             <TableCell align="left">Allowance</TableCell>
@@ -38,7 +39,7 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
                                         <Typography>{allowance.number}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{allowance.amount}</Typography>
+                                        <Typography>₱{(allowance.calculated_amount).toFixed(2)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography>{dayjs(allowance.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>

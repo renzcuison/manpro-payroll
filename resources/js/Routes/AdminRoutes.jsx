@@ -21,8 +21,15 @@ import LeaveCreditList from "../Pages/Admin/LeaveCredits/LeaveCreditList";
 import AllowanceTypes from "../Pages/Admin/Allowance/AllowanceTypes";
 import EmployeesAllowanceList from "../Pages/Admin/Allowance/EmployeesAllowanceList";
 
+import EmployeesIncentivesList from "../Pages/Admin/Incentives/EmployeesIncentivesList";
+import IncentivesTypes from "../Pages/Admin/Incentives/IncentivesTypes";
+
+import EmployeesBenefitsList from "../Pages/Admin/Benefits/EmployeesBenefitsList";
+import BenefitsTypes from "../Pages/Admin/Benefits/BenefitsTypes";
+
+
 import BenefitView from "../Pages/Admin/Benefits/BenefitView";
-import BenefitsList from "../Pages/Admin/Benefits/BenefitsList";
+
 
 import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
 import ApplicationTypes from "../Pages/Admin/Applications/ApplicationTypes";
@@ -93,6 +100,7 @@ import PerformanceEvaluationResponsePage from '../Pages/Admin/PerformanceEvaluat
 import PerformanceEvaluationAnswerPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationAnswerPage';
 import PerformanceEvaluationCommentorPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCommentorPage'
 
+
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
 
@@ -158,18 +166,12 @@ const AdminRoutes = ({ user }) => {
                 }
             />
 
-            <Route
-                path="employees/benefits"
-                element={
-                    <ProtectedRoute element={<BenefitsList />} user={user} />
-                }
-            />
-            <Route
-                path="employees/benefits/:benefitID"
-                element={
-                    <ProtectedRoute element={<BenefitView />} user={user} />
-                }
-            />
+            <Route path="employees/incentives" element={<ProtectedRoute element={<EmployeesIncentivesList />} user={user} /> } />
+            <Route path="employees/incentives-types" element={<ProtectedRoute element={<IncentivesTypes />} user={user} /> } />
+
+            <Route path="employees/benefits" element={<ProtectedRoute element={<EmployeesBenefitsList />} user={user} /> } />
+            <Route path="employees/benefits-types" element={<ProtectedRoute element={<BenefitsTypes />} user={user} /> } />
+            <Route path="employees/benefits/:benefitID" element={<ProtectedRoute element={<BenefitView />} user={user} /> } />
 
             <Route
                 path="department/departmentlist"

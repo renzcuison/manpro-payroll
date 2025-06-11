@@ -609,12 +609,12 @@ class PayrollController extends Controller
             $employeeAmount = 0;
             $employerAmount = 0;
 
-            if ( $cutOff == "First" && $benefit->type == "Percentage") {
+            if ( $cutOff == "First" && $client->id != 4 && $benefit->type == "Percentage") {
                 $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
                 $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
             }
 
-            if ( $cutOff == "First" && $benefit->type == "Amount") {
+            if ( $cutOff == "First" && $client->id != 4 && $benefit->type == "Amount") {
                 $employeeAmount = $benefit->employee_amount * 1;
                 $employerAmount = $benefit->employer_amount * 1;
             }

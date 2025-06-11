@@ -376,7 +376,7 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
         /*
             department_id?: number,
             branch_id?: number,
-            user_type: 'Admin' | 'Employee'
+            user_type: 'Admin' | 'Employee' | 'AdminOrEmployee'
         */
 
         // returns:
@@ -392,7 +392,11 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
         ], 403);
         $user = Auth::user();
 
-        if($request->user_type != 'Admin' && $request->user_type != 'Employee') return response()->json([ 
+        if(
+            $request->user_type != 'Admin'
+            && $request->user_type != 'Employee'
+            && $request->user_type != 'AdminOrEmployee'
+        ) return response()->json([ 
             'status' => 404,
             'message' => 'Invalid user type input!',
             'user_type' => $request->user_type
@@ -402,6 +406,18 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
             ->where('client_id', $user->client_id)
             ->where('user_type', $request->user_type)
         ;
+        switch($request->user_type) {
+            case 'Admin':
+            case 'Employee':
+                $employees = $employees->where('user_type', $request->user_type);
+                break;
+            case 'AdminOrEmployee':
+                $employees = $employees
+                    ->where('user_type', 'Admin')
+                    ->orWhere('user_type', 'Employee')
+                ;
+                break;
+        }
         if($request->department_id !== null)
             $employees = $employees->where('department_id', $request->department_id);
         if($request->branch_id !== null)
