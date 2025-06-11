@@ -147,6 +147,7 @@ const TextBox = ({ value }) => {
 };
 
 const PemeQuestionnaireView = () => {
+    const [answers, setAnswers] = useState([]);
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const { PemeResponseID } = useParams();

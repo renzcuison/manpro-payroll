@@ -215,10 +215,11 @@ const PemeResponses = () => {
             return recordDueDate.isSame(selectedDueDate);
         });
 
-    const handleOnRowClick = () => {
+    const handleOnRowClick = (responseID) => {
         navigator(
-            "/employee/medical-records/peme-records/peme-questionnaire-view"
+            `/employee/medical-records/peme-records/peme-questionnaire-view/${responseID}`
         );
+        console.log(responseID);
     };
 
     const resultsCount = filteredRecords.length;
@@ -240,8 +241,7 @@ const PemeResponses = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {" "}
-                            Questionnaire Name{" "}
+                            Pre-Employment Medical Exam
                         </Typography>
 
                         <Button
