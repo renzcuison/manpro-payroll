@@ -109,6 +109,7 @@ export function useEvaluationResponse(responseId) {
                     popup: 'swal-popup-overlay'
                 }
             });
+            console.error("Error saving evaluation response: ", e);
         }
     }
 
@@ -156,7 +157,11 @@ export function useEvaluationResponse(responseId) {
                 break;
             case 'update':
                 response = await axiosInstance.post(
-                    '/editEvaluationOptionAnswer', option_answer, { headers }
+                    '/editEvaluationOptionAnswer', {
+                        ...option_answer,
+                        option_id: option_answer.old_option_id,
+                        new_option_id: option_answer.option_id
+                    }, { headers }
                 );
                 if(!response.data.status.toString().startsWith(2)) throw response;
                 break;
@@ -323,7 +328,7 @@ export function useEvaluationResponse(responseId) {
         evaluationResponse, options, subcategories,
         deleteEvaluationResponse, saveEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
-        deleteOptionAnswer, deleteOptionAnswers, setOptionAnswer
+        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer
     };
 
 }

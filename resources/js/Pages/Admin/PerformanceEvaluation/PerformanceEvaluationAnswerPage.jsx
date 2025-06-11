@@ -27,7 +27,7 @@ const PerformanceEvaluationAnswerPage = () => {
   const {
     evaluationResponse, options, subcategories,
     saveEvaluationResponse, setPercentageAnswer, setTextAnswer,
-    deleteOptionAnswer, deleteOptionAnswers, setOptionAnswer
+    findActiveOptionId, deleteOptionAnswer, deleteOptionAnswers, setOptionAnswer
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
@@ -63,13 +63,13 @@ const PerformanceEvaluationAnswerPage = () => {
   };
 
   // Handler for single select (multiple_choice)
-  const handleOptionChange = (subcategoryId, optionId) => {
-    setOptionAnswer(subcategoryId, optionId);
+  const handleOptionChange = (optionId) => {
+    setOptionAnswer(optionId);
   };
 
   // Handler for checkbox (multi-select)
   const handleCheckboxChange = (subcategoryId, optionId) => (event) => {
-    setCheckboxAnswers(subcategoryId, optionId, event.target.checked);
+    // setCheckboxAnswers(subcategoryId, optionId, event.target.checked);
   };
 
   const handleShortAnswerChange = (subcategoryId, value) => {
@@ -338,8 +338,8 @@ const PerformanceEvaluationAnswerPage = () => {
                       {subCategory.subcategory_type === 'multiple_choice' && (
                         <Box sx={{ mb: 2 }}>
                           <RadioGroup
-                            value={subCategory.option_answer?.option_id || ''}
-                            onChange={e => handleOptionChange(subCategory.id, parseInt(e.target.value))}
+                            value={findActiveOptionId(subCategory.id) || ''}
+                            onChange={e => handleOptionChange(parseInt(e.target.value))}
                           >
                             {(subCategory.options || []).map(opt => (
                               <FormControlLabel

@@ -2692,16 +2692,16 @@ class EvaluationResponseController extends Controller
                 case "checkbox":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
-                        ->select('response_id', 'option_id')
+                        ::select('response_id', 'option_id')
                         ->where('response_id', '=', $request->response_id)
-                        ->where('option_id', '=', $request->option_id)
+                        ->where('option_id', '=', $request->new_option_id)
                         ->first()
                     ;
                     if($existingOptionAnswer) return response()->json([ 
                         'status' => 409,
                         'message' => 'The same option answer was already created for this subcategory!',
                         'evaluationResponseID' => $request->response_id,
-                        'evaluationFormSubcategoryOptionID' => $erequest->option_id
+                        'evaluationFormSubcategoryOptionID' => $request->option_id
                     ]);
                     break;
             }
@@ -2816,7 +2816,7 @@ class EvaluationResponseController extends Controller
                 ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                 ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                 ->select(
-                    'evaluation_option_answers.id', 'evaluation_option_answers.response_id',
+                    'evaluation_option_answers.response_id',
                     'evaluation_form_subcategories.id as subcategory_id',
                     'evaluation_option_answers.option_id',
                     'evaluation_option_answers.created_at', 'evaluation_option_answers.updated_at'
@@ -2969,7 +2969,7 @@ class EvaluationResponseController extends Controller
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
-                        ->select('evaluation_option_answers.id')
+                        ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.option_id', '=', $request->option_id)
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
                         ->first()
@@ -2977,22 +2977,23 @@ class EvaluationResponseController extends Controller
                     if($existingOptionAnswer) return response()->json([ 
                         'status' => 409,
                         'message' => 'The same option answer was already created for this subcategory!',
-                        'evaluationOptionAnswerID' => $existingOptionAnswer->id
+                        'evaluationResponseID' =>  $request->response_id,
+                        'evaluationOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
-                case "dropdown":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
-                        ->select('evaluation_option_answers.id')
+                        ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
                         ->first()
                     ;
                     if($existingOptionAnswer) return response()->json([ 
                         'status' => 409,
                         'message' => 'An option answer was already created for this subcategory!',
-                        'evaluationOptionAnswerID' => $existingOptionAnswer->id
+                        'evaluationResponseID' =>  $request->response_id,
+                        'evaluationOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
                 
