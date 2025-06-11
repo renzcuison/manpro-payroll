@@ -800,6 +800,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('peme/{pemeID}/question/{questionId}', [PemeQuestionnaireController::class, 'show']);
     
     // PEME Responses
+    Route::post('/peme-responses/storeAll', [PemeResponseController::class, 'storeAll']);
     Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
@@ -813,7 +814,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
     Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
     Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
-    Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
+    // Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
     Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);
     Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
     Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);

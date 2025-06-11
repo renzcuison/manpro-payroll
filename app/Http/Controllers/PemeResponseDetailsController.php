@@ -119,6 +119,13 @@ class PemeResponseDetailsController extends Controller
 
     public function store(Request $request)
     {
+
+        $request = $request->merge([
+            'peme_response_id' => Crypt::decrypt($request->peme_response_id),
+            'peme_q_item_id' => Crypt::decrypt($request->peme_q_item_id),
+            'peme_q_type_id' => Crypt::decrypt($request->peme_q_type_id),
+        ]);
+
         $validated = $request->validate([
             "peme_response_id" => "required|exists:peme_response,id",
             "peme_q_item_id" => "required|exists:peme_q_item,id",
@@ -178,7 +185,6 @@ class PemeResponseDetailsController extends Controller
             ],
         ]);
     }
-
     public function attachMedia(Request $request, $id)
     {
         $id = Crypt::decrypt($id);
@@ -227,40 +233,6 @@ class PemeResponseDetailsController extends Controller
             'message' => 'Files uploaded successfully.',
         ]);
     }
-
-
-
-    //   public function attachMedia(Request $request, $id)
-    // {
-
-    //     $id = Crypt::decrypt($id);
-
-    //     if (!$request->hasFile('file')) {
-    //         return response()->json(['message' => 'Attachment failed.'], 400);
-    //     }
-
-    //     $detail = PemeResponseDetails::with('inputType')->findOrFail($id);
-
-    //     $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
-
-    //     if ($fileSizeLimitMb) {
-    //         $maxKilobytes = intval($fileSizeLimitMb * 1024);
-    //         $request->validate([
-    //             'file' => "required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:$maxKilobytes",
-    //         ]);
-    //     } else {
-    //         $request->validate([
-    //             'file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png',
-    //         ]);
-    //     }
-
-    //     $detail->addMediaFromRequest('file')->toMediaCollection('attachments');
-
-    //     return response()->json([
-    //         'message' => 'Attachment successful.',
-    //     ]);
-    // }
-
 
     public function destroy($id)
     {

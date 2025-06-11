@@ -418,7 +418,7 @@ const PemeRecordsForm = () => {
 
                         Swal.fire({
                             icon: "success",
-                            text: "Form deleted successfully.",
+                            text: "Question deleted successfully.",
                             showConfirmButton: false,
                             timer: 1500,
                         });
@@ -523,6 +523,7 @@ const PemeRecordsForm = () => {
                         input_types: editSavedFormType,
                         file_size_limit: editSavedFileSize,
                     };
+                    ``;
                     await axiosInstance.put(
                         `/peme/${PemeID}/question/${form.id}`,
                         payload,
@@ -544,7 +545,7 @@ const PemeRecordsForm = () => {
 
                     Swal.fire({
                         icon: "success",
-                        text: "Form updated successfully.",
+                        text: "Question updated successfully.",
                         showConfirmButton: false,
                         timer: 1500,
                     });

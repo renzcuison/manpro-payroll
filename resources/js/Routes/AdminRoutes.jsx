@@ -51,8 +51,8 @@ import PerformanceEvaluationFormAddCategory from "../Pages/Admin/PerformanceEval
 import PerformanceEvaluationFormAddSection from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddSection";
 import PerformanceEvaluationFormSaveEvaluation from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormSaveEvaluation";
 import PerformanceEvaluationFormAddSubcategory from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddSubcategory";
-import PerformanceEvaluationFormPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationFormPage';  // Import the new page
-import PeEvalTest from '../Pages/Admin/PerformanceEvaluation/PeEvalTest';  // Import the new page
+import PerformanceEvaluationFormPage from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationFormPage"; // Import the new page
+import PeEvalTest from "../Pages/Admin/PerformanceEvaluation/PeEvalTest"; // Import the new page
 
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
 import PerformanceEvaluationForm from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationForm";
@@ -112,8 +112,6 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
-
-            
              <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview/>} user={user} />} />
              <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} />
              <Route path="performance-evaluation/answer/:id" element={<ProtectedRoute element={<PerformanceEvaluationAnswerPage />} user={user} />} />
@@ -398,10 +396,66 @@ const AdminRoutes = ({ user }) => {
                 }
             />
 
-            <Route path="performance-evaluation/form" element={<ProtectedRoute element={<PerformanceEvaluationForm />} user={user} />} />
-            <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
-            <Route path="performance-evaluation/forms/:name" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
-            <Route path="performance-evaluation/evalTest" element={<ProtectedRoute element={<PeEvalTest />} user={user} />} />
+            <Route
+                path="performance-evaluation/form"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationForm />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationList />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/forms/:name"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationCreateEvaluation />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/form"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationForm />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationList />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/forms/:name"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationCreateEvaluation />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/evalTest"
+                element={
+                    <ProtectedRoute element={<PeEvalTest />} user={user} />
+                }
+            />
 
             <Route
                 path="documents"

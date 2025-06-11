@@ -25,7 +25,6 @@ class PemeController extends Controller
 
     public function createPeme(Request $request)
     {
-
         log::info("PemeController::createPeme");
         if (!$this->checkUser()) {
             return response()->json(["message" => "Unauthorized"], 403);
@@ -36,7 +35,7 @@ class PemeController extends Controller
             "respondents" => "nullable|integer",
             "isVisible" => "nullable|boolean",
             "isEditable" => "nullable|boolean",
-            "isMultiple" => "nullable|boolean"
+            "isMultiple" => "nullable|boolean",
         ]);
 
         $validatedData["name"] = ucwords(strtolower($validatedData["name"]));
@@ -90,9 +89,9 @@ class PemeController extends Controller
     {
         // Log::info("PemeController::getPemeList");
 
-        if (!$this->checkUser()) {
-            return response()->json(["message" => "Unauthorized"], 403);
-        }
+        // if (!$this->checkUser()) {
+        //     return response()->json(["message" => "Unauthorized"], 403);
+        // }
 
         $user = Auth::user();
 
@@ -114,7 +113,6 @@ class PemeController extends Controller
             ->orderBy("created_at", "desc")
             ->get()
             ->map(function ($peme) {
-
                 $respondentCount = PemeResponse::where('peme_id', $peme->id)
                     ->distinct('user_id')
                     ->count('user_id');
@@ -123,7 +121,9 @@ class PemeController extends Controller
                     "id" => Crypt::encrypt($peme->id),
                     "client_id" => Crypt::encrypt($peme->client_id),
                     "user_id" => Crypt::encrypt($peme->user_id),
-                    "medical_record_id" => Crypt::encrypt($peme->medical_record_id),
+                    "medical_record_id" => Crypt::encrypt(
+                        $peme->medical_record_id
+                    ),
                     // "id" => $peme->id,
                     // "client_id" => $peme->client_id,
                     // "user_id" => $peme->user_id,
@@ -131,7 +131,8 @@ class PemeController extends Controller
                     "name" => $peme->name,
                     "respondents" => $peme->respondents,
                     "isVisible" => $peme->isVisible,
-                    "isEditable" => $respondentCount > 0 ? 0 : $peme->isEditable,
+                    "isEditable" =>
+                        $respondentCount > 0 ? 0 : $peme->isEditable,
                     "isMultiple" => $peme->isMultiple,
                     "created_at" => $peme->created_at,
                     "updated_at" => $peme->updated_at,
@@ -141,7 +142,6 @@ class PemeController extends Controller
 
         return response()->json($pemeList);
     }
-
 
     public function getPemeStats()
     {
@@ -183,7 +183,10 @@ class PemeController extends Controller
         $peme = Peme::find($pemeId);
 
         if (!$peme) {
-            return response()->json(["message" => "PEME record not found"], 404);
+            return response()->json(
+                ["message" => "PEME record not found"],
+                404
+            );
         }
 
         $respondentCount = PemeResponse::where('peme_id', $peme->id)
@@ -219,10 +222,9 @@ class PemeController extends Controller
                 "isVisible" => $peme->isVisible,
                 "isEditable" => $peme->isEditable,
                 "isMultiple" => $peme->isMultiple,
-            ]
+            ],
         ]);
     }
-
 
     public function deletePeme($id)
     {
