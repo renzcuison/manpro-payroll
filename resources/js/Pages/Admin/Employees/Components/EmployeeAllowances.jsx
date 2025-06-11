@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
 import { useEmployeeAllowances } from "../../../../hooks/useAllowance";
 import EmployeeAddAllowance from "../Modals/EmployeeAddAllowance";
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 const EmployeeAllowances = ({userName}) => {
     const [openEmployeeAddAllowance, setOpenEmployeeAddAllowance] = useState(false);
@@ -22,9 +23,11 @@ const EmployeeAllowances = ({userName}) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Allowances </Typography>
 
-                <Button variant="contained" color="primary" onClick={() => handleOpenAddEmployeeAllowance()}>
-                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                </Button>
+                <Tooltip title="Add Benefits">
+                    <IconButton color="primary" onClick={() => handleOpenAddEmployeeAllowance()}>
+                        <AddCircleOutlineIcon sx={{fontSize: 30}}/>
+                    </IconButton>
+                </Tooltip>
             </Box>
 
             <TableContainer>

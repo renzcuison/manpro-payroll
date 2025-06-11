@@ -97,8 +97,12 @@ const EmployeeBenefitEdit = ({benefits, onClose}) => {
                     </FormControl>
                 </FormGroup>  
                 <Box display="flex" justifyContent="center" alignItems="center">
-                    <Button type="submit" variant="contained" sx={{backgroundColor: 'green', mx:1}}>Update</Button>
-                    <Button onClick={() => onClose(false)} variant="contained" sx={{backgroundColor: 'gray', mx:1}}>Cancel</Button>
+                    <Button type="submit" variant="contained" sx={{backgroundColor: 'green', mx:1}}>
+                        <i className="fa fa-floppy-o mr-2"/>Update
+                    </Button>
+                    <Button onClick={() => onClose(false)} variant="contained" sx={{backgroundColor: 'gray', mx:1}}>
+                        <i className="si si-close mr-2"/>Cancel
+                    </Button>
                 </Box>
             </Box>
         </>

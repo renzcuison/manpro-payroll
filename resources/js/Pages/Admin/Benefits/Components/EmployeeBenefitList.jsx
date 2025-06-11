@@ -37,10 +37,12 @@ const EmployeeBenefitList = ({ benefits,  onAdd, onEdit }) => {
                                         <Typography>₱{(benefit.employee_contribution).toFixed(2)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{dayjs(benefit.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
+                                        <Typography>{dayjs(benefit.created_at).format("MMMM DD, YYYY")}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Button onClick={() => onEdit(index)}>Edit</Button>
+                                        <Button onClick={() => onEdit(index)} variant="contained">
+                                            <i class="fa fa-pencil-square-o mr-2"/>Edit
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -58,7 +60,7 @@ const EmployeeBenefitList = ({ benefits,  onAdd, onEdit }) => {
             <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
                 <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={onAdd} >
                     <p className="m-0">
-                        <i className="fa fa-plus"></i> Add Benefits
+                        <i className="fa fa-plus mr-2"></i> Add Benefits
                     </p>
                 </Button>
             </Box>

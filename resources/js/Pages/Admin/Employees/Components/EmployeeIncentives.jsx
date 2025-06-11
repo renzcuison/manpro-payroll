@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
 import { useEmployeeIncentives } from "../../../../hooks/useIncentives";
 import EmployeeAddAllowance from "../Modals/EmployeeAddAllowance";
 import EmployeeAddIncentives from "../Modals/EmployeeAddIncentives";
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 const EmployeeIncentives = ({userName}) => {
     const [openEmployeeAddIncentives, setOpenEmployeeAddIncentives] = useState(false);
@@ -23,9 +24,11 @@ const EmployeeIncentives = ({userName}) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Incentives </Typography>
 
-                <Button variant="contained" color="primary" onClick={() => handleOpenAddEmployeeAllowance()}>
-                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                </Button>
+                <Tooltip title="Add Incentives">
+                    <IconButton color="primary" onClick={() => handleOpenAddEmployeeAllowance()}>
+                        <AddCircleOutlineIcon sx={{fontSize: 30}}/>
+                    </IconButton>
+                </Tooltip>
             </Box>
 
             <TableContainer>

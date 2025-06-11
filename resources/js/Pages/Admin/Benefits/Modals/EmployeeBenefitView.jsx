@@ -26,8 +26,6 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
     const [employee, setEmployee] = useState([]);
     const [selectedBenefit, setSelectedBenefit] = useState(null);
 
-    console.log(benefits);
-    
     useEffect(() => {
         getEmployeeDetails();
         setBenefitsListOpen(true);
@@ -73,7 +71,7 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: "16px", backgroundColor: "#f8f9fa", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "20px", maxHeight: "600px", minWidth: { xs: "100%", sm: "750px" }, maxWidth: "800px" }}}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: "16px", backgroundColor: "#f8f9fa", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "20px", maxHeight: "600px", minWidth: { xs: "100%", sm: "750px" }, maxWidth: "1000px" }}}>
                 <DialogTitle sx={{ padding: 2, paddingBottom: 3 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}> Employee Benefits </Typography>
