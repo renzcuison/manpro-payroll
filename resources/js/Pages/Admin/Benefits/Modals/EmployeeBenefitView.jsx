@@ -10,15 +10,24 @@ dayjs.extend(localizedFormat);
 
 import EmployeeBenefitAdd from "../Components/EmployeeBenefitAdd";
 import EmployeeBenefitList from "../Components/EmployeeBenefitList";
+import EmployeeBenefitEdit from "../Components/EmployeeBenefitEdit";
+import { useEmployeeBenefits } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitView = ({ open, close, userName }) => {
-
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+
+    const {data, isLoading, refetch} = useEmployeeBenefits(userName);
+
+    const benefits = data?.benefits || [];
     const [benefitsAddOpen, setBenefitsAddOpen] = useState(false);
+    const [benefitEditOpen, setBenefitEditOpen] = useState(false);
     const [benefitsListOpen, setBenefitsListOpen] = useState(false);
     const [employee, setEmployee] = useState([]);
+    const [selectedBenefit, setSelectedBenefit] = useState(null);
 
+    console.log(benefits);
+    
     useEffect(() => {
         getEmployeeDetails();
         setBenefitsListOpen(true);
@@ -35,14 +44,31 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
             });
     };
 
-    const handleOpenAddEmployeeIncentive = () => {
+    const handleOpenAddEmployeeBenefits = () => {
         setBenefitsListOpen(false);
         setBenefitsAddOpen(true);
     }
 
-    const handleCloseAddEmployeeIncentive = () => {
+    const handleCloseAddEmployeeBenefits = (reload) => {
         setBenefitsAddOpen(false);
         setBenefitsListOpen(true);
+        if(reload){
+            refetch();
+        }
+    }
+
+    const handleOpenEditEmployeeBenefits = (index) => {
+        setSelectedBenefit(index);
+        setBenefitsListOpen(false);
+        setBenefitEditOpen(true);
+    }
+
+    const handleCloseEditEmployeeBenefits = (reload) => {
+        setBenefitsListOpen(true);
+        setBenefitEditOpen(false);
+        if(reload){
+            refetch();
+        }
     }
 
     return (
@@ -71,13 +97,15 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
                     </Box>
                     
                     {benefitsListOpen && (
-                        <EmployeeBenefitList userName={userName} headers={headers} onAdd={() => handleOpenAddEmployeeIncentive()} />
+                        <EmployeeBenefitList benefits={benefits} onAdd={() => handleOpenAddEmployeeBenefits()} 
+                        onEdit={(index) => handleOpenEditEmployeeBenefits(index)} />
                     )}
-
+                    {benefitEditOpen && (
+                        <EmployeeBenefitEdit benefits={benefits[selectedBenefit]} onClose={handleCloseEditEmployeeBenefits}/>
+                    )}
                     {benefitsAddOpen && (
-                        <EmployeeBenefitAdd userName={userName} headers={headers} onClose={() => handleCloseAddEmployeeIncentive()} />
+                        <EmployeeBenefitAdd userName={userName} headers={headers} onClose={handleCloseAddEmployeeBenefits} />
                     )}
-
                 </DialogContent>
             </Dialog >
         </>

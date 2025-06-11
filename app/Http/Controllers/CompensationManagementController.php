@@ -293,6 +293,7 @@ class CompensationManagementController extends Controller
                 $employer_amount += ($baseSalary * ($benefit->benefit->employer_percentage / 100));
             }
             $benefits[] = [
+                'id' => Crypt::encrypt($benefit->id),
                 'name' => $benefit->benefit->name,
                 'type' => $benefit->benefit->type,
                 'number' => $benefit->number,
@@ -302,6 +303,7 @@ class CompensationManagementController extends Controller
                 'employee_percentage' => $benefit->benefit->employee_percentage,
                 'employer_contribution' => $employer_amount,
                 'employee_contribution' => $employee_amount,
+                'status' => $benefit->status,
                 'created_at' => $benefit->created_at,
             ];
         }
@@ -388,10 +390,11 @@ class CompensationManagementController extends Controller
             try {
                 DB::beginTransaction();
 
-                EmployeeBenefitsModel::create([
+                EmployeeBenefitsModel::updateOrCreate([
                     "client_id" => $client->id,
                     "user_id" => $employee->id,
                     "benefit_id" => Crypt::decrypt($request->benefit),
+                ], [
                     "number" => $request->number,
                 ]);
                 DB::commit();
@@ -403,6 +406,20 @@ class CompensationManagementController extends Controller
                 Log::error("Error saving: " . $e->getMessage());
                 throw $e;
             }
+        }
+    }
+
+    public function updateEmployeeBenefit(Request $request)
+    {
+        if(!$this->checkUserAdmin()){
+            return response()->json(['status' => 200, 'benefits' => null]);
+        }
+        $employee_benefit_id = Crypt::decrypt($request->emp_benefit_id);
+        $emp_benefit = EmployeeBenefitsModel::findOrFail($employee_benefit_id);
+
+        if($emp_benefit){
+            $emp_benefit->number = $request->number;
+            $emp_benefit->save();
         }
     }
     //---------------->[#endregion BENEFITS CONTROLLERS]

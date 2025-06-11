@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, TextField, Typography } from "@mui/material";
 import dayjs from "dayjs";
-import axiosInstance from "../../../../utils/axiosConfig";
 
-const EmployeeBenefitList = ({ userName, headers, onAdd }) => {
-    const [benefits, setBenefits] = useState([]);
 
-    useEffect(() => {
-        axiosInstance.get(`/compensation/getEmployeeBenefits`, { headers, params: { username: userName },
-            }).then((response) => {
-                setBenefits(response.data.benefits);
-            }).catch((error) => {
-                console.error("Error fetching benefits:", error);
-            });
-    }, []);
-
+const EmployeeBenefitList = ({ benefits,  onAdd, onEdit }) => {
     return (
         <Box>
             <TableContainer>
@@ -25,19 +14,22 @@ const EmployeeBenefitList = ({ userName, headers, onAdd }) => {
                             <TableCell align="center">Number</TableCell>
                             <TableCell align="center">Employer's Share</TableCell>
                             <TableCell align="center">Employee's Share</TableCell>
-                            <TableCell align="center">Date Added</TableCell>
+                            <TableCell align="center">Date</TableCell>
+                            <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {benefits.length > 0 ? (
+                        {benefits.length > 0 ? (       
                             benefits.map((benefit, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
                                         <Typography>{benefit.name}</Typography>
                                     </TableCell>
+
                                     <TableCell align="center">
                                         <Typography>{benefit.number}</Typography>
                                     </TableCell>
+
                                     <TableCell align="center">
                                         <Typography>₱{(benefit.employer_contribution).toFixed(2)}</Typography>
                                     </TableCell>
@@ -46,6 +38,9 @@ const EmployeeBenefitList = ({ userName, headers, onAdd }) => {
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography>{dayjs(benefit.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Button onClick={() => onEdit(index)}>Edit</Button>
                                     </TableCell>
                                 </TableRow>
                             ))

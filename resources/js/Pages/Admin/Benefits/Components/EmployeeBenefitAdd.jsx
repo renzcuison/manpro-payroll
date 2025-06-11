@@ -11,7 +11,7 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
     const [benefits, setBenefits] = useState([]);
     const [benefit, setBenefit] = useState('');
     const [number, setNumber] = useState('');
-
+    
     useEffect(() => {
         axiosInstance.get('/compensation/getBenefits', { headers })
             .then((response) => {
