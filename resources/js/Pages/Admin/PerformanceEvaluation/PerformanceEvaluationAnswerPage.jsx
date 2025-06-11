@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Button, CircularProgress, Divider, Grid,
   FormControlLabel, Radio, RadioGroup, Checkbox, TextField, IconButton, Accordion, AccordionSummary, AccordionDetails,
-  Menu, MenuItem, Paper
+  Menu, MenuItem, Paper, FormGroup
 } from '@mui/material';
 import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
@@ -16,13 +16,13 @@ const PerformanceEvaluationAnswerPage = () => {
 
   const { deleteEvaluationResponse } = useEvaluationResponse(id);
 
-    const handleDeleteMenuEvalForm = async () => {
-        const success = await deleteEvaluationResponse();
-        if (success) {
-            // Redirect away after delete, e.g. to the evaluation list
-            navigate('/admin/performance-evaluation');
-        }
-    };
+  const handleDeleteMenuEvalForm = async () => {
+    const success = await deleteEvaluationResponse();
+    if (success) {
+      // Redirect away after delete, e.g. to the evaluation list
+      navigate('/admin/performance-evaluation');
+    }
+  };
 
   const {
     evaluationResponse, options, subcategories,
@@ -57,12 +57,20 @@ const PerformanceEvaluationAnswerPage = () => {
     'long_answer': 'Long Answer',
   };
 
+  // Handler for linear scale
   const handleRadioChange = (subcategoryId, value) => {
     setPercentageAnswer(subcategoryId, value);
   };
 
-  // For multiple_choice (single select) and checkbox (multi-select), you may need to implement similar setOption/setOptions helpers in your hook as above for setTextAnswer/setPercentageAnswer.
-  // For now, we only handle short/long_answer (text) and linear_scale (percentage) subcategories.
+  // Handler for single select (multiple_choice)
+  const handleOptionChange = (subcategoryId, optionId) => {
+    setOptionAnswer(subcategoryId, optionId);
+  };
+
+  // Handler for checkbox (multi-select)
+  const handleCheckboxChange = (subcategoryId, optionId) => (event) => {
+    setCheckboxAnswers(subcategoryId, optionId, event.target.checked);
+  };
 
   const handleShortAnswerChange = (subcategoryId, value) => {
     setTextAnswer(subcategoryId, value);
@@ -94,8 +102,6 @@ const PerformanceEvaluationAnswerPage = () => {
   const form = evaluationResponse.form;
   const responseMeta = evaluationResponse;
 
-  
-
   if (!form || !responseMeta) {
     return (
       <Layout title="Performance Evaluation Form">
@@ -105,7 +111,6 @@ const PerformanceEvaluationAnswerPage = () => {
       </Layout>
     );
   }
-    
 
   return (
     <Layout title="Performance Evaluation Form">
@@ -330,7 +335,45 @@ const PerformanceEvaluationAnswerPage = () => {
                         </Box>
                       )}
 
-                      {/* TODO: Add handling for multiple_choice and checkbox types, as needed, with corresponding hook support */}
+                      {subCategory.subcategory_type === 'multiple_choice' && (
+                        <Box sx={{ mb: 2 }}>
+                          <RadioGroup
+                            value={subCategory.option_answer?.option_id || ''}
+                            onChange={e => handleOptionChange(subCategory.id, parseInt(e.target.value))}
+                          >
+                            {(subCategory.options || []).map(opt => (
+                              <FormControlLabel
+                                key={opt.id}
+                                value={opt.id}
+                                control={<Radio />}
+                                label={opt.label}
+                              />
+                            ))}
+                          </RadioGroup>
+                        </Box>
+                      )}
+
+                      {subCategory.subcategory_type === 'checkbox' && (
+                        <Box sx={{ mb: 2 }}>
+                          <FormGroup>
+                            {(subCategory.options || []).map(opt => (
+                              <FormControlLabel
+                                key={opt.id}
+                                control={
+                                  <Checkbox
+                                    checked={
+                                      (subCategory.checkbox_answers || []).includes(opt.id)
+                                    }
+                                    onChange={handleCheckboxChange(subCategory.id, opt.id)}
+                                  />
+                                }
+                                label={opt.label}
+                              />
+                            ))}
+                          </FormGroup>
+                        </Box>
+                      )}
+
                     </Box>
                   ))
                 )}
@@ -354,4 +397,4 @@ const PerformanceEvaluationAnswerPage = () => {
   );
 };
 
-export default PerformanceEvaluationAnswerPage;
+export default PerformanceEvaluationAnswerPage; 
