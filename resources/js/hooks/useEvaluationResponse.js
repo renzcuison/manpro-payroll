@@ -324,11 +324,44 @@ export function useEvaluationResponse(responseId) {
         reloadEvaluationResponse();
     }
 
+    // Added for saving comment and signature - Khim
+    async function editEvaluationCommentor({ response_id, commentor_id, comment, signature_filepath }) {
+        try {
+            const payload = {
+                response_id,
+                commentor_id,
+            };
+            if (comment !== undefined) payload.comment = comment;
+            if (signature_filepath !== undefined) payload.signature_filepath = signature_filepath;
+
+            const response = await axiosInstance.post(
+                '/editEvaluationCommentor',
+                payload,
+                { headers }
+            );
+
+            if (
+                (response.status && String(response.status).startsWith('2')) ||
+                (response.data && response.data.status && String(response.data.status).startsWith('2'))
+            ) {
+                return response.data.evaluationCommentor;
+            } else {
+                throw new Error(response.data?.message || 'Failed to save comment.');
+            }
+        } catch (error) {
+            throw new Error(
+                error?.response?.data?.message ||
+                error.message ||
+                'Failed to save comment!'
+            );
+        }
+    }
+
     return {
         evaluationResponse, options, subcategories,
         deleteEvaluationResponse, saveEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
-        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer
+        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,  editEvaluationCommentor,
     };
 
 }

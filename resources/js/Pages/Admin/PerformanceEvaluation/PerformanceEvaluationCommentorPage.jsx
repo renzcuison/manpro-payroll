@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  IconButton, Menu, MenuItem, Paper, Chip, Button, TextField
+  IconButton, Menu, MenuItem, Paper, Chip, TextField, Grid, FormControlLabel, Radio, Button
 } from '@mui/material';
 import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
-import PerformanceEvaluationFormSaveEvaluation from './Modals/PerformanceEvaluationFormSaveEvaluation';
+import PerformanceEvaluationCommentorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvalutionCommentorAcknowledge';
+import Swal from 'sweetalert2';
 
 const PerformanceEvaluationCommentorPage = () => {
   const { id } = useParams();
@@ -16,21 +17,20 @@ const PerformanceEvaluationCommentorPage = () => {
 
   const {
     evaluationResponse,
-    saveEvaluationResponse,
-    editEvaluationCommentor // <-- you should implement this in your hook to update the comment on backend
+    editEvaluationCommentor
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
   const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [saveEvaluationOpen, setSaveEvaluationOpen] = useState(false);
-  // Manage comments state for all commentors
   const [commentorComments, setCommentorComments] = useState([]);
+  const [savingIds, setSavingIds] = useState([]);
+
+  // Modal state per commentor
+  const [openAcknowledgeFor, setOpenAcknowledgeFor] = useState(null);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
-      // Set initial values for all commentors
       if (Array.isArray(evaluationResponse.commentors) && evaluationResponse.commentors.length > 0) {
         setCommentorComments(
           evaluationResponse.commentors.map(c => ({
@@ -51,8 +51,7 @@ const PerformanceEvaluationCommentorPage = () => {
   };
   const settingsOpen = Boolean(settingsAnchorEl);
 
-  // Update specific commentor comment in local state
-  const handleCommentChange = (commentor_id, value) => {
+  const handleCommentInput = (commentor_id, value) => {
     setCommentorComments(prev =>
       prev.map(c =>
         c.commentor_id === commentor_id ? { ...c, comment: value } : c
@@ -60,22 +59,45 @@ const PerformanceEvaluationCommentorPage = () => {
     );
   };
 
-  const handleSaveEvaluation = async () => {
-    setSaving(true);
-    // Save all comments before saving evaluation
-    if (editEvaluationCommentor && Array.isArray(commentorComments)) {
-      for (const c of commentorComments) {
-        await editEvaluationCommentor({
-          response_id: evaluationResponse.id,
-          commentor_id: c.commentor_id,
-          comment: c.comment
-        });
-      }
+  // Show modal first, then save after signature
+  const handleOpenAcknowledgeModal = (commentor_id) => {
+    setOpenAcknowledgeFor(commentor_id);
+  };
+
+  // Called after signature is done in modal
+  const handleProceedAcknowledge = async (signatureData, commentor_id) => {
+    setSavingIds(prev => [...prev, commentor_id]);
+    const commentObj = commentorComments.find(c => c.commentor_id === commentor_id);
+    try {
+      await editEvaluationCommentor({
+        response_id: evaluationResponse.id,
+        commentor_id,
+        comment: commentObj ? commentObj.comment : "",
+        signature_filepath: signatureData // PNG dataURL
+      });
+      Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: "Comment & signature saved successfully.",
+        timer: 1600,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        position: 'center'
+      });
+    } catch (e) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: "Failed to save comment and signature!",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        position: 'center'
+      });
+    } finally {
+      setSavingIds(prev => prev.filter(id => id !== commentor_id));
+      setOpenAcknowledgeFor(null); // Close modal after try/catch
     }
-    await saveEvaluationResponse();
-    setSaving(false);
-    setSaveEvaluationOpen(false);
-    alert('Evaluation saved!');
   };
 
   const responseTypeMap = {
@@ -110,7 +132,6 @@ const PerformanceEvaluationCommentorPage = () => {
     );
   }
 
-  // Helper to display answers for various types
   const renderAnswer = (subCategory) => {
     switch (subCategory.subcategory_type) {
       case 'linear_scale':
@@ -119,8 +140,37 @@ const PerformanceEvaluationCommentorPage = () => {
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
               Answer:
             </Typography>
-            <Typography variant="body1">
-              {typeof subCategory.percentage_answer?.value === 'number'
+            <Grid container alignItems="center" spacing={2} justifyContent='center'>
+              <Grid item>
+                <Typography variant="body1">{subCategory.linear_scale_start_label}</Typography>
+              </Grid>
+              <Grid item xs>
+                <Grid container justifyContent="center" spacing={1}>
+                  {[...Array(subCategory.linear_scale_end - subCategory.linear_scale_start + 1)].map((_, index) => {
+                    const value = subCategory.linear_scale_start + index;
+                    return (
+                      <Grid item key={value}>
+                        <FormControlLabel
+                          control={
+                            <Radio
+                              checked={subCategory.percentage_answer?.value === value}
+                              disabled
+                            />
+                          }
+                          label={value}
+                          labelPlacement="top"
+                        />
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </Grid>
+              <Grid item>
+                <Typography variant="body1">{subCategory.linear_scale_end_label}</Typography>
+              </Grid>
+            </Grid>
+            <Typography variant="body1" sx={{ mt: 1 }}>
+              Selected: {typeof subCategory.percentage_answer?.value === 'number'
                 ? subCategory.percentage_answer.value
                 : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
               }
@@ -214,12 +264,10 @@ const PerformanceEvaluationCommentorPage = () => {
     }
   };
 
-  // Find all commentors
   const allCommentors = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
     ? responseMeta.commentors
     : [];
 
-  // Helper to map index to order (1st, 2nd, 3rd, etc)
   const getOrderLabel = (idx) => {
     const n = idx + 1;
     if (n === 1) return "First";
@@ -244,7 +292,6 @@ const PerformanceEvaluationCommentorPage = () => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, position: 'relative' }}>
-          {/* Settings Icon with Dropdown Menu */}
           <IconButton
             onClick={handleSettingsClick}
             sx={{
@@ -431,8 +478,25 @@ const PerformanceEvaluationCommentorPage = () => {
                       commentorComments.find(c => c.commentor_id === commentor.commentor_id)?.comment || ''
                     }
                     sx={{ mt: 1 }}
-                    onChange={e => handleCommentChange(commentor.commentor_id, e.target.value)}
+                    onChange={e => handleCommentInput(commentor.commentor_id, e.target.value)}
                     placeholder="Enter your comment here"
+                    disabled={savingIds.includes(commentor.commentor_id)}
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleOpenAcknowledgeModal(commentor.commentor_id)}
+                      disabled={savingIds.includes(commentor.commentor_id)}
+                    >
+                      {savingIds.includes(commentor.commentor_id) ? "Saving..." : "Save Comment"}
+                    </Button>
+                  </Box>
+                  {/* Modal for this commentor */}
+                  <PerformanceEvaluationCommentorAcknowledge
+                    open={openAcknowledgeFor === commentor.commentor_id}
+                    onClose={() => setOpenAcknowledgeFor(null)}
+                    onProceed={signatureData => handleProceedAcknowledge(signatureData, commentor.commentor_id)}
                   />
                 </Paper>
               ))}
@@ -441,23 +505,6 @@ const PerformanceEvaluationCommentorPage = () => {
             <Typography color="text.secondary"><i>No commentors found.</i></Typography>
           )}
         </Box>
-
-        {/* Save Evaluation Button and Modal */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <Button
-            variant="contained"
-            sx={{ bgcolor: '#137333', color: '#fff', fontWeight: 'bold', px: 4, py: 1.5 }}
-            onClick={() => setSaveEvaluationOpen(true)}
-            disabled={saving}
-          >
-            SAVE EVALUATION
-          </Button>
-        </Box>
-        <PerformanceEvaluationFormSaveEvaluation
-          open={saveEvaluationOpen}
-          onClose={() => setSaveEvaluationOpen(false)}
-          onProceed={handleSaveEvaluation}
-        />
       </Box>
     </Layout>
   );
