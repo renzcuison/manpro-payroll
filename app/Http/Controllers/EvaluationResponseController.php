@@ -451,6 +451,7 @@ class EvaluationResponseController extends Controller
                         ->with(['sections' => fn ($section) =>
                             $section
                                 ->select('form_id', 'id', 'name', 'category', 'order')
+                                ->whereNull('deleted_at')
                                 ->with(['subcategories' => fn ($subcategory) =>
                                     $subcategory
                                         ->select(
@@ -467,10 +468,12 @@ class EvaluationResponseController extends Controller
                                                     ->select(
                                                         'subcategory_id', 'id', 'label', 'score', 'order'
                                                     )
+                                                    ->whereNull('deleted_at')
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
                                                             $optionAnswer
                                                                 ->select('response_id', 'option_id')
+                                                                ->whereNull('deleted_at')
                                                                 ->where('response_id', $request->id)
                                                     ])
                                                     ->orderBy('order')
@@ -498,11 +501,13 @@ class EvaluationResponseController extends Controller
                                                         ."-evaluation_form_subcategories.linear_scale_start))"
                                                         ." as linear_scale_index"
                                                     ))
+                                                    ->whereNull('evaluation_percentage_answers.deleted_at')
                                                     ->where('response_id', $request->id)
                                             ,
                                             'textAnswer' => fn ($textAnswer) =>
                                                 $textAnswer
                                                     ->select('response_id', 'subcategory_id', 'answer')
+                                                    ->whereNull('deleted_at')
                                                     ->where('response_id', $request->id)
                                         ])
                                         ->orderBy('order')
