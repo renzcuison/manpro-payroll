@@ -41,6 +41,7 @@ dayjs.extend(duration);
 import AnnouncementPublish from './AnnouncementPublish';
 import AnnouncementEdit from './AnnouncementEdit';
 import AnnouncementAcknowledgements from "./AnnouncementAcknowledgements";
+import AnnouncementAttachments from "./AnnouncementAttachments";
 
 const AnnouncementManage = ({ open, close, announceInfo }) => {
     const navigate = useNavigate();
@@ -69,6 +70,31 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const [previewFile, setPreviewFile] = useState(null);
 
     const [docxHtml, setDocxHtml] = useState("");
+
+    const [attachmentsModal, setAttachmentsModal] = useState({ open: false, type: null });
+
+    const hasImages = Array.isArray(images) && images.length > 0;
+    const hasDocuments = Array.isArray(attachments) && attachments.length > 0;
+    const cardWidth = hasImages && hasDocuments ? "48%" : "100%";
+
+    const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+    const [imagePreviewSrc, setImagePreviewSrc] = useState("");
+    const [imagePreviewName, setImagePreviewName] = useState("");
+
+    const handleCloseAttachmentsModal = () => {
+        setAttachmentsModal((prev) => ({ ...prev, open: false }));
+    };
+
+    const handleExitedAttachmentsModal = () => {
+        setAttachmentsModal({ open: false, type: null });
+    };
+
+    const handlePreviewImage = (img) => {
+        let src = img.url || (img.id && renderImage ? renderImage(img.id, img.data, img.mime_type) : "");
+        setImagePreviewSrc(src);
+        setImagePreviewName(img.filename || "");
+        setImagePreviewOpen(true);
+    };
 
     // ----------- Additional Details
     useEffect(() => {
@@ -280,7 +306,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const getAnnouncementThumbnail = () => {
         if (!announceInfo?.unique_code) {
             console.error('Cannot fetch thumbnail: missing unique_code');
-            setImagePath("../../../../images/defaultThumbnail.jpg");
+            setImagePath(null);
             setImageLoading(false);
             return;
         }
@@ -302,7 +328,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     if (imagePath && imagePath.startsWith('blob:')) {
                         URL.revokeObjectURL(imagePath);
                     }
-                    setImagePath("../../../../images/defaultThumbnail.jpg");
+                    setImagePath(null);
                 }
                 setImageLoading(false);
             })
@@ -312,7 +338,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     response: error.response?.data,
                     status: error.response?.status,
                 });
-                setImagePath("../../../../images/defaultThumbnail.jpg");
+                setImagePath(null);
                 setImageLoading(false);
             });
     };
@@ -501,188 +527,359 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     <Box>
                         <Grid container columnSpacing={4} rowSpacing={2}>
                             {/* Thumbnail */}
-                            <Grid size={{ xs: 5 }}>
-                                <Box sx={{ position: 'relative', width: '100%', height: 210, borderRadius: "4px", border: '2px solid #e0e0e0' }}>
-                                    {imageLoading ? (
+                            {imageLoading || imagePath ? (
+                                <Grid size={{ xs: 5 }}>
+                                    <Box sx={{ position: 'relative', width: '100%', height: 210, borderRadius: "4px", border: '2px solid #e0e0e0' }}>
+                                        {imageLoading ? (
                                         <Box sx={{ display: 'flex', placeSelf: "center", justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
                                             <CircularProgress />
                                         </Box>
-                                    ) : imagePath ? (
+                                        ) : (
                                         <img src={imagePath} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: "4px" }} />
-                                    ) : (
-                                        <Box sx={{ width: '100%', height: '100%' }} />
-                                    )}
-                                </Box>
-                            </Grid>
+                                        )}
+                                    </Box>
+                                </Grid>
+                                ) : null}
                             {/* Core Information */}
-                            <Grid container size={{ xs: 7 }} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
-                                <Grid container spacing={1} sx={{ mb: 1 }}>
-                                    {/* Title and Action Menu */}
-                                    <Grid size={12}>
-                                        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                                            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                                Publishment Details
-                                            </Typography>
-                                            <IconButton
-                                                id="basic-button"
-                                                size="small"
-                                                aria-controls={open ? 'basic-menu' : undefined}
-                                                aria-haspopup="true"
-                                                aria-expanded={open ? 'true' : undefined}
-                                                onClick={handleMenuClick}
-                                                sx={{ m: 0 }}
-                                            >
-                                                <MoreVert />
-                                            </IconButton>
-
-                                            <Menu id="basic-menu" anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose} MenuListProps={{ 'aria-labelledby': 'basic-button' }} >
-                                                {announcement.status === "Pending" && (
-                                                    <MenuItem
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            handleOpenAnnouncementEdit(announcement);
-                                                            handleMenuClose();
-                                                        }}>
-                                                        Edit
-                                                    </MenuItem>
-                                                )}
-                                                {!scheduledSendDatetime && announcement.status === "Pending" && (
-                                                    <MenuItem
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            handleOpenAnnouncementPublish(announcement);
-                                                            handleMenuClose();
-                                                        }}>
-                                                        Publish
-                                                    </MenuItem>
-                                                )}
-
-                                                {announcement.status !== "Pending" && (
-                                                    <MenuItem
-                                                        onClick={(event) => {
-                                                            handleOpenAnnouncementAcknowledgements(announcement.unique_code);
-                                                        }}>
-                                                        View Acknowledgements
-                                                    </MenuItem>
-                                                )}
-                                                {announcement.status !== "Pending" && (
-                                                    <MenuItem
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            handleToggleHide(announcement.status === "Published", announcement.unique_code);
-                                                            handleMenuClose();
-                                                        }}>
-                                                        {announcement.status === "Hidden" ? 'Show Announcement' : 'Hide Announcement'}
-                                                    </MenuItem>
-                                                )}
-
-                                                <MenuItem
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        handleDeleteAnnouncement(announcement);
-                                                        handleMenuClose();
-                                                    }}>
-                                                    Delete Announcement
-                                                </MenuItem>
-
-                                            </Menu>
-                                        </Stack>
-                                    </Grid>
-                                    <Grid size={12} sx={{ my: 0 }}>
-                                        <Divider />
-                                    </Grid>
-                                    {/* Announcement Status & Visibility */}
-                                    <Grid size={12}>
-                                        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                                            <InfoBox
-                                                title="Status"
-                                                info={announcement.status === "Pending" ? "PENDING" : announcement.status === "Hidden" ? "HIDDEN" : "PUBLISHED"}
-                                                color={announcement.status === "Pending" ? "#e9ae20" : announcement.status === "Hidden" ? "#f57c00" : "#177604"}
-                                                compact
-                                                clean
-                                            />
-                                            {announcement.status !== "Pending" && (
-                                                <InfoBox
-                                                    title="Visibility"
-                                                    info={announcement.status === "Published" ? "VISIBLE" : "HIDDEN"}
-                                                    color={announcement.status === "Published" ? "#177604" : "#f57c00"}
-                                                    compact
-                                                    clean
-                                                />
-                                            )}
-                                        </Stack>
-                                    </Grid> 
-                                    {announcement.status === "Pending" && scheduledSendDatetime && (
+                            {imageLoading || imagePath ? (
+                                <Grid container size={{ xs: 7 }} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
+                                    <Grid container spacing={1} sx={{ mb: 1 }}>
+                                        {/* Title and Action Menu */}
                                         <Grid size={12}>
-                                            <InfoBox
-                                                title="Scheduled Post"
-                                                info={dayjs(scheduledSendDatetime).format('MMM D, YYYY h:mm A')}
-                                                color="#1976d2"
-                                                compact
-                                                clean
-                                            />
+                                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                    Publishment Details
+                                                </Typography>
+                                                <IconButton
+                                                    id="basic-button"
+                                                    size="small"
+                                                    aria-controls={open ? 'basic-menu' : undefined}
+                                                    aria-haspopup="true"
+                                                    aria-expanded={open ? 'true' : undefined}
+                                                    onClick={handleMenuClick}
+                                                    sx={{ m: 0 }}
+                                                >
+                                                    <MoreVert />
+                                                </IconButton>
+
+                                                <Menu id="basic-menu" anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose} MenuListProps={{ 'aria-labelledby': 'basic-button' }} >
+                                                    {announcement.status === "Pending" && (
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                handleOpenAnnouncementEdit(announcement);
+                                                                handleMenuClose();
+                                                            }}>
+                                                            Edit
+                                                        </MenuItem>
+                                                    )}
+                                                    {!scheduledSendDatetime && announcement.status === "Pending" && (
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                handleOpenAnnouncementPublish(announcement);
+                                                                handleMenuClose();
+                                                            }}>
+                                                            Publish
+                                                        </MenuItem>
+                                                    )}
+
+                                                    {announcement.status !== "Pending" && (
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                handleOpenAnnouncementAcknowledgements(announcement.unique_code);
+                                                            }}>
+                                                            View Acknowledgements
+                                                        </MenuItem>
+                                                    )}
+                                                    {announcement.status !== "Pending" && (
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                handleToggleHide(announcement.status === "Published", announcement.unique_code);
+                                                                handleMenuClose();
+                                                            }}>
+                                                            {announcement.status === "Hidden" ? 'Show Announcement' : 'Hide Announcement'}
+                                                        </MenuItem>
+                                                    )}
+
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleDeleteAnnouncement(announcement);
+                                                            handleMenuClose();
+                                                        }}>
+                                                        Delete Announcement
+                                                    </MenuItem>
+
+                                                </Menu>
+                                            </Stack>
                                         </Grid>
-                                    )}
-                                    {announcement.status !== "Pending" || scheduledSendDatetime ? (
-                                        <Grid container size={12} spacing={1}>
-                                            <Grid size={12}>
-                                                <InfoBox
-                                                    title="Announcement Type"
-                                                    info={announcementType || 'N/A'}
-                                                    compact
-                                                    clean
-                                                />
-                                            </Grid>
-                                            <Grid size={12}>
-                                                <InfoBox
-                                                    title="Branches"
-                                                    info={branches.length > 0 ? branches.join(', ') : 'N/A'}
-                                                    compact
-                                                    clean
-                                                />
-                                            </Grid>
-                                            <Grid size={12}>
-                                                <InfoBox
-                                                    title="Departments"
-                                                    info={departments.length > 0 ? departments.join(', ') : 'N/A'}
-                                                    compact
-                                                    clean
-                                                />
-                                            </Grid>
-                                            <Grid size={12}>
-                                                <InfoBox
-                                                    title="Roles"
-                                                    info={roles.length > 0 ? roles.join(', ') : 'N/A'}
-                                                    compact
-                                                    clean
-                                                />
-                                            </Grid>
-                                            <Grid size={12}>
+                                        <Grid size={12} sx={{ my: 0 }}>
+                                            <Divider />
+                                        </Grid>
+                                        {/* Announcement Status & Visibility */}
+                                        <Grid size={12}>
+                                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                                                 <InfoBox
                                                     title="Status"
-                                                    info={employmentStatuses.length > 0 ? employmentStatuses.join(', ') : 'N/A'}
+                                                    info={announcement.status === "Pending" ? "PENDING" : announcement.status === "Hidden" ? "HIDDEN" : "PUBLISHED"}
+                                                    color={announcement.status === "Pending" ? "#e9ae20" : announcement.status === "Hidden" ? "#f57c00" : "#177604"}
                                                     compact
                                                     clean
                                                 />
-                                            </Grid>
+                                                {announcement.status !== "Pending" && (
+                                                    <InfoBox
+                                                        title="Visibility"
+                                                        info={announcement.status === "Published" ? "VISIBLE" : "HIDDEN"}
+                                                        color={announcement.status === "Published" ? "#177604" : "#f57c00"}
+                                                        compact
+                                                        clean
+                                                    />
+                                                )}
+                                            </Stack>
+                                        </Grid> 
+                                        {announcement.status === "Pending" && scheduledSendDatetime && (
                                             <Grid size={12}>
                                                 <InfoBox
-                                                    title="Employment Type"
-                                                    info={employmentTypes.length > 0 ? employmentTypes.join(', ') : 'N/A'}
+                                                    title="Scheduled Post"
+                                                    info={dayjs(scheduledSendDatetime).format('MMM D, YYYY h:mm A')}
+                                                    color="#1976d2"
                                                     compact
                                                     clean
                                                 />
                                             </Grid>
-                                        </Grid>
-                                    ) : (
-                                        <Grid size={12} align="center">
-                                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                                                -- Publishing Data Unavailable --
-                                            </Typography>
-                                        </Grid>
-                                    )}
+                                        )}
+                                        {announcement.status !== "Pending" || scheduledSendDatetime ? (
+                                            <Grid container size={12} spacing={1}>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Announcement Type"
+                                                        info={announcementType || 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Branches"
+                                                        info={branches.length > 0 ? branches.join(', ') : 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Departments"
+                                                        info={departments.length > 0 ? departments.join(', ') : 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Roles"
+                                                        info={roles.length > 0 ? roles.join(', ') : 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Status"
+                                                        info={employmentStatuses.length > 0 ? employmentStatuses.join(', ') : 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Employment Type"
+                                                        info={employmentTypes.length > 0 ? employmentTypes.join(', ') : 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                        ) : (
+                                            <Grid size={12} align="center">
+                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                    -- Publishing Data Unavailable --
+                                                </Typography>
+                                            </Grid>
+                                        )}
+                                    </Grid>
                                 </Grid>
-                            </Grid>
+                            ): (
+                                <Grid container size={{ xs: 12 }} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
+                                    <Grid container size={{ xs: 12 }} spacing={1} sx={{ mb: 1 }}>
+                                        {/* Title and Action Menu */}
+                                        <Grid size={12}>
+                                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                                                    Publishment Details
+                                                </Typography>
+                                                <IconButton
+                                                    id="basic-button"
+                                                    size="small"
+                                                    aria-controls={open ? 'basic-menu' : undefined}
+                                                    aria-haspopup="true"
+                                                    aria-expanded={open ? 'true' : undefined}
+                                                    onClick={handleMenuClick}
+                                                    sx={{ m: 0 }}
+                                                >
+                                                    <MoreVert />
+                                                </IconButton>
+
+                                                <Menu id="basic-menu" anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose} MenuListProps={{ 'aria-labelledby': 'basic-button' }} >
+                                                    {announcement.status === "Pending" && (
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                handleOpenAnnouncementEdit(announcement);
+                                                                handleMenuClose();
+                                                            }}>
+                                                            Edit
+                                                        </MenuItem>
+                                                    )}
+                                                    {!scheduledSendDatetime && announcement.status === "Pending" && (
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                handleOpenAnnouncementPublish(announcement);
+                                                                handleMenuClose();
+                                                            }}>
+                                                            Publish
+                                                        </MenuItem>
+                                                    )}
+
+                                                    {announcement.status !== "Pending" && (
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                handleOpenAnnouncementAcknowledgements(announcement.unique_code);
+                                                            }}>
+                                                            View Acknowledgements
+                                                        </MenuItem>
+                                                    )}
+                                                    {announcement.status !== "Pending" && (
+                                                        <MenuItem
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                handleToggleHide(announcement.status === "Published", announcement.unique_code);
+                                                                handleMenuClose();
+                                                            }}>
+                                                            {announcement.status === "Hidden" ? 'Show Announcement' : 'Hide Announcement'}
+                                                        </MenuItem>
+                                                    )}
+
+                                                    <MenuItem
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleDeleteAnnouncement(announcement);
+                                                            handleMenuClose();
+                                                        }}>
+                                                        Delete Announcement
+                                                    </MenuItem>
+
+                                                </Menu>
+                                            </Stack>
+                                        </Grid>
+                                        <Grid size={12} sx={{ my: 0 }}>
+                                            <Divider />
+                                        </Grid>
+                                        {/* Announcement Status & Visibility */}
+                                        <Grid size={12}>
+                                            <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                                                <InfoBox
+                                                    title="Status"
+                                                    info={announcement.status === "Pending" ? "PENDING" : announcement.status === "Hidden" ? "HIDDEN" : "PUBLISHED"}
+                                                    color={announcement.status === "Pending" ? "#e9ae20" : announcement.status === "Hidden" ? "#f57c00" : "#177604"}
+                                                    compact
+                                                    clean
+                                                />
+                                                {announcement.status !== "Pending" && (
+                                                    <InfoBox
+                                                        title="Visibility"
+                                                        info={announcement.status === "Published" ? "VISIBLE" : "HIDDEN"}
+                                                        color={announcement.status === "Published" ? "#177604" : "#f57c00"}
+                                                        compact
+                                                        clean
+                                                    />
+                                                )}
+                                            </Stack>
+                                        </Grid> 
+                                        {announcement.status === "Pending" && scheduledSendDatetime && (
+                                            <Grid size={12}>
+                                                <InfoBox
+                                                    title="Scheduled Post"
+                                                    info={dayjs(scheduledSendDatetime).format('MMM D, YYYY h:mm A')}
+                                                    color="#1976d2"
+                                                    compact
+                                                    clean
+                                                />
+                                            </Grid>
+                                        )}
+                                        {announcement.status !== "Pending" || scheduledSendDatetime ? (
+                                            <Grid container size={12} spacing={1}>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Announcement Type"
+                                                        info={announcementType || 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Branches"
+                                                        info={branches.length > 0 ? branches.join(', ') : 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Departments"
+                                                        info={departments.length > 0 ? departments.join(', ') : 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Roles"
+                                                        info={roles.length > 0 ? roles.join(', ') : 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Status"
+                                                        info={employmentStatuses.length > 0 ? employmentStatuses.join(', ') : 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                                <Grid size={12}>
+                                                    <InfoBox
+                                                        title="Employment Type"
+                                                        info={employmentTypes.length > 0 ? employmentTypes.join(', ') : 'N/A'}
+                                                        compact
+                                                        clean
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                        ) : (
+                                            <Grid size={12} align="center" sx={{ mt: 1 }}>
+                                                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                                    -- Publishing Data Unavailable --
+                                                </Typography>
+                                            </Grid>
+                                        )}
+                                    </Grid>
+                                </Grid>
+                            )}
                             <Grid size={12} sx={{ my: 0 }}>
                                 <Divider />
                             </Grid>
@@ -704,109 +901,50 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                                     dangerouslySetInnerHTML={{ __html: announceInfo?.description || '' }}
                                 />
                             </Grid>
-                            {/* Images */}
-                            {Array.isArray(images) && images.length > 0 ? (
-                                <>
-                                    <Grid size={12} sx={{ my: 0 }}>
-                                        <Divider />
-                                    </Grid>
-                                    <Grid size={12} sx={{ mb: 1 }} align="left">
-                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                            Images
-                                        </Typography>
-                                    </Grid>
-                                    <Grid size={12} align="left">
-                                        <ImageList cols={5} gap={4} sx={{ width: '100%' }}>
-                                            {images.map((image) => (
-                                                <ImageListItem
-                                                    key={image.id}
-                                                    sx={{
-                                                        aspectRatio: "1/1",
-                                                        width: "100%"
-                                                    }}>
-                                                    <img
-                                                        src={renderImage(image.id, image.data, image.mime)}
-                                                        alt={image.filename}
-                                                        loading="lazy"
-                                                        style={{
-                                                            height: "100%",
-                                                            width: "100%",
-                                                            objectFit: "cover"
-                                                        }}
-                                                    />
-                                                    <ImageListItemBar
-                                                        subtitle={image.filename}
-                                                        actionIcon={
-                                                            <Tooltip title={'Download'}>
-                                                                <IconButton
-                                                                    sx={{ color: 'rgba(255, 255, 255, 0.47)' }}
-                                                                    onClick={() => handleFileDownload(image.filename, image.id)}
-                                                                >
-                                                                    <Download />
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                        }
-                                                    />
-                                                </ImageListItem>
-                                            ))}
-                                        </ImageList>
-                                    </Grid>
-                                </>
-                            ) : null}
-                            {/* Attachments */}
-                            {Array.isArray(attachments) && attachments.length > 0 ? (
-                                <>
-                                    <Grid size={12} sx={{ my: 0 }}>
-                                        <Divider />
-                                    </Grid>
-                                    <Grid size={12} sx={{ mb: 1 }} align="left">
-                                        <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary" }}>
-                                            Documents
-                                        </Typography>
-                                    </Grid>
-                                    <Grid size={12} align="left">
-                                        <ImageList cols={5} gap={4} sx={{ width: '100%' }}>
-                                            {attachments.map((attachment) => {
-                                                const fileIcon = getFileIcon(attachment.filename);
-                                                return (
-                                                    <ImageListItem
-                                                        key={attachment.id}
-                                                        sx={{
-                                                            aspectRatio: "1/1",
-                                                            width: "100%"
-                                                        }}>
-                                                        <img
-                                                            src={fileIcon}
-                                                            alt={attachment.filename}
-                                                            loading="lazy"
-                                                            style={{
-                                                                height: "100%",
-                                                                width: "100%",
-                                                                objectFit: "cover",
-                                                                cursor: "pointer"
-                                                            }}
-                                                            onClick={() => handlePreviewFile(attachment.filename, attachment.id, attachment.mime || "application/pdf")}
-                                                        />
-                                                        <ImageListItemBar
-                                                            subtitle={attachment.filename}
-                                                            actionIcon={
-                                                                <Tooltip title={'Download'}>
-                                                                    <IconButton
-                                                                        sx={{ color: 'rgba(255, 255, 255, 0.47)' }}
-                                                                        onClick={() => handleFileDownload(attachment.filename, attachment.id)}
-                                                                    >
-                                                                        <Download />
-                                                                    </IconButton>
-                                                                </Tooltip>
-                                                            }
-                                                        />
-                                                    </ImageListItem>
-                                                );
-                                            })}
-                                        </ImageList>
-                                    </Grid>
-                                </>
-                            ) : null}
+                            {(hasImages || hasDocuments) && (
+                                <Grid size={12}>
+                                    <Box sx={{ display: "flex", gap: 2 }}>
+                                    {hasImages && (
+                                        <Box
+                                        sx={{
+                                            width: cardWidth,
+                                            bgcolor: "#f5f5f5",
+                                            borderRadius: 2,
+                                            boxShadow: 2,
+                                            cursor: "pointer",
+                                            textAlign: "center",
+                                            p: 3,
+                                            "&:hover": { boxShadow: 4, bgcolor: "#e0e0e0" }
+                                        }}
+                                        onClick={() => setAttachmentsModal({ open: true, type: "images" })}
+                                        >
+                                        <i className="fa fa-file-image-o" aria-hidden="true" style={{ fontSize: 32, color: "#333", marginBottom: 8 }}></i>
+                                        <Typography variant="h6" fontWeight="bold">IMAGES</Typography>
+                                        <Typography variant="body2" color="text.secondary">{images.length} attached</Typography>
+                                        </Box>
+                                    )}
+                                    {hasDocuments && (
+                                        <Box
+                                        sx={{
+                                            width: cardWidth,
+                                            bgcolor: "#f5f5f5",
+                                            borderRadius: 2,
+                                            boxShadow: 2,
+                                            cursor: "pointer",
+                                            textAlign: "center",
+                                            p: 3,
+                                            "&:hover": { boxShadow: 4, bgcolor: "#e0e0e0" }
+                                        }}
+                                        onClick={() => setAttachmentsModal({ open: true, type: "documents" })}
+                                        >
+                                        <i className="fa fa-file-text" aria-hidden="true" style={{ fontSize: 32, color: "#333", marginBottom: 8 }}></i>
+                                        <Typography variant="h6" fontWeight="bold">DOCUMENTS</Typography>
+                                        <Typography variant="body2" color="text.secondary">{attachments.length} attached</Typography>
+                                        </Box>
+                                    )}
+                                    </Box>
+                                </Grid>
+                                )}
                             {announcement.status !== "Pending" ? (
                             <Grid container columnSpacing={4} rowSpacing={2}> 
                                     {/* Acknowledgements */}
@@ -984,6 +1122,34 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         uniCode={openAnnouncementAcknowledgements}
                     />
                 )}
+                <AnnouncementAttachments
+                    open={attachmentsModal.open}
+                    onClose={handleCloseAttachmentsModal}
+                    onExited={handleExitedAttachmentsModal}
+                    type={attachmentsModal.type}
+                    items={attachmentsModal.type === "images" ? images : attachments}
+                    handleFileDownload={handleFileDownload}
+                    handlePreviewFile={handlePreviewFile}
+                    handlePreviewImage={handlePreviewImage}
+                    renderImage={renderImage}
+                    />
+            </Dialog>
+
+            {/* Image Preview */}
+            <Dialog open={imagePreviewOpen} onClose={() => setImagePreviewOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>
+                    {imagePreviewName}
+                    <IconButton
+                    aria-label="close"
+                    onClick={() => setImagePreviewOpen(false)}
+                    sx={{ position: 'absolute', right: 8, top: 8 }}
+                    >
+                    <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
+                    <img src={imagePreviewSrc} alt={imagePreviewName} style={{ maxWidth: "100%", maxHeight: 500, borderRadius: 8 }} />
+                </DialogContent>
             </Dialog>
 
             <Dialog open={previewOpen} onClose={() => {
@@ -1006,23 +1172,33 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                     </IconButton>
                 </DialogTitle>
                 <DialogContent dividers sx={{ minHeight: 600 }}>
-                    {previewFile?.mimeType?.includes("pdf") && previewFile?.filename?.toLowerCase().endsWith(".pdf") ? (
-                        <iframe
+                    {previewFile &&
+                    (
+                        (previewFile.mimeType?.toLowerCase().includes("pdf") ||
+                        previewFile.filename?.toLowerCase().endsWith(".pdf"))
+                        ? (
+                            <iframe
                             src={previewFile.url}
                             title="PDF Preview"
                             width="100%"
                             height="500px"
                             style={{ border: "none" }}
-                        />
-                    ) : previewFile?.mimeType?.includes("word") || previewFile?.filename?.toLowerCase().endsWith(".docx") ? (
-                        <Box sx={{ width: "100%", minHeight: 400, bgcolor: "#fafafa", p: 2, overflow: "auto" }}>
+                            />
+                        )
+                        : (previewFile.mimeType?.toLowerCase().includes("word") ||
+                            previewFile.filename?.toLowerCase().endsWith(".docx"))
+                        ? (
+                            <Box sx={{ width: "100%", minHeight: 400, bgcolor: "#fafafa", p: 2, overflow: "auto" }}>
                             <div dangerouslySetInnerHTML={{ __html: docxHtml }} />
-                        </Box>
-                    ) : (
-                        <Typography>
+                            </Box>
+                        )
+                        : (
+                            <Typography>
                             Preview not supported for this file type. Please download to view.
-                        </Typography>
-                    )}
+                            </Typography>
+                        )
+                    )
+                    }
                 </DialogContent>
             </Dialog>
         </>

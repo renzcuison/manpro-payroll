@@ -22,7 +22,7 @@ class EvaluationForm extends Model
 
     public function creator()
     {
-        return $this->belongsTo(User::class, 'creator_id');
+        return $this->belongsTo(UsersModel::class, 'creator_id');
     }
 
     public function responses()

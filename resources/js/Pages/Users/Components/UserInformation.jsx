@@ -87,7 +87,6 @@ function UserInformation({ user }) {
                         confirmButtonColor: "#177604",
                     }).then((res) => {
                         queryClient.invalidateQueries(["user"]);
-                        close(true);
                     });
                 }
             })

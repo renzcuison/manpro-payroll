@@ -15,7 +15,9 @@ class EvaluationFormSubcategoryOption extends Model
 
     protected $fillable = [
         'subcategory_id',
+        'score',
         'label',
+        'description',
         'order',
         'deleted_at'
     ];

@@ -25,6 +25,7 @@ const Profile = () => {
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
+    
     const [openProfileEditModal, setOpenProfileEditModal] = useState(false);
     const [education, setEducation] = useState([]);
 
@@ -53,8 +54,7 @@ const Profile = () => {
     }, []);
 
     const getEducationalBackground = () => {
-        axiosInstance
-            .get(`/employee/getEducationBackground`, { headers })
+        axiosInstance.get(`/employee/getEducationBackground`, { headers })
             .then((response) => {
                 if (response.data.status === 200) {
                     const educationBackgrounds = response.data.educations;
@@ -86,8 +86,7 @@ const Profile = () => {
                         </Button>
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             <MenuItem onClick={handleOpenProfileEditModal}>
-                                {" "}
-                                Edit Profile{" "}
+                                {" "}Edit Profile{" "}
                             </MenuItem>
                         </Menu>
                     </Box>

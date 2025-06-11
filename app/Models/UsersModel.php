@@ -69,7 +69,7 @@ class UsersModel extends Authenticatable implements HasMedia
     ];
 
 
-    public function branchPosition(): BelongsTo
+    public function branchPosition()
     {
         return $this->belongsTo(BranchPosition::class, 'branch_position_id');
     }
@@ -167,29 +167,29 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->hasMany(LeaveCreditsModel::class, 'user_id');
     }
 
-    public function company(): BelongsTo
+    public function company()
     {
-        return $this->BelongsTo(Company::class, 'company_id');
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
-    public function evaluateeForms()
+    public function evaluateeResponses()
     {
         return $this->hasMany(EvaluationResponse::class, 'evaluatee_id');
+    }
+
+    public function evaluationCommentors()
+    {
+        return $this->hasMany(EvaluationCommentor::class, 'commentor_id');
+    }
+
+    public function evaluationEvaluators()
+    {
+        return $this->hasMany(EvaluationEvaluator::class, 'evaluator_id');
     }
 
     public function evaluatorForms()
     {
         return $this->hasMany(EvaluationResponse::class, 'evaluator_id');
-    }
-
-    public function primaryCommentorForms()
-    {
-        return $this->hasMany(EvaluationResponse::class, 'primary_commentor_id');
-    }
-
-    public function secondaryCommentorForms()
-    {
-        return $this->hasMany(EvaluationResponse::class, 'secondary_commentor_id');
     }
 
     public function registerMediaCollections(): void
