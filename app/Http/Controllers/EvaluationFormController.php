@@ -1536,7 +1536,9 @@ class EvaluationFormController extends Controller
                             \App\Models\EvaluationFormSubcategoryOption::create([
                                 'subcategory_id' => $subcategory->id,
                                 'label' => $label,
-                                'order' => $optionOrder + 1
+                                'score' => (isset($option['score']) && is_numeric($option['score']) ? (double) $option['score'] : 1),
+                                'order' => $optionOrder + 1,
+                                
                             ]);
                         }
                     }
@@ -1594,6 +1596,7 @@ class EvaluationFormController extends Controller
                         \App\Models\EvaluationFormSubcategoryOption::create([
                             'subcategory_id' => $newEvaluationFormSubcategory->id,
                             'label' => $label,
+                            'score' => (isset($option['score']) && is_numeric($option['score']) ? (double) $option['score'] : 1),
                             'order' => $optionOrder + 1
                         ]);
                     }
@@ -1960,9 +1963,11 @@ class EvaluationFormController extends Controller
             ) + 1;
 
             $newEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::create([
+
+                
                 'subcategory_id' => $request->subcategory_id,
                 'label' => $request->label,
-                'score' => (double) $request->score ?? 1,
+                'score' => (is_numeric($request->score) ? (double) $request->score : 1),
                 'order' => $order
             ]);
 
