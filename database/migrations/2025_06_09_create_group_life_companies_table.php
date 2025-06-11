@@ -14,8 +14,11 @@ return new class extends Migration
         Schema::create('group_life_companies', function (Blueprint $table) {
             $table->id();
             $table->string('name', 64);
-            $table->softDeletes();
+            $table->unsignedBigInteger('client_id');
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('client_id')->references('id')->on('clients');
         });
     }
 

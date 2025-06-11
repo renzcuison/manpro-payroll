@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('group_life_company_id')->references('id')->on('group_life_companies')->onDelete('cascade');
+            $table->foreign('group_life_company_id')->references('id')->on('group_life_companies');
         });
     }
 
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('peme');
+        Schema::dropIfExists('group_life_plans');
     }
 };
