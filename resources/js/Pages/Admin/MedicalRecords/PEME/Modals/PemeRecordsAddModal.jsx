@@ -27,14 +27,13 @@ const PemeRecordsAddModal = ({ open, close }) => {
         const headers = getJWTHeader(JSON.parse(storedUser));
         try {
             const response = await axiosInstance.post(
-                "/pemes",
+                "/createPeme",
                 { name: recordName },
                 { headers }
             );
             console.log("Successfully created questionnaire:", response.data);
 
             const newId = response?.data?.peme?.id;
-            console.log("New PEME ID:", newId);
             navigator(`/admin/medical-records/peme-records/peme-form/${newId}`);
 
             return newId;
@@ -103,7 +102,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
                         >
                             <Box>
                                 <Button
-                                    onClick={close}
+                                    onClick={() => close()}
                                     variant="contained"
                                     sx={{ backgroundColor: "#727F91" }}
                                 >

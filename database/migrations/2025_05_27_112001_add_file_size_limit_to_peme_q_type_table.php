@@ -15,13 +15,14 @@ return new class extends Migration
             $table->float('file_size_limit')->nullable();
         });
     }
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
         Schema::table('peme_q_type', function (Blueprint $table) {
-            //
+            $table->dropColumn('file_size_limit');
         });
     }
 };

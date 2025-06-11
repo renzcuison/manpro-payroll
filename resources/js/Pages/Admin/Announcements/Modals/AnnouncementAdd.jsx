@@ -766,7 +766,7 @@ const AnnouncementAdd = ({ open, close }) => {
                         </Grid>
                     </Box>
                 </DialogContent>
-            </Dialog>
+            </Dialog>   
         </>
     );
 };

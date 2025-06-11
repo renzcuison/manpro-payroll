@@ -14,6 +14,7 @@ class Kernel extends HttpKernel
      * @var array<int, class-string|string>
      */
     protected $middleware = [
+        \App\Http\Middleware\HandleCorsPreflight::class,
         // \App\Http\Middleware\TrustHosts::class,
         \App\Http\Middleware\TrimStrings::class,
         \App\Http\Middleware\TrustProxies::class,
@@ -22,7 +23,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode::class,
-        \Illuminate\Http\Middleware\HandleCors::class, // for Laravel 9+
+        \Illuminate\Http\Middleware\HandleCors::class,
     ];
 
     /**
@@ -35,7 +36,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\CacheControl::class,
             \App\Http\Middleware\EncryptCookies::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
-            
+
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
@@ -44,6 +45,7 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
+            // \Illuminate\Http\Middleware\HandleCors::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             // 'throttle:60,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,

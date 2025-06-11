@@ -13,6 +13,7 @@ import DateRangePicker from '../../../../components/DateRangePicker';
 
 // MUI components
 import {
+    Switch,
     Box,
     Button,
     Typography,
@@ -22,6 +23,7 @@ import {
     OutlinedInput,
     InputAdornment,
     Divider,
+    FormControlLabel,
 } from "@mui/material";
 
 // MUI X Date Picker
@@ -35,12 +37,14 @@ const PemeResponses = () => {
     const { PemeID } = useParams();
     const navigator = useNavigate();
     const [pemeRecords, setPemeRecords] = useState([]);
+    const [pemeResponses, setPemeResponses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     const [dueDate, setDueDate] = useState(null);
 
+    // FETCH THE QUESTIONNAIRE STRUCTURE FOR THE GIVEN PEME ID
     useEffect(() => {
         axiosInstance
             .get(`/peme/${PemeID}/questionnaire`, { headers })
@@ -54,10 +58,26 @@ const PemeResponses = () => {
             });
     }, []);
 
-    const handleOnRowClick = () => {
+    // FETCH PEME RESPONSES FOR THE GIVEN PEME ID
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme-responses/${PemeID}`, { headers })
+            .then((response) => {
+                setPemeResponses([response.data]);
+                console.log("PEME Responses:", response.data);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching PEME records:", error);
+                setIsLoading(false);
+            });
+    }, []);
+
+    const handleOnRowClick = (responseID) => {
         navigator(
-            "/admin/medical-records/peme-records/peme-questionnaire-view"
+            `/admin/medical-records/peme-records/peme-questionnaire-view/${responseID}`
         );
+        console.log(responseID);
     };
 
     const handleOnPreviewClick = () => {
@@ -66,17 +86,11 @@ const PemeResponses = () => {
         );
     };
 
-    const dummyData = [
-        {
-            dueDate: "05-10-2025",
-            employee: "employee",
-            branch: "branch",
-            department: "department",
-            status: "status",
-        },
-    ];
+    const handleOnEditClick = () => {
+        navigator(`/admin/medical-records/peme-records/peme-form/${PemeID}`);
+    };
 
-    const filteredRecords = dummyData
+    const filteredRecords = pemeResponses
         .filter((response) =>
             [
                 dayjs(response.date).format("MMMM D, YYYY"),
@@ -160,12 +174,35 @@ const PemeResponses = () => {
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>
                             Respondents
                         </Typography>
-                        <Button
-                            onClick={handleOnPreviewClick}
-                            variant="contained"
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 2,
+                                alignItems: "center",
+                            }}
                         >
-                            Preview
-                        </Button>
+                            <Button
+                                onClick={handleOnEditClick}
+                                variant="contained"
+                            >
+                                Edit
+                            </Button>
+                            <Button
+                                onClick={handleOnPreviewClick}
+                                variant="contained"
+                            >
+                                Preview
+                            </Button>
+                            <FormControlLabel
+                                control={<Switch defaultChecked />}
+                                label="Visible"
+                                sx={{
+                                    "& .MuiFormControlLabel-label": {
+                                        color: "green", // your custom color here
+                                    },
+                                }}
+                            />
+                        </Box>
                     </Box>
 
                     <Box

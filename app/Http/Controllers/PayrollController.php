@@ -1316,7 +1316,7 @@ class PayrollController extends Controller
                 $totalShiftDuration = 0;
                 $totalRendered = 0;
 
-                // Calculate total shift duration
+                // Calculate total shift duraton
                 if ($shift->workHour->shift_type == "Regular") {
                     $shiftStart = Carbon::parse($shift->workHour->first_time_in);
                     $shiftEnd = Carbon::parse($shift->workHour->first_time_out);
