@@ -119,6 +119,13 @@ class PemeResponseDetailsController extends Controller
 
     public function store(Request $request)
     {
+
+        $request = $request->merge([
+            'peme_response_id' => Crypt::decrypt($request->peme_response_id),
+            'peme_q_item_id' => Crypt::decrypt($request->peme_q_item_id),
+            'peme_q_type_id' => Crypt::decrypt($request->peme_q_type_id),
+        ]);
+
         $validated = $request->validate([
             "peme_response_id" => "required|exists:peme_response,id",
             "peme_q_item_id" => "required|exists:peme_q_item,id",
@@ -178,7 +185,6 @@ class PemeResponseDetailsController extends Controller
             ],
         ]);
     }
-
     public function attachMedia(Request $request, $id)
     {
         $id = Crypt::decrypt($id);

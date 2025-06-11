@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\PemeResponse;
 use App\Models\Peme;
+use Illuminate\Support\Facades\DB;
 use App\Models\PemeResponseDetails;
 
 class PemeResponseController extends Controller
@@ -151,6 +152,87 @@ class PemeResponseController extends Controller
             ],
             201
         );
+    }
+
+     public function storeAll(Request $request)
+    {
+        $validated = $request->validate([
+            'peme_response_id' => 'required|string',
+            'responses' => 'required|array',
+            'responses.*.peme_q_item_id' => 'required|string', 
+            'responses.*.peme_q_type_id' => 'required|string', 
+            'responses.*.value' => 'nullable|string|max:512',
+        ]);
+
+        $pemeResponseId = Crypt::decrypt($validated['peme_response_id']);
+
+        $results = [];
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($validated['responses'] as $response) {
+                $questionId = Crypt::decrypt($response['peme_q_item_id']);
+                $typeId = Crypt::decrypt($response['peme_q_type_id']);
+
+                $existing = PemeResponseDetails::where([
+                    'peme_response_id' => $pemeResponseId,
+                    'peme_q_item_id' => $questionId,
+                    'peme_q_type_id' => $typeId,
+                ])->first();
+
+                if ($existing) {
+                    continue;
+                }
+
+                $detail = PemeResponseDetails::create([
+                    'peme_response_id' => $pemeResponseId,
+                    'peme_q_item_id' => $questionId,
+                    'peme_q_type_id' => $typeId,
+                    'value' => $response['value'] ?? null,
+                ]);
+
+                $detail->load(['question', 'inputType', 'response.user']);
+
+                $results[] = [
+                    "id" => Crypt::encrypt($detail->id),
+                    "peme_response_id" => Crypt::encrypt($detail->peme_response_id),
+                    "peme_q_item_id" => Crypt::encrypt($detail->peme_q_item_id),
+                    "peme_q_type_id" => Crypt::encrypt($detail->peme_q_type_id),
+                    "value" => $detail->value,
+                    "question" => [
+                        "id" => Crypt::encrypt($detail->question->id ?? null),
+                        "question" => $detail->question->question ?? null,
+                    ],
+                    "input_type" => [
+                        "id" => Crypt::encrypt($detail->inputType->id ?? null),
+                        "input_type" => $detail->inputType->input_type ?? null,
+                    ],
+                    "response" => [
+                        "id" => Crypt::encrypt($detail->response->id ?? null),
+                        "user" => [
+                            "id" => Crypt::encrypt($detail->response->user->id ?? null),
+                            "name" => $detail->response->user->user_name ?? null,
+                        ],
+                    ],
+                ];
+            }
+
+            DB::commit();
+
+            return response()->json([
+                "message" => "Responses saved successfully.",
+                "saved_count" => count($results),
+                "data" => $results,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                "message" => "Something went wrong while saving responses.",
+                "error" => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function updateResponse(Request $request, $id)
