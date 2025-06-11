@@ -7,7 +7,6 @@ import { SearchIcon } from "lucide-react";
 import { set } from "lodash";
 import PositionAddMiniModal from './PositionAddMiniModal';
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 
 const DepartmentAssignPosition = ({open, onClose, departmentId}) =>{

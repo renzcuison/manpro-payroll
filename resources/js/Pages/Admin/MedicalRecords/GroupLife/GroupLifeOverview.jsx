@@ -1,30 +1,51 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import Chart from "chart.js/auto";
 
 const GroupLifeOverview = ({ records }) => {
     const canvasRef = useRef(null);
+    const chartInstanceRef = useRef(null);
+    const lastRecordHashRef = useRef(null);
+
+    const generateDataHash = (records) =>
+        records.map(r => r.companyname).sort().join(",");
 
     useEffect(() => {
-        // Group by date
-        const dateCounts = records.reduce((acc, record) => {
-            acc[record.companyname] = (acc[record.companyname] || 0) + 1;
+
+        const context = canvasRef.current;
+        if (!context) return;
+
+        const currentHash = generateDataHash(records);
+        if (lastRecordHashRef.current === currentHash) return; // No real data change
+
+        lastRecordHashRef.current = currentHash;
+
+        const counts = records.reduce((acc, rec) => {
+
+            acc[rec.companyname] = (acc[rec.companyname] || 0) + 1;
             return acc;
-        }, {});
+            }, {});
 
         const data = {
-            labels: Object.keys(dateCounts),
+            labels: Object.keys(counts),
             datasets: [
                 {
                     label: "Employee Respondents",
-                    data: Object.values(dateCounts),
+                    data: Object.values(counts),
                 },
             ],
         };
 
-        const config = {
-            type: "pie",
-            data,
-            options: {
+        if (chartInstanceRef.current) {
+            // Update chart data instead of recreating it
+            chartInstanceRef.current.data = data;
+            chartInstanceRef.current.update();
+        } 
+        
+        else {
+            chartInstanceRef.current = new Chart(context, {
+                type: "pie",
+                data,
+                options: {
                 responsive: true,
                 plugins: {
                     legend: {
@@ -35,26 +56,24 @@ const GroupLifeOverview = ({ records }) => {
                             pointStyle: "circle",
                             font: {
                                 size: 14,
+                                },
                             },
                         },
-                    },
-                    tooltip: {
-                        enabled: true,
+                        tooltip: {
+                            enabled: true,
+                        },
                     },
                 },
-            },
+            });
+        }
+
+        return () => {
         };
-
-        const chart = new Chart(canvasRef.current, config);
-
-        return () => chart.destroy();
     }, [records]);
 
     return (
         <div className="p-1 max-w-xl mx-auto">
-            <h6 className="text-lg mb-50 text-left">
-                Employees per Group Life
-            </h6>
+            <h6 className="text-lg mb-50 text-left">Employees per Group Life</h6>
             <canvas ref={canvasRef}></canvas>
         </div>
     );

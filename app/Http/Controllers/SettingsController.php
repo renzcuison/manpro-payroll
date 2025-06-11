@@ -450,27 +450,30 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
 
         $user = Auth::user();
         $departments = DepartmentsModel::where('client_id', $user->client_id)->get();
-
         $result = [];
 
         foreach ($departments as $department) {
-            // Get employees in this department who have a department_position_id
-            $employees = UsersModel::with(['branch', 'departmentPosition'])
+            // Get assigned employees (those with department_position_id)
+            $assigned = UsersModel::with(['branch', 'departmentPosition'])
                 ->where('department_id', $department->id)
                 ->whereNotNull('department_position_id')
                 ->get();
+            
+            $unassigned = UsersModel::with('branch')
+                ->where('department_id', $department->id)
+                ->whereNull('department_position_id')
+                ->get();
+
 
             // Group employees by department_position_id
-            $grouped = $employees->groupBy('department_position_id');
-
+            $grouped = $assigned->groupBy('department_position_id');
             $assignedPositions = [];
 
             foreach ($grouped as $positionId => $groupedEmployees) {
                 $position = DepartmentPosition::find($positionId);
-
                 if (!$position) continue;
 
-                $employeesWithAvatars = $groupedEmployees->map(function ($employee) {
+                $assignedWithAvatars = $groupedEmployees->map(function ($employee) {
                     if ($employee->profile_pic && Storage::disk('public')->exists($employee->profile_pic)) {
                         $employee->avatar = base64_encode(Storage::disk('public')->get($employee->profile_pic));
                         $employee->avatar_mime = mime_content_type(storage_path('app/public/' . $employee->profile_pic));
@@ -488,18 +491,30 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
                     'can_approve_request' => $position->can_approve_request,
                     'can_note_request' => $position->can_note_request,
                     'can_accept_request' => $position->can_accept_request,
-                    'employees' => $employeesWithAvatars,
+                    'employees' => $assignedWithAvatars,
                 ];
             }
+
+            //process unassigned 'employees' avatars
+            $unassignedWithAvatars = $unassigned->map(function ($employee){
+                if ($employee->profile_pic && Storage::disk('public')->exists($employee->profile_pic)) {
+                    $employee->avatar = base64_encode(Storage::disk('public')->get($employee->profile_pic));
+                    $employee->avatar_mime = mime_content_type(storage_path('app/public/' . $employee->profile_pic));
+                } else {
+                    $employee->avatar = null;
+                    $employee->avatar_mime = null;
+                }
+                return $employee;    
+            });
 
             $result[] = [
                 'id' => $department->id,
                 'name' => $department->name,
                 'acronym' => $department->acronym,
                 'assigned_positions' => $assignedPositions,
+                'unassigned_employees' => $unassignedWithAvatars,
             ];
         }
-
         return response()->json(['status' => 200, 'departments' => $result]);
     }
     

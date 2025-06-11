@@ -150,6 +150,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                         }).then(() => {
                             setExitReload(true);
                             close(exitReload);
+                            window.location.reload();
                         });
                     })
                     .catch(error => {

@@ -322,6 +322,7 @@ const BranchDetails = () => {
                 open={openAssignModal}
                 onClose={() => setOpenAssignModal(false)}
                 branchPositions={branchPositions}
+                setBranchPositions={setBranchPositions}
                 allEmployees={allEmployees}
                 positionAssignments={positionAssignments}
                 handlePositionAssignmentChange={handlePositionAssignmentChange}
@@ -332,7 +333,6 @@ const BranchDetails = () => {
                 id={id}
                 setPositionAssignments={setPositionAssignments}
                 setEmployees={setEmployees}
-
             />
         </Layout>
     );
