@@ -1,27 +1,18 @@
 import { Box, Typography, Grid} from "@mui/material";
 
 const EmployeeDetails = ({employee}) => {
-    // const formattedStartDate = employee.date_start ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_start)) : '';
-    // const formattedEndDate = employee.date_end ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_end)) : '';
 
     const formatDate = (dateString) => {
         if (!dateString || dateString === "0000-00-00") return '';
         try {
             const date = new Date(dateString);
-            return isFinite(date) 
-                ? new Intl.DateTimeFormat('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  }).format(date)
-                : '';
+            return isFinite(date)  ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(date) : '';
         } catch {
             return '';
         }
     };
 
     const formattedStartDate = formatDate(employee.date_start);
-    const formattedEndDate = formatDate(employee.date_end);
 
     return (
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -88,7 +79,7 @@ const EmployeeDetails = ({employee}) => {
                     <Typography sx={{ fontWeight: 'bold' }}> Date Hired </Typography>
                 </Grid>
                 <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>
-                    <Typography> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>
+                    <Typography> {employee.date_start ? `${formattedStartDate}` : '-'} </Typography>
                 </Grid>
             </Grid>
 
