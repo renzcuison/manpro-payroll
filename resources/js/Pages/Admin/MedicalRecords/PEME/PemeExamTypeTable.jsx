@@ -37,7 +37,7 @@ const PemeExamTypeTable = ({ records, onRowClick, search }) => {
                 marginTop: 2,
                 overflowY: "scroll",
                 minHeight: 400,
-                maxHeight: 500,
+                maxHeight: 450,
             }}
             style={{ overflowX: "auto" }}
         >
@@ -46,6 +46,7 @@ const PemeExamTypeTable = ({ records, onRowClick, search }) => {
                     <TableRow>
                         <TableCell align="center">Date</TableCell>
                         <TableCell align="center">Exam</TableCell>
+                        <TableCell align="center">Respondents</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -78,6 +79,9 @@ const PemeExamTypeTable = ({ records, onRowClick, search }) => {
                                 </TableCell>
                                 <TableCell align="center">
                                     {highlightMatch(record.name, search)}
+                                </TableCell>
+                                <TableCell align="center">
+                                    {highlightMatch(record.respondents)}
                                 </TableCell>
                             </TableRow>
                         ))

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 class MedicalRecords extends Model
 {
     use HasFactory, SoftDeletes;
@@ -19,7 +20,7 @@ class MedicalRecords extends Model
     ];
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(UsersModel::class, 'user_id', 'id');
     }
 
     public function client()

@@ -38,8 +38,8 @@ import OvertimeTypes from "../Pages/Admin/Applications/OvertimeTypes";
 
 import AnnouncementList from "../Pages/Admin/Announcements/AnnouncementList";
 import AnnouncementAdd from "../Pages/Admin/Announcements/Modals/AnnouncementAdd";
-import AnnouncementPublishFilter from '@/Pages/Admin/Announcements/Modals/AnnouncementPublishFilter';
-import AnnouncementTypes from '../Pages/Admin/Announcements/AnnouncementTypes';
+import AnnouncementPublishFilter from "@/Pages/Admin/Announcements/Modals/AnnouncementPublishFilter";
+import AnnouncementTypes from "../Pages/Admin/Announcements/AnnouncementTypes";
 
 import TrainingsList from "../Pages/Admin/Trainings/TrainingsList";
 import TrainingView from "../Pages/Admin/Trainings/TrainingView";
@@ -51,8 +51,8 @@ import PerformanceEvaluationFormAddCategory from "../Pages/Admin/PerformanceEval
 import PerformanceEvaluationFormAddSection from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddSection";
 import PerformanceEvaluationFormSaveEvaluation from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormSaveEvaluation";
 import PerformanceEvaluationFormAddSubcategory from "../Pages/Admin/PerformanceEvaluation/Modals/PerformanceEvaluationFormAddSubcategory";
-import PerformanceEvaluationFormPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationFormPage';  // Import the new page
-import PeEvalTest from '../Pages/Admin/PerformanceEvaluation/PeEvalTest';  // Import the new page
+import PerformanceEvaluationFormPage from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationFormPage"; // Import the new page
+import PeEvalTest from "../Pages/Admin/PerformanceEvaluation/PeEvalTest"; // Import the new page
 
 import PerformanceEvaluationList from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationList";
 import PerformanceEvaluationForm from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationForm";
@@ -112,8 +112,6 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
-
-            
              <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview/>} user={user} />} />
              <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} />
              <Route path="performance-evaluation/answer/:id" element={<ProtectedRoute element={<PerformanceEvaluationAnswerPage />} user={user} />} />
@@ -124,13 +122,49 @@ const AdminRoutes = ({ user }) => {
                 element={<ProtectedRoute element={<Dashboard />} user={user} />}
             />
 
-            <Route path="employee/:user" element={<ProtectedRoute element={<EmployeeView />} user={user} />} />
-            <Route path="employees" element={<ProtectedRoute element={<EmployeesList />} user={user} /> } />
-            <Route path="employees/add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} /> } />
-            <Route path="employees/formlinks" element={<ProtectedRoute element={<EmployeeFormLinks />} user={user} /> } />
+            <Route
+                path="employee/:user"
+                element={
+                    <ProtectedRoute element={<EmployeeView />} user={user} />
+                }
+            />
+            <Route
+                path="employees"
+                element={
+                    <ProtectedRoute element={<EmployeesList />} user={user} />
+                }
+            />
+            <Route
+                path="employees/add"
+                element={
+                    <ProtectedRoute element={<EmployeesAdd />} user={user} />
+                }
+            />
+            <Route
+                path="employees/formlinks"
+                element={
+                    <ProtectedRoute
+                        element={<EmployeeFormLinks />}
+                        user={user}
+                    />
+                }
+            />
 
-            <Route path="employees/allowance" element={<ProtectedRoute element={<EmployeesAllowanceList />} user={user} /> } />
-            <Route path="employees/allowance-types" element={<ProtectedRoute element={<AllowanceTypes />} user={user} /> } />
+            <Route
+                path="employees/allowance"
+                element={
+                    <ProtectedRoute
+                        element={<EmployeesAllowanceList />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="employees/allowance-types"
+                element={
+                    <ProtectedRoute element={<AllowanceTypes />} user={user} />
+                }
+            />
 
             <Route path="employees/incentives" element={<ProtectedRoute element={<EmployeesIncentivesList />} user={user} /> } />
             <Route path="employees/incentives-types" element={<ProtectedRoute element={<IncentivesTypes />} user={user} /> } />
@@ -139,11 +173,34 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees/benefits-types" element={<ProtectedRoute element={<BenefitsTypes />} user={user} /> } />
             <Route path="employees/benefits/:benefitID" element={<ProtectedRoute element={<BenefitView />} user={user} /> } />
 
-            <Route path="department/departmentlist" element={<ProtectedRoute element={<DepartmentList />} user={user} />} />
-            <Route path="department/:id" element={<ProtectedRoute element={<DepartmentDetails />} user={user} />} />
+            <Route
+                path="department/departmentlist"
+                element={
+                    <ProtectedRoute element={<DepartmentList />} user={user} />
+                }
+            />
+            <Route
+                path="department/:id"
+                element={
+                    <ProtectedRoute
+                        element={<DepartmentDetails />}
+                        user={user}
+                    />
+                }
+            />
 
-            <Route path="branches" element={<ProtectedRoute element={<BranchList />} user={user} />} />
-            <Route path="branch/:id" element={<ProtectedRoute element={<BranchDetails />} user={user} />} />
+            <Route
+                path="branches"
+                element={
+                    <ProtectedRoute element={<BranchList />} user={user} />
+                }
+            />
+            <Route
+                path="branch/:id"
+                element={
+                    <ProtectedRoute element={<BranchDetails />} user={user} />
+                }
+            />
 
             <Route
                 path="attendance/logs"
@@ -192,43 +249,236 @@ const AdminRoutes = ({ user }) => {
                 }
             />
 
-            <Route path="application/overtimes" element={<ProtectedRoute element={<OvertimeAppsList />} user={user} /> } />
-            <Route path="application/overtime/types" element={<ProtectedRoute element={<OvertimeTypes />} user={user} /> } />
+            <Route
+                path="application/overtimes"
+                element={
+                    <ProtectedRoute
+                        element={<OvertimeAppsList />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="application/overtime/types"
+                element={
+                    <ProtectedRoute element={<OvertimeTypes />} user={user} />
+                }
+            />
 
-            <Route path="application/leave-credits" element={<ProtectedRoute element={<LeaveCreditList />} user={user} /> } />
+            <Route
+                path="application/leave-credits"
+                element={
+                    <ProtectedRoute element={<LeaveCreditList />} user={user} />
+                }
+            />
 
-            <Route path="announcements" element={<ProtectedRoute element={<AnnouncementList />} user={user} /> } />
+            <Route
+                path="announcements"
+                element={
+                    <ProtectedRoute
+                        element={<AnnouncementList />}
+                        user={user}
+                    />
+                }
+            />
             <Route path="announcements/types" element={<AnnouncementTypes />} />
-            <Route path="announcements/types/publish-filter" element={<AnnouncementPublishFilter />} />
-            <Route path="announcements/add" element={<ProtectedRoute element={<AnnouncementAdd open={true} close={() => window.history.back()} />} user={user} />} />
+            <Route
+                path="announcements/types/publish-filter"
+                element={<AnnouncementPublishFilter />}
+            />
+            <Route
+                path="announcements/add"
+                element={
+                    <ProtectedRoute
+                        element={
+                            <AnnouncementAdd
+                                open={true}
+                                close={() => window.history.back()}
+                            />
+                        }
+                        user={user}
+                    />
+                }
+            />
 
-            <Route path="trainings" element={<ProtectedRoute element={<TrainingsList />} user={user} /> } />
-            <Route path="training/:code" element={<ProtectedRoute element={<TrainingView />} user={user} /> } />
+            <Route
+                path="trainings"
+                element={
+                    <ProtectedRoute element={<TrainingsList />} user={user} />
+                }
+            />
+            <Route
+                path="training/:code"
+                element={
+                    <ProtectedRoute element={<TrainingView />} user={user} />
+                }
+            />
 
-            <Route path="performance-evaluation/add" element={<ProtectedRoute element={<PerformanceEvaluationAdd />} user={user} />} />
-            <Route path="performance-evaluation/acknowledgment" element={<ProtectedRoute element={<PerformanceEvaluationFormAcknowledge />} user={user} />} />
-            <Route path="performance-evaluation/acknowledgment-sign" element={<ProtectedRoute element={<PerformanceEvaluationFormAcknowledgeSign />} user={user} />} />
-            <Route path="performance-evaluation/add-category" element={<ProtectedRoute element={<PerformanceEvaluationFormAddCategory />} user={user} />} />
-            <Route path="performance-evaluation/add-section" element={<ProtectedRoute element={<PerformanceEvaluationFormAddSection />} user={user} />} />
-            <Route path="performance-evaluation/save-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationFormSaveEvaluation />} user={user} />} />
-            <Route path="performance-evaluation/subcategory-modal" element={<ProtectedRoute element={<PerformanceEvaluationFormAddSubcategory />} user={user} />} />
-            <Route path="performance-evaluation/create-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />    
-            <Route path="performance-evaluation/form/:formName" element={<ProtectedRoute element={<PerformanceEvaluationFormPage />} user={user} />} />
+            <Route
+                path="performance-evaluation/add"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationAdd />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/acknowledgment"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationFormAcknowledge />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/acknowledgment-sign"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationFormAcknowledgeSign />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/add-category"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationFormAddCategory />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/add-section"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationFormAddSection />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/save-evaluation"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationFormSaveEvaluation />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/subcategory-modal"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationFormAddSubcategory />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/create-evaluation"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationCreateEvaluation />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/form/:formName"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationFormPage />}
+                        user={user}
+                    />
+                }
+            />
 
-            <Route path="performance-evaluation/form" element={<ProtectedRoute element={<PerformanceEvaluationForm />} user={user} />} />
-            <Route path="performance-evaluation" element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />} />
-            <Route path="performance-evaluation/forms/:name" element={<ProtectedRoute element={<PerformanceEvaluationCreateEvaluation />} user={user} />} />
-            <Route path="performance-evaluation/evalTest" element={<ProtectedRoute element={<PeEvalTest />} user={user} />} />
+            <Route
+                path="performance-evaluation/form"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationForm />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationList />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/forms/:name"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationCreateEvaluation />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/form"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationForm />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationList />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/forms/:name"
+                element={
+                    <ProtectedRoute
+                        element={<PerformanceEvaluationCreateEvaluation />}
+                        user={user}
+                    />
+                }
+            />
+            <Route
+                path="performance-evaluation/evalTest"
+                element={
+                    <ProtectedRoute element={<PeEvalTest />} user={user} />
+                }
+            />
 
             <Route
                 path="documents"
                 element={<ProtectedRoute element={<Documents />} user={user} />}
             />
 
-            <Route path="settings/general" element={<ProtectedRoute element={<GeneralSettings />} user={user} /> } />
+            <Route
+                path="settings/general"
+                element={
+                    <ProtectedRoute element={<GeneralSettings />} user={user} />
+                }
+            />
 
-            <Route path="perimeters" element={<ProtectedRoute element={<Perimeter />} user={user} />} />
-            <Route path="perimeters/add" element={<ProtectedRoute element={<AddNewPerimeter />} user={user} /> } />
+            <Route
+                path="perimeters"
+                element={<ProtectedRoute element={<Perimeter />} user={user} />}
+            />
+            <Route
+                path="perimeters/add"
+                element={
+                    <ProtectedRoute element={<AddNewPerimeter />} user={user} />
+                }
+            />
 
             <Route
                 path="workshift/:client/:selectedShift"
@@ -281,7 +531,6 @@ const AdminRoutes = ({ user }) => {
                     <ProtectedRoute element={<PayrollSummary />} user={user} />
                 }
             />
-
             <Route
                 path="medical-records/peme-records"
                 element={
@@ -301,7 +550,7 @@ const AdminRoutes = ({ user }) => {
                 }
             />
             <Route
-                path="medical-records/peme-records/peme-questionnaire-view"
+                path="medical-records/peme-records/peme-questionnaire-view/:PemeResponseID"
                 element={
                     <ProtectedRoute
                         element={<PemeQuestionnaireView />}
@@ -313,23 +562,55 @@ const AdminRoutes = ({ user }) => {
             <Route
                 path="medical-records/peme-records/peme-questionnaire-preview/:PemeID"
                 element={
-                    <ProtectedRoute element={<PemeQuestionnairePreview />} user={user} />
+                    <ProtectedRoute
+                        element={<PemeQuestionnairePreview />}
+                        user={user}
+                    />
                 }
             />
 
             <Route
                 path="medical-records/group-life-masterlist-records"
                 element={
-                    <ProtectedRoute element={<GroupLifeMasterlist />} user={user} />
+                    <ProtectedRoute
+                        element={<GroupLifeMasterlist />}
+                        user={user}
+                    />
                 }
             />
 
-            <Route path="medical-records/group-life-masterlist/group-life-employees/" element={ <ProtectedRoute element={<GroupLifeEmployees />} user={user} /> } />
-            
-            <Route path="medical-records/hmo-masterlist-records" element={ <ProtectedRoute element={<HMOmasterlist />} user={user} /> } />
-            <Route path="loan-management" element={<ProtectedRoute element={<LoanList />} user={user} />} />
-            <Route path="schedules" element={ <ProtectedRoute element={<ScheduleModule />} user={user} /> } />
-            <Route path="milestones" element={ <ProtectedRoute element={<Milestones />} user={user} /> } />
+            <Route
+                path="medical-records/group-life-masterlist/group-life-employees/"
+                element={
+                    <ProtectedRoute
+                        element={<GroupLifeEmployees />}
+                        user={user}
+                    />
+                }
+            />
+
+            <Route
+                path="medical-records/hmo-masterlist-records"
+                element={
+                    <ProtectedRoute element={<HMOmasterlist />} user={user} />
+                }
+            />
+            <Route
+                path="loan-management"
+                element={<ProtectedRoute element={<LoanList />} user={user} />}
+            />
+            <Route
+                path="schedules"
+                element={
+                    <ProtectedRoute element={<ScheduleModule />} user={user} />
+                }
+            />
+            <Route
+                path="milestones"
+                element={
+                    <ProtectedRoute element={<Milestones />} user={user} />
+                }
+            />
         </Routes>
     );
 };
