@@ -202,10 +202,7 @@ export function useEvaluationResponse(responseId) {
                 break;
             case 'delete':
                 response = await axiosInstance.post(
-                    '/deleteEvaluationOptionAnswer', {
-                        ...option_answer,
-                        option_id: option_answer.old_option_id
-                    }, { headers }
+                    '/deleteEvaluationOptionAnswer', option_answer, { headers }
                 );
                 if(!response.data.status.toString().startsWith(2)) throw response;
                 break;
@@ -292,7 +289,6 @@ export function useEvaluationResponse(responseId) {
                 }
         }
         reloadEvaluationResponse();
-        console.log(subcategory)
     }
 
     // percentage answer operations
