@@ -32,6 +32,8 @@ import PdfImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
 import XlsImage from "../../../../../public/media/assets/Excel_file_icon.png";
 
+import AnnouncementAttachments from "../../Employee/Announcements/Modals/AnnouncementAttachments";
+
 const AnnouncementView = () => {
   const { code } = useParams();
   const storedUser = localStorage.getItem("nasya_user");
@@ -55,6 +57,26 @@ const AnnouncementView = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
   const [docxHtml, setDocxHtml] = useState("");
+
+  const [attachmentsModal, setAttachmentsModal] = useState({ open: false, type: null });
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+  const [imagePreviewSrc, setImagePreviewSrc] = useState("");
+  const [imagePreviewName, setImagePreviewName] = useState("");
+
+  const handleCloseAttachmentsModal = () => {
+    setAttachmentsModal((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleExitedAttachmentsModal = () => {
+    setAttachmentsModal({ open: false, type: null });
+  };
+
+  const handlePreviewImage = (img) => {
+    let src = img.url || (img.id && renderImage ? renderImage(img.id, img.data, img.mime) : "");
+    setImagePreviewSrc(src);
+    setImagePreviewName(img.filename || "");
+    setImagePreviewOpen(true);
+  };
 
   useEffect(() => {
     getAnnouncementDetails();
@@ -495,91 +517,48 @@ const AnnouncementView = () => {
                     <Divider />
                   </Grid>
                 )}
-                {/* Images */}
-                {images.length > 0 && (
-                  <Grid container spacing={2} size={{ xs: 12 }}>
-                    <Grid size={{ xs: 12 }} align="left">
-                      <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
-                        Images
-                      </Typography>
-                    </Grid>
-                    <Grid size={{ md: 12 }} align="left">
-                      <ImageList cols={colCount} gap={4} sx={{ width: "100%" }}>
-                        {images.map((image) => (
-                          <ImageListItem key={image.id} sx={{ aspectRatio: "1/1", width: "100%" }}>
-                            <img
-                              src={renderImage(image.id, image.data, image.mime)}
-                              alt={image.filename}
-                              loading="lazy"
-                              style={{
-                                height: "100%",
-                                width: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
-                            <ImageListItemBar
-                              subtitle={image.filename}
-                              actionIcon={
-                                <Tooltip title={"Download"}>
-                                  <IconButton
-                                    sx={{ color: "rgba(255, 255, 255, 0.47)" }}
-                                    onClick={() => handleFileDownload(image.filename, image.id)}
-                                  >
-                                    <Download />
-                                  </IconButton>
-                                </Tooltip>
-                              }
-                            />
-                          </ImageListItem>
-                        ))}
-                      </ImageList>
-                    </Grid>
-                  </Grid>
-                )}
-                {/* Documents */}
-                {attachments.length > 0 && (
-                  <Grid container size={{ xs: 12 }} spacing={2}>
-                    <Grid size={{ xs: 12 }} align="left">
-                      <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
-                        Documents
-                      </Typography>
-                    </Grid>
-                    <Grid size={{ md: 12 }} align="left">
-                      <ImageList cols={colCount} gap={4} sx={{ width: "100%" }}>
-                        {attachments.map((attachment) => {
-                          const fileIcon = getFileIcon(attachment.filename);
-                          return (
-                            <ImageListItem key={attachment.id} sx={{ aspectRatio: "1/1", width: "100%" }}>
-                              <img
-                                  src={fileIcon}
-                                  alt={attachment.filename}
-                                  loading="lazy"
-                                  style={{
-                                      height: "100%",
-                                      width: "100%",
-                                      objectFit: "cover",
-                                      cursor: "pointer"
-                                  }}
-                                  onClick={() => handlePreviewFile(attachment.filename, attachment.id, attachment.mime || "application/pdf")}
-                              />
-                              <ImageListItemBar
-                                subtitle={attachment.filename}
-                                actionIcon={
-                                  <Tooltip title={"Download"}>
-                                    <IconButton
-                                      sx={{ color: "rgba(255, 255, 255, 0.47)" }}
-                                      onClick={() => handleFileDownload(attachment.filename, attachment.id)}
-                                    >
-                                      <Download />
-                                    </IconButton>
-                                  </Tooltip>
-                                }
-                              />
-                            </ImageListItem>
-                          );
-                        })}
-                      </ImageList>
-                    </Grid>
+                {(images.length > 0 || attachments.length > 0) && (
+                  <Grid size={12} sx={{ my: 2 }}>
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                      {images.length > 0 && (
+                        <Box
+                          sx={{
+                            width: attachments.length > 0 ? "48%" : "48%",
+                            bgcolor: "#f5f5f5",
+                            borderRadius: 2,
+                            boxShadow: 2,
+                            cursor: "pointer",
+                            textAlign: "center",
+                            p: 3,
+                            "&:hover": { boxShadow: 4, bgcolor: "#e0e0e0"}
+                          }}
+                          onClick={() => setAttachmentsModal({ open: true, type: "images" })}
+                        >
+                          <i className="fa fa-file-image-o" aria-hidden="true" style={{ fontSize: 32, color: "#333", marginBottom: 8 }}></i>
+                          <Typography variant="h6" fontWeight="bold">IMAGES</Typography>
+                          <Typography variant="body2" color="text.secondary">{images.length} attached</Typography>
+                        </Box>
+                      )}
+                      {attachments.length > 0 && (
+                        <Box
+                          sx={{
+                            width: images.length > 0 ? "48%" : "48%",
+                            bgcolor: "#f5f5f5",
+                            borderRadius: 2,
+                            boxShadow: 2,
+                            cursor: "pointer",
+                            textAlign: "center",
+                            p: 3,
+                            "&:hover": { boxShadow: 4, bgcolor: "#e0e0e0"}
+                          }}
+                          onClick={() => setAttachmentsModal({ open: true, type: "documents" })}
+                        >
+                          <i className="fa fa-file-text" aria-hidden="true" style={{ fontSize: 32, color: "#333", marginBottom: 8 }}></i>
+                          <Typography variant="h6" fontWeight="bold">DOCUMENTS</Typography>
+                          <Typography variant="body2" color="text.secondary">{attachments.length} attached</Typography>
+                        </Box>
+                      )}
+                    </Box>
                   </Grid>
                 )}
                 {/* Acknowledge Button */}
@@ -605,6 +584,32 @@ const AnnouncementView = () => {
           </Box>
         </Box>
       </Box>
+      <AnnouncementAttachments
+          open={attachmentsModal.open}
+          onClose={handleCloseAttachmentsModal}
+          onExited={handleExitedAttachmentsModal}
+          type={attachmentsModal.type}
+          items={attachmentsModal.type === "images" ? images : attachments}
+          handleFileDownload={handleFileDownload}
+          handlePreviewFile={handlePreviewFile}
+          handlePreviewImage={handlePreviewImage}
+          renderImage={renderImage}
+        />
+        <Dialog open={imagePreviewOpen} onClose={() => setImagePreviewOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            {imagePreviewName}
+            <IconButton
+              aria-label="close"
+              onClick={() => setImagePreviewOpen(false)}
+              sx={{ position: 'absolute', right: 8, top: 8 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
+            <img src={imagePreviewSrc} alt={imagePreviewName} style={{ maxWidth: "100%", maxHeight: 500, borderRadius: 8 }} />
+          </DialogContent>
+        </Dialog>
         <Dialog open={previewOpen} onClose={() => {
               if (previewFile?.url) URL.revokeObjectURL(previewFile.url);
               setPreviewOpen(false);

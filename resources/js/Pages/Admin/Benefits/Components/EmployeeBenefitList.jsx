@@ -3,16 +3,15 @@ import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, Tab
 import dayjs from "dayjs";
 import axiosInstance from "../../../../utils/axiosConfig";
 
-const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
-    
-    const [allowances, setAllowances] = useState([]);
+const EmployeeBenefitList = ({ userName, headers, onAdd }) => {
+    const [benefits, setBenefits] = useState([]);
 
     useEffect(() => {
-        axiosInstance.get(`/compensation/getEmployeeAllowance`, { headers, params: { username: userName },
+        axiosInstance.get(`/compensation/getEmployeeBenefits`, { headers, params: { username: userName },
             }).then((response) => {
-                setAllowances(response.data.allowances);
+                setBenefits(response.data.benefits);
             }).catch((error) => {
-                console.error("Error fetching allowances:", error);
+                console.error("Error fetching benefits:", error);
             });
     }, []);
 
@@ -22,34 +21,38 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
                 <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow>
-                            <TableCell align="left">Allowance</TableCell>
+                            <TableCell align="left">Benefits</TableCell>
                             <TableCell align="center">Number</TableCell>
-                            <TableCell align="center">Amount</TableCell>
+                            <TableCell align="center">Employer's Share</TableCell>
+                            <TableCell align="center">Employee's Share</TableCell>
                             <TableCell align="center">Date Added</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {allowances.length > 0 ? (
-                            allowances.map((allowance, index) => (
+                        {benefits.length > 0 ? (
+                            benefits.map((benefit, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
-                                        <Typography>{allowance.name}</Typography>
+                                        <Typography>{benefit.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{allowance.number}</Typography>
+                                        <Typography>{benefit.number}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>₱{(allowance.calculated_amount).toFixed(2)}</Typography>
+                                        <Typography>₱{(benefit.employer_contribution).toFixed(2)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{dayjs(allowance.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
+                                        <Typography>₱{(benefit.employee_contribution).toFixed(2)}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Typography>{dayjs(benefit.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
                                     </TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                    No Allowance Found
+                                <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                    No Benefits Found
                                 </TableCell>
                             </TableRow>
                         )}
@@ -60,7 +63,7 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
             <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
                 <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={onAdd} >
                     <p className="m-0">
-                        <i className="fa fa-plus"></i> Add Allowance
+                        <i className="fa fa-plus"></i> Add Benefits
                     </p>
                 </Button>
             </Box>
@@ -68,4 +71,4 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
     );
 };
 
-export default EmployeeAllowanceList;
+export default EmployeeBenefitList;
