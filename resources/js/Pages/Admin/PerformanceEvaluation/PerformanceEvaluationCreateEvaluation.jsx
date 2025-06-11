@@ -1,5 +1,6 @@
 import Layout from '../../../components/Layout/Layout';
-import { Box, TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, Typography, IconButton, Divider } from '@mui/material';
+import { Box, TextField, Button, Grid, FormControl, Typography, IconButton, Divider, CircularProgress } from '@mui/material';
+import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import SaveIcon from '@mui/icons-material/Save';
@@ -7,14 +8,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-// Import SweetAlert2
 import Swal from 'sweetalert2';
 import { getFullName } from '../../../utils/user-utils';
 
 const PerformanceEvaluationCreateEvaluation = () => {
     const navigate = useNavigate();
 
-    // Form state to hold input values
+    // Form state
     const [formValues, setFormValues] = useState({
         employeeName: '',
         branch: '',
@@ -28,45 +28,41 @@ const PerformanceEvaluationCreateEvaluation = () => {
         date: new Date().toISOString().slice(0, 10)
     });
 
-    // Dynamic commenters state (start with primary and secondary)
     const [extraCommentors, setExtraCommentors] = useState([]);
 
-    // State for employees, branches, and departments
+    // Data states
     const [employees, setEmployees] = useState([]);
     const [branches, setBranches] = useState([]);
     const [departments, setDepartments] = useState([]);
-
-    // Loading states
+    const [admins, setAdmins] = useState([]);
+    const [performanceEvaluation, setEvaluationForm] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [loadingBranches, setLoadingBranches] = useState(false);
     const [loadingDepartments, setLoadingDepartments] = useState(false);
+    const [loadingAdmins, setLoadingAdmins] = useState(false);
 
-    // Get headers for authenticated requests (copy logic from AnnouncementPublish)
+    // Auth
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [admins, setAdmins] = useState([]);
-    const [loadingAdmins, setLoadingAdmins] = useState(false);
+    // Filtering options for Autocomplete
+    const filter = createFilterOptions();
 
+    // Filtering functions for people fields
     const { evaluator, primaryCommentor, secondaryCommentor } = formValues;
-    
-    // For each dropdown, filter out already-chosen people:
-    // Additionally, filter admins to match branch and department (frontend filtering as backup)
-    const filteredAdmins = admins;
-
-    // Collect all selected commenter ids to exclude from other dropdowns
     const allCommentorIds = [
         formValues.primaryCommentor,
         formValues.secondaryCommentor,
         ...extraCommentors
     ].filter(Boolean);
 
-    const evaluatorOptions = filteredAdmins.filter(
+    const evaluatorOptions = admins.filter(
         admin =>
             !allCommentorIds.includes(admin.id) &&
-            admin.id !== formValues.employeeName // Exclude the employee
+            admin.id !== formValues.employeeName
     );
 
-    const primaryCommentorOptions = filteredAdmins.filter(
+    const primaryCommentorOptions = admins.filter(
         admin =>
             admin.id !== evaluator &&
             admin.id !== formValues.secondaryCommentor &&
@@ -74,7 +70,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
             admin.id !== formValues.employeeName
     );
 
-    const secondaryCommentorOptions = filteredAdmins.filter(
+    const secondaryCommentorOptions = admins.filter(
         admin =>
             admin.id !== evaluator &&
             admin.id !== formValues.primaryCommentor &&
@@ -82,9 +78,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
             admin.id !== formValues.employeeName
     );
 
-    // For each extra commenter, filter to only those not already selected in previous fields
     const getExtraCommentorOptions = (currentIdx) => {
-        // Exclude: employee, evaluator, primary, secondary, all other extra commenters except self
         const excludedIds = [
             formValues.employeeName,
             formValues.evaluator,
@@ -92,15 +86,14 @@ const PerformanceEvaluationCreateEvaluation = () => {
             formValues.secondaryCommentor,
             ...extraCommentors.filter((id, idx) => idx !== currentIdx)
         ].filter(Boolean);
-        return filteredAdmins.filter(
+        return admins.filter(
             admin => !excludedIds.includes(admin.id)
         );
     };
 
-    // ---------- UPDATED SUBMIT HANDLER ----------
+    // Handlers
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // Map form values to backend fields
         const evaluators = formValues.evaluator ? [formValues.evaluator] : [];
         const commentors = [
             formValues.primaryCommentor,
@@ -111,26 +104,23 @@ const PerformanceEvaluationCreateEvaluation = () => {
         const payload = {
             evaluatee_id: formValues.employeeName,
             form_id: formValues.evaluationForm,
-            evaluators,    // array - order matters
-            commentors,    // array - order matters
+            evaluators,
+            commentors,
             period_start_at: formValues.periodFrom + ' 00:00:00',
             period_end_at: formValues.periodTo + ' 23:59:59'
         };
 
         try {
-            const response = await axiosInstance.post('/saveEvaluationResponse', payload, { headers });
-            // Show success SweetAlert
+            await axiosInstance.post('/saveEvaluationResponse', payload, { headers });
             Swal.fire({
                 icon: 'success',
                 title: 'Evaluation Response Saved!',
                 text: 'The evaluation response has been successfully saved.',
                 confirmButtonText: 'OK',
             }).then(() => {
-                // Optionally navigate or reset form after confirmation
                 navigate(-1);
             });
         } catch (error) {
-            // Show error SweetAlert
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -139,16 +129,23 @@ const PerformanceEvaluationCreateEvaluation = () => {
             console.error('Error saving evaluation response:', error);
         }
     };
-    // ---------- END UPDATED SUBMIT HANDLER ----------
 
-    const handleChange = (event) => {
-        const { name, value } = event.target;
+    const handleChange = (eventOrObj, _value) => {
+        let name, value;
+        if (eventOrObj && eventOrObj.target) {
+            name = eventOrObj.target.name;
+            value = eventOrObj.target.value;
+        } else if (eventOrObj && typeof eventOrObj === 'object') {
+            // From Autocomplete onChange
+            name = eventOrObj.name;
+            value = _value;
+        }
         const updatedValues = { ...formValues, [name]: value };
 
+        // Reset dependent fields if needed
         if (name === 'branch') {
             updatedValues.department = '';
             updatedValues.employeeName = '';
-            // Optionally reset evaluator/commentors if you want to force new selection on branch change:
             updatedValues.evaluator = '';
             updatedValues.primaryCommentor = '';
             updatedValues.secondaryCommentor = '';
@@ -156,21 +153,35 @@ const PerformanceEvaluationCreateEvaluation = () => {
         }
         if (name === 'department') {
             updatedValues.employeeName = '';
-            // Optionally reset evaluator/commentors if you want to force new selection on department change:
             updatedValues.evaluator = '';
             updatedValues.primaryCommentor = '';
             updatedValues.secondaryCommentor = '';
             setExtraCommentors([]);
         }
+        // Remove from other fields if selected as another role
+        if (name === 'evaluator') {
+            if (updatedValues.primaryCommentor === value) updatedValues.primaryCommentor = '';
+            if (updatedValues.secondaryCommentor === value) updatedValues.secondaryCommentor = '';
+            setExtraCommentors(prev => prev.map(id => id === value ? '' : id));
+        }
+        if (name === 'primaryCommentor') {
+            if (updatedValues.evaluator === value) updatedValues.evaluator = '';
+            if (updatedValues.secondaryCommentor === value) updatedValues.secondaryCommentor = '';
+            setExtraCommentors(prev => prev.map(id => id === value ? '' : id));
+        }
+        if (name === 'secondaryCommentor') {
+            if (updatedValues.evaluator === value) updatedValues.evaluator = '';
+            if (updatedValues.primaryCommentor === value) updatedValues.primaryCommentor = '';
+            setExtraCommentors(prev => prev.map(id => id === value ? '' : id));
+        }
 
         setFormValues(updatedValues);
     };
 
-    // For extra commenters
-    const handleExtraCommentorChange = (idx, value) => {
+    const handleExtraCommentorChange = (idx, newId) => {
         setExtraCommentors((prev) => {
             const updated = [...prev];
-            updated[idx] = value;
+            updated[idx] = newId;
             return updated;
         });
     };
@@ -183,86 +194,58 @@ const PerformanceEvaluationCreateEvaluation = () => {
         setExtraCommentors((prev) => prev.filter((_, i) => i !== idx));
     };
 
-    const [performanceEvaluation, setEvaluationForm] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-
-    // Fetch branches, copying from AnnouncementPublish
-    const fetchBranches = async () => {
-        setLoadingBranches(true);
-        try {
-            // Use endpoint as in AnnouncementPublish
-            const response = await axiosInstance.get('/settings/getBranches', { headers });
-            if (response.data.branches) {
-                setBranches(response.data.branches);
+    // Data fetching
+    useEffect(() => {
+        // Branches
+        const fetchBranches = async () => {
+            setLoadingBranches(true);
+            try {
+                const response = await axiosInstance.get('/settings/getBranches', { headers });
+                if (response.data.branches) setBranches(response.data.branches);
+            } catch (error) {
+                console.error('Error fetching branches:', error);
+            } finally {
+                setLoadingBranches(false);
             }
-        } catch (error) {
-            console.error('Error fetching branches:', error);
-        } finally {
-            setLoadingBranches(false);
-        }
-    };
-
-    // Fetch departments (optionally filtered by branch)
-    const fetchDepartments = async (branchId) => {
-        setLoadingDepartments(true);
-        try {
-            let params = {};
-            if (branchId) params.branch_id = branchId;
-            const response = await axiosInstance.get('/settings/getDepartments', { params, headers });
-            if (response.data.departments) {
-                setDepartments(response.data.departments);
-            }
-        } catch (error) {
-            console.error('Error fetching departments:', error);
-        } finally {
-            setLoadingDepartments(false);
-        }
-    };
-
-    // Fetch employees filtered by branch and/or department
-    const fetchEmployees = async (branchId, departmentId) => {
-        try {
-            const params = {
-                branch_id: branchId,
-                department_id: departmentId,
-                user_type: 'Employee'
-            };
-            const response = await axiosInstance.get('/settings/getUsers', { params, headers });
-            if (response.data.status === 200) {
-                setEmployees(response.data.users);
-            } else {
-                setEmployees([]);
-            }
-        } catch (error) {
-            console.error('Error fetching employees:', error);
-            setEmployees([]);
-        }
-    };
-
-    // Fetch admins filtered by branch and department
-    const fetchAdmins = async (branchId, departmentId) => {
-        setLoadingAdmins(true);
-        try {
-            const params = {
-                branch_id: branchId,
-                department_id: departmentId,
-                user_type: 'AdminOrEmployee'
-            };
-            const response = await axiosInstance.get('/settings/getUsers', { params, headers });
-            if (response.data.status === 200) {
-                setAdmins(response.data.users);
-            } else {
-                setAdmins([]);
-            }
-        } catch (error) {
-            setAdmins([]);
-            console.error('Error fetching admins:', error);
-        } finally {
-            setLoadingAdmins(false);
-        }
-    };
+        };
+        fetchBranches();
+    }, []);
 
     useEffect(() => {
+        // Departments
+        const fetchDepartments = async (branchId) => {
+            setLoadingDepartments(true);
+            try {
+                let params = {};
+                if (branchId) params.branch_id = branchId;
+                const response = await axiosInstance.get('/settings/getDepartments', { params, headers });
+                if (response.data.departments) setDepartments(response.data.departments);
+            } catch (error) {
+                console.error('Error fetching departments:', error);
+            } finally {
+                setLoadingDepartments(false);
+            }
+        };
+        fetchDepartments(formValues.branch);
+    }, [formValues.branch]);
+
+    useEffect(() => {
+        // Employees
+        const fetchEmployees = async (branchId, departmentId) => {
+            try {
+                const params = {
+                    branch_id: branchId,
+                    department_id: departmentId,
+                    user_type: 'Employee'
+                };
+                const response = await axiosInstance.get('/settings/getUsers', { params, headers });
+                if (response.data.status === 200) setEmployees(response.data.users);
+                else setEmployees([]);
+            } catch (error) {
+                setEmployees([]);
+                console.error('Error fetching employees:', error);
+            }
+        };
         if (formValues.branch && formValues.department) {
             fetchEmployees(formValues.branch, formValues.department);
         } else {
@@ -272,6 +255,25 @@ const PerformanceEvaluationCreateEvaluation = () => {
     }, [formValues.department, formValues.branch]);
 
     useEffect(() => {
+        // Admins
+        const fetchAdmins = async (branchId, departmentId) => {
+            setLoadingAdmins(true);
+            try {
+                const params = {
+                    branch_id: branchId,
+                    department_id: departmentId,
+                    user_type: 'AdminOrEmployee'
+                };
+                const response = await axiosInstance.get('/settings/getUsers', { params, headers });
+                if (response.data.status === 200) setAdmins(response.data.users);
+                else setAdmins([]);
+            } catch (error) {
+                setAdmins([]);
+                console.error('Error fetching admins:', error);
+            } finally {
+                setLoadingAdmins(false);
+            }
+        };
         if (formValues.branch && formValues.department) {
             fetchAdmins(formValues.branch, formValues.department);
         } else {
@@ -291,12 +293,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
             .finally(() => setIsLoading(false));
     }, []);
 
-    // On mount, fetch branches and departments (no filter)
-    useEffect(() => {
-        fetchBranches();
-        fetchDepartments();
-    }, []);
-
+    // Render
     return (
         <Layout title={"Create Evaluation Form"}>
             <Box sx={{ maxWidth: '1000px', mx: 'auto', mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative' }}>
@@ -317,99 +314,91 @@ const PerformanceEvaluationCreateEvaluation = () => {
                 <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 4 }}>E-Employee Evaluation Form</Typography>
 
                 <form onSubmit={handleSubmit}>
+                    {/* First Row: Branch, Department, Employee */}
                     <Grid container spacing={3}>
-                        {/* Branch Dropdown */}
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
-                            <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Branch</InputLabel>
-                                <Select
-                                    label="Branch"
-                                    name="branch"
-                                    value={formValues.branch}
-                                    onChange={handleChange}
-                                >
-                                    {loadingBranches ? (
-                                        <MenuItem value="" disabled>Loading branches...</MenuItem>
-                                    ) : branches.length === 0 ? (
-                                        <MenuItem value="" disabled>No branches found</MenuItem>
-                                    ) : (
-                                        branches.map(branch => (
-                                            <MenuItem key={branch.id} value={branch.id}>
-                                                {branch.name}
-                                            </MenuItem>
-                                        ))
-                                    )}
-                                </Select>
-                            </FormControl>
+                            <Autocomplete
+                                options={branches}
+                                getOptionLabel={option => option.name || ""}
+                                value={branches.find(b => b.id === formValues.branch) || null}
+                                onChange={(_, newValue) =>
+                                    handleChange({ name: 'branch' }, newValue ? newValue.id : "")
+                                }
+                                filterOptions={(options, { inputValue }) =>
+                                    options.filter(
+                                        option => (option.name || "").toLowerCase().includes(inputValue.toLowerCase())
+                                    )
+                                }
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Branch" variant="outlined" required />
+                                )}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                loading={loadingBranches}
+                            />
                         </Grid>
-
-                        {/* Department Dropdown */}
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
-                            <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Department</InputLabel>
-                                <Select
-                                    label="Department"
-                                    name="department"
-                                    value={formValues.department}
-                                    onChange={handleChange}
-                                >
-                                    {loadingDepartments ? (
-                                        <MenuItem value="" disabled>Loading departments...</MenuItem>
-                                    ) : departments.length === 0 ? (
-                                        <MenuItem value="" disabled>No departments found</MenuItem>
-                                    ) : (
-                                        departments.map(dept => (
-                                            <MenuItem key={dept.id} value={dept.id}>
-                                                {dept.name}
-                                            </MenuItem>
-                                        ))
-                                    )}
-                                </Select>
-                            </FormControl>
+                            <Autocomplete
+                                options={departments}
+                                getOptionLabel={option => option.name || ""}
+                                value={departments.find(b => b.id === formValues.department) || null}
+                                onChange={(_, newValue) =>
+                                    handleChange({ name: 'department' }, newValue ? newValue.id : "")
+                                }
+                                filterOptions={(options, { inputValue }) =>
+                                    options.filter(
+                                        option => (option.name || "").toLowerCase().includes(inputValue.toLowerCase())
+                                    )
+                                }
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Department" variant="outlined" required />
+                                )}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                loading={loadingDepartments}
+                            />
                         </Grid>
-
-                        {/* Employee Dropdown */}
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
-                            <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Employee Name</InputLabel>
-                                <Select
-                                    label="Employee Name"
-                                    name="employeeName"
-                                    value={formValues.employeeName}
-                                    onChange={handleChange}
-                                >
-                                    {employees.length === 0 ? (
-                                        <MenuItem value="" disabled>No employees found</MenuItem>
-                                    ) : (
-                                        employees.map(emp => (
-                                            <MenuItem key={emp.id} value={emp.id}>{getFullName(emp)}</MenuItem>
-                                        ))
-                                    )}
-                                </Select>
-                            </FormControl>
+                            <Autocomplete
+                                options={employees}
+                                getOptionLabel={option => getFullName(option) || ""}
+                                value={employees.find(b => b.id === formValues.employeeName) || null}
+                                onChange={(_, newValue) =>
+                                    handleChange({ name: 'employeeName' }, newValue ? newValue.id : "")
+                                }
+                                filterOptions={(options, { inputValue }) =>
+                                    options.filter(
+                                        option => getFullName(option).toLowerCase().includes(inputValue.toLowerCase())
+                                    )
+                                }
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Employee Name" variant="outlined" required />
+                                )}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                loading={employees.length === 0 && formValues.department}
+                            />
                         </Grid>
                     </Grid>
 
-                    {/* Second Row (Evaluator, Date) */}
+                    {/* Second Row: Evaluator, Date */}
                     <Grid container spacing={3} sx={{ mt: 3 }}>
                         <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '625px' }}>
-                            <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Evaluator</InputLabel>
-                                <Select
-                                    label="Evaluator"
-                                    name="evaluator"
-                                    value={formValues.evaluator}
-                                    onChange={handleChange}
-                                    >
-                                    {evaluatorOptions.length === 0 ? (
-                                        <MenuItem value="" disabled>No evaluators found</MenuItem>
-                                    ) : (
-                                        evaluatorOptions.map(admin => (
-                                            <MenuItem key={admin.id} value={admin.id}>{getFullName(admin)}</MenuItem>
-                                        ))
-                                    )}
-                                </Select>
-                            </FormControl>
+                            <Autocomplete
+                                options={evaluatorOptions}
+                                getOptionLabel={option => getFullName(option) || ""}
+                                value={evaluatorOptions.find(b => b.id === formValues.evaluator) || null}
+                                onChange={(_, newValue) =>
+                                    handleChange({ name: 'evaluator' }, newValue ? newValue.id : "")
+                                }
+                                filterOptions={(options, { inputValue }) =>
+                                    options.filter(
+                                        option => getFullName(option).toLowerCase().includes(inputValue.toLowerCase())
+                                    )
+                                }
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Evaluator" variant="outlined" required />
+                                )}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                loading={loadingAdmins}
+                            />
                         </Grid>
                         <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '300px' }}>
                             <TextField
@@ -417,7 +406,6 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                 variant="outlined"
                                 fullWidth
                                 value={formValues.date}
-                                onChange={handleChange}
                                 name="date"
                                 type="date"
                                 required
@@ -427,31 +415,27 @@ const PerformanceEvaluationCreateEvaluation = () => {
                         </Grid>
                     </Grid>
 
-                    {/* Third Row (Evaluation Form, Period From/To) */}
+                    {/* Third Row: Evaluation Form, Period From/To */}
                     <Grid container spacing={3} sx={{ mt: 3 }}>
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
-                            <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Evaluation Form</InputLabel>
-                                <Select
-                                    label="Evaluation Form"
-                                    variant="outlined"
-                                    name="evaluationForm"
-                                    value={formValues.evaluationForm}
-                                    onChange={handleChange}
-                                >
-                                    {isLoading ? (
-                                        <MenuItem value="" disabled>Loading forms...</MenuItem>
-                                    ) : performanceEvaluation.length === 0 ? (
-                                        <MenuItem value="" disabled>No evaluation forms found</MenuItem>
-                                    ) : (
-                                        performanceEvaluation.map(form => (
-                                            <MenuItem key={form.id} value={form.id}>
-                                                {form.name}
-                                            </MenuItem>
-                                        ))
-                                    )}
-                                </Select>
-                            </FormControl>
+                            <Autocomplete
+                                options={performanceEvaluation}
+                                getOptionLabel={option => option.name || ""}
+                                value={performanceEvaluation.find(f => f.id === formValues.evaluationForm) || null}
+                                onChange={(_, newValue) =>
+                                    handleChange({ name: 'evaluationForm' }, newValue ? newValue.id : "")
+                                }
+                                filterOptions={(options, { inputValue }) =>
+                                    options.filter(
+                                        option => (option.name || "").toLowerCase().includes(inputValue.toLowerCase())
+                                    )
+                                }
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Evaluation Form" variant="outlined" required />
+                                )}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                loading={isLoading}
+                            />
                         </Grid>
                         <Grid item xs={12} md={4} sx={{ width: '100%', maxWidth: '300px' }}>
                             <TextField
@@ -481,71 +465,74 @@ const PerformanceEvaluationCreateEvaluation = () => {
                         </Grid>
                     </Grid>
 
-                    {/* Fourth Row (Commentors) */}
+                    {/* Fourth Row: Commentors */}
                     <Grid container spacing={3} sx={{ mt: 3 }}>
                         <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
-                            <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Primary Evaluator</InputLabel>
-                                <Select
-                                    label="Primary Commentor"
-                                    name="primaryCommentor"
-                                    value={formValues.primaryCommentor}
-                                    onChange={handleChange}
-                                    >
-                                    {primaryCommentorOptions.length === 0 ? (
-                                        <MenuItem value="" disabled>No commenters found</MenuItem>
-                                    ) : (
-                                        primaryCommentorOptions.map(admin => (
-                                            <MenuItem key={admin.id} value={admin.id}>{getFullName(admin)}</MenuItem>
-                                        ))
-                                    )}
-                                </Select>
-                            </FormControl>
+                            <Autocomplete
+                                options={primaryCommentorOptions}
+                                getOptionLabel={option => getFullName(option) || ""}
+                                value={primaryCommentorOptions.find(b => b.id === formValues.primaryCommentor) || null}
+                                onChange={(_, newValue) =>
+                                    handleChange({ name: 'primaryCommentor' }, newValue ? newValue.id : "")
+                                }
+                                filterOptions={(options, { inputValue }) =>
+                                    options.filter(
+                                        option => getFullName(option).toLowerCase().includes(inputValue.toLowerCase())
+                                    )
+                                }
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Primary Commentor" variant="outlined" required />
+                                )}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                loading={loadingAdmins}
+                            />
                         </Grid>
                         <Grid item xs={12} md={6} sx={{ width: '100%', maxWidth: '463px' }}>
-                            <FormControl fullWidth variant="outlined" required>
-                                <InputLabel>Secondary Evaluator</InputLabel>
-                                <Select
-                                    label="Secondary Commentor"
-                                    name="secondaryCommentor"
-                                    value={formValues.secondaryCommentor}
-                                    onChange={handleChange}
-                                    >
-                                    {secondaryCommentorOptions.length === 0 ? (
-                                        <MenuItem value="" disabled>No commenters found</MenuItem>
-                                    ) : (
-                                        secondaryCommentorOptions.map(admin => (
-                                            <MenuItem key={admin.id} value={admin.id}>{getFullName(admin)}</MenuItem>
-                                        ))
-                                    )}
-                                </Select>
-                            </FormControl>
+                            <Autocomplete
+                                options={secondaryCommentorOptions}
+                                getOptionLabel={option => getFullName(option) || ""}
+                                value={secondaryCommentorOptions.find(b => b.id === formValues.secondaryCommentor) || null}
+                                onChange={(_, newValue) =>
+                                    handleChange({ name: 'secondaryCommentor' }, newValue ? newValue.id : "")
+                                }
+                                filterOptions={(options, { inputValue }) =>
+                                    options.filter(
+                                        option => getFullName(option).toLowerCase().includes(inputValue.toLowerCase())
+                                    )
+                                }
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Secondary Commentor" variant="outlined" required />
+                                )}
+                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                loading={loadingAdmins}
+                            />
                         </Grid>
                     </Grid>
 
-                    {/* Dynamic Extra Commenters */}
+                    {/* Dynamic Extra Commentors */}
                     {extraCommentors.length > 0 && (
                         <Divider sx={{ mt: 4, mb: 2 }} />
                     )}
                     <Grid container spacing={3} sx={{ mt: 3 }}>
                         {extraCommentors.map((commentor, idx) => (
                             <Grid item xs={12} md={6} key={idx} sx={{ width: '100%', maxWidth: '463px', display: 'flex', alignItems: 'center' }}>
-                                <FormControl fullWidth variant="outlined" required>
-                                    <InputLabel>{`Additional Commenter #${idx + 1}`}</InputLabel>
-                                    <Select
-                                        label={`Additional Commenter #${idx + 1}`}
-                                        value={commentor}
-                                        onChange={e => handleExtraCommentorChange(idx, e.target.value)}
-                                    >
-                                        {getExtraCommentorOptions(idx).length === 0 ? (
-                                            <MenuItem value="" disabled>No commenters found</MenuItem>
-                                        ) : (
-                                            getExtraCommentorOptions(idx).map(admin => (
-                                                <MenuItem key={admin.id} value={admin.id}>{getFullName(admin)}</MenuItem>
-                                            ))
-                                        )}
-                                    </Select>
-                                </FormControl>
+                                <Autocomplete
+                                    options={getExtraCommentorOptions(idx)}
+                                    getOptionLabel={option => getFullName(option) || ""}
+                                    value={getExtraCommentorOptions(idx).find(a => a.id === commentor) || null}
+                                    onChange={(_, newValue) => handleExtraCommentorChange(idx, newValue ? newValue.id : "")}
+                                    filterOptions={(options, { inputValue }) =>
+                                        options.filter(
+                                            option => getFullName(option).toLowerCase().includes(inputValue.toLowerCase())
+                                        )
+                                    }
+                                    renderInput={(params) => (
+                                        <TextField {...params} label={`Additional Commentor #${idx + 1}`} variant="outlined" required />
+                                    )}
+                                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                                    loading={loadingAdmins}
+                                    fullWidth
+                                />
                                 <IconButton
                                     aria-label="remove"
                                     onClick={() => handleRemoveCommentor(idx)}
@@ -564,7 +551,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
                             startIcon={<AddIcon />}
                             onClick={handleAddCommentor}
                         >
-                            Add Commenter
+                            Add Commentor
                         </Button>
                     </Box>
                     {/* Submit Button */}
