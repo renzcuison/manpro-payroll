@@ -31,20 +31,23 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
         onClose();
     };
 
+
     const handleOptionChange = (index, event) => {
         editOption(index, event.target.value, options[index].score);
     };
 
+    const handleOptionScoreChange = (index, event) => {
+        // Ensure the correct value is being passed to the editOption function
+        editOption(index, options[index].label, Number(event.target.value)); // converting value to number
+    };
+
+
     const handleAddOption = () => {
-        saveOption('');
+        saveOption('', 1); 
     };
 
     const handleRemoveOption = (index) => {
         deleteOption(index);
-    };
-
-    const handleOptionScoreChange = (index, event) => {
-        editOption(index, options[index].label, +event.target.value);
     };
 
     return (
@@ -128,7 +131,7 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
 
                 {(responseType === 'multipleChoice' || responseType === 'checkbox') && (
                     <Box sx={{ mb: 2 }}>
-                        {options.map(({ label, extra }, index) => (
+                        {options.map(({ label, score }, index) => (
                             <Grid container spacing={2} key={index} sx={{ mb: 2 }} alignItems="center">
                                 <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                     <Typography variant="body1">{index + 1}.</Typography>
@@ -139,16 +142,19 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                                         fullWidth
                                         value={label}
                                         onChange={(e) => handleOptionChange(index, e)}
+                                        placeholder="Option label"
                                     />
                                 </Grid>
                                 <Grid item xs={2}>
                                     <TextField
                                         variant="outlined"
-                                        placeholder="XXX"
-                                        value={extra || ""}
+                                        placeholder="Score"
+                                        value={score || ""}
+                                        type="number"
                                         onChange={(e) => handleOptionScoreChange(index, e)}
                                         sx={{ width: 80 }}
                                         size="small"
+                                        inputProps={{ min: 0, step: 1 }}
                                     />
                                 </Grid>
                                 <Grid item xs={2}>
@@ -161,7 +167,6 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                                 </Grid>
                             </Grid>
                         ))}
-
                         <Typography
                             onClick={handleAddOption}
                             sx={{
