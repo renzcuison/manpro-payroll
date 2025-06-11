@@ -306,7 +306,7 @@ const AnnouncementView = () => {
   return (
     <Layout title={"AnnouncementView"}>
       <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
-        <Box sx={{ mx: "auto", width: { xs: "100%", md: "95%" } }}>
+        <Box sx={{ mx: "auto", mb: 5, width: { xs: "100%", md: "95%" } }}>
           <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }}>
             <Box sx={{
               mt: 5,
@@ -413,7 +413,7 @@ const AnnouncementView = () => {
                     </Typography>  
                   </Grid>
                   {/* Posting Date */}
-                  <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid size={{ xs: 12, md: 4}}>
                     <InfoBox
                       title="Date Posted"
                       info={announcement.updated_at ? dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A") : "-"}
@@ -421,8 +421,31 @@ const AnnouncementView = () => {
                       clean
                     />
                   </Grid>
+                  {/* Acknowledgement Status */}
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    {announcement.acknowledged ? (
+                        <InfoBox
+                          title="Acknowledged On"
+                          info={announcement.ack_timestamp ? dayjs(announcement.ack_timestamp).format("MMM D, YYYY    h:mm A") : "-"}
+                          compact
+                          clean
+                        />
+                    ) : (
+                        <Typography
+                          sx={{
+                            whiteSpace: "normal",
+                            wordBreak: "break-word",
+                            overflowWrap: "break-word",
+                            lineHeight: 1.5,
+                            paddingRight: { xs: 0, md: 2 },
+                          }}
+                        >
+                          You have not acknowledged this announcement yet.
+                        </Typography>
+                    )}
+                  </Grid>
                   {/* Author Information */}
-                  <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid size={{ xs: 12, md: 4}}>
                     <Box sx={{ display: "flex", width: "100%", alignItems: "flex-start" }}>
                       <Typography
                         sx={{
@@ -441,58 +464,10 @@ const AnnouncementView = () => {
                           {announcement.author_name || "-"}
                         </Typography>
                         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                          {announcement.author_title || "-"}
+                          {announcement.author_title || null}
                         </Typography>
                       </Stack>
                     </Box>
-                  </Grid>
-                  <Grid size={{ xs: 12 }} sx={{ my: 0, mb: 1 }}>
-                    <Divider />
-                  </Grid>
-                  {/* Acknowledgement Status */}
-                  {announcement.acknowledged ? (
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <InfoBox
-                        title="Acknowledged On"
-                        info={announcement.ack_timestamp ? dayjs(announcement.ack_timestamp).format("MMM D, YYYY    h:mm A") : "-"}
-                        compact
-                        clean
-                      />
-                    </Grid>
-                  ) : (
-                    <Grid size={{ xs: 12, md: 6 }} align="left">
-                      <Typography
-                        sx={{
-                          whiteSpace: "normal",
-                          wordBreak: "break-word",
-                          overflowWrap: "break-word",
-                          lineHeight: 1.5,
-                          paddingRight: { xs: 0, md: 2 },
-                        }}
-                      >
-                        You have not acknowledged this announcement yet
-                      </Typography>
-                    </Grid>
-                  )}
-                  {/* Recipient Branch/Department */}
-                  <Grid size={{ xs: 12, md: 6 }} align="left">
-                    <Typography
-                      sx={{
-                        whiteSpace: "normal",
-                        wordBreak: "break-word",
-                        overflowWrap: "break-word",
-                        lineHeight: 1.5,
-                        paddingRight: { xs: 0, md: 2 },
-                      }}
-                    >
-                      {`This announcement is posted for your ${
-                        announcement.department_matched && announcement.branch_matched
-                          ? "branch and department"
-                          : announcement.department_matched
-                          ? "department"
-                          : "branch"
-                      }`}
-                    </Typography>
                   </Grid>
                 </Grid>
                 <Grid size={{ xs: 12 }} sx={{ my: 0 }}>
