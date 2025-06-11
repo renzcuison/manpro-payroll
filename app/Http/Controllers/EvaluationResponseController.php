@@ -505,15 +505,6 @@ class EvaluationResponseController extends Controller
             });
             $evaluationResponses = $evaluationResponses->groupBy('evaluation_responses.id');
 
-            // filter responses that are user's turn to edit only
-            //  $evaluationResponses = $evaluationResponses->where(function ($query) use ($user) {
-            //     $query
-            //         ->join('evaluation_evaluators as evaluator_line', 'evaluation_responses.id', '=', 'evaluator_line.response_id')
-            //         ->whereColumn('evaluator_line.response_id', 'evaluators.evaluator_id')
-            //         // ->orWhere('commentors.commentor_id', $user->id)
-            //     ;
-            // });
-
             if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
                 $sortOrder = $order_by_param['sort_order'] ?? 'asc';
                 if ($sortOrder != 'asc' && $sortOrder != 'desc')
@@ -551,6 +542,14 @@ class EvaluationResponseController extends Controller
                         ]);
                 }
             }
+
+            // $evaluationResponses = $evaluationResponses->get();
+            // foreach ($colors as $x) {
+            //     echo "$x <br>";
+            // }
+            // filter responses that are user's turn to edit only
+
+
 
             $page = $request->page ?? 1;
             $limit = $request->limit ?? 10;
