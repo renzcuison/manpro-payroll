@@ -130,4 +130,33 @@ class RadiusPerimeterController extends Controller
             'message' => 'Perimeter deleted successfully'
         ]);
     }
+
+    public function getPerimeterbyUser()
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            // Get perimeters based on user's client_id
+            $perimeters = RoundedPerimeterModel::where('client_id', $user->client_id)
+                ->where('status', 'Active')  // Only get active perimeters
+                ->select(['id', 'name', 'radius', 'latitude', 'longitude', 'location'])
+                ->get();
+
+            return response()->json([
+                'status' => 200,
+                'perimeters' => $perimeters
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Error fetching perimeters: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Error fetching perimeters',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

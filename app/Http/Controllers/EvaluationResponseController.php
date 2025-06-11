@@ -23,6 +23,150 @@ use Illuminate\Support\Facades\Storage;
 class EvaluationResponseController extends Controller
 {
 
+    // evaluatees, evaluators, commentors
+
+    public function getCommentors(Request $request)
+    {
+        // inputs:
+        /*
+            department_id?: number,
+            branch_id?: number
+        */
+
+        // returns:
+        /*
+            users: {
+                id, last_name, first_name, middle_name, suffix
+            }
+        */
+
+        if (!$this->checkUser()) return response()->json([
+            'status' => 403,
+            'message' => 'Unauthorized access!'
+        ], 403);
+        $user = Auth::user();
+
+        $commentors = UsersModel
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ->where('client_id', $user->client_id)
+        ;
+        if($request->department_id !== null)
+            $commentors = $commentors->where('department_id', $request->department_id);
+        if($request->branch_id !== null)
+            $commentors = $commentors->where('branch_id', $request->branch_id);
+        $commentors = $commentors
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->orderBy('middle_name')
+            ->orderBy('suffix')
+            ->get()
+        ;
+        if(!$commentors) return response()->json([ 
+            'status' => 404,
+            'message' => 'Commentors not found!'
+        ]);
+        return response()->json([
+            'status' => 200,
+            'message' => 'Commentors successfully retrieved.',
+            'evaluatees' => $commentors
+        ]);
+    }
+
+    public function getEvaluatees(Request $request)
+    {
+        // inputs:
+        /*
+            department_id?: number,
+            branch_id?: number
+        */
+
+        // returns:
+        /*
+            users: {
+                id, last_name, first_name, middle_name, suffix
+            }
+        */
+
+        if (!$this->checkUser()) return response()->json([
+            'status' => 403,
+            'message' => 'Unauthorized access!'
+        ], 403);
+        $user = Auth::user();
+
+        $evaluatees = UsersModel
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ->where('client_id', $user->client_id)
+            ->where('user_type', 'Employee')
+        ;
+        if($request->department_id !== null)
+            $evaluatees = $evaluatees->where('department_id', $request->department_id);
+        if($request->branch_id !== null)
+            $evaluatees = $evaluatees->where('branch_id', $request->branch_id);
+        $evaluatees = $evaluatees
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->orderBy('middle_name')
+            ->orderBy('suffix')
+            ->get()
+        ;
+        if(!$evaluatees) return response()->json([ 
+            'status' => 404,
+            'message' => 'Evaluatees not found!'
+        ]);
+        return response()->json([
+            'status' => 200,
+            'message' => 'Evaluatees successfully retrieved.',
+            'evaluatees' => $evaluatees
+        ]);
+    }
+
+    public function getEvaluators(Request $request)
+    {
+        // inputs:
+        /*
+            department_id?: number,
+            branch_id?: number
+        */
+
+        // returns:
+        /*
+            users: {
+                id, last_name, first_name, middle_name, suffix
+            }
+        */
+
+        if (!$this->checkUser()) return response()->json([
+            'status' => 403,
+            'message' => 'Unauthorized access!'
+        ], 403);
+        $user = Auth::user();
+
+        $evaluators = UsersModel
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ->where('client_id', $user->client_id)
+        ;
+        if($request->department_id !== null)
+            $evaluators = $evaluators->where('department_id', $request->department_id);
+        if($request->branch_id !== null)
+            $evaluators = $evaluators->where('branch_id', $request->branch_id);
+        $evaluators = $evaluators
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->orderBy('middle_name')
+            ->orderBy('suffix')
+            ->get()
+        ;
+        if(!$evaluators) return response()->json([ 
+            'status' => 404,
+            'message' => 'Evaluators not found!'
+        ]);
+        return response()->json([
+            'status' => 200,
+            'message' => 'Evaluators successfully retrieved.',
+            'evaluatees' => $evaluators
+        ]);
+    }
+
     // evaluation response
  
     public function deleteEvaluationResponse(Request $request)
@@ -115,7 +259,7 @@ class EvaluationResponseController extends Controller
             }
         */
 
-        log::info('EvaluationResponseController::getEvaluationResponse');
+        log::info('EvaluationResponseController::editEvaluationResponse');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -307,6 +451,7 @@ class EvaluationResponseController extends Controller
                         ->with(['sections' => fn ($section) =>
                             $section
                                 ->select('form_id', 'id', 'name', 'category', 'order')
+                                ->whereNull('deleted_at')
                                 ->with(['subcategories' => fn ($subcategory) =>
                                     $subcategory
                                         ->select(
@@ -321,39 +466,49 @@ class EvaluationResponseController extends Controller
                                             'options' => fn ($option) =>
                                                 $option
                                                     ->select(
-                                                        'subcategory_id', 'label', 'score', 'order'
+                                                        'subcategory_id', 'id', 'label', 'score', 'order'
                                                     )
-                                                    ->orderBy('order')
+                                                    ->whereNull('deleted_at')
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
-                                                            $optionAnswer->select('response_id', 'option_id')
+                                                            $optionAnswer
+                                                                ->select('response_id', 'option_id')
+                                                                ->whereNull('deleted_at')
+                                                                ->where('response_id', $request->id)
                                                     ])
+                                                    ->orderBy('order')
+                                                    
                                             ,
                                             'percentageAnswer' => fn ($percentageAnswer) =>
                                                 $percentageAnswer
-                                                ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
-                                                ->select(
-                                                    'evaluation_percentage_answers.response_id',
-                                                    'evaluation_percentage_answers.subcategory_id',
-                                                    'evaluation_percentage_answers.percentage',
-                                                    'evaluation_form_subcategories.subcategory_type'
-                                                )
-                                                ->addSelect(DB::raw(
-                                                    "round(evaluation_percentage_answers.percentage*"
-                                                    ."(evaluation_form_subcategories.linear_scale_end"
-                                                    ."-evaluation_form_subcategories.linear_scale_start)"
-                                                    ."+evaluation_form_subcategories.linear_scale_start)"
-                                                    ." as value"
-                                                ))
-                                                ->addSelect(DB::raw(
-                                                    "round(evaluation_percentage_answers.percentage*"
-                                                    ."(evaluation_form_subcategories.linear_scale_end"
-                                                    ."-evaluation_form_subcategories.linear_scale_start))"
-                                                    ." as linear_scale_index"
-                                                ))
+                                                    ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+                                                    ->select(
+                                                        'evaluation_percentage_answers.response_id',
+                                                        'evaluation_percentage_answers.subcategory_id',
+                                                        'evaluation_percentage_answers.percentage',
+                                                        'evaluation_form_subcategories.subcategory_type'
+                                                    )
+                                                    ->addSelect(DB::raw(
+                                                        "round(evaluation_percentage_answers.percentage*"
+                                                        ."(evaluation_form_subcategories.linear_scale_end"
+                                                        ."-evaluation_form_subcategories.linear_scale_start)"
+                                                        ."+evaluation_form_subcategories.linear_scale_start)"
+                                                        ." as value"
+                                                    ))
+                                                    ->addSelect(DB::raw(
+                                                        "round(evaluation_percentage_answers.percentage*"
+                                                        ."(evaluation_form_subcategories.linear_scale_end"
+                                                        ."-evaluation_form_subcategories.linear_scale_start))"
+                                                        ." as linear_scale_index"
+                                                    ))
+                                                    ->whereNull('evaluation_percentage_answers.deleted_at')
+                                                    ->where('response_id', $request->id)
                                             ,
                                             'textAnswer' => fn ($textAnswer) =>
-                                                $textAnswer->select('response_id', 'subcategory_id', 'answer')
+                                                $textAnswer
+                                                    ->select('response_id', 'subcategory_id', 'answer')
+                                                    ->whereNull('deleted_at')
+                                                    ->where('response_id', $request->id)
                                         ])
                                         ->orderBy('order')
                                 ])
@@ -505,15 +660,6 @@ class EvaluationResponseController extends Controller
             });
             $evaluationResponses = $evaluationResponses->groupBy('evaluation_responses.id');
 
-            // filter responses that are user's turn to edit only
-            //  $evaluationResponses = $evaluationResponses->where(function ($query) use ($user) {
-            //     $query
-            //         ->join('evaluation_evaluators as evaluator_line', 'evaluation_responses.id', '=', 'evaluator_line.response_id')
-            //         ->whereColumn('evaluator_line.response_id', 'evaluators.evaluator_id')
-            //         // ->orWhere('commentors.commentor_id', $user->id)
-            //     ;
-            // });
-
             if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
                 $sortOrder = $order_by_param['sort_order'] ?? 'asc';
                 if ($sortOrder != 'asc' && $sortOrder != 'desc')
@@ -551,6 +697,14 @@ class EvaluationResponseController extends Controller
                         ]);
                 }
             }
+
+            // $evaluationResponses = $evaluationResponses->get();
+            // foreach ($colors as $x) {
+            //     echo "$x <br>";
+            // }
+            // filter responses that are user's turn to edit only
+
+
 
             $page = $request->page ?? 1;
             $limit = $request->limit ?? 10;
@@ -699,7 +853,7 @@ class EvaluationResponseController extends Controller
         // output:
         // { evaluationResponseID }
 
-        log::info('EvaluationResponseController::getEvaluationResponse');
+        log::info('EvaluationResponseController::saveEvaluationResponse');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -2457,8 +2611,6 @@ class EvaluationResponseController extends Controller
                 'evaluationOptionAnswer' => $evaluationOptionAnswer
             ]);
 
-            echo $evaluationOptionAnswer;
-
             $now = date('Y-m-d H:i');
             $evaluationOptionAnswer->deleted_at = $now;
             $evaluationOptionAnswer->save();
@@ -2549,16 +2701,16 @@ class EvaluationResponseController extends Controller
                 case "checkbox":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
-                        ->select('response_id', 'option_id')
+                        ::select('response_id', 'option_id')
                         ->where('response_id', '=', $request->response_id)
-                        ->where('option_id', '=', $request->option_id)
+                        ->where('option_id', '=', $request->new_option_id)
                         ->first()
                     ;
                     if($existingOptionAnswer) return response()->json([ 
                         'status' => 409,
                         'message' => 'The same option answer was already created for this subcategory!',
                         'evaluationResponseID' => $request->response_id,
-                        'evaluationFormSubcategoryOptionID' => $erequest->option_id
+                        'evaluationFormSubcategoryOptionID' => $request->option_id
                     ]);
                     break;
             }
@@ -2673,7 +2825,7 @@ class EvaluationResponseController extends Controller
                 ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                 ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                 ->select(
-                    'evaluation_option_answers.id', 'evaluation_option_answers.response_id',
+                    'evaluation_option_answers.response_id',
                     'evaluation_form_subcategories.id as subcategory_id',
                     'evaluation_option_answers.option_id',
                     'evaluation_option_answers.created_at', 'evaluation_option_answers.updated_at'
@@ -2826,7 +2978,7 @@ class EvaluationResponseController extends Controller
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
-                        ->select('evaluation_option_answers.id')
+                        ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.option_id', '=', $request->option_id)
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
                         ->first()
@@ -2834,22 +2986,23 @@ class EvaluationResponseController extends Controller
                     if($existingOptionAnswer) return response()->json([ 
                         'status' => 409,
                         'message' => 'The same option answer was already created for this subcategory!',
-                        'evaluationOptionAnswerID' => $existingOptionAnswer->id
+                        'evaluationResponseID' =>  $request->response_id,
+                        'evaluationOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
-                case "dropdown":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
-                        ->select('evaluation_option_answers.id')
+                        ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
                         ->first()
                     ;
                     if($existingOptionAnswer) return response()->json([ 
                         'status' => 409,
                         'message' => 'An option answer was already created for this subcategory!',
-                        'evaluationOptionAnswerID' => $existingOptionAnswer->id
+                        'evaluationResponseID' =>  $request->response_id,
+                        'evaluationOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
                 

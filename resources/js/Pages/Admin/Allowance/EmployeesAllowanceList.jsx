@@ -1,34 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, TablePagination, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
 
 import EmployeeAllowanceView from './Modals/EmployeeAllowanceView';
+import { useEmployeesAllowances } from '../../../hooks/useAllowance';
 
 const EmployeesAllowanceList = () => {
-    const navigate = useNavigate();
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+    const { data, isLoading, error, refetch } = useEmployeesAllowances();
+    const employees = data?.employees || [];
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [employees, setEmployees] = useState([]);
     const [searchName, setSearchName] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-
-    useEffect(() => {
-        axiosInstance.get('/allowance/getEmployeesAllowance', { headers })
-            .then((response) => {
-                const employeesData = response.data.employees;
-                setEmployees(employeesData);
-                setIsLoading(false);
-            }).catch((error) => {
-                console.error('Error fetching employees:', error);
-                setIsLoading(false);
-            });
-    }, []);
 
     const handleRowClick = (employee) => {
         setSelectedEmployee(employee.user_name);
@@ -36,6 +21,7 @@ const EmployeesAllowanceList = () => {
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
+        refetch();
     };
 
     const filteredEmployees = employees.filter((employee) => {
@@ -103,7 +89,7 @@ const EmployeesAllowanceList = () => {
                                                             <TableCell align="left">{employee.name || '-'}</TableCell>
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                            <TableCell align="right">{Number(employee.total || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="center">₱{Number(employee.total || 0).toFixed(2)}</TableCell>
                                                         </TableRow>
                                                     );
                                                 })

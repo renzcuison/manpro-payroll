@@ -3,34 +3,15 @@ import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, 
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
+import { useAllowances } from '../../../hooks/useAllowance';
 
 import AllowanceAdd from './Modals/AllowanceAdd';
 
 const AllowanceTypes = () => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-
-    const [isLoading, setIsLoading] = useState(true);
+    const { data, isLoading, error, refetch } = useAllowances();
+    const allowances = data?.allowances || [];
 
     const [openAddAllowanceModal, setOpenAddAllowanceModal] = useState(false);
-
-    const [allowances, setAllowances] = useState([]);
-
-    useEffect(() => {
-        getAllowanceTypes();
-    }, []);
-
-    const getAllowanceTypes = () => {
-        setIsLoading(true);
-        axiosInstance.get('/allowance/getAllowances', { headers })
-            .then((response) => {
-                setAllowances(response.data.allowances);
-                setIsLoading(false);
-            }).catch((error) => {
-                console.error('Error fetching allowances:', error);
-                setIsLoading(false);
-            });
-    }
 
     const handleOpenAddAllowanceModal = () => {
         setOpenAddAllowanceModal(true);
@@ -38,7 +19,7 @@ const AllowanceTypes = () => {
 
     const handleCloseAddAllowanceModal = () => {
         setOpenAddAllowanceModal(false);
-        getAllowanceTypes();
+        refetch();
     }
 
     return (

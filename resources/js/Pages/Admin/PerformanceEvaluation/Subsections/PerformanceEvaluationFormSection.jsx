@@ -606,7 +606,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                         </Box>
                                         {(subcategoryDraft.subcategory_type === 'multiple_choice' || subcategoryDraft.subcategory_type === 'checkbox') && (
                                             <Box sx={{ mb: 2 }}>
-                                                {subcategoryOptions.map(({ label, extra }, index) => (
+                                                {subcategoryOptions.map(({ label, score }, index) => (
                                                     <Grid container spacing={2} key={index} sx={{ mb: 2 }} alignItems="center">
                                                         <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                                             <Typography variant="body1">{index + 1}.</Typography>
@@ -622,11 +622,17 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                         <Grid item xs={2}>
                                                             <TextField
                                                                 variant="outlined"
-                                                                placeholder="XXX"
-                                                                value={extra || ""}
-                                                                onChange={e => handleOptionExtraChange(index, e)}
+                                                                placeholder="Score"
+                                                                value={score ?? ""}
+                                                                type="number"
+                                                                onChange={e => {
+                                                                    const newOptions = [...subcategoryOptions];
+                                                                    newOptions[index].score = Number(e.target.value);
+                                                                    setSubcategoryOptions(newOptions);
+                                                                }}
                                                                 sx={{ width: 80 }}
                                                                 size="small"
+                                                                inputProps={{ min: 0, step: 1 }}
                                                             />
                                                         </Grid>
                                                         <Grid item xs={2}>
