@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class SettingsController extends Controller
 {
@@ -33,7 +34,6 @@ class SettingsController extends Controller
                 return true;
             }
         }
-
         return false;
     }
 
@@ -333,7 +333,12 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
         if(!$this->checkUser()){
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
-        $positions = DepartmentPosition::orderBy('name')->get();
+        $user = Auth::user();
+        
+        $positions = DepartmentPosition::where('client_id', $user->client_id)
+        ->orderBy('name')
+        ->get();
+
         return response()->json(['status' => 200, 'positions' => $positions]);
     }
 
@@ -371,7 +376,7 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
     }
 
     //get each of the department's details, along with their assigned employees per department position
-    public function getDepartmentWithEmployeePosition(Request $request)
+    public function getDepartmentWithEmployeePosition()
     {
         if (!$this->checkUser()) {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
