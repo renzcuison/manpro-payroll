@@ -459,13 +459,47 @@ export function useEvaluationResponse(responseId) {
         }
     }
 
+    // Added for saving creator signature - Khim
+    async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath }) {
+        try {
+            const payload = {
+                id: response_id,
+                creator_signature_filepath,
+            };
+
+            const response = await axiosInstance.post(
+                '/editEvaluationResponse',
+                payload,
+                { headers }
+            );
+
+            if (
+                (response.status && String(response.status).startsWith('2')) ||
+                (response.data && response.data.status && String(response.data.status).startsWith('2'))
+            ) {
+                // Optionally reload here
+                getEvaluationResponse();
+                return response.data.evaluationResponse;
+            } else {
+                throw new Error(response.data?.message || 'Failed to save creator signature.');
+            }
+        } catch (error) {
+            throw new Error(
+                error?.response?.data?.message ||
+                error.message ||
+                'Failed to save creator signature!'
+            );
+        }
+    }
+
+
     return {
         evaluationResponse, options, subcategories,
         deleteEvaluationResponse, saveEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
         getMultipleChoiceOptionId,
-        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,  editEvaluationCommentor, editEvaluationEvaluator,
+        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,  editEvaluationCommentor, editEvaluationEvaluator, editEvaluationCreatorSignature,
     };
 
 }

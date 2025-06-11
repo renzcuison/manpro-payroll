@@ -1,30 +1,70 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Paper,
-  Chip, TextField, Grid, FormControlLabel, Radio, IconButton, Menu, MenuItem
+  Chip, TextField, Grid, FormControlLabel, Radio, IconButton, Menu, MenuItem, Button
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../../components/Layout/Layout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { getFullName } from '../../../utils/user-utils';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
+import PerformanceEvaluationCreatorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvaluationCreatorAcknowledge';
+import Swal from 'sweetalert2';
 
 const PerformanceEvaluationCreatorPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const {
-    evaluationResponse
+    evaluationResponse,
+    editEvaluationCreatorSignature
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
   const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
+
+  // Modal state for acknowledge
+  const [openAcknowledgeModal, setOpenAcknowledgeModal] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
     }
   }, [evaluationResponse]);
+
+  // Approve/Sign Handler
+  async function handleCreatorSignature(signatureData) {
+    setSaving(true);
+    try {
+      await editEvaluationCreatorSignature({
+        response_id: evaluationResponse.id,
+        creator_signature_filepath: signatureData
+      });
+      Swal.fire({
+        icon: 'success',
+        title: 'Approved!',
+        text: "Signature saved successfully.",
+        timer: 1600,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        position: 'center'
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: "Failed to save signature!",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        position: 'center'
+      });
+    } finally {
+      setSaving(false);
+      setOpenAcknowledgeModal(false);
+    }
+  }
 
   const handleSettingsClick = (event) => {
     setSettingsAnchorEl(event.currentTarget);
@@ -180,6 +220,27 @@ const PerformanceEvaluationCreatorPage = () => {
     if (n === 4) return "Fourth";
     if (n === 5) return "Fifth";
     return `${n}th`;
+  };
+
+  // Render signature area (if present)
+  const renderSignature = () => {
+    if (evaluationResponse.creator_signature_filepath) {
+      return (
+        <Box sx={{ my: 3, display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>
+            Creator's Signature:
+          </Typography>
+          <Box sx={{ border: "1px solid #ccc", borderRadius: 2, background: "#fff", p: 2 }}>
+            <img
+              src={evaluationResponse.creator_signature_filepath}
+              alt="Creator Signature"
+              style={{ width: 300, height: 80, objectFit: "contain" }}
+            />
+          </Box>
+        </Box>
+      );
+    }
+    return null;
   };
 
   return (
@@ -438,6 +499,31 @@ const PerformanceEvaluationCreatorPage = () => {
             <Typography color="text.secondary"><i>No commentors found.</i></Typography>
           )}
         </Box>
+
+        {/* Signature display
+        {renderSignature()} */}
+
+        {/* Approve/Sign Button */}
+        {!evaluationResponse.creator_signature_filepath && (
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+            <Button
+              variant="contained"
+              color="success"
+              size="large"
+              onClick={() => setOpenAcknowledgeModal(true)}
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "Approve"}
+            </Button>
+          </Box>
+        )}
+
+        {/* Creator Acknowledge Modal */}
+        <PerformanceEvaluationCreatorAcknowledge
+          open={openAcknowledgeModal}
+          onClose={() => setOpenAcknowledgeModal(false)}
+          onProceed={handleCreatorSignature}
+        />
       </Box>
     </Layout>
   );
