@@ -8,10 +8,13 @@ export default function Sortable(props) {
         id: props.id,
         data: { order: props.order }
     });
-    const { x = 0, y = 0, scaleX = 1, scaleY = 1 } = transform ?? {};
+    const { x = 0, y = 0 } = transform ?? {};
+    const isDragging = ( props.draggedId === props.id );
     const style = {
-        transform: `translate(${ x }px, ${ y }px) scale(${ scaleX }, ${ scaleY })`,
-        transition
+        transform: `translate(${ x }px, ${ y }px)`,
+        transition,
+        position: isDragging ? "relative" : "inherit",
+        zIndex: isDragging ? 1 : 0
     };
     return (
         <div ref={ setNodeRef } style={ style } { ...attributes } { ...listeners }>

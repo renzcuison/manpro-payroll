@@ -220,6 +220,10 @@ class AttendanceController extends Controller
 
                 $workHour = WorkHoursModel::find($user->workShift->work_hour_id);
                 $attendanceLog = AttendanceLogsModel::create([ "user_id" => $user->id, "work_hour_id" => $workHour->id, "action" => $request->action, "method" => 1 ]);
+
+                $timestamp = AttendanceLogsModel::where('id', $attendanceLog->id)->value('timestamp');
+                
+                Log::info('Attendance timestamp: ' . $timestamp);
                 
                 $day = \Carbon\Carbon::parse($attendanceLog->timestamp)->toDateString();
 
@@ -231,50 +235,207 @@ class AttendanceController extends Controller
                     $dayEnd = Carbon::parse("$day {$workHour->second_time_out}");
                 }
 
-                // log::info("Day Start: " . $dayStart);
-                // log::info("Day End: " . $dayEnd);
+                log::info("===========================================================================================");
+                log::info("==================================   STARTING SUMMARY   ===================================");
+                log::info("===========================================================================================");
 
-                // $action = $attendanceLog->action;
-                // $summary = AttendanceSummary::where('user_id', $user->id)->where('work_day_start', $dayStart)->where('work_day_end', $dayEnd)->first();
+                log::info("Day Start : " . $dayStart);
+                log::info("Day End   : " . $dayEnd);
 
-                // log::info($summary);
+                $action = $attendanceLog->action;
+                $summary = AttendanceSummary::where('user_id', $user->id)->where('work_day_start', $dayStart)->where('work_day_end', $dayEnd)->first();
 
-                // if ( $summary ) {
-                //     log::info("Has Summary");
+                $firstIn = Carbon::parse($workHour->first_time_in)->format('H:i:s');
+                $firstOut = Carbon::parse($workHour->first_time_out)->format('H:i:s');
+                $secondIn = Carbon::parse($workHour->second_time_in)->format('H:i:s');
+                $secondOut = Carbon::parse($workHour->second_time_out)->format('H:i:s');
 
-                //     if ( $action === "Time In" ) {
+                $breakIn = Carbon::parse($workHour->break_start)->format('H:i:s');
+                $breakOut = Carbon::parse($workHour->break_end)->format('H:i:s');
 
-                //     }
+                log::info("Summary");
+                log::info($summary);
 
-                // } else {
-                //     log::info("Has No Summary");
+                if ( $summary ) {
+                    log::info("Has Summary");
+                    $latestLog = AttendanceLogsModel::find($summary->latest_log_id);
 
-                //     log::info("Creating New Summary");
+                    log::info("Latest Log");
+                    log::info($latestLog);
 
-                //     log::info($attendanceLog->id);
+                    $latest = Carbon::parse($latestLog->timestamp);
+                    $current = Carbon::parse($timestamp); 
 
-                //     if ( $action === "Duty In" ) {
-                //         $summary = AttendanceSummary::create([
-                //             "user_id" => $user->id,
-                //             "client_id" => $user->client_id,
-                //             "work_hour_id" => $workHour->id,
+                    if ($action === "Duty In" && $workHour->shift_type === "Split") {
+                        $baseDate = $current->toDateString();
+
+                        $firstStart = Carbon::parse("$baseDate $firstIn");
+                        $firstEnd = Carbon::parse("$baseDate $firstOut");
+                        $secondStart = Carbon::parse("$baseDate $secondIn");
+                        $secondEnd = Carbon::parse("$baseDate $secondOut");
+
+                        if ($summary && $summary->latest_log_id) {
+                            $latestInFirstShift = $latest->between($firstStart, $firstEnd);
+                            $currentInFirstShift = $current->between($firstStart, $firstEnd);
+                            $latestInSecondShift = $latest->between($secondStart, $secondEnd);
+                            $currentInSecondShift = $current->between($secondStart, $secondEnd);
+
+                            if (
+                                ($latestInFirstShift && $currentInFirstShift) ||
+                                ($latestInSecondShift && $currentInSecondShift)
+                            ) {
+                                // Same shift, compute late from latest log
+                                $late = $current->diffInMinutes($latest);
+                            } else {
+                                // Different shift, compute late from second_time_in
+                                $scheduledSecondIn = Carbon::parse("$baseDate $workHour->second_time_in");
+                                if ($current > $scheduledSecondIn) {
+                                    $late = $current->diffInMinutes($scheduledSecondIn);
+                                }
+                            }
+
+                            $summary->minutes_late = $summary->minutes_late + $late;
+                            $summary->latest_log_id = $attendanceLog->id;
+                            $summary->save();
+                        }
+                    }
+                    
+                    if ( $action === "Duty Out" && $workHour->shift_type === "Split" ) {
+                        $baseDate = $latest->toDateString(); // use date from the latest log
+
+                        $firstStart = Carbon::parse("$baseDate $firstIn");
+                        $firstEnd = Carbon::parse("$baseDate $firstOut");
+                        $secondStart = Carbon::parse("$baseDate $secondIn");
+                        $secondEnd = Carbon::parse("$baseDate $secondOut");
+
+                        // Overlap with first shift
+                        $firstStartOverlap = $latest->copy()->max($firstStart);
+                        $firstEndOverlap = $current->copy()->min($firstEnd);
+                        $firstMinutes = ($firstStartOverlap < $firstEndOverlap) ? $firstEndOverlap->diffInMinutes($firstStartOverlap) : 0;
+
+                        // Overlap with second shift
+                        $secondStartOverlap = $latest->copy()->max($secondStart);
+                        $secondEndOverlap = $current->copy()->min($secondEnd);
+                        $secondMinutes = ($secondStartOverlap < $secondEndOverlap) ? $secondEndOverlap->diffInMinutes($secondStartOverlap) : 0;
+
+                        $renderedMinutes = $firstMinutes + $secondMinutes;
+
+                        if ($current->lt($firstEnd)) {
+                            $late = $firstEnd->diffInMinutes($current);
+                        } elseif ($current->lt($secondEnd)) {
+                            $late = $secondEnd->diffInMinutes($current);
+                        } else {
+                            $late = 0;
+                        }
+
+                        $summary->minutes_rendered = $renderedMinutes;
+                        $summary->minutes_late = $late;
+                        $summary->latest_log_id = $attendanceLog->id;
+                        $summary->save();
+                    }
+
+                    if ( $action === "Duty Out" && $workHour->shift_type === "Regular" ) {
+                        $baseDate = $latest->toDateString();
+
+                        $firstStart = Carbon::parse("$baseDate $firstIn");
+                        $firstEnd = Carbon::parse("$baseDate $firstOut");
+                        $breakStart = Carbon::parse("$baseDate $breakIn");
+                        $breakEnd = Carbon::parse("$baseDate $breakOut");
+
+                        $firstStartOverlap = $latest->copy()->max($firstStart);
+                        $firstEndOverlap = $current->copy()->min($firstEnd);
+                        $firstMinutes = ($firstStartOverlap < $firstEndOverlap) ? $firstEndOverlap->diffInMinutes($firstStartOverlap) : 0;
+
+                        $breakStartOverlap = $firstStartOverlap->copy()->max($breakStart);
+                        $breakEndOverlap = $firstEndOverlap->copy()->min($breakEnd);
+                        $breakMinutes = ($breakStartOverlap < $breakEndOverlap) ? $breakEndOverlap->diffInMinutes($breakStartOverlap) : 0;
+
+                        $renderedMinutes = $firstMinutes - $breakMinutes;
+
+                        if ($current->lt($firstEnd)) {
+                            $late = $firstEnd->diffInMinutes($current);
+                        } else {
+                            $late = 0;
+                        }
+
+                        $summary->minutes_rendered = $renderedMinutes;
+                        $summary->minutes_late = $late;
+                        $summary->latest_log_id = $attendanceLog->id;
+                        $summary->save();
+                    }
+
+                    log::info("===============================");
+                    log::info("Updated Summary");
+                    log::info($summary);
+
+                } else {
+                    log::info("Has No Summary");
+                    log::info("Creating New Summary");
+                    log::info($attendanceLog->id);
+
+                    if ( $action === "Duty In" && $workHour->shift_type === "Split" ) {
+
+                        log::info("===============================");
+
+                        $late = 0;
+
+                        $time = Carbon::parse($timestamp)->format('H:i:s');
+
+                        $firstShiftDuration = Carbon::parse($workHour->first_time_out)->diffInMinutes( Carbon::parse($workHour->first_time_in) );
+
+                        log::info($firstShiftDuration);
+
+                        if ($time < $firstIn) {
+                            Log::info("1 - Early");
                             
-                //             "work_day_start" => $dayStart,
-                //             "work_day_end" => $dayEnd,
+                            log::info($time);
+                            log::info($firstIn);
 
-                //             "work_day_end" => "Regular Day",
+                            $late = 0;
+                        } else if ($time > $firstIn && $time < $firstOut) {
+                            Log::info("2 - Morning Late");
+                            $time = Carbon::parse($time);
+                            $late = $time->diffInMinutes($firstIn);
+                        } else if ($time > $firstOut && $time < $secondIn) {
+                            Log::info("3 - Afternoon Early");
+
+                            $late = $firstShiftDuration;
+                        } else if ($time > $secondIn && $time < $secondOut) {
+                            Log::info("4 - Afternoon Late");
+
+                            $time = Carbon::parse($time);
+                            $late = $firstShiftDuration + $time->diffInMinutes($secondIn);
+                        }
+
+                        log::info("===============================");
+
+                        log::info($workHour);
+                        log::info($time);
+                        Log::info("Total late in minutes: " . $late);
+
+                        $summary = AttendanceSummary::create([
+                            "user_id" => $user->id,
+                            "client_id" => $user->client_id,
+                            "work_hour_id" => $workHour->id,
                             
-                //             "latest_log_id" => $attendanceLog->id,
-                //         ]);
-                //     }
+                            "work_day_start" => $dayStart,
+                            "work_day_end" => $dayEnd,
 
-                //     log::info("New Summary");
-                //     log::info($summary);
-                // }
+                            "day_type" => "Regular Day",
+                            
+                            "minutes_late" => $late,
 
-                // $attendanceLog->attendance_summary_id = $summary->id;
-                // $attendanceLog->save();
+                            
+                            "latest_log_id" => $attendanceLog->id,
+                        ]);
+                    }
 
+                    log::info("New Summary");
+                    log::info($summary);
+                }
+
+                $attendanceLog->attendance_summary_id = $summary->id;
+                $attendanceLog->save();
 
                 // log::info("Stopper");
                 // dd("Stopper");
@@ -438,39 +599,39 @@ class AttendanceController extends Controller
         }
     }
 
-    //     public function editEmployeeAttendance(Request $request)
-    //     {
-    //         //Log::info("AttendanceController::editEmployeeAttendance");
-    //         //Log::info($request);
+    public function editEmployeeAttendance(Request $request)
+    {
+        //Log::info("AttendanceController::editEmployeeAttendance");
+        //Log::info($request);
 
-    //         $user = Auth::user();
-    //         $attendance = AttendanceLogsModel::with('user')->find($request->input('attendance_id'));
-    //         $employee = $attendance->user;
-    // sc
-    //         if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
-    //             try {
-    //                 DB::beginTransaction();
+        $user = Auth::user();
+        $attendance = AttendanceLogsModel::with('user')->find($request->input('attendance_id'));
+        $employee = $attendance->user;
 
-    //                 $newType = $request->input('new_type');
-    //                 $newTime = Carbon::parse($request->input('timestamp'));
+        if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
+            try {
+                DB::beginTransaction();
 
-    //                 $attendance->action = $newType;
-    //                 $attendance->timestamp = $newTime;
-    //                 $attendance->save();
+                $newType = $request->input('new_type');
+                $newTime = Carbon::parse($request->input('timestamp'));
 
-    //                 DB::commit();
+                $attendance->action = $newType;
+                $attendance->timestamp = $newTime;
+                $attendance->save();
 
-    //                 return response()->json(['status' => 200]);
-    //             } catch (\Exception $e) {
-    //                 DB::rollBack();
-    //                 Log::error('Error updating attendance', ['error' => $e->getMessage()]);
-    //                 return response()->json(['status' => 500, 'message' => 'Error updating attendance log'], 500);
-    //                 throw $e;
-    //             }
-    //         } else {
-    //             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-    //         }
-    //     }
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error updating attendance', ['error' => $e->getMessage()]);
+                return response()->json(['status' => 500, 'message' => 'Error updating attendance log'], 500);
+                throw $e;
+            }
+        } else {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+    }
 
     public function deleteEmployeeAttendance(Request $request)
     {
