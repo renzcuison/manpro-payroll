@@ -344,44 +344,44 @@ const PemeQuestionnaireView = () => {
             responses: responses,
         };
 
-        console.log("TEST PAYLOAD", testPayload);
+        console.log("TEST PAYLOAD", payload);
 
-        try {
-            // PAYLOAD FOR DATES AND STATUS
-            const secondaryPayload = {
-                expiry_date: expirationDate,
-                next_schedule: nextSchedule,
-                status: status,
-            };
-            console.log(secondaryPayload);
+        // try {
+        //     // PAYLOAD FOR DATES AND STATUS
+        //     const secondaryPayload = {
+        //         expiry_date: expirationDate,
+        //         next_schedule: nextSchedule,
+        //         status: status,
+        //     };
+        //     console.log(secondaryPayload);
 
-            await axiosInstance.patch(
-                `/peme-responses/${PemeResponseID}/status`,
-                secondaryPayload,
-                { headers }
-            );
+        //     await axiosInstance.patch(
+        //         `/peme-responses/${PemeResponseID}/status`,
+        //         secondaryPayload,
+        //         { headers }
+        //     );
 
-            console.log("ANSWERS", payload.responses);
-            await axiosInstance.post(`/peme-responses/storeAll`, payload, {
-                headers,
-            });
-            Swal.fire({
-                icon: "success",
-                text: "Draft saved successfully.",
-                showConfirmButton: false,
-                timer: 1500,
-            });
-        } catch (error) {
-            Swal.fire({
-                title: "Error",
-                text: "Failed to save draft. Please try again.",
-                icon: "error",
-                confirmButtonText: "Okay",
-                confirmButtonColor: "#177604",
-            });
+        //     console.log("ANSWERS", payload.responses);
+        //     await axiosInstance.post(`/peme-responses/storeAll`, payload, {
+        //         headers,
+        //     });
+        //     Swal.fire({
+        //         icon: "success",
+        //         text: "Draft saved successfully.",
+        //         showConfirmButton: false,
+        //         timer: 1500,
+        //     });
+        // } catch (error) {
+        //     Swal.fire({
+        //         title: "Error",
+        //         text: "Failed to save draft. Please try again.",
+        //         icon: "error",
+        //         confirmButtonText: "Okay",
+        //         confirmButtonColor: "#177604",
+        //     });
 
-            console.log(error);
-        }
+        //     console.log(error);
+        // }
     };
 
     const navigator = useNavigate();

@@ -175,19 +175,6 @@ const PemeQuestionnaireView = () => {
     }, []);
 
     useEffect(() => {
-        axiosInstance
-            .get(`/peme-responses/${PemeResponseID}`, { headers })
-            .then((response) => {
-                setPemeResponses([response.data]);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching PEME records:", error);
-                setIsLoading(false);
-            });
-    }, []);
-
-    useEffect(() => {
         if (pemeResponses && pemeResponses[0]) {
             const res = pemeResponses[0];
             if (res.expiry_date) setExpirationDate(dayjs(res.expiry_date));
