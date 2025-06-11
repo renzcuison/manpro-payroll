@@ -17,6 +17,8 @@ import dayjs from "dayjs";
 import AttendanceViewDetails from "./Modals/AttendanceViewDetails";
 import AddAttendanceModal from './Modals/AddAttendanceModal';
 
+import DateRangePicker from '../../../components/DateRangePicker';
+
 const AttendanceView = () => {
     const { user } = useParams();
     const storedUser = localStorage.getItem("nasya_user");
@@ -31,6 +33,10 @@ const AttendanceView = () => {
     const [employeeList, setEmployeeList] = useState([]);
     const currentDate = dayjs().format("YYYY-MM-DD");
     const selectedEmployeeId = employeeList.find((emp) => emp.emp_user_name === user)?.emp_id || employee?.emp_id || "";
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    
+    
     const navigate = useNavigate();
 
     const getEmployeeList = () => {
@@ -54,6 +60,8 @@ const AttendanceView = () => {
             getEmployeeAttendance();
         }
     }, [employee, summaryFromDate, summaryToDate]);
+
+
 
     const [openAttendanceDetails, setOpenAttendanceDetails] = useState(null);
 
@@ -119,6 +127,9 @@ const AttendanceView = () => {
     };
 
     const getEmployeeAttendance = () => {
+
+        if (!summaryFromDate || !summaryToDate || !employee) return;
+
         setIsLoading(true);
         axiosInstance.get("/attendance/getEmployeeAttendanceSummary", { headers, params: { employee: employee?.emp_id || employee.id, summary_from_date: summaryFromDate.format("YYYY-MM-DD"), summary_to_date: summaryToDate.format("YYYY-MM-DD") } })
             .then((response) => {
@@ -137,40 +148,40 @@ const AttendanceView = () => {
         const minutes = absTime % 60;
         return hours > 0 ? `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `${minutes}m`;
     };
-
-    const setPredefinedDates = (range) => {
-        const today = dayjs();
-        switch (range) {
-            case "today":
-                setSummaryFromDate(today);
-                setSummaryToDate(today);
-                break;
-            case "yesterday":
-                setSummaryFromDate(today.subtract(1, "day"));
-                setSummaryToDate(today.subtract(1, "day"));
-                break;
-            case "last7days":
-                setSummaryFromDate(today.subtract(6, "day"));
-                setSummaryToDate(today);
-                break;
-            case "last30days":
-                setSummaryFromDate(today.subtract(29, "day"));
-                setSummaryToDate(today);
-                break;
-            case "thisMonth":
-                setSummaryFromDate(today.startOf("month"));
-                setSummaryToDate(today);
-                break;
-            case "lastMonth":
-                setSummaryFromDate(today.subtract(1, "month").startOf("month"));
-                setSummaryToDate(today.subtract(1, "month").endOf("month"));
-                break;
-            default:
-                break;
+    
+    const handleDateRangeChange = (start, end) => {
+        console.log("Selected range in AttendanceView:", start?.format(), end?.format());
+        if (!start && !end) {
+            setSummaryFromDate(dayjs("1900-01-01"));
+            setSummaryToDate(dayjs());
+            setSelectedRange("all");
+        } else if (start && end) {
+            setSummaryFromDate(start);
+            setSummaryToDate(end);
+            setSelectedRange("custom");
         }
-        setSelectedRange(range);
     };
 
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const [rangeStartDate, setRangeStartDate] = useState(null);
+    const [rangeEndDate, setRangeEndDate] = useState(null);
+
+    const filteredSummaryData = summaryData.filter((record) => {
+        const attendanceDate = dayjs(record.date_attended);
+        const matchedDateRange = (!rangeStartDate || !rangeEndDate) ||
+            (attendanceDate.isSameOrAfter(rangeStartDate, 'day') &&
+            attendanceDate.isSameOrBefore(rangeEndDate, 'day'));
+
+        return matchedDateRange;
+    });
 
     return (
         <Layout title={"EmployeeView"}>
@@ -222,54 +233,9 @@ const AttendanceView = () => {
                                             </Select>
                                         </FormControl>
                                     </Box>
-                                    <Grid container direction="row" justifyContent="flex-end" spacing={2} sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
-                                        <Grid item xs={2}>
-                                            <FormControl fullWidth>
-                                                <InputLabel id="date-range-select-label">Date Range</InputLabel>
-                                                <Select
-                                                    labelId="date-range-select-label"
-                                                    id="date-range-select"
-                                                    value={selectedRange}
-                                                    label="Date Range"
-                                                    onChange={(event) => setPredefinedDates(event.target.value)}
-                                                >
-                                                    <MenuItem value="today">Today</MenuItem>
-                                                    <MenuItem value="yesterday">Yesterday</MenuItem>
-                                                    <MenuItem value="last7days">Last 7 Days</MenuItem>
-                                                    <MenuItem value="last30days">Last 30 Days</MenuItem>
-                                                    <MenuItem value="thisMonth">This Month</MenuItem>
-                                                    <MenuItem value="lastMonth">Last Month</MenuItem>
-                                                    <MenuItem value="custom">Custom Range</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Grid>
+                                    <Grid container direction="row" justifyContent="flex-end" spacing={2} sx={{ pb: 4}}>
                                         <Grid item xs={4}>
-                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                <DatePicker
-                                                    label="From Date"
-                                                    value={summaryFromDate}
-                                                    onChange={(newValue) => {
-                                                        setSummaryFromDate(newValue);
-                                                        if (newValue.isAfter(summaryToDate)) {
-                                                            setSummaryToDate(newValue);
-                                                        }
-                                                        setSelectedRange("custom");
-                                                    }}
-                                                    renderInput={(params) => <TextField {...params} />}
-                                                    sx={{ mr: 2, width: '150px' }}
-                                                />
-                                                <DatePicker
-                                                    label="To Date"
-                                                    value={summaryToDate}
-                                                    onChange={(newValue) => {
-                                                        setSummaryToDate(newValue);
-                                                        setSelectedRange("custom");
-                                                    }}
-                                                    minDate={summaryFromDate}
-                                                    renderInput={(params) => <TextField {...params} />}
-                                                    sx={{ mr: 2, width: '150px' }}
-                                                />
-                                            </LocalizationProvider>
+                                            <DateRangePicker onRangeChange={handleDateRangeChange} />
                                         </Grid>
                                     </Grid>
                                 </Box>
@@ -288,27 +254,33 @@ const AttendanceView = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {summaryData.length > 0 ? (
-                                                summaryData.map((summary, index) => (
-                                                    <TableRow
-                                                        key={index}
-                                                        onClick={() => handleOpenAttendanceDetails(summary)}
-                                                        sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" } }}
-                                                    >
-                                                        <TableCell align="center">{dayjs(summary.date).format("MMMM D, YYYY")}</TableCell>
-                                                        <TableCell align="center">{summary.time_in ? dayjs(summary.time_in).format("hh:mm:ss A") : "-"}</TableCell>
-                                                        <TableCell align="center">{summary.time_out ? dayjs(summary.time_out).format("hh:mm:ss A") : (summary.time_in && summary.date !== currentDate) ? "Failed to Time Out" : "-"}</TableCell>
-                                                        <TableCell align="center">{formatTime(summary.total_rendered)}</TableCell>
-                                                        <TableCell align="center">{summary.overtime_in ? dayjs(summary.overtime_in).format("hh:mm:ss A") : "-"}</TableCell>
-                                                        <TableCell align="center">{summary.overtime_out ? dayjs(summary.overtime_out).format("hh:mm:ss A") : summary.overtime_in ? "Failed to Time Out" : "-"}</TableCell>
-                                                        <TableCell align="center">{formatTime(summary.total_overtime)}</TableCell>
-                                                        <TableCell align="center">
-                                                            <Typography sx={{ color: summary.date === currentDate ? "#177604" : summary.late_time > 0 ? "#f44336" : null }}>
-                                                                {summary.date === currentDate ? "Day Ongoing" : formatTime(summary.late_time)}
-                                                            </Typography>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
+                                            {filteredSummaryData.length > 0 ? (
+                                                filteredSummaryData
+                                                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                                    .map((summary, index) => (
+                                                        <TableRow
+                                                            key={index}
+                                                            onClick={() => handleOpenAttendanceDetails(summary)}
+                                                            sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" } }}
+                                                        >
+                                                            <TableCell align="center">{dayjs(summary.date).format("MMMM D, YYYY")}</TableCell>
+                                                            <TableCell align="center">{summary.time_in ? dayjs(summary.time_in).format("hh:mm:ss A") : "-"}</TableCell>
+                                                            <TableCell align="center">
+                                                                {summary.time_out ? dayjs(summary.time_out).format("hh:mm:ss A") : (summary.time_in && summary.date !== currentDate) ? "Failed to Time Out" : "-"}
+                                                            </TableCell>
+                                                            <TableCell align="center">{formatTime(summary.total_rendered)}</TableCell>
+                                                            <TableCell align="center">{summary.overtime_in ? dayjs(summary.overtime_in).format("hh:mm:ss A") : "-"}</TableCell>
+                                                            <TableCell align="center">
+                                                                {summary.overtime_out ? dayjs(summary.overtime_out).format("hh:mm:ss A") : summary.overtime_in ? "Failed to Time Out" : "-"}
+                                                            </TableCell>
+                                                            <TableCell align="center">{formatTime(summary.total_overtime)}</TableCell>
+                                                            <TableCell align="center">
+                                                                <Typography sx={{ color: summary.date === currentDate ? "#177604" : summary.late_time > 0 ? "#f44336" : null }}>
+                                                                    {summary.date === currentDate ? "Day Ongoing" : formatTime(summary.late_time)}
+                                                                </Typography>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))
                                             ) : (
                                                 <TableRow>
                                                     <TableCell colSpan={8} align="center" sx={{ color: "text.secondary", p: 1 }}>No Attendance Found</TableCell>
@@ -317,6 +289,15 @@ const AttendanceView = () => {
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
+                                <TablePagination
+                                rowsPerPageOptions={[5, 10, 25, 50]}
+                                component="div"
+                                count={summaryData.length}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                onPageChange={handleChangePage}
+                                onRowsPerPageChange={handleChangeRowsPerPage}
+                            />
                             </>
                         )}
                     </Box>
