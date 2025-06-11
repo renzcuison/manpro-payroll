@@ -259,7 +259,7 @@ class EvaluationResponseController extends Controller
             }
         */
 
-        log::info('EvaluationResponseController::getEvaluationResponse');
+        log::info('EvaluationResponseController::editEvaluationResponse');
 
         if (Auth::check()) {
             $userID = Auth::id();
@@ -469,35 +469,41 @@ class EvaluationResponseController extends Controller
                                                     )
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
-                                                            $optionAnswer->select('response_id', 'option_id')
+                                                            $optionAnswer
+                                                                ->select('response_id', 'option_id')
+                                                                ->where('response_id', $request->id)
                                                     ])
                                                     ->orderBy('order')
+                                                    
                                             ,
                                             'percentageAnswer' => fn ($percentageAnswer) =>
                                                 $percentageAnswer
-                                                ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
-                                                ->select(
-                                                    'evaluation_percentage_answers.response_id',
-                                                    'evaluation_percentage_answers.subcategory_id',
-                                                    'evaluation_percentage_answers.percentage',
-                                                    'evaluation_form_subcategories.subcategory_type'
-                                                )
-                                                ->addSelect(DB::raw(
-                                                    "round(evaluation_percentage_answers.percentage*"
-                                                    ."(evaluation_form_subcategories.linear_scale_end"
-                                                    ."-evaluation_form_subcategories.linear_scale_start)"
-                                                    ."+evaluation_form_subcategories.linear_scale_start)"
-                                                    ." as value"
-                                                ))
-                                                ->addSelect(DB::raw(
-                                                    "round(evaluation_percentage_answers.percentage*"
-                                                    ."(evaluation_form_subcategories.linear_scale_end"
-                                                    ."-evaluation_form_subcategories.linear_scale_start))"
-                                                    ." as linear_scale_index"
-                                                ))
+                                                    ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+                                                    ->select(
+                                                        'evaluation_percentage_answers.response_id',
+                                                        'evaluation_percentage_answers.subcategory_id',
+                                                        'evaluation_percentage_answers.percentage',
+                                                        'evaluation_form_subcategories.subcategory_type'
+                                                    )
+                                                    ->addSelect(DB::raw(
+                                                        "round(evaluation_percentage_answers.percentage*"
+                                                        ."(evaluation_form_subcategories.linear_scale_end"
+                                                        ."-evaluation_form_subcategories.linear_scale_start)"
+                                                        ."+evaluation_form_subcategories.linear_scale_start)"
+                                                        ." as value"
+                                                    ))
+                                                    ->addSelect(DB::raw(
+                                                        "round(evaluation_percentage_answers.percentage*"
+                                                        ."(evaluation_form_subcategories.linear_scale_end"
+                                                        ."-evaluation_form_subcategories.linear_scale_start))"
+                                                        ." as linear_scale_index"
+                                                    ))
+                                                    ->where('response_id', $request->id)
                                             ,
                                             'textAnswer' => fn ($textAnswer) =>
-                                                $textAnswer->select('response_id', 'subcategory_id', 'answer')
+                                                $textAnswer
+                                                    ->select('response_id', 'subcategory_id', 'answer')
+                                                    ->where('response_id', $request->id)
                                         ])
                                         ->orderBy('order')
                                 ])
@@ -842,7 +848,7 @@ class EvaluationResponseController extends Controller
         // output:
         // { evaluationResponseID }
 
-        log::info('EvaluationResponseController::getEvaluationResponse');
+        log::info('EvaluationResponseController::saveEvaluationResponse');
 
         if (Auth::check()) {
             $userID = Auth::id();
