@@ -324,11 +324,46 @@ export function useEvaluationResponse(responseId) {
         reloadEvaluationResponse();
     }
 
+    // checkbox answer operations
+    function setCheckboxAnswers(subcategoryId, optionId, checked) {
+        const subcategory = subcategories[subcategoryId];
+        if (!subcategory) return;
+        const option = options[optionId];
+        if (!option) return;
+
+        if (!subcategory.checkbox_answers) subcategory.checkbox_answers = [];
+
+        if (checked) {
+            // Only add if not already present
+            if (!subcategory.checkbox_answers.includes(optionId)) {
+                subcategory.checkbox_answers.push(optionId);
+                // Create option_answer for this option
+                option.option_answer = {
+                    response_id: evaluationResponse.id,
+                    option_id: optionId,
+                    action: 'create'
+                };
+            }
+        } else {
+            // Remove from checkbox_answers
+            subcategory.checkbox_answers = subcategory.checkbox_answers.filter(id => id !== optionId);
+            // Remove/destroy option_answer
+            if (option.option_answer) {
+                if (option.option_answer.action === 'create') {
+                    delete option.option_answer; // Not saved yet, just remove
+                } else {
+                    option.option_answer.action = 'delete'; // Mark for deletion
+                }
+            }
+        }
+        reloadEvaluationResponse();
+    }
+
     return {
         evaluationResponse, options, subcategories,
         deleteEvaluationResponse, saveEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
-        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer
+        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer, setCheckboxAnswers
     };
 
 }
