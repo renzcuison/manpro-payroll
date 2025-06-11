@@ -123,11 +123,23 @@ export function useEvaluationResponse(responseId) {
 
     function deleteOptionAnswer(optionId) {
         const option = options[optionId];
-        switch(option.option_answer.action) {
-            case 'create':
-                delete option.option_answer;
+        if(option.option_answer.action === 'create') {
+            option.option_answer = null;
+            return;
+        }
+        const subcategoryId = option.subcategory_id;
+        const subcategory = subcategories[subcategoryId];
+        switch(subcategory.subcategory_type) {
+            case 'checkbox':
+                const newOptionId = findNewOptionId(subcategoryId);
+                if(newOptionId != null) {
+                    const optionAnswer = options[newOptionId].option_answer;
+                    optionAnswer.old_option_id = optionId;
+                    optionAnswer.action = 'update';
+                    option.option_answer = null;
+                } else option.option_answer.action = 'delete';
                 break;
-            default:
+            case 'multiple_choice':
                 option.option_answer.action = 'delete';
         }
     }
@@ -141,8 +153,31 @@ export function useEvaluationResponse(responseId) {
 
     function findDeletedOptionId(subcategoryId) {
         const subcategory = subcategories[subcategoryId];
-        for(let { id: optionId, option_answer: { action } } of subcategory.options)
-            if(action === 'delete') return optionId;
+        for(let { id: optionId, option_answer } of subcategory.options)
+            if(option_answer?.action === 'delete') return optionId;
+        return undefined;
+    }
+
+    function findNewOptionId(subcategoryId) {
+        const subcategory = subcategories[subcategoryId];
+        for(let { id: optionId, option_answer } of subcategory.options)
+            if(option_answer?.action === 'create') return optionId;
+        return undefined;
+    }
+
+    function findRecordedOptionId(optionId) {
+        const option = options[optionId];
+        const subcategoryId = option.subcategory_id;
+        const subcategory = subcategories[subcategoryId];
+        for(let { id: optionIdCompare, option_answer } of subcategory.options)
+            if(option_answer && option_answer.old_option_id == optionId) return optionIdCompare;
+        return undefined;
+    }
+
+    function getMultipleChoiceOptionId(subcategoryId) {
+        const subcategory = subcategories[subcategoryId];
+        for(let { id: optionId, option_answer } of subcategory.options)
+            if(option_answer && option_answer.action != 'delete') return optionId;
         return undefined;
     }
 
@@ -180,18 +215,49 @@ export function useEvaluationResponse(responseId) {
         const subcategory = subcategories[subcategoryId];
         switch(subcategory.subcategory_type) {
             case 'checkbox':
-                // if(optionId === undefined) return;
-                // const deletedOptionId = findDeletedOptionId(subcategoryId);
-                // if(deletedOptionId == undefined)
-                //     option.option_answer = {
-                //         response_id: evaluationResponse.id,
-                //         option_id: optionId,
-                //         action: 'create'
-                //     }
-                // else if(options[optionId].option_answer.action === 'create') {
-                //     const optionAnswer = options[activeOptionId].option_answer;
-                //     optionAnswer.option_id = optionId;
-                // }
+                if(optionId === undefined) return;
+                if(options[optionId].option_answer) {
+                    const optionAnswer = options[optionId].option_answer;
+                    if(optionAnswer.action == 'delete')
+                        delete optionAnswer.action;
+                    else
+                        deleteOptionAnswer(optionId);
+                    break;
+                }
+                const recordedOptionId = findRecordedOptionId(optionId);
+                if(recordedOptionId != undefined) {
+                    const optionAnswer = options[recordedOptionId].option_answer;
+                    options[recordedOptionId].option_answer = {
+                        response_id: evaluationResponse.id,
+                        option_id: optionAnswer.option_id,
+                        action: 'create'
+                    }
+                    optionAnswer.option_id = optionId;
+                    options[optionId].option_answer = optionAnswer;
+                    delete optionAnswer.old_option_id;
+                    delete optionAnswer.action;
+                    break;
+                }
+                const deletedOptionId = findDeletedOptionId(subcategoryId);
+                if(deletedOptionId != undefined) {
+                    const optionAnswer = options[deletedOptionId].option_answer;
+                    optionAnswer.option_id = optionId;
+                    options[optionId].option_answer = optionAnswer;
+                    delete options[deletedOptionId].option_answer;
+                    if(optionId != optionAnswer.old_option_id) {
+                        optionAnswer.action = 'update';
+                        optionAnswer.old_option_id = deletedOptionId;
+                    } else {
+                        delete optionAnswer.action;
+                        delete optionAnswer.old_option_id;
+                    }
+                    break;
+                }
+                options[optionId].option_answer = {
+                    response_id: evaluationResponse.id,
+                    option_id: optionId,
+                    action: 'create'
+                };
                 break;
             case 'multiple_choice':
                 const activeOptionId = findActiveOptionId(subcategoryId);
@@ -202,7 +268,7 @@ export function useEvaluationResponse(responseId) {
                         response_id: evaluationResponse.id,
                         option_id: optionId,
                         action: 'create'
-                    }
+                    };
                 else if(options[activeOptionId].option_answer.action === 'create') {
                     const optionAnswer = options[activeOptionId].option_answer;
                     optionAnswer.option_id = optionId;
@@ -223,6 +289,7 @@ export function useEvaluationResponse(responseId) {
                 }
         }
         reloadEvaluationResponse();
+        console.log(subcategory)
     }
 
     // percentage answer operations
@@ -328,7 +395,8 @@ export function useEvaluationResponse(responseId) {
         evaluationResponse, options, subcategories,
         deleteEvaluationResponse, saveEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
-        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer
+        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
+        getMultipleChoiceOptionId
     };
 
 }

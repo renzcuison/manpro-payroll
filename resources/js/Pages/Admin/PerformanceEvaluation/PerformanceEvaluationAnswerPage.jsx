@@ -27,7 +27,8 @@ const PerformanceEvaluationAnswerPage = () => {
   const {
     evaluationResponse, options, subcategories,
     saveEvaluationResponse, setPercentageAnswer, setTextAnswer,
-    findActiveOptionId, deleteOptionAnswer, deleteOptionAnswers, setOptionAnswer
+    findActiveOptionId, deleteOptionAnswer, deleteOptionAnswers, setOptionAnswer,
+    getMultipleChoiceOptionId
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
@@ -68,8 +69,8 @@ const PerformanceEvaluationAnswerPage = () => {
   };
 
   // Handler for checkbox (multi-select)
-  const handleCheckboxChange = (subcategoryId, optionId) => (event) => {
-    // setCheckboxAnswers(subcategoryId, optionId, event.target.checked);
+  const handleCheckboxChange = (optionId) => {
+    setOptionAnswer(optionId);
   };
 
   const handleShortAnswerChange = (subcategoryId, value) => {
@@ -338,8 +339,8 @@ const PerformanceEvaluationAnswerPage = () => {
                       {subCategory.subcategory_type === 'multiple_choice' && (
                         <Box sx={{ mb: 2 }}>
                           <RadioGroup
-                            value={findActiveOptionId(subCategory.id) || ''}
-                            onChange={e => handleOptionChange(parseInt(e.target.value))}
+                            value={getMultipleChoiceOptionId(subCategory.id) || ''}
+                            onChange={e => handleOptionChange(+e.target.value)}
                           >
                             {(subCategory.options || []).map(opt => (
                               <FormControlLabel
@@ -362,9 +363,9 @@ const PerformanceEvaluationAnswerPage = () => {
                                 control={
                                   <Checkbox
                                     checked={
-                                      (subCategory.checkbox_answers || []).includes(opt.id)
+                                      Boolean(opt.option_answer && opt.option_answer.action != 'delete')
                                     }
-                                    onChange={handleCheckboxChange(subCategory.id, opt.id)}
+                                    onChange={() => handleCheckboxChange(opt.id)}
                                   />
                                 }
                                 label={opt.label}
