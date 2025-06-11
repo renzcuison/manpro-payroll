@@ -99,7 +99,7 @@ import PerformanceEvaluationPreview from '../Pages/Admin/PerformanceEvaluation/P
 import PerformanceEvaluationResponsePage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationResponsePage';
 import PerformanceEvaluationAnswerPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationAnswerPage';
 import PerformanceEvaluationCommentorPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCommentorPage'
-
+import PerformanceEvaluationEvaluateePage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationEvaluateePage'
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -118,6 +118,7 @@ const AdminRoutes = ({ user }) => {
              <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} />
              <Route path="performance-evaluation/answer/:id" element={<ProtectedRoute element={<PerformanceEvaluationAnswerPage />} user={user} />} />
              <Route path="performance-evaluation/commentor/:id" element={<ProtectedRoute element={<PerformanceEvaluationCommentorPage />} user={user} />} />
+            <Route path="performance-evaluation/evaluatee/:id" element={<ProtectedRoute element={<PerformanceEvaluationEvaluateePage />} user={user} />} />
 
             <Route
                 path="dashboard"
