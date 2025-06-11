@@ -251,6 +251,10 @@ const PerformanceEvaluationCommentorPage = () => {
     ? responseMeta.commentors
     : [];
 
+  const allEvaluators = Array.isArray(responseMeta.evaluators) && responseMeta.evaluators.length > 0
+    ? responseMeta.evaluators
+    : [];
+
   const getOrderLabel = (idx) => {
     const n = idx + 1;
     if (n === 1) return "First";
@@ -424,6 +428,53 @@ const PerformanceEvaluationCommentorPage = () => {
             </AccordionDetails>
           </Accordion>
         ))}
+
+        {/* All Evaluators Section - Each in its own box, stacked vertically */}
+        <Box sx={{ mt: 6 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+            Evaluator Comments:
+          </Typography>
+          {allEvaluators.length > 0 ? (
+            <Box>
+              {allEvaluators.map((evaluator, i) => (
+                <Paper
+                  key={evaluator.evaluator_id || evaluator.id || i}
+                  elevation={2}
+                  sx={{
+                    width: "100%",
+                    p: 3,
+                    mb: 3,
+                    borderRadius: 2,
+                    border: '1px solid #e0e0e0',
+                    boxShadow: 1,
+                    bgcolor: '#fcfcfc',
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#2a7f2a', mb: 0.5 }}>
+                    Evaluator {i + 1}
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                    {getFullName(evaluator)}
+                  </Typography>
+                  <TextField
+                    label="Evaluator Comment"
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    value={evaluator.comment || ''}
+                    sx={{ mt: 1 }}
+                    placeholder="No comment provided"
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                  />
+                </Paper>
+              ))}
+            </Box>
+          ) : (
+            <Typography color="text.secondary"><i>No evaluators found.</i></Typography>
+          )}
+        </Box>
 
         {/* All Commentors Section - Each in its own box, stacked vertically */}
         <Box sx={{ mt: 6 }}>
