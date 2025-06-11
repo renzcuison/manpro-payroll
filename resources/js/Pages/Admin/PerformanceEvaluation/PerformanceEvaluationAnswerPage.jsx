@@ -273,6 +273,8 @@ const PerformanceEvaluationAnswerPage = () => {
                       <Typography variant="body2">Type: {responseTypeMap[subCategory.subcategory_type] || 'Unknown'}</Typography>
                       <Typography variant="body2" >Description: {subCategory.description}</Typography>
 
+                      
+
                       {subCategory.subcategory_type === 'linear_scale' && (
                         <Box sx={{ mb: 2 }}>
                           <Grid container alignItems="center" spacing={2} justifyContent='center'>
@@ -374,6 +376,26 @@ const PerformanceEvaluationAnswerPage = () => {
                           </FormGroup>
                         </Box>
                       )}
+
+                      {(subCategory.subcategory_type === 'multiple_choice' || subCategory.subcategory_type === 'checkbox') && (
+                        <Box sx={{ mb: 1, mt: 1 }}>
+                          <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                            Legend:
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                            {subCategory.options?.map((opt, index) => (
+                              <Typography
+                                key={opt.id}
+                                variant="body2"
+                                sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}
+                              >
+                                {opt.label} - {opt.score ?? 1} {index !== subCategory.options.length - 1 && ','} {/* Add comma if not the last item */}
+                              </Typography>
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
+
 
                     </Box>
                   ))
