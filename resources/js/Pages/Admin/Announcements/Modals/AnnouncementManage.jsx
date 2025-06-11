@@ -75,7 +75,7 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
 
     const hasImages = Array.isArray(images) && images.length > 0;
     const hasDocuments = Array.isArray(attachments) && attachments.length > 0;
-    const cardWidth = hasImages && hasDocuments ? "48%" : "100%";
+    const cardWidth = hasImages && hasDocuments ? "48%" : "48%";
 
     const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
     const [imagePreviewSrc, setImagePreviewSrc] = useState("");
