@@ -24,19 +24,21 @@ const PerformanceEvaluationCommentorPage = () => {
   const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveEvaluationOpen, setSaveEvaluationOpen] = useState(false);
-  const [firstCommentorComment, setFirstCommentorComment] = useState('');
-  const [firstCommentorId, setFirstCommentorId] = useState(null);
+  // Manage comments state for all commentors
+  const [commentorComments, setCommentorComments] = useState([]);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
-      // Set initial value for first commentor
-      if (
-        Array.isArray(evaluationResponse.commentors) &&
-        evaluationResponse.commentors.length > 0
-      ) {
-        setFirstCommentorComment(evaluationResponse.commentors[0].comment || '');
-        setFirstCommentorId(evaluationResponse.commentors[0].commentor_id);
+      // Set initial values for all commentors
+      if (Array.isArray(evaluationResponse.commentors) && evaluationResponse.commentors.length > 0) {
+        setCommentorComments(
+          evaluationResponse.commentors.map(c => ({
+            commentor_id: c.commentor_id,
+            comment: c.comment || '',
+            name: getFullName(c)
+          }))
+        );
       }
     }
   }, [evaluationResponse]);
@@ -49,15 +51,26 @@ const PerformanceEvaluationCommentorPage = () => {
   };
   const settingsOpen = Boolean(settingsAnchorEl);
 
+  // Update specific commentor comment in local state
+  const handleCommentChange = (commentor_id, value) => {
+    setCommentorComments(prev =>
+      prev.map(c =>
+        c.commentor_id === commentor_id ? { ...c, comment: value } : c
+      )
+    );
+  };
+
   const handleSaveEvaluation = async () => {
     setSaving(true);
-    // Optionally save the comment before saving evaluation
-    if (firstCommentorId && firstCommentorComment !== undefined && editEvaluationCommentor) {
-      await editEvaluationCommentor({
-        response_id: evaluationResponse.id,
-        commentor_id: firstCommentorId,
-        comment: firstCommentorComment
-      });
+    // Save all comments before saving evaluation
+    if (editEvaluationCommentor && Array.isArray(commentorComments)) {
+      for (const c of commentorComments) {
+        await editEvaluationCommentor({
+          response_id: evaluationResponse.id,
+          commentor_id: c.commentor_id,
+          comment: c.comment
+        });
+      }
     }
     await saveEvaluationResponse();
     setSaving(false);
@@ -201,10 +214,21 @@ const PerformanceEvaluationCommentorPage = () => {
     }
   };
 
-  // Find first commentor (if any)
-  const firstCommentor = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
-    ? responseMeta.commentors[0]
-    : null;
+  // Find all commentors
+  const allCommentors = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
+    ? responseMeta.commentors
+    : [];
+
+  // Helper to map index to order (1st, 2nd, 3rd, etc)
+  const getOrderLabel = (idx) => {
+    const n = idx + 1;
+    if (n === 1) return "First";
+    if (n === 2) return "Second";
+    if (n === 3) return "Third";
+    if (n === 4) return "Fourth";
+    if (n === 5) return "Fifth";
+    return `${n}th`;
+  };
 
   return (
     <Layout title="Performance Evaluation Answers">
@@ -371,36 +395,50 @@ const PerformanceEvaluationCommentorPage = () => {
           </Accordion>
         ))}
 
-        {/* First Commenter Section with Editable TextField */}
-        <Box sx={{
-          mt: 6,
-          p: 3,
-          bgcolor: '#f8f8f8',
-          borderRadius: 2,
-          border: '1px solid #e0e0e0',
-          boxShadow: 1
-        }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-            First Commenter:
+        {/* All Commentors Section - Each in its own box, stacked vertically */}
+        <Box sx={{ mt: 6 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+            Commentors:
           </Typography>
-          {firstCommentor ? (
+          {allCommentors.length > 0 ? (
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                {getFullName(firstCommentor)}
-              </Typography>
-              <TextField
-                label="Comment"
-                multiline
-                minRows={3}
-                fullWidth
-                value={firstCommentorComment}
-                sx={{ mt: 1 }}
-                onChange={e => setFirstCommentorComment(e.target.value)}
-                placeholder="Enter your comment here"
-              />
+              {allCommentors.map((commentor, i) => (
+                <Paper
+                  key={commentor.commentor_id}
+                  elevation={2}
+                  sx={{
+                    width: "100%",
+                    p: 3,
+                    mb: 3,
+                    borderRadius: 2,
+                    border: '1px solid #e0e0e0',
+                    boxShadow: 1,
+                    bgcolor: '#fcfcfc',
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#9E7600', mb: 0.5 }}>
+                    {getOrderLabel(i)} Commentor
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                    {getFullName(commentor)}
+                  </Typography>
+                  <TextField
+                    label="Comment"
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    value={
+                      commentorComments.find(c => c.commentor_id === commentor.commentor_id)?.comment || ''
+                    }
+                    sx={{ mt: 1 }}
+                    onChange={e => handleCommentChange(commentor.commentor_id, e.target.value)}
+                    placeholder="Enter your comment here"
+                  />
+                </Paper>
+              ))}
             </Box>
           ) : (
-            <Typography color="text.secondary"><i>No first commenter found.</i></Typography>
+            <Typography color="text.secondary"><i>No commentors found.</i></Typography>
           )}
         </Box>
 

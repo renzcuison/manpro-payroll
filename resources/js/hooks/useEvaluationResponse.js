@@ -8,10 +8,14 @@ export function useEvaluationResponse(responseId) {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [evaluationResponse, setEvaluationResponse] = useState({});
     const subcategories = evaluationResponse.form?.sections.reduce((subcategories, section) => {
-        for(let subcategory of section.subcategories)
-            subcategories[subcategory.id] = subcategory;
+        for(let subcategory of section.subcategories) subcategories[subcategory.id] = subcategory;
         return subcategories;
-    }, {}) ?? [];
+    }, {}) ?? {};
+    const options = Object.keys(subcategories).reduce((options, subcategoryId) => {
+        const subcategory = subcategories[subcategoryId];
+        for(let option of subcategory.options) options[option.id] = option;
+        return options;
+    }, {});
 
     useEffect(() => {
         getEvaluationResponse();
@@ -75,6 +79,13 @@ export function useEvaluationResponse(responseId) {
             for(let subcategory_id in subcategories) {
                 const subcategory = subcategories[subcategory_id];
                 switch(subcategory.subcategory_type) {
+                    case 'checkbox':
+                    case 'multiple_choice':
+                        for(let { option_answer } of subcategory.options) {
+                            if(!option_answer) continue;
+                            await saveOptionAnswer( option_answer );
+                        }
+                        break;
                     case 'long_answer':
                     case 'short_answer':
                         const { text_answer } = subcategory;
@@ -86,7 +97,6 @@ export function useEvaluationResponse(responseId) {
                         if(!percentage_answer) break;
                         await savePercentageAnswer(percentage_answer);
                         break;
-                    // put other subcategory type handling here
                 }
             }
             reloadEvaluationResponse();
@@ -99,10 +109,123 @@ export function useEvaluationResponse(responseId) {
                     popup: 'swal-popup-overlay'
                 }
             });
+            console.error("Error saving evaluation response: ", e);
         }
     }
 
-    // response percentage answer operations
+    // option answer operations
+
+    function deleteOptionAnswers(subcategoryId) {
+        const subcategory = subcategories[subcategoryId];
+        for(let { id: optionId } of subcategory.options)
+            deleteOptionAnswer(optionId);
+    }
+
+    function deleteOptionAnswer(optionId) {
+        const option = options[optionId];
+        switch(option.option_answer.action) {
+            case 'create':
+                delete option.option_answer;
+                break;
+            default:
+                option.option_answer.action = 'delete';
+        }
+    }
+
+    function findActiveOptionId(subcategoryId) {
+        const subcategory = subcategories[subcategoryId];
+        for(let { id: optionId, option_answer } of subcategory.options)
+            if(option_answer) return optionId;
+        return undefined;
+    }
+
+    function findDeletedOptionId(subcategoryId) {
+        const subcategory = subcategories[subcategoryId];
+        for(let { id: optionId, option_answer: { action } } of subcategory.options)
+            if(action === 'delete') return optionId;
+        return undefined;
+    }
+
+    async function saveOptionAnswer(option_answer) {
+        let response;
+        switch(option_answer.action) {
+            case 'create':
+                response = await axiosInstance.post(
+                    '/saveEvaluationOptionAnswer', option_answer, { headers }
+                );
+                if(!response.data.status.toString().startsWith(2)) throw response;
+                break;
+            case 'update':
+                response = await axiosInstance.post(
+                    '/editEvaluationOptionAnswer', {
+                        ...option_answer,
+                        option_id: option_answer.old_option_id,
+                        new_option_id: option_answer.option_id
+                    }, { headers }
+                );
+                if(!response.data.status.toString().startsWith(2)) throw response;
+                break;
+            case 'delete':
+                response = await axiosInstance.post(
+                    '/deleteEvaluationOptionAnswer', option_answer, { headers }
+                );
+                if(!response.data.status.toString().startsWith(2)) throw response;
+                break;
+        }
+    }
+
+    function setOptionAnswer(optionId) {
+        const option = options[optionId];
+        const subcategoryId = option.subcategory_id;
+        const subcategory = subcategories[subcategoryId];
+        switch(subcategory.subcategory_type) {
+            case 'checkbox':
+                // if(optionId === undefined) return;
+                // const deletedOptionId = findDeletedOptionId(subcategoryId);
+                // if(deletedOptionId == undefined)
+                //     option.option_answer = {
+                //         response_id: evaluationResponse.id,
+                //         option_id: optionId,
+                //         action: 'create'
+                //     }
+                // else if(options[optionId].option_answer.action === 'create') {
+                //     const optionAnswer = options[activeOptionId].option_answer;
+                //     optionAnswer.option_id = optionId;
+                // }
+                break;
+            case 'multiple_choice':
+                const activeOptionId = findActiveOptionId(subcategoryId);
+                if(optionId == undefined) {
+                    if(activeOptionId == undefined) deleteOptionAnswer(activeOptionId);
+                } else if(activeOptionId === undefined)
+                    option.option_answer = {
+                        response_id: evaluationResponse.id,
+                        option_id: optionId,
+                        action: 'create'
+                    }
+                else if(options[activeOptionId].option_answer.action === 'create') {
+                    const optionAnswer = options[activeOptionId].option_answer;
+                    optionAnswer.option_id = optionId;
+                    options[optionId].option_answer = optionAnswer;
+                    delete options[activeOptionId].option_answer;
+                } else {
+                    const optionAnswer = options[activeOptionId].option_answer;
+                    optionAnswer.option_id = optionId;
+                    options[optionId].option_answer = optionAnswer;
+                    delete options[activeOptionId].option_answer;
+                    if(optionId != optionAnswer.old_option_id) {
+                        optionAnswer.action = 'update';
+                        optionAnswer.old_option_id = activeOptionId;
+                    } else {
+                        delete optionAnswer.action;
+                        delete optionAnswer.old_option_id;
+                    }
+                }
+        }
+        reloadEvaluationResponse();
+    }
+
+    // percentage answer operations
 
     async function savePercentageAnswer(percentage_answer) {
         let response;
@@ -152,7 +275,7 @@ export function useEvaluationResponse(responseId) {
         reloadEvaluationResponse();
     }
 
-    // response text answer operations
+    // text answer operations
 
     async function saveTextAnswer(text_answer) {
         let response;
@@ -202,9 +325,10 @@ export function useEvaluationResponse(responseId) {
     }
 
     return {
-        evaluationResponse, subcategories,
+        evaluationResponse, options, subcategories,
         deleteEvaluationResponse, saveEvaluationResponse,
-        savePercentageAnswer, setPercentageAnswer, setTextAnswer
+        setPercentageAnswer, setTextAnswer,
+        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer
     };
 
 }
