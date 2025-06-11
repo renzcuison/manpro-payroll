@@ -38,3 +38,10 @@ export function useSaveEmployeeAllowance() {
         return response.data;
     });
 }
+
+export function useUpdateEmployeeAllowance() {
+    return useMutation(async (data) => {
+        const response = await axiosInstance.post('/compensation/updateEmployeeAllowance', data, { headers });
+        return response.data;
+    });
+}

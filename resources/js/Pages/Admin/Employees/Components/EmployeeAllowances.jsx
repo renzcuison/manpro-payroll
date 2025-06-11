@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
 import { useEmployeeAllowances } from "../../../../hooks/useAllowance";
-import EmployeeAddAllowance from "../Modals/EmployeeAddAllowance";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import EmployeeAllowanceView from "../../Allowance/Modals/EmployeeAllowanceView";
 
 const EmployeeAllowances = ({userName}) => {
-    const [openEmployeeAddAllowance, setOpenEmployeeAddAllowance] = useState(false);
+    const [openEmployeeViewAllowance, setOpenEmployeeViewAllowance] = useState(false);
     const {data, isLoading, error, refetch} = useEmployeeAllowances(userName);
     const allowances = data?.allowances || [];
 
-    const handleOpenAddEmployeeAllowance = ()=>{
-        setOpenEmployeeAddAllowance(true);
+    const handleOpenViewEmployeeAllowance = ()=>{
+        setOpenEmployeeViewAllowance(true);
     }
-    const handleCloseAddEmployeeAllowance = (reload) => {
-        setOpenEmployeeAddAllowance(false);
+    const handleCloseViewEmployeeAllowance = (reload) => {
+        setOpenEmployeeViewAllowance(false);
         if(reload){
             refetch();
         }
@@ -24,8 +24,8 @@ const EmployeeAllowances = ({userName}) => {
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Allowances </Typography>
 
                 <Tooltip title="Add Benefits">
-                    <IconButton color="primary" onClick={() => handleOpenAddEmployeeAllowance()}>
-                        <AddCircleOutlineIcon sx={{fontSize: 30}}/>
+                    <IconButton color="primary" onClick={() => handleOpenViewEmployeeAllowance()}>
+                        <VisibilityOutlinedIcon sx={{fontSize: 30}}/>
                     </IconButton>
                 </Tooltip>
             </Box>
@@ -63,8 +63,8 @@ const EmployeeAllowances = ({userName}) => {
                     </TableBody>
                 </Table>
             </TableContainer>
-            {openEmployeeAddAllowance && <EmployeeAddAllowance userName={userName}
-            open={openEmployeeAddAllowance} onClose={handleCloseAddEmployeeAllowance}></EmployeeAddAllowance>}
+            {openEmployeeViewAllowance && <EmployeeAllowanceView userName={userName}
+            open={openEmployeeViewAllowance} close={handleCloseViewEmployeeAllowance}></EmployeeAllowanceView>}
         </Box>
     )
 }

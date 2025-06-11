@@ -18,8 +18,8 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const {data, isLoading, refetch} = useEmployeeBenefits(userName);
-
     const benefits = data?.benefits || [];
+    
     const [benefitsAddOpen, setBenefitsAddOpen] = useState(false);
     const [benefitEditOpen, setBenefitEditOpen] = useState(false);
     const [benefitsListOpen, setBenefitsListOpen] = useState(false);

@@ -473,14 +473,14 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span className="sidebar-mini-hidden text-dark"> Compensation Management </span>
                                     </li>
 
-                                    <StyledNav to={`/admin/employees/allowance`}>
-                                        <i className="fa fa-money" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide"> Allowance </span>
-                                    </StyledNav>
-
                                     <StyledNav to={`/admin/employees/benefits`}>
                                         <i className="fa fa-university" style={{ color: "#2a800f" }} ></i>
                                         <span id="navName" className="sidebar-mini-hide"> Benefits </span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/admin/employees/allowance`}>
+                                        <i className="fa fa-money" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Allowance </span>
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/employees/incentives`}>

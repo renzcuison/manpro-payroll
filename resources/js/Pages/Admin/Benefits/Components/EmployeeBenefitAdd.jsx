@@ -80,7 +80,7 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        onClose();
+                        onClose(true);
                     });
                 }
             })
@@ -103,7 +103,7 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
                         required
                         select
                         id="benefits"
-                        label="benefit"
+                        label="Benefit"
                         value={benefit}
                         error={benefitError}
                         onChange={(event) => setBenefit(event.target.value)}
@@ -134,7 +134,7 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
                 <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white', mx: 1 }}>
                     <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                 </Button>
-                <Button type="submit" variant="contained" sx={{ backgroundColor: '#636c74', color: 'white', mx: 1 }} onClick={onClose}>
+                <Button type="submit" variant="contained" sx={{ backgroundColor: '#636c74', color: 'white', mx: 1 }} onClick={() => onClose(false)}>
                     <p className='m-0'><i class="fa fa-times" aria-hidden="true"></i> Cancel </p>
                 </Button>
             </Box>

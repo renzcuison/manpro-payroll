@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('employee_incentives', function (Blueprint $table) {
+        Schema::table('employee_allowances', function (Blueprint $table) {
             $table->enum('status', ['Active', 'Inactive'])->after('number')->default('Active');
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('employee_incentives', function (Blueprint $table) {
+        Schema::table('employee_allowances', function (Blueprint $table) {
             $table->dropColumn('status');
         });
     }

@@ -40,15 +40,15 @@ const EmployeeBenefitList = ({ benefits,  onAdd, onEdit }) => {
                                         <Typography>{dayjs(benefit.created_at).format("MMMM DD, YYYY")}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Button onClick={() => onEdit(index)} variant="contained">
-                                            <i class="fa fa-pencil-square-o mr-2"/>Edit
+                                        <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
+                                            <i class="fa fa-pencil-square-o fa-lg"/>
                                         </Button>
                                     </TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                <TableCell colSpan={6} align="center" sx={{ color: "text.secondary", p: 1 }}>
                                     No Benefits Found
                                 </TableCell>
                             </TableRow>

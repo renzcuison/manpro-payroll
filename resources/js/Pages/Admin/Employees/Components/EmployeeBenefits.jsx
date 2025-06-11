@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
 import { useEmployeeBenefits } from "../../../../hooks/useBenefits";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import EmployeeBenefitView from "../../Benefits/Modals/EmployeeBenefitView";
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
-import EmployeeAddBenefit from '../Modals/EmployeeAddBenefit';
 
 const EmployeeBenefits = ({ userName, headers }) => {
     const [openEmployeeViewBenefit, setOpenEmployeeViewBenefit] = useState(false);
@@ -31,7 +29,7 @@ const EmployeeBenefits = ({ userName, headers }) => {
 
                 <Tooltip title="View In Detail">
                     <IconButton color="primary" onClick={() => handleCloseViewEmployeeBenefits()}>
-                        <VisibilityIcon sx={{fontSize: 30}}/>
+                        <VisibilityOutlinedIcon sx={{fontSize: 30}}/>
                     </IconButton>
                 </Tooltip>
             </Box>

@@ -36,3 +36,11 @@ export function useSaveEmployeeIncentives() {
         return response.data;
     });
 }
+
+export function useUpdateEmployeeIncentive() {
+    return useMutation(async (data) => {
+        const response = await axiosInstance.post('/compensation/updateEmployeeIncentive', data, { headers });
+        return response.data;
+    });
+}
+

@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, MenuItem, TextField,  FormControl, FormGroup, InputAdornment } from "@mui/material";
-import dayjs from "dayjs";
+import { Box, Button, MenuItem, TextField,  FormControl, FormGroup } from "@mui/material";
 import Swal from "sweetalert2";
-import { useUpdateEmployeeBenefit } from "../../../../hooks/useBenefits";
+import { useUpdateEmployeeIncentive } from "../../../../hooks/useIncentives";
 
-const EmployeeBenefitEdit = ({benefits, onClose}) => {
-    const updateEmpBenefit = useUpdateEmployeeBenefit();
+const EmployeeIncentiveEdit = ({incentives, onClose}) => {
+    const updateEmpIncentive = useUpdateEmployeeIncentive();
 
-    const [number, setNumber] = useState(benefits?.number)
-    const [selectedStatus, setSelectedStatus] = useState(benefits?.status);
+    const [number, setNumber] = useState(incentives?.number)
+    const [selectedStatus, setSelectedStatus] = useState(incentives?.status);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -26,7 +25,7 @@ const EmployeeBenefitEdit = ({benefits, onClose}) => {
         Swal.fire({
             customClass: { container: 'my-swal' },
             title: "Are you sure?",
-            text: "Update this benefit",
+            text: "Update this incentive",
             icon: "warning",
             showConfirmButton: true,
             confirmButtonText: "Confirm",
@@ -41,8 +40,8 @@ const EmployeeBenefitEdit = ({benefits, onClose}) => {
 
     const saveBenefit = (event) => {
         event.preventDefault();
-        const data = {emp_benefit_id: benefits.id, number: number}
-        updateEmpBenefit.mutate(data,
+        const data = {emp_incentive_id: incentives.id, number: number}
+        updateEmpIncentive.mutate(data,
         {
             onSuccess: () => {
                 Swal.fire({
@@ -65,15 +64,14 @@ const EmployeeBenefitEdit = ({benefits, onClose}) => {
     return (
         <>
             <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
-                {/*Details <Read-Only>*/}
                 <FormGroup row={true} className="d-flex justify-content-between" sx={{mb:4}}>
                     <FormControl sx={{
                      width: '35%', '& label.Mui-focused': { color: '#97a5ba' },
                     '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                 }}>
                         <TextField
-                            label={'Benefits'}
-                            value={benefits.name}
+                            label={'Incentives'}
+                            value={incentives.name}
                             InputProps={{ readOnly: true }}
                          />                    
                     </FormControl>
@@ -110,4 +108,4 @@ const EmployeeBenefitEdit = ({benefits, onClose}) => {
         </>
     )
 }
-export default EmployeeBenefitEdit;
+export default EmployeeIncentiveEdit;

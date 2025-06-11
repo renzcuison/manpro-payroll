@@ -4,17 +4,19 @@ import { useEmployeeIncentives } from "../../../../hooks/useIncentives";
 import EmployeeAddAllowance from "../Modals/EmployeeAddAllowance";
 import EmployeeAddIncentives from "../Modals/EmployeeAddIncentives";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import EmployeeIncentiveView from "../../Incentives/Modals/EmployeeIncentiveView";
 
 const EmployeeIncentives = ({userName}) => {
-    const [openEmployeeAddIncentives, setOpenEmployeeAddIncentives] = useState(false);
+    const [openEmployeeViewIncentives, setOpenEmployeeViewIncentives] = useState(false);
     const {data, refetch} = useEmployeeIncentives(userName);
-    const incentives = data?.incentives || [];
+    const incentives = data?.incentives || [];  
 
-    const handleOpenAddEmployeeAllowance = ()=>{
-        setOpenEmployeeAddIncentives(true);
+    const handleOpenViewEmployeeIncentive = ()=>{
+        setOpenEmployeeViewIncentives(true);
     }
-    const handleCloseAddEmployeeAllowance = (reload) => {
-        setOpenEmployeeAddIncentives(false);
+    const handleCloseViewEmployeeIncentive = (reload) => {
+        setOpenEmployeeViewIncentives(false);
         if(reload){
             refetch();
         }
@@ -25,8 +27,8 @@ const EmployeeIncentives = ({userName}) => {
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Incentives </Typography>
 
                 <Tooltip title="Add Incentives">
-                    <IconButton color="primary" onClick={() => handleOpenAddEmployeeAllowance()}>
-                        <AddCircleOutlineIcon sx={{fontSize: 30}}/>
+                    <IconButton color="primary" onClick={() => handleOpenViewEmployeeIncentive()}>
+                        <VisibilityOutlinedIcon sx={{fontSize: 30}}/>
                     </IconButton>
                 </Tooltip>
             </Box>
@@ -64,8 +66,8 @@ const EmployeeIncentives = ({userName}) => {
                     </TableBody>
                 </Table>
             </TableContainer>
-            {openEmployeeAddIncentives && <EmployeeAddIncentives userName={userName}
-            open={openEmployeeAddIncentives} onClose={handleCloseAddEmployeeAllowance}/>}
+            {openEmployeeViewIncentives && <EmployeeIncentiveView userName={userName}
+            open={openEmployeeViewIncentives} close={handleCloseViewEmployeeIncentive}/>}
         </Box>
     )
 }
