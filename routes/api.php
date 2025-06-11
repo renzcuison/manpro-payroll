@@ -51,6 +51,7 @@ use App\Http\Controllers\MemberDashboardController;
 use App\Http\Controllers\MemberPayrollDetails;
 use App\Http\Controllers\MemberSettingsController;
 use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\CompensationManagementController;
 use App\Http\Controllers\EvaluationFormController;
 use App\Http\Controllers\EvaluationResponseController;
 use App\Http\Controllers\ReportsController;
@@ -202,6 +203,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/deleteFormLink', [EmployeesController::class, 'deleteFormLink']);
     });
 
+    //note: use the compensation routes for future referencing
     Route::prefix('allowance')->group(function () {
         Route::get('/getAllowances', [AllowanceController::class, 'getAllowances']);
         Route::post('/saveAllowance', [AllowanceController::class, 'saveAllowance']);
@@ -211,6 +213,36 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveEmployeeAllowance', [AllowanceController::class, 'saveEmployeeAllowance']);
     });
 
+    Route::prefix('compensation')->group(function () {
+
+        //allowances
+        Route::get('/getAllowances', [CompensationManagementController::class, 'getAllowances']);
+        Route::post('/saveAllowance', [CompensationManagementController::class, 'saveAllowance']);
+
+        Route::get('/getEmployeeAllowance', [CompensationManagementController::class, 'getEmployeeAllowance']);
+        Route::get('/getEmployeesAllowance', [CompensationManagementController::class, 'getEmployeesAllowance']);
+        Route::post('/saveEmployeeAllowance', [CompensationManagementController::class, 'saveEmployeeAllowance']);
+       
+        
+        //incentives
+        Route::get('/getIncentives', [CompensationManagementController::class, 'getIncentives']);
+        Route::post('saveIncentives', [CompensationManagementController::class, 'saveIncentives']);
+
+        Route::get('/getEmployeesIncentives', [CompensationManagementController::class, 'getEmployeesIncentives']);
+        Route::get('/getEmployeeIncentives', [CompensationManagementController::class, 'getEmployeeIncentives']);
+        Route::post('/saveEmployeeIncentives', [CompensationManagementController::class, 'saveEmployeeIncentives']);
+
+        
+        //benefits
+        Route::get('/getBenefits', [CompensationManagementController::class, 'getBenefits']);
+        Route::post('/saveBenefits', [CompensationManagementController::class, 'saveBenefits']);
+
+        Route::get('/getEmployeesBenefits', [CompensationManagementController::class, 'getEmployeesBenefits']);
+        Route::get('/getEmployeeBenefits', [CompensationManagementController::class, 'getEmployeeBenefits']);
+        Route::post('/saveEmployeeBenefits', [CompensationManagementController::class, 'saveEmployeeBenefits']);
+    });
+    
+    //note: use the compensation routes for future referencing
     Route::prefix('benefits')->group(function () {
         Route::get('/getBenefit', [BenefitsController::class, 'getBenefit']);
         Route::get('/getBenefits', [BenefitsController::class, 'getBenefits']);

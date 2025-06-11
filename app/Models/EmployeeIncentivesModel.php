@@ -5,23 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EmployeeBenefitsModel extends Model
+class EmployeeIncentivesModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'employee_benefits';
+    protected $table = 'employee_incentives';
 
     protected $primaryKey = 'id';
 
     protected $fillable = [
         'client_id',
         'user_id',
-        'benefit_id',
+        'incentive_id',
         'number',
     ];
 
-    public function benefit()
+    public function incentive()
     {
-        return $this->belongsTo(BenefitsModel::class, 'benefit_id');
+        return $this->belongsTo(IncentivesModel::class, 'incentive_id');
     }
 }

@@ -3,38 +3,37 @@ import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, 
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
-import { useAllowances } from '../../../hooks/useAllowance';
+import { useIncentives } from '../../../hooks/useIncentives';
 
-import AllowanceAdd from './Modals/AllowanceAdd';
+import IncentivesAdd from './Modals/IncentivesAdd';
 
-const AllowanceTypes = () => {
-    const { data, isLoading, error, refetch } = useAllowances();
-    const allowances = data?.allowances || [];
+const IncentivesTypes = () => {
+    const {data, isLoading, error, refetch} = useIncentives();
+    const incentives = data?.incentives || [];
+    const [openAddIncentiveseModal, setOpenAddIncentivesModal] = useState(false);
 
-    const [openAddAllowanceModal, setOpenAddAllowanceModal] = useState(false);
-
-    const handleOpenAddAllowanceModal = () => {
-        setOpenAddAllowanceModal(true);
+    const handleOpenAddIncentiveseModal = () => {
+        setOpenAddIncentivesModal(true);
     }
 
-    const handleCloseAddAllowanceModal = () => {
-        setOpenAddAllowanceModal(false);
+    const handleCloseAddIncentiveseModal = () => {
+        setOpenAddIncentivesModal(false);
         refetch();
     }
 
     return (
-        <Layout title={"LeaveCreditList"}>
+        <Layout title={"IncentivesList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                            <Link to="/admin/employees/allowance" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to="/admin/employees/incentives" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
-                            &nbsp; Allowance Types
+                            &nbsp; Incentives Types
                         </Typography>
 
-                        <Button variant="contained" color="primary" onClick={handleOpenAddAllowanceModal}>
+                        <Button variant="contained" color="primary" onClick={handleOpenAddIncentiveseModal}>
                             <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                         </Button>
                     </Box>
@@ -56,24 +55,24 @@ const AllowanceTypes = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {allowances.length > 0 ? (
-                                                allowances.map((allowance) => (
-                                                    <TableRow key={allowance.id}>
-                                                        <TableCell align="center">{allowance.name}</TableCell>
-                                                        <TableCell align="center">{allowance.type}</TableCell>
+                                            {incentives.length > 0 ? (
+                                                incentives.map((incentive) => (
+                                                    <TableRow key={incentive.id}>
+                                                        <TableCell align="center">{incentive.name}</TableCell>
+                                                        <TableCell align="center">{incentive.type}</TableCell>
 
-                                                        {allowance.type === "Amount" && (
-                                                            <TableCell align="center">₱{allowance.amount}</TableCell>
+                                                        {incentive.type === "Amount" && (
+                                                            <TableCell align="center">₱{incentive.amount}</TableCell>
                                                         )}
 
-                                                        {allowance.type === "Percentage" && (
-                                                            <TableCell align="center">{allowance.percentage}%</TableCell>
+                                                        {incentive.type === "Percentage" && (
+                                                            <TableCell align="center">{incentive.percentage}%</TableCell>
                                                         )}
                                                     </TableRow>
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={3} align="center"> No Allowances </TableCell>
+                                                    <TableCell colSpan={3} align="center"> No Incentives </TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
@@ -84,13 +83,14 @@ const AllowanceTypes = () => {
                     </Box>
                 </Box>
 
-                {openAddAllowanceModal &&
-                    <AllowanceAdd open={openAddAllowanceModal} close={handleCloseAddAllowanceModal}/>
+                {openAddIncentiveseModal &&
+                    <IncentivesAdd open={openAddIncentiveseModal} close={handleCloseAddIncentiveseModal}/>
                 }
 
             </Box>
         </Layout>
     );
-};
 
-export default AllowanceTypes;
+
+}
+export default IncentivesTypes;

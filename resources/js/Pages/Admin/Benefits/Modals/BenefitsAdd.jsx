@@ -14,7 +14,7 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 
-const BenefitAdd = ({ open, close, onUpdateBenefits }) => {
+const BenefitsAdd = ({ open, close }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -76,7 +76,7 @@ const BenefitAdd = ({ open, close, onUpdateBenefits }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to process this payroll?",
+                text: "You want to add this benefit?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -123,7 +123,7 @@ const BenefitAdd = ({ open, close, onUpdateBenefits }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to process this payroll?",
+                text: "You want to add this benefit?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -155,19 +155,12 @@ const BenefitAdd = ({ open, close, onUpdateBenefits }) => {
             employerPercentage: employerPercentage,
         };
 
-        axiosInstance.post('/benefits/saveBenefit', data, { headers })
+        axiosInstance.post('compensation/saveBenefits', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
-
-                    const newBenefit = response.data.benefit;
-
-                    if (onUpdateBenefits) {
-                        onUpdateBenefits(newBenefit);
-                    }
-
                     Swal.fire({
                         customClass: { container: 'my-swal' },
-                        text: "Role saved successfully!",
+                        text: "Benefit saved successfully!",
                         icon: "success",
                         timer: 1000,
                         showConfirmButton: true,
@@ -357,4 +350,4 @@ const BenefitAdd = ({ open, close, onUpdateBenefits }) => {
     )
 }
 
-export default BenefitAdd;
+export default BenefitsAdd;

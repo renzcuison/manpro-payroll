@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, Grid, Avatar, } from "@mui/material";
-import dayjs from "dayjs";
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
+import React from "react";
+import { Box,Typography, Grid, Avatar, } from "@mui/material";
+
 
 const EmployeeSummary = ({employee}) => {
     
