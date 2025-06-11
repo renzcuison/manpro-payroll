@@ -30,7 +30,7 @@ use App\Http\Controllers\LoanApplicationsController;
 use App\Http\Controllers\SignatoryController;
 use App\Http\Controllers\RadiusPerimeterController;
 use App\Http\Controllers\BranchPositionController;
-
+use App\Http\Controllers\InsurancesController;
 
 
 // Old Controllers
@@ -72,6 +72,7 @@ use App\Http\Controllers\PemeResponseDetailsController;
 
 //Group Life Controller
 use App\Http\Controllers\GroupLifeCompanyController;
+use App\Http\Controllers\GroupLifePlanController;
 
 Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
@@ -400,7 +401,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/milestones', [MilestoneController::class, 'index']);
     });
 
-
     Route::prefix('trainings')->group(function () {
         // Trainings, Training Content
         Route::get('/getTrainings', [TrainingsController::class, 'getTrainings']);
@@ -443,7 +443,40 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeFormDetails/{id}', [TrainingFormsController::class, 'getEmployeeFormDetails']);
         Route::get('/getEmployeeFormReviewer', [TrainingFormsController::class, 'getEmployeeFormReviewer']);
         Route::post('/saveEmployeeFormSubmission', [TrainingFormsController::class, 'saveEmployeeFormSubmission']);
+
+
+        // Group Life Company - Old
+        Route::get('/group-life-companies', [GroupLifeCompanyController::class, 'index']);
+        Route::post('/group-life-companies', [GroupLifeCompanyController::class, 'store']);
+
+        // Group Life Plan - Old
+        Route::get('/group-life-plans', [GroupLifePlanController::class, 'index']);
+        Route::post('/group-life-plans', [GroupLifePlanController::class, 'store']);
+        Route::get('/group-life-plans/{id}', [GroupLifePlanController::class, 'show']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     });
+
+    Route::prefix('medicalRecords')->group(function () {
+        // Group Life Company - New
+        Route::post('/saveGroupLifeCompanies', [InsurancesController::class, 'saveGroupLifeCompanies']);
+        Route::get('/getGroupLifeCompanies', [InsurancesController::class, 'getGroupLifeCompanies']);
+    });
+
 
     // Hr employees
     Route::get('/employeesHistory/{id}/{dates}', [HrEmployeesController::class, 'getEmployeeHistory']);
@@ -781,9 +814,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
     Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
 
-    // Group Life Company
-    Route::get('/group-life-companies', [GroupLifeCompanyController::class, 'index']);
-    Route::post('/group-life-companies', [GroupLifeCompanyController::class, 'store']);
+
+
+
+
+
+
+
+
 
     Route::post('/google/event', [GoogleController::class, 'addEvent']);
     Route::get('/google/events', [GoogleController::class, 'getEvents']);

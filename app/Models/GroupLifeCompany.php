@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class GroupLifeCompanyModel extends Model
+class GroupLifeCompany extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -14,11 +14,17 @@ class GroupLifeCompanyModel extends Model
 
     protected $primaryKey = 'id';
 
-    protected $fillable = [ 'name', 
-                            'noOfPlans'];
+    protected $fillable = [
+        'name', 
+        'client_id'
+    ];
+
+    public function client() {
+        return $this->belongsTo(ClientsModel::class, 'client_id');
+    }
 
     public function plans()
     {
-        return $this->hasMany(GroupLifePlanModel::class, 'group_life_company_id', 'id');
+        return $this->hasMany(GroupLifeCompanyPlan::class, 'group_life_company_id', 'id');
     }
 }

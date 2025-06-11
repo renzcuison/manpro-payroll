@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
     Grid,
     Box,
@@ -18,6 +18,7 @@ import GroupLifeOverview from "./GroupLifeOverview";
 import GroupLifeEmployees from "./GroupLifeEmployees";
 import axios from "axios";
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
+import Swal from 'sweetalert2';
 
 const GroupLifeMasterlist = () => {
     const navigator = useNavigate();
@@ -27,8 +28,16 @@ const GroupLifeMasterlist = () => {
 
     const [listOfCompanies, setListOfCompanies] = useState([]);
 
-    const storedUser = localStorage.getItem("user");
-    const user = storedUser ? JSON.parse(storedUser) : null;
+    const storedUser = useMemo(() => {
+        const item = localStorage.getItem("nasya_user");
+        return item ? JSON.parse(item) : null;
+        }, []);
+        const user = storedUser;
+
+    // const storedUser = localStorage.getItem("nasya_user");
+    // const user = storedUser ? JSON.parse(storedUser) : null;
+
+    const [rows, setRows] = useState([]);    
 
     useEffect(() => {
         if (!user) return;
@@ -40,6 +49,26 @@ const GroupLifeMasterlist = () => {
                         companyMenuItem: company.name,
                         id: company.id
                     }))
+                );
+            })
+            .catch(console.error);
+    }, [user]);
+
+    useEffect(() => {
+        if (!user) return;
+        axiosInstance
+            .get("/group-life-plans", { headers: { Authorization: `Bearer ${user.token}` } })
+            .then(res => {
+                setRows(
+                    Array.isArray(res.data)
+                        ? res.data.map(row => ({
+                            groupLifeName: row.group_life_company_name, // map BE to FE
+                            planType: row.plan_name,
+                            paymentType: row.type,
+                            employerShare: row.employer_share,
+                            employeeShare: row.employee_share,
+                        }))
+                        : []
                 );
             })
             .catch(console.error);
@@ -58,6 +87,25 @@ const GroupLifeMasterlist = () => {
             })
             .catch(console.error);
     };
+
+    const refreshPlans = () => {
+        axiosInstance
+            .get("/group-life-plans", { headers: { Authorization: `Bearer ${user.token}` } })
+            .then(res => {
+            setRows(
+                Array.isArray(res.data)
+                ? res.data.map(row => ({
+                    groupLifeName: row.group_life_company_name,
+                    planName: row.plan_name,
+                    paymentType: row.type,
+                    employerShare: row.employer_share,
+                    employeeShare: row.employee_share,
+                    }))
+                : []
+            );
+            })
+            .catch(console.error);
+        };
 
     const companies = [
             {
@@ -78,7 +126,7 @@ const GroupLifeMasterlist = () => {
             }
         ];
 
-    const [rows, setRows] = useState([]);    
+
 
     const filteredRecords = rows
     .filter((row) => [
@@ -105,32 +153,62 @@ const GroupLifeMasterlist = () => {
         );
     };
 
-        
+    const handleAddRow = async (newRow) => {
+        const company = listOfCompanies.find(c => c.companyMenuItem === newRow.groupLifeName);
+
+        const payload = {
+        group_life_company_id: company ? company.id : null,
+        plan_name: newRow.planType, 
+        type: newRow.paymentType,
+        employer_share: Number(newRow.employerShare),
+        employee_share: Number(newRow.employeeShare),
+
+        };
+
+        try {
+            await axiosInstance.post("/group-life-plans", payload, {
+            headers: { Authorization: `Bearer ${user.token}` }
+            });
+            setOpenAddGroupLifeModal(false);
+            Swal.fire({
+                icon: 'success',
+                text: 'Group Life Plan saved successfully!',
+                timer: 2000,
+                showConfirmButton: false
+                });
+            refreshPlans();
+            } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error saving Group Life Plan!',
+                });
+        }
+    };
 
     return (
     <Layout title={"Pre-Employment Medical Exam Records"}>
         <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
             <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
 
-                <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                    <Typography variant="h4" sx={{ fontWeight: "bold" }}> Group Life Masterlist </Typography>
-                        <Grid container spacing={2} gap={2}>
-                            <Button
-                                onClick={() => setOpenAddCompanyModal(true)}
-                                variant="contained"
-                                style={{ color: "#e8f1e6" }}
-                                >
-                                <i className="fa fa-plus pr-2"></i> Add Company
-                            </Button>
-                            <Button
-                                onClick={() => setOpenAddGroupLifeModal(true)}
-                                variant="contained"
-                                style={{ color: "#e8f1e6" }}
-                                >
-                                <i className="fa fa-plus pr-2"></i> Add
-                            </Button>
-                        </Grid>
-                </Box>
+                    <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}> Group Life Masterlist </Typography>
+                            <Grid container spacing={2} gap={2}>
+                                <Button
+                                    onClick={() => setOpenAddCompanyModal(true)}
+                                    variant="contained"
+                                    style={{ color: "#e8f1e6" }}
+                                    >
+                                    <i className="fa fa-plus pr-2"></i> Add Company
+                                </Button>
+                                <Button
+                                    onClick={() => setOpenAddGroupLifeModal(true)}
+                                    variant="contained"
+                                    style={{ color: "#e8f1e6" }}
+                                    >
+                                    <i className="fa fa-plus pr-2"></i> Add
+                                </Button>
+                            </Grid>
+                    </Box>
 
                     <Box>
                         <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
@@ -157,46 +235,42 @@ const GroupLifeMasterlist = () => {
                                     label="Search"
                                 />
                             </FormControl>
-                </Box>
-            </Box>
-
-                <Box sx={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "nowrap", justifyContent: "flex-start", alignItems: "flex-start" }}>
-                
-                    <Box sx={{width: "25%", minWidth: 280, backgroundColor: "white", borderRadius: 2, padding: 2, flexShrink: 0 }}>
-                        <GroupLifeOverview records={companies} />
+                        </Box>
                     </Box>
 
-                    <Box sx={{ width: "80%", minWidth: 300, backgroundColor: "white", borderRadius: 2, padding: 2, overflow: "hidden" }}>
-                        <GroupLifeCompanyTable
-                            onRowClick={handleOnRowClick}
-                            rows={filteredRecords}
-                            search={search}/>
+                    <Box sx={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "nowrap", justifyContent: "flex-start", alignItems: "flex-start" }}>
+                    
+                        <Box sx={{width: "25%", minWidth: 280, backgroundColor: "white", borderRadius: 2, padding: 2, flexShrink: 0 }}>
+                            <GroupLifeOverview records={companies} />
+                        </Box>
+
+                        <Box sx={{ width: "80%", minWidth: 300, backgroundColor: "white", borderRadius: 2, padding: 2, overflow: "hidden" }}>
+                            <GroupLifeCompanyTable
+                                onRowClick={handleOnRowClick}
+                                rows={filteredRecords}
+                                search={search}/>
+                        </Box>
                     </Box>
-                </Box>
 
                     {openAddGroupLifeModal && (
                         <GroupLifeAddModal
-                            open={true}
+                            open={openAddGroupLifeModal}
                             close={() => setOpenAddGroupLifeModal(false)}
-                            onAddRow={(newRow) => {
-                                setRows(prevRows => [...prevRows, newRow]);
-                                setOpenAddGroupLifeModal(false);                                            
-                            }}
+                            onAddRow={handleAddRow}
                             listOfCompanies={listOfCompanies}
                         />
                     )}
-
                     {openAddCompanyModal && (
                     <GroupLifeAddCompanyModal
                         open={true}
                         close={() => setOpenAddCompanyModal(false)}
                         onAddCompany={companyName => {
+                        // setOpenAddCompanyModal(false);
                         refreshCompanies();
                         setListOfCompanies(prev => [
                             ...prev,
                             { companyMenuItem: companyName }
                         ]);
-                        // setOpenAddCompanyModal(false);
                         }}
                     />
                     )}

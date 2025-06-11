@@ -27,6 +27,8 @@ import { useState, useEffect } from 'react';
 import 'react-quill/dist/quill.snow.css';
 import axios from "axios";
 import axiosInstance, { getJWTHeader } from '../../../../../utils/axiosConfig';
+import Swal from 'sweetalert2';
+import { GlobalStyles } from '@mui/material';
 
 const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
 
@@ -34,7 +36,7 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
     const [companyName, setCompanyName] = useState("");
     const [companies, setCompanies] = useState([]);
     const [warning, setWarning] = useState(false);
-    const storedUser = localStorage.getItem("user");
+    const storedUser = localStorage.getItem("nasya_user");
     const user = storedUser ? JSON.parse(storedUser) : null;
 
     useEffect(() => {
@@ -44,12 +46,13 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
     }, [open]);
 
     const fetchCompanies = async () => {
+        console.log("fetchCompanies called");
         if (!user) return;
         try {
-        const res = await axiosInstance.get('/group-life-companies', {
+        const res = await axiosInstance.get('/medicalRecords/getGroupLifeCompanies', {
             headers: { Authorization: `Bearer ${user.token}` }
         });
-        setCompanies(res.data);
+        setCompanies(res.data.companies);
         } catch (error) {
         console.error("Error fetching companies:", error);
         setCompanies([]);
@@ -60,16 +63,24 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
         console.log("user from localStorage:", user);
         if (!companyName.trim() || !user) return;
         try {
-        const response = await axiosInstance.post('/group-life-companies',
-            { name: companyName.trim() },
-            { headers: { Authorization: `Bearer ${user.token}` } }
-        );
-        if (onAddCompany) onAddCompany(response.data);
-        setCompanyName("");
-        await fetchCompanies();
+            const response = await axiosInstance.post('/medicalRecords/saveGroupLifeCompanies',
+                { name: companyName.trim() },
+                { headers: { Authorization: `Bearer ${user.token}` } }
+            );
+
+            if (onAddCompany) onAddCompany(response.data);
+            setCompanyName("");
+            await fetchCompanies();
+            Swal.fire({
+                icon: 'success',
+                text: 'Company saved successfully!',
+                showConfirmButton: false
+            });
         } catch (error) {
-        console.error("Error adding company:", error);
-        alert("Unsuccessful");
+            Swal.fire({
+                icon: 'error',
+                text: 'Error saving department!'
+                });
         }
         if (!companyName.trim() || !user) {
         setWarning(true);
@@ -124,12 +135,13 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
                                 )}
                                 </Box>
                         </Box>
-                        <TableContainer sx={{
-                                        marginTop: 2,
-                                        overflowY: "scroll",
-                                        minHeight: 300,
-                                        maxHeight: 300,
-                                    }}
+                        <TableContainer 
+                                sx={{
+                                    marginTop: 2,
+                                    overflowY: "scroll",
+                                    minHeight: 300,
+                                    maxHeight: 300,
+                                }}
                                     style={{ overflowX: "auto" }}>
                                 <Table aria-label="simple table">
                                     <TableHead >
@@ -160,6 +172,9 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
                         </DialogContent>
                 </DialogTitle>
             </Dialog>
+                  <GlobalStyles styles={{
+                    '.swal2-container': { zIndex: 2000 }
+                }} />
         </>
     )
 
