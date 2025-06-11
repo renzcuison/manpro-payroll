@@ -17,8 +17,8 @@ class GroupLifeCompanyModel extends Model
     protected $fillable = [ 'name', 
                             'noOfPlans'];
 
-    public function plans() {
-        return $this->hasMany(GroupLifePlanModel::class, 'group_life_company_id');
+    public function plans()
+    {
+        return $this->hasMany(GroupLifePlanModel::class, 'group_life_company_id', 'id');
     }
-
 }

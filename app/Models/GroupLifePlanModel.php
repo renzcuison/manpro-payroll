@@ -18,10 +18,8 @@ class GroupLifePlanModel extends Model
                             'plan_name',
                             'type',
                             'employer_share',
-                            'employee_share',
-                            'created_at',
-                            'updated_at',
-                            'deleted_at'];
+                            'employee_share'
+                            ];
 
     public function company() {
         return $this->belongsTo(GroupLifeCompanyModel::class, 'group_life_company_id');
