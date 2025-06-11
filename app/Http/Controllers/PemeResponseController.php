@@ -56,9 +56,16 @@ class PemeResponseController extends Controller
             $answeredQuestions = 0;
 
             foreach ($questions as $question) {
-                $allAnswered = $question->types->every(function ($type) use ($question, $detailMap) {
-                    $matchedDetail = $detailMap[(int)$question->id][(int)$type->id] ?? null;
-                    return $matchedDetail && $matchedDetail->value !== null && trim($matchedDetail->value) !== '';
+                $allAnswered = $question->types->every(function ($type) use (
+                    $question,
+                    $detailMap
+                ) {
+                    $matchedDetail =
+                        $detailMap[(int) $question->id][(int) $type->id] ??
+                        null;
+                    return $matchedDetail &&
+                        $matchedDetail->value !== null &&
+                        trim($matchedDetail->value) !== '';
                 });
 
                 if ($allAnswered) {
@@ -78,20 +85,25 @@ class PemeResponseController extends Controller
                 "progress" => [
                     "completed" => $answeredQuestions,
                     "total" => $totalQuestions,
-                    "percent" => $totalQuestions > 0 ? round(($answeredQuestions / $totalQuestions) * 100) : 0,
-                ]
+                    "percent" =>
+                        $totalQuestions > 0
+                            ? round(
+                                ($answeredQuestions / $totalQuestions) * 100
+                            )
+                            : 0,
+                ],
             ];
         });
 
         return response()->json($responses);
     }
 
-
     public function store(Request $request)
     {
-
-        $request->merge([
-            'peme_id' => Crypt::decrypt($request->peme_id),
+        $request = $request->merge([
+            'peme_response_id' => Crypt::decrypt($request->peme_response_id),
+            'peme_q_item_id' => Crypt::decrypt($request->peme_q_item_id),
+            'peme_q_type_id' => Crypt::decrypt($request->peme_q_type_id),
         ]);
 
         $validated = $request->validate([

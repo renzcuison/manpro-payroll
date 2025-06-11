@@ -173,7 +173,7 @@ const EmployeeRoutes = ({ user }) => {
                 }
             />
             <Route
-                path="medical-records/peme-records/peme-questionnaire-view"
+                path="medical-records/peme-records/peme-questionnaire-view/:PemeResponseID"
                 element={
                     <ProtectedRoute
                         element={<PemeQuestionnaireView />}
