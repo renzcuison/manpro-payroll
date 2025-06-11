@@ -517,6 +517,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
     // Evaluation
+
     Route::post('/deleteEvaluationForm', [EvaluationFormController::class, 'deleteEvaluationForm']);
     Route::post('/editEvaluationForm', [EvaluationFormController::class, 'editEvaluationForm']);
     Route::get('/getEvaluationForm', [EvaluationFormController::class, 'getEvaluationForm']);
@@ -528,7 +529,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEvaluationFormSection', [EvaluationFormController::class, 'getEvaluationFormSection']);
     Route::post('/moveEvaluationFormSection', [EvaluationFormController::class, 'moveEvaluationFormSection']);
     Route::post('/saveEvaluationFormSection', [EvaluationFormController::class, 'saveEvaluationFormSection']);
-    
 
     Route::post('/deleteEvaluationFormSubcategory', [EvaluationFormController::class, 'deleteEvaluationFormSubcategory']);
     Route::post('/editEvaluationFormSubcategory', [EvaluationFormController::class, 'editEvaluationFormSubcategory']);
@@ -551,6 +551,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEvaluationResponse', [EvaluationResponseController::class, 'getEvaluationResponse']);
     Route::get('/getEvaluationResponses', [EvaluationResponseController::class, 'getEvaluationResponses']);
     Route::post('/saveEvaluationResponse', [EvaluationResponseController::class, 'saveEvaluationResponse']);
+
+    Route::get('/getEvaluatees', [EvaluationFormController::class, 'getEvaluatees']);
+    Route::get('/getEvaluators', [EvaluationFormController::class, 'getEvaluators']);
+    Route::get('/getCommentors', [EvaluationFormController::class, 'getCommentors']);
 
     Route::post('/deleteEvaluationEvaluator', [EvaluationResponseController::class, 'deleteEvaluationEvaluator']);
     Route::post('/editEvaluationEvaluator', [EvaluationResponseController::class, 'editEvaluationEvaluator']);
