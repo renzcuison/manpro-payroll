@@ -460,12 +460,48 @@ export function useEvaluationResponse(responseId) {
     }
 
     // Added for saving creator signature - Khim
-    async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath }) {
+    // async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath }) {
+    //     try {
+    //         const payload = {
+    //             id: response_id,
+    //             creator_signature_filepath,
+    //         };
+
+    //         const response = await axiosInstance.post(
+    //             '/editEvaluationResponse',
+    //             payload,
+    //             { headers }
+    //         );
+
+    //         if (
+    //             (response.status && String(response.status).startsWith('2')) ||
+    //             (response.data && response.data.status && String(response.data.status).startsWith('2'))
+    //         ) {
+    //             // Optionally reload here
+    //             getEvaluationResponse();
+    //             return response.data.evaluationResponse;
+    //         } else {
+    //             throw new Error(response.data?.message || 'Failed to save creator signature.');
+    //         }
+    //     } catch (error) {
+    //         throw new Error(
+    //             error?.response?.data?.message ||
+    //             error.message ||
+    //             'Failed to save creator signature!'
+    //         );
+    //     }
+    // }
+
+    // For saving evaluatee/creator signature
+    async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath, evaluatee_signature_filepath }) {
         try {
             const payload = {
                 id: response_id,
-                creator_signature_filepath,
             };
+            if (creator_signature_filepath !== undefined)
+                payload.creator_signature_filepath = creator_signature_filepath;
+            if (evaluatee_signature_filepath !== undefined)
+                payload.evaluatee_signature_filepath = evaluatee_signature_filepath;
 
             const response = await axiosInstance.post(
                 '/editEvaluationResponse',
@@ -477,17 +513,16 @@ export function useEvaluationResponse(responseId) {
                 (response.status && String(response.status).startsWith('2')) ||
                 (response.data && response.data.status && String(response.data.status).startsWith('2'))
             ) {
-                // Optionally reload here
                 getEvaluationResponse();
                 return response.data.evaluationResponse;
             } else {
-                throw new Error(response.data?.message || 'Failed to save creator signature.');
+                throw new Error(response.data?.message || 'Failed to save signature.');
             }
         } catch (error) {
             throw new Error(
                 error?.response?.data?.message ||
                 error.message ||
-                'Failed to save creator signature!'
+                'Failed to save signature!'
             );
         }
     }
