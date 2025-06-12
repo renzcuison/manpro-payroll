@@ -500,9 +500,6 @@ const PerformanceEvaluationCreatorPage = () => {
           )}
         </Box>
 
-        {/* Signature display
-        {renderSignature()} */}
-
         {/* Approve/Sign Button */}
         {!evaluationResponse.creator_signature_filepath && (
           <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
