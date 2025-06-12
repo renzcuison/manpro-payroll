@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Paper,
-  Chip, TextField, Grid, FormControlLabel, Radio, IconButton, Menu, MenuItem, Button
+  Chip, TextField, Grid, FormControlLabel, Radio, IconButton, Menu, MenuItem, Button, Divider
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../../components/Layout/Layout';
@@ -10,6 +10,90 @@ import { getFullName } from '../../../utils/user-utils';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
 import PerformanceEvaluationCreatorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvaluationCreatorAcknowledge';
 import Swal from 'sweetalert2';
+
+// --- Overall Rating Calculation Helper ---
+const getSectionScore = (section) => {
+  if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [] };
+  let scoreTotal = 0;
+  let counted = 0;
+  const subcatScores = [];
+
+  section.subcategories.forEach(subcat => {
+    let subScore = 0;
+    if (subcat.subcategory_type === 'multiple_choice') {
+      const selected = subcat.options.find(opt => opt.option_answer);
+      if (selected) {
+        const highestScore = Math.max(...subcat.options.map(o => Number(o.score) || 1));
+        if (highestScore > 0) {
+          subScore = ((Number(selected.score) || 1) / highestScore) * 5;
+        }
+      }
+      subcatScores.push({ name: subcat.name, score: subScore });
+      scoreTotal += subScore;
+      counted++;
+    }
+    else if (subcat.subcategory_type === 'checkbox') {
+      const selected = subcat.options.filter(opt => opt.option_answer);
+      const selectedSum = selected.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
+      const allSum = subcat.options.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
+      if (allSum > 0) {
+        subScore = (selectedSum / allSum) * 5;
+      }
+      subcatScores.push({ name: subcat.name, score: subScore });
+      scoreTotal += subScore;
+      counted++;
+    }
+    else if (subcat.subcategory_type === 'linear_scale') {
+      if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
+        const start = Number(subcat.linear_scale_start) || 1;
+        const end = Number(subcat.linear_scale_end) || 5;
+        const value = Number(subcat.percentage_answer.value);
+        if (end > start) {
+          subScore = ((value - start) / (end - start)) * 5;
+        }
+      }
+      subcatScores.push({ name: subcat.name, score: subScore });
+      scoreTotal += subScore;
+      counted++;
+    }
+  });
+
+  const sectionScore = counted > 0 ? scoreTotal / counted : 0;
+  return { sectionScore, subcatScores };
+};
+
+// --- Score Linear Bar ---
+const Bar = ({ value, max = 100, sx = {} }) => {
+  const pct = Math.max(0, Math.min(1, value / max)) * 100;
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: 18,
+        borderRadius: '9px',
+        background: '#e0e0e0',
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: '0px 1px 2px #e0e0e0',
+        ...sx,
+      }}
+    >
+      <Box
+        sx={{
+          width: `${pct}%`,
+          height: '100%',
+          background: 'linear-gradient(90deg, #367C2B 0%, #EAB31A 100%)',
+          borderRadius: '9px', // Make both ends rounded
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      />
+    </Box>
+  );
+};
+// --- END Overall Rating Helper ---
 
 const PerformanceEvaluationCreatorPage = () => {
   const { id } = useParams();
@@ -222,6 +306,14 @@ const PerformanceEvaluationCreatorPage = () => {
     return `${n}th`;
   };
 
+  // --- Overall Rating Section (ADDED) ---
+  const overallRatingSections = (form.sections || []).filter(section =>
+    section.subcategories?.some(
+      subcat => ['multiple_choice', 'checkbox', 'linear_scale'].includes(subcat.subcategory_type)
+    )
+  );
+  // --- END Overall Rating Section ---
+
   // Render signature area (if present)
   const renderSignature = () => {
     if (evaluationResponse.creator_signature_filepath) {
@@ -302,6 +394,88 @@ const PerformanceEvaluationCreatorPage = () => {
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
         </Typography>
+
+        {/* --- OVERALL RATING SECTION (ADDED) --- */}
+        {overallRatingSections.length > 0 && overallRatingSections.map((section, i) => {
+          const { sectionScore, subcatScores } = getSectionScore(section);
+          return (
+            <Accordion
+              key={section.id}
+              expanded
+              disableGutters
+              elevation={0}
+              sx={{
+                bgcolor: '#ffff',
+                borderRadius: '8px',
+                boxShadow: 3,
+                mb: 2,
+                '&:before': { display: 'none' }
+              }}
+            >
+              <AccordionSummary
+                sx={{
+                  bgcolor: '#E9AE20',
+                  borderBottom: '1px solid #ffe082',
+                  cursor: 'default',
+                  minHeight: 0,
+                  mt: 3,
+                  borderTopLeftRadius: '8px',
+                  borderTopRightRadius: '8px',
+                  '& .MuiAccordionSummary-content': {
+                    margin: 0,
+                    alignItems: "center"
+                  }
+                }}
+              >
+                <Box sx={{ my: 2 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: "white" }}>
+                    Overall Rating {overallRatingSections.length > 1 ? `- ${section.name}` : ''}
+                  </Typography>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ pt: 2 }}>
+                <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
+                  {subcatScores.map(({ name, score }, idx) => (
+                    <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={idx}>
+                      <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
+                        <Typography sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                          {name}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
+                        <Bar
+                          value={(score / 5) * 100}
+                          sx={{ width: '100%', minWidth: 580 }}
+                        />
+                      </Grid>
+                      <Grid item sx={{ minWidth: 40, textAlign: 'right' }}>
+                        <Typography sx={{ fontWeight: 'bold', ml: 1 }}>{score.toFixed(1)}</Typography>
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
+                  <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }}>
+                    <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
+                      <Typography sx={{ fontWeight: 700, color: "#262626" }}>Total Rating</Typography>
+                    </Grid>
+                    <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
+                      <Bar
+                        value={(sectionScore / 5) * 100}
+                        sx={{ width: '100%', minWidth: 590 }}
+                      />
+                    </Grid>
+                    <Grid item xs={2}>
+                      <Typography sx={{ fontWeight: 700, ml: 1 }}>{sectionScore.toFixed(1)}</Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          );
+        })}
+        {/* --- END OVERALL RATING SECTION --- */}
 
         {/* Evaluation Form Sections */}
         {(!form.sections || form.sections.length === 0) && (
