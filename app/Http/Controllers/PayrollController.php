@@ -334,8 +334,8 @@ class PayrollController extends Controller
 
     public function payrollProcess(Request $request)
     {
-        // log::info("PayrollController::payrollProcess");
-        // log::info($request);
+        log::info("PayrollController::payrollProcess");
+        log::info($request);
 
         $user = Auth::user();
 
@@ -349,11 +349,15 @@ class PayrollController extends Controller
             $startDate = $request->startDate;
             $endDate = $request->endDate;
 
-            $employees = UsersModel::where(function ($query) use ($startDate, $endDate) {
+            $employees = UsersModel::where(function ($query) use ($startDate, $endDate, $request) {
                 $query->whereHas('attendanceLogs', function ($subQuery) use ($startDate, $endDate) {
                     $subQuery->whereBetween('timestamp', [$startDate, $endDate]);
                 })->orWhere('is_fixed_salary', true);
-            })->where('client_id', $user->client_id)->get();
+            })
+            ->where('client_id', $user->client_id)
+            ->whereIn('branch_id', $request->branches)
+            ->whereIn('department_id', $request->departments)
+            ->get();
 
             $payrolls = [];
 

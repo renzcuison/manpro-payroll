@@ -501,11 +501,16 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span className="sidebar-mini-hidden text-dark"> Announcements </span>
                                     </li>
 
-                                     {announcementsItems.map((items, index) => {
+                                    <StyledNav to={`/admin/announcements`}>
+                                        <i className="fa fa-bullhorn" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Announcements </span>
+                                    </StyledNav>
+
+                                    {/* {announcementsItems.map((items, index) => {
                                         return (
                                             <SideItem key={index} items={items} />
                                         );
-                                    })}
+                                    })} */}
 
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Records </span>
