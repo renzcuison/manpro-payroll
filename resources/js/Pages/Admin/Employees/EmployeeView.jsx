@@ -13,8 +13,6 @@ import { useEmployeeBenefits } from '../../../hooks/useBenefits';
 import { useEmployeeIncentives } from '../../../hooks/useIncentives';
 
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
-import AllowanceView from '../Allowance/Modals/EmployeeAllowanceView';
-import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
 import EmployeeEducationBackground from './Components/EmployeeEducationBackground';
 
 import EmployeeInformation from './Components/EmployeeInformation';
@@ -46,10 +44,7 @@ const EmployeeView = () => {
     const [educations, setEducations] = useState([]);
     const [imagePath, setImagePath] = useState('');
 
-    const [openEmployeeBenefitsModal, setOpenEmployeeBenefitsModal] = useState(false);
-    const [openEmployeeAllowanceModal, setOpenEmployeeAllowanceModal] = useState(false);
     const [openEmployeeDetailsEditModal, setOpenEmployeeDetailsEditModal] = useState(false);
-    const [openEmployeeLeaveCreditsModal, setOpenEmployeeLeaveCreditsModal] = useState(false);
 
     useEffect(() => {
         getEmployeeDetails();
@@ -134,30 +129,6 @@ const EmployeeView = () => {
         }
     }
 
-    // Benefits
-    const handleOpenEmployeeBenefitsModal = () => {
-        setOpenEmployeeBenefitsModal(true);
-    }
-    const handleCloseEmployeeBenefitsModal = () => {
-        setOpenEmployeeBenefitsModal(false);
-    }
-
-    // Allowance
-    const handleOpenEmployeeAllowanceModal = () => {
-        setOpenEmployeeAllowanceModal(true);
-    }
-    const handleCloseEmployeeAllowanceModal = () => {
-        setOpenEmployeeAllowanceModal(false);
-    }
-
-    // Leave Credits
-    const handleOpenEmployeeLeaveCreditsModal = () => {
-        setOpenEmployeeLeaveCreditsModal(true);
-    }
-    const handleCloseEmployeeLeaveCreditsModal = () => {
-        setOpenEmployeeLeaveCreditsModal(false);
-    }
-
     return (
         <Layout title={"EmployeeView"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -175,9 +146,6 @@ const EmployeeView = () => {
 
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             <MenuItem onClick={handleOpenEmployeeDetailsEditModal}> Employee Details</MenuItem>
-                            {/* <MenuItem onClick={handleOpenEmployeeBenefitsModal}> View Benefits </MenuItem> */}
-                            {/* <MenuItem onClick={handleOpenEmployeeAllowanceModal}> View Allowance </MenuItem> */}
-                            {/* <MenuItem onClick={handleOpenEmployeeLeaveCreditsModal}> View Leave Credits </MenuItem> */}
                         </Menu>
 
                     </Box>
@@ -202,14 +170,6 @@ const EmployeeView = () => {
 
                 {openEmployeeDetailsEditModal &&
                     <EmployeeDetailsEdit open={openEmployeeDetailsEditModal} close={handleCloseEmployeeDetailsEditModal} employee={employee} userName={user} />
-                }
-
-                {openEmployeeAllowanceModal &&
-                    <AllowanceView open={openEmployeeAllowanceModal} close={handleCloseEmployeeAllowanceModal} userName={user} />
-                }
-
-                {openEmployeeLeaveCreditsModal &&
-                    <LeaveCreditView open={openEmployeeLeaveCreditsModal} close={handleCloseEmployeeLeaveCreditsModal} userName={user} />
                 }
 
             </Box>

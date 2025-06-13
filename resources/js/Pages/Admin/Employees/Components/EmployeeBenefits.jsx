@@ -15,7 +15,7 @@ const EmployeeBenefits = ({ userName, benefits, onRefresh }) => {
     const handleCloseAddEmployeeBenefit = (reload) => {
         setOpenEmployeeViewBenefit(false);
         if(reload){
-            onRefresh();
+            onRefresh();    
         }
     }
 
@@ -25,11 +25,9 @@ const EmployeeBenefits = ({ userName, benefits, onRefresh }) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Statutory Benefits </Typography>
 
-                <Tooltip title="View In Detail">
-                    <IconButton color="primary" onClick={() => handleCloseViewEmployeeBenefits()}>
-                        <VisibilityOutlinedIcon sx={{fontSize: 30}}/>
-                    </IconButton>
-                </Tooltip>
+                <Button variant="text" sx={{fontSize: 15, textAlign:'right'}} onClick={() => handleCloseViewEmployeeBenefits()}>
+                    View
+                </Button>
             </Box>
 
             <TableContainer>

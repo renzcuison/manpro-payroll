@@ -20,11 +20,9 @@ const EmployeeIncentives = ({userName, incentives, onRefresh}) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Incentives </Typography>
 
-                <Tooltip title="Add Incentives">
-                    <IconButton color="primary" onClick={() => handleOpenViewEmployeeIncentive()}>
-                        <VisibilityOutlinedIcon sx={{fontSize: 30}}/>
-                    </IconButton>
-                </Tooltip>
+                <Button variant="text" sx={{fontSize: 15, textAlign:'right'}} onClick={() => handleOpenViewEmployeeIncentive()}>
+                    View
+                </Button>
             </Box>
 
             <TableContainer>

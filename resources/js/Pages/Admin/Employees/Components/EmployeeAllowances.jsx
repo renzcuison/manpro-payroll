@@ -20,11 +20,9 @@ const EmployeeAllowances = ({userName, allowances, onRefresh}) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Allowances </Typography>
 
-                <Tooltip title="Add Benefits">
-                    <IconButton color="primary" onClick={() => handleOpenViewEmployeeAllowance()}>
-                        <VisibilityOutlinedIcon sx={{fontSize: 30}}/>
-                    </IconButton>
-                </Tooltip>
+                <Button variant="text" sx={{fontSize: 15, textAlign:'right'}} onClick={() => handleOpenViewEmployeeAllowance()}>
+                    View
+                </Button>
             </Box>
 
             <TableContainer>
