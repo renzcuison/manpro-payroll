@@ -373,6 +373,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/attendance/today', [AdminDashboardController::class, 'getAttendanceToday']);
 
         Route::get('/milestones', [MilestoneController::class, 'index']);
+        Route::post('/milestones', [MilestoneController::class, 'store']);
+        Route::get('/milestones/{id}', [MilestoneController::class, 'show']);
+        Route::post('/milestones/{id}', [MilestoneController::class, 'SendGreetings']);
+        Route::delete('/milestones/{id}', [MilestoneController::class, 'destroy']);            
+        Route::delete('/milestones/{id}/comments/{comment_id}', [MilestoneController::class, 'deleteComment']);            
     });
 
     Route::prefix('trainings')->group(function () {
