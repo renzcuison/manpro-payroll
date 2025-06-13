@@ -54,6 +54,8 @@ class ApplicationsController extends Controller
 
             foreach ($apps as $app) {
                 $employee = $app->user;
+                $branch = $employee->branch;
+                $department = $employee->department;
                 $type = $app->type;
 
                 $applications[] = [
@@ -65,10 +67,13 @@ class ApplicationsController extends Controller
                     'app_date_requested' => $app->created_at,
                     'app_status' => $app->status,
                     'emp_user_name' => $employee->user_name,
+                    'emp_name' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
                     'emp_first_name' => $employee->first_name,
                     'emp_middle_name' => $employee->middle_name,
                     'emp_last_name' => $employee->last_name,
                     'emp_suffix' => $employee->suffix,
+                    'emp_branch' => $branch->name,
+                    'emp_department' => $department->name,
                 ];
             }
 
@@ -686,12 +691,17 @@ class ApplicationsController extends Controller
 
     public function getOvertimeApplications()
     {
-        Log::info("ApplicationsController::getOvertimeApplications");
+        // Log::info("ApplicationsController::getOvertimeApplications");
         $user = Auth::user();
 
         if ($this->checkUser()) {
 
-            $rawApplications = ApplicationsOvertimeModel::where('client_id', $user->client_id)->with(['user', 'timeIn', 'timeOut'])->orderBy('created_at', 'desc')->get();
+            $rawApplications = ApplicationsOvertimeModel::where('client_id', $user->client_id)
+                ->with(['user', 'timeIn', 'timeOut'])
+                ->join('attendance_logs', 'applications_overtime.time_in_id', '=', 'attendance_logs.id')
+                ->orderBy('attendance_logs.timestamp', 'desc')
+                ->select('applications_overtime.*')
+                ->get();
 
             $applications = [];
             foreach ($rawApplications as $app) {
@@ -699,18 +709,20 @@ class ApplicationsController extends Controller
                 $timeIn = $app->timeIn;
                 $timeOut = $app->timeOut;
 
-                $applications[] = [
-                    'application' => encrypt($app->id),
-                    'time_in' => $timeIn->timestamp,
-                    'time_out' => $timeOut->timestamp,
-                    'reason' => $app->reason ?? '',
-                    'requested' => $app->created_at,
-                    'status' => $app->status,
-                    'emp_name' => ($employee->first_name ?? '') . ' ' . ($employee->middle_name ?? '') . ' ' . ($employee->last_name ?? '') . ' ' . ($employee->suffix ?? ''),
-                    'emp_branch' => $employee->branch->name,
-                    'emp_department' => $employee->department->name,
-                    'emp_job_title' => $employee->jobTitle->name,
-                ];
+                if ( $timeIn && $timeOut ) {
+                    $applications[] = [
+                        'application' => encrypt($app->id),
+                        'time_in' => $timeIn->timestamp,
+                        'time_out' => $timeOut->timestamp,
+                        'reason' => $app->reason ?? '',
+                        'requested' => $app->created_at,
+                        'status' => $app->status,
+                        'emp_name' => ($employee->first_name ?? '') . ' ' . ($employee->middle_name ?? '') . ' ' . ($employee->last_name ?? '') . ' ' . ($employee->suffix ?? ''),
+                        'emp_branch' => $employee->branch->name,
+                        'emp_department' => $employee->department->name,
+                        'emp_job_title' => $employee->jobTitle->name,
+                    ];
+                }
             }
             return response()->json(['status' => 200, 'applications' => $applications]);
         } else {

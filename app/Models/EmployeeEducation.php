@@ -17,8 +17,8 @@ class EmployeeEducation extends Model
     protected $fillable = [
         'employee_id',
         'school_name',
-        'degree_type',
-        'degree_name',
+        'education_level',
+        'program_name',
         'year_graduated',
     ];
 

@@ -116,22 +116,13 @@ const Sidebar = ({ children, closeMini }) => {
                     text: "Employees",
                 },
                 {
-                    href: `/admin/employees/benefits?`,
-                    text: "Benefits",
+                    href: `/admin/branches/branches?`,
+                    text: "Branch",
                 },
                 {
-                    href: `/admin/employees/allowance?`,
-                    text: "Allowance",
+                    href: `/admin/employees?`,
+                    text: "Milestones",
                 },
-                // {
-                // href: `/admin/employees/leave-credits?`,
-                // text: "Leave Credits",
-                // },
-                // {
-                // href: `/hr/employees-deductions?`,
-                // text: 'List of Deductions',
-                // icon: 'si si-user',
-                // },
             ],
         },
     ];
@@ -190,16 +181,8 @@ const Sidebar = ({ children, closeMini }) => {
             icon: "fa fa-pencil-square-o",
             children: [
                 {
-                    href: `/admin/application/types?`,
-                    text: "Application Types",
-                },
-                {
                     href: `/admin/applications?`,
                     text: "Application Request",
-                },
-                {
-                    href: `/admin/application/leave-credits?`,
-                    text: "Leave Credits",
                 },
                 {
                     href: `/admin/application/overtimes?`,
@@ -220,10 +203,6 @@ const Sidebar = ({ children, closeMini }) => {
                     text: "Announcement Types",
                 },
                 {
-                    href: `/admin/announcements/add?`,
-                    text: "Create Announcement",
-                },
-                {
                     href: `/admin/announcements?`,
                     text: "Announcement List",
                 },
@@ -235,7 +214,7 @@ const Sidebar = ({ children, closeMini }) => {
         {
             id: 5,
             text: "Work Shifts",
-            icon: "fa fa-calendar",
+            icon: "fa fa-clock-o",
             children: workshifts
                 .map((shift) => ({
                     id: shift.id,
@@ -284,6 +263,48 @@ const Sidebar = ({ children, closeMini }) => {
         },
     ];
 
+    const medicalRecords = [
+        {
+            id: 2,
+            text: "Medical Records",
+            icon: "fa fa-medkit",
+            children: [
+                {
+                    href: `/admin/medical-records/peme-records`,
+                    text: "PEME",
+                    icon: "fa fa-cogs",
+                },
+                {
+                    href: `/admin/medical-records/group-life-masterlist-records`,
+
+                    text: "Group Life Masterlist",
+                    icon: "fa fa-cogs",
+                },
+                {
+                    href: `/admin/medical-records/hmo-masterlist-records`,
+
+                    text: "HMO Masterlist",
+                    icon: "fa fa-cogs",
+                },
+            ],
+        },
+    ];
+
+    // const loanItems = [{
+    //     id: 8,
+    //     text: 'Performance Evaluation',
+    //     icon: 'fa fa-check',
+    //     children: [
+    //         {
+    //             href: `/member/evaluate`,
+    //             text: 'Evaluate',
+    //         }, {
+    //             href: `/member/evaluation`,
+    //             text: 'My Evaluation',
+    //         }
+    //     ]
+    // }]
+
     const evaluationItems = [
         {
             id: 9,
@@ -313,77 +334,34 @@ const Sidebar = ({ children, closeMini }) => {
                     <div className="content-header content-header-fullrow px-15">
                         <div className="content-header-section sidebar-mini-visible-b">
                             <span className="content-header-item font-w700 font-size-xl float-left animated fadeIn">
-                                <span className="text-dual-primary-dark">
-                                    c
-                                </span>
+                                <span className="text-dual-primary-dark">c</span>
                                 <span className="text-primary">b</span>
                             </span>
                         </div>
                         <div className="content-header-section text-center align-parent sidebar-mini-hidden">
-                            <button
-                                type="button"
-                                className="btn btn-circle btn-dual-secondary d-lg-none align-v-r"
-                                data-toggle="layout"
-                                data-action="sidebar_close"
-                                onClick={closeMini}
-                            >
+                            <button type="button" className="btn btn-circle btn-dual-secondary d-lg-none align-v-r" data-toggle="layout" data-action="sidebar_close" onClick={closeMini} >
                                 <i className="fa fa-times text-danger"></i>
                             </button>
                             <div className="content-header-item">
-                                <img
-                                    src={manpro_logo}
-                                    style={{
-                                        height: "30px",
-                                        marginBottom: "20px",
-                                    }}
-                                />
+                                <img src={manpro_logo} style={{ height: "30px", marginBottom: "20px" }} />
                             </div>
                         </div>
                     </div>
 
-                    <div
-                        className="content-side content-side-full content-side-user px-10 align-parent"
-                        style={{
-                            backgroundImage:
-                                "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))",
-                        }}
-                    >
+                    <div className="content-side content-side-full content-side-user px-10 align-parent" style={{ backgroundImage: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))", }} >
                         <div className="sidebar-mini-visible-b align-v animated fadeIn">
-                            <img
-                                className="img-avatar img-avatar32"
-                                src={avatar}
-                                alt=""
-                            />
+                            <img className="img-avatar img-avatar32" src={avatar} alt="" />
                         </div>
                         <div className="sidebar-mini-hidden-b text-center">
-                            <Box
-                                display="flex"
-                                flexDirection="column"
-                                alignItems="center"
-                            >
-                                <Avatar
-                                    src={
-                                        user?.media?.[0]?.original_url ||
-                                        imagePath
-                                    }
-                                    alt={`${user?.first_name || ""} ${
-                                        user?.last_name || ""
-                                    }`}
-                                    sx={{
-                                        width: 64,
-                                        height: 64,
-                                        objectFit: "contain",
-                                        bgcolor: "grey.300",
-                                        "& .MuiAvatar-img": {
-                                            objectFit: "cover",
-                                        },
-                                    }}
+                            <Box display="flex" flexDirection="column" alignItems="center" >
+                                <Avatar src={ user?.media?.[0]?.original_url || imagePath }
+                                    alt={`${user?.first_name || ""} ${ user?.last_name || "" }`}
+                                    sx={{ width: 64, height: 64, objectFit: "contain", bgcolor: "grey.300", "& .MuiAvatar-img": { objectFit: "cover" }, }}
                                 />
                                 <ul className="list-inline mt-10">
                                     <li className="list-inline-item">
                                         <a className="link-effect text-white font-size-xs font-w600">
-                                            {capitalize(user.first_name)}{" "}
-                                            {capitalize(user.last_name)}
+                                            {capitalize(user.first_name)}{" "} {capitalize(user.last_name)}
                                         </a>
                                     </li>
                                 </ul>
@@ -404,21 +382,33 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span className="sidebar-mini-hidden text-dark"> Employee Management </span>
                                     </li>
 
-                                    {employeesItems.map((items, index) => {
+                                    {/* {employeesItems.map((items, index) => {
+                                        return (
+                                            <SideItem key={index} items={items} />
+                                        );
+                                    })} */}
+
+                                    <StyledNav to={`/admin/employees`}>
+                                        <i className="si si-users" style={{ color: "#2a800f" }} ></i> 
+                                        <span id="navName" className="sidebar-mini-hide">Employees</span> 
+                                    </StyledNav> 
+                                    
+                                    <StyledNav to={`/admin/department/departmentlist`}>
+                                        <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide">Departments</span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/admin/branches`}>
+                                        <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i> 
+                                        <span id="navName" className="sidebar-mini-hide">Branches</span> 
+                                    </StyledNav> 
+
+                                    
+                                    {workGroups.map((items, index) => {
                                         return (
                                             <SideItem key={index} items={items} />
                                         );
                                     })}
-                                    
-                                    {/* <StyledNav to={`/admin/department/departmentlist`}> */}
-                                        {/* <i className="fa fa-building-o" style={{ color: "#2a800f" }} ></i> */}
-                                        {/* <span id="navName" className="sidebar-mini-hide">Departments</span> */}
-                                    {/* </StyledNav> */}
-
-                                    <StyledNav to={`/admin/branches/branchlist`}>
-                                        <i className="fa fa-sitemap" style={{ color: "#2a800f" }} ></i> 
-                                        <span id="navName" className="sidebar-mini-hide">Branches</span> 
-                                    </StyledNav> 
 
                                     <StyledNav to={`/admin/milestones`}>
                                         <i className="fa fa-external-link" style={{ color: "#2a800f" }} ></i>
@@ -435,15 +425,39 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
+                                    {workShifts.map((items, index) => {
+                                        return (
+                                            <SideItem key={index} items={items} />
+                                        );
+                                    })}
+
                                     <StyledNav to={`/admin/schedules`}>
                                         <i className="fa fa-calendar" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide"> Schedules & Holidays </span>
+                                        <span id="navName" className="sidebar-mini-hide"> Calendar </span>
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/perimeters`}>
-                                        <i> {" "}<TrackChangesIcon sx={{ color: palette.success.main }} />{" "} </i>
+                                        <i className="fa fa-map-o" style={{ color: "#2a800f" }} ></i>
                                         <span id="navName" className="sidebar-mini-hide"> {" "}Perimeter{" "} </span>
                                     </StyledNav>
+
+                                    {/* ---------------------------------------------------------------------------------------------------- */}
+
+                                    <li className="nav-main-heading">
+                                        <span className="sidebar-mini-hidden text-dark"> Leave Management </span>
+                                    </li>
+
+                                    <StyledNav to={`/admin/application/types`}>
+                                        <i className="fa fa-list" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> {" "}Types of Leave{" "} </span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/admin/application/leave-credits`}>
+                                        <i className="fa fa fa-hourglass-half" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> {" "}Leave Credits{" "} </span>
+                                    </StyledNav>
+
+
 
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Application Management </span>
@@ -452,8 +466,22 @@ const Sidebar = ({ children, closeMini }) => {
                                     {applicationsItems.map((items, index) => {
                                         return (
                                             <SideItem key={index} items={items} />
-                                    )   ;
+                                        );
                                     })}
+
+                                    <li className="nav-main-heading">
+                                        <span className="sidebar-mini-hidden text-dark"> Compensation Management </span>
+                                    </li>
+
+                                    <StyledNav to={`/admin/employees/benefits`}>
+                                        <i className="fa fa-university" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Benefits </span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/admin/employees/allowance`}>
+                                        <i className="fa fa-money" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Allowance </span>
+                                    </StyledNav>
 
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Payroll </span>
@@ -464,7 +492,6 @@ const Sidebar = ({ children, closeMini }) => {
                                             <SideItem key={index} items={items} />
                                         );
                                     })}
-
 
                                     {/* <StyledNav to={`/admin/loan-management`} > */}
                                     {/* <i className="fa fa-credit-card" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Loan Management</span> */}
@@ -480,6 +507,43 @@ const Sidebar = ({ children, closeMini }) => {
                                         );
                                     })}
 
+                                    <li className="nav-main-heading">
+                                        <span className="sidebar-mini-hidden text-dark"> Records </span>
+                                    </li>
+
+                                    {medicalRecords.map((items, index) => {
+                                        return (
+                                            <SideItem key={index} items={items} />
+                                        );
+                                    })}
+
+                                    <li className="nav-main-heading">
+                                        <span className="sidebar-mini-hidden text-dark"> Performance Management </span>
+                                    </li>
+
+                                    <StyledNav to={`/admin/performance-evaluation`} >
+                                        <i className="fa fa-check" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
+                                    </StyledNav>
+
+                                    <li className="nav-main-heading">
+                                        <span className="sidebar-mini-hidden text-dark"> Staffing </span>
+                                    </li>
+
+                                    <StyledNav to={`/staffing/onboarding`}>
+                                        <i className="fa fa-clipboard" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Onboarding </span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/staffing/offboarding`}>
+                                        <i className="fa fa-archive" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Offboarding </span>
+                                    </StyledNav>
+
+
+
+
+
+
                                     {/* <StyledNav to={`/admin/trainings`}> */}
                                     {/* <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i>{" "} */}
                                     {/* <span id="navName" className="sidebar-mini-hide" > Trainings </span> */}
@@ -488,35 +552,6 @@ const Sidebar = ({ children, closeMini }) => {
                                     {/* <StyledNav to={`/admin/documents`} className={isDocumentsActive || isDocumentEditActive ? 'active' : ''} > */}
                                     {/* <i className="fa fa-file-text" style={{ color: '#2a800f' }} ></i> <span id="navName" className="sidebar-mini-hide">Documents</span> */}
                                     {/* </StyledNav> */}
-{/* 
-                                    <StyledNav to={`/admin/performance-evaluation`} >
-                                    <i className="fa fa-check" style={{ color: '#2a800f' }}></i><span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
-                                    </StyledNav> */}
-
-                                    <li className="nav-main-heading">
-                                        <span className="sidebar-mini-hidden text-dark">
-                                            {" "}
-                                            Schedules{" "}
-                                        </span>
-                                    </li>
-
-                                    {workShifts.map((items, index) => {
-                                        return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
-                                        );
-                                    })}
-
-                                    {workGroups.map((items, index) => {
-                                        return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
-                                        );
-                                    })}
 
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark">
@@ -526,10 +561,7 @@ const Sidebar = ({ children, closeMini }) => {
 
                                     {settingsItems.map((items, index) => {
                                         return (
-                                            <SideItem
-                                                key={index}
-                                                items={items}
-                                            />
+                                            <SideItem key={index} items={items} />
                                         );
                                     })}
                                 </>

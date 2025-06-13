@@ -456,6 +456,7 @@ class PayrollController extends Controller
             ['name' => 'Good Friday', 'date' => '2025-04-18'],
             ['name' => 'Araw ng Kagitingan', 'date' => '2025-04-09'],
             ['name' => 'Labor Day', 'date' => '2025-05-01'],
+            ['name' => 'Eid al-Adha (Feast of the Sacrifice)', 'date' => '2025-06-06'],
             ['name' => 'Independence Day', 'date' => '2025-06-12'],
             ['name' => 'National Heroes Day', 'date' => '2025-08-25'],
             ['name' => 'Bonifacio Day', 'date' => '2025-11-30'],
@@ -609,12 +610,12 @@ class PayrollController extends Controller
             $employeeAmount = 0;
             $employerAmount = 0;
 
-            if ( $cutOff == "First" && $benefit->type == "Percentage") {
+            if ( $cutOff == "First" && $client->id != 4 && $benefit->type == "Percentage") {
                 $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
                 $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
             }
 
-            if ( $cutOff == "First" && $benefit->type == "Amount") {
+            if ( $cutOff == "First" && $client->id != 4 && $benefit->type == "Amount") {
                 $employeeAmount = $benefit->employee_amount * 1;
                 $employerAmount = $benefit->employer_amount * 1;
             }

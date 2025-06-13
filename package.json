@@ -23,7 +23,9 @@
         "resolve-url-loader": "5.0.0",
         "sass": "^1.32.11",
         "sass-loader": "^11.0.1",
-        "vite": "^6.2.4"
+        "vite": "^6.2.4",
+        "@prettier/plugin-php": "0.14.3",
+        "prettier": "2.0.5"
     },
     "dependencies": {
         "@babel/runtime": "^7.19.4",
@@ -61,6 +63,7 @@
         "leaflet": "^1.9.4",
         "leaflet-draw": "^1.0.4",
         "lucide-react": "^0.485.0",
+        "mammoth": "^1.9.1",
         "material-table": "^1.63.0",
         "moment": "^2.29.4",
         "react-bootstrap": "^2.10.10",
@@ -85,6 +88,7 @@
         "sweetalert2": "^11.6.13",
         "sweetalert2-react-content": "^5.1.0",
         "twilio-client": "^1.14.0",
+        "xlsx": "^0.18.5",
         "yup": "^1.6.1"
     },
     "name": "manpro",

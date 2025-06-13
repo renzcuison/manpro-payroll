@@ -58,6 +58,33 @@ const evaluationItems = [
     },
 ];
 
+    const medicalRecords = [
+        {
+            id: 3,
+            text: "Medical Records",
+            icon: "fa fa-medkit",
+            children: [
+                {
+                    href: `/employee/medical-records/peme/peme-responses`,
+                    text: "PEME",
+                    icon: "fa fa-cogs",
+                },
+                {
+                    href: `/employee/medical-records/group-life-masterlist-records`,
+
+                    text: "Group Life Masterlist",
+                    icon: "fa fa-cogs",
+                },
+                {
+                    href: `/employee/medical-records/hmo-masterlist-records`,
+
+                    text: "HMO Masterlist",
+                    icon: "fa fa-cogs",
+                },
+            ],
+        },
+    ];
+
 const StyledNav = styled(NavLink)(({ isActive }) => ({
     backgroundColor: "transparent",
     ":hover": { backgroundColor: "rgb(233, 171, 19,0.7)", "& #navName": { color: "white" }},
@@ -128,26 +155,25 @@ const Sidebar = ({ children, closeMini }) => {
                             </div>
                         </div>
                     </div>
+                    
                     <div className="content-side content-side-full content-side-user px-10 align-parent" style={{ backgroundImage: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }} >
                         <div className="sidebar-mini-visible-b align-v animated fadeIn">
                             <img className="img-avatar img-avatar32" src={avatar} alt="" />
                         </div>
                         <div className="sidebar-mini-hidden-b text-center">
-                            <div className="sidebar-mini-hidden-b text-center">
-                                <Box display="flex" flexDirection="column" alignItems="center">
-                                    <Avatar src={imagePath ? imagePath : HomeLogo} alt={`${user.first_name} ${user.last_name}`} sx={{ width: 64, height: 64, objectFit: 'contain', bgcolor: 'grey.300', '& .MuiAvatar-img': { objectFit: 'cover' }, }} />
-                                    <ul className="list-inline mt-10">
-                                        <li className="list-inline-item">
-                                            {/* <a className="link-effect text-white font-size-xs font-w600">{capitalize(user.fname)} {capitalize(user.lname)}</a> */}
-                                            <a className="link-effect text-white font-size-xs font-w600">
-                                                {user.first_name} {user.last_name}
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </Box>
-                            </div>
+                            <Box display="flex" flexDirection="column" alignItems="center" >
+                                <Avatar src={ user?.media?.[0]?.original_url || imagePath } alt={`${user?.first_name || ""} ${ user?.last_name || "" }`} sx={{ width: 64, height: 64, objectFit: "contain", bgcolor: "grey.300", "& .MuiAvatar-img": { objectFit: "cover" }}} />
+                                <ul className="list-inline mt-10">
+                                    <li className="list-inline-item">
+                                        <a className="link-effect text-white font-size-xs font-w600">
+                                            {capitalize(user.first_name)}{" "}{capitalize(user.last_name)}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </Box>
                         </div>
                     </div>
+
                     <div className="content-side content-side-full">
                         <ul className="nav-main">
                             <li className="nav-main-heading">
@@ -170,6 +196,11 @@ const Sidebar = ({ children, closeMini }) => {
                                 <i className="fa fa-pencil-square-o" style={{ color: "#2a800f" }}></i> <span id="navName" className="sidebar-mini-hide" > Applications </span>
                             </StyledNav>
 
+                            
+                            {medicalRecords.map((items, index) => {
+                                return <SideItem key={index} items={items} />;
+                            })}
+
                             <StyledNav to={`/employee/payroll`}>
                                 <i className="fa fa-money" style={{ color: "#2a800f" }} ></i> <span id="navName" className="sidebar-mini-hide"> Payroll Details </span>
                             </StyledNav>
@@ -185,6 +216,8 @@ const Sidebar = ({ children, closeMini }) => {
                             <StyledNav to={`/employee/trainings`}>
                                 <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i> <span id="navName" className="sidebar-mini-hide" > Trainings </span>
                             </StyledNav>
+                            
+
                             {/*
                             {evaluationItems.map((items, index) => {
                                 return <SideItem key={index} items={items} />;

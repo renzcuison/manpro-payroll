@@ -1,36 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    Box, TextField, Button, Grid, FormControl, FormControlLabel, InputLabel, Select,
-    RadioGroup, Radio, MenuItem, Typography, IconButton
+    Box, TextField, Button, Grid, FormControl, InputLabel, Select,
+    MenuItem, Typography, IconButton
 } from '@mui/material';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import ShortTextIcon from '@mui/icons-material/ShortText';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
-import CloseIcon from '@mui/icons-material/Close';  // For the "X" icon
+import CloseIcon from '@mui/icons-material/Close';
 import { useEvaluationFormSubcategory } from '../../../../hooks/useEvaluationFormSubcategory';
 
 const PerformanceEvaluationRating = ({ subcategory }) => {
-
     const {
         subcategoryId, subcategoryName, responseType, subcategoryDescription, required,
         allowOtherOption, linearScaleStart, linearScaleEnd, order, options,
         editSubcategory, saveOption, switchResponseType, toggleRequired
-    } = useEvaluationFormSubcategory( subcategory );
+    } = useEvaluationFormSubcategory(subcategory);
 
-    // Demo controlled state for linear scale labels (if you want to save them)
-    const [label1, setLabel1] = useState('');
-    const [label2, setLabel2] = useState('');
+    const [label1, setLabel1] = useState(subcategory.linear_scale_start_label || '');
+    const [label2, setLabel2] = useState(subcategory.linear_scale_end_label || '');
     const [rating, setRating] = useState(0);
 
-    // Demo controlled state for options if you want to make them editable
-    const [optionList, setOptionList] = useState(options || []);
+    // Only allow options for these types
+    const supportsOptions = ['multiple_choice', 'checkbox'].includes(subcategory.subcategory_type);
 
-    // Update local optionList when options change from props/hook
-    React.useEffect(() => {
-        setOptionList(options || []);
-    }, [options]);
+    // Keep options and labels in sync with subcategory
+    const [optionList, setOptionList] = useState(supportsOptions ? (options || []) : []);
+    useEffect(() => {
+        setOptionList(supportsOptions ? (subcategory.options || []) : []);
+        setLabel1(subcategory.linear_scale_start_label || '');
+        setLabel2(subcategory.linear_scale_end_label || '');
+    }, [
+        subcategory.id,
+        subcategory.options,
+        subcategory.linear_scale_start_label,
+        subcategory.linear_scale_end_label,
+        subcategory.subcategory_type
+    ]);
 
     const handleResponseTypeChange = (event) => {
         switchResponseType(event.target.value);
@@ -41,21 +48,21 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
     };
 
     const handleOptionChange = (index, event) => {
+        if (!supportsOptions) return;
         const newOptions = [...optionList];
         newOptions[index] = { ...newOptions[index], label: event.target.value };
         setOptionList(newOptions);
-        // Optionally, call saveOption or similar here to persist
     };
 
     const handleAddOption = () => {
+        if (!supportsOptions) return;
         setOptionList([...optionList, { label: "" }]);
-        // Optionally, call saveOption or similar here to persist
     };
 
     const handleRemoveOption = (index) => {
+        if (!supportsOptions) return;
         const newOptions = optionList.filter((_, i) => i !== index);
         setOptionList(newOptions);
-        // Optionally, call saveOption or similar here to persist
     };
 
     return (
@@ -92,34 +99,32 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                     <Box>
                         <Typography variant="h6">Linear Scale</Typography>
                         <Grid container spacing={2} direction="column">
-                        <Grid item>
-                            <TextField
-                            label="Label 1"
-                            variant="outlined"
-                            value={label1}
-                            onChange={(e) => setLabel1(e.target.value)}
-                            />
+                            <Grid item>
+                                <TextField
+                                    label="Label 1"
+                                    variant="outlined"
+                                    value={label1}
+                                    onChange={(e) => setLabel1(e.target.value)}
+                                />
+                            </Grid>
+                            <Grid item>
+                                <TextField
+                                    label="Label 2"
+                                    variant="outlined"
+                                    value={label2}
+                                    onChange={(e) => setLabel2(e.target.value)}
+                                    sx={{ mb: 2 }}
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid item>
-                            <TextField
-                            label="Label 2"
-                            variant="outlined"
-                            value={label2}
-                            onChange={(e) => setLabel2(e.target.value)}
-                            sx={{ mb: 2 }}
-
-                            />
-                        </Grid>
-                        </Grid>
-                                                {/* <RadioGroup row value={rating} onChange={handleRatingChange} sx={{ mt: 2 }}>
-                            {[0, 1, 2, 3, 4, 5].map((num) => (
-                                <FormControlLabel key={num} value={num} control={<Radio />} label={num.toString()} />
-                            ))}
-                        </RadioGroup> */}
+                        {/* <Typography variant="body2" sx={{ mt: 1, color: '#888' }}>
+                            Start Value: {linearScaleStart} &nbsp;&nbsp;
+                            End Value: {linearScaleEnd}
+                        </Typography> */}
                     </Box>
                 )}
 
-                {responseType === 'multipleChoice' && (
+                {supportsOptions && responseType === 'multipleChoice' && (
                     <Box>
                         <Typography variant="h6">Multiple Choice</Typography>
                         {optionList.map((option, index) => (
@@ -155,7 +160,7 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                     </Box>
                 )}
 
-                {responseType === 'checkbox' && (
+                {supportsOptions && responseType === 'checkbox' && (
                     <Box>
                         <Typography variant="h6">Checkbox</Typography>
                         {optionList.map((option, index) => (
@@ -215,17 +220,10 @@ const PerformanceEvaluationRating = ({ subcategory }) => {
                             multiline
                             rows={4}
                             sx={{ mb: 2 }}
-
                         />
                     </Box>
                 )}
             </Box>
-
-            {/* <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-                <Button variant="contained" color="success">
-                    Save Evaluation
-                </Button>
-            </Box> */}
         </div>
     );
 };

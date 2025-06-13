@@ -27,7 +27,7 @@ const EmployeeView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [employee, setEmployee] = useState('');
-    const [education, setEducation] = useState([]);
+    const [educations, setEducations] = useState([]);
     const [imagePath, setImagePath] = useState('');
 
     const [openEmployeeBenefitsModal, setOpenEmployeeBenefitsModal] = useState(false);
@@ -47,12 +47,12 @@ const EmployeeView = () => {
             .then((response) => {
                 if (response.data.status === 200) {
                     const educationBackgrounds = response.data.educations
-                    setEducation(educationBackgrounds);             
+                    setEducations(educationBackgrounds);             
                 }
             })
             .catch((error) => {
                 console.error("Error fetching education background:", error);
-                setEducation(null);
+                setEducations(null);
         })
     }
 
@@ -391,7 +391,7 @@ const EmployeeView = () => {
                                 </Grid>
                             </Box>
 
-                            <EmployeeEducationBackground education={education}></EmployeeEducationBackground>
+                            <EmployeeEducationBackground education={educations}></EmployeeEducationBackground>
 
                             <EmployeeHistory userName={user} headers={headers} />
 

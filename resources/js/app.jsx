@@ -27,6 +27,7 @@ import ResetPassword from "./Pages/ResetPassword";
 import VerifyLogin from "./Pages/VerifyLogin";
 
 import Profile from "./Pages/Users/Profile.jsx";
+import ChangePassword from "./Pages/Users/ChangePassword.jsx";
 
 import Reports from "./Pages/Reports/Reports.jsx";
 import ReportCreate from "./Pages/Reports/ReportCreate.jsx";
@@ -74,9 +75,7 @@ function App() {
 
     return (
         <Routes>
-            <Route
-                path="/"
-                element={
+            <Route path="/" element={
                     user ? (
                         user.user_type === "SuperAdmin" ? (
                             <SuperAdminDashboard />
@@ -93,9 +92,7 @@ function App() {
                 }
             />
 
-            <Route
-                path="/dashboard"
-                element={
+            <Route path="/dashboard" element={
                     user ? (
                         user.user_type === "SuperAdmin" ? (
                             <SuperAdminDashboard />
@@ -114,24 +111,16 @@ function App() {
 
             <Route path="/hr/*" element={<HrRoutes user={user} />} />
             <Route path="/admin/*" element={<AdminRoutes user={user} />} />
-            <Route
-                path="/super-admin/*"
-                element={<SuperAdminRoutes user={user} />}
-            />
-            <Route
-                path="/employee/*"
-                element={<EmployeeRoutes user={user} />}
-            />
+            <Route path="/super-admin/*" element={<SuperAdminRoutes user={user} />} />
+            <Route path="/employee/*" element={<EmployeeRoutes user={user} />} />
 
             {/* Unprotected Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register/:code" element={<Register />} />
 
             {/* User Profile Routes */}
-            <Route
-                path="/profile"
-                element={user ? <Profile /> : <CheckUser />}
-            />
+            <Route path="/profile" element={user ? <Profile /> : <CheckUser />} />
+            <Route path="/profile/change-password" element={user ? <ChangePassword /> : <CheckUser />} />
 
             {/* ----------------------------------------------------------------------------------------------- */}
             {/* GLOBAL ROUTES */}

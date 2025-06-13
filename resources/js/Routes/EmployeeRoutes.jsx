@@ -24,6 +24,14 @@ import TrainingView from "../Pages/Employee/Trainings/TrainingView";
 import ProfileEdit from "../Pages/Employee/Profile/ProfileEdit";
 import ContentView from "../Pages/Employee/Trainings/ContentView";
 
+import PemeRecords from "../Pages/Employee/MedicalRecords/PEME/PemeRecords";
+import GroupLifeMasterlist from "../Pages/Employee/MedicalRecords/GroupLifeMasterlist";
+import HMOmasterlist from "../Pages/Employee/MedicalRecords/HMOmasterlist";
+import PemeRecordsForm from "../Pages/Employee/MedicalRecords/PEME/Forms/PemeRecordsForm";
+import PemeResponses from "../Pages/Employee/MedicalRecords/PEME/PemeResponses";
+import PemeQuestionnaireView from "../Pages/Employee/MedicalRecords/PEME/PemeQuestionnaireView";
+import PemeOverview from "../Pages/Employee/MedicalRecords/PEME/PemeOverview";
+
 const EmployeeRoutes = ({ user }) => {
     const navigate = useNavigate();
 
@@ -62,6 +70,14 @@ const EmployeeRoutes = ({ user }) => {
 
             {/* Profile Routes ----------------------------------------- */}
             <Route path="profile-edit" element={<ProtectedRoute element={<ProfileEdit />} user={user} />} />
+
+            {/* Medical Records Routes ----------------------------------------- */}
+            <Route path="medical-records/peme-records" element={<ProtectedRoute element={<PemeRecords />} user={user} />} />
+            <Route path="medical-records/peme-records/peme-form" element={<ProtectedRoute element={<PemeRecordsForm />} user={user} />} />
+            <Route path="medical-records/group-life-masterlist-records" element={ <ProtectedRoute element={<GroupLifeMasterlist />} user={user}/> }/>
+            <Route path="medical-records/hmo-masterlist-records" element={ <ProtectedRoute element={<HMOmasterlist />} user={user} />}/>
+            <Route path="medical-records/peme/peme-responses" element={ <ProtectedRoute element={<PemeResponses />} user={user} />}/>       
+            <Route path="medical-records/peme-records/peme-questionnaire-view" element={<ProtectedRoute element={<PemeQuestionnaireView />} user={user}/>}/>             
         </Routes>
     );
 };

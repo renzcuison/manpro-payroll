@@ -18,7 +18,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import EditIcon from "@mui/icons-material/Edit";
 
 function UserInformation({ user }) {
-    console.log(user.media);
 
     const queryClient = useQueryClient();
     const fileInputRef = useRef();
@@ -29,15 +28,10 @@ function UserInformation({ user }) {
     const profilePic = user?.media?.length ? user.media[0]?.original_url : user?.avatar || "../../../../../images/avatarpic.jpg";
 
     const triggerFileInput = () => {
-        console.log("triggerFileInput()");
-
-        console.log('Profile Pic:', profilePic);
-
         fileInputRef.current.click();
     };
 
     const handleUpload = (event) => {
-        console.log("handleUpload()");
 
         const file = event.target.files[0];
         if (file) {
@@ -65,12 +59,8 @@ function UserInformation({ user }) {
                     customClass: { container: "my-swal" },
                 }).then((result) => {
                     if (result.isConfirmed) {
-
-                        // Render the selected file
-                        const reader = new FileReader();
-                        reader.readAsDataURL(file);
-
-                        // Upload the new profile picture
+                       //send file immediately, storing it in a useState might not save it when it is now sent
+                       //to the backend
                         saveProfilePic(event, file);
                     }
                 });
@@ -81,12 +71,12 @@ function UserInformation({ user }) {
     const saveProfilePic = (event, file) => {
         event.preventDefault();
         const formData = new FormData();
-        formData.append("id", user.id);
-        formData.append("profile_picture", file);
 
-        axiosInstance
-            .post("/employee/editMyProfilePicture", formData, { headers })
-            .then((response) => {
+        formData.append('id', user.id);
+        formData.append('profile_picture', file);
+
+        axiosInstance.post('/employee/editMyProfilePicture', formData, { headers })
+            .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
                         customClass: { container: "my-swal" },
@@ -131,7 +121,7 @@ function UserInformation({ user }) {
                     <Tooltip title="Update Profile, 5 MB Limit">
                         <span style={{ cursor: "pointer", position: "relative" }} >
                             <input hidden type="file" onChange={handleUpload} accept=".png, .jpg, .jpeg" ref={fileInputRef} />
-                            <Avatar className="profile-image" onClick={triggerFileInput} src={profilePic} sx={{ height: "200px", width: "200px", boxShadow: 3, transition: "filter 0.3s" }} />
+                            <Avatar className="profile-image" onClick={triggerFileInput} src={profilePic} sx={{ height: "200px", width: "200px", boxShadow: 3, transition: "filter 0.3s", }} />
                             <EditIcon className="profile-edit-icon" opacity="0" sx={{ fontSize: "90px", opacity: 0, position: "absolute", top: "50%", left: "50%", color: "white", pointerEvents: "none", transform: "translate(-50%, -50%)", transition: "opacity 0.3s" }} />
                         </span>
                     </Tooltip>

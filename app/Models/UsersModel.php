@@ -56,6 +56,7 @@ class UsersModel extends Authenticatable implements HasMedia
         'client_id',
         'branch_id',
         'department_id',
+        'department_position_id',
         'role_id',
         'job_title_id',
         'work_group_id',
@@ -91,6 +92,16 @@ class UsersModel extends Authenticatable implements HasMedia
     public function department()
     {
         return $this->belongsTo(DepartmentsModel::class, 'department_id');
+    }
+
+    public function departmentPosition()
+    {
+        return $this->belongsTo(DepartmentPosition::class, 'department_position_id');
+    }
+
+   //pivot model connecting department positions and users
+    public function employeeDepartmentPositions(){
+        return $this->hasMany(EmployeeDepartmentPosition::class, 'employee_id');
     }
 
     public function workGroup()
@@ -181,4 +192,16 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->hasMany(MilestoneComment::class, 'user_id');
     }
     
+      //employees assigned to department positions
+    public function assignedDepartmentPositions()
+    {
+        return $this->belongsToMany(
+            DepartmentPositionAssignment::class,
+            'employee_department_positions',
+            'employee_id',
+            'assignment_id'
+        );
+    }
+
+  
 }
