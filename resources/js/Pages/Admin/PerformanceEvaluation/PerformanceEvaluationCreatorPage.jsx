@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  IconButton, Menu, MenuItem, Paper, Chip, TextField, Grid, FormControlLabel, Radio, Button, Divider
+  Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Paper,
+  TextField, Grid, FormControlLabel, Radio, IconButton, Menu, MenuItem, Button, Divider
 } from '@mui/material';
-import { getFullName } from '../../../utils/user-utils';
+import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../../components/Layout/Layout';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { getFullName } from '../../../utils/user-utils';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
-import PerformanceEvaluationCommentorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvalutionCommentorAcknowledge';
+import PerformanceEvaluationCreatorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvaluationCreatorAcknowledge';
 import Swal from 'sweetalert2';
-
 
 // --- Overall Rating Calculation Helper ---
 const getSectionScore = (section) => {
@@ -63,70 +62,60 @@ const getSectionScore = (section) => {
   return { sectionScore, subcatScores };
 };
 
-// --- Score Linear Bar ---
-const Bar = ({ value, max = 100, sx = {} }) => {
-  const pct = Math.max(0, Math.min(1, value / max)) * 100;
-  return (
-    <Box
-      sx={{
-        width: '100%',
-        height: 18,
-        borderRadius: '9px',
-        background: '#e0e0e0',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0px 1px 2px #e0e0e0',
-        ...sx,
-      }}
-    >
-      <Box
-        sx={{
-          width: `${pct}%`,
-          height: '100%',
-          background: 'linear-gradient(90deg, #367C2B 0%, #EAB31A 100%)',
-          borderRadius: '9px', // Make both ends rounded
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      />
-    </Box>
-  );
-};
-// --- END Overall Rating Helper ---
-
-const PerformanceEvaluationCommentorPage = () => {
+const PerformanceEvaluationCreatorPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const {
     evaluationResponse,
-    editEvaluationCommentor
+    editEvaluationCreatorSignature
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
   const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
-  const [commentorComments, setCommentorComments] = useState([]);
-  const [savingIds, setSavingIds] = useState([]);
 
-  // Modal state per commentor
-  const [openAcknowledgeFor, setOpenAcknowledgeFor] = useState(null);
+  // Modal state for acknowledge
+  const [openAcknowledgeModal, setOpenAcknowledgeModal] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
-      if (Array.isArray(evaluationResponse.commentors) && evaluationResponse.commentors.length > 0) {
-        setCommentorComments(
-          evaluationResponse.commentors.map(c => ({
-            commentor_id: c.commentor_id,
-            comment: c.comment || '',
-            name: getFullName(c)
-          }))
-        );
-      }
     }
   }, [evaluationResponse]);
+
+  // Approve/Sign Handler
+  async function handleCreatorSignature(signatureData) {
+    setSaving(true);
+    try {
+      await editEvaluationCreatorSignature({
+        response_id: evaluationResponse.id,
+        creator_signature_filepath: signatureData
+      });
+      Swal.fire({
+        icon: 'success',
+        title: 'Approved!',
+        text: "Signature saved successfully.",
+        timer: 1600,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        position: 'center'
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: "Failed to save signature!",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        position: 'center'
+      });
+    } finally {
+      setSaving(false);
+      setOpenAcknowledgeModal(false);
+    }
+  }
 
   const handleSettingsClick = (event) => {
     setSettingsAnchorEl(event.currentTarget);
@@ -135,55 +124,6 @@ const PerformanceEvaluationCommentorPage = () => {
     setSettingsAnchorEl(null);
   };
   const settingsOpen = Boolean(settingsAnchorEl);
-
-  const handleCommentInput = (commentor_id, value) => {
-    setCommentorComments(prev =>
-      prev.map(c =>
-        c.commentor_id === commentor_id ? { ...c, comment: value } : c
-      )
-    );
-  };
-
-  // Show modal first, then save after signature
-  const handleOpenAcknowledgeModal = (commentor_id) => {
-    setOpenAcknowledgeFor(commentor_id);
-  };
-
-  // Called after signature is done in modal
-  const handleProceedAcknowledge = async (signatureData, commentor_id) => {
-    setSavingIds(prev => [...prev, commentor_id]);
-    const commentObj = commentorComments.find(c => c.commentor_id === commentor_id);
-    try {
-      await editEvaluationCommentor({
-        response_id: evaluationResponse.id,
-        commentor_id,
-        comment: commentObj ? commentObj.comment : "",
-        signature_filepath: signatureData // PNG dataURL
-      });
-      Swal.fire({
-        icon: 'success',
-        title: 'Saved!',
-        text: "Comment & signature saved successfully.",
-        timer: 1600,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        position: 'center'
-      });
-    } catch (e) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: "Failed to save comment and signature!",
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        position: 'center'
-      });
-    } finally {
-      setSavingIds(prev => prev.filter(id => id !== commentor_id));
-      setOpenAcknowledgeFor(null); // Close modal after try/catch
-    }
-  };
 
   const responseTypeMap = {
     'linear_scale': 'Linear Scale',
@@ -194,38 +134,7 @@ const PerformanceEvaluationCommentorPage = () => {
     'dropdown': 'Dropdown'
   };
 
-  if (loading) {
-    return (
-      <Layout title="Performance Evaluation Answers">
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-          <CircularProgress />
-        </Box>
-      </Layout>
-    );
-  }
-
-  const form = evaluationResponse.form;
-  const responseMeta = evaluationResponse;
-
-  if (!form || !responseMeta) {
-    return (
-      <Layout title="Performance Evaluation Answers">
-        <Box sx={{ textAlign: 'center', mt: 6 }}>
-          <Typography variant="h6" color="error">Evaluation Form or Response Not Found</Typography>
-        </Box>
-      </Layout>
-    );
-  }
-
-  // --- Overall Rating Section: only code added below ---
-  const overallRatingSections = (form.sections || []).filter(section =>
-    section.subcategories?.some(
-      subcat => ['multiple_choice', 'checkbox', 'linear_scale'].includes(subcat.subcategory_type)
-    )
-  );
-  // --- End Overall Rating Section code ---
-
-  // Render answer with legend
+  // Helper to render answers
   const renderAnswer = (subCategory) => {
     switch (subCategory.subcategory_type) {
       case 'linear_scale':
@@ -263,12 +172,12 @@ const PerformanceEvaluationCommentorPage = () => {
                 <Typography variant="body1">{subCategory.linear_scale_end_label}</Typography>
               </Grid>
             </Grid>
-            {/* <Typography variant="body1" sx={{ mt: 1 }}>
-              {typeof subCategory.percentage_answer?.value === 'number'
+            <Typography variant="body1" sx={{ mt: 1 }}>
+              Selected: {typeof subCategory.percentage_answer?.value === 'number'
                 ? subCategory.percentage_answer.value
                 : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
               }
-            </Typography> */}
+            </Typography>
           </Box>
         );
       case 'short_answer':
@@ -288,6 +197,7 @@ const PerformanceEvaluationCommentorPage = () => {
         );
       case 'multiple_choice':
       case 'checkbox':
+      case 'dropdown':
         const selectedOptions = Array.isArray(subCategory.options)
           ? subCategory.options.filter(opt => opt.option_answer)
           : [];
@@ -309,7 +219,7 @@ const PerformanceEvaluationCommentorPage = () => {
               <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>
             )}
 
-             <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 2 }} />
 
             {/* Legend for multiple_choice, checkbox, dropdown */}
             {(subCategory.subcategory_type === 'multiple_choice' ||
@@ -343,13 +253,20 @@ const PerformanceEvaluationCommentorPage = () => {
     }
   };
 
-  const allCommentors = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
-    ? responseMeta.commentors
-    : [];
+  if (loading) {
+    return (
+      <Layout title="Performance Evaluation Creator View">
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      </Layout>
+    );
+  }
 
-  const allEvaluators = Array.isArray(responseMeta.evaluators) && responseMeta.evaluators.length > 0
-    ? responseMeta.evaluators
-    : [];
+  const form = evaluationResponse.form;
+  const responseMeta = evaluationResponse;
+  const allEvaluators = Array.isArray(responseMeta.evaluators) ? responseMeta.evaluators : [];
+  const allCommentors = Array.isArray(responseMeta.commentors) ? responseMeta.commentors : [];
 
   const getOrderLabel = (idx) => {
     const n = idx + 1;
@@ -362,7 +279,7 @@ const PerformanceEvaluationCommentorPage = () => {
   };
 
   return (
-    <Layout title="Performance Evaluation Answers">
+    <Layout title="Performance Evaluation Creator View">
       <Box
         sx={{
           mt: 5,
@@ -405,7 +322,7 @@ const PerformanceEvaluationCommentorPage = () => {
                 handleSettingsClose();
                 setTimeout(() => navigate('/admin/performance-evaluation'), 100);
               }}
-            >Exit Form</MenuItem>
+            >Exit View</MenuItem>
           </Menu>
           <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
             {form.name}
@@ -415,14 +332,13 @@ const PerformanceEvaluationCommentorPage = () => {
           Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
-            evaluator => getFullName(evaluator)
-          ).join(' & ') : ''}
+          Evaluators: {allEvaluators.map(evaluator => getFullName(evaluator)).join(' & ')}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
         </Typography>
 
+        {/* Evaluation Form Sections */}
         {(!form.sections || form.sections.length === 0) && (
           <Typography>No sections available for this form.</Typography>
         )}
@@ -525,6 +441,7 @@ const PerformanceEvaluationCommentorPage = () => {
           </Accordion>
         ))}
 
+        {/* Evaluator Comments */}
         <Box sx={{ mt: 6 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
             Evaluator Comments:
@@ -540,7 +457,7 @@ const PerformanceEvaluationCommentorPage = () => {
                     flexDirection: 'column',
                     bgcolor: '#fff',
                     borderRadius: 2,
-                    borderLeft: '8px solid #eab31a',
+                    borderLeft: '8px solid #E9AE20',
                     px: 2,
                     pt: 2,
                     pb: 2,
@@ -551,7 +468,7 @@ const PerformanceEvaluationCommentorPage = () => {
                   }}
                 >
                   
-                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                     {getFullName(evaluator)}
                   </Typography>
                   <TextField
@@ -574,76 +491,80 @@ const PerformanceEvaluationCommentorPage = () => {
           )}
         </Box>
 
-       <Box sx={{ mt: 6 }}>
-  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-    Comments:
-  </Typography>
-  {allCommentors.length > 0 ? (
-    <Box>
-      {allCommentors.map((commentor, i) => (
-        <Paper
-          key={commentor.commentor_id}
-          elevation={2}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            width: '100%',
-            bgcolor: '#fff',
-            borderRadius: 2,
-            borderLeft: '8px solid #eab31a',
-            px: 2,
-            pt: 2,
-            pb: 2,
-            mt: 2,
-            mb: 2,
-            boxShadow: 2,
-          }}
-        >
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-            {commentor.client_id}
+        {/* Commentor Comments */}
+        <Box sx={{ mt: 6 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+            Commentor Comments:
           </Typography>
-          <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-            {getFullName(commentor)}
-          </Typography>
-          <TextField
-            label="Comment"
-            multiline
-            minRows={3}
-            fullWidth
-            value={
-              commentorComments.find(c => c.commentor_id === commentor.commentor_id)?.comment || ''
-            }
-            sx={{ mt: 1 }}
-            onChange={e => handleCommentInput(commentor.commentor_id, e.target.value)}
-            placeholder="Enter your comment here"
-            disabled={savingIds.includes(commentor.commentor_id)}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          {allCommentors.length > 0 ? (
+            <Box>
+              {allCommentors.map((commentor, i) => (
+                <Paper
+                  key={commentor.commentor_id || commentor.id || i}
+                  elevation={2}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: '#fff',
+                    borderRadius: 2,
+                    borderLeft: '8px solid #E9AE20',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    width: '100%',
+                    boxShadow: 2,
+                  }}
+                >
+                  
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                    {getFullName(commentor)}
+                  </Typography>
+                  <TextField
+                    label="Commentor Comment"
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    value={commentor.comment || ''}
+                    sx={{ mt: 1 }}
+                    placeholder="No comment provided"
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                  />
+                </Paper>
+              ))}
+            </Box>
+          ) : (
+            <Typography color="text.secondary"><i>No commentors found.</i></Typography>
+          )}
+        </Box>
+
+        {/* Approve/Sign Button */}
+        {!evaluationResponse.creator_signature_filepath && (
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
             <Button
               variant="contained"
-              size="small"
-              onClick={() => handleOpenAcknowledgeModal(commentor.commentor_id)}
-              disabled={savingIds.includes(commentor.commentor_id)}
+              color="success"
+              size="large"
+              onClick={() => setOpenAcknowledgeModal(true)}
+              disabled={saving}
             >
-              {savingIds.includes(commentor.commentor_id) ? "Saving..." : "Save Comment"}
+              {saving ? "Saving..." : "Approve"}
             </Button>
           </Box>
-          {/* Modal for this commentor */}
-          <PerformanceEvaluationCommentorAcknowledge
-            open={openAcknowledgeFor === commentor.commentor_id}
-            onClose={() => setOpenAcknowledgeFor(null)}
-            onProceed={signatureData => handleProceedAcknowledge(signatureData, commentor.commentor_id)}
-          />
-        </Paper>
-      ))}
-    </Box>
-  ) : (
-    <Typography color="text.secondary"><i>No commentors found.</i></Typography>
-  )}
-</Box>
+        )}
+
+        {/* Creator Acknowledge Modal */}
+        <PerformanceEvaluationCreatorAcknowledge
+          open={openAcknowledgeModal}
+          onClose={() => setOpenAcknowledgeModal(false)}
+          onProceed={handleCreatorSignature}
+        />
       </Box>
     </Layout>
   );
 };
 
-export default PerformanceEvaluationCommentorPage;
+export default PerformanceEvaluationCreatorPage;

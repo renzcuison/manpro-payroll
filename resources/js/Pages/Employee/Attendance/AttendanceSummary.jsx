@@ -13,7 +13,8 @@ import {
     useTheme,
     useMediaQuery,
     Button,
-    Divider
+    Divider,
+    TablePagination
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -22,6 +23,14 @@ import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import { useNavigate } from "react-router-dom";
+
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+
+import DateRangePicker from '../../../components/DateRangePicker';
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 import AttendanceSummaryDetails from "./Modals/AttendanceSummaryDetails";
 
@@ -39,6 +48,11 @@ const AttendanceSummary = () => {
     // Attendance Filters
     const [summaryFromDate, setSummaryFromDate] = useState(dayjs().startOf("month"));
     const [summaryToDate, setSummaryToDate] = useState(dayjs());
+    const [selectedRange, setSelectedRange] = useState("today");
+    
+
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     // Attendance Lists
     const [summaryData, setSummaryData] = useState([]);
@@ -103,6 +117,84 @@ const AttendanceSummary = () => {
         }
     }
 
+    const setPredefinedDates = (range) => {
+        const today = dayjs();
+        switch (range) {
+            case "today":
+                handleFilterChange("range", today, today);
+                break;
+            case "yesterday":
+                handleFilterChange("range", today.subtract(1, "day"), today.subtract(1, "day"));
+                break;
+            case "last7days":
+                handleFilterChange("range", today.subtract(6, "day"), today);
+                break;
+            case "last30days":
+                handleFilterChange("range", today.subtract(29, "day"), today);
+                break;
+            case "thisMonth":
+                handleFilterChange("range", today.startOf("month"), today);
+                break;
+            case "lastMonth":
+                handleFilterChange("range", today.subtract(1, "month").startOf("month"), today.subtract(1, "month").endOf("month"));
+                break;
+            case "custom":
+                break;
+            default:
+                break;
+        }
+        setSelectedRange(range);
+    };
+
+    const handleFilterChange = (type, newDate, rangeEnd = null) => {
+        if (type === "from") {
+            setSummaryFromDate(newDate);
+            if (newDate.isAfter(summaryToDate)) {
+                setSummaryToDate(newDate);
+            }
+        } else if (type === "to") {
+            setSummaryToDate(newDate);
+        } else if (type === "range") {
+            setSummaryFromDate(newDate);
+            setSummaryToDate(rangeEnd);
+        }
+    };
+
+    const filteredAttendance = summaryData.filter((attendance) => {
+        // Use the correct date field for summary data
+        const attendanceDate = dayjs(attendance.date);
+
+        const isInDateRange =
+            (!summaryFromDate || attendanceDate.isSameOrAfter(summaryFromDate, 'day')) &&
+            (!summaryToDate || attendanceDate.isSameOrBefore(summaryToDate, 'day'));
+
+        return isInDateRange;
+    });
+
+    const handleDateRangeChange = (start, end) => {
+        if (!start && !end) {
+            setSummaryFromDate(dayjs("1900-01-01"));
+            setSummaryToDate(dayjs());
+            setSelectedRange("all");
+        } else {
+            setSummaryFromDate(start);
+            setSummaryToDate(end);
+            setSelectedRange("custom");
+        }
+    };
+
+    const handleChangePage = (_event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const paginatedAttendance = filteredAttendance.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+
     return (
         <Layout title={"AttendanceSummary"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
@@ -124,35 +216,12 @@ const AttendanceSummary = () => {
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
                         {filterView && (
-                            <Box display="flex" gap={2} sx={{ pb: 2, width: "100%", justifyContent: "flex-start", flexDirection: { xs: "column", md: "row" } }} >
-                                <LocalizationProvider dateAdapter={AdapterDayjs} >
-                                    <DatePicker
-                                        label="From Date"
-                                        value={summaryFromDate}
-                                        onChange={(newValue) => {
-                                            setSummaryFromDate(newValue);
-                                            if (newValue.isAfter(summaryToDate)) {
-                                                setSummaryToDate(newValue);
-                                            }
-                                        }}
-                                        renderInput={(params) => (
-                                            <TextField {...params} />
-                                        )}
-                                        sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
-                                    />
-                                    <DatePicker
-                                        label="To Date"
-                                        value={summaryToDate}
-                                        onChange={(newValue) => {
-                                            setSummaryToDate(newValue);
-                                        }}
-                                        minDate={summaryFromDate}
-                                        renderInput={(params) => (
-                                            <TextField {...params} />
-                                        )}
-                                        sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
-                                    />
-                                </LocalizationProvider>
+                            <Box display="flex" gap={2} sx={{ pb: 2, width: "20%", justifyContent: "flex-start", flexDirection: { xs: "column", md: "row" } }} >
+                                <DateRangePicker
+                                    summaryFromDate={summaryFromDate}
+                                    summaryToDate={summaryToDate}
+                                    onRangeChange={(start, end) => handleFilterChange("range", start, end)}
+                                />
                             </Box>
                         )}
                         {!medScreen && (
@@ -208,76 +277,68 @@ const AttendanceSummary = () => {
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {summaryData.length > 0 ? (
-                                            summaryData.map(
-                                                (summary, index) => (
-                                                    <TableRow
-                                                        key={index}
-                                                        onClick={() => handleOpenAttendanceDetails(summary)}
-                                                        sx={{
-                                                            backgroundColor:
-                                                                index % 2 === 0
-                                                                    ? "#f8f8f8"
-                                                                    : "#ffffff",
-                                                            "&:hover": {
-                                                                backgroundColor: "rgba(0, 0, 0, 0.1)",
-                                                                cursor: "pointer",
-                                                            },
-                                                        }}
-                                                    >
-                                                        <TableCell align="center">
-                                                            {dayjs(summary.date).format("MMMM D, YYYY")}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {summary.time_in
-                                                                ? dayjs(summary.time_in).format("hh:mm:ss A")
+                                        {paginatedAttendance.length > 0 ? (
+                                            paginatedAttendance.map((summary, index) => (
+                                                <TableRow
+                                                    key={index}
+                                                    onClick={() => handleOpenAttendanceDetails(summary)}
+                                                    sx={{
+                                                        backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff",
+                                                        "&:hover": {
+                                                            backgroundColor: "rgba(0, 0, 0, 0.1)",
+                                                            cursor: "pointer",
+                                                        },
+                                                    }}
+                                                >
+                                                    <TableCell align="center">
+                                                        {dayjs(summary.date).format("MMMM D, YYYY")}
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        {summary.time_in
+                                                            ? dayjs(summary.time_in).format("hh:mm:ss A")
+                                                            : "-"}
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        {summary.time_out
+                                                            ? dayjs(summary.time_out).format("hh:mm:ss A")
+                                                            : (summary.time_in && summary.date != currentDate) ? "Failed to Time Out"
                                                                 : "-"}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {summary.time_out
-                                                                ? dayjs(summary.time_out).format("hh:mm:ss A")
-                                                                : (summary.time_in && summary.date != currentDate) ? "Failed to Time Out"
-                                                                    : "-"}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {formatTime(summary.total_rendered)}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {summary.overtime_in
-                                                                ? dayjs(summary.overtime_in).format("hh:mm:ss A")
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        {formatTime(summary.total_rendered)}
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        {summary.overtime_in
+                                                            ? dayjs(summary.overtime_in).format("hh:mm:ss A")
+                                                            : "-"}
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        {summary.overtime_out
+                                                            ? dayjs(summary.overtime_out).format("hh:mm:ss A")
+                                                            : summary.overtime_in ? "Failed to Time Out"
                                                                 : "-"}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {summary.overtime_out
-                                                                ? dayjs(summary.overtime_out).format("hh:mm:ss A")
-                                                                : summary.overtime_in ? "Failed to Time Out"
-                                                                    : "-"}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {formatTime(summary.total_overtime)}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            <Typography
-                                                                sx={{
-                                                                    color:
-                                                                        summary.date === currentDate
-                                                                            ? "#177604"
-                                                                            : summary.late_time > 0 ? "#f44336"
-                                                                                : null,
-                                                                }}
-                                                            >
-                                                                {summary.date == currentDate ? "Day Ongoing" : formatTime(summary.late_time)}
-                                                            </Typography>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                )
-                                            )
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        {formatTime(summary.total_overtime)}
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        <Typography
+                                                            sx={{
+                                                                color:
+                                                                    summary.date === currentDate
+                                                                        ? "#177604"
+                                                                        : summary.late_time > 0 ? "#f44336"
+                                                                            : null,
+                                                            }}
+                                                        >
+                                                            {summary.date == currentDate ? "Day Ongoing" : formatTime(summary.late_time)}
+                                                        </Typography>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell
-                                                    colSpan={8}
-                                                    align="center"
-                                                    sx={{ color: "text.secondary", p: 1, }}>
+                                                <TableCell colSpan={8} align="center" sx={{ color: "text.secondary", p: 1 }}>
                                                     No Attendance Found
                                                 </TableCell>
                                             </TableRow>
@@ -286,6 +347,21 @@ const AttendanceSummary = () => {
                                 </Table>
                             </TableContainer>
                         )}
+                        <TablePagination
+                            rowsPerPageOptions={[5, 10, 25]}
+                            component="div"
+                            count={filteredAttendance.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                            sx={{
+                                ".MuiTablePagination-actions": { mb: 2 },
+                                ".MuiInputBase-root": { mb: 2 },
+                                bgcolor: "#ffffff",
+                                borderRadius: "8px"
+                            }}
+                        />
                     </Box>
                 </Box>
             </Box>

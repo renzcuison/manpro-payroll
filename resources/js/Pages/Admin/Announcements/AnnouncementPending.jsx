@@ -359,24 +359,26 @@ const AnnouncementPending = () => {
                               </Card>
                             ) : (
                               // {/* without thumbnail */}
-                              <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                                <Box
-                                  sx={{ height: "330px", py: 6, px: 2 }}
-                                >
-                                  {/* Card Content */}
-                                  <CardContent>
+                               <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                                  <Box sx={{ height: "210px", py: 4, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }}>
                                     <Typography
-                                      variant="h5"
-                                      component="div"
-                                      sx={{
-                                        fontWeight: 'bold',
-                                        whiteSpace: 'normal',
-                                        wordBreak: 'break-word',
-                                        mb: 2 
-                                      }}
-                                    >
-                                      {announcement.title}
-                                    </Typography>
+                                        component="div"
+                                        sx={{
+                                          fontWeight: 'bold',
+                                          whiteSpace: 'normal',
+                                          wordBreak: 'break-word',
+                                          mb: 2,
+                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.6vw", lg: "1.1vw" }
+                                        }}
+                                      >
+                                        {announcement.title}
+                                      </Typography>
+                                  </Box>
+                                  <Box
+                                    sx={{ height: "120px", px: 1, py: 1 }}
+                                  >
+                                    {/* Card Content */}
+                                    <CardContent>
                                     <Typography
                                       sx={{
                                         fontWeight: "bold",
