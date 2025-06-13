@@ -9,8 +9,9 @@ import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
 import { useEmployeeAllowances } from '../../../hooks/useAllowance';
-import { useEmployeeBenefits } from '../../../hooks/useBenefits';
 import { useEmployeeIncentives } from '../../../hooks/useIncentives';
+
+import { useBenefits } from '../../../hooks/useBenefits';
 
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 import EmployeeEducationBackground from './Components/EmployeeEducationBackground';
@@ -26,8 +27,11 @@ import EmploymentDetails from './Components/EmploymentDetails';
 
 const EmployeeView = () => {
     const { user } = useParams();
+    const {employeeBenefits} = useBenefits(user);
+
+    const benefits = employeeBenefits.data?.benefits || [];
+
     const {data: empAllowances, refetch: refetchAllowance} = useEmployeeAllowances(user);
-    const {data: empBenefits, refetch: refetchBenefits} = useEmployeeBenefits(user);
     const {data: empIncentives, refetch: refetchIncentives} = useEmployeeIncentives(user);
     
     const [anchorEl, setAnchorEl] = useState(null);
@@ -37,7 +41,7 @@ const EmployeeView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const allowances = empAllowances?.allowances || [];
-    const benefits = empBenefits?.benefits || [];
+    
     const incentives = empIncentives?.incentives || [];
 
     const [employee, setEmployee] = useState('');
@@ -123,7 +127,7 @@ const EmployeeView = () => {
         if (reload) {
             getEmployeeDetails();
             refetchAllowance();
-            refetchBenefits();
+            employeeBenefits.refetch();
             refetchIncentives();
             getEducationalBackground();
         }
@@ -153,7 +157,7 @@ const EmployeeView = () => {
                     <Grid container spacing={4} sx={{ mt: 2 }}>
                         <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> 
                             <EmployeeInformation employee={employee} imagePath={imagePath}/>
-                            <EmployeeBenefits userName={user} benefits={benefits} onRefresh={refetchBenefits}/>
+                            <EmployeeBenefits userName={user} benefits={benefits} onRefresh={employeeBenefits.refetch}/>
                             <EmployeeAllowances userName={user} allowances={allowances} onRefresh={refetchAllowance}/>
                             <EmployeeIncentives userName={user} incentives={incentives} onRefresh={refetchIncentives}/>
                             <EmployeeDeductions userName={user} headers={headers} />

@@ -7,17 +7,17 @@ import { Link, useNavigate } from 'react-router-dom';
 
 
 import EmployeeBenefitView from './Modals/EmployeeBenefitView';
-import { useEmployeesBenefits } from '../../../hooks/useBenefits';
+import { useBenefits } from '../../../hooks/useBenefits';
 import { useDepartments } from '../../../hooks/useDepartments';
 import { useBranches } from '../../../hooks/useBranches';
 
 
 const EmployeesBenefitsList = () => {
-    const { data: empBenefitData, isLoading, error, refetch } = useEmployeesBenefits();
+    const { employeesBenefits } = useBenefits();
     const { data: departmentData } = useDepartments(); 
     const { data: branchesData } = useBranches();
 
-    const employees = empBenefitData?.employees || [];
+    const employees = employeesBenefits.data?.employees || [];
     const departments = departmentData?.departments || [];
     const branches = branchesData?.branches || [];
 
@@ -34,7 +34,7 @@ const EmployeesBenefitsList = () => {
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
-        refetch();
+        employeesBenefits.refetch();
     };
 
     const filteredEmployees = employees.filter((employee) => {
@@ -122,7 +122,7 @@ const EmployeesBenefitsList = () => {
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
-                        {isLoading ? (
+                        {employeesBenefits.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>

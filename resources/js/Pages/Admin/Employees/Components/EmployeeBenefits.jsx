@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
 import EmployeeBenefitView from "../../Benefits/Modals/EmployeeBenefitView";
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-
 
 const EmployeeBenefits = ({ userName, benefits, onRefresh }) => {
     const [openEmployeeViewBenefit, setOpenEmployeeViewBenefit] = useState(false);

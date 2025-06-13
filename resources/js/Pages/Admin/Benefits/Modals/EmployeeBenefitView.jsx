@@ -11,14 +11,14 @@ dayjs.extend(localizedFormat);
 import EmployeeBenefitAdd from "../Components/EmployeeBenefitAdd";
 import EmployeeBenefitList from "../Components/EmployeeBenefitList";
 import EmployeeBenefitEdit from "../Components/EmployeeBenefitEdit";
-import { useEmployeeBenefits } from "../../../../hooks/useBenefits";
+import { useBenefits } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitView = ({ open, close, userName }) => {
+    const {employeeBenefits} = useBenefits(userName);
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const {data, isLoading, refetch} = useEmployeeBenefits(userName);
-    const benefits = data?.benefits || [];
+    const benefits = employeeBenefits.data?.benefits || [];
     
     const [benefitsAddOpen, setBenefitsAddOpen] = useState(false);
     const [benefitEditOpen, setBenefitEditOpen] = useState(false);
@@ -51,7 +51,7 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
         setBenefitsAddOpen(false);
         setBenefitsListOpen(true);
         if(reload){
-            refetch();
+            employeeBenefits.refetch();
         }
     }
 
@@ -65,7 +65,7 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
         setBenefitsListOpen(true);
         setBenefitEditOpen(false);
         if(reload){
-            refetch();
+            employeeBenefits.refetch();
         }
     }
 
@@ -95,7 +95,7 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
                     </Box>
                     
                     {benefitsListOpen && (
-                        <EmployeeBenefitList benefits={benefits} isLoading={isLoading} onAdd={() => handleOpenAddEmployeeBenefits()} 
+                        <EmployeeBenefitList benefits={benefits} isLoading={employeeBenefits.isLoading} onAdd={() => handleOpenAddEmployeeBenefits()} 
                         onEdit={(index) => handleOpenEditEmployeeBenefits(index)} />
                     )}
                     {benefitEditOpen && (
