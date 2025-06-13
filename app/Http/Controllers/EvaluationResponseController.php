@@ -30,7 +30,8 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             department_id?: number,
-            branch_id?: number
+            branch_id?: number,
+            exclude?: number[]
         */
 
         // returns:
@@ -40,21 +41,33 @@ class EvaluationResponseController extends Controller
             }
         */
 
-        if (!$this->checkUser()) return response()->json([
-            'status' => 403,
-            'message' => 'Unauthorized access!'
-        ], 403);
-        $user = Auth::user();
+         if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        if (!Auth::check()) {
+            return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+        }
 
         $commentors = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
             ->where('client_id', $user->client_id)
+            ->whereNot('id', $user->id)
             ->whereNull('deleted_at')
         ;
         if($request->department_id !== null)
             $commentors = $commentors->where('department_id', $request->department_id);
         if($request->branch_id !== null)
             $commentors = $commentors->where('branch_id', $request->branch_id);
+        if($request->exclude)
+            $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
         $commentors = $commentors
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -78,7 +91,8 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             department_id?: number,
-            branch_id?: number
+            branch_id?: number,
+            exclude?: number[]
         */
 
         // returns:
@@ -88,22 +102,32 @@ class EvaluationResponseController extends Controller
             }
         */
 
-        if (!$this->checkUser()) return response()->json([
-            'status' => 403,
-            'message' => 'Unauthorized access!'
-        ], 403);
-        $user = Auth::user();
+         if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        if (!Auth::check()) {
+            return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+        }
 
         $evaluatees = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
             ->where('client_id', $user->client_id)
-            ->where('user_type', 'Employee')
             ->whereNull('deleted_at')
         ;
         if($request->department_id !== null)
             $evaluatees = $evaluatees->where('department_id', $request->department_id);
         if($request->branch_id !== null)
             $evaluatees = $evaluatees->where('branch_id', $request->branch_id);
+        if($request->exclude)
+            $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
         $evaluatees = $evaluatees
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -127,7 +151,8 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             department_id?: number,
-            branch_id?: number
+            branch_id?: number,
+            exclude?: number[]
         */
 
         // returns:
@@ -137,14 +162,24 @@ class EvaluationResponseController extends Controller
             }
         */
 
-        if (!$this->checkUser()) return response()->json([
-            'status' => 403,
-            'message' => 'Unauthorized access!'
-        ], 403);
-        $user = Auth::user();
+         if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        if (!Auth::check()) {
+            return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+        }
 
         $evaluators = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
+            ->whereNot('id', $user->id)
             ->where('client_id', $user->client_id)
             ->whereNull('deleted_at')
         ;
@@ -152,6 +187,8 @@ class EvaluationResponseController extends Controller
             $evaluators = $evaluators->where('department_id', $request->department_id);
         if($request->branch_id !== null)
             $evaluators = $evaluators->where('branch_id', $request->branch_id);
+        if($request->exclude)
+            $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
         $evaluators = $evaluators
             ->orderBy('last_name')
             ->orderBy('first_name')

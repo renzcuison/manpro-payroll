@@ -18,8 +18,8 @@ export function useEvaluationResponse(responseId) {
     }, {});
 
     useEffect(() => {
+        if(responseId == undefined) return;
         getEvaluationResponse();
-        // eslint-disable-next-line
     }, [responseId]);
 
     // response operations
