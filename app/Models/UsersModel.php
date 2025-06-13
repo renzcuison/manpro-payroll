@@ -197,6 +197,4 @@ class UsersModel extends Authenticatable implements HasMedia
         $this->addMediaCollection('profile_pictures')->singleFile();
     }
     
-
-  
 }

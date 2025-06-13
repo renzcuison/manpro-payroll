@@ -26,6 +26,7 @@ class PemeResponseController extends Controller
 
     public function index()
     {
+
         $user = Auth::user();
 
         $responses = PemeResponse::where("user_id", $user->id)
@@ -76,9 +77,13 @@ class PemeResponseController extends Controller
             return [
                 "date" => $response->created_at->format("Y-m-d"),
                 "response_id" => Crypt::encrypt($response->id),
+                // "response_id" => $response->id,
                 "peme_id" => Crypt::encrypt($response->peme_id),
                 "peme" => $response->peme->name,
                 "user_id" => Crypt::encrypt($response->user_id) ?? 'null',
+                "name" => $response->user
+                    ? $response->user->user_name
+                    : 'null',
                 "expiry_date" => $expiryDate,
                 "next_schedule" => $nextSchedule,
                 "status" => ucfirst($response->status),
@@ -86,11 +91,11 @@ class PemeResponseController extends Controller
                     "completed" => $answeredQuestions,
                     "total" => $totalQuestions,
                     "percent" =>
-                        $totalQuestions > 0
-                            ? round(
-                                ($answeredQuestions / $totalQuestions) * 100
-                            )
-                            : 0,
+                    $totalQuestions > 0
+                        ? round(
+                            ($answeredQuestions / $totalQuestions) * 100
+                        )
+                        : 0,
                 ],
             ];
         });
@@ -100,10 +105,9 @@ class PemeResponseController extends Controller
 
     public function store(Request $request)
     {
-        $request = $request->merge([
-            'peme_response_id' => Crypt::decrypt($request->peme_response_id),
-            'peme_q_item_id' => Crypt::decrypt($request->peme_q_item_id),
-            'peme_q_type_id' => Crypt::decrypt($request->peme_q_type_id),
+
+        $request->merge([
+            'peme_id' => Crypt::decrypt($request->peme_id),
         ]);
 
         $validated = $request->validate([
@@ -166,20 +170,19 @@ class PemeResponseController extends Controller
         );
     }
 
-     public function storeAll(Request $request)
+    public function storeAll(Request $request)
     {
         $validated = $request->validate([
             'peme_response_id' => 'required|string',
             'responses' => 'required|array',
-            'responses.*.peme_q_item_id' => 'required|string', 
-            'responses.*.peme_q_type_id' => 'required|string', 
+            'responses.*.peme_q_item_id' => 'required|string',
+            'responses.*.peme_q_type_id' => 'required|string',
             'responses.*.value' => 'nullable|string|max:512',
         ]);
 
         $pemeResponseId = Crypt::decrypt($validated['peme_response_id']);
 
         $results = [];
-
         DB::beginTransaction();
 
         try {
@@ -289,102 +292,191 @@ class PemeResponseController extends Controller
     {
         $id = Crypt::decrypt($id);
 
-        $response = PemeResponse::with([
-            'peme.questions.types',
-            'peme.user.branch',
-            'peme.user.department',
-            'user',
-            'details',
-        ])->findOrFail($id);
-
-        $allDetails = PemeResponseDetails::whereHas('response', function (
-            $query
-        ) use ($response) {
-            $query->where('peme_id', $response->peme_id);
-        })
-            ->with(['media', 'response'])
+        $responses = PemeResponse::where('peme_id', $id)
+            ->with([
+                'peme.questions.types',
+                'peme.user.branch',
+                'peme.user.department',
+                'user',
+                'details'
+            ])
+            ->latest()
             ->get();
+
+        $allDetails = PemeResponseDetails::whereHas('response', function ($query) use ($id) {
+            $query->where('peme_id', $id);
+        })->with(['media', 'response'])->get();
 
         $detailMap = [];
         foreach ($allDetails as $detail) {
+            $responseId = $detail->peme_response_id;
             $qID = (int) $detail->peme_q_item_id;
             $tID = (int) $detail->peme_q_type_id;
-            $detailMap[$qID][$tID] = $detail;
+            $detailMap[$responseId][$qID][$tID] = $detail;
         }
 
-        $questions = $response->peme->questions->map(function ($question) use (
-            $detailMap
-        ) {
-            $inputTypesWithValues = $question->types->map(function ($type) use (
-                $question,
-                $detailMap
-            ) {
-                $matchedDetail =
-                    $detailMap[(int) $question->id][(int) $type->id] ?? null;
+        $result = $responses->map(function ($response) use ($detailMap) {
+            $questions = $response->peme->questions;
+            $details = $detailMap[$response->id] ?? [];
+
+            $questionsOutput = $questions->map(function ($question) use ($details) {
+                $inputTypesWithValues = $question->types->map(function ($type) use ($question, $details) {
+                    $matchedDetail = $details[$question->id][$type->id] ?? null;
+
+                    return [
+                        'id' => Crypt::encrypt($type->id),
+                        'input_type' => $type->input_type,
+                        'value' => $matchedDetail->value ?? null,
+                    ];
+                });
 
                 return [
-                    'id' => Crypt::encrypt($type->id),
-                    'input_type' => $type->input_type,
-                    'value' => $matchedDetail->value ?? null,
+                    'question_id' => Crypt::encrypt($question->id),
+                    'question_text' => $question->question,
+                    'input_type' => $inputTypesWithValues,
                 ];
             });
 
+            $totalQuestions = $questionsOutput->count();
+            $answeredQuestions = 0;
+
+            foreach ($questionsOutput as $q) {
+                $allAnswered = collect($q['input_type'])->every(function ($input) {
+                    return $input['value'] !== null && trim($input['value']) !== '';
+                });
+
+                if ($allAnswered) {
+                    $answeredQuestions++;
+                }
+            }
+
+            $user = $response->user;
+            $fullName = $user->first_name . ' ' . ($user->middle_name ? $user->middle_name . ' ' : '') . $user->last_name;
+
             return [
-                'question_id' => Crypt::encrypt($question->id),
-                'question_text' => $question->question,
-                'input_type' => $inputTypesWithValues,
+                'response_id' => Crypt::encrypt($response->id),
+                'peme_id' => Crypt::encrypt($response->peme_id),
+                // 'peme_id' => $response->peme_id,
+                'user_id' => Crypt::encrypt($response->user_id),
+                'respondent' => $fullName,
+                'branch' => $response->peme->user->branch->name ?? 'null',
+                'department' => $response->peme->user->department->name ?? 'null',
+                'status' => ucfirst($response->status),
+                'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),
+                'next_schedule' => optional($response->next_schedule)->format('Y-m-d H:i:s'),
+                'response_details_id' => $response->details->pluck('id'),
+                'progress' => [
+                    'completed' => $answeredQuestions,
+                    'total' => $totalQuestions,
+                    'percent' => $totalQuestions > 0 ? round(($answeredQuestions / $totalQuestions) * 100) : 0,
+                ],
+                'questions' => $questionsOutput,
             ];
         });
 
-        $totalQuestions = $questions->count();
-        $answeredQuestions = 0;
-
-        foreach ($questions as $question) {
-            $allAnswered = $question['input_type']->every(function (
-                $inputType
-            ) {
-                return $inputType['value'] !== null &&
-                    trim($inputType['value']) !== '';
-            });
-
-            if ($allAnswered) {
-                $answeredQuestions++;
-            }
-        }
-
-        $user = $response->user;
-        $fullName =
-            $user->first_name .
-            ' ' .
-            ($user->middle_name ? $user->middle_name . ' ' : '') .
-            $user->last_name;
-
-        return response()->json([
-            'response_id' => Crypt::encrypt($response->id),
-            'peme_id' => Crypt::encrypt($response->peme_id),
-            'user_id' => Crypt::encrypt($response->user_id),
-            'respondent' => $fullName,
-            'branch' => $response->peme->user->branch->name ?? 'null',
-            'department' => $response->peme->user->department->name ?? 'null',
-            'status' => ucfirst($response->status),
-            'expiry_date' => optional($response->expiry_date)->format(
-                'Y-m-d H:i:s'
-            ),
-            'next_schedule' => optional($response->next_schedule)->format(
-                'Y-m-d H:i:s'
-            ),
-            'response_details_id' => $response->details->pluck('id'),
-
-            'progress' => [
-                'completed' => $answeredQuestions,
-                'total' => $totalQuestions,
-                'percent' =>
-                    $totalQuestions > 0
-                        ? round(($answeredQuestions / $totalQuestions) * 100)
-                        : 0,
-            ],
-        ]);
+        return response()->json($result);
     }
+
+    // public function show($id)
+    // {
+    //     $id = Crypt::decrypt($id);
+
+    //     $response = PemeResponse::with([
+    //         'peme.questions.types',
+    //         'peme.user.branch',
+    //         'peme.user.department',
+    //         'user',
+    //         'details',
+    //     ])->findOrFail($id);
+
+    //     $allDetails = PemeResponseDetails::whereHas('response', function (
+    //         $query
+    //     ) use ($response) {
+    //         $query->where('peme_id', $response->peme_id);
+    //     })
+    //         ->with(['media', 'response'])
+    //         ->get();
+
+    //     $detailMap = [];
+    //     foreach ($allDetails as $detail) {
+    //         $qID = (int) $detail->peme_q_item_id;
+    //         $tID = (int) $detail->peme_q_type_id;
+    //         $detailMap[$qID][$tID] = $detail;
+    //     }
+
+    //     $questions = $response->peme->questions->map(function ($question) use (
+    //         $detailMap
+    //     ) {
+    //         $inputTypesWithValues = $question->types->map(function ($type) use (
+    //             $question,
+    //             $detailMap
+    //         ) {
+    //             $matchedDetail =
+    //                 $detailMap[(int) $question->id][(int) $type->id] ?? null;
+
+    //             return [
+    //                 'id' => Crypt::encrypt($type->id),
+    //                 'input_type' => $type->input_type,
+    //                 'value' => $matchedDetail->value ?? null,
+    //             ];
+    //         });
+
+    //         return [
+    //             'question_id' => Crypt::encrypt($question->id),
+    //             'question_text' => $question->question,
+    //             'input_type' => $inputTypesWithValues,
+    //         ];
+    //     });
+
+    //     $totalQuestions = $questions->count();
+    //     $answeredQuestions = 0;
+
+    //     foreach ($questions as $question) {
+    //         $allAnswered = $question['input_type']->every(function (
+    //             $inputType
+    //         ) {
+    //             return $inputType['value'] !== null &&
+    //                 trim($inputType['value']) !== '';
+    //         });
+
+    //         if ($allAnswered) {
+    //             $answeredQuestions++;
+    //         }
+    //     }
+
+    //     $user = $response->user;
+    //     $fullName =
+    //         $user->first_name .
+    //         ' ' .
+    //         ($user->middle_name ? $user->middle_name . ' ' : '') .
+    //         $user->last_name;
+
+    //     return response()->json([
+    //         'response_id' => Crypt::encrypt($response->id),
+    //         'peme_id' => Crypt::encrypt($response->peme_id),
+    //         'user_id' => Crypt::encrypt($response->user_id),
+    //         'respondent' => $fullName,
+    //         'branch' => $response->peme->user->branch->name ?? 'null',
+    //         'department' => $response->peme->user->department->name ?? 'null',
+    //         'status' => ucfirst($response->status),
+    //         'expiry_date' => optional($response->expiry_date)->format(
+    //             'Y-m-d H:i:s'
+    //         ),
+    //         'next_schedule' => optional($response->next_schedule)->format(
+    //             'Y-m-d H:i:s'
+    //         ),
+    //         'response_details_id' => $response->details->pluck('id'),
+
+    //         'progress' => [
+    //             'completed' => $answeredQuestions,
+    //             'total' => $totalQuestions,
+    //             'percent' =>
+    //             $totalQuestions > 0
+    //                 ? round(($answeredQuestions / $totalQuestions) * 100)
+    //                 : 0,
+    //         ],
+    //     ]);
+    // }
 
     public function summary($pemeId)
     {

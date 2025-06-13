@@ -803,7 +803,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/peme-responses/storeAll', [PemeResponseController::class, 'storeAll']);
     Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
+
+    
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
+
+
     Route::patch('/peme-responses/{id}/status', [PemeResponseController::class, 'updateResponse']);
     Route::post('/peme-responses', [PemeResponseController::class, 'store']);
     Route::get('/peme-responses/summary/{pemeId}', [PemeResponseController::class, 'summary']);
