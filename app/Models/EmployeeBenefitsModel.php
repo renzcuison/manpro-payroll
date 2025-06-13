@@ -14,6 +14,7 @@ class EmployeeBenefitsModel extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
+        'client_id',
         'user_id',
         'benefit_id',
         'number',

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Button, CircularProgress, Divider, Grid,
   FormControlLabel, Radio, RadioGroup, Checkbox, TextField, IconButton, Accordion, AccordionSummary, AccordionDetails,
-  Menu, MenuItem, Paper
+  Menu, MenuItem, Paper, FormGroup
 } from '@mui/material';
 import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
@@ -16,17 +16,19 @@ const PerformanceEvaluationAnswerPage = () => {
 
   const { deleteEvaluationResponse } = useEvaluationResponse(id);
 
-    const handleDeleteMenuEvalForm = async () => {
-        const success = await deleteEvaluationResponse();
-        if (success) {
-            // Redirect away after delete, e.g. to the evaluation list
-            navigate('/admin/performance-evaluation');
-        }
-    };
+  const handleDeleteMenuEvalForm = async () => {
+    const success = await deleteEvaluationResponse();
+    if (success) {
+      // Redirect away after delete, e.g. to the evaluation list
+      navigate('/admin/performance-evaluation');
+    }
+  };
 
   const {
-    evaluationResponse, subcategories,
-    saveEvaluationResponse, setPercentageAnswer, setTextAnswer
+    evaluationResponse, options, subcategories,
+    saveEvaluationResponse, setPercentageAnswer, setTextAnswer,
+    findActiveOptionId, deleteOptionAnswer, deleteOptionAnswers, setOptionAnswer,
+    getMultipleChoiceOptionId
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
@@ -56,12 +58,20 @@ const PerformanceEvaluationAnswerPage = () => {
     'long_answer': 'Long Answer',
   };
 
+  // Handler for linear scale
   const handleRadioChange = (subcategoryId, value) => {
     setPercentageAnswer(subcategoryId, value);
   };
 
-  // For multiple_choice (single select) and checkbox (multi-select), you may need to implement similar setOption/setOptions helpers in your hook as above for setTextAnswer/setPercentageAnswer.
-  // For now, we only handle short/long_answer (text) and linear_scale (percentage) subcategories.
+  // Handler for single select (multiple_choice)
+  const handleOptionChange = (optionId) => {
+    setOptionAnswer(optionId);
+  };
+
+  // Handler for checkbox (multi-select)
+  const handleCheckboxChange = (optionId) => {
+    setOptionAnswer(optionId);
+  };
 
   const handleShortAnswerChange = (subcategoryId, value) => {
     setTextAnswer(subcategoryId, value);
@@ -93,8 +103,6 @@ const PerformanceEvaluationAnswerPage = () => {
   const form = evaluationResponse.form;
   const responseMeta = evaluationResponse;
 
-  
-
   if (!form || !responseMeta) {
     return (
       <Layout title="Performance Evaluation Form">
@@ -104,7 +112,6 @@ const PerformanceEvaluationAnswerPage = () => {
       </Layout>
     );
   }
-    
 
   return (
     <Layout title="Performance Evaluation Form">
@@ -266,6 +273,8 @@ const PerformanceEvaluationAnswerPage = () => {
                       <Typography variant="body2">Type: {responseTypeMap[subCategory.subcategory_type] || 'Unknown'}</Typography>
                       <Typography variant="body2" >Description: {subCategory.description}</Typography>
 
+                      
+
                       {subCategory.subcategory_type === 'linear_scale' && (
                         <Box sx={{ mb: 2 }}>
                           <Grid container alignItems="center" spacing={2} justifyContent='center'>
@@ -329,7 +338,65 @@ const PerformanceEvaluationAnswerPage = () => {
                         </Box>
                       )}
 
-                      {/* TODO: Add handling for multiple_choice and checkbox types, as needed, with corresponding hook support */}
+                      {subCategory.subcategory_type === 'multiple_choice' && (
+                        <Box sx={{ mb: 2 }}>
+                          <RadioGroup
+                            value={getMultipleChoiceOptionId(subCategory.id) || ''}
+                            onChange={e => handleOptionChange(+e.target.value)}
+                          >
+                            {(subCategory.options || []).map(opt => (
+                              <FormControlLabel
+                                key={opt.id}
+                                value={opt.id}
+                                control={<Radio />}
+                                label={opt.label}
+                              />
+                            ))}
+                          </RadioGroup>
+                        </Box>
+                      )}
+
+                      {subCategory.subcategory_type === 'checkbox' && (
+                        <Box sx={{ mb: 2 }}>
+                          <FormGroup>
+                            {(subCategory.options || []).map(opt => (
+                              <FormControlLabel
+                                key={opt.id}
+                                control={
+                                  <Checkbox
+                                    checked={
+                                      Boolean(opt.option_answer && opt.option_answer.action != 'delete')
+                                    }
+                                    onChange={() => handleCheckboxChange(opt.id)}
+                                  />
+                                }
+                                label={opt.label}
+                              />
+                            ))}
+                          </FormGroup>
+                        </Box>
+                      )}
+
+                      {(subCategory.subcategory_type === 'multiple_choice' || subCategory.subcategory_type === 'checkbox') && (
+                        <Box sx={{ mb: 1, mt: 1 }}>
+                          <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                            Legend:
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                            {subCategory.options?.map((opt, index) => (
+                              <Typography
+                                key={opt.id}
+                                variant="body2"
+                                sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}
+                              >
+                                {opt.label} - {opt.score ?? 1} {index !== subCategory.options.length - 1 && ','} {/* Add comma if not the last item */}
+                              </Typography>
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
+
+
                     </Box>
                   ))
                 )}
@@ -353,4 +420,4 @@ const PerformanceEvaluationAnswerPage = () => {
   );
 };
 
-export default PerformanceEvaluationAnswerPage;
+export default PerformanceEvaluationAnswerPage; 
