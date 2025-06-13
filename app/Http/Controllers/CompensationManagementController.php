@@ -113,12 +113,14 @@ class CompensationManagementController extends Controller
                 $amount += ($baseSalary * ($incentive->incentive->percentage / 100));
             }
             $incentives[] = [
+                'id' => Crypt::encrypt($incentive->id),
                 'name' => $incentive->incentive->name,
                 'number' => $incentive->number,
                 'type' => $incentive->incentive->type,
                 'amount' => $incentive->incentive->amount,
                 'percentage' => $incentive->incentive->percentage,
                 'calculated_amount' => $amount,
+                'status' =>$incentive->status,
                 'created_at' => $incentive->created_at,
             ];
         }
@@ -217,6 +219,21 @@ class CompensationManagementController extends Controller
             }
         }
     }
+
+    public function updateEmployeeIncentive(Request $request)
+    {
+        if(!$this->checkUserAdmin()){
+            return response()->json(['status' => 403]);
+        }
+        $employee_incentive_id = Crypt::decrypt($request->emp_incentive_id);
+        $emp_incentive = EmployeeIncentivesModel::findOrFail($employee_incentive_id);
+
+        if($emp_incentive){
+            $emp_incentive->number = $request->number;
+            $emp_incentive->save();
+        }
+        return response()->json(['status' => 200]);
+    }
     //---------------->[#endregion INCENTIVES CONTROLLERS]
 
 
@@ -293,6 +310,7 @@ class CompensationManagementController extends Controller
                 $employer_amount += ($baseSalary * ($benefit->benefit->employer_percentage / 100));
             }
             $benefits[] = [
+                'id' => Crypt::encrypt($benefit->id),
                 'name' => $benefit->benefit->name,
                 'type' => $benefit->benefit->type,
                 'number' => $benefit->number,
@@ -302,6 +320,7 @@ class CompensationManagementController extends Controller
                 'employee_percentage' => $benefit->benefit->employee_percentage,
                 'employer_contribution' => $employer_amount,
                 'employee_contribution' => $employee_amount,
+                'status' => $benefit->status,
                 'created_at' => $benefit->created_at,
             ];
         }
@@ -392,7 +411,7 @@ class CompensationManagementController extends Controller
                     "client_id" => $client->id,
                     "user_id" => $employee->id,
                     "benefit_id" => Crypt::decrypt($request->benefit),
-                    "number" => $request->number,
+                    "number" => $request->number
                 ]);
                 DB::commit();
 
@@ -404,6 +423,21 @@ class CompensationManagementController extends Controller
                 throw $e;
             }
         }
+    }
+
+    public function updateEmployeeBenefit(Request $request)
+    {
+        if(!$this->checkUserAdmin()){
+            return response()->json(['status' => 200]);
+        }
+        $employee_benefit_id = Crypt::decrypt($request->emp_benefit_id);
+        $emp_benefit = EmployeeBenefitsModel::findOrFail($employee_benefit_id);
+
+        if($emp_benefit){
+            $emp_benefit->number = $request->number;
+            $emp_benefit->save();
+        }
+        return response()->json(['status' => 200]);
     }
     //---------------->[#endregion BENEFITS CONTROLLERS]
 
@@ -476,44 +510,6 @@ class CompensationManagementController extends Controller
         }
     }
 
-    public function saveEmployeeAllowance(Request $request)
-    {
-        log::info("AllowanceController::saveEmployeeAllowance");
-
-        $validated = $request->validate([
-            'userName' => 'required',
-            'allowance' => 'required',
-            'number' => 'required',
-        ]);
-
-        if ($this->checkUserAdmin() && $validated) {
-
-            $user = Auth::user();
-            $client = ClientsModel::find($user->client_id);
-            $employee = UsersModel::where('user_name', $request->userName)->first();
-
-            try {
-                DB::beginTransaction();
-
-                EmployeeAllowancesModel::create([
-                    "client_id" => $client->id,
-                    "user_id" => $employee->id,
-                    "allowance_id" => Crypt::decrypt($request->allowance),
-                    "number" => $request->number,
-                ]);
-
-                DB::commit();
-
-                return response()->json(['status' => 200]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-
-                Log::error("Error saving: " . $e->getMessage());
-                throw $e;
-            }
-        }
-    }
-    
     public function getEmployeeAllowance(Request $request)
     {
         // log::info("EmployeesController::getEmployeeAllowance");
@@ -536,12 +532,14 @@ class CompensationManagementController extends Controller
                 $amount += ($baseSalary * ($allowance->allowance->percentage / 100));
             }
             $allowances[] = [
+                'id' => Crypt::encrypt($allowance->id),
                 'name' => $allowance->allowance->name,
                 'number' => $allowance->number,
                 'type' => $type,
                 'amount' => $allowance->allowance->amount,
                 'percentage' => $allowance->allowance->percentage,
                 'calculated_amount' => $amount,
+                'status' =>$allowance->status,
                 'created_at' => $allowance->created_at,
             ];
         }
@@ -582,6 +580,58 @@ class CompensationManagementController extends Controller
         return response()->json(['status' => 200, 'employees' => $employees]);
     }
 
+    public function saveEmployeeAllowance(Request $request)
+    {
+        log::info("AllowanceController::saveEmployeeAllowance");
+
+        $validated = $request->validate([
+            'userName' => 'required',
+            'allowance' => 'required',
+            'number' => 'required',
+        ]);
+        if (!$this->checkUserAdmin() || !$validated) {
+            return response()->json(['status' => 403]);
+        }
+        
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
+        $employee = UsersModel::where('user_name', $request->userName)->first();
+
+        try {
+            DB::beginTransaction();
+
+            EmployeeAllowancesModel::create([
+                "client_id" => $client->id,
+                "user_id" => $employee->id,
+                "allowance_id" => Crypt::decrypt($request->allowance),
+                "number" => $request->number,
+            ]);
+
+            DB::commit();
+
+            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function updateEmployeeAllowance(Request $request)
+    {
+        if(!$this->checkUserAdmin()){
+            return response()->json(['status' => 403]);
+        }
+        $employee_allowance_id = Crypt::decrypt($request->emp_allowance_id);
+        $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_allowance_id);
+
+        if($emp_allowance){
+            $emp_allowance->number = $request->number;
+            $emp_allowance->save();
+        }
+        return response()->json(['status' => 200]);
+    }
     //---------------->[#endregion ALLOWANCES CONTROLLERS]
  
     

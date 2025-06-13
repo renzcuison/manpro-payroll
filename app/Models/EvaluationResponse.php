@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 class EvaluationResponse extends Model
 {
@@ -18,7 +20,14 @@ class EvaluationResponse extends Model
         'form_id',
         'period_start_at',
         'period_end_at',
-        'signature_filepath',
+        'creator_signature_filepath',
+        'evaluatee_signature_filepath',
+        'status',
+        'current_step',
+        'evaluator_completed_at',
+        'first_commentor_completed_at',
+        'second_commentor_completed_at',
+        'evaluatee_acknowledged_at',
         'deleted_at'
     ];
 
@@ -56,5 +65,9 @@ class EvaluationResponse extends Model
     {
         return $this->hasMany(EvaluationTextAnswer::class, 'response_id');
     }
-    
+
+        public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('signatures');
+    }
 }

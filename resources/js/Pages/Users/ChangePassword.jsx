@@ -13,26 +13,10 @@ import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 
-// import Link from '@mui/material/Link';
-import Divider from '@mui/material/Divider';
-import Checkbox from '@mui/material/Checkbox';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import BuildIcon from '@mui/icons-material/Build';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import LockIcon from '@mui/icons-material/Lock';
 
-
-
-import UserSummary from "./Components/UserSummary";
-import UserInformation from "./Components/UserInformation";
-import UserEmploymentDetails from "./Components/UserEmploymentDetails";
-
-import EmployeeDeductions from "../Admin/Employees/Components/EmployeeDeductions";
-import ProfileBenefits from "./Profile/ProfileBenefits";
-import ProfileEdit from "./Modals/ProfileEdit";
-import EducationalBackground from "./Components/EducationalBackground";
 
 const ChangePassword = () => {
     const storedUser = localStorage.getItem("nasya_user");

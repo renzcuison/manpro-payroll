@@ -12,6 +12,7 @@ class DepartmentPosition extends Model
     protected $table = 'department_positions';
 
     protected $fillable = [
+        'client_id',
         'name',
         'can_review_request',
         'can_approve_request',

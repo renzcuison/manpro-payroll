@@ -136,7 +136,7 @@ const Sidebar = ({ children, closeMini }) => {
     }, [imagePath]);
 
     return (
-        <nav id="sidebar" style={{ zIndex: 1, height: "100vh", overflow: "hidden" }} >
+        <nav id="sidebar" style={{ zIndex: 1300, height: "100vh", overflow: "hidden", position: "fixed", boxShadow: "2px 0 8px rgba(0,0,0,0.1)", transition: "transform 0.3s ease",}} >
             <PerfectScrollbar style={{ height: "100%" }}>
                 <div className="sidebar-content" style={{ height: "100%" }}>
                     <div className="content-header content-header-fullrow px-15">

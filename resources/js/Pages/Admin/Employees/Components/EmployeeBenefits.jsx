@@ -1,23 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import dayjs from "dayjs";
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
 import { useEmployeeBenefits } from "../../../../hooks/useBenefits";
+import EmployeeBenefitView from "../../Benefits/Modals/EmployeeBenefitView";
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
-import EmployeeAddBenefit from '../Modals/EmployeeAddBenefit';
 
 const EmployeeBenefits = ({ userName, headers }) => {
-    const [openEmployeeAddBenefit, setOpenEmployeeAddBenefit] = useState(false);
+    const [openEmployeeViewBenefit, setOpenEmployeeViewBenefit] = useState(false);
     const {data, refetch} = useEmployeeBenefits(userName);
     const benefits = data?.benefits || [];
     
-    const handleOpenAddEmployeeBenefit = () => {
-        console.log("handleOpenAddEmployeeBenefit()");
-        setOpenEmployeeAddBenefit(true);
+    const handleCloseViewEmployeeBenefits = () => {
+        setOpenEmployeeViewBenefit(true);
     }
 
     const handleCloseAddEmployeeBenefit = (reload) => {
-        setOpenEmployeeAddBenefit(false);
+        setOpenEmployeeViewBenefit(false);
         if(reload){
             refetch();
         }
@@ -29,9 +27,11 @@ const EmployeeBenefits = ({ userName, headers }) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Statutory Benefits </Typography>
 
-                <Button variant="contained" color="primary" onClick={() => handleOpenAddEmployeeBenefit()}>
-                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
-                </Button>
+                <Tooltip title="View In Detail">
+                    <IconButton color="primary" onClick={() => handleCloseViewEmployeeBenefits()}>
+                        <VisibilityOutlinedIcon sx={{fontSize: 30}}/>
+                    </IconButton>
+                </Tooltip>
             </Box>
 
             <TableContainer>
@@ -73,8 +73,8 @@ const EmployeeBenefits = ({ userName, headers }) => {
             </TableContainer>
 
             
-            {openEmployeeAddBenefit &&
-                <EmployeeAddBenefit open={openEmployeeAddBenefit} onClose={handleCloseAddEmployeeBenefit} userName={userName} />
+            {openEmployeeViewBenefit &&
+                <EmployeeBenefitView open={openEmployeeViewBenefit} close={handleCloseAddEmployeeBenefit} userName={userName} />
             }
         </Box>
     );

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  IconButton, Menu, MenuItem, Paper, Chip, TextField, Grid, FormControlLabel, Radio, Button
+  IconButton, Menu, MenuItem, Paper, Chip, TextField, Grid, FormControlLabel, Radio, Button, Divider
 } from '@mui/material';
 import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
@@ -10,6 +10,91 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
 import PerformanceEvaluationCommentorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvalutionCommentorAcknowledge';
 import Swal from 'sweetalert2';
+
+
+// --- Overall Rating Calculation Helper ---
+const getSectionScore = (section) => {
+  if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [] };
+  let scoreTotal = 0;
+  let counted = 0;
+  const subcatScores = [];
+
+  section.subcategories.forEach(subcat => {
+    let subScore = 0;
+    if (subcat.subcategory_type === 'multiple_choice') {
+      const selected = subcat.options.find(opt => opt.option_answer);
+      if (selected) {
+        const highestScore = Math.max(...subcat.options.map(o => Number(o.score) || 1));
+        if (highestScore > 0) {
+          subScore = ((Number(selected.score) || 1) / highestScore) * 5;
+        }
+      }
+      subcatScores.push({ name: subcat.name, score: subScore });
+      scoreTotal += subScore;
+      counted++;
+    }
+    else if (subcat.subcategory_type === 'checkbox') {
+      const selected = subcat.options.filter(opt => opt.option_answer);
+      const selectedSum = selected.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
+      const allSum = subcat.options.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
+      if (allSum > 0) {
+        subScore = (selectedSum / allSum) * 5;
+      }
+      subcatScores.push({ name: subcat.name, score: subScore });
+      scoreTotal += subScore;
+      counted++;
+    }
+    else if (subcat.subcategory_type === 'linear_scale') {
+      if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
+        const start = Number(subcat.linear_scale_start) || 1;
+        const end = Number(subcat.linear_scale_end) || 5;
+        const value = Number(subcat.percentage_answer.value);
+        if (end > start) {
+          subScore = ((value - start) / (end - start)) * 5;
+        }
+      }
+      subcatScores.push({ name: subcat.name, score: subScore });
+      scoreTotal += subScore;
+      counted++;
+    }
+  });
+
+  const sectionScore = counted > 0 ? scoreTotal / counted : 0;
+  return { sectionScore, subcatScores };
+};
+
+// --- Score Linear Bar ---
+const Bar = ({ value, max = 100, sx = {} }) => {
+  const pct = Math.max(0, Math.min(1, value / max)) * 100;
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: 18,
+        borderRadius: '9px',
+        background: '#e0e0e0',
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: '0px 1px 2px #e0e0e0',
+        ...sx,
+      }}
+    >
+      <Box
+        sx={{
+          width: `${pct}%`,
+          height: '100%',
+          background: 'linear-gradient(90deg, #367C2B 0%, #EAB31A 100%)',
+          borderRadius: '9px', // Make both ends rounded
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      />
+    </Box>
+  );
+};
+// --- END Overall Rating Helper ---
 
 const PerformanceEvaluationCommentorPage = () => {
   const { id } = useParams();
@@ -132,13 +217,21 @@ const PerformanceEvaluationCommentorPage = () => {
     );
   }
 
+  // --- Overall Rating Section: only code added below ---
+  const overallRatingSections = (form.sections || []).filter(section =>
+    section.subcategories?.some(
+      subcat => ['multiple_choice', 'checkbox', 'linear_scale'].includes(subcat.subcategory_type)
+    )
+  );
+  // --- End Overall Rating Section code ---
+
   // Render answer with legend
   const renderAnswer = (subCategory) => {
     switch (subCategory.subcategory_type) {
       case 'linear_scale':
         return (
           <Box sx={{ mb: 2, mt: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
               Answer:
             </Typography>
             <Grid container alignItems="center" spacing={2} justifyContent='center'>
@@ -170,19 +263,19 @@ const PerformanceEvaluationCommentorPage = () => {
                 <Typography variant="body1">{subCategory.linear_scale_end_label}</Typography>
               </Grid>
             </Grid>
-            <Typography variant="body1" sx={{ mt: 1 }}>
-              Selected: {typeof subCategory.percentage_answer?.value === 'number'
+            {/* <Typography variant="body1" sx={{ mt: 1 }}>
+              {typeof subCategory.percentage_answer?.value === 'number'
                 ? subCategory.percentage_answer.value
                 : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
               }
-            </Typography>
+            </Typography> */}
           </Box>
         );
       case 'short_answer':
       case 'long_answer':
         return (
           <Box sx={{ mb: 2, mt: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
               Answer:
             </Typography>
             <Typography variant="body1">
@@ -195,25 +288,28 @@ const PerformanceEvaluationCommentorPage = () => {
         );
       case 'multiple_choice':
       case 'checkbox':
-      case 'dropdown':
+        const selectedOptions = Array.isArray(subCategory.options)
+          ? subCategory.options.filter(opt => opt.option_answer)
+          : [];
+        const hasSelected = selectedOptions.length > 0;
         return (
-          <Box sx={{ mb: 2, mt: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+         <Box sx={{ mb: 2, mt: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
               {subCategory.subcategory_type === 'checkbox' ? 'Answers:' : 'Answer:'}
             </Typography>
             {Array.isArray(subCategory.options) && subCategory.options.length > 0 ? (
-              subCategory.options.map(option =>
-                option.option_answer
-                  ? <Chip key={option.id} label={option.label} color="primary" sx={{ mr: 1, mb: 1 }} />
-                  : null
-              ).filter(Boolean).length > 0
-                ? subCategory.options.map(option =>
-                    option.option_answer
-                      ? <Chip key={option.id} label={option.label} color="primary" sx={{ mr: 1, mb: 1 }} />
-                      : null
-                  )
-                : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
-            ) : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>}
+              hasSelected ? (
+                <Typography variant="body2" sx={{fontWeight: 500 }}>
+                  {selectedOptions.map(opt => opt.label).join(', ')}   
+                </Typography>
+              ) : (
+                <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
+              )
+            ) : (
+              <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>
+            )}
+
+             <Divider sx={{ my: 2 }} />
 
             {/* Legend for multiple_choice, checkbox, dropdown */}
             {(subCategory.subcategory_type === 'multiple_choice' ||
@@ -249,6 +345,10 @@ const PerformanceEvaluationCommentorPage = () => {
 
   const allCommentors = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
     ? responseMeta.commentors
+    : [];
+
+  const allEvaluators = Array.isArray(responseMeta.evaluators) && responseMeta.evaluators.length > 0
+    ? responseMeta.evaluators
     : [];
 
   const getOrderLabel = (idx) => {
@@ -425,69 +525,122 @@ const PerformanceEvaluationCommentorPage = () => {
           </Accordion>
         ))}
 
-        {/* All Commentors Section - Each in its own box, stacked vertically */}
         <Box sx={{ mt: 6 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-            Commentors:
+            Evaluator Comments:
           </Typography>
-          {allCommentors.length > 0 ? (
+          {allEvaluators.length > 0 ? (
             <Box>
-              {allCommentors.map((commentor, i) => (
+              {allEvaluators.map((evaluator, i) => (
                 <Paper
-                  key={commentor.commentor_id}
+                  key={evaluator.evaluator_id || evaluator.id || i}
                   elevation={2}
                   sx={{
-                    width: "100%",
-                    p: 3,
-                    mb: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: '#fff',
                     borderRadius: 2,
-                    border: '1px solid #e0e0e0',
-                    boxShadow: 1,
-                    bgcolor: '#fcfcfc',
+                    borderLeft: '8px solid #eab31a',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    width: '100%',
+                    boxShadow: 2,
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#9E7600', mb: 0.5 }}>
-                    {getOrderLabel(i)} Commentor
-                  </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                    {getFullName(commentor)}
+                  
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                    {getFullName(evaluator)}
                   </Typography>
                   <TextField
-                    label="Comment"
+                    label="Evaluator Comment"
                     multiline
                     minRows={3}
                     fullWidth
-                    value={
-                      commentorComments.find(c => c.commentor_id === commentor.commentor_id)?.comment || ''
-                    }
+                    value={evaluator.comment || ''}
                     sx={{ mt: 1 }}
-                    onChange={e => handleCommentInput(commentor.commentor_id, e.target.value)}
-                    placeholder="Enter your comment here"
-                    disabled={savingIds.includes(commentor.commentor_id)}
-                  />
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => handleOpenAcknowledgeModal(commentor.commentor_id)}
-                      disabled={savingIds.includes(commentor.commentor_id)}
-                    >
-                      {savingIds.includes(commentor.commentor_id) ? "Saving..." : "Save Comment"}
-                    </Button>
-                  </Box>
-                  {/* Modal for this commentor */}
-                  <PerformanceEvaluationCommentorAcknowledge
-                    open={openAcknowledgeFor === commentor.commentor_id}
-                    onClose={() => setOpenAcknowledgeFor(null)}
-                    onProceed={signatureData => handleProceedAcknowledge(signatureData, commentor.commentor_id)}
+                    placeholder="No comment provided"
+                    InputProps={{
+                      readOnly: true,
+                    }}
                   />
                 </Paper>
               ))}
             </Box>
           ) : (
-            <Typography color="text.secondary"><i>No commentors found.</i></Typography>
+            <Typography color="text.secondary"><i>No evaluators found.</i></Typography>
           )}
         </Box>
+
+       <Box sx={{ mt: 6 }}>
+  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+    Comments:
+  </Typography>
+  {allCommentors.length > 0 ? (
+    <Box>
+      {allCommentors.map((commentor, i) => (
+        <Paper
+          key={commentor.commentor_id}
+          elevation={2}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            width: '100%',
+            bgcolor: '#fff',
+            borderRadius: 2,
+            borderLeft: '8px solid #eab31a',
+            px: 2,
+            pt: 2,
+            pb: 2,
+            mt: 2,
+            mb: 2,
+            boxShadow: 2,
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+            {commentor.client_id}
+          </Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+            {getFullName(commentor)}
+          </Typography>
+          <TextField
+            label="Comment"
+            multiline
+            minRows={3}
+            fullWidth
+            value={
+              commentorComments.find(c => c.commentor_id === commentor.commentor_id)?.comment || ''
+            }
+            sx={{ mt: 1 }}
+            onChange={e => handleCommentInput(commentor.commentor_id, e.target.value)}
+            placeholder="Enter your comment here"
+            disabled={savingIds.includes(commentor.commentor_id)}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => handleOpenAcknowledgeModal(commentor.commentor_id)}
+              disabled={savingIds.includes(commentor.commentor_id)}
+            >
+              {savingIds.includes(commentor.commentor_id) ? "Saving..." : "Save Comment"}
+            </Button>
+          </Box>
+          {/* Modal for this commentor */}
+          <PerformanceEvaluationCommentorAcknowledge
+            open={openAcknowledgeFor === commentor.commentor_id}
+            onClose={() => setOpenAcknowledgeFor(null)}
+            onProceed={signatureData => handleProceedAcknowledge(signatureData, commentor.commentor_id)}
+          />
+        </Paper>
+      ))}
+    </Box>
+  ) : (
+    <Typography color="text.secondary"><i>No commentors found.</i></Typography>
+  )}
+</Box>
       </Box>
     </Layout>
   );

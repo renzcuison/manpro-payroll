@@ -57,6 +57,7 @@
         "@twilio/voice-sdk": "^2.12.1",
         "chart.js": "^4.2.1",
         "dayjs": "^1.11.12",
+        "emoji-picker-react": "^4.12.2",
         "gapi-script": "^1.2.0",
         "html2canvas": "^1.4.1",
         "jquery": "^3.6.1",

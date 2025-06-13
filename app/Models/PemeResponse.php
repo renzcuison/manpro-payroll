@@ -21,18 +21,18 @@ class PemeResponse extends Model
         'status',
     ];
 
+    protected $casts = [
+        'expiry_date' => 'datetime',
+        'next_schedule' => 'datetime',
+    ];
+
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(UsersModel::class, 'user_id', 'id');
     }
-
-    // Belongs to a PEME
     public function peme()
     {
-        return $this->belongsTo(
-            Peme::class,
-            'peme_id'
-        );
+        return $this->belongsTo(Peme::class, 'peme_id');
     }
 
     public function details()
