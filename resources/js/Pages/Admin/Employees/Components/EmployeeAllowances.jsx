@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
-import { useEmployeeAllowances } from "../../../../hooks/useAllowance";
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import EmployeeAllowanceView from "../../Allowance/Modals/EmployeeAllowanceView";
 
-const EmployeeAllowances = ({userName}) => {
+const EmployeeAllowances = ({userName, allowances, onRefresh}) => {
     const [openEmployeeViewAllowance, setOpenEmployeeViewAllowance] = useState(false);
-    const {data, isLoading, error, refetch} = useEmployeeAllowances(userName);
-    const allowances = data?.allowances || [];
 
     const handleOpenViewEmployeeAllowance = ()=>{
         setOpenEmployeeViewAllowance(true);
@@ -15,7 +12,7 @@ const EmployeeAllowances = ({userName}) => {
     const handleCloseViewEmployeeAllowance = (reload) => {
         setOpenEmployeeViewAllowance(false);
         if(reload){
-            refetch();
+            onRefresh();
         }
     }
     return(

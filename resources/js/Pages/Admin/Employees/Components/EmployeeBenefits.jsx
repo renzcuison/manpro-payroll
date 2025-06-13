@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
-import { useEmployeeBenefits } from "../../../../hooks/useBenefits";
 import EmployeeBenefitView from "../../Benefits/Modals/EmployeeBenefitView";
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
 
-const EmployeeBenefits = ({ userName, headers }) => {
+const EmployeeBenefits = ({ userName, benefits, onRefresh }) => {
     const [openEmployeeViewBenefit, setOpenEmployeeViewBenefit] = useState(false);
-    const {data, refetch} = useEmployeeBenefits(userName);
-    const benefits = data?.benefits || [];
+    
     
     const handleCloseViewEmployeeBenefits = () => {
         setOpenEmployeeViewBenefit(true);
@@ -17,7 +15,7 @@ const EmployeeBenefits = ({ userName, headers }) => {
     const handleCloseAddEmployeeBenefit = (reload) => {
         setOpenEmployeeViewBenefit(false);
         if(reload){
-            refetch();
+            onRefresh();
         }
     }
 

@@ -1,24 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
-import { useEmployeeIncentives } from "../../../../hooks/useIncentives";
-import EmployeeAddAllowance from "../Modals/EmployeeAddAllowance";
-import EmployeeAddIncentives from "../Modals/EmployeeAddIncentives";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import EmployeeIncentiveView from "../../Incentives/Modals/EmployeeIncentiveView";
 
-const EmployeeIncentives = ({userName}) => {
+const EmployeeIncentives = ({userName, incentives, onRefresh}) => {
     const [openEmployeeViewIncentives, setOpenEmployeeViewIncentives] = useState(false);
-    const {data, refetch} = useEmployeeIncentives(userName);
-    const incentives = data?.incentives || [];  
-
+    
     const handleOpenViewEmployeeIncentive = ()=>{
         setOpenEmployeeViewIncentives(true);
     }
     const handleCloseViewEmployeeIncentive = (reload) => {
         setOpenEmployeeViewIncentives(false);
         if(reload){
-            refetch();
+            onRefresh();
         }
     }
     return(

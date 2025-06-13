@@ -8,6 +8,10 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import { useEmployeeAllowances } from '../../../hooks/useAllowance';
+import { useEmployeeBenefits } from '../../../hooks/useBenefits';
+import { useEmployeeIncentives } from '../../../hooks/useIncentives';
+
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 import AllowanceView from '../Allowance/Modals/EmployeeAllowanceView';
 import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
@@ -24,12 +28,19 @@ import EmploymentDetails from './Components/EmploymentDetails';
 
 const EmployeeView = () => {
     const { user } = useParams();
-
+    const {data: empAllowances, refetch: refetchAllowance} = useEmployeeAllowances(user);
+    const {data: empBenefits, refetch: refetchBenefits} = useEmployeeBenefits(user);
+    const {data: empIncentives, refetch: refetchIncentives} = useEmployeeIncentives(user);
+    
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+
+    const allowances = empAllowances?.allowances || [];
+    const benefits = empBenefits?.benefits || [];
+    const incentives = empIncentives?.incentives || [];
 
     const [employee, setEmployee] = useState('');
     const [educations, setEducations] = useState([]);
@@ -116,6 +127,9 @@ const EmployeeView = () => {
         setOpenEmployeeDetailsEditModal(false);
         if (reload) {
             getEmployeeDetails();
+            refetchAllowance();
+            refetchBenefits();
+            refetchIncentives();
             getEducationalBackground();
         }
     }
@@ -171,9 +185,9 @@ const EmployeeView = () => {
                     <Grid container spacing={4} sx={{ mt: 2 }}>
                         <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> 
                             <EmployeeInformation employee={employee} imagePath={imagePath}/>
-                            <EmployeeBenefits userName={user}/>
-                            <EmployeeAllowances userName={user}/>
-                            <EmployeeIncentives userName={user}/>
+                            <EmployeeBenefits userName={user} benefits={benefits} onRefresh={refetchBenefits}/>
+                            <EmployeeAllowances userName={user} allowances={allowances} onRefresh={refetchAllowance}/>
+                            <EmployeeIncentives userName={user} incentives={incentives} onRefresh={refetchIncentives}/>
                             <EmployeeDeductions userName={user} headers={headers} />
                         </Grid>
 
