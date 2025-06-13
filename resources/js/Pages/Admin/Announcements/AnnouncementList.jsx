@@ -537,16 +537,15 @@ const AnnouncementList = () => {
                               ) : (
                                 // {/* without thumbnail */}
                                 <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                                  <Box sx={{ height: "210px", py: 6, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }}>
+                                  <Box sx={{ height: "210px", py: 4, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15, 0.85), rgb(233, 171, 19,0.9))" }}>
                                     <Typography
-                                        variant="h5"
                                         component="div"
                                         sx={{
                                           fontWeight: 'bold',
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
                                           mb: 2,
-                                          color: "#072707"
+                                          fontSize: "1.7rem"
                                         }}
                                       >
                                         {announcement.title}
@@ -845,16 +844,15 @@ const AnnouncementList = () => {
                               ) : (
                                 // {/* without thumbnail */}
                                 <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                                  <Box sx={{ height: "210px", py: 6, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }}>
+                                  <Box sx={{ height: "210px", py: 4, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }}>
                                     <Typography
-                                        variant="h5"
                                         component="div"
                                         sx={{
                                           fontWeight: 'bold',
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
                                           mb: 2,
-                                          color: "#072707"
+                                          fontSize: "1.7rem",
                                         }}
                                       >
                                         {announcement.title}
@@ -1208,16 +1206,15 @@ const AnnouncementList = () => {
                               ) : (
                                 // {/* without thumbnail */}
                                 <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                                  <Box sx={{ height: "210px", py: 6, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }}>
+                                  <Box sx={{ height: "210px", py: 4, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }}>
                                     <Typography
-                                        variant="h5"
                                         component="div"
                                         sx={{
                                           fontWeight: 'bold',
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
                                           mb: 2,
-                                          color: "#072707"
+                                          fontSize: "1.7rem",
                                         }}
                                       >
                                         {announcement.title}
