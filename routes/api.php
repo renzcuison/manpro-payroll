@@ -120,6 +120,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('perimeters')->group(function () {
         Route::get('/getRadiusPerimeters', [RadiusPerimeterController::class, 'getRadiusPerimeters']);
         Route::post('/saveRadiusPerimeter', [RadiusPerimeterController::class, 'saveRadiusPerimeter']);
+        Route::get('/user-perimeters', [RadiusPerimeterController::class, 'getPerimeterbyUser']);
         Route::get('{id}', [RadiusPerimeterController::class, 'show']);
         Route::put('{id}', [RadiusPerimeterController::class, 'update']);
         Route::delete('{id}', [RadiusPerimeterController::class, 'destroy']);
