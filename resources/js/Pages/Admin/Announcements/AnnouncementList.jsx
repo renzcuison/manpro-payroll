@@ -545,7 +545,7 @@ const AnnouncementList = () => {
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
                                           mb: 2,
-                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.8vw", lg: "1.2vw" }
+                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.6vw", lg: "1.1vw" }
                                         }}
                                       >
                                         {announcement.title}
@@ -852,7 +852,7 @@ const AnnouncementList = () => {
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
                                           mb: 2,
-                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.8vw", lg: "1.2vw" }
+                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.6vw", lg: "1.1vw" }
                                         }}
                                       >
                                         {announcement.title}
@@ -1214,7 +1214,7 @@ const AnnouncementList = () => {
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
                                           mb: 2,
-                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.8vw", lg: "1.2vw" }
+                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.6vw", lg: "1.1vw" }
                                         }}
                                       >
                                         {announcement.title}
