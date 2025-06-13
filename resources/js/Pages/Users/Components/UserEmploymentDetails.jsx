@@ -2,8 +2,6 @@ import { Box, Grid, Paper, Typography } from "@mui/material";
 import React from "react";
 
 function EmploymentDetails({ user }) {
-    const formattedStartDate = user.date_start ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(user.date_start)) : '-';
-    const formattedEndDate = user.date_end ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(user.date_end)) : '-';
     return (
         <Box component={Paper} sx={{ my: 4, p: 4, borderRadius: 5 }}>
             <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>

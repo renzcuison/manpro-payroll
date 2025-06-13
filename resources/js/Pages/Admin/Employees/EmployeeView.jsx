@@ -110,7 +110,6 @@ const EmployeeView = () => {
 
     const formattedBirthDate = employee.birth_date ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.birth_date)) : '';
     const formattedStartDate = employee.date_start ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_start)) : '';
-    const formattedEndDate = employee.date_end ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_end)) : '';
 
     const handleOpenActions = (event) => {
         setAnchorEl(event.currentTarget);
@@ -354,7 +353,7 @@ const EmployeeView = () => {
                                         <Typography sx={{ fontWeight: 'bold' }}> Date Hired </Typography>
                                     </Grid>
                                     <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>
-                                        <Typography> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>
+                                        <Typography> {employee.date_start ? `${formattedStartDate}` : '-'} </Typography>
                                     </Grid>
                                 </Grid>
 

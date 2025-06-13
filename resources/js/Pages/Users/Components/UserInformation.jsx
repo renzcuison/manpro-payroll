@@ -110,7 +110,7 @@ function UserInformation({ user }) {
     const formattedBirthDate = (() => {
         if (!user.birth_date) return "";
         const date = new Date(user.birth_date);
-        return isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat("en-US", { year: "numeric", month: "long", day: "numeric" }).format(date);
+        // return isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat("en-US", { year: "numeric", month: "long", day: "numeric" }).format(date);
     })();
 
     return (

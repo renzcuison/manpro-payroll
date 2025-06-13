@@ -19,7 +19,7 @@ return (
 
             <Grid item size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
                 <Typography sx={{ fontWeight: 'bold' }}> Job Title </Typography>
-            </Grid>
+            </Grid> 
             <Grid item size={{ xs: 4, sm: 4, md: 4, lg: 4 }}>
                 <Typography> {employee.jobTitle || '-'} </Typography>
             </Grid>
