@@ -146,6 +146,10 @@ const PerformanceEvaluationEvaluateePage = () => {
     ? responseMeta.commentors
     : [];
 
+    const allEvaluators = Array.isArray(responseMeta.evaluators) && responseMeta.evaluators.length > 0
+    ? responseMeta.evaluators
+    : [];
+
   const getOrderLabel = (idx) => {
     const n = idx + 1;
     if (n === 1) return "First";
@@ -340,10 +344,62 @@ const PerformanceEvaluationEvaluateePage = () => {
           );
         })}
 
-        {/* All Commentors Section - Each in its own box, stacked vertically */}
+
+        {/* All Evaluators Section - Each in its own box, stacked vertically */}
+                <Box sx={{ mt: 6 }}>
+  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+    Evaluator Comments:
+  </Typography>
+  {allEvaluators.length > 0 ? (
+    <Box>
+      {allEvaluators.map((evaluator, i) => (
+        <Paper
+          key={evaluator.evaluator_id || evaluator.id || i}
+          elevation={2}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: '#fff',
+            borderRadius: 2,
+            borderLeft: '8px solid #eab31a',
+            px: 2,
+            pt: 2,
+            pb: 2,
+            mt: 2,
+            mb: 2,
+            width: '100%',
+            boxShadow: 2,
+          }}
+        >
+          
+          <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+            {getFullName(evaluator)}
+          </Typography>
+          <TextField
+            label="Evaluator Comment"
+            multiline
+            minRows={3}
+            fullWidth
+            value={evaluator.comment || ''}
+            sx={{ mt: 1 }}
+            placeholder="No comment provided"
+            InputProps={{
+              readOnly: true,
+            }}
+          />
+        </Paper>
+      ))}
+    </Box>
+  ) : (
+    <Typography color="text.secondary"><i>No evaluators found.</i></Typography>
+  )}
+</Box>
+
+        
+
         <Box sx={{ mt: 6 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-            Commentors:
+            Comments:
           </Typography>
           {allCommentors.length > 0 ? (
             <Box>
@@ -352,19 +408,25 @@ const PerformanceEvaluationEvaluateePage = () => {
                   key={commentor.commentor_id}
                   elevation={2}
                   sx={{
-                    width: "100%",
-                    p: 3,
-                    mb: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: '#fffff',
                     borderRadius: 2,
-                    border: '1px solid #e0e0e0',
-                    boxShadow: 1,
-                    bgcolor: '#fcfcfc',
+                    borderLeft: '8px solid #eab31a',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    width: '100%',
+                    
+                    boxShadow: 2,
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#9E7600', mb: 0.5 }}>
-                    {getOrderLabel(i)} Commentor
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                    {commentor.client_id}
                   </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(commentor)}
                   </Typography>
                   <TextField
