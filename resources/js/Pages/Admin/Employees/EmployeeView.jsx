@@ -179,7 +179,7 @@ const EmployeeView = () => {
 
                         <Grid size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
                             <EmployeeSummary employee={employee}/>
-                            <EmployeeDetails employee={employee}/>
+                            <EmploymentDetails employee={employee}/>
                             <EmployeeEducationBackground education={educations}/>
                             <EmployeeHistory userName={user} headers={headers} />
                         </Grid>
