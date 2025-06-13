@@ -11,27 +11,31 @@ class EvaluationResponse extends Model
 
     protected $table = 'evaluation_responses';
 
+    protected $hidden = [
+        'laravel_through_key'
+    ];
+
     protected $primaryKey = 'id';
 
     protected $fillable = [
         'evaluatee_id',
         'form_id',
+        'creator_id',
         'period_start_at',
         'period_end_at',
         'creator_signature_filepath',
         'evaluatee_signature_filepath',
-        'status',
-        'current_step',
-        'evaluator_completed_at',
-        'first_commentor_completed_at',
-        'second_commentor_completed_at',
-        'evaluatee_acknowledged_at',
         'deleted_at'
     ];
 
     public function commentors()
     {
-        return $this->hasMany(EvaluationCommentor::class, 'response_id');
+        return $this->hasMany(EvaluationCommentor::class, 'response_id')->orderBy('order');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(UsersModel::class, 'creator_id');
     }
 
     public function evaluatee()
@@ -41,7 +45,7 @@ class EvaluationResponse extends Model
 
     public function evaluators()
     {
-        return $this->hasMany(EvaluationEvaluator::class, 'response_id');
+        return $this->hasMany(EvaluationEvaluator::class, 'response_id')->orderBy('order');
     }
 
     public function form()
