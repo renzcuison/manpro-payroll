@@ -186,6 +186,12 @@ class UsersModel extends Authenticatable implements HasMedia
     {
         $this->addMediaCollection('profile_pictures')->singleFile();
     }
+
+    public function comments(): hasMany
+    {
+        return $this->hasMany(MilestoneComment::class, 'user_id');
+    }
+    
       //employees assigned to department positions
     public function assignedDepartmentPositions()
     {

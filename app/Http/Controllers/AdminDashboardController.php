@@ -41,7 +41,7 @@ class AdminDashboardController extends Controller
             $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
         })->whereDate('timestamp', Carbon::now()->toDateString())->groupBy('user_id')->with('user', 'workHour')->get();
 
-        $milestones = Milestone::with('user.media')->where('client_id', $user->client_id)->get();
+        $milestones = Milestone::with(['user.media', 'comments.user'])->where('client_id', $user->client_id)->get();
 
         return response()->json([
             'employees' => $employees,
