@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  IconButton, Menu, MenuItem, Paper, Chip, TextField, Grid, Button, Divider
+  IconButton, Menu, MenuItem, Paper, TextField, Grid, Button, Divider
 } from '@mui/material';
 import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
@@ -11,8 +11,7 @@ import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
 import PerformanceEvaluationEvaluateeAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvaluationEvaluateeAcknowledge';
 import Swal from 'sweetalert2';
 import ScoreLinearBar from './Test/ScoreLinearBar';
-
-
+import jsPDF from "jspdf";
 
 const getSectionScore = (section) => {
   if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [] };
@@ -62,7 +61,19 @@ const getSectionScore = (section) => {
   return { sectionScore, subcatScores };
 };
 
-
+function loadImageAsBase64(url) {
+  if (url && url.startsWith('data:image/')) {
+    return Promise.resolve(url);
+  }
+  return fetch(url)
+    .then(res => res.blob())
+    .then(blob => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    }));
+}
 
 const PerformanceEvaluationEvaluateePage = () => {
   const { id } = useParams();
@@ -119,6 +130,123 @@ const PerformanceEvaluationEvaluateePage = () => {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    const doc = new jsPDF("p", "pt", "a4");
+    const margin = 40;
+    let y = margin;
+
+    const form = evaluationResponse.form;
+    const responseMeta = evaluationResponse;
+
+    // Title
+    doc.setFontSize(22);
+    doc.text(form.name, margin, y);
+    y += 30;
+
+    // Evaluatee & Evaluators
+    doc.setFontSize(12);
+    doc.text(`Evaluatee: ${responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}`, margin, y);
+    y += 18;
+    doc.text(
+      `Evaluators: ${responseMeta?.evaluators ? responseMeta.evaluators.map(getFullName).join(', ') : ''}`,
+      margin, y
+    );
+    y += 18;
+    doc.text(`Period: ${responseMeta.period_start_date} to ${responseMeta.period_end_date}`, margin, y);
+    y += 24;
+
+    // Sections and Scores
+    form.sections.forEach(section => {
+      const { sectionScore, subcatScores } = getSectionScore(section);
+      doc.setFontSize(15);
+      doc.text(`Section: ${section.name}`, margin, y);
+      y += 18;
+
+      subcatScores.forEach(({ name, score }) => {
+        doc.setFontSize(12);
+        doc.text(` - ${name}: ${score.toFixed(1)}`, margin + 10, y);
+        y += 16;
+      });
+
+      doc.text(`Total Rating: ${sectionScore.toFixed(1)}`, margin + 10, y);
+      y += 20;
+    });
+
+    // Comments
+    const allCommentors = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
+      ? responseMeta.commentors
+      : [];
+    if (allCommentors.length > 0) {
+      doc.setFontSize(13);
+      doc.text("Comments:", margin, y);
+      y += 18;
+      allCommentors.forEach((commentor, idx) => {
+        doc.setFontSize(12);
+        doc.text(`${getOrderLabel(idx)} Commentor: ${getFullName(commentor)}`, margin + 10, y);
+        y += 16;
+        doc.text(commentor.comment || "(No comment provided)", margin + 18, y);
+        y += 20;
+      });
+    }
+
+    // Signatures
+    y += 16;
+    doc.setFontSize(14);
+    doc.text("Signatures:", margin, y);
+    y += 18;
+
+    async function addSignatureImage(url, label, y) {
+      if (!url) return y;
+      try {
+        const img = await loadImageAsBase64(url);
+        doc.setFontSize(12);
+        doc.text(label, margin + 10, y + 15);
+        doc.addImage(img, "PNG", margin + 120, y, 80, 40);
+        y += 50;
+      } catch {
+        doc.text(`${label} (signature not found)`, margin + 10, y + 15);
+        y += 20;
+      }
+      return y;
+    }
+
+    if (responseMeta.creator_signature_filepath) {
+      y = await addSignatureImage(responseMeta.creator_signature_filepath, "Creator Signature", y);
+    }
+    if (responseMeta.evaluatee_signature_filepath) {
+      y = await addSignatureImage(responseMeta.evaluatee_signature_filepath, "Evaluatee Signature", y);
+    }
+    if (Array.isArray(responseMeta.evaluators)) {
+      for (const evaluator of responseMeta.evaluators) {
+        if (evaluator.signature_filepath) {
+          y = await addSignatureImage(evaluator.signature_filepath, `${getFullName(evaluator)} (Evaluator)`, y);
+        }
+      }
+    }
+    if (Array.isArray(responseMeta.commentors)) {
+      for (const commentor of responseMeta.commentors) {
+        if (commentor.signature_filepath) {
+          y = await addSignatureImage(commentor.signature_filepath, `${getFullName(commentor)} (Commentor)`, y);
+        }
+      }
+    }
+
+    doc.save(`evaluation_${form.name.replace(/\s+/g, '_')}.pdf`);
+  };
+
+  const getOrderLabel = (idx) => {
+    const n = idx + 1;
+    if (n === 1) return "First";
+    if (n === 2) return "Second";
+    if (n === 3) return "Third";
+    if (n === 4) return "Fourth";
+    if (n === 5) return "Fifth";
+    return `${n}th`;
+  };
+
+  const form = evaluationResponse.form;
+  const responseMeta = evaluationResponse;
+
   if (loading) {
     return (
       <Layout title="Performance Evaluation Answers">
@@ -128,9 +256,6 @@ const PerformanceEvaluationEvaluateePage = () => {
       </Layout>
     );
   }
-
-  const form = evaluationResponse.form;
-  const responseMeta = evaluationResponse;
 
   if (!form || !responseMeta) {
     return (
@@ -145,16 +270,6 @@ const PerformanceEvaluationEvaluateePage = () => {
   const allCommentors = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
     ? responseMeta.commentors
     : [];
-
-  const getOrderLabel = (idx) => {
-    const n = idx + 1;
-    if (n === 1) return "First";
-    if (n === 2) return "Second";
-    if (n === 3) return "Third";
-    if (n === 4) return "Fourth";
-    if (n === 5) return "Fifth";
-    return `${n}th`;
-  };
 
   const hasAcknowledged = !!responseMeta.evaluatee_signature_filepath;
 
@@ -203,6 +318,10 @@ const PerformanceEvaluationEvaluateePage = () => {
                 setTimeout(() => navigate('/admin/performance-evaluation'), 100);
               }}
             >Exit Form</MenuItem>
+            <MenuItem onClick={async () => {
+              handleSettingsClose();
+              await handleDownloadPDF();
+            }}>Download Evaluation Result</MenuItem>
           </Menu>
           <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
             {form.name}
