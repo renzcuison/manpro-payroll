@@ -9,6 +9,7 @@ import {
     OutlinedInput,
     InputAdornment,
     Divider,
+    CircularProgress,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -357,11 +358,24 @@ const PemeResponses = () => {
                         <Box sx={{ height: 24 }} />
                         <Divider />
                         {/* Table */}
-                        <PemeResponsesTable
-                            onRowClick={handleOnRowClick}
-                            responses={filteredRecords}
-                            search={search}
-                        />
+                        {isLoading ? (
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    minHeight: 400,
+                                }}
+                            >
+                                <CircularProgress></CircularProgress>
+                            </Box>
+                        ) : (
+                            <PemeResponsesTable
+                                onRowClick={handleOnRowClick}
+                                responses={filteredRecords}
+                                search={search}
+                            />
+                        )}
                     </Box>
                 </Box>
             </Box>
