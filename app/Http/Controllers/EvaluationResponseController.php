@@ -341,7 +341,7 @@ class EvaluationResponseController extends Controller
                 'status' => 201,
                 'message' => 'Evaluation Response successfully updated',
                 'evaluationResponse' => $evaluationResponse
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error saving evaluation response: ' . $e->getMessage());
