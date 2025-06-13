@@ -18,7 +18,7 @@ const EmployeeIncentiveView = ({ open, close, userName }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const {data, refetch} = useEmployeeIncentives(userName);
+    const {data, isLoading, refetch} = useEmployeeIncentives(userName);
     const incentives = data?.incentives || [];
 
     const [incentivesAddOpen, setIncentivesAddOpen] = useState(false);
@@ -96,7 +96,7 @@ const EmployeeIncentiveView = ({ open, close, userName }) => {
                     </Box>
                     
                     {incentivesListOpen && (
-                        <EmployeeIncentivesList incentives={incentives} onAdd={() => handleOpenAddEmployeeIncentive()} 
+                        <EmployeeIncentivesList incentives={incentives} isLoading={isLoading} onAdd={() => handleOpenAddEmployeeIncentive()} 
                         onEdit={(index) => handleOpenEditEmployeeIncentives(index)}/>
                     )}
 

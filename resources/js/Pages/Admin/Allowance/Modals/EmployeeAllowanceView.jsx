@@ -96,7 +96,7 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
                     </Box>
                     
                     {allowanceListOpen && (
-                        <EmployeeAllowanceList allowances={allowances} onAdd={() => handleOpenAddEmployeeAllowance()} 
+                        <EmployeeAllowanceList allowances={allowances} isLoading={isLoading} onAdd={() => handleOpenAddEmployeeAllowance()} 
                         onEdit={(index) => handleOpenEditEmployeeAllowance(index)}/>
                     )}
 

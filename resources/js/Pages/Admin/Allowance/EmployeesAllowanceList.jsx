@@ -59,7 +59,7 @@ const EmployeesAllowanceList = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Allowance </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Allowances </Typography>
 
                         <Button variant="contained" color="primary" component={Link} to="/admin/employees/allowance-types">
                             <p className='m-0'><i class="fa fa-list" aria-hidden="true"></i> Types </p>

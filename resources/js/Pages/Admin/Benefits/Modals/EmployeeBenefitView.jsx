@@ -95,7 +95,7 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
                     </Box>
                     
                     {benefitsListOpen && (
-                        <EmployeeBenefitList benefits={benefits} onAdd={() => handleOpenAddEmployeeBenefits()} 
+                        <EmployeeBenefitList benefits={benefits} isLoading={isLoading} onAdd={() => handleOpenAddEmployeeBenefits()} 
                         onEdit={(index) => handleOpenEditEmployeeBenefits(index)} />
                     )}
                     {benefitEditOpen && (
