@@ -18,7 +18,7 @@ const PerformanceEvaluationAnswerPage = () => {
 
   const {
     evaluationResponse, options, subcategories,
-    saveEvaluationResponse, setPercentageAnswer, setTextAnswer,
+    editEvaluationResponse, setPercentageAnswer, setTextAnswer,
     setOptionAnswer, getMultipleChoiceOptionId,
     editEvaluationEvaluator // You must implement this in your hook/backend, similar to editEvaluationCommentor
   } = useEvaluationResponse(id);
@@ -117,7 +117,7 @@ const PerformanceEvaluationAnswerPage = () => {
         }
       }
       // Save the rest of the evaluation form
-      await saveEvaluationResponse();
+      await editEvaluationResponse();
       Swal.fire({
         icon: 'success',
         title: 'Submitted!',
