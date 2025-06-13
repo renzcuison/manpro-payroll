@@ -174,7 +174,7 @@ const PayrollRecords = () => {
                                                 <TableCell align="center">Role</TableCell>
                                                 <TableCell align="center">Payroll Date</TableCell>
                                                 <TableCell align="center">Cut-Off</TableCell>
-                                                <TableCell align="center">Gross Pay</TableCell>
+                                                <TableCell align="center">Net Pay</TableCell>
                                                 <TableCell align="center">Status</TableCell>
                                             </TableRow>
                                         </TableHead>

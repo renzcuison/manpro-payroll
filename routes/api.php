@@ -64,8 +64,7 @@ use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\MilestoneController;
 use Illuminate\Support\Facades\Route;
 
-// Medical Records Controller
-// PEME
+// PEME Controllers
 use App\Http\Controllers\PemeController;
 use App\Http\Controllers\PemeQuestionnaireController;
 use App\Http\Controllers\PemeResponseController;
@@ -177,7 +176,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getAssignableEmployees', [EmployeesController::class, 'getAssignableEmployees']);
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
 
-  
+
 
         Route::post('/updateEmployeeBranchPosition', [EmployeesController::class, 'updateBranchPosition']);
 
@@ -227,7 +226,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeAllowance', [CompensationManagementController::class, 'getEmployeeAllowance']);
         Route::get('/getEmployeesAllowance', [CompensationManagementController::class, 'getEmployeesAllowance']);
         Route::post('/saveEmployeeAllowance', [CompensationManagementController::class, 'saveEmployeeAllowance']);
-       
+        Route::post('/updateEmployeeAllowance', [CompensationManagementController::class, 'updateEmployeeAllowance']);
         
         //incentives
         Route::get('/getIncentives', [CompensationManagementController::class, 'getIncentives']);
@@ -236,7 +235,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeesIncentives', [CompensationManagementController::class, 'getEmployeesIncentives']);
         Route::get('/getEmployeeIncentives', [CompensationManagementController::class, 'getEmployeeIncentives']);
         Route::post('/saveEmployeeIncentives', [CompensationManagementController::class, 'saveEmployeeIncentives']);
-
+        Route::post('/updateEmployeeIncentive', [CompensationManagementController::class, 'updateEmployeeIncentive']);
         
         //benefits
         Route::get('/getBenefits', [CompensationManagementController::class, 'getBenefits']);
@@ -245,6 +244,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeesBenefits', [CompensationManagementController::class, 'getEmployeesBenefits']);
         Route::get('/getEmployeeBenefits', [CompensationManagementController::class, 'getEmployeeBenefits']);
         Route::post('/saveEmployeeBenefits', [CompensationManagementController::class, 'saveEmployeeBenefits']);
+        Route::post('/updateEmployeeBenefit', [CompensationManagementController::class, 'updateEmployeeBenefit']);
     });
     
     //note: use the compensation routes for future referencing
@@ -373,7 +373,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveLeaveCredits', [ApplicationsController::class, 'saveLeaveCredits']);
         Route::post('/editLeaveCredits', [ApplicationsController::class, 'editLeaveCredits']);
         Route::post('/deleteLeaveCredits', [ApplicationsController::class, 'deleteLeaveCredits']);
-        Route::post('/updateLeaveCredits', [ApplicationsController::class,'updateLeaveCredits']);
+        Route::post('/updateLeaveCredits', [ApplicationsController::class, 'updateLeaveCredits']);
 
 
         // Overtime Applications
@@ -410,11 +410,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         // Acknowledgements
         Route::post('/acknowledgeAnnouncement', [AnnouncementsController::class, 'acknowledgeAnnouncement']);
         Route::get('/getAcknowledgements/{code}', [AnnouncementsController::class, 'getAcknowledgements']);
-        
-        //View
-        Route::get('/getViews/{code}', [AnnouncementsController::class, 'getViews']);  
-        Route::post('/logView', [AnnouncementsController::class, 'logView']);
 
+        //View
+        Route::get('/getViews/{code}', [AnnouncementsController::class, 'getViews']);
+        Route::post('/logView', [AnnouncementsController::class, 'logView']);
     });
 
     Route::prefix('adminDashboard')->group(function () {
@@ -425,13 +424,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
         Route::get('/admin/dashboard1', [AdminDashboardController::class, 'getAttendanceToday1']);
     });
-    
+
     Route::prefix('admin')->group(function () {
         // ADMIN ROUTES
         Route::get('/dashboard', [AdminDashboardController::class, 'index']);
         Route::get('/attendance/today', [AdminDashboardController::class, 'getAttendanceToday']);
 
         Route::get('/milestones', [MilestoneController::class, 'index']);
+        Route::post('/milestones', [MilestoneController::class, 'store']);
+        Route::get('/milestones/{id}', [MilestoneController::class, 'show']);
+        Route::post('/milestones/{id}', [MilestoneController::class, 'SendGreetings']);
+        Route::delete('/milestones/{id}', [MilestoneController::class, 'destroy']);            
+        Route::delete('/milestones/{id}/comments/{comment_id}', [MilestoneController::class, 'deleteComment']);            
     });
 
     Route::prefix('trainings')->group(function () {
@@ -723,7 +727,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getUserSchedule', [HrAttendanceController::class, 'getUserSchedule']);
 
 
-// Branch SAM
+    // Branch SAM
 
 
 
@@ -820,32 +824,39 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // Medical Records
     // PEME Dashboard 
-    Route::post('/pemes', [PemeController::class, 'createPeme']);
-    Route::get('/pemes', [PemeController::class, 'getPemeList']);
-    Route::get('/pemes/stats', [PemeController::class, 'getPemeStats']);
+    Route::post('/createPeme', [PemeController::class, 'createPeme']);
+    Route::get('/getPemeList', [PemeController::class, 'getPemeList']);
+    Route::get('/getPemeStats', [PemeController::class, 'getPemeStats']);
+    Route::patch('/updatePemeSettings/{id}', [PemeController::class, 'updatePemeSettings']);
+    Route::delete('/deletePeme/{id}', [PemeController::class, 'deletePeme']);
+
 
     // PEME Questionnaire
-    Route::post('/peme/questionnaire', 
-    [PemeQuestionnaireController::class, 'store']);
+    Route::post(
+        '/peme/questionnaire',
+        [PemeQuestionnaireController::class, 'store']
+    );
     Route::get('/peme/{pemeId}/questionnaire', [PemeQuestionnaireController::class, 'getQuestionnaire']);
     Route::put('/questionnaire/{questionId}', [PemeQuestionnaireController::class, 'update']);
     Route::delete('/questionnaire/{questionId}', [PemeQuestionnaireController::class, 'destroy']);
-    Route::get('/questionnaire/{questionId}', [PemeQuestionnaireController::class, 'show']);
+    Route::get('peme/{pemeID}/question/{questionId}', [PemeQuestionnaireController::class, 'show']);
     
     // PEME Responses
+    Route::post('/peme-responses/storeAll', [PemeResponseController::class, 'storeAll']);
     Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
+    Route::patch('/peme-responses/{id}/status', [PemeResponseController::class, 'updateResponse']);
     Route::post('/peme-responses', [PemeResponseController::class, 'store']);
-    Route::patch('/peme-responses/{id}/status', [PemeResponseController::class, 'updateStatus']);
     Route::get('/peme-responses/summary/{pemeId}', [PemeResponseController::class, 'summary']);
     Route::post('/peme-responses/{id}/restore', [PemeResponseController::class, 'restore']);
+    Route::get('/peme-response/{id}/details', [PemeResponseController::class, 'getResponse']);
 
     // Response Details
     Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
     Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
     Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
-    Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
+    // Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
     Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);
     Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
     Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
@@ -869,6 +880,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 Route::get('/google/redirect', [GoogleController::class, 'redirectToGoogle']);
 Route::get('/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
+
 //Register
 Route::post('/create_employee_link', [HrEmployeesController::class, 'createEmployeeLink']);
 Route::get('/sendNewEmployeeMailLink/{id}', [MailController::class, 'newEmployeeMailLink']);
@@ -891,7 +903,6 @@ Route::get('/token', [VoiceController::class, 'getToken']);
 Route::get('/settings/getEmploymentTypes', [SettingsController::class, 'getEmploymentTypes']);
 Route::get('/settings/getStatuses', [SettingsController::class, 'getStatuses']);
 
-
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
     Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
@@ -899,7 +910,5 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/settings/getRoles', [AnnouncementsController::class, 'getRoles']);
 
 });
-
-
 
 require __DIR__ . '/super-admin.php';

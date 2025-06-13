@@ -19,7 +19,7 @@ import {
 import { Navigate, useNavigate } from "react-router-dom";
 
 const UploadForm = ({ fileSizeLimit }) => {
-    const limit = fileSizeLimit || 10;
+    const limit = fileSizeLimit;
     return (
         <>
             <Typography variant="h7">
@@ -169,14 +169,14 @@ const PemeQuestionnairePreview = () => {
             })
             .catch((error) => {
                 console.error("Error fetching loan applications:", error);
-                // Swal.fire({
-                //     title: "Error",
-                //     text:
-                //         "Failed to fetch PEME records. Please try again later.",
-                //     icon: "error",
-                //     confirmButtonText: "Okay",
-                //     confirmButtonColor: "#177604",
-                // });
+                Swal.fire({
+                    title: "Error",
+                    text:
+                        "Failed to fetch PEME records. Please try again later.",
+                    icon: "error",
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                });
                 setIsLoading(false);
             });
     }, []);

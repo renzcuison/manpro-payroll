@@ -328,7 +328,7 @@ const Sidebar = ({ children, closeMini }) => {
     // console.log("User: ", user);
 
     return (
-        <nav id="sidebar" style={{ zIndex: 1, height: "100vh", overflow: "hidden" }} >
+        <nav id="sidebar" style={{ zIndex: 1300, height: "100vh", overflow: "hidden", position: "fixed", boxShadow: "2px 0 8px rgba(0,0,0,0.1)", transition: "transform 0.3s ease",}} >
             <PerfectScrollbar style={{ height: "100%" }}>
                 <div className="sidebar-content" style={{ height: "100%" }}>
                     <div className="content-header content-header-fullrow px-15">
@@ -473,14 +473,14 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span className="sidebar-mini-hidden text-dark"> Compensation Management </span>
                                     </li>
 
-                                    <StyledNav to={`/admin/employees/allowance`}>
-                                        <i className="fa fa-money" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide"> Allowance </span>
-                                    </StyledNav>
-
                                     <StyledNav to={`/admin/employees/benefits`}>
                                         <i className="fa fa-university" style={{ color: "#2a800f" }} ></i>
                                         <span id="navName" className="sidebar-mini-hide"> Benefits </span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/admin/employees/allowance`}>
+                                        <i className="fa fa-money" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Allowance </span>
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/employees/incentives`}>
@@ -506,11 +506,16 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span className="sidebar-mini-hidden text-dark"> Announcements </span>
                                     </li>
 
-                                     {announcementsItems.map((items, index) => {
+                                    <StyledNav to={`/admin/announcements`}>
+                                        <i className="fa fa-bullhorn" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Announcements </span>
+                                    </StyledNav>
+
+                                    {/* {announcementsItems.map((items, index) => {
                                         return (
                                             <SideItem key={index} items={items} />
                                         );
-                                    })}
+                                    })} */}
 
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Records </span>

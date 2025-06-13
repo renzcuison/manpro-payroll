@@ -393,7 +393,7 @@ export function useEvaluationResponse(responseId) {
         reloadEvaluationResponse();
     }
 
-    // Added for saving comment and signature - Khim
+    // Added for saving comment and signature for the commentor - Khim
     async function editEvaluationCommentor({ response_id, commentor_id, comment, signature_filepath }) {
         try {
             const payload = {
@@ -426,40 +426,107 @@ export function useEvaluationResponse(responseId) {
         }
     }
 
-    // checkbox answer operations
-    // function setCheckboxAnswers(subcategoryId, optionId, checked) {
-    //     const subcategory = subcategories[subcategoryId];
-    //     if (!subcategory) return;
-    //     const option = options[optionId];
-    //     if (!option) return;
+    // Added for saving comment and signature for the evaluator - Khim
+    async function editEvaluationEvaluator({ response_id, evaluator_id, comment, signature_filepath }) {
+        try {
+            const payload = {
+                response_id,
+                evaluator_id,
+            };
+            if (comment !== undefined) payload.comment = comment;
+            if (signature_filepath !== undefined) payload.signature_filepath = signature_filepath;
 
-    //     if (!subcategory.checkbox_answers) subcategory.checkbox_answers = [];
+            const response = await axiosInstance.post(
+                '/editEvaluationEvaluator',
+                payload,
+                { headers }
+            );
 
-    //     if (checked) {
-    //         // Only add if not already present
-    //         if (!subcategory.checkbox_answers.includes(optionId)) {
-    //             subcategory.checkbox_answers.push(optionId);
-    //             // Create option_answer for this option
-    //             option.option_answer = {
-    //                 response_id: evaluationResponse.id,
-    //                 option_id: optionId,
-    //                 action: 'create'
-    //             };
+            if (
+                (response.status && String(response.status).startsWith('2')) ||
+                (response.data && response.data.status && String(response.data.status).startsWith('2'))
+            ) {
+                return response.data.evaluationEvaluator;
+            } else {
+                throw new Error(response.data?.message || 'Failed to save comment.');
+            }
+        } catch (error) {
+            throw new Error(
+                error?.response?.data?.message ||
+                error.message ||
+                'Failed to save comment!'
+            );
+        }
+    }
+
+    // Added for saving creator signature - Khim
+    // async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath }) {
+    //     try {
+    //         const payload = {
+    //             id: response_id,
+    //             creator_signature_filepath,
+    //         };
+
+    //         const response = await axiosInstance.post(
+    //             '/editEvaluationResponse',
+    //             payload,
+    //             { headers }
+    //         );
+
+    //         if (
+    //             (response.status && String(response.status).startsWith('2')) ||
+    //             (response.data && response.data.status && String(response.data.status).startsWith('2'))
+    //         ) {
+    //             // Optionally reload here
+    //             getEvaluationResponse();
+    //             return response.data.evaluationResponse;
+    //         } else {
+    //             throw new Error(response.data?.message || 'Failed to save creator signature.');
     //         }
-    //     } else {
-    //         // Remove from checkbox_answers
-    //         subcategory.checkbox_answers = subcategory.checkbox_answers.filter(id => id !== optionId);
-    //         // Remove/destroy option_answer
-    //         if (option.option_answer) {
-    //             if (option.option_answer.action === 'create') {
-    //                 delete option.option_answer; // Not saved yet, just remove
-    //             } else {
-    //                 option.option_answer.action = 'delete'; // Mark for deletion
-    //             }
-    //         }
+    //     } catch (error) {
+    //         throw new Error(
+    //             error?.response?.data?.message ||
+    //             error.message ||
+    //             'Failed to save creator signature!'
+    //         );
     //     }
-    //     reloadEvaluationResponse();
     // }
+
+    // For saving evaluatee/creator signature
+    async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath, evaluatee_signature_filepath }) {
+        try {
+            const payload = {
+                id: response_id,
+            };
+            if (creator_signature_filepath !== undefined)
+                payload.creator_signature_filepath = creator_signature_filepath;
+            if (evaluatee_signature_filepath !== undefined)
+                payload.evaluatee_signature_filepath = evaluatee_signature_filepath;
+
+            const response = await axiosInstance.post(
+                '/editEvaluationResponse',
+                payload,
+                { headers }
+            );
+
+            if (
+                (response.status && String(response.status).startsWith('2')) ||
+                (response.data && response.data.status && String(response.data.status).startsWith('2'))
+            ) {
+                getEvaluationResponse();
+                return response.data.evaluationResponse;
+            } else {
+                throw new Error(response.data?.message || 'Failed to save signature.');
+            }
+        } catch (error) {
+            throw new Error(
+                error?.response?.data?.message ||
+                error.message ||
+                'Failed to save signature!'
+            );
+        }
+    }
+
 
     return {
         evaluationResponse, options, subcategories,
@@ -467,8 +534,7 @@ export function useEvaluationResponse(responseId) {
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
         getMultipleChoiceOptionId,
-        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,  editEvaluationCommentor
-        //, setCheckboxAnswers,
+        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,  editEvaluationCommentor, editEvaluationEvaluator, editEvaluationCreatorSignature,
     };
 
 }

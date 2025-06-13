@@ -9,39 +9,55 @@ import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
+import PerformanceEvaluationEvaluatorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvaluationEvaluatorAcknowledge';
+import Swal from 'sweetalert2';
 
 const PerformanceEvaluationAnswerPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const {
+    evaluationResponse, options, subcategories,
+    saveEvaluationResponse, setPercentageAnswer, setTextAnswer,
+    setOptionAnswer, getMultipleChoiceOptionId,
+    editEvaluationEvaluator // You must implement this in your hook/backend, similar to editEvaluationCommentor
+  } = useEvaluationResponse(id);
 
   const { deleteEvaluationResponse } = useEvaluationResponse(id);
 
   const handleDeleteMenuEvalForm = async () => {
     const success = await deleteEvaluationResponse();
     if (success) {
-      // Redirect away after delete, e.g. to the evaluation list
       navigate('/admin/performance-evaluation');
     }
   };
-
-  const {
-    evaluationResponse, options, subcategories,
-    saveEvaluationResponse, setPercentageAnswer, setTextAnswer,
-    findActiveOptionId, deleteOptionAnswer, deleteOptionAnswers, setOptionAnswer,
-    getMultipleChoiceOptionId
-  } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
 
+  // EVALUATOR COMMENTS STATE
+  const [evaluatorComments, setEvaluatorComments] = useState([]);
+  // Modal state for evaluator signature
+  const [openEvaluatorAcknowledge, setOpenEvaluatorAcknowledge] = useState(false);
+  const [signatureData, setSignatureData] = useState(null);
+
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
+      // Initialize evaluator comments state
+      if (Array.isArray(evaluationResponse.evaluators) && evaluationResponse.evaluators.length > 0) {
+        setEvaluatorComments(
+          evaluationResponse.evaluators.map(e => ({
+            evaluator_id: e.evaluator_id || e.id || e.user_id,
+            comment: e.comment || '',
+            name: getFullName(e)
+          }))
+        );
+      }
     }
   }, [evaluationResponse]);
 
-  // Handlers for Settings menu
   const handleSettingsClick = (event) => {
     setSettingsAnchorEl(event.currentTarget);
   };
@@ -63,31 +79,67 @@ const PerformanceEvaluationAnswerPage = () => {
     setPercentageAnswer(subcategoryId, value);
   };
 
-  // Handler for single select (multiple_choice)
-  const handleOptionChange = (optionId) => {
-    setOptionAnswer(optionId);
+  const handleOptionChange = (optionId) => setOptionAnswer(optionId);
+  const handleCheckboxChange = (optionId) => setOptionAnswer(optionId);
+
+  const handleShortAnswerChange = (subcategoryId, value) => setTextAnswer(subcategoryId, value);
+  const handleLongAnswerChange = (subcategoryId, value) => setTextAnswer(subcategoryId, value);
+
+  // EVALUATOR COMMENT HANDLING
+  const handleEvaluatorCommentInput = (evaluator_id, value) => {
+    setEvaluatorComments(prev =>
+      prev.map(e =>
+        e.evaluator_id === evaluator_id ? { ...e, comment: value } : e
+      )
+    );
   };
 
-  // Handler for checkbox (multi-select)
-  const handleCheckboxChange = (optionId) => {
-    setOptionAnswer(optionId);
-  };
-
-  const handleShortAnswerChange = (subcategoryId, value) => {
-    setTextAnswer(subcategoryId, value);
-  };
-  const handleLongAnswerChange = (subcategoryId, value) => {
-    setTextAnswer(subcategoryId, value);
-  };
-
-  // Submit Handler
-  const handleSubmit = async (event) => {
+  // Submit Handler - open modal for signature
+  const handleSubmit = (event) => {
     event.preventDefault();
+    setOpenEvaluatorAcknowledge(true);
+  };
+
+  // After signature, actually save everything
+  const handleEvaluatorProceed = async (signatureData) => {
+    setOpenEvaluatorAcknowledge(false);
     setSubmitting(true);
-    await saveEvaluationResponse();
+    try {
+      // Save all evaluator comments and signature
+      if (Array.isArray(evaluatorComments)) {
+        for (let evaluator of evaluatorComments) {
+          await editEvaluationEvaluator({
+            response_id: evaluationResponse.id,
+            evaluator_id: evaluator.evaluator_id,
+            comment: evaluator.comment,
+            signature_filepath: signatureData
+          });
+        }
+      }
+      // Save the rest of the evaluation form
+      await saveEvaluationResponse();
+      Swal.fire({
+        icon: 'success',
+        title: 'Submitted!',
+        text: "Evaluation and signature saved successfully.",
+        timer: 1800,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        position: 'center'
+      });
+      navigate(-1);
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: "Failed to submit evaluation.",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        position: 'center'
+      });
+    }
     setSubmitting(false);
-    alert("Evaluation response saved successfully.");
-    navigate(-1);
   };
 
   if (loading) {
@@ -169,7 +221,7 @@ const PerformanceEvaluationAnswerPage = () => {
           Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
+          Evaluator: {responseMeta?.evaluators ? responseMeta.evaluators.map(
             evaluator => getFullName(evaluator)
           ).join(' & ') : ''}
         </Typography>
@@ -177,7 +229,7 @@ const PerformanceEvaluationAnswerPage = () => {
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
         </Typography>
 
-        <Box component="form" onSubmit={e => handleSubmit(e)}>
+        <Box component="form" onSubmit={handleSubmit}>
           {(!form.sections || form.sections.length === 0) && (
             <Typography>No sections available for this form.</Typography>
           )}
@@ -272,9 +324,6 @@ const PerformanceEvaluationAnswerPage = () => {
                       </Typography>
                       <Typography variant="body2">Type: {responseTypeMap[subCategory.subcategory_type] || 'Unknown'}</Typography>
                       <Typography variant="body2" >Description: {subCategory.description}</Typography>
-
-                      
-
                       {subCategory.subcategory_type === 'linear_scale' && (
                         <Box sx={{ mb: 2 }}>
                           <Grid container alignItems="center" spacing={2} justifyContent='center'>
@@ -377,25 +426,28 @@ const PerformanceEvaluationAnswerPage = () => {
                         </Box>
                       )}
 
+                                            
                       {(subCategory.subcategory_type === 'multiple_choice' || subCategory.subcategory_type === 'checkbox') && (
-                        <Box sx={{ mb: 1, mt: 1 }}>
-                          <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
-                            Legend:
-                          </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                            {subCategory.options?.map((opt, index) => (
-                              <Typography
-                                key={opt.id}
-                                variant="body2"
-                                sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}
-                              >
-                                {opt.label} - {opt.score ?? 1} {index !== subCategory.options.length - 1 && ','} {/* Add comma if not the last item */}
-                              </Typography>
-                            ))}
+                        <>
+                          <Divider sx={{ my: 2 }} />
+                          <Box sx={{ mb: 1, mt: 1 }}>
+                            <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                              Legend:
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                              {subCategory.options?.map((opt, index) => (
+                                <Typography
+                                  key={opt.id}
+                                  variant="body2"
+                                  sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}
+                                >
+                                  {opt.label} - {opt.score ?? 1} {index !== subCategory.options.length - 1 && ','}
+                                </Typography>
+                              ))}
+                            </Box>
                           </Box>
-                        </Box>
+                        </>
                       )}
-
 
                     </Box>
                   ))
@@ -403,6 +455,57 @@ const PerformanceEvaluationAnswerPage = () => {
               </AccordionDetails>
             </Accordion>
           ))}
+          {/* --- EVALUATOR COMMENTS SECTION AT THE BOTTOM (no save button per evaluator) --- */}
+          <Box sx={{ mt: 6, mb: 2}}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+              Evaluator Comments:
+            </Typography>
+            {evaluatorComments.length > 0 ? (
+              <Box>
+                {evaluatorComments.map((evaluator, i) => (
+                  <Paper
+                    key={evaluator.evaluator_id || i}
+                    elevation={2}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      bgcolor: '#fffff',
+                      borderRadius: 2,
+                      borderLeft: '8px solid #eab31a',
+                      px: 2,
+                      pt: 2,
+                      pb: 2,
+                      mt: 2,
+                      mb: 2,
+                      width: '100%',
+                      boxShadow: 2,
+                    }}
+                  >
+                    {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                      {evaluator.evaluator_id}
+                    </Typography> */}
+                    <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                      {evaluator.name}
+                    </Typography>
+                    <TextField
+                      label="Evaluator Comment"
+                      multiline
+                      minRows={3}
+                      fullWidth
+                      value={evaluator.comment}
+                      sx={{ mt: 1 }}
+                      onChange={e => handleEvaluatorCommentInput(evaluator.evaluator_id, e.target.value)}
+                      placeholder="Enter your comment here"
+                    />
+                  </Paper>
+                ))}
+              </Box>
+            ) : (
+              <Typography color="text.secondary">
+                <i>No evaluators found.</i>
+              </Typography>
+            )}
+          </Box>
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <Button
               type="submit"
@@ -415,9 +518,14 @@ const PerformanceEvaluationAnswerPage = () => {
             </Button>
           </Box>
         </Box>
+        <PerformanceEvaluationEvaluatorAcknowledge
+          open={openEvaluatorAcknowledge}
+          onClose={() => setOpenEvaluatorAcknowledge(false)}
+          onProceed={handleEvaluatorProceed}
+        />
       </Box>
     </Layout>
   );
 };
 
-export default PerformanceEvaluationAnswerPage; 
+export default PerformanceEvaluationAnswerPage;
