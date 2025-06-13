@@ -426,6 +426,8 @@ const PerformanceEvaluationAnswerPage = () => {
                         </Box>
                       )}
 
+                       <Divider sx={{ my: 2 }} />
+
                       {(subCategory.subcategory_type === 'multiple_choice' || subCategory.subcategory_type === 'checkbox') && (
                         <Box sx={{ mb: 1, mt: 1 }}>
                           <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
@@ -452,49 +454,56 @@ const PerformanceEvaluationAnswerPage = () => {
             </Accordion>
           ))}
           {/* --- EVALUATOR COMMENTS SECTION AT THE BOTTOM (no save button per evaluator) --- */}
-          <Box sx={{ mt: 6, mb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-              Evaluator Comments:
-            </Typography>
-            {(evaluatorComments.length > 0) ? (
-              <Box>
-                {evaluatorComments.map((evaluator, i) => (
-                  <Paper
-                    key={evaluator.evaluator_id || i}
-                    elevation={2}
-                    sx={{
-                      width: "100%",
-                      p: 3,
-                      mb: 3,
-                      borderRadius: 2,
-                      border: '1px solid #e0e0e0',
-                      boxShadow: 1,
-                      bgcolor: '#fcfcfc',
-                    }}
-                  >
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1E7C1E', mb: 0.5 }}>
-                      Evaluator {i + 1}
-                    </Typography>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-                      {evaluator.name}
-                    </Typography>
-                    <TextField
-                      label="Evaluator Comment"
-                      multiline
-                      minRows={3}
-                      fullWidth
-                      value={evaluator.comment}
-                      sx={{ mt: 1 }}
-                      onChange={e => handleEvaluatorCommentInput(evaluator.evaluator_id, e.target.value)}
-                      placeholder="Enter your comment here"
-                    />
-                  </Paper>
-                ))}
-              </Box>
-            ) : (
-              <Typography color="text.secondary"><i>No evaluators found.</i></Typography>
-            )}
-          </Box>
+          <Box sx={{ mt: 6, mb: 2}}>
+  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+    Evaluator Comments:
+  </Typography>
+  {evaluatorComments.length > 0 ? (
+    <Box>
+      {evaluatorComments.map((evaluator, i) => (
+        <Paper
+          key={evaluator.evaluator_id || i}
+          elevation={2}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            bgcolor: '#fffff',
+            borderRadius: 2,
+            borderLeft: '8px solid #eab31a',
+            px: 2,
+            pt: 2,
+            pb: 2,
+            mt: 2,
+            mb: 2,
+            width: '100%',
+            boxShadow: 2,
+          }}
+        >
+          {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+            {evaluator.evaluator_id}
+          </Typography> */}
+          <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+            {evaluator.name}
+          </Typography>
+          <TextField
+            label="Evaluator Comment"
+            multiline
+            minRows={3}
+            fullWidth
+            value={evaluator.comment}
+            sx={{ mt: 1 }}
+            onChange={e => handleEvaluatorCommentInput(evaluator.evaluator_id, e.target.value)}
+            placeholder="Enter your comment here"
+          />
+        </Paper>
+      ))}
+    </Box>
+  ) : (
+    <Typography color="text.secondary">
+      <i>No evaluators found.</i>
+    </Typography>
+  )}
+</Box>
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <Button
               type="submit"

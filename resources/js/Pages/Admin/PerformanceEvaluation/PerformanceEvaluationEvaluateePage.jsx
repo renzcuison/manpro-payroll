@@ -29,7 +29,7 @@ const getSectionScore = (section) => {
           subScore = ((Number(selected.score) || 1) / highestScore) * 5;
         }
       }
-      subcatScores.push({ name: subcat.name, score: subScore });
+      subcatScores.push({ name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'checkbox') {
@@ -39,7 +39,7 @@ const getSectionScore = (section) => {
       if (allSum > 0) {
         subScore = (selectedSum / allSum) * 5;
       }
-      subcatScores.push({ name: subcat.name, score: subScore });
+      subcatScores.push({ name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'linear_scale') {
@@ -51,7 +51,7 @@ const getSectionScore = (section) => {
           subScore = ((value - start) / (end - start)) * 5;
         }
       }
-      subcatScores.push({ name: subcat.name, score: subScore });
+      subcatScores.push({ name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     }
@@ -87,6 +87,8 @@ const PerformanceEvaluationEvaluateePage = () => {
   const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
   const [ackModalOpen, setAckModalOpen] = useState(false);
   const [savingAcknowledge, setSavingAcknowledge] = useState(false);
+  const [hoveredSubcat, setHoveredSubcat] = useState(null);
+  const [hoveredOpenAnswer, setHoveredOpenAnswer] = useState(null);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
@@ -271,6 +273,20 @@ const PerformanceEvaluationEvaluateePage = () => {
     ? responseMeta.commentors
     : [];
 
+  const allEvaluators = Array.isArray(responseMeta.evaluators) && responseMeta.evaluators.length > 0
+    ? responseMeta.evaluators
+    : [];
+
+  const getOrderLabel = (idx) => {
+    const n = idx + 1;
+    if (n === 1) return "First";
+    if (n === 2) return "Second";
+    if (n === 3) return "Third";
+    if (n === 4) return "Fourth";
+    if (n === 5) return "Fifth";
+    return `${n}th`;
+  };
+
   const hasAcknowledged = !!responseMeta.evaluatee_signature_filepath;
 
   return (
@@ -348,11 +364,11 @@ const PerformanceEvaluationEvaluateePage = () => {
           const openAnswers = section.subcategories.filter(sc =>
             sc.subcategory_type === 'short_answer' || sc.subcategory_type === 'long_answer'
           );
-            const hasScorableSubcats = section.subcategories.some(sc =>
-              sc.subcategory_type === 'multiple_choice' ||
-              sc.subcategory_type === 'checkbox' ||
-              sc.subcategory_type === 'linear_scale'
-            );
+          const hasScorableSubcats = section.subcategories.some(sc =>
+            sc.subcategory_type === 'multiple_choice' ||
+            sc.subcategory_type === 'checkbox' ||
+            sc.subcategory_type === 'linear_scale'
+          );
           return (
             <Accordion
               key={section.id}
@@ -389,63 +405,178 @@ const PerformanceEvaluationEvaluateePage = () => {
                 </Box>
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 2 }}>
- {hasScorableSubcats && (
-  <>
-    {/* SCORES BAR CHART */}
-    <Box sx={{ width: '100%', maxWidth:800, mx: "auto", mt: 2, mb: 1 }}>
-      {subcatScores.map(({ name, score }, idx) => (
-        <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={idx}>
-          <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
-            <Typography sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-              {name}
-            </Typography>
-          </Grid>
-          <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
-            <ScoreLinearBar
-              variant="determinate"
-              value={(score / 5) * 100}
-              sx={{ width: '100%', minWidth: 580 }}
-            />
-          </Grid>
-          <Grid item sx={{ minWidth: 40, textAlign: 'right' }}>
-            <Typography sx={{ fontWeight: 'bold', ml: 1 }}>{score.toFixed(1)}</Typography>
-          </Grid>
-        </Grid>
-      ))}
-    </Box>
+                {hasScorableSubcats && (
+                  <>
+                    {/* SCORES BAR CHART */}
+                    <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
+                      {subcatScores.map(({ name, score, description }, idx) => (
+                        <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={idx}>
+                          {/* HOVER TARGET: Subcategory Name */}
+                            <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
+                              <Box
+                                component="span"
+                                onMouseEnter={() => setHoveredSubcat(`name-${name}`)}
+                                onMouseLeave={() => setHoveredSubcat(null)}
+                                sx={{
+                                  fontWeight: 'bold',
+                                  whiteSpace: 'nowrap',
+                                  cursor: 'pointer',
+                                  position: 'relative',
+                                  color: '#222'
+                                }}
+                              >
+                                {name}
+                                {hoveredSubcat === `name-${name}` && !!description && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      left: 0,
+                                      top: '100%',
+                                      mt: 1,
+                                      bgcolor: '#fffde7',
+                                      color: '#444',
+                                      zIndex: 10,
+                                      boxShadow: 3,
+                                      borderRadius: 1,
+                                      border: '1px solid #ffe082',
+                                      px: 2,
+                                      py: 1,
+                                      minWidth: 200,
+                                      maxWidth: 320,
+                                      fontSize: '0.97rem',
+                                      pointerEvents: 'none',
+                                      wordBreak: 'break-word',    
+                                      overflow: 'auto',          
+                                      maxHeight: 200,             
+                                      whiteSpace: 'pre-line',
+                                    }}
+                                  >
+                                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#E9AE20', mb: 0.5 }}>
+                                      Description
+                                    </Typography>
+                                    <Typography variant="body2">{description}</Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            </Grid>
 
-    <Divider sx={{ my: 2 }} />
+                            {/* HOVER TARGET: ScoreLinearBar */}
+                            <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
+                              <Box
+                                onMouseEnter={() => setHoveredSubcat(`bar-${name}`)}
+                                onMouseLeave={() => setHoveredSubcat(null)}
+                                sx={{ display: 'inline-block', width: '100%', position: 'relative' }}
+                              >
+                                <ScoreLinearBar
+                                  variant="determinate"
+                                  value={(score / 5) * 100}
+                                  sx={{ width: '100%', minWidth: 580 }}
+                                />
+                                {hoveredSubcat === `bar-${name}` && !!description && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      left: 0,
+                                      top: '100%',
+                                      mt: 1,
+                                      bgcolor: '#fffde7',
+                                      color: '#444',
+                                      zIndex: 10,
+                                      boxShadow: 3,
+                                      borderRadius: 1,
+                                      border: '1px solid #ffe082',
+                                      px: 2,
+                                      py: 1,
+                                      minWidth: 200,
+                                      maxWidth: 320,
+                                      fontSize: '0.97rem',
+                                      pointerEvents: 'none',
+                                      wordBreak: 'break-word',    
+                                      overflow: 'auto',          
+                                      maxHeight: 200,             
+                                      whiteSpace: 'pre-line',
+                                    }}
+                                  >
+                                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#E9AE20', mb: 0.5 }}>
+                                      Description
+                                    </Typography>
+                                    <Typography variant="body2">{description}</Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            </Grid>
+                          <Grid item sx={{ minWidth: 40, textAlign: 'right' }}>
+                            <Typography sx={{ fontWeight: 'bold', ml: 1 }}>{score.toFixed(1)}</Typography>
+                          </Grid>
+                        </Grid>
+                      ))}
+                    </Box>
 
-    {/* Section Total */}
-    <Box sx={{ width: '100%', maxWidth:800, mx: "auto", mt: 2, mb: 1 }}>
-      <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }}>
-        <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
-          <Typography sx={{ fontWeight: 700, color: "#262626" }}>Total Rating</Typography>
-        </Grid>
-        <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
-          <ScoreLinearBar
-            variant="determinate"
-            value={(sectionScore / 5) * 100}
-            sx={{ width: '100%', minWidth: 590 }}
-          />
-        </Grid>
-        <Grid item xs={2}>
-          <Typography sx={{ fontWeight: 700, ml: 1 }}>{sectionScore.toFixed(1)}</Typography>
-        </Grid>
-      </Grid>
-    </Box>
-  </>
-)}
-                {/* SHORT/LONG ANSWERS */}
-                
+                    <Divider sx={{ my: 2 }} />
+
+                    {/* Section Total */}
+                    <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
+                      <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }}>
+                        <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
+                          <Typography sx={{ fontWeight: 700, color: "#262626" }}>Total Rating</Typography>
+                        </Grid>
+                        <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
+                          <ScoreLinearBar
+                            variant="determinate"
+                            value={(sectionScore / 5) * 100}
+                            sx={{ width: '100%', minWidth: 590 }}
+                          />
+                        </Grid>
+                        <Grid item xs={2}>
+                          <Typography sx={{ fontWeight: 700, ml: 1 }}>{sectionScore.toFixed(1)}</Typography>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  </>
+                )}
+                {/* SHORT/LONG ANSWERS WITH HOVER OVERLAY */}
                 {openAnswers.length > 0 && (
-                  <Box sx={{ width: '100%', maxWidth:800, mx: "auto", mt: 3, mb: 1 }}>
-                    {openAnswers.map(subcat => (
-                    <Typography sx={{ fontWeight: 'bold', mb: 1 }}>Open-ended Answers: {subcat.name}</Typography>
-                    ))}
+                  <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 3, mb: 1 }}>
                     {openAnswers.map(subcat => (
                       <Box key={subcat.id} sx={{ mb: 2 }}>
-                        {/* <Typography sx={{ fontWeight: 500 }}>{subcat.name}</Typography> */}
+                        <Box
+                          onMouseEnter={() => setHoveredOpenAnswer(subcat.id)}
+                          onMouseLeave={() => setHoveredOpenAnswer(null)}
+                          sx={{ display: 'inline-block', fontWeight: 'bold', mb: 1, position: 'relative', cursor: !!subcat.description ? 'pointer' : 'default' }}
+                        >
+                          Open-ended Answers: {subcat.name}
+                          {hoveredOpenAnswer === subcat.id && !!subcat.description && (
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                left: 0,
+                                top: '100%',
+                                mt: 1,
+                                bgcolor: '#fffde7',
+                                color: '#444',
+                                zIndex: 10,
+                                boxShadow: 3,
+                                borderRadius: 1,
+                                border: '1px solid #ffe082',
+                                px: 2,
+                                py: 1,
+                                minWidth: 200,
+                                maxWidth: 320,
+                                fontSize: '0.97rem',
+                                pointerEvents: 'none',
+                                wordBreak: 'break-word',
+                                overflow: 'auto',
+                                maxHeight: 200,
+                                whiteSpace: 'pre-line',
+                              }}
+                            >
+                              <Typography variant="body2" sx={{ fontWeight: 500, color: '#E9AE20', mb: 0.5 }}>
+                                Description
+                              </Typography>
+                              <Typography variant="body2">{subcat.description}</Typography>
+                            </Box>
+                          )}
+                        </Box>
                         <Typography variant="body2" sx={{ color: '#444', flex: 1, mt: 1 }}>
                           {subcat.text_answer?.answer ||
                             <span style={{ color: "#bbb", fontStyle: "italic" }}>No answer</span>}
@@ -459,10 +590,58 @@ const PerformanceEvaluationEvaluateePage = () => {
           );
         })}
 
-        {/* All Commentors Section - Each in its own box, stacked vertically */}
+        {/* All Evaluators Section - Each in its own box, stacked vertically */}
         <Box sx={{ mt: 6 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-            Commentors:
+            Evaluator Comments:
+          </Typography>
+          {allEvaluators.length > 0 ? (
+            <Box>
+              {allEvaluators.map((evaluator, i) => (
+                <Paper
+                  key={evaluator.evaluator_id || evaluator.id || i}
+                  elevation={2}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: '#fff',
+                    borderRadius: 2,
+                    borderLeft: '8px solid #eab31a',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    width: '100%',
+                    boxShadow: 2,
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                    {getFullName(evaluator)}
+                  </Typography>
+                  <TextField
+                    label="Evaluator Comment"
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    value={evaluator.comment || ''}
+                    sx={{ mt: 1 }}
+                    placeholder="No comment provided"
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                  />
+                </Paper>
+              ))}
+            </Box>
+          ) : (
+            <Typography color="text.secondary"><i>No evaluators found.</i></Typography>
+          )}
+        </Box>
+
+        <Box sx={{ mt: 6 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+            Comments:
           </Typography>
           {allCommentors.length > 0 ? (
             <Box>
@@ -471,19 +650,24 @@ const PerformanceEvaluationEvaluateePage = () => {
                   key={commentor.commentor_id}
                   elevation={2}
                   sx={{
-                    width: "100%",
-                    p: 3,
-                    mb: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: '#fffff',
                     borderRadius: 2,
-                    border: '1px solid #e0e0e0',
-                    boxShadow: 1,
-                    bgcolor: '#fcfcfc',
+                    borderLeft: '8px solid #eab31a',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    width: '100%',
+                    boxShadow: 2,
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#9E7600', mb: 0.5 }}>
-                    {getOrderLabel(i)} Commentor
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                    {commentor.client_id}
                   </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(commentor)}
                   </Typography>
                   <TextField
@@ -507,33 +691,33 @@ const PerformanceEvaluationEvaluateePage = () => {
         </Box>
 
         {/* ACKNOWLEDGMENT SECTION */}
-      <Box sx={{ mt: 6, textAlign: 'center' }}>
-        {hasAcknowledged ? (
-          <Box>
-            <Typography sx={{ color: '#137333', fontWeight: 'bold', mb: 2 }}>
-              You have acknowledged this evaluation.
-            </Typography>
-            {/* Signature preview removed as requested */}
-          </Box>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{
-              mt: 2,
-              px: 5,
-              py: 1.5,
-              fontWeight: 'bold',
-              fontSize: 18,
-              borderRadius: 2
-            }}
-            onClick={() => setAckModalOpen(true)}
-            disabled={savingAcknowledge}
-          >
-            {savingAcknowledge ? "Saving..." : "Acknowledge"}
-          </Button>
-        )}
-      </Box>
+        <Box sx={{ mt: 6, textAlign: 'center' }}>
+          {hasAcknowledged ? (
+            <Box>
+              <Typography sx={{ color: '#137333', fontWeight: 'bold', mb: 2 }}>
+                You have acknowledged this evaluation.
+              </Typography>
+              {/* Signature preview removed as requested */}
+            </Box>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              sx={{
+                mt: 2,
+                px: 5,
+                py: 1.5,
+                fontWeight: 'bold',
+                fontSize: 18,
+                borderRadius: 2
+              }}
+              onClick={() => setAckModalOpen(true)}
+              disabled={savingAcknowledge}
+            >
+              {savingAcknowledge ? "Saving..." : "Acknowledge"}
+            </Button>
+          )}
+        </Box>
         <PerformanceEvaluationEvaluateeAcknowledge
           open={ackModalOpen}
           onClose={() => setAckModalOpen(false)}
