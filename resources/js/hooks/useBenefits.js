@@ -37,3 +37,11 @@ export function useSaveEmployeeBenefits() {
         return response.data;
     });
 }
+
+export function useUpdateEmployeeBenefit() {
+    return useMutation(async (data) => {
+        const response = await axiosInstance.post('/compensation/updateEmployeeBenefit', data, { headers });
+        return response.data;
+    });
+}
+

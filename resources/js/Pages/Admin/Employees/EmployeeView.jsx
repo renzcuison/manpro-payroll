@@ -20,7 +20,7 @@ import EmployeeDeductions from './Components/EmployeeDeductions';
 import EmployeeAllowances from './Components/EmployeeAllowances';
 import EmployeeIncentives from './Components/EmployeeIncentives';
 import EmployeeSummary from './Components/EmployeeSummary';
-import EmployeeDetails from './Components/EmployeeDetails';
+import EmploymentDetails from './Components/EmploymentDetails';
 
 const EmployeeView = () => {
     const { user } = useParams();

@@ -1,21 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
 import dayjs from "dayjs";
-import axiosInstance from "../../../../utils/axiosConfig";
 
-const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
-    
-    const [allowances, setAllowances] = useState([]);
 
-    useEffect(() => {
-        axiosInstance.get(`/compensation/getEmployeeAllowance`, { headers, params: { username: userName },
-            }).then((response) => {
-                setAllowances(response.data.allowances);
-            }).catch((error) => {
-                console.error("Error fetching allowances:", error);
-            });
-    }, []);
-
+const EmployeeAllowanceList = ({ allowances, onAdd, onEdit }) => {
     return (
         <Box>
             <TableContainer>
@@ -25,7 +13,8 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
                             <TableCell align="left">Allowance</TableCell>
                             <TableCell align="center">Number</TableCell>
                             <TableCell align="center">Amount</TableCell>
-                            <TableCell align="center">Date Added</TableCell>
+                            <TableCell align="center">Date</TableCell>
+                            <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -42,13 +31,18 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
                                         <Typography>₱{(allowance.calculated_amount).toFixed(2)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{dayjs(allowance.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
+                                        <Typography>{dayjs(allowance.created_at).format("MMM DD, YYYY")}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
+                                            <i class="fa fa-pencil-square-o fa-lg"/>
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
                                     No Allowance Found
                                 </TableCell>
                             </TableRow>
@@ -60,7 +54,7 @@ const EmployeeAllowanceList = ({ userName, headers, onAdd }) => {
             <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
                 <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={onAdd} >
                     <p className="m-0">
-                        <i className="fa fa-plus"></i> Add Allowance
+                        <i className="fa fa-plus mr-1"></i> Add Allowance
                     </p>
                 </Button>
             </Box>
