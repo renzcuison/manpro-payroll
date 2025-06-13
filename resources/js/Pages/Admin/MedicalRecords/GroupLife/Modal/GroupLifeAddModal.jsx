@@ -53,7 +53,7 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
         fetchCompanies();
     }, [open]);
 
-        const fetchCompanies = async () => {
+    const fetchCompanies = async () => {
         try {
             const res = await axiosInstance.get('/medicalRecords/getGroupLifeCompanies', {
                 headers: { Authorization: `Bearer ${user.token}` }
@@ -69,39 +69,6 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
                     console.error("Error fetching companies:", error);
                     setCompanies([]);
                 }
-            };
-
-        const handleAddRow = async (newRow) => {
-        console.log("newRow:", newRow);
-        const company = listOfCompanies.find(c => c.companyMenuItem === newRow.groupLifeName);
-        console.log("Matched company:", company);
-
-        const payload = {
-        group_life_company_id: groupLifeCompanyId,
-        plan_name: newRow.planType, 
-        type: newRow.paymentType,
-        employer_share: Number(newRow.employerShare),
-        employee_share: Number(newRow.employeeShare),
-
-        };
-
-        try {
-            await axiosInstance.post("/medicalRecords/saveGroupLifePlans", payload, {
-            headers: { Authorization: `Bearer ${user.token}` }
-            });
-            Swal.fire({
-                icon: 'success',
-                text: 'Group Life Plan saved successfully!',
-                timer: 2000,
-                showConfirmButton: false
-                });
-            refreshPlans();
-            } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error saving Group Life Plan!',
-                });
-        }
     };
 
     const formatCurrency = (value) => {
@@ -126,8 +93,8 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
     };
 
     const handleInputChange = (e, setValue) => {
-    const formattedValue = formatCurrency(e.target.value);
-    setValue(formattedValue);
+        const formattedValue = formatCurrency(e.target.value);
+        setValue(formattedValue);
     };
 
     const listOfPlanTypes = [
@@ -136,28 +103,28 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
     ];
 
     const handleSave = async () => {
-    const cleanNumber = (value) =>
-        Number(value.replace(/[^\d.]/g, "")) || 0;
+        const cleanNumber = (value) =>
+            Number(value.replace(/[^\d.]/g, "")) || 0;
 
-    const payload = {
-        group_life_company_id: groupLifeCompanyId,
-        plan_name: planType,
-        type: paymentType,
-        employee_share: paymentType === "Amount"
-            ? cleanNumber(employeeAmountShare)
-            : cleanNumber(employeePercentageShare),
-        employer_share: paymentType === "Amount"
-            ? cleanNumber(employerAmountShare)
-            : cleanNumber(employerPercentageShare),
-    };
+        const payload = {
+            group_life_company_id: groupLifeCompanyId,
+            plan_name: planType,
+            type: paymentType,
+            employee_share: paymentType === "Amount"
+                ? cleanNumber(employeeAmountShare)
+                : cleanNumber(employeePercentageShare),
+            employer_share: paymentType === "Amount"
+                ? cleanNumber(employerAmountShare)
+                : cleanNumber(employerPercentageShare),
+        };
 
-    try {
-        await axiosInstance.post("/medicalRecords/saveGroupLifePlans", payload, {
-            headers: { Authorization: `Bearer ${user.token}` }
-        });
-  if (typeof refreshPlans === "function") {
-    refreshPlans(); // ✅ Make sure this runs
-  }
+        try {
+            await axiosInstance.post("/medicalRecords/saveGroupLifePlans", payload, {
+                headers: { Authorization: `Bearer ${user.token}` }
+            });
+        if (typeof refreshPlans === "function") {
+            refreshPlans();
+        }
 
         Swal.fire({
             icon: 'success',
@@ -169,14 +136,14 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
 
         if (typeof close === "function") close();
 
-    } catch (error) {
+        } 
+        catch (error) {
         Swal.fire({
             icon: 'error',
             title: 'Error saving Group Life Plan!',
         });
     }
 
-    // Reset
     setGroupLifeCompanyId("");
     setPlanType("");
     setPaymentType("Amount");
@@ -190,44 +157,46 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
         <>
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Group Life Plan</Typography>
-                                        <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
-                                    </Box>
-                                </DialogTitle>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Group Life Plan</Typography>
+                        <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
+                    </Box>
+                </DialogTitle>
 
-                        <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                            <Box component="form" sx={{ mt: 3, my: 6 }} 
-                            // onSubmit={checkInput}
-                            noValidate autoComplete="off" encType="multipart/form-data">
+                <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
+                    <Box component="form" sx={{ mt: 3, my: 6 }} noValidate autoComplete="off" encType="multipart/form-data">
 
-                            <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                <FormControl sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        <FormGroup 
+                            row={true} 
+                            className="d-flex justify-content-between" 
+                            sx={{
+                            '& label.Mui-focused': { color: '#97a5ba' },
+                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                            }}>
+
+                            <FormControl sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                 }}>
 
                                 <FormControl>
                                     <InputLabel id="group-life-company-label">Group Life Company</InputLabel>
-
-                                <Select
+                                    <Select
                                         labelId="group-life-company-label"
                                         label="Group Life Company"
                                         value={groupLifeCompanyId}
                                         onChange={(e) => setGroupLifeCompanyId(e.target.value)}
-                                    >
+                                        >
                                         {companies.map((company) => (
                                             <MenuItem key={company.id} value={company.id}>
                                                 {company.name}
                                             </MenuItem>
                                         ))}
-                                </Select>
+                                    </Select>
                                 </FormControl>                                
-                                </FormControl>
-                                <FormControl  sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            </FormControl>
+
+                            <FormControl  sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                 }}>
                                 <Autocomplete
                                 freeSolo
@@ -247,75 +216,75 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
                                     />
                                 )}
                                 />
-                                </FormControl>                            
-                                <FormControl sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            </FormControl>                            
+                            <FormControl sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
+                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                                }}>
+                                <TextField
+                                    disabled={!groupLifeCompanyId}
+                                    required
+                                    select
+                                    id="paymentType"
+                                    label="Payment Type"
+                                    value={paymentType}
+                                    onChange={(event) => setPaymentType(event.target.value)}
+                                >
+                                    <MenuItem key="Amount" value="Amount"> Amount </MenuItem>
+                                    <MenuItem key="Percentage" value="Percentage"> Percentage </MenuItem>
+                                </TextField>
+                                </FormControl>
+                        </FormGroup>
+                                {paymentType === "Amount" && (
+                                    <>
+                                    <FormGroup row={true} className="d-flex justify-content-between" sx={{
+                                        '& label.Mui-focused': { color: '#97a5ba' },
+                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                                     }}>
-                                    <TextField
-                                        disabled={!groupLifeCompanyId}
-                                        required
-                                        select
-                                        id="paymentType"
-                                        label="Payment Type"
-                                        value={paymentType}
-                                        onChange={(event) => setPaymentType(event.target.value)}
-                                    >
-                                        <MenuItem key="Amount" value="Amount"> Amount </MenuItem>
-                                        <MenuItem key="Percentage" value="Percentage"> Percentage </MenuItem>
-                                    </TextField>
-                                    </FormControl>
+                                        <FormControl sx={{
+                                            marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                        }}>
+                                            <InputLabel htmlFor="employeeAmountShare">Employee Share</InputLabel>
+                                            <OutlinedInput
+                                                required
+                                                id="employeeAmountShare"
+                                                label="Employee Share"
+                                                value={employeeAmountShare}
+                                                error={employeeAmountShareError}
+                                                startAdornment={<InputAdornment position="start">₱</InputAdornment>}
+                                                onChange={(e) => handleInputChange(e, setEmployeeAmountShare)}
+                                            />
+                                        </FormControl>
+    
+                                        <FormControl sx={{
+                                            marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
+                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                        }}>
+                                            <InputLabel htmlFor="employerAmountShare">Employer Share</InputLabel>
+                                            <OutlinedInput
+                                                required
+                                                id="employerAmountShare"
+                                                label="Employer Share"
+                                                value={employerAmountShare}
+                                                error={employerAmountShareError}
+                                                startAdornment={<InputAdornment position="start">₱</InputAdornment>}
+                                                onChange={(e) => handleInputChange(e, setEmployerAmountShare)}
+                                            />
+                                        </FormControl>
                                     </FormGroup>
-                                        {paymentType === "Amount" && (
-                                            <>
-                                            <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                                '& label.Mui-focused': { color: '#97a5ba' },
-                                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                            }}>
-                                                <FormControl sx={{
-                                                    marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                                }}>
-                                                    <InputLabel htmlFor="employeeAmountShare">Employee Share</InputLabel>
-                                                    <OutlinedInput
-                                                        required
-                                                        id="employeeAmountShare"
-                                                        label="Employee Share"
-                                                        value={employeeAmountShare}
-                                                        error={employeeAmountShareError}
-                                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                                        onChange={(e) => handleInputChange(e, setEmployeeAmountShare)}
-                                                    />
-                                                </FormControl>
-            
-                                                <FormControl sx={{
-                                                    marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                                }}>
-                                                    <InputLabel htmlFor="employerAmountShare">Employer Share</InputLabel>
-                                                    <OutlinedInput
-                                                        required
-                                                        id="employerAmountShare"
-                                                        label="Employer Share"
-                                                        value={employerAmountShare}
-                                                        error={employerAmountShareError}
-                                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                                        onChange={(e) => handleInputChange(e, setEmployerAmountShare)}
-                                                    />
-                                                </FormControl>
-                                            </FormGroup>
-                                        </>
-                                    )}
+                                </>
+                                )}
 
                                         {paymentType === "Percentage" && (
                                         <>
                                         <FormGroup row={true} className="d-flex justify-content-between" sx={{
                                             '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                        }}>
+                                            }}>
                                          <FormControl sx={{
                                             marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                        }}>
+                                            }}>
                                             <InputLabel htmlFor="employeePercentageShare">Employee Share</InputLabel>
                                             <OutlinedInput
                                                 required
@@ -331,7 +300,7 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
                                         <FormControl sx={{
                                             marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
                                             '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                        }}>
+                                            }}>
                                             <InputLabel htmlFor="employerPercentageShare">Employer Share</InputLabel>
                                             <OutlinedInput
                                                 required
@@ -344,14 +313,14 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
                                             />
                                         </FormControl>
                                     </FormGroup>
-                                </>
-                                )}    
+                                    </>
+                                    )}    
 
-                                <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
+                            <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                                 <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={handleSave}>
                                     <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                                 </Button>
-                                </Box>
+                            </Box>
                     </Box>
                 </DialogContent>
             </Dialog>
