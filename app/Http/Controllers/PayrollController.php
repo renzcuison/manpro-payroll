@@ -456,6 +456,7 @@ class PayrollController extends Controller
             ['name' => 'Good Friday', 'date' => '2025-04-18'],
             ['name' => 'Araw ng Kagitingan', 'date' => '2025-04-09'],
             ['name' => 'Labor Day', 'date' => '2025-05-01'],
+            ['name' => 'Eid al-Adha (Feast of the Sacrifice)', 'date' => '2025-06-06'],
             ['name' => 'Independence Day', 'date' => '2025-06-12'],
             ['name' => 'National Heroes Day', 'date' => '2025-08-25'],
             ['name' => 'Bonifacio Day', 'date' => '2025-11-30'],
