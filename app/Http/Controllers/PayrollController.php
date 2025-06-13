@@ -1271,7 +1271,7 @@ class PayrollController extends Controller
                     
                     // Monthly Base
                     'monthlyBaseHours' => $rawRecord->working_days * 8,
-                    'monthlyBasePay' => ($rawRecord->rate_monthly / 2) - $paidLeaveAmount,
+                    'monthlyBasePay' => round(($rawRecord->rate_monthly / 2) - $paidLeaveAmount, 2),
 
                     // Overtime
                     'overTimeHours' => $overTimeHours,

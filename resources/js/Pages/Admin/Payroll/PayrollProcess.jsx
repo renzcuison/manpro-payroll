@@ -201,7 +201,7 @@ const PayrollProcess = () => {
                                                 <TableCell align="center">Department</TableCell>
                                                 <TableCell align="center">Role</TableCell>
                                                 <TableCell align="center">Date</TableCell>
-                                                <TableCell align="center">Gross Pay</TableCell>
+                                                <TableCell align="center">Net Pay</TableCell>
                                             </TableRow>
                                         </TableHead>
 
