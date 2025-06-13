@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Layout from "../../../components/Layout/Layout";
 import {
     Avatar,
@@ -21,6 +21,7 @@ import Swal from "sweetalert2";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import AddMilestoneDialog from "./modals/AddMilestoneDialog";
 import MilestoneItem from "./MilestoneItem";
+import moment from "moment";
 
 function Milestones() {
     // const { data, isFetching, refetch, isLoading } = useMilestones();
@@ -38,6 +39,22 @@ function Milestones() {
     }
 
     const { milestones, employees } = dashboard;
+
+    const milestonesToday = useMemo(() => {
+        return milestones.filter((milestone) => {
+            const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");
+            const today = moment().format("YYYY-MM-DD");
+            return milestoneDate === today;
+        });
+    }, [milestones]);
+    const milestonesUpcoming = useMemo(() => {
+        return milestones.filter((milestone) => {
+            const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");
+            const today = moment().format("YYYY-MM-DD");
+            return milestoneDate > today;
+        });
+    }, [milestones]);
+    console.log("Milestones today: ", milestonesToday);
 
     const handleDeleteMilestone = (id) => {
         console.log(id);
@@ -96,7 +113,29 @@ function Milestones() {
                 <Divider sx={{ borderStyle: "dashed" }} />
 
                 <Stack spacing={2}>
-                    {milestones?.map((milestone) => (
+                    <Typography variant="h5">Today's Milestones</Typography>
+                    {milestonesToday?.length === 0 && (
+                        <Typography variant="body2">
+                            No milestones today.
+                        </Typography>
+                    )}
+                    {milestonesToday?.map((milestone) => (
+                        <MilestoneItem
+                            milestone={milestone}
+                            refetch={refetch}
+                            handleDelete={() =>
+                                handleDeleteMilestone(milestone.id)
+                            }
+                        />
+                    ))}
+                    <Divider sx={{ borderStyle: "dashed" }} />
+                    <Typography variant="h5">Upcoming Milestones</Typography>
+                    {milestonesUpcoming?.length === 0 && (
+                        <Typography variant="body2">
+                            No upcoming milestones.
+                        </Typography>
+                    )}
+                    {milestonesUpcoming?.map((milestone) => (
                         <MilestoneItem
                             milestone={milestone}
                             refetch={refetch}
