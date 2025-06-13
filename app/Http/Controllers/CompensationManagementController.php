@@ -86,6 +86,8 @@ class CompensationManagementController extends Controller
                 'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
+                'branch_id' => $employee->branch->id, 
+                'department_id' => $employee->department->id,
                 'total' => $amount,
             ];
         }
@@ -279,6 +281,8 @@ class CompensationManagementController extends Controller
                 'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
+                'branch_id' => $employee->branch->id, 
+                'department_id' => $employee->department->id,        
                 'benefits' => $benefits,
                 'employee_amount' => $employee_total,
                 'employer_amount' => $employer_total,
@@ -574,6 +578,8 @@ class CompensationManagementController extends Controller
                 'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
+                'branch_id' => $employee->branch->id, 
+                'department_id' => $employee->department->id,
                 'total' => $amount,
             ];
         }
