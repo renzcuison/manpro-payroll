@@ -709,18 +709,20 @@ class ApplicationsController extends Controller
                 $timeIn = $app->timeIn;
                 $timeOut = $app->timeOut;
 
-                $applications[] = [
-                    'application' => encrypt($app->id),
-                    'time_in' => $timeIn->timestamp,
-                    'time_out' => $timeOut->timestamp,
-                    'reason' => $app->reason ?? '',
-                    'requested' => $app->created_at,
-                    'status' => $app->status,
-                    'emp_name' => ($employee->first_name ?? '') . ' ' . ($employee->middle_name ?? '') . ' ' . ($employee->last_name ?? '') . ' ' . ($employee->suffix ?? ''),
-                    'emp_branch' => $employee->branch->name,
-                    'emp_department' => $employee->department->name,
-                    'emp_job_title' => $employee->jobTitle->name,
-                ];
+                if ( $timeIn && $timeOut ) {
+                    $applications[] = [
+                        'application' => encrypt($app->id),
+                        'time_in' => $timeIn->timestamp,
+                        'time_out' => $timeOut->timestamp,
+                        'reason' => $app->reason ?? '',
+                        'requested' => $app->created_at,
+                        'status' => $app->status,
+                        'emp_name' => ($employee->first_name ?? '') . ' ' . ($employee->middle_name ?? '') . ' ' . ($employee->last_name ?? '') . ' ' . ($employee->suffix ?? ''),
+                        'emp_branch' => $employee->branch->name,
+                        'emp_department' => $employee->department->name,
+                        'emp_job_title' => $employee->jobTitle->name,
+                    ];
+                }
             }
             return response()->json(['status' => 200, 'applications' => $applications]);
         } else {
