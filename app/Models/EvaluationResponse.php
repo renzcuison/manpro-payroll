@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class EvaluationResponse extends Model
+class EvaluationResponse extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $table = 'evaluation_responses';
 
@@ -70,7 +70,7 @@ class EvaluationResponse extends Model
         return $this->hasMany(EvaluationTextAnswer::class, 'response_id');
     }
 
-        public function registerMediaCollections(): void
+    public function registerMediaCollections(): void
     {
         $this->addMediaCollection('signatures');
     }
