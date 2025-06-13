@@ -2995,6 +2995,7 @@ class EvaluationResponseController extends Controller
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                         ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                        ->where('evaluation_form_subcategories.id', '=', $subcategory->id) // restrict to this subcategory only
                         ->first()
                     ;
                     if($existingOptionAnswer) return response()->json([ 
@@ -3004,7 +3005,7 @@ class EvaluationResponseController extends Controller
                         'evaluationOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
-                
+                                
             }
 
             DB::beginTransaction();

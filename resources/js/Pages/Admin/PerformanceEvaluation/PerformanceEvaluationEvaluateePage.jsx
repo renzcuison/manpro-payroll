@@ -12,6 +12,8 @@ import PerformanceEvaluationEvaluateeAcknowledge from '../../Admin/PerformanceEv
 import Swal from 'sweetalert2';
 import ScoreLinearBar from './Test/ScoreLinearBar';
 
+
+
 const getSectionScore = (section) => {
   if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [] };
   let scoreTotal = 0;
@@ -59,6 +61,8 @@ const getSectionScore = (section) => {
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;
   return { sectionScore, subcatScores };
 };
+
+
 
 const PerformanceEvaluationEvaluateePage = () => {
   const { id } = useParams();
@@ -225,6 +229,11 @@ const PerformanceEvaluationEvaluateePage = () => {
           const openAnswers = section.subcategories.filter(sc =>
             sc.subcategory_type === 'short_answer' || sc.subcategory_type === 'long_answer'
           );
+            const hasScorableSubcats = section.subcategories.some(sc =>
+              sc.subcategory_type === 'multiple_choice' ||
+              sc.subcategory_type === 'checkbox' ||
+              sc.subcategory_type === 'linear_scale'
+            );
           return (
             <Accordion
               key={section.id}
@@ -256,62 +265,69 @@ const PerformanceEvaluationEvaluateePage = () => {
               >
                 <Box sx={{ my: 2 }}>
                   <Typography variant="h5" sx={{ fontWeight: 'bold', color: "white" }}>
-                    Overall Rating
+                    Overall Rating - {section.name}
                   </Typography>
                 </Box>
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 2 }}>
-                {/* SCORES BAR CHART */}
-                <Box sx={{ width: '100%', maxWidth:800, mx: "auto", mt: 2, mb: 1 }}>
-                {subcatScores.map(({ name, score }, idx) => (
-                    <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={idx}>
-                    <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
-                        <Typography sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                        {name}
-                        </Typography>
-                    </Grid>
-                    <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
-                        <ScoreLinearBar
-                        variant="determinate"
-                        value={(score / 5) * 100}
-                        sx={{ width: '100%', minWidth: 580 }}
-                        />
-                    </Grid>
-                    <Grid item sx={{ minWidth: 40, textAlign: 'right' }}>
-                        <Typography sx={{ fontWeight: 'bold', ml: 1 }}>{score.toFixed(1)}</Typography>
-                    </Grid>
-                    </Grid>
-                ))}
-                </Box>
-                
-                <Divider sx={{ my: 2 }} />
+ {hasScorableSubcats && (
+  <>
+    {/* SCORES BAR CHART */}
+    <Box sx={{ width: '100%', maxWidth:800, mx: "auto", mt: 2, mb: 1 }}>
+      {subcatScores.map(({ name, score }, idx) => (
+        <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={idx}>
+          <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
+            <Typography sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+              {name}
+            </Typography>
+          </Grid>
+          <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
+            <ScoreLinearBar
+              variant="determinate"
+              value={(score / 5) * 100}
+              sx={{ width: '100%', minWidth: 580 }}
+            />
+          </Grid>
+          <Grid item sx={{ minWidth: 40, textAlign: 'right' }}>
+            <Typography sx={{ fontWeight: 'bold', ml: 1 }}>{score.toFixed(1)}</Typography>
+          </Grid>
+        </Grid>
+      ))}
+    </Box>
 
-                {/* Section Total */}
-                <Box sx={{ width: '100%', maxWidth:800, mx: "auto", mt: 2, mb: 1 }}>
-                   <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }}>
-                    <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
-                      <Typography sx={{ fontWeight: 700, color: "#262626" }}>Total Rating</Typography>
-                    </Grid>
-                    <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
-                        <ScoreLinearBar
-                        variant="determinate"
-                        value={(sectionScore / 5) * 100}
-                        sx={{ width: '100%', minWidth: 590 }}
-                        />
-                    </Grid>
-                    <Grid item xs={2}>
-                      <Typography sx={{ fontWeight: 700, ml: 1 }}>{sectionScore.toFixed(1)}</Typography>
-                    </Grid>
-                  </Grid>
-                </Box>
+    <Divider sx={{ my: 2 }} />
+
+    {/* Section Total */}
+    <Box sx={{ width: '100%', maxWidth:800, mx: "auto", mt: 2, mb: 1 }}>
+      <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }}>
+        <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
+          <Typography sx={{ fontWeight: 700, color: "#262626" }}>Total Rating</Typography>
+        </Grid>
+        <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
+          <ScoreLinearBar
+            variant="determinate"
+            value={(sectionScore / 5) * 100}
+            sx={{ width: '100%', minWidth: 590 }}
+          />
+        </Grid>
+        <Grid item xs={2}>
+          <Typography sx={{ fontWeight: 700, ml: 1 }}>{sectionScore.toFixed(1)}</Typography>
+        </Grid>
+      </Grid>
+    </Box>
+  </>
+)}
                 {/* SHORT/LONG ANSWERS */}
+                
                 {openAnswers.length > 0 && (
-                  <Box sx={{ mt: 3 }}>
-                    <Typography sx={{ fontWeight: 'bold', mb: 1 }}>Open-ended Answers:</Typography>
+                  <Box sx={{ width: '100%', maxWidth:800, mx: "auto", mt: 3, mb: 1 }}>
+                    {openAnswers.map(subcat => (
+                    <Typography sx={{ fontWeight: 'bold', mb: 1 }}>Open-ended Answers: {subcat.name}</Typography>
+                    ))}
                     {openAnswers.map(subcat => (
                       <Box key={subcat.id} sx={{ mb: 2 }}>
-                        <Typography sx={{ fontWeight: 500 }}>{subcat.name}</Typography>
-                        <Typography variant="body2" sx={{ color: '#444', ml: 2 }}>
+                        {/* <Typography sx={{ fontWeight: 500 }}>{subcat.name}</Typography> */}
+                        <Typography variant="body2" sx={{ color: '#444', flex: 1, mt: 1 }}>
                           {subcat.text_answer?.answer ||
                             <span style={{ color: "#bbb", fontStyle: "italic" }}>No answer</span>}
                         </Typography>
