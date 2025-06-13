@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\PemeResponseDetails;
 use App\Models\PemeQType;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+// use Illuminate\Support\Facades\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 // use Illuminate\Validation\ValidationException;
@@ -24,6 +26,18 @@ class PemeResponseDetailsController extends Controller
         }
         return false;
     }
+
+    public function download(Media $media)
+    {
+        $path = $media->getPath();
+
+        if (!file_exists($path)) {
+            return response()->json(['message' => 'File not found on disk.'], 404);
+        }
+
+        return response()->download($path, $media->file_name);
+    }
+
     public function index()
     {
 

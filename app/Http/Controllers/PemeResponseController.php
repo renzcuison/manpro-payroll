@@ -116,19 +116,20 @@ class PemeResponseController extends Controller
             "next_schedule" => "nullable|date",
         ]);
 
-        // if (
-        //     PemeResponse::where("user_id", Auth::id())
-        //     ->where("peme_id", $validated["peme_id"])
-        //     ->exists()
-        // ) {
-        //     return response()->json(
-        //         [
-        //             "message" =>
-        //             "You have already submitted a response for this form.",
-        //         ],
-        //         409
-        //     );
-        // }
+        // new code block
+        $peme = Peme::findOrFail($validated['peme_id']);
+
+        if (!$peme->isMultiple) {
+            $alreadyExists = PemeResponse::where("user_id", Auth::id())
+                ->where("peme_id", $validated["peme_id"])
+                ->exists();
+
+            if ($alreadyExists) {
+                return response()->json([
+                    "message" => "You have already submitted a response for this form.",
+                ], 409);
+            }
+        }
 
         $response = PemeResponse::create([
             "user_id" => Auth::id(),
@@ -181,6 +182,17 @@ class PemeResponseController extends Controller
         ]);
 
         $pemeResponseId = Crypt::decrypt($validated['peme_response_id']);
+
+        // new code block
+        $pemeResponse = PemeResponse::where('id', $pemeResponseId)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$pemeResponse) {
+            return response()->json([
+                'message' => 'Unauthorized: You do not own this PEME response.',
+            ], 403);
+        }
 
         $results = [];
         DB::beginTransaction();
@@ -524,13 +536,23 @@ class PemeResponseController extends Controller
         $pemeResponse = PemeResponse::with([
             'peme.questions.types',
             'user',
+        ])
+            ->where('id', $responseId)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$pemeResponse) {
+            return response()->json([
+                'message' => 'Unauthorized access or response not found.',
+            ], 403);
+        }
+
+        $pemeResponse = PemeResponse::with([
+            'peme.questions.types',
+            'user',
         ])->findOrFail($responseId);
 
-        $allDetails = PemeResponseDetails::whereHas('response', function (
-            $query
-        ) use ($pemeResponse) {
-            $query->where('peme_id', $pemeResponse->peme_id);
-        })
+        $allDetails = PemeResponseDetails::where('peme_response_id', $pemeResponse->id)
             ->with(['media', 'response'])
             ->get();
 
