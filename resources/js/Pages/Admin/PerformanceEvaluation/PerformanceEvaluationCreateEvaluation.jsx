@@ -229,30 +229,31 @@ const PerformanceEvaluationCreateEvaluation = () => {
         fetchDepartments(formValues.branch);
     }, [formValues.branch]);
 
-    useEffect(() => {
-        // Employees
-        const fetchEmployees = async (branchId, departmentId) => {
-            try {
-                const params = {
-                    branch_id: branchId,
-                    department_id: departmentId,
-                    user_type: 'Employee'
-                };
-                const response = await axiosInstance.get('/settings/getUsers', { params, headers });
-                if (response.data.status === 200) setEmployees(response.data.users);
-                else setEmployees([]);
-            } catch (error) {
-                setEmployees([]);
-                console.error('Error fetching employees:', error);
-            }
-        };
-        if (formValues.branch && formValues.department) {
-            fetchEmployees(formValues.branch, formValues.department);
-        } else {
-            setEmployees([]);
-            setFormValues(prev => ({ ...prev, employeeName: '' }));
-        }
-    }, [formValues.department, formValues.branch]);
+    // useEffect(() => {
+        
+    //     // Employees
+    //     const fetchEmployees = async (branchId, departmentId) => {
+    //         try {
+    //             const params = {
+    //                 branch_id: branchId,
+    //                 department_id: departmentId,
+    //                 user_type: 'Employee'
+    //             };
+    //             const response = await axiosInstance.get('/settings/getUsers', { params, headers });
+    //             if (response.data.status === 200) setEmployees(response.data.users);
+    //             else setEmployees([]);
+    //         } catch (error) {
+    //             setEmployees([]);
+    //             console.error('Error fetching employees:', error);
+    //         }
+    //     };
+    //     if (formValues.branch && formValues.department) {
+    //         fetchEmployees(formValues.branch, formValues.department);
+    //     } else {
+    //         setEmployees([]);
+    //         setFormValues(prev => ({ ...prev, employeeName: '' }));
+    //     }
+    // }, [formValues.department, formValues.branch]);
 
     // Change the confition so that it can fetch the evaluatee regardless of user_type
     useEffect(() => {
@@ -291,6 +292,33 @@ const PerformanceEvaluationCreateEvaluation = () => {
             })
             .finally(() => setIsLoading(false));
     }, []);
+
+    useEffect(() => {
+    const fetchAdmins = async () => {
+        setLoadingAdmins(true);
+        try {
+            const params = {
+                branch_id: formValues.branch,
+                department_id: formValues.department,
+                user_type: 'Admin'
+            };
+            const response = await axiosInstance.get('/settings/getUsers', { params, headers });
+            if (response.data.status === 200) setAdmins(response.data.users);
+            else setAdmins([]);
+        } catch (error) {
+            setAdmins([]);
+            console.error('Error fetching admins:', error);
+        } finally {
+            setLoadingAdmins(false);
+        }
+    };
+    // Only fetch if branch & department are selected
+    if (formValues.branch && formValues.department) {
+        fetchAdmins();
+    } else {
+        setAdmins([]);
+    }
+}, [formValues.branch, formValues.department]);
 
     // Render
     return (
