@@ -7,10 +7,13 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import EmployeeBenefitView from './Modals/EmployeeBenefitView';
 import { useEmployeesBenefits } from '../../../hooks/useBenefits';
+import { useDepartments } from '../../../hooks/useDepartments';
+import { useBranches } from '../../../hooks/useBranches';
 
 
 const EmployeesBenefitsList = () => {
     const { data, isLoading, error, refetch } = useEmployeesBenefits();
+
     const employees = data?.employees || [];
 
     const [searchName, setSearchName] = useState('');

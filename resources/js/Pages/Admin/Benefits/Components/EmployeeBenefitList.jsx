@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, TextField, Typography } from "@mui/material";
 import dayjs from "dayjs";
-import axiosInstance from "../../../../utils/axiosConfig";
 
-const EmployeeBenefitList = ({ userName, headers, onAdd }) => {
-    const [benefits, setBenefits] = useState([]);
 
-    useEffect(() => {
-        axiosInstance.get(`/compensation/getEmployeeBenefits`, { headers, params: { username: userName },
-            }).then((response) => {
-                setBenefits(response.data.benefits);
-            }).catch((error) => {
-                console.error("Error fetching benefits:", error);
-            });
-    }, []);
-
+const EmployeeBenefitList = ({ benefits,  onAdd, onEdit }) => {
     return (
         <Box>
             <TableContainer>
@@ -25,19 +14,22 @@ const EmployeeBenefitList = ({ userName, headers, onAdd }) => {
                             <TableCell align="center">Number</TableCell>
                             <TableCell align="center">Employer's Share</TableCell>
                             <TableCell align="center">Employee's Share</TableCell>
-                            <TableCell align="center">Date Added</TableCell>
+                            <TableCell align="center">Date</TableCell>
+                            <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {benefits.length > 0 ? (
+                        {benefits.length > 0 ? (       
                             benefits.map((benefit, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
                                         <Typography>{benefit.name}</Typography>
                                     </TableCell>
+
                                     <TableCell align="center">
                                         <Typography>{benefit.number}</Typography>
                                     </TableCell>
+
                                     <TableCell align="center">
                                         <Typography>₱{(benefit.employer_contribution).toFixed(2)}</Typography>
                                     </TableCell>
@@ -45,13 +37,18 @@ const EmployeeBenefitList = ({ userName, headers, onAdd }) => {
                                         <Typography>₱{(benefit.employee_contribution).toFixed(2)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{dayjs(benefit.created_at).format("MMM DD YYYY, HH:mm:ss A")}</Typography>
+                                        <Typography>{dayjs(benefit.created_at).format("MMMM DD, YYYY")}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
+                                            <i class="fa fa-pencil-square-o fa-lg"/>
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                <TableCell colSpan={6} align="center" sx={{ color: "text.secondary", p: 1 }}>
                                     No Benefits Found
                                 </TableCell>
                             </TableRow>
@@ -63,7 +60,7 @@ const EmployeeBenefitList = ({ userName, headers, onAdd }) => {
             <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
                 <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={onAdd} >
                     <p className="m-0">
-                        <i className="fa fa-plus"></i> Add Benefits
+                        <i className="fa fa-plus mr-2"></i> Add Benefits
                     </p>
                 </Button>
             </Box>

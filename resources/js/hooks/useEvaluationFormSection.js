@@ -2,7 +2,6 @@ import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 import { getSubcategoryDbValue } from "../utils/performance-evaluation-utils";
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
-import { result } from "lodash";
 
 export function useEvaluationFormSection(section) {
 

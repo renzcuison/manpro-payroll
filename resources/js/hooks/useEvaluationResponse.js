@@ -18,6 +18,7 @@ export function useEvaluationResponse(responseId) {
     }, {});
 
     useEffect(() => {
+        if(responseId == undefined) return;
         getEvaluationResponse();
     }, [responseId]);
 
@@ -102,7 +103,7 @@ export function useEvaluationResponse(responseId) {
             reloadEvaluationResponse();
         } catch(e) {
             Swal.fire({
-                text: e.data.message,
+                text: e.data?.message || 'Error saving evaluation response',
                 icon: "error",
                 confirmButtonColor: '#177604',
                 customClass: {
@@ -123,14 +124,14 @@ export function useEvaluationResponse(responseId) {
 
     function deleteOptionAnswer(optionId) {
         const option = options[optionId];
-        if(option.option_answer.action === 'create') {
+        if(option.option_answer?.action === 'create') {
             option.option_answer = null;
             return;
         }
         const subcategoryId = option.subcategory_id;
         const subcategory = subcategories[subcategoryId];
         switch(subcategory.subcategory_type) {
-            case 'checkbox':
+            case 'checkbox': {
                 const newOptionId = findNewOptionId(subcategoryId);
                 if(newOptionId != null) {
                     const optionAnswer = options[newOptionId].option_answer;
@@ -139,6 +140,7 @@ export function useEvaluationResponse(responseId) {
                     option.option_answer = null;
                 } else option.option_answer.action = 'delete';
                 break;
+            }
             case 'multiple_choice':
                 option.option_answer.action = 'delete';
         }
@@ -217,7 +219,7 @@ export function useEvaluationResponse(responseId) {
         const subcategoryId = option.subcategory_id;
         const subcategory = subcategories[subcategoryId];
         switch(subcategory.subcategory_type) {
-            case 'checkbox':
+            case 'checkbox': {
                 if(optionId === undefined) return;
                 if(options[optionId].option_answer) {
                     const optionAnswer = options[optionId].option_answer;
@@ -262,10 +264,11 @@ export function useEvaluationResponse(responseId) {
                     action: 'create'
                 };
                 break;
-            case 'multiple_choice':
+            }
+            case 'multiple_choice': {
                 const activeOptionId = findActiveOptionId(subcategoryId);
                 if(optionId == undefined) {
-                    if(activeOptionId == undefined) deleteOptionAnswer(activeOptionId);
+                    if(activeOptionId !== undefined) deleteOptionAnswer(activeOptionId);
                 } else if(activeOptionId === undefined)
                     option.option_answer = {
                         response_id: evaluationResponse.id,
@@ -290,6 +293,7 @@ export function useEvaluationResponse(responseId) {
                         delete optionAnswer.old_option_id;
                     }
                 }
+            }
         }
         reloadEvaluationResponse();
     }
@@ -393,7 +397,7 @@ export function useEvaluationResponse(responseId) {
         reloadEvaluationResponse();
     }
 
-    // Added for saving comment and signature for the commentor - Khim
+    // For saving comment and signature for the commentor - Khim
     async function editEvaluationCommentor({ response_id, commentor_id, comment, signature_filepath }) {
         try {
             const payload = {
@@ -426,7 +430,7 @@ export function useEvaluationResponse(responseId) {
         }
     }
 
-    // Added for saving comment and signature for the evaluator - Khim
+    // For saving comment and signature for the evaluator - Khim
     async function editEvaluationEvaluator({ response_id, evaluator_id, comment, signature_filepath }) {
         try {
             const payload = {
@@ -458,39 +462,6 @@ export function useEvaluationResponse(responseId) {
             );
         }
     }
-
-    // Added for saving creator signature - Khim
-    // async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath }) {
-    //     try {
-    //         const payload = {
-    //             id: response_id,
-    //             creator_signature_filepath,
-    //         };
-
-    //         const response = await axiosInstance.post(
-    //             '/editEvaluationResponse',
-    //             payload,
-    //             { headers }
-    //         );
-
-    //         if (
-    //             (response.status && String(response.status).startsWith('2')) ||
-    //             (response.data && response.data.status && String(response.data.status).startsWith('2'))
-    //         ) {
-    //             // Optionally reload here
-    //             getEvaluationResponse();
-    //             return response.data.evaluationResponse;
-    //         } else {
-    //             throw new Error(response.data?.message || 'Failed to save creator signature.');
-    //         }
-    //     } catch (error) {
-    //         throw new Error(
-    //             error?.response?.data?.message ||
-    //             error.message ||
-    //             'Failed to save creator signature!'
-    //         );
-    //     }
-    // }
 
     // For saving evaluatee/creator signature
     async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath, evaluatee_signature_filepath }) {
@@ -527,14 +498,12 @@ export function useEvaluationResponse(responseId) {
         }
     }
 
-
     return {
         evaluationResponse, options, subcategories,
         deleteEvaluationResponse, saveEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
         getMultipleChoiceOptionId,
-        deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,  editEvaluationCommentor, editEvaluationEvaluator, editEvaluationCreatorSignature,
+        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationCreatorSignature,
     };
-
 }

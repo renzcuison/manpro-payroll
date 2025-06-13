@@ -537,23 +537,25 @@ const AnnouncementList = () => {
                               ) : (
                                 // {/* without thumbnail */}
                                 <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                                  <Box
-                                    sx={{ height: "395px", py: 6, px: 2 }}
-                                  >
-                                    {/* Card Content */}
-                                    <CardContent>
-                                      <Typography
-                                        variant="h5"
+                                  <Box sx={{ height: "210px", py: 4, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15, 0.85), rgb(233, 171, 19,0.9))" }}>
+                                    <Typography
                                         component="div"
                                         sx={{
                                           fontWeight: 'bold',
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
-                                          mb: 2 
+                                          mb: 2,
+                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.6vw", lg: "1.1vw" }
                                         }}
                                       >
                                         {announcement.title}
                                       </Typography>
+                                  </Box>
+                                  <Box
+                                    sx={{ height: "185px", px: 1 }}
+                                  >
+                                    {/* Card Content */}
+                                    <CardContent>
                                       <Typography
                                         sx={{
                                           fontWeight: "bold",
@@ -602,7 +604,7 @@ const AnnouncementList = () => {
                                           display="flex"
                                           justifyContent="space-between"
                                           alignItems="center"
-                                          sx={{ mt: 3, width: "100%" }}
+                                          sx={{ mt: 2, width: "100%" }}
                                         >
                                           <Box display="flex" alignItems="center">
                                             <AvatarGroup
@@ -842,23 +844,25 @@ const AnnouncementList = () => {
                               ) : (
                                 // {/* without thumbnail */}
                                 <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                                  <Box
-                                    sx={{ height: "330px", py: 6, px: 2 }}
-                                  >
-                                    {/* Card Content */}
-                                    <CardContent>
-                                      <Typography
-                                        variant="h5"
+                                  <Box sx={{ height: "210px", py: 4, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }}>
+                                    <Typography
                                         component="div"
                                         sx={{
                                           fontWeight: 'bold',
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
-                                          mb: 2 
+                                          mb: 2,
+                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.6vw", lg: "1.1vw" }
                                         }}
                                       >
                                         {announcement.title}
                                       </Typography>
+                                  </Box>
+                                  <Box
+                                    sx={{ height: "120px", px: 1, py: 1 }}
+                                  >
+                                    {/* Card Content */}
+                                    <CardContent>
                                       <Typography
                                         sx={{
                                           fontWeight: "bold",
@@ -1202,23 +1206,25 @@ const AnnouncementList = () => {
                               ) : (
                                 // {/* without thumbnail */}
                                 <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                                  <Box
-                                    sx={{ height: "395px", py: 6, px: 2 }}
-                                  >
-                                    {/* Card Content */}
-                                    <CardContent>
-                                      <Typography
-                                        variant="h5"
+                                  <Box sx={{ height: "210px", py: 4, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }}>
+                                    <Typography
                                         component="div"
                                         sx={{
                                           fontWeight: 'bold',
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
-                                          mb: 2 
+                                          mb: 2,
+                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.6vw", lg: "1.1vw" }
                                         }}
                                       >
                                         {announcement.title}
                                       </Typography>
+                                  </Box>
+                                  <Box
+                                    sx={{ height: "185px", px: 1 }}
+                                  >
+                                    {/* Card Content */}
+                                    <CardContent>
                                       <Typography
                                         sx={{
                                           fontWeight: "bold",
@@ -1267,7 +1273,7 @@ const AnnouncementList = () => {
                                           display="flex"
                                           justifyContent="space-between"
                                           alignItems="center"
-                                          sx={{ mt: 3, width: "100%" }}
+                                          sx={{ mt: 2, width: "100%" }}
                                         >
                                           <Box display="flex" alignItems="center">
                                             <AvatarGroup

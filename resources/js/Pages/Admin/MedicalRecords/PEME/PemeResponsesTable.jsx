@@ -20,13 +20,15 @@ import {
 dayjs.extend(weekday);
 dayjs.extend(isSameOrBefore);
 
-const GradientProgressBar = ({ currentProgress, completeProgress, status }) => {
-    const progress = (currentProgress / completeProgress) * 100;
-
+const GradientProgressBar = ({ percentage, status }) => {
     const gradient =
         status === "Rejected"
             ? "linear-gradient(to right, #b71c1c, #ff5252)" // red gradient
+            : status === "Clear"
+            ? "green"
             : "linear-gradient(to right, #177604, #E9AE20)"; // default
+
+    const progress = Number(percentage);
 
     return (
         <Box sx={{ width: "100%" }}>
@@ -141,7 +143,8 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                 <TableHead>
                     <TableRow>
                         <TableCell align="center"> Date </TableCell>
-                        <TableCell align="center"> Due Date </TableCell>
+                        <TableCell align="center"> Expiry Date </TableCell>
+                        <TableCell align="center"> Next Schedule </TableCell>
                         <TableCell align="center"> Employee </TableCell>
                         <TableCell align="center"> Branch </TableCell>
                         <TableCell align="center"> Department </TableCell>
@@ -152,20 +155,22 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                 <TableBody>
                     {responses.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={7} align="center">
+                            <TableCell colSpan={8} align="center">
                                 <Typography>No Result Found</Typography>
                             </TableCell>
                         </TableRow>
                     ) : (
-                        responses.map((response) => {
+                        responses.map((response, index) => {
                             const formattedDate = dayjs(response.date).format(
                                 "MMMM D, YYYY"
                             );
 
                             return (
                                 <TableRow
-                                    key={response.id}
-                                    onClick={onRowClick}
+                                    key={response.response_id || index}
+                                    onClick={() =>
+                                        onRowClick(response.response_id)
+                                    }
                                     sx={{
                                         cursor: "pointer",
                                         transition: ".15s",
@@ -178,14 +183,22 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                         {highlightMatch(formattedDate, search)}
                                     </TableCell>
                                     <TableCell align="center">
-                                        {dayjs(response.dueDate).format(
+                                        {dayjs(response.expiry_date).format(
                                             "MMMM D, YYYY"
                                         )}{" "}
-                                        <p></p> {getDueStatus(response.dueDate)}
+                                        <p></p>{" "}
+                                        {getDueStatus(response.expiry_date)}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {dayjs(response.next_schedule).format(
+                                            "MMMM D, YYYY"
+                                        )}{" "}
+                                        <p></p>{" "}
+                                        {getDueStatus(response.next_schedule)}
                                     </TableCell>
                                     <TableCell align="center">
                                         {highlightMatch(
-                                            response.employee,
+                                            response.respondent,
                                             search
                                         )}
                                     </TableCell>
@@ -212,17 +225,14 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                             }}
                                         >
                                             <GradientProgressBar
-                                                currentProgress={
-                                                    response.currentProgress
-                                                }
-                                                completeProgress={
-                                                    response.fullProgress
+                                                percentage={
+                                                    response.progress.percent
                                                 }
                                                 status={response.status}
                                             ></GradientProgressBar>
                                             <Typography>
-                                                {response.currentProgress} /{" "}
-                                                {response.fullProgress}
+                                                {response.progress.completed} /{" "}
+                                                {response.progress.total}
                                             </Typography>
                                         </Box>
                                     </TableCell>

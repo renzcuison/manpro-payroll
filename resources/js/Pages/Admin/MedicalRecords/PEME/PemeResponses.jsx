@@ -9,10 +9,11 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import Layout from "../../../../components/Layout/Layout";
 import PemeResponsesTable from "./PemeResponsesTable";
 import PemeDueDatePicker from "./PemeDueDatePicker";
-import DateRangePicker from '../../../../components/DateRangePicker';
+import DateRangePicker from "../../../../components/DateRangePicker";
 
 // MUI components
 import {
+    Switch,
     Box,
     Button,
     Typography,
@@ -22,7 +23,10 @@ import {
     OutlinedInput,
     InputAdornment,
     Divider,
+    FormControlLabel,
 } from "@mui/material";
+
+import Swal from "sweetalert2";
 
 // MUI X Date Picker
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -35,17 +39,20 @@ const PemeResponses = () => {
     const { PemeID } = useParams();
     const navigator = useNavigate();
     const [pemeRecords, setPemeRecords] = useState([]);
+    const [pemeResponses, setPemeResponses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     const [dueDate, setDueDate] = useState(null);
 
+    // FETCH THE QUESTIONNAIRE STRUCTURE FOR THE GIVEN PEME ID
     useEffect(() => {
         axiosInstance
             .get(`/peme/${PemeID}/questionnaire`, { headers })
             .then((response) => {
                 setPemeRecords(response.data);
+                console.log(response.data);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -54,10 +61,54 @@ const PemeResponses = () => {
             });
     }, []);
 
-    const handleOnRowClick = () => {
+    // FETCH PEME RESPONSES FOR THE GIVEN PEME ID
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme-responses/${PemeID}`, { headers })
+            .then((response) => {
+                setPemeResponses([response.data]);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching PEME records:", error);
+                setIsLoading(false);
+            });
+    }, []);
+
+    const [visible, setVisible] = useState(true);
+
+    const setIsHiddenOrVisible = async () => {
+        if (pemeRecords.isVisible === 1) {
+            try {
+                const payload = {
+                    isVisible: 0,
+                };
+                console.log("pasylaod", payload);
+                await axiosInstance.patch(
+                    `/updatePemeSettings/${PemeID}`,
+                    payload,
+                    {
+                        headers,
+                    }
+                );
+            } catch {
+                console.log("error");
+            }
+        } else {
+            const payload = {
+                isVisible: 1,
+            };
+            axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, {
+                headers,
+            });
+        }
+    };
+
+    const handleOnRowClick = (responseID) => {
         navigator(
-            "/admin/medical-records/peme-records/peme-questionnaire-view"
+            `/admin/medical-records/peme-records/peme-questionnaire-view/${responseID}`
         );
+        console.log(responseID);
     };
 
     const handleOnPreviewClick = () => {
@@ -66,17 +117,44 @@ const PemeResponses = () => {
         );
     };
 
-    const dummyData = [
-        {
-            dueDate: "05-10-2025",
-            employee: "employee",
-            branch: "branch",
-            department: "department",
-            status: "status",
-        },
-    ];
+    const handleOnEditClick = () => {
+        navigator(`/admin/medical-records/peme-records/peme-form/${PemeID}`);
+    };
 
-    const filteredRecords = dummyData
+    const handleOnDeleteClick = () => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: `You want to delete ${pemeRecords.peme}?`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Delete",
+            confirmButtonColor: "#d33",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then(async (res) => {
+            if (res.isConfirmed) {
+                try {
+                    await axiosInstance.delete(`/deletePeme/${PemeID}`, {
+                        headers,
+                    });
+
+                    Swal.fire({
+                        icon: "success",
+                        text: "Question deleted successfully.",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+
+                    navigator("/admin/medical-records/peme-records");
+                } catch {
+                    console.log("unable to delete");
+                }
+            }
+        });
+    };
+
+    const filteredRecords = pemeResponses
         .filter((response) =>
             [
                 dayjs(response.date).format("MMMM D, YYYY"),
@@ -132,12 +210,14 @@ const PemeResponses = () => {
             return recordDueDate.isSame(dayjs(dueDate).startOf("day"));
         });
 
-        const resultsCount = filteredRecords.length;
+    const resultsCount = filteredRecords.length;
 
-        const handleDateRangeChange = (start, end) => {
+    const handleDateRangeChange = (start, end) => {
         setFromDate(start);
         setToDate(end);
-        };
+    };
+
+    // Route::patch('/updatePemeSettings/{id}', [PemeController::class, 'updatePemeSettings']);
 
     return (
         <Layout title="Pre-Employment Medical Exam Type Responses">
@@ -157,15 +237,71 @@ const PemeResponses = () => {
                             px: 1,
                         }}
                     >
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Respondents
-                        </Typography>
-                        <Button
-                            onClick={handleOnPreviewClick}
-                            variant="contained"
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 2,
+                            }}
                         >
-                            Preview
-                        </Button>
+                            <Typography
+                                variant="h4"
+                                sx={{ fontWeight: "bold" }}
+                            >
+                                Respondents
+                            </Typography>
+                            <Typography
+                                variant="h5"
+                                sx={{ fontWeight: "bold" }}
+                            >
+                                {pemeRecords.peme}
+                            </Typography>
+                        </Box>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 2,
+                                alignItems: "center",
+                            }}
+                        >
+                            <Button
+                                onClick={handleOnDeleteClick}
+                                variant="contained"
+                                sx={{ backgroundColor: "Red" }}
+                            >
+                                Delete
+                            </Button>
+                            <Button
+                                onClick={handleOnEditClick}
+                                variant="contained"
+                            >
+                                Edit
+                            </Button>
+                            <Button
+                                onClick={handleOnPreviewClick}
+                                variant="contained"
+                            >
+                                Preview
+                            </Button>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={visible}
+                                        onChange={(e) =>
+                                            setVisible(e.target.checked)
+                                        }
+                                        onClick={() => setIsHiddenOrVisible()}
+                                    />
+                                }
+                                label="Visible"
+                                sx={{
+                                    "& .MuiFormControlLabel-label": {
+                                        color: visible ? "green" : "gray",
+                                        fontWeight: "bold",
+                                    },
+                                }}
+                            />
+                        </Box>
                     </Box>
 
                     <Box
@@ -178,8 +314,8 @@ const PemeResponses = () => {
                     >
                         <Grid container spacing={2} gap={2}>
                             <Grid item>
-                                <DateRangePicker 
-                                onRangeChange={handleDateRangeChange} 
+                                <DateRangePicker
+                                    onRangeChange={handleDateRangeChange}
                                 />
                             </Grid>
                             <Grid item>
@@ -205,9 +341,16 @@ const PemeResponses = () => {
                                 endAdornment={
                                     search && (
                                         <InputAdornment position="end">
-                                        <Typography variant="body2" sx={{ color: 'gray' }}>
-                                            {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
-                                        </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{ color: "gray" }}
+                                            >
+                                                {resultsCount}{" "}
+                                                {resultsCount === 1 ||
+                                                resultsCount === 0
+                                                    ? "Match"
+                                                    : "Matches"}
+                                            </Typography>
                                         </InputAdornment>
                                     )
                                 }

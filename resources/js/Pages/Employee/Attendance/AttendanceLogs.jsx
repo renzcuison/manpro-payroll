@@ -17,7 +17,8 @@ import {
     Select,
     useMediaQuery,
     useTheme,
-    Button
+    Button,
+    TablePagination,
 } from "@mui/material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -28,11 +29,23 @@ import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import { useNavigate } from "react-router-dom";
 
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+
+import DateRangePicker from '../../../components/DateRangePicker';
+
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
+
 const AttendanceLogs = () => {
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
+
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const theme = useTheme();
     const medScreen = useMediaQuery(theme.breakpoints.up('md'));
@@ -160,6 +173,43 @@ const AttendanceLogs = () => {
         }
     };
 
+    const filteredAttendance = attendanceLogs.filter((attendance) => {
+        const attendanceDate = dayjs(attendance.timestamp || attendance.timeStamp);
+
+        const isInDateRange =
+            (!fromDate || attendanceDate.isSameOrAfter(fromDate, 'day')) &&
+            (!toDate || attendanceDate.isSameOrBefore(toDate, 'day'));
+
+        const matchesType =
+            selectedAttendanceType === "All" ||
+            attendance.action === selectedAttendanceType;
+
+        return isInDateRange && matchesType;
+    });
+
+    const handleDateRangeChange = (start, end) => {
+        if (!start && !end) {
+            setFromDate(dayjs("1900-01-01"));
+            setToDate(dayjs());
+            setSelectedRange("all");
+        } else {
+            setFromDate(start);
+            setToDate(end);
+            setSelectedRange("custom");
+        }
+    };
+
+    const handleChangePage = (_event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const paginatedAttendance = filteredAttendance.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
     return (
         <Layout title={"AttendanceLogs"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
@@ -171,10 +221,10 @@ const AttendanceLogs = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
-                        <Grid container sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
+                        <Grid container direction="row" justifyContent="space-between" alignItems="center" sx={{ pb: 4, px: 1, borderBottom: "1px solid #e0e0e0" }}>
                             {filterView && (
                                 <>
-                                    <Grid size={{ xs: 12, md: 3 }} sx={{ mb: { xs: 2, md: 0 } }}>
+                                    <Grid item xs={12} md={3} sx={{ mb: { xs: 2, md: 0 } }}>
                                         <FormControl sx={{ width: { xs: "100%", md: "180px" } }} >
                                             <InputLabel id="attendance-type-select-label"> Attendance Type </InputLabel>
                                             <Select
@@ -192,73 +242,30 @@ const AttendanceLogs = () => {
                                             </Select>
                                         </FormControl>
                                     </Grid>
-                                    <Grid container size={{ xs: 12, md: 9 }}>
-                                        <Box display="flex" gap={{ xs: 2, md: 0 }} sx={{ mb: { xs: 2, md: 0 }, flexDirection: { xs: "column", md: "row" }, width: "100%", justifyContent: "flex-end" }}>
-                                            <FormControl sx={{ width: { xs: "100%", md: "180px" }, mr: 2 }}>
-                                                <InputLabel id="date-range-select-label"> Date Range </InputLabel>
-                                                <Select
-                                                    labelId="date-range-select-label"
-                                                    id="date-range-select"
-                                                    value={selectedRange}
-                                                    label="Date Range"
-                                                    onChange={(event) => setPredefinedDates(event.target.value)}
-                                                >
-                                                    <MenuItem value="today"> Today </MenuItem>
-                                                    <MenuItem value="yesterday"> Yesterday </MenuItem>
-                                                    <MenuItem value="last7days"> Last 7 Days </MenuItem>
-                                                    <MenuItem value="last30days"> Last 30 Days </MenuItem>
-                                                    <MenuItem value="thisMonth"> This Month </MenuItem>
-                                                    <MenuItem value="lastMonth"> Last Month </MenuItem>
-                                                    <MenuItem value="custom"> Custom Range </MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                            <LocalizationProvider dateAdapter={AdapterDayjs} >
-                                                <DatePicker
-                                                    label="From Date"
-                                                    value={fromDate}
-                                                    onChange={(newValue) => {
-                                                        setSelectedRange("custom");
-                                                        handleFilterChange("from", newValue);
-                                                    }}
-                                                    maxDate={dayjs()}
-                                                    renderInput={(params) => (
-                                                        <TextField {...params} />
-                                                    )}
-                                                    sx={{ mr: 2, minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
-                                                />
-                                                <DatePicker
-                                                    label="To Date"
-                                                    value={toDate}
-                                                    onChange={(newValue) => {
-                                                        setSelectedRange("custom");
-                                                        handleFilterChange("to", newValue);
-                                                    }}
-                                                    minDate={fromDate}
-                                                    maxDate={dayjs()}
-                                                    renderInput={(params) => (
-                                                        <TextField {...params} />
-                                                    )}
-                                                    sx={{ minWidth: { xs: "100%", md: "200px" }, maxWidth: { xs: "100%", md: "30%" } }}
-                                                />
-                                            </LocalizationProvider>
+                                    <Grid item xs />
+                                    <Grid item xs="auto">
+                                        <Box display="flex" justifyContent="flex-end">
+                                            <DateRangePicker onRangeChange={handleDateRangeChange} />
                                         </Box>
                                     </Grid>
                                 </>
                             )}
                             {!medScreen && (
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => setFilterView(!filterView)}
-                                >
-                                    <p className="m-0">
-                                        {filterView ? (
-                                            <><i className="fa fa-minus"></i> Hide Filters </>
-                                        ) : (
-                                            <><i className="fa fa-plus"></i> Show Filters </>
-                                        )}
-                                    </p>
-                                </Button>
+                                <Grid item xs={12} sx={{ mt: 2 }}>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={() => setFilterView(!filterView)}
+                                    >
+                                        <p className="m-0">
+                                            {filterView ? (
+                                                <><i className="fa fa-minus"></i> Hide Filters </>
+                                            ) : (
+                                                <><i className="fa fa-plus"></i> Show Filters </>
+                                            )}
+                                        </p>
+                                    </Button>
+                                </Grid>
                             )}
                         </Grid>
                         {isLoading ? (
@@ -277,33 +284,35 @@ const AttendanceLogs = () => {
                                     </TableHead>
 
                                     <TableBody>
-                                        {attendanceLogs.length > 0 ? (
-                                            attendanceLogs.map(
-                                                (log, index) => (
-                                                    <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff" }} >
-                                                        <TableCell align="center"> {moment(log.timestamp, "YYYY-MM-DD HH:mm:ss").format("MMMM D, YYYY") || "-"} </TableCell>
-                                                        <TableCell align="center"> {moment(log.timestamp, "YYYY-MM-DD HH:mm:ss").format("hh:mm:ss A") || "-"} </TableCell>
-                                                        <TableCell align="center">
-                                                            <Typography
-                                                                sx={{
-                                                                    fontWeight: "bold",
-                                                                    color:
-                                                                        log.action === "Duty In" ? "#177604" :
-                                                                            log.action === "Duty Out" ? "#f44336" :
-                                                                                log.action === "Overtime In" ? "#e9ae20" :
-                                                                                    log.action === "Overtime Out" ? "#f57c00" :
-                                                                                        "#000000",
-                                                                }}
-                                                            >
-                                                                {log.action || "-"}
-                                                            </Typography>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                )
-                                            )
+                                        {paginatedAttendance.length > 0 ? (
+                                            paginatedAttendance.map((log, index) => (
+                                                <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff" }}>
+                                                    <TableCell align="center">
+                                                        {moment(log.timestamp, "YYYY-MM-DD HH:mm:ss").format("MMMM D, YYYY") || "-"}
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        {moment(log.timestamp, "YYYY-MM-DD HH:mm:ss").format("hh:mm:ss A") || "-"}
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        <Typography
+                                                            sx={{
+                                                                fontWeight: "bold",
+                                                                color:
+                                                                    log.action === "Duty In" ? "#177604" :
+                                                                    log.action === "Duty Out" ? "#f44336" :
+                                                                    log.action === "Overtime In" ? "#e9ae20" :
+                                                                    log.action === "Overtime Out" ? "#f57c00" :
+                                                                    "#000000",
+                                                            }}
+                                                        >
+                                                            {log.action || "-"}
+                                                        </Typography>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={3} align="center" sx={{ color: "text.secondary", p: 1 }} >
+                                                <TableCell colSpan={3} align="center" sx={{ color: "text.secondary", p: 1 }}>
                                                     No Attendance Data Found
                                                 </TableCell>
                                             </TableRow>
@@ -312,6 +321,21 @@ const AttendanceLogs = () => {
                                 </Table>
                             </TableContainer>
                         )}
+                         <TablePagination
+                            rowsPerPageOptions={[5, 10, 25]}
+                            component="div"
+                            count={filteredAttendance.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                            sx={{
+                                ".MuiTablePagination-actions": { mb: 2 },
+                                ".MuiInputBase-root": { mb: 2 },
+                                bgcolor: "#ffffff",
+                                borderRadius: "8px"
+                            }}
+                        />
                     </Box>
                 </Box>
             </Box>
