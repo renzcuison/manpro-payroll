@@ -545,7 +545,7 @@ const AnnouncementList = () => {
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
                                           mb: 2,
-                                          fontSize: "1.7rem"
+                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.8vw", lg: "1.2vw" }
                                         }}
                                       >
                                         {announcement.title}
@@ -604,7 +604,7 @@ const AnnouncementList = () => {
                                           display="flex"
                                           justifyContent="space-between"
                                           alignItems="center"
-                                          sx={{ mt: 3, width: "100%" }}
+                                          sx={{ mt: 2, width: "100%" }}
                                         >
                                           <Box display="flex" alignItems="center">
                                             <AvatarGroup
@@ -852,7 +852,7 @@ const AnnouncementList = () => {
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
                                           mb: 2,
-                                          fontSize: "1.7rem",
+                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.8vw", lg: "1.2vw" }
                                         }}
                                       >
                                         {announcement.title}
@@ -1214,7 +1214,7 @@ const AnnouncementList = () => {
                                           whiteSpace: 'normal',
                                           wordBreak: 'break-word',
                                           mb: 2,
-                                          fontSize: "1.7rem",
+                                          fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.8vw", lg: "1.2vw" }
                                         }}
                                       >
                                         {announcement.title}
@@ -1273,7 +1273,7 @@ const AnnouncementList = () => {
                                           display="flex"
                                           justifyContent="space-between"
                                           alignItems="center"
-                                          sx={{ mt: 3, width: "100%" }}
+                                          sx={{ mt: 2, width: "100%" }}
                                         >
                                           <Box display="flex" alignItems="center">
                                             <AvatarGroup

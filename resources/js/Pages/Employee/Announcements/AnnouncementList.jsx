@@ -346,7 +346,7 @@ const AnnouncementList = () => {
                                                                                 whiteSpace: 'normal',
                                                                                 fontWeight: 'bold',
                                                                                 mb: 2,
-                                                                                fontSize: "1.7rem",
+                                                                                fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.8vw", lg: "1.2vw" }
                                                                             }}
                                                                         >
                                                                             {announcement.title}
