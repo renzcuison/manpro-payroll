@@ -333,7 +333,7 @@ const PerformanceEvaluationEvaluateePage = () => {
             <MenuItem onClick={async () => {
               handleSettingsClose();
               await handleDownloadPDF();
-            }}>Download Evaluation Result</MenuItem>
+            }}>Download Results</MenuItem>
           </Menu>
           <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
             {form.name}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Paper,
-  Chip, TextField, Grid, FormControlLabel, Radio, IconButton, Menu, MenuItem, Button, Divider
+  TextField, Grid, FormControlLabel, Radio, IconButton, Menu, MenuItem, Button, Divider
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../../components/Layout/Layout';
@@ -61,39 +61,6 @@ const getSectionScore = (section) => {
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;
   return { sectionScore, subcatScores };
 };
-
-// --- Score Linear Bar ---
-const Bar = ({ value, max = 100, sx = {} }) => {
-  const pct = Math.max(0, Math.min(1, value / max)) * 100;
-  return (
-    <Box
-      sx={{
-        width: '100%',
-        height: 18,
-        borderRadius: '9px',
-        background: '#e0e0e0',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0px 1px 2px #e0e0e0',
-        ...sx,
-      }}
-    >
-      <Box
-        sx={{
-          width: `${pct}%`,
-          height: '100%',
-          background: 'linear-gradient(90deg, #367C2B 0%, #EAB31A 100%)',
-          borderRadius: '9px', // Make both ends rounded
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      />
-    </Box>
-  );
-};
-// --- END Overall Rating Helper ---
 
 const PerformanceEvaluationCreatorPage = () => {
   const { id } = useParams();
@@ -173,7 +140,7 @@ const PerformanceEvaluationCreatorPage = () => {
       case 'linear_scale':
         return (
           <Box sx={{ mb: 2, mt: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
               Answer:
             </Typography>
             <Grid container alignItems="center" spacing={2} justifyContent='center'>
@@ -217,7 +184,7 @@ const PerformanceEvaluationCreatorPage = () => {
       case 'long_answer':
         return (
           <Box sx={{ mb: 2, mt: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
               Answer:
             </Typography>
             <Typography variant="body1">
@@ -231,45 +198,50 @@ const PerformanceEvaluationCreatorPage = () => {
       case 'multiple_choice':
       case 'checkbox':
       case 'dropdown':
+        const selectedOptions = Array.isArray(subCategory.options)
+          ? subCategory.options.filter(opt => opt.option_answer)
+          : [];
+        const hasSelected = selectedOptions.length > 0;
         return (
-          <Box sx={{ mb: 2, mt: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+         <Box sx={{ mb: 2, mt: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
               {subCategory.subcategory_type === 'checkbox' ? 'Answers:' : 'Answer:'}
             </Typography>
             {Array.isArray(subCategory.options) && subCategory.options.length > 0 ? (
-              subCategory.options.map(option =>
-                option.option_answer
-                  ? <Chip key={option.id} label={option.label} color="primary" sx={{ mr: 1, mb: 1 }} />
-                  : null
-              ).filter(Boolean).length > 0
-                ? subCategory.options.map(option =>
-                  option.option_answer
-                    ? <Chip key={option.id} label={option.label} color="primary" sx={{ mr: 1, mb: 1 }} />
-                    : null
-                )
-                : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
-            ) : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>}
+              hasSelected ? (
+                <Typography variant="body2" sx={{fontWeight: 500 }}>
+                  {selectedOptions.map(opt => opt.label).join(', ')}   
+                </Typography>
+              ) : (
+                <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
+              )
+            ) : (
+              <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>
+            )}
 
+            <Divider sx={{ my: 2 }} />
+
+            {/* Legend for multiple_choice, checkbox, dropdown */}
             {(subCategory.subcategory_type === 'multiple_choice' ||
               subCategory.subcategory_type === 'checkbox' ||
               subCategory.subcategory_type === 'dropdown') && (
-                <Box sx={{ mb: 1, mt: 1 }}>
-                  <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight: 'bold' }}>
-                    Legend:
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    {subCategory.options?.map((opt, index) => (
-                      <Typography
-                        key={opt.id}
-                        variant="body2"
-                        sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}
-                      >
-                        {opt.label} - {opt.score ?? 1}{index !== subCategory.options.length - 1 && ','}
-                      </Typography>
-                    ))}
-                  </Box>
+              <Box sx={{ mb: 1, mt: 1 }}>
+                <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight: 'bold' }}>
+                  Legend:
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                  {subCategory.options?.map((opt, index) => (
+                    <Typography
+                      key={opt.id}
+                      variant="body2"
+                      sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}
+                    >
+                      {opt.label} - {opt.score ?? 1}{index !== subCategory.options.length - 1 && ','}
+                    </Typography>
+                  ))}
                 </Box>
-              )}
+              </Box>
+            )}
           </Box>
         );
       default:
@@ -304,35 +276,6 @@ const PerformanceEvaluationCreatorPage = () => {
     if (n === 4) return "Fourth";
     if (n === 5) return "Fifth";
     return `${n}th`;
-  };
-
-  // --- Overall Rating Section (ADDED) ---
-  const overallRatingSections = (form.sections || []).filter(section =>
-    section.subcategories?.some(
-      subcat => ['multiple_choice', 'checkbox', 'linear_scale'].includes(subcat.subcategory_type)
-    )
-  );
-  // --- END Overall Rating Section ---
-
-  // Render signature area (if present)
-  const renderSignature = () => {
-    if (evaluationResponse.creator_signature_filepath) {
-      return (
-        <Box sx={{ my: 3, display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-            Creator's Signature:
-          </Typography>
-          <Box sx={{ border: "1px solid #ccc", borderRadius: 2, background: "#fff", p: 2 }}>
-            <img
-              src={evaluationResponse.creator_signature_filepath}
-              alt="Creator Signature"
-              style={{ width: 300, height: 80, objectFit: "contain" }}
-            />
-          </Box>
-        </Box>
-      );
-    }
-    return null;
   };
 
   return (
@@ -394,88 +337,6 @@ const PerformanceEvaluationCreatorPage = () => {
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
         </Typography>
-
-        {/* --- OVERALL RATING SECTION (ADDED) --- */}
-        {overallRatingSections.length > 0 && overallRatingSections.map((section, i) => {
-          const { sectionScore, subcatScores } = getSectionScore(section);
-          return (
-            <Accordion
-              key={section.id}
-              expanded
-              disableGutters
-              elevation={0}
-              sx={{
-                bgcolor: '#ffff',
-                borderRadius: '8px',
-                boxShadow: 3,
-                mb: 2,
-                '&:before': { display: 'none' }
-              }}
-            >
-              <AccordionSummary
-                sx={{
-                  bgcolor: '#E9AE20',
-                  borderBottom: '1px solid #ffe082',
-                  cursor: 'default',
-                  minHeight: 0,
-                  mt: 3,
-                  borderTopLeftRadius: '8px',
-                  borderTopRightRadius: '8px',
-                  '& .MuiAccordionSummary-content': {
-                    margin: 0,
-                    alignItems: "center"
-                  }
-                }}
-              >
-                <Box sx={{ my: 2 }}>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: "white" }}>
-                    Overall Rating {overallRatingSections.length > 1 ? `- ${section.name}` : ''}
-                  </Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 2 }}>
-                <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
-                  {subcatScores.map(({ name, score }, idx) => (
-                    <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={idx}>
-                      <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
-                        <Typography sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                          {name}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
-                        <Bar
-                          value={(score / 5) * 100}
-                          sx={{ width: '100%', minWidth: 580 }}
-                        />
-                      </Grid>
-                      <Grid item sx={{ minWidth: 40, textAlign: 'right' }}>
-                        <Typography sx={{ fontWeight: 'bold', ml: 1 }}>{score.toFixed(1)}</Typography>
-                      </Grid>
-                    </Grid>
-                  ))}
-                </Box>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
-                  <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }}>
-                    <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
-                      <Typography sx={{ fontWeight: 700, color: "#262626" }}>Total Rating</Typography>
-                    </Grid>
-                    <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
-                      <Bar
-                        value={(sectionScore / 5) * 100}
-                        sx={{ width: '100%', minWidth: 590 }}
-                      />
-                    </Grid>
-                    <Grid item xs={2}>
-                      <Typography sx={{ fontWeight: 700, ml: 1 }}>{sectionScore.toFixed(1)}</Typography>
-                    </Grid>
-                  </Grid>
-                </Box>
-              </AccordionDetails>
-            </Accordion>
-          );
-        })}
-        {/* --- END OVERALL RATING SECTION --- */}
 
         {/* Evaluation Form Sections */}
         {(!form.sections || form.sections.length === 0) && (
@@ -592,18 +453,21 @@ const PerformanceEvaluationCreatorPage = () => {
                   key={evaluator.evaluator_id || evaluator.id || i}
                   elevation={2}
                   sx={{
-                    width: "100%",
-                    p: 3,
-                    mb: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: '#fff',
                     borderRadius: 2,
-                    border: '1px solid #e0e0e0',
-                    boxShadow: 1,
-                    bgcolor: '#fcfcfc',
+                    borderLeft: '8px solid #E9AE20',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    width: '100%',
+                    boxShadow: 2,
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#2a7f2a', mb: 0.5 }}>
-                    Evaluator {i + 1}
-                  </Typography>
+                  
                   <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                     {getFullName(evaluator)}
                   </Typography>
@@ -639,18 +503,21 @@ const PerformanceEvaluationCreatorPage = () => {
                   key={commentor.commentor_id || commentor.id || i}
                   elevation={2}
                   sx={{
-                    width: "100%",
-                    p: 3,
-                    mb: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: '#fff',
                     borderRadius: 2,
-                    border: '1px solid #e0e0e0',
-                    boxShadow: 1,
-                    bgcolor: '#fcfcfc',
+                    borderLeft: '8px solid #E9AE20',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    width: '100%',
+                    boxShadow: 2,
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#9E7600', mb: 0.5 }}>
-                    {getOrderLabel(i)} Commentor
-                  </Typography>
+                  
                   <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                     {getFullName(commentor)}
                   </Typography>
