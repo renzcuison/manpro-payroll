@@ -12,6 +12,7 @@ import {
     Select,
     MenuItem,
     InputLabel,
+    CircularProgress,
 } from "@mui/material";
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -23,7 +24,7 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import dayjs from "dayjs";
 import Swal from "sweetalert2";
 
-const UploadForm = ({ files = [], onChange, file, fileName, ...props }) => {
+const UploadForm = ({ files = [], onChange, file, fileName }) => {
     const fileInputRef = useRef();
 
     const handleFileChange = (e) => {
@@ -232,20 +233,22 @@ const PemeQuestionnaireView = () => {
             })
             .then((response) => {
                 setEmployeeResponse(response.data);
-                console.log(response.data);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching PEME records:", error);
-                setIsLoading(false);
-            });
-    }, []);
+                // Map fetched values into answers state
+                const initialAnswers = {};
+                if (Array.isArray(response.data.details)) {
+                    response.data.details.forEach((form) => {
+                        initialAnswers[form.question_id] = {};
+                        if (Array.isArray(form.input_type)) {
+                            form.input_type.forEach((type) => {
+                                initialAnswers[form.question_id][
+                                    type.input_type
+                                ] = type.value ?? "";
+                            });
+                        }
+                    });
+                }
+                setAnswers(initialAnswers);
 
-    useEffect(() => {
-        axiosInstance
-            .get(`/peme-responses/${PemeResponseID}`, { headers })
-            .then((response) => {
-                setPemeResponses([response.data]);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -280,7 +283,6 @@ const PemeQuestionnaireView = () => {
                     const payload = {
                         expiry_date: expirationDate,
                         next_schedule: nextSchedule,
-
                         status: status,
                     };
                     console.log(payload);
@@ -326,17 +328,8 @@ const PemeQuestionnaireView = () => {
 
                         // Handle attachments as comma-separated file names
                         let answerValue = value;
-                        if (
-                            type.input_type === "attachment" &&
-                            Array.isArray(value)
-                        ) {
-                            answerValue = value
-                                .map((file) => file.name)
-                                .join(", ");
-                        }
 
                         responses.push({
-                            peme_response_id: PemeResponseID,
                             peme_q_item_id: form.question_id,
                             peme_q_type_id: type.id,
                             value: answerValue,
@@ -346,34 +339,49 @@ const PemeQuestionnaireView = () => {
             });
         }
 
-        const payload = { responses };
+        const payload = {
+            peme_response_id: PemeResponseID,
+            responses: responses,
+        };
 
-        try {
-            console.log("ANSWERS", payload);
-            await axiosInstance.post(
-                `/peme-response-details`,
-                payload.responses,
-                {
-                    headers,
-                }
-            );
-            Swal.fire({
-                icon: "success",
-                text: "Draft saved successfully.",
-                showConfirmButton: false,
-                timer: 1500,
-            });
-        } catch (error) {
-            Swal.fire({
-                title: "Error",
-                text: "Failed to save draft. Please try again.",
-                icon: "error",
-                confirmButtonText: "Okay",
-                confirmButtonColor: "#177604",
-            });
+        console.log("TEST PAYLOAD", payload);
 
-            console.log(error);
-        }
+        // try {
+        //     // PAYLOAD FOR DATES AND STATUS
+        //     const secondaryPayload = {
+        //         expiry_date: expirationDate,
+        //         next_schedule: nextSchedule,
+        //         status: status,
+        //     };
+        //     console.log(secondaryPayload);
+
+        //     await axiosInstance.patch(
+        //         `/peme-responses/${PemeResponseID}/status`,
+        //         secondaryPayload,
+        //         { headers }
+        //     );
+
+        //     console.log("ANSWERS", payload.responses);
+        //     await axiosInstance.post(`/peme-responses/storeAll`, payload, {
+        //         headers,
+        //     });
+        //     Swal.fire({
+        //         icon: "success",
+        //         text: "Draft saved successfully.",
+        //         showConfirmButton: false,
+        //         timer: 1500,
+        //     });
+        // } catch (error) {
+        //     Swal.fire({
+        //         title: "Error",
+        //         text: "Failed to save draft. Please try again.",
+        //         icon: "error",
+        //         confirmButtonText: "Okay",
+        //         confirmButtonColor: "#177604",
+        //     });
+
+        //     console.log(error);
+        // }
     };
 
     const navigator = useNavigate();
@@ -395,223 +403,256 @@ const PemeQuestionnaireView = () => {
 
     return (
         <Layout>
-            <Box
-                sx={{
-                    backgroundColor: "white",
-                    paddingY: 6,
-                    paddingX: 12,
-                    borderRadius: 1,
-                    boxShadow: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 4,
-                }}
-            >
-                {/* QUESTIONNAIRE */}
+            {isLoading ? (
                 <Box
                     sx={{
                         display: "flex",
-                        justifyContent: "space-between",
-                        padding: 2,
-                        borderBottom: "1px solid #ccc",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        minHeight: "50vh",
                     }}
                 >
+                    <CircularProgress color="success" />
+                </Box>
+            ) : (
+                <Box
+                    sx={{
+                        backgroundColor: "white",
+                        paddingY: 6,
+                        paddingX: 12,
+                        borderRadius: 1,
+                        boxShadow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
+                    }}
+                >
+                    {/* QUESTIONNAIRE */}
                     <Box
                         sx={{
                             display: "flex",
-                            flexDirection: "column",
-                            gap: 2,
+                            justifyContent: "space-between",
+                            padding: 2,
+                            borderBottom: "1px solid #ccc",
                         }}
                     >
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {employeeResponse.peme_name}
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                            {employeeResponse.respondent}
-                        </Typography>
-                    </Box>
-                </Box>
-                {/* QUESTION */}
-                {Array.isArray(employeeResponse.details) &&
-                    employeeResponse.details.map((form, index) => (
                         <Box
-                            key={index}
                             sx={{
-                                backgroundColor: "#fafafa",
-                                paddingX: 8,
-                                paddingY: 6,
-                                borderRadius: 1,
-                                boxShadow: 1,
                                 display: "flex",
                                 flexDirection: "column",
                                 gap: 2,
                             }}
                         >
-                            {/* QUESTION NAME */}
                             <Typography
                                 variant="h4"
-                                sx={{ fontWeight: "bold", marginBottom: 3 }}
+                                sx={{ fontWeight: "bold" }}
                             >
-                                {form.question_text}
+                                {employeeResponse.peme_name}
                             </Typography>
-
-                            {Array.isArray(form.input_type) &&
-                                form.input_type.map((type, i) => {
-                                    const value =
-                                        answers[form.question_id]?.[
-                                            type.input_type
-                                        ] || "";
-
-                                    switch (type.input_type) {
-                                        case "remarks":
-                                            return (
-                                                <Remarks
-                                                    key={i}
-                                                    value={value}
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            form.question_id,
-                                                            type.input_type,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                />
-                                            );
-                                        case "text":
-                                            return (
-                                                <TextBox
-                                                    key={i}
-                                                    value={value}
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            form.question_id,
-
-                                                            type.input_type,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                />
-                                            );
-                                        case "pass_fail":
-                                            return (
-                                                <PassOrFail
-                                                    key={i}
-                                                    value={value}
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            form.question_id,
-
-                                                            type.input_type,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                />
-                                            );
-                                        case "pos_neg":
-                                            return (
-                                                <PostiveOrNegative
-                                                    key={i}
-                                                    value={value}
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            form.question_id,
-
-                                                            type.input_type,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                />
-                                            );
-                                        case "attachment":
-                                            return (
-                                                <UploadForm
-                                                    key={i}
-                                                    files={value}
-                                                    onChange={(newFiles) =>
-                                                        handleInputChange(
-                                                            form.question_id,
-
-                                                            "attachment",
-                                                            [
-                                                                ...(answers[
-                                                                    form
-                                                                        .question_id
-                                                                ]?.attachment ||
-                                                                    []),
-                                                                ...newFiles,
-                                                            ]
-                                                        )
-                                                    }
-                                                />
-                                            );
-                                        default:
-                                            return null;
-                                    }
-                                })}
-                        </Box>
-                    ))}
-                <Box
-                    sx={{
-                        display: "flex",
-                        gap: 2,
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginTop: 2,
-                    }}
-                >
-                    <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                        <Button
-                            variant="contained"
-                            sx={{
-                                backgroundColor: "#7a7a7a",
-                            }}
-                            onClick={handleOnCancelClick}
-                        >
-                            Cancel
-                        </Button>
-
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker
-                                label="Expiration Date"
-                                value={expirationDate}
-                                onChange={setExpirationDate}
-                            />
-                        </LocalizationProvider>
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker
-                                label="Next Schedule"
-                                value={nextSchedule}
-                                onChange={setNextSchedule}
-                            />
-                        </LocalizationProvider>
-
-                        <FormControl sx={{ width: 200 }}>
-                            <InputLabel>Status</InputLabel>
-                            <Select
-                                value={status}
-                                label="Status"
-                                onChange={(e) => setStatus(e.target.value)}
+                            <Typography
+                                variant="h6"
+                                sx={{ fontWeight: "bold" }}
                             >
-                                <MenuItem value={"Pending"}>Pending</MenuItem>
-                                <MenuItem value={"Clear"}>Clear</MenuItem>
-                                <MenuItem value={"Rejected"}>Rejected</MenuItem>
-                            </Select>
-                        </FormControl>
+                                {employeeResponse.respondent}
+                            </Typography>
+                        </Box>
                     </Box>
+                    {/* QUESTION */}
+                    {Array.isArray(employeeResponse.details) &&
+                        employeeResponse.details.map((form, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    backgroundColor: "#fafafa",
+                                    paddingX: 8,
+                                    paddingY: 6,
+                                    borderRadius: 1,
+                                    boxShadow: 1,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 2,
+                                }}
+                            >
+                                {/* QUESTION NAME */}
+                                <Typography
+                                    variant="h4"
+                                    sx={{ fontWeight: "bold", marginBottom: 3 }}
+                                >
+                                    {form.question_text}
+                                </Typography>
 
-                    <Box sx={{ display: "flex", gap: 2 }}>
-                        <Button variant="contained" onClick={handleSaveDraft}>
-                            Save Draft
-                        </Button>
-                        <Button
-                            variant="contained"
-                            onClick={handleOnConfirmClick}
+                                {Array.isArray(form.input_type) &&
+                                    form.input_type.map((type, i) => {
+                                        const value =
+                                            answers[form.question_id]?.[
+                                                type.input_type
+                                            ] || "";
+
+                                        switch (type.input_type) {
+                                            case "remarks":
+                                                return (
+                                                    <Remarks
+                                                        key={i}
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                form.question_id,
+                                                                type.input_type,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            case "text":
+                                                return (
+                                                    <TextBox
+                                                        key={i}
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                form.question_id,
+
+                                                                type.input_type,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            case "pass_fail":
+                                                return (
+                                                    <PassOrFail
+                                                        key={i}
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                form.question_id,
+
+                                                                type.input_type,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            case "pos_neg":
+                                                return (
+                                                    <PostiveOrNegative
+                                                        key={i}
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                form.question_id,
+
+                                                                type.input_type,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            case "attachment":
+                                                return (
+                                                    <UploadForm
+                                                        key={i}
+                                                        files={value}
+                                                        onChange={(newFiles) =>
+                                                            handleInputChange(
+                                                                form.question_id,
+
+                                                                "attachment",
+                                                                [
+                                                                    ...(answers[
+                                                                        form
+                                                                            .question_id
+                                                                    ]
+                                                                        ?.attachment ||
+                                                                        []),
+                                                                    ...newFiles,
+                                                                ]
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            default:
+                                                return null;
+                                        }
+                                    })}
+                            </Box>
+                        ))}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            gap: 2,
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            marginTop: 2,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 2,
+                                alignItems: "center",
+                            }}
                         >
-                            Submit
-                        </Button>
+                            <Button
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: "#7a7a7a",
+                                }}
+                                onClick={handleOnCancelClick}
+                            >
+                                Cancel
+                            </Button>
+
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    label="Expiration Date"
+                                    value={expirationDate}
+                                    onChange={setExpirationDate}
+                                />
+                            </LocalizationProvider>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    label="Next Schedule"
+                                    value={nextSchedule}
+                                    onChange={setNextSchedule}
+                                />
+                            </LocalizationProvider>
+
+                            <FormControl sx={{ width: 200 }}>
+                                <InputLabel>Status</InputLabel>
+                                <Select
+                                    value={status}
+                                    label="Status"
+                                    onChange={(e) => setStatus(e.target.value)}
+                                >
+                                    <MenuItem value={"Pending"}>
+                                        Pending
+                                    </MenuItem>
+                                    <MenuItem value={"Clear"}>Clear</MenuItem>
+                                    <MenuItem value={"Rejected"}>
+                                        Rejected
+                                    </MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Box>
+
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <Button
+                                variant="contained"
+                                onClick={handleSaveDraft}
+                            >
+                                Save Draft
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={handleOnConfirmClick}
+                            >
+                                Submit
+                            </Button>
+                        </Box>
                     </Box>
                 </Box>
-            </Box>
+            )}
         </Layout>
     );
 };
