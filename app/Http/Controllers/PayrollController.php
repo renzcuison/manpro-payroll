@@ -156,6 +156,11 @@ class PayrollController extends Controller
                 "name" => "Election Day",
             ],
             [
+                "date" => "2025-06-06",
+                "localName" => "Aldâ al-Adhâ",
+                "name" => "Eid al-Adha (Feast of the Sacrifice)",
+            ],
+            [
                 "date" => "2025-06-12",
                 "localName" => "Araw ng Kalayaan",
                 "name" => "Independence Day",
@@ -329,8 +334,8 @@ class PayrollController extends Controller
 
     public function payrollProcess(Request $request)
     {
-        // log::info("PayrollController::payrollProcess");
-        // log::info($request);
+        log::info("PayrollController::payrollProcess");
+        log::info($request);
 
         $user = Auth::user();
 
@@ -344,11 +349,15 @@ class PayrollController extends Controller
             $startDate = $request->startDate;
             $endDate = $request->endDate;
 
-            $employees = UsersModel::where(function ($query) use ($startDate, $endDate) {
+            $employees = UsersModel::where(function ($query) use ($startDate, $endDate, $request) {
                 $query->whereHas('attendanceLogs', function ($subQuery) use ($startDate, $endDate) {
                     $subQuery->whereBetween('timestamp', [$startDate, $endDate]);
                 })->orWhere('is_fixed_salary', true);
-            })->where('client_id', $user->client_id)->get();
+            })
+            ->where('client_id', $user->client_id)
+            ->whereIn('branch_id', $request->branches)
+            ->whereIn('department_id', $request->departments)
+            ->get();
 
             $payrolls = [];
 
@@ -369,8 +378,17 @@ class PayrollController extends Controller
                 $numberOfSunday = $payrollData['numberOfSunday'];
                 $numberOfHoliday = $payrollData['numberOfHoliday'];
 
+                
+
                 $numberOfWorkingDays = $numberOfDays - $numberOfSaturday - $numberOfSunday - $numberOfHoliday;
                 $numberOfAbsentDays = $numberOfWorkingDays - $numberOfPresent;
+
+                // log::info("==============================================");
+                // log::info("numberOfWorkingDays: . $numberOfWorkingDays");
+                // log::info("numberOfDays: . $numberOfDays");
+                // log::info("numberOfSaturday: . $numberOfSaturday");
+                // log::info("numberOfSunday: . $numberOfSunday");
+                // log::info("numberOfHoliday: . $numberOfHoliday");
 
                 $payrolls[] = [
                     'id' => $employee->id,
@@ -456,6 +474,7 @@ class PayrollController extends Controller
             ['name' => 'Good Friday', 'date' => '2025-04-18'],
             ['name' => 'Araw ng Kagitingan', 'date' => '2025-04-09'],
             ['name' => 'Labor Day', 'date' => '2025-05-01'],
+            ['name' => 'Eid al-Adha (Feast of the Sacrifice)', 'date' => '2025-06-06'],
             ['name' => 'Independence Day', 'date' => '2025-06-12'],
             ['name' => 'National Heroes Day', 'date' => '2025-08-25'],
             ['name' => 'Bonifacio Day', 'date' => '2025-11-30'],
@@ -1227,7 +1246,7 @@ class PayrollController extends Controller
                 $benefits = PayslipBenefitsModel::where('payslip_id', $rawRecord->id)->get();
 
                 foreach ($benefits as $benefit) {
-                    log::info("====================================================================================================");
+                    // log::info("====================================================================================================");
                     if ($benefit->benefit_id == 3) {
                         $sssEmployee = $benefit->employee_amount;
                         $sssEmployer = $benefit->employer_amount;
@@ -1252,7 +1271,7 @@ class PayrollController extends Controller
                     
                     // Monthly Base
                     'monthlyBaseHours' => $rawRecord->working_days * 8,
-                    'monthlyBasePay' => ($rawRecord->rate_monthly / 2) - $paidLeaveAmount,
+                    'monthlyBasePay' => round(($rawRecord->rate_monthly / 2) - $paidLeaveAmount, 2),
 
                     // Overtime
                     'overTimeHours' => $overTimeHours,
