@@ -556,7 +556,7 @@ class EvaluationResponseController extends Controller
         }
     }
 
-    public function getEvaluationResponses2(Request $request)
+    public function getEvaluationResponses_oldFiltering(Request $request)
     {
         // outputs:
         /*
@@ -707,65 +707,6 @@ class EvaluationResponseController extends Controller
                 ->union($commentorResponses)
                 ->whereNull('evaluation_responses.deleted_at')
             ;
-
-            // $evaluationResponses = EvaluationResponse
-            //     ::leftJoin('evaluation_evaluators as evaluators', 'evaluation_responses.id', '=', 'evaluators.response_id')
-            //     // ->rightJoin('evaluation_commentors as commentors', 'evaluators.response_id', '=', 'commentors.response_id')
-            //     // ->leftJoin('evaluation_evaluators as evaluators', function ($join) {
-            //     //     $join
-            //     //         ->on('evaluators.response_id', '=', 'evaluation_responses.id')
-            //     //         ->on('evaluators.response_id', '=', 'evaluation_responses.id')
-            //     //     ;
-            //     // })
-            //     ->leftJoin('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
-            //     ->leftJoin('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
-            //     ->leftJoin('departments', 'evaluatees.department_id', '=', 'departments.id')
-            //     ->leftJoin('branches', 'evaluatees.branch_id', '=', 'branches.id')
-            //     ->select('evaluation_responses.id', 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name')
-            //     ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
-            //     // ->selectRaw(
-            //     //     '
-            //     //         CASE
-            //     //             WHEN evaluation_responses.evaluatee_id = ? THEN "Evaluatee"
-            //     //             WHEN evaluators.evaluator_id = ? THEN "Evaluator"
-            //     //             WHEN commentors.commentor_id = ? THEN "Commentor"
-            //     //         ELSE "None" END as role
-            //     //     ',
-            //     //     [$user->id, $user->id, $user->id]
-            //     // )
-            //     ->selectRaw(
-            //         '
-            //             CASE
-            //                 WHEN evaluation_responses.evaluatee_id = ? THEN "Evaluatee"
-            //                 WHEN evaluators.evaluator_id = ? THEN "Evaluator"
-            //             ELSE "None" END as role
-            //         ',
-            //         [$user->id, $user->id]
-            //     )
-            //     ->addSelect('evaluatee_id')
-            //     // ->with(['evaluatee' => fn ($evaluatee) =>
-            //     //     $evaluatee->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
-            //     // ])
-            //     ->addSelect(
-            //         'departments.id as department_id', 'departments.name as department_name',
-            //         'branches.id as branch_id', 'branches.name as branch_name',
-            //         DB::raw("'Pending' as status"),
-            //         'evaluation_responses.created_at',
-            //         'evaluation_responses.updated_at',
-            //         DB::raw('COUNT(evaluators.evaluator_id) as evaluator_count'),
-            //         // DB::raw('
-            //         //     SUM(
-            //         //         CASE WHEN evaluators.response_id=evaluation_responses.id THEN 1
-            //         //         ELSE 0 END
-            //         //     ) as evaluator_count
-            //         // '),
-            //         DB::raw("IF(evaluators.evaluator_id=$user->id, evaluators.order, null) as evaluator_order"),
-            //         // DB::raw('COUNT(commentors.commentor_id) as commentor_count'),
-            //         // DB::raw("IF(commentors.commentor_id=$user->id, commentors.order, null) as commentor_order"),
-
-            //     )
-            //     ->whereNull('evaluation_responses.deleted_at')
-            // ;
             
             if($request->search)
                 $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
@@ -848,6 +789,275 @@ class EvaluationResponseController extends Controller
                     'message' => 'No evaluation responses exist!'
                 ]);
             
+            $pageResponseCount =
+                ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
+                : $limit;
+            $skip = ($page - 1) * $limit;
+            $evaluationResponses = $evaluationResponses->skip($skip)->take($limit)->get();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Responses successfully retrieved.',
+                'evaluationResponses' => $evaluationResponses,
+                'pageResponseCount' => $pageResponseCount,
+                'totalResponseCount' => $totalResponseCount,
+                'maxPageCount' => $maxPageCount
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error getting evaluation responses: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function getEvaluationResponses_newFiltering(Request $request)
+    {
+        // inputs:
+        /*
+            page: number = 1,                   // counting starts at 1
+            limit: number = 10,
+            form_id?: number,                   // gets all if none given
+            search: string,                     // searches for form name, date, evalautee name, department name, branch name, or status
+            order_by: {
+                key:
+                    'updated_at' | 'form_name' | 'last_name' | 'first_name' |
+                    'middle_name' | 'suffix' | 'department_name' | 'branch_name' |
+                    'status'                    // pending first -> finished last
+                ,
+                sort_order: 'asc' | 'desc' = 'asc'
+            }[];
+        */
+
+        // outputs:
+        /*
+            evaluationResponses: {
+                id, role, status, commentor_order, form_id,
+                evaluators_unsigned_count, commentors_unsigned_count, commentors_signed_count,
+                form: {
+                    id, form_name
+                },
+                date, evaluatee_id, evaluatee: { id, last_name, first_name, middle_name, suffix },
+                department_id, department_name, branch_id, branch_name,
+                created_at, updated_at
+            }[],
+            pageResponseCount,
+            totalResponseCount,
+            maxPageCount
+        */
+
+        Log::info('EvaluationResponseController::getEvaluationResponses');
+
+        try {
+
+            if (Auth::check()) {
+                $userID = Auth::id();
+            } else {
+                $userID = null;
+            }
+
+            $user = UsersModel::where('id', $userID)->first();
+
+            if($request->page === null) $request->page = 1;
+            if($request->limit === null) $request->limit = 10;
+            if ($request->page < 1 || $request->limit < 1)
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Invalid page or limit!'
+                ]);
+            
+            $evaluateeResponses = $user
+                ->evaluateeResponses()
+                ->select(
+                    'id',
+                    DB::raw("'Evaluatee' as role"),
+                    DB::raw("
+                        IF(ISNULL(evaluatee_signature_filepath), 'Pending', 'Done')
+                        as status
+                    "),
+                    DB::raw('null as commentor_order'),
+                    'form_id',
+                    // DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
+                )
+                ->withCount([
+                    'evaluators as evaluators_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_signed_count' => function ($query) {
+                        $query->whereNotNull('signature_filepath');
+                    }
+                ])
+                ->whereNotNull('creator_signature_filepath')
+                ->having('evaluators_unsigned_count', 0)
+                ->having('commentors_unsigned_count', 0)
+            ;
+            $createdResponses = $user
+                ->createdResponses()
+                ->select(
+                    'id',
+                    DB::raw("'Creator' as role"),
+                    DB::raw("
+                        IF(ISNULL(creator_signature_filepath), 'Pending', 'Done')
+                        as status
+                    "),
+                    DB::raw('null as commentor_order'),
+                    'form_id'
+                )
+                ->withCount([
+                    'evaluators as evaluators_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_signed_count' => function ($query) {
+                        $query->whereNotNull('signature_filepath');
+                    }
+                ])
+                ->having('evaluators_unsigned_count', 0)
+                ->having('commentors_unsigned_count', 0)
+            ;
+            $evaluatorResponses = $user
+                ->evaluatorResponses()
+                ->select(
+                    'id',
+                    DB::raw("'Evaluator' as role"),
+                    DB::raw("
+                        IF(ISNULL(signature_filepath), 'Pending', 'Done')
+                        as status
+                    "),
+                    DB::raw('null as commentor_order'),
+                    'form_id'
+                )
+                ->withCount([
+                    'evaluators as evaluators_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_signed_count' => function ($query) {
+                        $query->whereNotNull('signature_filepath');
+                    }
+                ])
+            ;
+            $commentorResponses = $user
+                ->commentorResponses()
+                ->select(
+                    'id',
+                    DB::raw("'Commentor' as role"),
+                    DB::raw("
+                        IF(ISNULL(signature_filepath), 'Pending', 'Done')
+                        as status
+                    "),
+                    'order as commentor_order',
+                    'form_id'
+                )
+                ->withCount([
+                    'evaluators as evaluators_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_signed_count' => function ($query) {
+                        $query->whereNotNull('signature_filepath');
+                    }
+                ])
+                ->having('evaluators_unsigned_count', 0)
+                ->having('commentor_order', '<=', DB::raw('commentors_signed_count + 1'))
+            ;
+
+            $evaluationResponses = $evaluateeResponses
+                ->union($createdResponses)
+                ->union($evaluatorResponses)
+                ->union($commentorResponses)
+                ->with(['form' => function ($form) {
+                    $form->select('id', 'name');
+                }])
+            ;
+
+            if($request->search)
+                $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
+                    $query
+                        ->where('evaluation_forms.name', 'LIKE', "%$request->search%")
+                        ->orWhere(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
+                        ->orWhere(
+                            DB::raw('CONCAT(
+                                evaluatees.last_name, ", ",
+                                evaluatees.first_name,
+                                IF(ISNULL(evaluatees.middle_name), "", CONCAT(" ", evaluatees.middle_name)),
+                                IF(ISNULL(evaluatees.suffix), "", CONCAT(" ", evaluatees.suffix))
+                            )'),
+                            'LIKE', "%$request->search%"
+                        )
+                        ->orWhere('departments.name', 'LIKE', "%$request->search%")
+                        ->orWhere('branches.name', 'LIKE', "%$request->search%");
+                });
+
+            if ($request->form_id !== null)
+                $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
+
+            if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
+                $sortOrder = $order_by_param['sort_order'] ?? 'asc';
+                if ($sortOrder != 'asc' && $sortOrder != 'desc')
+                    return response()->json([
+                        'status' => 400,
+                        'message' => 'Sort order is invalid!'
+                    ]);
+                switch ($order_by_param['key']) {
+                    case 'branch_name':
+                        $evaluationResponses = $evaluationResponses->orderBy('branches.name', $sortOrder);
+                        break;
+                    case 'department_name':
+                        $evaluationResponses = $evaluationResponses->orderBy('departments.name', $sortOrder);
+                        break;
+                    case 'last_name':
+                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.last_name', $sortOrder);
+                        break;
+                    case 'first_name':
+                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.first_name', $sortOrder);
+                        break;
+                    case 'middle_name':
+                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.middle_name', $sortOrder);
+                        break;
+                    case 'suffix':
+                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.suffix', $sortOrder);
+                        break;
+                    case 'updated_at':
+                        $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrder);
+                        break;
+                    default:
+                        return response()->json([
+                            'status' => 400,
+                            'message' => 'Order by option is invalid!'
+                        ]);
+                }
+            }
+
+            $page = $request->page ?? 1;
+            $limit = $request->limit ?? 10;
+            $totalResponseCount = $evaluationResponses->count();
+            $maxPageCount = ceil($totalResponseCount / $limit);
+
             $pageResponseCount =
                 ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
                 : $limit;
@@ -1123,10 +1333,9 @@ class EvaluationResponseController extends Controller
             $newEvaluationResponse = EvaluationResponse::create([
                 'evaluatee_id' => $request->evaluatee_id,
                 'form_id' => $request->form_id,
+                'creator_id' => $userID,
                 'period_start_at' => $request->period_start_at,
-                'period_end_at' => $request->period_end_at,
-                'status' => 'pending',
-                'current_step' => 'evaluator'
+                'period_end_at' => $request->period_end_at
             ]);
 
             foreach ($request->evaluators as $index => $evaluator_id) {
