@@ -111,13 +111,6 @@ const GroupLifeMasterlist = () => {
             .catch(console.error);
     };
 
-    // Fetch once on mount or when user changes
-    useEffect(() => {
-        if (!user) return;
-        refreshPlans(); // abstracted into its own function
-        // console.log("Fetching plans now..."); 
-    }, [user]);
-
         const companies = [
                 {
                     id: 1,
@@ -136,8 +129,6 @@ const GroupLifeMasterlist = () => {
                     employeeShare: 400.00,
                 }
             ];
-
-
 
     const filteredRecords = rows
     .filter((row) => [
@@ -197,7 +188,6 @@ const GroupLifeMasterlist = () => {
                 });
         }
     };
-
 
     return (
     <Layout title={"Pre-Employment Medical Exam Records"}>

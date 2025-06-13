@@ -98,7 +98,6 @@ class InsurancesController extends Controller
 
         $user = Auth::user();
 
-        // Filter plans where the related company has the same client_id as the user
         $plans = GroupLifeCompanyPlan::whereHas('company', function ($query) use ($user) {
                 $query->where('client_id', $user->client_id);
             })
@@ -106,7 +105,6 @@ class InsurancesController extends Controller
             ->orderBy('plan_name')
             ->get();
 
-        // Format the response just like in getGroupLifeCompanies()
         $formattedPlans = [];
 
             foreach ($plans as $plan) {

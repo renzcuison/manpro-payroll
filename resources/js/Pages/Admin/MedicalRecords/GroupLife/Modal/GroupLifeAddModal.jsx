@@ -135,32 +135,6 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
         { planTypeMenuItem: 'Final Expense Insurance'}
     ];
 
-    // const handleSave = () => {
-    //     const cleanNumber = (value) =>
-    //     Number(value.replace(/[^\d.]/g, "")) || 0;
-
-    //     const newRow = {
-    //         groupLifeName,
-    //         planType,
-    //         paymentType,
-    //         employeeShare: paymentType === "Amount" ? cleanNumber(employeeAmountShare) : cleanNumber(employeePercentageShare),
-    //         employerShare: paymentType === "Amount" ? cleanNumber(employerAmountShare) : cleanNumber(employerPercentageShare),
-    //         shareType: paymentType
-    //     };
-    //     // Send newRow up to parent
-    //     if (onAddRow) {
-    //         onAddRow(newRow);
-    //     }
-    //     // Reset form fields
-    //     setGroupLifeName("");
-    //     setPlanType("");
-    //     setPaymentType("Amount");
-    //     setEmployeeAmountShare("");
-    //     setEmployerAmountShare("");
-    //     setEmployeePercentageShare("");
-    //     setEmployerPercentageShare("");
-    // };
-
     const handleSave = async () => {
     const cleanNumber = (value) =>
         Number(value.replace(/[^\d.]/g, "")) || 0;
@@ -372,7 +346,6 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
                                     </FormGroup>
                                 </>
                                 )}    
-                                
 
                                 <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                                 <Button variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1" onClick={handleSave}>

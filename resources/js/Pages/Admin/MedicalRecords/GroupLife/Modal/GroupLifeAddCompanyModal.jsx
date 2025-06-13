@@ -94,7 +94,7 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', width: '500px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Companies</Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Group Life Company</Typography>
                             <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
 
@@ -104,7 +104,6 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
                                 gap={2}
                                 sx={{ width: "100%", marginBottom: 3 }}>                            
                             
-
                                 <Box display="flex" alignItems="center" gap={2} sx={{ width: '100%', marginTop: 3, marginBottom: 3 }}>
                                 <TextField
                                     label="Group Life Company Name"
