@@ -958,12 +958,23 @@ class EvaluationResponseController extends Controller
 
             DB::beginTransaction();
 
+            // $conflictingEvaluationResponse = EvaluationResponse::where('evaluatee_id', $request->evaluatee_id)
+            //     ->where('form_id', $request->form_id)
+            //     ->where('period_start_at', '<', $request->period_end_at)
+            //     ->where('period_end_at', '>', $request->period_start_at)
+            //     ->first()
+            // ;
+            // if($conflictingEvaluationResponse) return response()->json([ 
+            //     'status' => 400,
+            //     'message' => 'This Evaluation is in conflict with another!',
+            //     'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
+            // ]);
+
             $conflictingEvaluationResponse = EvaluationResponse::where('evaluatee_id', $request->evaluatee_id)
                 ->where('form_id', $request->form_id)
-                ->where('period_start_at', '<', $request->period_end_at)
-                ->where('period_end_at', '>', $request->period_start_at)
-                ->first()
-            ;
+                ->where('period_start_at', '=', $request->period_start_at)
+                ->where('period_end_at', '=', $request->period_end_at)
+                ->first();
             if($conflictingEvaluationResponse) return response()->json([ 
                 'status' => 400,
                 'message' => 'This Evaluation is in conflict with another!',

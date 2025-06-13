@@ -109,7 +109,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
             period_start_at: formValues.periodFrom + ' 00:00:00',
             period_end_at: formValues.periodTo + ' 23:59:59'
         };
-
+        console.log("Submitting evaluation payload:", payload); // <-- Add this
         try {
             await axiosInstance.post('/saveEvaluationResponse', payload, { headers });
             Swal.fire({
