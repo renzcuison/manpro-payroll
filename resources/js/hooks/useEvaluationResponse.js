@@ -7,6 +7,12 @@ export function useEvaluationResponse(responseId) {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [evaluationResponse, setEvaluationResponse] = useState({});
+    const [evaluateeId, setEvaluateeId] = useState('');
+    const [formId, setFormId] = useState('');
+    const [evaluators, setEvaluators] = useState([]);
+    const [commentors, setCommentors] = useState([]);
+    const [periodStartAt, setPeriodStartAt] = useState('');
+    const [periodStartEnd, setPeriodStartEnd] = useState('');
     const subcategories = evaluationResponse.form?.sections.reduce((subcategories, section) => {
         for(let subcategory of section.subcategories) subcategories[subcategory.id] = subcategory;
         return subcategories;
@@ -75,7 +81,7 @@ export function useEvaluationResponse(responseId) {
         setEvaluationResponse({...evaluationResponse});
     }
 
-    async function saveEvaluationResponse() {
+    async function editEvaluationResponse() {
         try {
             for(let subcategory_id in subcategories) {
                 const subcategory = subcategories[subcategory_id];
@@ -112,6 +118,41 @@ export function useEvaluationResponse(responseId) {
             });
             console.error("Error saving evaluation response: ", e);
         }
+    }
+
+    async function saveEvaluationResponse() {
+        axiosInstance
+            .post('/saveEvaluationResponse', {
+                ...evaluationResponse
+            }, { headers })
+            .then((response) => {
+                if (response.data.status.toString().startsWith(2)) {
+                    const subcat = response.data.evaluationFormSubcategory;
+                    if(!subcat) {
+                        // get id from here
+                        return;
+                    }
+                    upsertSubcategory(subcat);
+                } else if (response.data.status.toString().startsWith(4)) {
+                    Swal.fire({
+                        text: response.data.message,
+                        icon: "error",
+                        confirmButtonColor: '#177604',
+                        customClass: {
+                            popup: 'swal-popup-overlay'
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error saving form response:', error);
+                Swal.fire({
+                    text: "Error saving form response",
+                    icon: "error",
+                    confirmButtonColor: '#177604',
+                });
+            })
+        ;
     }
 
     // option answer operations
@@ -500,7 +541,7 @@ export function useEvaluationResponse(responseId) {
 
     return {
         evaluationResponse, options, subcategories,
-        deleteEvaluationResponse, saveEvaluationResponse,
+        deleteEvaluationResponse, editEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
         getMultipleChoiceOptionId,
