@@ -254,32 +254,31 @@ const PerformanceEvaluationCreateEvaluation = () => {
         }
     }, [formValues.department, formValues.branch]);
 
+    // Change the confition so that it can fetch the evaluatee regardless of user_type
     useEffect(() => {
-        // Admins
-        const fetchAdmins = async (branchId, departmentId) => {
-            setLoadingAdmins(true);
+        // Employees (now AdminOrEmployee)
+        const fetchEmployees = async (branchId, departmentId) => {
             try {
                 const params = {
                     branch_id: branchId,
                     department_id: departmentId,
-                    user_type: 'AdminOrEmployee'
+                    user_type: 'AdminOrEmployee' 
                 };
                 const response = await axiosInstance.get('/settings/getUsers', { params, headers });
-                if (response.data.status === 200) setAdmins(response.data.users);
-                else setAdmins([]);
+                if (response.data.status === 200) setEmployees(response.data.users);
+                else setEmployees([]);
             } catch (error) {
-                setAdmins([]);
-                console.error('Error fetching admins:', error);
-            } finally {
-                setLoadingAdmins(false);
+                setEmployees([]);
+                console.error('Error fetching employees:', error);
             }
         };
         if (formValues.branch && formValues.department) {
-            fetchAdmins(formValues.branch, formValues.department);
+            fetchEmployees(formValues.branch, formValues.department);
         } else {
-            setAdmins([]);
+            setEmployees([]);
+            setFormValues(prev => ({ ...prev, employeeName: '' }));
         }
-    }, [formValues.branch, formValues.department]);
+    }, [formValues.department, formValues.branch]);
 
     useEffect(() => {
         setIsLoading(true);
