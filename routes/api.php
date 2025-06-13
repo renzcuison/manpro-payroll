@@ -1883,7 +1883,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('/deletePeme/{id}', [PemeController::class, 'deletePeme']);
 
     // PEME Questionnaire
-    Route::post('/peme/questionnaire', [
+    Route::post('/pemCe/questionnaire', [
         PemeQuestionnaireController::class,
         'store',
     ]);
@@ -1914,6 +1914,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         'filter',
     ]);
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
+
+
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
     Route::patch('/peme-responses/{id}/status', [
         PemeResponseController::class,
@@ -1934,6 +1936,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     ]);
 
     // Response Details
+    Route::get('/download/media/{media}', [PemeResponseDetailsController::class, 'download']);
     Route::get('/peme-response-details', [
         PemeResponseDetailsController::class,
         'index',

@@ -87,15 +87,9 @@ class PemeController extends Controller
 
     public function getPemeList()
     {
-        // Log::info("PemeController::getPemeList");
-
-        // if (!$this->checkUser()) {
-        //     return response()->json(["message" => "Unauthorized"], 403);
-        // }
-
         $user = Auth::user();
 
-        $pemeList = Peme::select(
+        $query = Peme::select(
             "id",
             "client_id",
             "user_id",
@@ -108,9 +102,13 @@ class PemeController extends Controller
             "created_at",
             "updated_at",
             "deleted_at"
-        )
-            ->where("client_id", $user->client_id)
-            ->orderBy("created_at", "desc")
+        )->where("client_id", $user->client_id);
+
+        if ($user->user_type !== 'Admin') {
+            $query->where("isVisible", 1);
+        }
+
+        $pemeList = $query->orderBy("created_at", "desc")
             ->get()
             ->map(function ($peme) {
                 $respondentCount = PemeResponse::where('peme_id', $peme->id)
@@ -121,18 +119,11 @@ class PemeController extends Controller
                     "id" => Crypt::encrypt($peme->id),
                     "client_id" => Crypt::encrypt($peme->client_id),
                     "user_id" => Crypt::encrypt($peme->user_id),
-                    "medical_record_id" => Crypt::encrypt(
-                        $peme->medical_record_id
-                    ),
-                    // "id" => $peme->id,
-                    // "client_id" => $peme->client_id,
-                    // "user_id" => $peme->user_id,
-                    // "medical_record_id" => $peme->medical_record_id,
+                    "medical_record_id" => Crypt::encrypt($peme->medical_record_id),
                     "name" => $peme->name,
                     "respondents" => $peme->respondents,
                     "isVisible" => $peme->isVisible,
-                    "isEditable" =>
-                        $respondentCount > 0 ? 0 : $peme->isEditable,
+                    "isEditable" => $respondentCount > 0 ? 0 : $peme->isEditable,
                     "isMultiple" => $peme->isMultiple,
                     "created_at" => $peme->created_at,
                     "updated_at" => $peme->updated_at,
@@ -142,6 +133,7 @@ class PemeController extends Controller
 
         return response()->json($pemeList);
     }
+
 
     public function getPemeStats()
     {
