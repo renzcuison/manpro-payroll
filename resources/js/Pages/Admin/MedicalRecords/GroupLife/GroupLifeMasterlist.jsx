@@ -42,7 +42,7 @@ const GroupLifeMasterlist = () => {
     useEffect(() => {
         if (!user) return;
         axiosInstance
-            .get("/group-life-companies", { headers: { Authorization: `Bearer ${user.token}` } })
+            .get("/medicalRecords/getGroupLifeCompanies", { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
                 setListOfCompanies(
                     res.data.map(company => ({
@@ -55,9 +55,10 @@ const GroupLifeMasterlist = () => {
     }, [user]);
 
     useEffect(() => {
+        
         if (!user) return;
         axiosInstance
-            .get("/group-life-plans", { headers: { Authorization: `Bearer ${user.token}` } })
+            .get("/medicalRecords/getGroupLifePlans", { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
                 setRows(
                     Array.isArray(res.data)
@@ -78,6 +79,7 @@ const GroupLifeMasterlist = () => {
         if (!user) return;
         axiosInstance.get('/group-life-companies', { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
+                console.log("Rows updated", rows);
                 setListOfCompanies(
                     res.data.map(company => ({
                         companyMenuItem: company.name,
@@ -90,41 +92,50 @@ const GroupLifeMasterlist = () => {
 
     const refreshPlans = () => {
         axiosInstance
-            .get("/group-life-plans", { headers: { Authorization: `Bearer ${user.token}` } })
+            .get("/medicalRecords/getGroupLifePlans", {
+                headers: { Authorization: `Bearer ${user.token}` }
+            })
             .then(res => {
-            setRows(
-                Array.isArray(res.data)
-                ? res.data.map(row => ({
-                    groupLifeName: row.group_life_company_name,
-                    planName: row.plan_name,
-                    paymentType: row.type,
-                    employerShare: row.employer_share,
-                    employeeShare: row.employee_share,
+                const plans = res.data.plans || [];
+                console.log("Processed plans:", plans);
+                setRows(
+                    plans.map(row => ({
+                        groupLifeName: row.group_life_company_name,
+                        planType: row.plan_name,
+                        paymentType: row.type,
+                        employerShare: row.employer_share,
+                        employeeShare: row.employee_share,
                     }))
-                : []
-            );
+                );
             })
             .catch(console.error);
-        };
+    };
 
-    const companies = [
-            {
-                id: 1,
-                companyname: "St. Peter Life Plan",
-                planType: "Traditional",
-                paymentType: "Amount",
-                employerShare: 300.00,
-                employeeShare: 400.00,
-            },
-            {
-                id: 2,
-                companyname: "Evergreen Life Plan",
-                planType: "Cremation",
-                paymentType: "Amount",
-                employerShare: 300.00,
-                employeeShare: 400.00,
-            }
-        ];
+    // Fetch once on mount or when user changes
+    useEffect(() => {
+        if (!user) return;
+        refreshPlans(); // abstracted into its own function
+        // console.log("Fetching plans now..."); 
+    }, [user]);
+
+        const companies = [
+                {
+                    id: 1,
+                    companyname: "St. Peter Life Plan",
+                    planType: "Traditional",
+                    paymentType: "Amount",
+                    employerShare: 300.00,
+                    employeeShare: 400.00,
+                },
+                {
+                    id: 2,
+                    companyname: "Evergreen Life Plan",
+                    planType: "Cremation",
+                    paymentType: "Amount",
+                    employerShare: 300.00,
+                    employeeShare: 400.00,
+                }
+            ];
 
 
 
@@ -154,10 +165,12 @@ const GroupLifeMasterlist = () => {
     };
 
     const handleAddRow = async (newRow) => {
+        console.log("newRow:", newRow);
         const company = listOfCompanies.find(c => c.companyMenuItem === newRow.groupLifeName);
+        console.log("Matched company:", company);
 
         const payload = {
-        group_life_company_id: company ? company.id : null,
+        group_life_company_id: Number(newRow.groupLifeName),
         plan_name: newRow.planType, 
         type: newRow.paymentType,
         employer_share: Number(newRow.employerShare),
@@ -166,7 +179,7 @@ const GroupLifeMasterlist = () => {
         };
 
         try {
-            await axiosInstance.post("/group-life-plans", payload, {
+            await axiosInstance.post("/medicalRecords/saveGroupLifePlans", payload, {
             headers: { Authorization: `Bearer ${user.token}` }
             });
             setOpenAddGroupLifeModal(false);
@@ -185,6 +198,7 @@ const GroupLifeMasterlist = () => {
         }
     };
 
+
     return (
     <Layout title={"Pre-Employment Medical Exam Records"}>
         <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
@@ -198,7 +212,7 @@ const GroupLifeMasterlist = () => {
                                     variant="contained"
                                     style={{ color: "#e8f1e6" }}
                                     >
-                                    <i className="fa fa-plus pr-2"></i> Add Company
+                                     Companies
                                 </Button>
                                 <Button
                                     onClick={() => setOpenAddGroupLifeModal(true)}
@@ -248,7 +262,9 @@ const GroupLifeMasterlist = () => {
                             <GroupLifeCompanyTable
                                 onRowClick={handleOnRowClick}
                                 rows={filteredRecords}
-                                search={search}/>
+                                search={search}
+                                refreshPlans={refreshPlans}
+                                />
                         </Box>
                     </Box>
 
@@ -256,8 +272,8 @@ const GroupLifeMasterlist = () => {
                         <GroupLifeAddModal
                             open={openAddGroupLifeModal}
                             close={() => setOpenAddGroupLifeModal(false)}
-                            onAddRow={handleAddRow}
                             listOfCompanies={listOfCompanies}
+                            refreshPlans={refreshPlans}
                         />
                     )}
                     {openAddCompanyModal && (

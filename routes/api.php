@@ -479,13 +479,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
         // Group Life Company - Old
-        Route::get('/group-life-companies', [GroupLifeCompanyController::class, 'index']);
-        Route::post('/group-life-companies', [GroupLifeCompanyController::class, 'store']);
+
+        // Route::get('/group-life-companies', [GroupLifeCompanyController::class, 'index']);
+        // Route::post('/group-life-companies', [GroupLifeCompanyController::class, 'store']);
 
         // Group Life Plan - Old
-        Route::get('/group-life-plans', [GroupLifePlanController::class, 'index']);
-        Route::post('/group-life-plans', [GroupLifePlanController::class, 'store']);
-        Route::get('/group-life-plans/{id}', [GroupLifePlanController::class, 'show']);
+        
+        // Route::get('/group-life-plans', [GroupLifePlanController::class, 'index']);
+        // Route::post('/group-life-plans', [GroupLifePlanController::class, 'store']);
+        // Route::get('/group-life-plans/{id}', [GroupLifePlanController::class, 'show']);
 
 
 
@@ -508,6 +510,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         // Group Life Company - New
         Route::post('/saveGroupLifeCompanies', [InsurancesController::class, 'saveGroupLifeCompanies']);
         Route::get('/getGroupLifeCompanies', [InsurancesController::class, 'getGroupLifeCompanies']);
+        Route::post('/saveGroupLifePlans', [InsurancesController::class, 'saveGroupLifePlans']);
+        Route::get('/getGroupLifePlans', [InsurancesController::class, 'getGroupLifePlans']);
+
     });
 
 

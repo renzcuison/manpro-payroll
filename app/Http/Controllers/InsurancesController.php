@@ -91,4 +91,61 @@ class InsurancesController extends Controller
         ]);
     }
 
+        public function getGroupLifePlans()
+
+        {
+        log::info("InsurancesController::getGroupLifePlans");
+
+        $user = Auth::user();
+
+        // Filter plans where the related company has the same client_id as the user
+        $plans = GroupLifeCompanyPlan::whereHas('company', function ($query) use ($user) {
+                $query->where('client_id', $user->client_id);
+            })
+            ->with('company:id,name')
+            ->orderBy('plan_name')
+            ->get();
+
+        // Format the response just like in getGroupLifeCompanies()
+        $formattedPlans = [];
+
+            foreach ($plans as $plan) {
+                $formattedPlans[] = [
+                    'id' => $plan->id,
+                    'group_life_company_name' => $plan->company->name,
+                    'plan_name' => $plan->plan_name,
+                    'type' => $plan->type,
+                    'employer_share' => $plan->employer_share,
+                    'employee_share' => $plan->employee_share,
+                ];
+            }
+
+            return response()->json([
+                'status' => 200,
+                'plans' => $formattedPlans,
+            ]);
+        }
+
+    public function saveGroupLifePlans(Request $request)
+    {
+        log::info("InsurancesController::saveGroupLifePlans");
+
+        $user = Auth::user();
+        if (!$user || $user->user_type !== 'Admin') {
+            return response()->json(["message" => "Unauthorized"], 403);
+        }
+
+        $validated = $request->validate([
+            'group_life_company_id' => 'required|exists:group_life_companies,id',
+            'plan_name' => 'required|string|max:50',
+            'type' => 'required|string|max:50',
+            'employer_share' => 'required|numeric',
+            'employee_share' => 'required|numeric',
+        ]);
+
+        $plan = GroupLifeCompanyPlan::create($validated);
+
+        return response()->json($plan, 201);
+    }
+
 }

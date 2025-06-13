@@ -17,12 +17,17 @@ import {    Box,
         } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import 'react-quill/dist/quill.snow.css';
+import axiosInstance, { getJWTHeader } from '../../../../../utils/axiosConfig';
+import Swal from 'sweetalert2';
 
-const GroupLifeAddModal = ({ open, close, onAddRow, listOfCompanies }) => {
+const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
 
     const navigate = useNavigate();
+
+    const storedUser = localStorage.getItem("nasya_user");
+    const user = storedUser ? JSON.parse(storedUser) : null;
 
     const [groupLifeNameError, setGroupLifeNameError] = useState(false);
     const [employeeAmountShareError, setEmployeeAmountShareError] = useState(false);
@@ -37,6 +42,67 @@ const GroupLifeAddModal = ({ open, close, onAddRow, listOfCompanies }) => {
     const [employerAmountShare, setEmployerAmountShare] = useState('');
     const [employeePercentageShare, setEmployeePercentageShare] = useState('');
     const [employerPercentageShare, setEmployerPercentageShare] = useState('');
+
+    const [companies, setCompanies] = useState([]);
+
+    const [groupLifeCompanyId, setGroupLifeCompanyId] = useState("");
+    
+
+    useEffect(() => {
+        if (!open || !user) return;
+        fetchCompanies();
+    }, [open]);
+
+        const fetchCompanies = async () => {
+        try {
+            const res = await axiosInstance.get('/medicalRecords/getGroupLifeCompanies', {
+                headers: { Authorization: `Bearer ${user.token}` }
+            });
+            
+            const companyList = res.data.companies || [];
+            setCompanies(companyList);
+            if (companyList.length > 0) {
+                setGroupLifeCompanyId(companyList[0].id);
+                
+            }
+                } catch (error) {
+                    console.error("Error fetching companies:", error);
+                    setCompanies([]);
+                }
+            };
+
+        const handleAddRow = async (newRow) => {
+        console.log("newRow:", newRow);
+        const company = listOfCompanies.find(c => c.companyMenuItem === newRow.groupLifeName);
+        console.log("Matched company:", company);
+
+        const payload = {
+        group_life_company_id: groupLifeCompanyId,
+        plan_name: newRow.planType, 
+        type: newRow.paymentType,
+        employer_share: Number(newRow.employerShare),
+        employee_share: Number(newRow.employeeShare),
+
+        };
+
+        try {
+            await axiosInstance.post("/medicalRecords/saveGroupLifePlans", payload, {
+            headers: { Authorization: `Bearer ${user.token}` }
+            });
+            Swal.fire({
+                icon: 'success',
+                text: 'Group Life Plan saved successfully!',
+                timer: 2000,
+                showConfirmButton: false
+                });
+            refreshPlans();
+            } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error saving Group Life Plan!',
+                });
+        }
+    };
 
     const formatCurrency = (value) => {
         if (!value) return "";
@@ -69,31 +135,82 @@ const GroupLifeAddModal = ({ open, close, onAddRow, listOfCompanies }) => {
         { planTypeMenuItem: 'Final Expense Insurance'}
     ];
 
-    const handleSave = () => {
-        const cleanNumber = (value) =>
+    // const handleSave = () => {
+    //     const cleanNumber = (value) =>
+    //     Number(value.replace(/[^\d.]/g, "")) || 0;
+
+    //     const newRow = {
+    //         groupLifeName,
+    //         planType,
+    //         paymentType,
+    //         employeeShare: paymentType === "Amount" ? cleanNumber(employeeAmountShare) : cleanNumber(employeePercentageShare),
+    //         employerShare: paymentType === "Amount" ? cleanNumber(employerAmountShare) : cleanNumber(employerPercentageShare),
+    //         shareType: paymentType
+    //     };
+    //     // Send newRow up to parent
+    //     if (onAddRow) {
+    //         onAddRow(newRow);
+    //     }
+    //     // Reset form fields
+    //     setGroupLifeName("");
+    //     setPlanType("");
+    //     setPaymentType("Amount");
+    //     setEmployeeAmountShare("");
+    //     setEmployerAmountShare("");
+    //     setEmployeePercentageShare("");
+    //     setEmployerPercentageShare("");
+    // };
+
+    const handleSave = async () => {
+    const cleanNumber = (value) =>
         Number(value.replace(/[^\d.]/g, "")) || 0;
 
-        const newRow = {
-            groupLifeName,
-            planType,
-            paymentType,
-            employeeShare: paymentType === "Amount" ? cleanNumber(employeeAmountShare) : cleanNumber(employeePercentageShare),
-            employerShare: paymentType === "Amount" ? cleanNumber(employerAmountShare) : cleanNumber(employerPercentageShare),
-            shareType: paymentType
-        };
-        // Send newRow up to parent
-        if (onAddRow) {
-            onAddRow(newRow);
-        }
-        // Reset form fields
-        setGroupLifeName("");
-        setPlanType("");
-        setPaymentType("Amount");
-        setEmployeeAmountShare("");
-        setEmployerAmountShare("");
-        setEmployeePercentageShare("");
-        setEmployerPercentageShare("");
+    const payload = {
+        group_life_company_id: groupLifeCompanyId,
+        plan_name: planType,
+        type: paymentType,
+        employee_share: paymentType === "Amount"
+            ? cleanNumber(employeeAmountShare)
+            : cleanNumber(employeePercentageShare),
+        employer_share: paymentType === "Amount"
+            ? cleanNumber(employerAmountShare)
+            : cleanNumber(employerPercentageShare),
     };
+
+    try {
+        await axiosInstance.post("/medicalRecords/saveGroupLifePlans", payload, {
+            headers: { Authorization: `Bearer ${user.token}` }
+        });
+  if (typeof refreshPlans === "function") {
+    refreshPlans(); // ✅ Make sure this runs
+  }
+
+        Swal.fire({
+            icon: 'success',
+            text: 'Group Life Plan saved successfully!',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        
+
+        if (typeof close === "function") close();
+
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error saving Group Life Plan!',
+        });
+    }
+
+    // Reset
+    setGroupLifeCompanyId("");
+    setPlanType("");
+    setPaymentType("Amount");
+    setEmployeeAmountShare("");
+    setEmployerAmountShare("");
+    setEmployeePercentageShare("");
+    setEmployerPercentageShare("");
+};
 
     return (
         <>
@@ -120,26 +237,27 @@ const GroupLifeAddModal = ({ open, close, onAddRow, listOfCompanies }) => {
 
                                 <FormControl>
                                     <InputLabel id="group-life-company-label">Group Life Company</InputLabel>
-                                        <Select
+
+                                <Select
+                                        labelId="group-life-company-label"
                                         label="Group Life Company"
-                                        value={groupLifeName}
-                                        onChange={e => setGroupLifeName(e.target.value)}
-                                        >
-                                        {listOfCompanies.map((option, idx) => (
-                                            <MenuItem key={option.companyMenuItem + idx} value={option.companyMenuItem}>
-                                            {option.companyMenuItem}
+                                        value={groupLifeCompanyId}
+                                        onChange={(e) => setGroupLifeCompanyId(e.target.value)}
+                                    >
+                                        {companies.map((company) => (
+                                            <MenuItem key={company.id} value={company.id}>
+                                                {company.name}
                                             </MenuItem>
                                         ))}
-                                        </Select>
-                                    </FormControl>
-                                
+                                </Select>
+                                </FormControl>                                
                                 </FormControl>
                                 <FormControl  sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
                                     '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                 }}>
                                 <Autocomplete
                                 freeSolo
-                                disabled={!groupLifeName}
+                                disabled={!groupLifeCompanyId}
                                 value={planType}
                                 options={listOfPlanTypes.map(option => option.planTypeMenuItem)}
                                 onChange={(event, newValue) => setPlanType(newValue || "")}
@@ -160,7 +278,7 @@ const GroupLifeAddModal = ({ open, close, onAddRow, listOfCompanies }) => {
                                         '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                     }}>
                                     <TextField
-                                        disabled={!groupLifeName}
+                                        disabled={!groupLifeCompanyId}
                                         required
                                         select
                                         id="paymentType"
