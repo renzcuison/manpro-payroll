@@ -242,6 +242,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeBenefits', [CompensationManagementController::class, 'getEmployeeBenefits']);
         Route::post('/saveEmployeeBenefits', [CompensationManagementController::class, 'saveEmployeeBenefits']);
         Route::post('/updateEmployeeBenefit', [CompensationManagementController::class, 'updateEmployeeBenefit']);
+
+        //deductions
+        Route::get('/getDeductions', [CompensationManagementController::class, 'getDeductions']);
+        Route::post('/saveDeductions', [CompensationManagementController::class, 'saveDeductions']);
+
+        Route::get('/getEmployeesDeductions', [CompensationManagementController::class, 'getEmployeesDeductions']);
+        Route::get('/getEmployeeDeductions', [CompensationManagementController::class, 'getEmployeeDeductions']);
+        Route::post('/saveEmployeeDeductions', [CompensationManagementController::class, 'saveEmployeeDeductions']);
+        Route::post('/updateEmployeeDeduction', [CompensationManagementController::class, 'updateEmployeeDeduction']);
     });
     
     //note: use the compensation routes for future referencing

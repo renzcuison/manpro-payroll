@@ -135,8 +135,8 @@ const EmployeesBenefitsList = () => {
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="left"> Employee Name </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Branch </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Department </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employee Contribution </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employer Contribution </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employee Contribution </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -147,8 +147,8 @@ const EmployeesBenefitsList = () => {
                                                             <TableCell align="left">{employee.name || '-'}</TableCell>
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                            <TableCell align="center">₱{Number(employee.employee_amount || 0).toFixed(2)}</TableCell>
                                                             <TableCell align="center">₱{Number(employee.employer_amount || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="center">₱{Number(employee.employee_amount || 0).toFixed(2)}</TableCell>
                                                         </TableRow>
                                                     );
                                                 })

@@ -10,6 +10,8 @@ use App\Models\IncentivesModel;
 use App\Models\EmployeeIncentivesModel;
 use App\Models\BenefitsModel;
 use App\Models\EmployeeBenefitsModel;
+use App\Models\DeductionsModel; 
+use App\Models\EmployeeDeductionsModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -38,8 +40,6 @@ class CompensationManagementController extends Controller
 
     public function checkUserEmployee()
     {
-        // Log::info("AllowanceController::checkUserEmployee");
-
         if (Auth::check()) {
             $user = Auth::user();
 
@@ -629,8 +629,8 @@ class CompensationManagementController extends Controller
         if(!$this->checkUserAdmin()){
             return response()->json(['status' => 403]);
         }
-        $employee_allowance_id = Crypt::decrypt($request->emp_allowance_id);
-        $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_allowance_id);
+        $employee_deduction_id = Crypt::decrypt($request->emp_allowance_id);
+        $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_deduction_id);
 
         if($emp_allowance){
             $emp_allowance->number = $request->number;
@@ -639,6 +639,199 @@ class CompensationManagementController extends Controller
         return response()->json(['status' => 200]);
     }
     //---------------->[#endregion ALLOWANCES CONTROLLERS]
+
+
+    //---------------->[#region DEDUCTIONS CONTROLLERS]
+
+    public function getDeductions()
+    {
+        if ($this->checkUserAdmin()) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+            $deductions = [];
+
+            if(!$client->deductions){
+                return response()->json(['status' => 200, 'deductions' => null]);
+            }
+
+            foreach ($client->deductions as $deduction) {    
+                $deductions[] = [
+                    'id' => Crypt::encrypt($deduction->id),
+                    'name' => $deduction->name,
+                    'type' => $deduction->type,
+                    'amount' => $deduction->amount,
+                    'percentage' => $deduction->percentage,
+                ];
+            }
+
+            return response()->json(['status' => 200, 'deductions' => $deductions]);
+        }
+
+        return response()->json(['status' => 200, 'deductions' => null]);
+    }
+
+    public function saveDeduction(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required',
+            'type' => 'required',
+            'amount' => 'required',
+            'percentage' => 'required',
+        ]);
+
+        if ($this->checkUserAdmin() && $validated) {
+
+            $user = Auth::user();
+            $client = ClientsModel::find($user->client_id);
+
+            try {
+                DB::beginTransaction();
+
+                DeductionsModel::create([
+                    "name" => $request->name,
+                    "type" => $request->type,
+                    "amount" => $request->amount,
+                    "percentage" => $request->percentage,
+                    "client_id" => $client->id,
+                ]);
+
+                DB::commit();
+
+                return response()->json(['status' => 200]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+    }
+
+    public function getEmployeeDeductions(Request $request)
+    {
+        if(!$this->checkUserAdmin()){
+            return response()->json(['status' => 200, 'deductions' => null]);  
+        }
+        $employee = UsersModel::where('user_name', $request->username)->first();
+        $baseSalary = floatval($employee->salary);
+
+        $deductions = [];
+        
+        
+        foreach($employee->deductions as $deduction){
+            $amount = 0;
+            $type = $deduction->deduction->type;
+            if($type == 'Amount'){
+                $amount += $deduction->deduction->amount;
+            }
+            else{
+                $amount += ($baseSalary * ($deduction->deduction->percentage / 100));
+            }
+            $deductions[] = [
+                'id' => Crypt::encrypt($deduction->id),
+                'name' => $deduction->deduction->name,
+                'number' => $deduction->number,
+                'type' => $type,
+                'amount' => $deduction->deduction->amount,
+                'percentage' => $deduction->deduction->percentage,
+                'calculated_amount' => $amount,
+                'status' =>$deduction->status,
+                'created_at' => $deduction->created_at,
+            ];
+        }
+        return response()->json(['status' => 200, 'deductions' => $deductions]);
+    }
+
+    public function getEmployeesDeductions()
+    {
+        if(!$this->checkUserAdmin()){
+            return response()->json(['status' => 200, 'employees' => null]);
+        }
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
+        $employees = [];
+        foreach($client->employees as $employee){  
+            $baseSalary = floatval($employee->salary);
+            $deductions = EmployeeDeductionsModel::where('user_id', $employee->id)->get();
+            $amount = 0;
+            foreach($deductions as $deduction){
+                $type = $deduction->deduction->type;
+                
+                if($type == 'Amount'){
+                    $amount += $deduction->deduction->amount;
+                }
+                else if($type == 'Percentage'){
+                    $amount += $baseSalary * ($deduction->deduction->percentage / 100);
+                }
+            }
+
+            $employees[] = [
+                'user_name' => $employee->user_name,
+                'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
+                'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
+                'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
+                'branch_id' => $employee->branch->id, 
+                'department_id' => $employee->department->id,
+                'total' => $amount,
+            ];
+        }
+        return response()->json(['status' => 200, 'employees' => $employees]);
+    }
+
+    public function saveEmployeeDeductions(Request $request)
+    {
+        log::info("AllowanceController::saveEmployeeAllowance");
+
+        $validated = $request->validate([
+            'userName' => 'required',
+            'deduction' => 'required',
+            'number' => 'required',
+        ]);
+        if (!$this->checkUserAdmin() || !$validated) {
+            return response()->json(['status' => 403]);
+        }
+        
+        $user = Auth::user();
+        $client = ClientsModel::find($user->client_id);
+        $employee = UsersModel::where('user_name', $request->userName)->first();
+
+        try {
+            DB::beginTransaction();
+
+            EmployeeDeductionsModel::create([
+                "client_id" => $client->id,
+                "user_id" => $employee->id,
+                "deduction_id" => Crypt::decrypt($request->deduction),
+                "number" => $request->number,
+            ]);
+
+            DB::commit();
+
+            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error("Error saving: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function updateEmployeeDeduction(Request $request)
+    {
+        if(!$this->checkUserAdmin()){
+            return response()->json(['status' => 403]);
+        }
+        $employee_deduction_id = Crypt::decrypt($request->emp_deduction_id);
+        $emp_deduction = EmployeeDeductionsModel::findOrFail($employee_deduction_id);
+
+        if($emp_deduction){
+            $emp_deduction->number = $request->number;
+            $emp_deduction->save();
+        }
+        return response()->json(['status' => 200]);
+    }
+    //---------------->[#endregion DEDUCTIONS CONTROLLERS]
  
     
 
