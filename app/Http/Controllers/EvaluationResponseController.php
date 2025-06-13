@@ -810,7 +810,7 @@ class EvaluationResponseController extends Controller
         }
     }
 
-    public function getEvaluationResponses_newFiltering(Request $request)
+    public function getEvaluationResponses(Request $request)
     {
         // inputs:
         /*
@@ -831,14 +831,16 @@ class EvaluationResponseController extends Controller
         // outputs:
         /*
             evaluationResponses: {
-                id, role, status, commentor_order, form_id,
+                id, role, status, commentor_order,
                 evaluators_unsigned_count, commentors_unsigned_count, commentors_signed_count,
-                form: {
-                    id, form_name
+                date, form_id, evaluatee_id,
+                created_at, updated_at,
+                form: { id, form_name },
+                evaluatee: {
+                    id, last_name, first_name, middle_name, suffix,
+                    branch: { id, name },
+                    department: { id, name }
                 },
-                date, evaluatee_id, evaluatee: { id, last_name, first_name, middle_name, suffix },
-                department_id, department_name, branch_id, branch_name,
-                created_at, updated_at
             }[],
             pageResponseCount,
             totalResponseCount,
@@ -874,9 +876,7 @@ class EvaluationResponseController extends Controller
                         IF(ISNULL(evaluatee_signature_filepath), 'Pending', 'Done')
                         as status
                     "),
-                    DB::raw('null as commentor_order'),
-                    'form_id',
-                    // DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
+                    DB::raw('null as commentor_order')
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -893,6 +893,13 @@ class EvaluationResponseController extends Controller
                         $query->whereNotNull('signature_filepath');
                     }
                 ])
+                ->addSelect(
+                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    'form_id',
+                    'evaluatee_id',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
                 ->whereNotNull('creator_signature_filepath')
                 ->having('evaluators_unsigned_count', 0)
                 ->having('commentors_unsigned_count', 0)
@@ -906,8 +913,7 @@ class EvaluationResponseController extends Controller
                         IF(ISNULL(creator_signature_filepath), 'Pending', 'Done')
                         as status
                     "),
-                    DB::raw('null as commentor_order'),
-                    'form_id'
+                    DB::raw('null as commentor_order')
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -924,6 +930,13 @@ class EvaluationResponseController extends Controller
                         $query->whereNotNull('signature_filepath');
                     }
                 ])
+                ->addSelect(
+                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    'form_id',
+                    'evaluatee_id',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
                 ->having('evaluators_unsigned_count', 0)
                 ->having('commentors_unsigned_count', 0)
             ;
@@ -936,8 +949,7 @@ class EvaluationResponseController extends Controller
                         IF(ISNULL(signature_filepath), 'Pending', 'Done')
                         as status
                     "),
-                    DB::raw('null as commentor_order'),
-                    'form_id'
+                    DB::raw('null as commentor_order')
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -954,6 +966,13 @@ class EvaluationResponseController extends Controller
                         $query->whereNotNull('signature_filepath');
                     }
                 ])
+                ->addSelect(
+                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    'form_id',
+                    'evaluatee_id',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
             ;
             $commentorResponses = $user
                 ->commentorResponses()
@@ -964,8 +983,7 @@ class EvaluationResponseController extends Controller
                         IF(ISNULL(signature_filepath), 'Pending', 'Done')
                         as status
                     "),
-                    'order as commentor_order',
-                    'form_id'
+                    'order as commentor_order'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -982,10 +1000,16 @@ class EvaluationResponseController extends Controller
                         $query->whereNotNull('signature_filepath');
                     }
                 ])
+                ->addSelect(
+                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    'form_id',
+                    'evaluatee_id',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
                 ->having('evaluators_unsigned_count', 0)
                 ->having('commentor_order', '<=', DB::raw('commentors_signed_count + 1'))
             ;
-
             $evaluationResponses = $evaluateeResponses
                 ->union($createdResponses)
                 ->union($evaluatorResponses)
@@ -993,65 +1017,94 @@ class EvaluationResponseController extends Controller
                 ->with(['form' => function ($form) {
                     $form->select('id', 'name');
                 }])
+                ->with(['evaluatee' => function ($form) {
+                    $form
+                        ->select(
+                            'id', 'last_name', 'first_name', 'middle_name', 'suffix', 'branch_id', 'department_id'
+                        )
+                        ->with(['branch' => function ($form) {
+                            $form->select('id', 'name');
+                        }])
+                        ->with(['department' => function ($form) {
+                            $form->select('id', 'name');
+                        }])
+                    ;
+                }])
+                ->orderBy('created_at', 'desc')
             ;
 
-            if($request->search)
-                $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
-                    $query
-                        ->where('evaluation_forms.name', 'LIKE', "%$request->search%")
-                        ->orWhere(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
-                        ->orWhere(
-                            DB::raw('CONCAT(
-                                evaluatees.last_name, ", ",
-                                evaluatees.first_name,
-                                IF(ISNULL(evaluatees.middle_name), "", CONCAT(" ", evaluatees.middle_name)),
-                                IF(ISNULL(evaluatees.suffix), "", CONCAT(" ", evaluatees.suffix))
-                            )'),
-                            'LIKE', "%$request->search%"
-                        )
-                        ->orWhere('departments.name', 'LIKE', "%$request->search%")
-                        ->orWhere('branches.name', 'LIKE', "%$request->search%");
-                });
+            // searching code here
+
+            // if($request->search) {
+            //     $evaluationResponses = $evaluationResponses
+            //         ->whereHas('form', function ($query) use ($request) {
+            //             // $query->where('name', 'LIKE', "%$request->search%");
+            //             $query->where(DB::raw('id'), '=', 2);
+            //         })
+            //     ;
+            // }
+
+                // $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
+                //     $query
+                //         // ->whereHas(DB::raw('form.name'), 'LIKE', "%$request->search%")
+                //         ->whereHas('form', function (Builder $query) {
+                //             $query->where('name', 'like', "%$request->search%");
+                //         })
+                //         // ->orWhere(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
+                //         // ->orWhere(
+                //         //     DB::raw('CONCAT(
+                //         //         evaluatees.last_name, ", ",
+                //         //         evaluatees.first_name,
+                //         //         IF(ISNULL(evaluatees.middle_name), "", CONCAT(" ", evaluatees.middle_name)),
+                //         //         IF(ISNULL(evaluatees.suffix), "", CONCAT(" ", evaluatees.suffix))
+                //         //     )'),
+                //         //     'LIKE', "%$request->search%"
+                //         // )
+                //         // ->orWhere('departments.name', 'LIKE', "%$request->search%")
+                //         // ->orWhere('branches.name', 'LIKE', "%$request->search%")
+                //     ;
+                // });
 
             if ($request->form_id !== null)
                 $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
 
-            if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
-                $sortOrder = $order_by_param['sort_order'] ?? 'asc';
-                if ($sortOrder != 'asc' && $sortOrder != 'desc')
-                    return response()->json([
-                        'status' => 400,
-                        'message' => 'Sort order is invalid!'
-                    ]);
-                switch ($order_by_param['key']) {
-                    case 'branch_name':
-                        $evaluationResponses = $evaluationResponses->orderBy('branches.name', $sortOrder);
-                        break;
-                    case 'department_name':
-                        $evaluationResponses = $evaluationResponses->orderBy('departments.name', $sortOrder);
-                        break;
-                    case 'last_name':
-                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.last_name', $sortOrder);
-                        break;
-                    case 'first_name':
-                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.first_name', $sortOrder);
-                        break;
-                    case 'middle_name':
-                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.middle_name', $sortOrder);
-                        break;
-                    case 'suffix':
-                        $evaluationResponses = $evaluationResponses->orderBy('evaluatees.suffix', $sortOrder);
-                        break;
-                    case 'updated_at':
-                        $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrder);
-                        break;
-                    default:
-                        return response()->json([
-                            'status' => 400,
-                            'message' => 'Order by option is invalid!'
-                        ]);
-                }
-            }
+            // if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
+            //     $sortOrder = $order_by_param['sort_order'] ?? 'asc';
+            //     if ($sortOrder != 'asc' && $sortOrder != 'desc')
+            //         return response()->json([
+            //             'status' => 400,
+            //             'message' => 'Sort order is invalid!'
+            //         ]);
+            //     switch ($order_by_param['key']) {
+            //         case 'branch_name':
+            //             $evaluationResponses = $evaluationResponses->orderBy('branches.name', $sortOrder);
+            //             break;
+            //         case 'department_name':
+            //             $evaluationResponses = $evaluationResponses->orderBy('departments.name', $sortOrder);
+            //             break;
+            //         case 'last_name':
+            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.last_name', $sortOrder);
+            //             break;
+            //         case 'first_name':
+            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.first_name', $sortOrder);
+            //             break;
+            //         case 'middle_name':
+            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.middle_name', $sortOrder);
+            //             break;
+            //         case 'suffix':
+            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.suffix', $sortOrder);
+            //             break;
+            //         case 'updated_at':
+            //             $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrder);
+            //             break;
+            //         default:
+            //             return response()->json([
+            //                 'status' => 400,
+            //                 'message' => 'Order by option is invalid!'
+            //             ]);
+            //     }
+            // }
+            
 
             $page = $request->page ?? 1;
             $limit = $request->limit ?? 10;
@@ -1079,7 +1132,7 @@ class EvaluationResponseController extends Controller
         }
     }
 
-    public function getEvaluationResponses(Request $request)
+    public function getEvaluationResponses_og(Request $request)
     {
         // inputs:
         /*
