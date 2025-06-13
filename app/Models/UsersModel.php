@@ -172,24 +172,38 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->belongsTo(Company::class, 'company_id');
     }
 
+    public function commentorResponses()
+    {
+        return $this->hasManyThrough(
+            EvaluationResponse::class,
+            EvaluationCommentor::class,
+            'commentor_id',
+            'id',
+            'id',
+            'response_id'
+        );
+    }
+
+    public function createdResponses()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'creator_id');
+    }
+
     public function evaluateeResponses()
     {
         return $this->hasMany(EvaluationResponse::class, 'evaluatee_id');
     }
 
-    public function evaluationCommentors()
+    public function evaluatorResponses()
     {
-        return $this->hasMany(EvaluationCommentor::class, 'commentor_id');
-    }
-
-    public function evaluationEvaluators()
-    {
-        return $this->hasMany(EvaluationEvaluator::class, 'evaluator_id');
-    }
-
-    public function evaluatorForms()
-    {
-        return $this->hasMany(EvaluationResponse::class, 'evaluator_id');
+        return $this->hasManyThrough(
+            EvaluationResponse::class,
+            EvaluationEvaluator::class,
+            'evaluator_id',
+            'id',
+            'id',
+            'response_id'
+        );
     }
 
     public function registerMediaCollections(): void
