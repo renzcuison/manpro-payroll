@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
-    TablePagination, Box, Typography, CircularProgress
+    TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
+    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { getFullName } from '../../../utils/user-utils';
+import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 
 const rolePriority = {
     "Creator": 1,
@@ -30,6 +34,12 @@ const getEvaluationRoleRoute = (row) => {
     }
 };
 
+const STATUS_OPTIONS = [
+    { value: '', label: "All" },
+    { value: 'Pending', label: "Pending" },
+    { value: 'Done', label: "Done" },
+];
+
 const PerformanceEvaluationList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const user = JSON.parse(storedUser);
@@ -38,6 +48,7 @@ const PerformanceEvaluationList = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [evaluationResponses, setEvaluationResponses] = useState([]);
+    const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
 
     // Pagination state
     const [page, setPage] = useState(0); // 0-based for TablePagination
@@ -48,7 +59,25 @@ const PerformanceEvaluationList = () => {
     const [searchValue, setSearchValue] = useState('');
     const [searchInput, setSearchInput] = useState('');
 
-    // Fetch evaluation responses for the current user (as evaluatee or evaluator or commentor)
+    // Status filter state
+    const [statusFilter, setStatusFilter] = useState('');
+
+    // Menu Items (for completeness, not used in employee page, but pattern kept in case)
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+    const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+    const handleMenuClose = () => setAnchorEl(null);
+
+    // Modal state for New Form (employee may not use, but pattern kept for design similarity)
+    const [modalOpen, setModalOpen] = useState(false);
+
+    useEffect(() => {
+        axiosInstance.get('/getEvaluationForms', { headers })
+            .then((response) => setPerformanceEvaluation(response.data.evaluationForms || []))
+            .catch(() => setPerformanceEvaluation([]));
+    }, []);
+
+    // Fetch evaluation responses for the current user
     useEffect(() => {
         setIsLoading(true);
         axiosInstance.get('/getEvaluationResponses', {
@@ -57,6 +86,7 @@ const PerformanceEvaluationList = () => {
                 page: page + 1, // backend is 1-based
                 limit: rowsPerPage,
                 search: searchValue,
+                status: statusFilter || undefined,
                 order_by: [
                     { key: "updated_at", sort_order: "desc" }
                 ]
@@ -86,27 +116,29 @@ const PerformanceEvaluationList = () => {
                 setTotalCount(0);
             })
             .finally(() => setIsLoading(false));
-    }, [page, rowsPerPage, searchValue]);
+    }, [page, rowsPerPage, searchValue, statusFilter]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
     // Search handlers
-    const handleSearchChange = (e) => {
-        setSearchInput(e.target.value);
-    };
-
+    const handleSearchChange = (e) => setSearchInput(e.target.value);
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         setPage(0);
         setSearchValue(searchInput.trim());
     };
-
     const handleClearSearch = () => {
         setSearchInput('');
         setSearchValue('');
         setPage(0);
+    };
+
+    // Status filter handler
+    const handleStatusChange = (e) => {
+        setStatusFilter(e.target.value);
+        setPage(0); // reset to first page
     };
 
     return (
@@ -117,43 +149,58 @@ const PerformanceEvaluationList = () => {
                     <Box sx={{ mt: 5 }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Performance Evaluation </Typography>
                     </Box>
-                    {/* White Box Containing the Table */}
+                    {/* White Box Containing the Table and Filters */}
                     <Box sx={{ mt: 2, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {/* Table with Search */}
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
+                        {/* Table Filters and Search */}
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3, gap: 2 }}>
+                            {/* Search Field */}
                             <Box
                                 component="form"
                                 onSubmit={handleSearchSubmit}
-                                sx={{ mr: 1, width: 260 }}
+                                sx={{ width: 220 }}
                             >
-                                <input
+                                <TextField
                                     placeholder="Search..."
                                     value={searchInput}
                                     onChange={handleSearchChange}
                                     size="small"
-                                    style={{
-                                        width: "100%",
-                                        padding: "6px 12px",
-                                        borderRadius: "4px",
-                                        border: "1px solid #ccc"
+                                    fullWidth
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <SearchIcon />
+                                            </InputAdornment>
+                                        ),
+                                        endAdornment: (
+                                            searchInput && (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        aria-label="clear search"
+                                                        onClick={handleClearSearch}
+                                                        edge="end"
+                                                        size="small"
+                                                    >
+                                                        <ClearIcon />
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            )
+                                        )
                                     }}
                                 />
-                                {searchInput && (
-                                    <button
-                                        type="button"
-                                        onClick={handleClearSearch}
-                                        style={{
-                                            position: "absolute",
-                                            right: "10px",
-                                            top: "50%",
-                                            transform: "translateY(-50%)",
-                                            background: "none",
-                                            border: "none",
-                                            cursor: "pointer"
-                                        }}
-                                    >×</button>
-                                )}
                             </Box>
+                            {/* Status Filter */}
+                            <FormControl size="small" sx={{ minWidth: 110 }}>
+                                <InputLabel>Status</InputLabel>
+                                <Select
+                                    value={statusFilter}
+                                    label="Status"
+                                    onChange={handleStatusChange}
+                                >
+                                    {STATUS_OPTIONS.map(opt => (
+                                        <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         </Box>
                         {isLoading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
