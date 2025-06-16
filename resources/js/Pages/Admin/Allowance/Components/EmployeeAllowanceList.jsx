@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, Tooltip} from "@mui/material";
 import dayjs from "dayjs";
+import LoadingSpinner from "../../../../components/LoadingStates/LoadingSpinner";
 
 
-const EmployeeAllowanceList = ({ allowances, onAdd, onEdit }) => {
+const EmployeeAllowanceList = ({ allowances, isLoading, onAdd, onEdit }) => {
+    if(isLoading){
+        return (
+            <Box display='flex' justifyContent='center'>
+                <LoadingSpinner/>
+            </Box>
+        )
+    }
     return (
         <Box>
             <TableContainer>
@@ -34,9 +42,11 @@ const EmployeeAllowanceList = ({ allowances, onAdd, onEdit }) => {
                                         <Typography>{dayjs(allowance.created_at).format("MMM DD, YYYY")}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
-                                            <i class="fa fa-pencil-square-o fa-lg"/>
-                                        </Button>
+                                        <Tooltip title="Edit">
+                                            <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
+                                                <i class="fa fa-pencil-square-o fa-lg"/>
+                                            </Button>
+                                        </Tooltip>
                                     </TableCell>
                                 </TableRow>
                             ))

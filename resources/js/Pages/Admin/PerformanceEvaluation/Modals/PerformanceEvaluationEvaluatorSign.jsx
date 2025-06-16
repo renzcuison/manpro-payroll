@@ -19,6 +19,10 @@ const PerformanceEvaluationEvaluatorSign = ({ open, onClose, onProceed }) => {
         if (sigPadRef.current && !sigPadRef.current.isEmpty()) {
             const signatureData = sigPadRef.current.getTrimmedCanvas().toDataURL('image/png');
             if (onProceed) onProceed(signatureData);
+            // sigPadRef.current.getTrimmedCanvas().toBlob(function(blob) {
+            //     if (onProceed) onProceed(blob);
+            // }, 'image/png');
+            
         }
     };
 

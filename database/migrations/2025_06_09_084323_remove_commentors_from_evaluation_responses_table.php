@@ -27,7 +27,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('evaluation_responses', function (Blueprint $table) {
-            //
+            $table->unsignedBigInteger('primary_commentor_id');
+            $table->unsignedBigInteger('secondary_commentor_id');
+            $table->foreign('primary_commentor_id')->references('id')->on('users');
+            $table->foreign('secondary_commentor_id')->references('id')->on('users');
+            $table->string('primary_comment')->nullable();
+            $table->string('secondary_comment')->nullable();
         });
     }
 };

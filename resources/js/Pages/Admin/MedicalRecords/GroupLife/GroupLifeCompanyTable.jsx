@@ -37,6 +37,7 @@ const highlightMatch = (text, keyword) => {
 };
 
 const GroupLifeCompanyTable = ({ rows, onRowClick, search }) => {
+    
     return (
         <TableContainer
             sx={{
@@ -55,6 +56,7 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search }) => {
                         <TableCell align="center"> Payment Type </TableCell>
                         <TableCell align="center"> Employer Share </TableCell>
                         <TableCell align="center"> Employee Share </TableCell>
+                        <TableCell align="center"> Employees Assigned </TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -70,7 +72,7 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search }) => {
                             return (
                                 <TableRow
                                     key={idx}
-                                    onClick={onRowClick}
+                                    onClick={() => onRowClick(row)}
                                     sx={{
                                         cursor: "pointer",
                                         transition: ".15s",
@@ -102,6 +104,11 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search }) => {
 
                                     <TableCell align="center">
                                         {highlightMatch(Number(row.employeeShare).toFixed(2), search)}
+                                    </TableCell>
+
+                                    
+                                    <TableCell align="center">
+                                        0
                                     </TableCell>
                                 </TableRow>
                             );

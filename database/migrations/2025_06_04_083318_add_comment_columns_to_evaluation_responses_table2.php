@@ -24,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('evaluation_responses', function (Blueprint $table) {
-            //
+            $table->dropColumn('evaluator_comment');
+            $table->dropColumn('primary_comment');
+            $table->dropColumn('secondary_comment');
         });
     }
 };

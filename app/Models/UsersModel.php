@@ -162,6 +162,11 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->hasMany(EmployeeBenefitsModel::class, 'user_id');
     }
 
+    public function deductions()
+    {
+        return $this->hasMany(EmployeeDeductionsModel::class, 'user_id');
+    }
+
     public function leaveCredits()
     {
         return $this->hasMany(LeaveCreditsModel::class, 'user_id');
@@ -227,5 +232,12 @@ class UsersModel extends Authenticatable implements HasMedia
         );
     }
 
+    public function assignGroupLifePlan()
+    {
+        return $this->belongsTo(
+            GroupLifeCompanyPlan::class,
+            'group_life_plan_id'
+        );
+    }
   
 }

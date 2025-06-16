@@ -12,7 +12,7 @@ class GroupLifeCompanyPlan extends Model
 
     protected $table = 'group_life_plans';
 
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'group_life_plan_id';
 
     protected $fillable = [
         'group_life_company_id',
@@ -24,5 +24,9 @@ class GroupLifeCompanyPlan extends Model
 
     public function company() {
         return $this->belongsTo(GroupLifeCompany::class, 'group_life_company_id');
+    }
+
+    public function employees() {
+        return $this->hasMany(UsersModel::class, 'group_life_plan_id');
     }
 }
