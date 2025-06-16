@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('group_life_dependents', function (Blueprint $table) {
+            $table->id();
+            $table->string('dependent_name', 64);
+            $table->string('relationship', 64);
+            $table->unsignedBigInteger('group_life_employee_id');
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('group_life_employee_id')->references('id')->on('group_life_employees');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('group_life_dependents');
+    }
+};

@@ -142,12 +142,7 @@ class InsurancesController extends Controller
         ]);
 
         $plan = GroupLifeCompanyPlan::create($validated);
-
-        DB::table('number_of_plans')->updateOrInsert(
-        ['group_life_company_id' => $validated['group_life_company_id']],
-        ['count' => DB::raw('count + 1')]
-        );
-
+        
         return response()->json($plan, 201);
     }
 
