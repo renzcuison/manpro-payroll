@@ -104,6 +104,7 @@ import PerformanceEvaluationCommentorPage from '../Pages/Admin/PerformanceEvalua
 import PerformanceEvaluationEvaluateePage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationEvaluateePage';
 import PerformanceEvaluationCreatorPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCreatorPage'
 
+import CommingSoon from "../Pages/Admin/Staffing/CommingSoon";
 
 const AdminRoutes = ({ user }) => {
     const navigate = useNavigate();
@@ -116,62 +117,25 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
-             <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview/>} user={user} />} />
-             {/* <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} /> */}
-             <Route path="performance-evaluation/answer/:id" element={<ProtectedRoute element={<PerformanceEvaluationAnswerPage />} user={user} />} />
-             <Route path="performance-evaluation/commentor/:id" element={<ProtectedRoute element={<PerformanceEvaluationCommentorPage />} user={user} />} />
+            <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview/>} user={user} />} />
+            {/* <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} /> */}
+            <Route path="performance-evaluation/answer/:id" element={<ProtectedRoute element={<PerformanceEvaluationAnswerPage />} user={user} />} />
+            <Route path="performance-evaluation/commentor/:id" element={<ProtectedRoute element={<PerformanceEvaluationCommentorPage />} user={user} />} />
             <Route path="performance-evaluation/evaluatee/:id" element={<ProtectedRoute element={<PerformanceEvaluationEvaluateePage />} user={user} />} />
-             <Route path="performance-evaluation/creator/:id" element={<ProtectedRoute element={<PerformanceEvaluationCreatorPage />} user={user} />} />
+            <Route path="performance-evaluation/creator/:id" element={<ProtectedRoute element={<PerformanceEvaluationCreatorPage />} user={user} />} />
 
+            <Route path="staffing/onboarding" element={<ProtectedRoute element={<CommingSoon />} user={user} />} />
+            <Route path="staffing/offboarding" element={<ProtectedRoute element={<CommingSoon />} user={user} />} />
 
-            <Route
-                path="dashboard"
-                element={<ProtectedRoute element={<Dashboard />} user={user} />}
-            />
+            <Route path="dashboard" element={<ProtectedRoute element={<Dashboard />} user={user} />} />
 
-            <Route
-                path="employee/:user"
-                element={
-                    <ProtectedRoute element={<EmployeeView />} user={user} />
-                }
-            />
-            <Route
-                path="employees"
-                element={
-                    <ProtectedRoute element={<EmployeesList />} user={user} />
-                }
-            />
-            <Route
-                path="employees/add"
-                element={
-                    <ProtectedRoute element={<EmployeesAdd />} user={user} />
-                }
-            />
-            <Route
-                path="employees/formlinks"
-                element={
-                    <ProtectedRoute
-                        element={<EmployeeFormLinks />}
-                        user={user}
-                    />
-                }
-            />
+            <Route path="employee/:user" element={ <ProtectedRoute element={<EmployeeView />} user={user} /> } />
+            <Route path="employees" element={ <ProtectedRoute element={<EmployeesList />} user={user} /> } />
+            <Route path="employees/add" element={ <ProtectedRoute element={<EmployeesAdd />} user={user} /> } />
+            <Route path="employees/formlinks" element={ <ProtectedRoute element={<EmployeeFormLinks />} user={user} /> } />
 
-            <Route
-                path="employees/allowance"
-                element={
-                    <ProtectedRoute
-                        element={<EmployeesAllowanceList />}
-                        user={user}
-                    />
-                }
-            />
-            <Route
-                path="employees/allowance-types"
-                element={
-                    <ProtectedRoute element={<AllowanceTypes />} user={user} />
-                }
-            />
+            <Route path="employees/allowance" element={ <ProtectedRoute element={<EmployeesAllowanceList />} user={user} /> } />
+            <Route path="employees/allowance-types" element={ <ProtectedRoute element={<AllowanceTypes />} user={user} /> } />
             <Route path="employees/deductions" element={<ProtectedRoute element={<EmployeesDeductionsList/>} user={user}/>}/>
             <Route path="employees/deductions-types" element={<ProtectedRoute element={<DeductionsType />} user={user} /> } />
 
