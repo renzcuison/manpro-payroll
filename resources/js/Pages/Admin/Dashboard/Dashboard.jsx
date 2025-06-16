@@ -48,12 +48,23 @@ const Dashboard = () => {
         isLoading,
     } = useDashboard();
 
-    console.log("Dashboard: ", dashboard);
+    const {
+        data: milestones,
+        isLoading: isLoadingMilestones,
+    } = useMilestones();
 
-    const { data: milestones, isLoading: isLoadingMilestones } =
-        useMilestones();
+    const milestonesToday = useMemo(() => {
+        if (!data) {
+            return [];
+        }
+        return data.milestones?.filter((milestone) => {
+            const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");
+            const today = moment().format("YYYY-MM-DD");
+            return milestoneDate === today;
+        });
+    }, [data]);
 
-    console.log("User:", user);
+    console.log("milestonesToday: ", milestonesToday);
 
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
@@ -323,64 +334,88 @@ const Dashboard = () => {
                                 bgcolor: "background.paper",
                             }}
                         >
-                            {dashboard?.milestones?.map((emp, index) => (
-                                <React.Fragment key={index}>
-                                    <ListItem
-                                        alignItems="flex-start"
-                                        secondaryAction={
-                                            <>
-                                                <Chip
-                                                    label={
-                                                        emp.type
-                                                            .charAt(0)
-                                                            .toUpperCase() +
-                                                        emp.type.slice(1)
+                            {milestonesToday ? (
+                                milestonesToday?.map((emp, index) => (
+                                    <React.Fragment key={index}>
+                                        <ListItem
+                                            alignItems="flex-start"
+                                            secondaryAction={
+                                                <>
+                                                    <Chip
+                                                        label={
+                                                            emp.type
+                                                                .charAt(0)
+                                                                .toUpperCase() +
+                                                            emp.type.slice(1)
+                                                        }
+                                                    />
+                                                </>
+                                            }
+                                            sx={{ px: 0 }}
+                                        >
+                                            <ListItemAvatar>
+                                                <Avatar
+                                                    alt="Remy Sharp"
+                                                    src={
+                                                        emp.user?.media
+                                                            ? emp.user
+                                                                  ?.media?.[0]
+                                                                  ?.original_url
+                                                            : ""
                                                     }
                                                 />
-                                            </>
-                                        }
-                                        sx={{ px: 0 }}
-                                    >
-                                        <ListItemAvatar>
-                                            <Avatar
-                                                alt="Remy Sharp"
-                                                src={
-                                                    emp.user?.media
-                                                        ? emp.user?.media?.[0]
-                                                              ?.original_url
-                                                        : ""
+                                            </ListItemAvatar>
+                                            <ListItemText
+                                                primary={
+                                                    <Typography
+                                                        variant="body1"
+                                                        sx={{ fontWeight: 600 }}
+                                                    >
+                                                        {emp.user?.first_name}{" "}
+                                                        {emp.user?.last_name}
+                                                    </Typography>
+                                                }
+                                                secondary={
+                                                    <React.Fragment>
+                                                        <Typography
+                                                            component="span"
+                                                            variant="body2"
+                                                            sx={{
+                                                                color:
+                                                                    "text.primary",
+                                                                display:
+                                                                    "inline",
+                                                            }}
+                                                        >
+                                                            {emp.description}
+                                                        </Typography>
+                                                    </React.Fragment>
                                                 }
                                             />
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                            primary={
-                                                <Typography
-                                                    variant="body1"
-                                                    sx={{ fontWeight: 600 }}
-                                                >
-                                                    {emp.user?.first_name}{" "}
-                                                    {emp.user?.last_name}
-                                                </Typography>
-                                            }
-                                            secondary={
-                                                <React.Fragment>
-                                                    <Typography
-                                                        component="span"
-                                                        variant="body2"
-                                                        sx={{
-                                                            color: "text.primary",
-                                                            display: "inline",
-                                                        }}
-                                                    >
-                                                        {emp.description}
-                                                    </Typography>
-                                                </React.Fragment>
-                                            }
+                                        </ListItem>
+                                        <Divider
+                                            variant="inset"
+                                            component="li"
                                         />
-                                    </ListItem>
-                                    <Divider variant="inset" component="li" />
-                                </React.Fragment>
-                            ))}
+                                    </React.Fragment>
+                                ))
+                            ) : (
+                                <Stack spacing={3}>
+                                    <Stack
+                                        direction="row"
+                                        alignItems="center"
+                                        spacing={3}
+                                    >
+                                        <Typography
+                                            variant="subtitle1"
+                                            sx={{ fontWeight: 400 }}
+                                        >
+                                            No upcoming birthdays or milestones
+                                        </Typography>
+                                    </Stack>
+                                    <Skeleton variant="rounded" height={100} />
+                                </Stack>
+                            )}
                         </List>
                     </Paper>
                 </Grid>
