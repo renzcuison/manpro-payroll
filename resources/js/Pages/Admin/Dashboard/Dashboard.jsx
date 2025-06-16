@@ -17,6 +17,7 @@ import {
     Skeleton,
     Stack,
     CircularProgress,
+    Box,
 } from "@mui/material";
 
 import dayjs from "dayjs";
@@ -38,6 +39,7 @@ import SchedulesHolidays from "./SchedulesHolidays";
 import { useDashboard } from "./useDashboard";
 import { useMilestones } from "../Milestones/hook/useMilestones";
 import { useUser } from "../../../hooks/useUser";
+import OverviewStatistics from "./OverviewStatistics";
 
 const Dashboard = () => {
     const { user, isFetched: userIsFetched } = useUser();
@@ -48,21 +50,27 @@ const Dashboard = () => {
         isLoading,
     } = useDashboard();
 
-    console.log("Dashboard: ", dashboard);
+    // const {
+    //     data: milestones,
+    //     isLoading: isLoadingMilestones,
+    // } = useMilestones();
 
-    const { data: milestones, isLoading: isLoadingMilestones } =
-        useMilestones();
-
-    console.log("User:", user);
+    const milestonesToday = useMemo(() => {
+        if (dashboard) {
+            return dashboard.milestones?.filter((milestone) => {
+                const milestoneDate = moment(milestone.date).format(
+                    "YYYY-MM-DD"
+                );
+                const today = moment().format("YYYY-MM-DD");
+                return milestoneDate === today;
+            });
+        }
+    }, [dashboard, isFetchedDashboard]);
 
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
         moment().format("YYYY-MM-DD")
     );
-
-    const handleChange = (event, newValue) => {
-        setValue(newValue);
-    };
 
     const [adminName, setAdminName] = useState("Admin");
 
@@ -193,30 +201,35 @@ const Dashboard = () => {
     const infoCardsData = [
         {
             title: "Total Employees",
+            slug: "employees",
             value: dashboard?.employees?.length,
             icon: <Users size={42} />,
             link: "/admin/employees",
         },
         {
             title: "Present",
+            slug: "present",
             value: presentUsers?.length,
             icon: <Check size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "Late",
+            slug: "late",
             value: lateUsers?.length,
             icon: <Clock size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "On Leave",
+            slug: "leave",
             value: onLeave?.length,
             icon: <CalendarCheck size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "Absent",
+            slug: "absent",
             value:
                 dashboard?.employees?.length -
                 presentUsers?.length -
@@ -277,25 +290,7 @@ const Dashboard = () => {
                     size={{ xs: 12, lg: 8 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
                 >
-                    <Paper sx={{ p: 3, borderRadius: 5 }}>
-                        <Typography
-                            variant="h5"
-                            sx={{ fontWeight: 600, color: "#4d4d4d" }}
-                        >
-                            Overview Summary
-                        </Typography>
-                        <Tabs
-                            value={value}
-                            onChange={handleChange}
-                            textColor="primary"
-                            indicatorColor="primary"
-                            aria-label="secondary tabs example"
-                        >
-                            <Tab value="one" label="Item One" />
-                            <Tab value="two" label="Item Two" />
-                            <Tab value="three" label="Item Three" />
-                        </Tabs>
-                    </Paper>
+                    <OverviewStatistics />
                 </Grid>
                 {/* BIRTHDAYS AND MILESTONES CARD */}
                 <Grid
@@ -323,64 +318,88 @@ const Dashboard = () => {
                                 bgcolor: "background.paper",
                             }}
                         >
-                            {dashboard?.milestones?.map((emp, index) => (
-                                <React.Fragment key={index}>
-                                    <ListItem
-                                        alignItems="flex-start"
-                                        secondaryAction={
-                                            <>
-                                                <Chip
-                                                    label={
-                                                        emp.type
-                                                            .charAt(0)
-                                                            .toUpperCase() +
-                                                        emp.type.slice(1)
+                            {milestonesToday ? (
+                                milestonesToday?.map((emp, index) => (
+                                    <React.Fragment key={index}>
+                                        <ListItem
+                                            alignItems="flex-start"
+                                            secondaryAction={
+                                                <>
+                                                    <Chip
+                                                        label={
+                                                            emp.type
+                                                                .charAt(0)
+                                                                .toUpperCase() +
+                                                            emp.type.slice(1)
+                                                        }
+                                                    />
+                                                </>
+                                            }
+                                            sx={{ px: 0 }}
+                                        >
+                                            <ListItemAvatar>
+                                                <Avatar
+                                                    alt="Remy Sharp"
+                                                    src={
+                                                        emp.user?.media
+                                                            ? emp.user
+                                                                  ?.media?.[0]
+                                                                  ?.original_url
+                                                            : ""
                                                     }
                                                 />
-                                            </>
-                                        }
-                                        sx={{ px: 0 }}
-                                    >
-                                        <ListItemAvatar>
-                                            <Avatar
-                                                alt="Remy Sharp"
-                                                src={
-                                                    emp.user?.media
-                                                        ? emp.user?.media?.[0]
-                                                              ?.original_url
-                                                        : ""
+                                            </ListItemAvatar>
+                                            <ListItemText
+                                                primary={
+                                                    <Typography
+                                                        variant="body1"
+                                                        sx={{ fontWeight: 600 }}
+                                                    >
+                                                        {emp.user?.first_name}{" "}
+                                                        {emp.user?.last_name}
+                                                    </Typography>
+                                                }
+                                                secondary={
+                                                    <React.Fragment>
+                                                        <Typography
+                                                            component="span"
+                                                            variant="body2"
+                                                            sx={{
+                                                                color:
+                                                                    "text.primary",
+                                                                display:
+                                                                    "inline",
+                                                            }}
+                                                        >
+                                                            {emp.description}
+                                                        </Typography>
+                                                    </React.Fragment>
                                                 }
                                             />
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                            primary={
-                                                <Typography
-                                                    variant="body1"
-                                                    sx={{ fontWeight: 600 }}
-                                                >
-                                                    {emp.user?.first_name}{" "}
-                                                    {emp.user?.last_name}
-                                                </Typography>
-                                            }
-                                            secondary={
-                                                <React.Fragment>
-                                                    <Typography
-                                                        component="span"
-                                                        variant="body2"
-                                                        sx={{
-                                                            color: "text.primary",
-                                                            display: "inline",
-                                                        }}
-                                                    >
-                                                        {emp.description}
-                                                    </Typography>
-                                                </React.Fragment>
-                                            }
+                                        </ListItem>
+                                        <Divider
+                                            variant="inset"
+                                            component="li"
                                         />
-                                    </ListItem>
-                                    <Divider variant="inset" component="li" />
-                                </React.Fragment>
-                            ))}
+                                    </React.Fragment>
+                                ))
+                            ) : (
+                                <Stack spacing={3}>
+                                    <Stack
+                                        direction="row"
+                                        alignItems="center"
+                                        spacing={3}
+                                    >
+                                        <Typography
+                                            variant="subtitle1"
+                                            sx={{ fontWeight: 400 }}
+                                        >
+                                            No upcoming birthdays or milestones
+                                        </Typography>
+                                    </Stack>
+                                    <Skeleton variant="rounded" height={100} />
+                                </Stack>
+                            )}
                         </List>
                     </Paper>
                 </Grid>

@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField,  FormControl, FormGroup, InputAdornment } from "@mui/material";
 import dayjs from "dayjs";
 import Swal from "sweetalert2";
-import { useUpdateEmployeeBenefit } from "../../../../hooks/useBenefits";
+import { useBenefits } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitEdit = ({benefits, onClose}) => {
-    const updateEmpBenefit = useUpdateEmployeeBenefit();
+    const {updateEmployeeBenefit} = useBenefits();
 
     const [number, setNumber] = useState(benefits?.number)
     const [selectedStatus, setSelectedStatus] = useState(benefits?.status);
@@ -42,7 +42,7 @@ const EmployeeBenefitEdit = ({benefits, onClose}) => {
     const saveBenefit = (event) => {
         event.preventDefault();
         const data = {emp_benefit_id: benefits.id, number: number}
-        updateEmpBenefit.mutate(data,
+        updateEmployeeBenefit.mutate(data,
         {
             onSuccess: () => {
                 Swal.fire({

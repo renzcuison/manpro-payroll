@@ -47,6 +47,7 @@ function Milestones() {
             return milestoneDate === today;
         });
     }, [milestones]);
+
     const milestonesUpcoming = useMemo(() => {
         return milestones.filter((milestone) => {
             const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");

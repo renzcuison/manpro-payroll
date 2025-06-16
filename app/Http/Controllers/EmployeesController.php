@@ -698,6 +698,7 @@ class EmployeesController extends Controller
                 $employee->address = $request->address;
 
                 $employee->salary = $request->salary;
+                $employee->is_fixed_salary = $request->fixedSalary;
                 $employee->salary_type = $request->salaryType;
 
                 $employee->tin_number = $request->tinNumber;

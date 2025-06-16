@@ -1,17 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, TablePagination, Button } from '@mui/material';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography,
+     Grid, TextField, FormControl, CircularProgress, TablePagination, Button, MenuItem } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import { Link, useNavigate } from 'react-router-dom';
 
 import EmployeeAllowanceView from './Modals/EmployeeAllowanceView';
-import { useEmployeesAllowances } from '../../../hooks/useAllowance';
+import { useAllowances } from '../../../hooks/useAllowances';
+import { useDepartments } from '../../../hooks/useDepartments';
+import { useBranches } from '../../../hooks/useBranches';
 
 const EmployeesAllowanceList = () => {
-    const { data, isLoading, error, refetch } = useEmployeesAllowances();
-    const employees = data?.employees || [];
+    const { employeesAllowances } = useAllowances();
+    const { departments: departmentData } = useDepartments();
+     const { data: branchesData } = useBranches();
+
+    const employees = employeesAllowances.data?.employees || [];
+    const departments = departmentData.data?.departments || [];
+    const branches = branchesData?.branches || [];
 
     const [searchName, setSearchName] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [selectedDepartment, setSelectedDepartment] = useState(0);
+    const [selectedBranch, setSelectedBranch] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -21,12 +31,15 @@ const EmployeesAllowanceList = () => {
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
-        refetch();
+        employeesAllowances.refetch();
     };
 
     const filteredEmployees = employees.filter((employee) => {
-        const fullName = `${employee.last_name}, ${employee.first_name} ${employee.middle_name || ''} ${employee.suffix || ''}`.toLowerCase();
-        return fullName.includes(searchName.toLowerCase());
+        const fullName = `${employee.name}`.toLowerCase();
+        const matchedName = fullName.includes(searchName.toLowerCase());
+        const filteredBranch = selectedBranch === 0 || employee.branch_id === selectedBranch;
+        const filteredDepartment= selectedDepartment === 0 || employee.department_id === selectedDepartment;
+        return matchedName && filteredBranch && filteredDepartment;
     });
 
     const handleChangePage = (event, newPage) => {
@@ -46,26 +59,66 @@ const EmployeesAllowanceList = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Allowance </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Allowances </Typography>
 
                         <Button variant="contained" color="primary" component={Link} to="/admin/employees/allowance-types">
-                            <p className='m-0'><i class="fa fa-list" aria-hidden="true"></i> Types </p>
+                            <p className='m-0'><i className="fa fa-list" aria-hidden="true"></i> Types </p>
                         </Button>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
-                            <Grid container item direction="row" justifyContent="flex-start" xs={4} spacing={2}>
-                                <Grid item xs={6}>
-                                    <FormControl sx={{ width: '150%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}} >
-                                        <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
+                            <Grid container size={12} direction="row" justifyContent="flex-start" xs={4} spacing={2}>
+                                <Grid size={6}>
+                                    <FormControl sx={{width:'50%'}}>
+                                        <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)}/>
                                     </FormControl>
+                                </Grid>
+
+                                <Grid size={3}>
+                                    <TextField
+                                        select
+                                        id="branch-view-select"
+                                        label="Filter by Branch"
+                                        value={selectedBranch}
+                                        onChange={(event) => {
+                                            setSelectedBranch(event.target.value );
+                                        }}
+                                        sx={{ width: "100%" }}
+                                    >   
+                                        <MenuItem value={0}>All Branches</MenuItem>
+                                        {branches.map((branch) => (
+                                            <MenuItem key={branch.id} value={branch.id}>
+                                                {" "}{branch.name}{" "}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+
+                                <Grid size={3}>
+                                    <TextField
+                                        select
+                                        id="department-view-select"
+                                        label="Filter by Department"
+                                        value={selectedDepartment}
+                                        onChange={(event) => {
+                                            setSelectedDepartment(event.target.value);
+                                        }}
+                                        sx={{ width: "100%" }}
+                                    >   
+                                        <MenuItem value={0}>All Departments</MenuItem>
+                                        {departments.map((department) => (
+                                            <MenuItem key={department.id} value={department.id}>
+                                                {" "}{department.name}{" "}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
                                 </Grid>
                             </Grid>
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
-                        {isLoading ? (
+                        {employeesAllowances.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>

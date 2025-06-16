@@ -540,8 +540,10 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
         }
 
         // Load employees that belong to this department (including their branch and position)
-        $employees = UsersModel::with(['branch', 'departmentPosition'])
-            ->where('department_id', $id)
+        $employees = UsersModel::select('id','email', 'user_name', 'first_name', 
+            'last_name', 'user_type', 'profile_pic', 'branch_id', 'department_id', 'department_position_id')
+            ->with(['branch', 'departmentPosition'])
+            ->where('department_id', $id)       
             ->get();
 
         return response()->json([
@@ -712,6 +714,8 @@ public function addBranchPositionAssignments(Request $request)
             'can_note_request' => 'required|boolean',
             'can_accept_request' => 'required|boolean',
         ]);
+        $validated['client_id'] = $user->client_id;
+        
         $position = DepartmentPosition::updateOrCreate(
             ['id' => $request->id],
             array_merge($validated)
