@@ -21,7 +21,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-const GroupLifeAssignEmployee = ({ open, close }) => {
+const GroupLifeEditEmployee = ({ open, close }) => {
 
 const storedUser = localStorage.getItem("nasya_user");
 const headers = getJWTHeader(JSON.parse(storedUser));
@@ -74,23 +74,24 @@ const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [dependentWarning, setDependentWarning] = useState('');
 
-    const isFilled = (dep) =>
-        dep &&
-        typeof dep.name === "string" &&
-        dep.name.trim().length > 0 &&
-        typeof dep.relationship === "string" &&
-        dep.relationship.trim().length > 0;
-
     const handleAddDependent = () => {
-        if (
-            dependents.length === 0 || !isFilled(dependents[0]) || !isFilled(dependents[dependents.length - 1])
-        ) {
+        const first = dependents[0];
+
+        if (!first || !first.name.trim() || !first.relationship.trim()) {
             setDependentWarning("Please fill in the previous dependent's name and relationship before adding another.");
             return;
         }
+
+        const last = dependents[dependents.length - 1];
+
+        if (!last || !last.name.trim() || !last.relationship.trim()) {
+            setDependentWarning("Please fill in the previous dependent's name and relationship before adding another.");
+            return;
+        }
+
         setDependentWarning('');
         setDependents((prev) => [...prev, { name: "", relationship: "" }]);
-        };
+    };
 
     const handleRemoveDependent = (index) => {
         const updated = [...dependents];
@@ -109,7 +110,7 @@ const headers = getJWTHeader(JSON.parse(storedUser));
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '500px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Assign Employee</Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Edit Employee</Typography>
                         <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
 
@@ -125,8 +126,10 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                             <FormControl sx={{ marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
                                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                             }}>
+
+                                                <Typography><strong><h5>Employee Name:</h5></strong> Samuel Christian D. Nacar</Typography>
                                                     
-                                                <Autocomplete fullWidth
+                                                {/* <Autocomplete sx={{width: 750}}
                                                     options={employees}
                                                     getOptionLabel={(employee) =>
                                                         `${employee.first_name} ${employee.middle_name || ""} ${employee.last_name} ${employee.suffix || ""}`.trim()
@@ -135,7 +138,7 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                     renderInput={(params) => (
                                                         <TextField {...params} label="Select Employee" variant="outlined" />
                                                     )}
-                                                />
+                                                /> */}
 
                                             </FormControl>   
                                         </FormGroup>
@@ -177,34 +180,32 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                     />
                                                 </FormControl>
 
-                                                <FormControl sx={{ marginLeft: 2, marginBottom: 3, width: '45%' }}>
-                                                <Autocomplete
-                                                    options={relationshipOptions}
-                                                    value={dependents[0]?.relationship || ""}
-                                                    // Allow free text (not just from the list)
-                                                    freeSolo
-                                                    onChange={(_, newValue) => {
-                                                    const updated = [...dependents];
-                                                    if (!updated[0]) updated[0] = { name: "", relationship: "" };
-                                                    updated[0].relationship = newValue || "";
-                                                    setDependents(updated);
-                                                    }}
-                                                    renderInput={(params) => (
-                                                    <TextField
-                                                        {...params}
-                                                        label="Relationship"
-                                                        variant="outlined"
-                                                        // If you want to support typing and update as user types:
-                                                        onChange={e => {
-                                                        const updated = [...dependents];
-                                                        if (!updated[0]) updated[0] = { name: "", relationship: "" };
-                                                        updated[0].relationship = e.target.value;
-                                                        setDependents(updated);
-                                                        }}
-                                                    />
-                                                    )}
-                                                />
-                                                </FormControl>
+                                                <FormControl sx={{ marginLeft: 2, marginBottom: 3, width: '45%', '& label.Mui-focused': { color: '#97a5ba' },
+                                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                                                    }}>
+                                                    <Grid item xs={12} sm={5}>
+                                                        <FormControl fullWidth>
+                                                            <Autocomplete
+                                                                freeSolo
+                                                                options={relationshipOptions}
+                                                                value={dependents[0]?.relationship || ""}
+                                                                onChange={(event, newValue) => {
+                                                                    const updated = [...dependents];
+                                                                    if (!updated[0]) updated[0] = { name: "", relationship: "" };
+                                                                    updated[0].relationship = newValue || "";
+                                                                    setDependents(updated);
+                                                                }}
+                                                                renderInput={(params) => (
+                                                                    <TextField
+                                                                    {...params}
+                                                                    label="Relationship"
+                                                                    fullWidth
+                                                                    />
+                                                                )}
+                                                                fullWidth
+                                                                />
+                                                    </FormControl>
+                                                </Grid></FormControl>
                                             </Grid>
                                         </Box>
 
@@ -231,33 +232,31 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                     }}>   
                                                     <Grid item xs={12} sm={5}>
                                                         <FormControl fullWidth>
-                                                            <Autocomplete
-                                                                        freeSolo
-                                                                        options={relationshipOptions}
-                                                                        value={dep.relationship || ""}
-                                                                        onChange={(_, newValue) =>
-                                                                        handleDependentChange(index + 1, "relationship", newValue || "")
-                                                                        }
-                                                                        onInputChange={(_, newInputValue) =>
-                                                                        handleDependentChange(index + 1, "relationship", newInputValue || "")
-                                                                        }
-                                                                        renderInput={(params) => (
-                                                                        <TextField {...params} label="Relationship" variant="outlined" />
-                                                                        )}
-                                                                    />
+                                                            <InputLabel>Relationship</InputLabel>
+                                                            <Select
+                                                                value={dep.relationship}
+                                                                label="Relationship"
+                                                                onChange={(e) =>
+                                                                    handleDependentChange(index + 1, "relationship", e.target.value)
+                                                                }
+                                                            >
+                                                                {relationshipOptions.map((rel) => (
+                                                                    <MenuItem key={rel} value={rel}>{rel}</MenuItem>
+                                                                ))}
+                                                            </Select>
                                                         </FormControl>
-                                                    </Grid>                                                    
-                                                    <Grid item xs={12} sm={2} sx={{ marginTop: 2 }} >
-                                                        <Button sx={{marginLeft: 35}}
+                                                    </Grid></FormControl>
+
+                                                </Grid>
+                                                        <Grid item xs={12} sm={2} >
+                                                        <Button sx={{marginLeft: 85}}
                                                             variant="contained"
                                                             color="error"
                                                             onClick={() => handleRemoveDependent(index + 1)}
                                                             >
                                                             Remove
                                                         </Button>
-                                                    </Grid></FormControl>
-
-                                                </Grid>
+                                                    </Grid>
                                             </Box>
                                         ))}
                                         {dependentWarning && (
@@ -303,4 +302,4 @@ const headers = getJWTHeader(JSON.parse(storedUser));
     )
 }
 
-export default GroupLifeAssignEmployee;
+export default GroupLifeEditEmployee;

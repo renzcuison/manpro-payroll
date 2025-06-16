@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('evaluation_form_subcategory_options', function (Blueprint $table) {
-            //
+            $table->dropColumn('score');
         });
     }
 };
