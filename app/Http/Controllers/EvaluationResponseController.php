@@ -3062,6 +3062,7 @@ class EvaluationResponseController extends Controller
                         ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.option_id', '=', $request->option_id)
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                        ->where('evaluation_form_subcategories.id', '=', $subcategory->id)
                         ->whereNull('evaluation_option_answers.deleted_at')
                         ->first()
                     ;
@@ -3078,6 +3079,7 @@ class EvaluationResponseController extends Controller
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                         ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                        ->where('evaluation_form_subcategories.id', '=', $subcategory->id)
                         ->whereNull('evaluation_option_answers.deleted_at')
                         ->first()
                     ;
