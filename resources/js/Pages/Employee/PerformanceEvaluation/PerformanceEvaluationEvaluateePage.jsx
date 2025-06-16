@@ -80,7 +80,7 @@ const PerformanceEvaluationEvaluateePage = () => {
   const navigate = useNavigate();
   const {
     evaluationResponse,
-    editEvaluationCreatorSignature
+    editEvaluationSignature
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
@@ -103,7 +103,7 @@ const PerformanceEvaluationEvaluateePage = () => {
   const handleAcknowledge = async (signatureData) => {
     setSavingAcknowledge(true);
     try {
-      await editEvaluationCreatorSignature({
+      await editEvaluationSignature({
         response_id: evaluationResponse.id,
         evaluatee_signature_filepath: signatureData,
       });

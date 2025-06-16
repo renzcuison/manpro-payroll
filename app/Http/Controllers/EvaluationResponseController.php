@@ -375,9 +375,11 @@ class EvaluationResponseController extends Controller
             if ($request->has('creator_signature_filepath')) {
                 $evaluationResponse->creator_signature_filepath = $request->creator_signature_filepath;
             }
-            if ($request->has('evaluatee_signature_filepath')) {
-                $evaluationResponse->evaluatee_signature_filepath = $request->evaluatee_signature_filepath;
-            }
+            if ($request->hasFile('evaluatee_signature_filepath'))
+                $evaluationResponse
+                    ->addMedia($request->file('evaluatee_signature_filepath'))
+                    ->toMediaCollection('signatures')
+                ;
 
             $evaluationResponse->save();
             DB::commit();
@@ -406,10 +408,11 @@ class EvaluationResponseController extends Controller
             evaluationResponse: {
                 id, evaluatee_id, datetime,
                 period_start_date, period_end_date,
-                signature_filepath,
                 created_at, updated_at,
                 status,                 // returns 'pending' always for now
                 evaluatee: { id, response_id, last_name, first_name, middle_name, suffix },
+                evaluatee_signature,
+                // other signatures
                 evaluators: {
                     evaluator_id, response_id, last_name, first_name, middle_name, suffix, comment, order, signature_filepath
                 }[],
@@ -431,9 +434,9 @@ class EvaluationResponseController extends Controller
                             text_answer: { id, response_id, subcategory_id, answer } | null
                         }[]
                     }[]
-                },
-
+                }
             }
+            
         */
 
         log::info('EvaluationResponseController::getEvaluationResponse');
@@ -582,6 +585,9 @@ class EvaluationResponseController extends Controller
                     'message' => 'Evaluation Response not found!'
                 ]);
             }
+            $evaluateeSignature = $evaluationResponse->getFirstMedia('signatures');
+            if ($evaluateeSignature)
+                $evaluationResponse->evaluatee_signature = base64_encode(file_get_contents($evaluateeSignature->getPath()));
 
             return response()->json([
                 'status' => 200,
@@ -1214,32 +1220,14 @@ class EvaluationResponseController extends Controller
 
             if($request->comment !== null)
                 $evaluationEvaluator->comment = $request->comment;
-            // if($request->signature_filepath !== null)
-            //     $evaluationEvaluator->signature_filepath = $request->signature_filepath;
-            // $request->signature_filepath = $_POST['signature_filepath'];
-            // 
-            // 
-            // echo $request->signature_filepath;
-            // $request->signature_filepath = base64_decode($request->signature_filepath);
-            
-            // $request->signature_filepath = str_replace('data:image/png;base64,', '', $request->signature_filepath);
-            // $request->signature_filepath = str_replace(' ', '+', $request->signature_filepath);
-            // $path = $request->signature_filepath;
-            if ($request->hasFile('signature_filepath')) {
-                // $evaluationEvaluator
-                //     ->clearMediaCollection('signatures')
-                // ;
-                
+            if ($request->hasFile('signature_filepath'))
                 $evaluationEvaluator
                     ->addMedia($request->file('signature_filepath'))
                     ->toMediaCollection('signatures')
                 ;
-            }
             $evaluationEvaluator->save();
 
             DB::commit();
-
-            $media = $evaluationEvaluator->getFirstMedia('signatures');
 
             return response()->json([
                 'status' => 200,

@@ -13,6 +13,7 @@ export function useEvaluationResponse(responseId) {
     const [commentors, setCommentors] = useState([]);
     const [periodStartAt, setPeriodStartAt] = useState('');
     const [periodStartEnd, setPeriodStartEnd] = useState('');
+    const [evaluateeSignatureFilePath, setEvaluateeSignatureFilePath] = useState('');
     const subcategories = evaluationResponse.form?.sections.reduce((subcategories, section) => {
         for(let subcategory of section.subcategories) subcategories[subcategory.id] = subcategory;
         return subcategories;
@@ -71,6 +72,19 @@ export function useEvaluationResponse(responseId) {
                 const { evaluationResponse } = response.data;
                 if(!evaluationResponse) return;
                 setEvaluationResponse(evaluationResponse);
+                const { evaluatee_signature } = evaluationResponse;
+                if(!evaluatee_signature) return;
+                const byteCharacters = window.atob(evaluatee_signature);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'image/png' });
+
+                if (evaluateeSignatureFilePath && evaluateeSignatureFilePath.startsWith('blob:'))
+                    URL.revokeObjectURL(evaluateeSignatureFilePath);
+                setEvaluateeSignatureFilePath(URL.createObjectURL(blob));
             })
             .catch(error => {
                 console.error('Error fetching response data:', error);
@@ -489,7 +503,6 @@ export function useEvaluationResponse(responseId) {
                 (response.status && String(response.status).startsWith('2')) ||
                 (response.data && response.data.status && String(response.data.status).startsWith('2'))
             ) {
-                console.log(response.data)
                 return response.data.evaluationEvaluator;
             } else {
                 throw new Error(response.data?.message || 'Failed to save comment.');
@@ -504,15 +517,14 @@ export function useEvaluationResponse(responseId) {
     }
 
     // For saving evaluatee/creator signature
-    async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath, evaluatee_signature_filepath }) {
+    async function editEvaluationSignature({ response_id, creator_signature_filepath, evaluatee_signature_filepath }) {
         try {
-            const payload = {
-                id: response_id,
-            };
+            const payload = new FormData();
+            payload.set('id', response_id);
             if (creator_signature_filepath !== undefined)
-                payload.creator_signature_filepath = creator_signature_filepath;
+                payload.set('creator_signature_filepath', creator_signature_filepath);
             if (evaluatee_signature_filepath !== undefined)
-                payload.evaluatee_signature_filepath = evaluatee_signature_filepath;
+                payload.set('evaluatee_signature_filepath', evaluatee_signature_filepath);
 
             const response = await axiosInstance.post(
                 '/editEvaluationResponse',
@@ -544,6 +556,7 @@ export function useEvaluationResponse(responseId) {
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
         getMultipleChoiceOptionId,
-        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationCreatorSignature,
+        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationSignature,
+        evaluateeSignatureFilePath
     };
 }
