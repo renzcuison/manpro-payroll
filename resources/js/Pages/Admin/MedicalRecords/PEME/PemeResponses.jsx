@@ -52,7 +52,6 @@ const PemeResponses = () => {
             .get(`/peme/${PemeID}/questionnaire`, { headers })
             .then((response) => {
                 setPemeRecords(response.data);
-                console.log(response.data);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -67,6 +66,7 @@ const PemeResponses = () => {
             .get(`/peme-responses/${PemeID}`, { headers })
             .then((response) => {
                 setPemeResponses([response.data]);
+                console.log("resposnes", response.data);
                 setIsLoading(false);
             })
             .catch((error) => {

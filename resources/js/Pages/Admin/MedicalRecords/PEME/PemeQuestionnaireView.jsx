@@ -1,4 +1,5 @@
 import Layout from "../../../../components/Layout/Layout";
+import PemeRecordsFilePreview from "./Modals/PemeRecordsFilePreview";
 import React, { useState, useEffect } from "react";
 import {
     Box,
@@ -24,7 +25,7 @@ import dayjs from "dayjs";
 import { Bold } from "lucide-react";
 import Swal from "sweetalert2";
 
-const UploadForm = ({ fileSizeLimit, file, fileName }) => {
+const UploadForm = ({ fileSizeLimit, file, fileName, onFileClick }) => {
     const limit = fileSizeLimit;
 
     return (
@@ -41,21 +42,24 @@ const UploadForm = ({ fileSizeLimit, file, fileName }) => {
                 }}
             >
                 {file ? (
-                    <a href={file} target="_blank" rel="noopener noreferrer">
-                        <Typography
-                            color="primary"
-                            sx={{
-                                boxShadow: 1,
-                                padding: 1,
-                                borderRadius: 1,
-                                display: "inline-block",
-                                backgroundColor: "#fafafa",
-                                cursor: "pointer",
-                            }}
-                        >
-                            {fileName}
-                        </Typography>
-                    </a>
+                    <Typography
+                        color="primary"
+                        onClick={() => {
+                            if (onFileClick && file?.url) {
+                                onFileClick(file.url, file.file_name);
+                            }
+                        }}
+                        sx={{
+                            boxShadow: 1,
+                            padding: 1,
+                            borderRadius: 1,
+                            display: "inline-block",
+                            backgroundColor: "#fafafa",
+                            cursor: "pointer",
+                        }}
+                    >
+                        {fileName}
+                    </Typography>
                 ) : (
                     <Typography>No file uploaded</Typography>
                 )}
@@ -64,13 +68,14 @@ const UploadForm = ({ fileSizeLimit, file, fileName }) => {
     );
 };
 
+
 const PassOrFail = ({ value }) => {
     const normalizedValue =
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-            ? "Fail"
-            : "";
+                ? "Fail"
+                : "";
 
     return (
         <Box
@@ -101,8 +106,8 @@ const PostiveOrNegative = ({ value }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-            ? "Negative"
-            : "";
+                ? "Negative"
+                : "";
 
     return (
         <Box
@@ -157,6 +162,8 @@ const PemeQuestionnaireView = () => {
     const [nextSchedule, setNextSchedule] = useState(dayjs());
     const [status, setStatus] = useState("");
     const [pemeResponses, setPemeResponses] = useState("");
+    const [filePreviewOpen, setFilePreviewOpen] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
 
     useEffect(() => {
         axiosInstance
@@ -166,19 +173,6 @@ const PemeQuestionnaireView = () => {
             .then((response) => {
                 setEmployeeResponse(response.data);
                 console.log(response.data);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching PEME records:", error);
-                setIsLoading(false);
-            });
-    }, []);
-
-    useEffect(() => {
-        axiosInstance
-            .get(`/peme-responses/${PemeResponseID}`, { headers })
-            .then((response) => {
-                setPemeResponses([response.data]);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -246,11 +240,15 @@ const PemeQuestionnaireView = () => {
     };
 
     const navigator = useNavigate();
-    const handleOnDeleteClick = () => {};
+    const handleOnDeleteClick = () => { };
     const handleOnCancelClick = () => {
         navigator(
             `/admin/medical-records/peme-records/peme-responses/${PemeResponseID}`
         );
+    };
+    const handleFileClick = (fileUrl, fileName = "File Preview") => {
+        setSelectedFile({ url: fileUrl, file_name: fileName });
+        setFilePreviewOpen(true);
     };
 
     return (
@@ -322,7 +320,7 @@ const PemeQuestionnaireView = () => {
 
                                     {
                                         Array.isArray(form.media) &&
-                                        form.media.length > 0 ? (
+                                            form.media.length > 0 ? (
                                             form.media.map((file, i) => (
                                                 <UploadForm
                                                     key={i}
@@ -331,13 +329,13 @@ const PemeQuestionnaireView = () => {
                                                     }
                                                     file={file.url}
                                                     fileName={file.file_name}
+                                                    onFileClick={handleFileClick}
                                                 />
                                             ))
                                         ) : (
                                             <UploadForm
-                                                fileSizeLimit={
-                                                    type.file_size_limit
-                                                }
+                                                fileSizeLimit={type.file_size_limit}
+                                                onFileClick={handleFileClick}
                                             />
                                         );
                                     }
@@ -384,7 +382,7 @@ const PemeQuestionnaireView = () => {
                                                     {Array.isArray(
                                                         form.media
                                                     ) &&
-                                                    form.media.length > 0 ? (
+                                                        form.media.length > 0 ? (
                                                         form.media.map(
                                                             (file, j) => (
                                                                 <UploadForm
@@ -393,11 +391,12 @@ const PemeQuestionnaireView = () => {
                                                                         type.file_size_limit
                                                                     }
                                                                     file={
-                                                                        file.url
+                                                                        file
                                                                     }
                                                                     fileName={
                                                                         file.file_name
                                                                     }
+                                                                    onFileClick={handleFileClick}
                                                                 />
                                                             )
                                                         )
@@ -406,6 +405,7 @@ const PemeQuestionnaireView = () => {
                                                             fileSizeLimit={
                                                                 type.file_size_limit
                                                             }
+                                                            onFileClick={handleFileClick}
                                                         />
                                                     )}
                                                 </Box>
@@ -465,6 +465,11 @@ const PemeQuestionnaireView = () => {
                     </Button>
                 </Box>
             </Box>
+            <PemeRecordsFilePreview
+                open={filePreviewOpen}
+                close={() => setFilePreviewOpen(false)}
+                file={selectedFile}
+            />
         </Layout>
     );
 };
