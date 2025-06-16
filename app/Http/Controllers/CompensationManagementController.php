@@ -786,7 +786,6 @@ class CompensationManagementController extends Controller
         $validated = $request->validate([
             'userName' => 'required',
             'deduction' => 'required',
-            'number' => 'required',
         ]);
         if (!$this->checkUserAdmin() || !$validated) {
             return response()->json(['status' => 403]);
