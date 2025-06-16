@@ -652,6 +652,9 @@ class EvaluationResponseController extends Controller
             
             $evaluateeResponses = $user
                 ->evaluateeResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
                 ->select(
                     'id',
                     DB::raw("'Evaluatee' as role"),
@@ -689,6 +692,9 @@ class EvaluationResponseController extends Controller
             ;
             $createdResponses = $user
                 ->createdResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
                 ->select(
                     'id',
                     DB::raw("'Creator' as role"),
@@ -725,6 +731,9 @@ class EvaluationResponseController extends Controller
             ;
             $evaluatorResponses = $user
                 ->evaluatorResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
                 ->select(
                     'id',
                     DB::raw("'Evaluator' as role"),
@@ -759,6 +768,9 @@ class EvaluationResponseController extends Controller
             ;
             $commentorResponses = $user
                 ->commentorResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
                 ->select(
                     'id',
                     DB::raw("'Commentor' as role"),
@@ -799,14 +811,17 @@ class EvaluationResponseController extends Controller
                 ->union($commentorResponses)
                 ->with(['form' => function ($form) {
                     $form->select('id', 'name');
+                    
                 }])
                 ->with(['evaluatee' => function ($form) {
                     $form
                         ->select(
                             'id', 'last_name', 'first_name', 'middle_name', 'suffix', 'branch_id', 'department_id'
                         )
+                        
                         ->with(['branch' => function ($form) {
                             $form->select('id', 'name');
+                            
                         }])
                         ->with(['department' => function ($form) {
                             $form->select('id', 'name');
@@ -892,60 +907,60 @@ class EvaluationResponseController extends Controller
 
             $evaluationResponsesCollection = $evaluationResponses->get();
 
-            // 2. Filter in PHP if searching
-            if ($request->search) {
-                $searchTerm = strtolower(trim($request->search));
-                $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
-                    $formName = strtolower($row->form->name ?? '');
-                    $date = strtolower($row->date ?? '');
-                    $fullName = strtolower(trim(
-                        ($row->evaluatee->last_name ?? '') . ', ' .
-                        ($row->evaluatee->first_name ?? '') . ' ' .
-                        ($row->evaluatee->middle_name ?? '') . ' ' .
-                        ($row->evaluatee->suffix ?? '')
-                    ));
-                    $department = strtolower($row->evaluatee->department->name ?? '');
-                    $branch = strtolower($row->evaluatee->branch->name ?? '');
-                    $status = strtolower($row->status ?? '');
+        // 2. Filter in PHP if searching
+        if ($request->search) {
+            $searchTerm = strtolower(trim($request->search));
+            $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
+                $formName = strtolower($row->form->name ?? '');
+                $date = strtolower($row->date ?? '');
+                $fullName = strtolower(trim(
+                    ($row->evaluatee->last_name ?? '') . ', ' .
+                    ($row->evaluatee->first_name ?? '') . ' ' .
+                    ($row->evaluatee->middle_name ?? '') . ' ' .
+                    ($row->evaluatee->suffix ?? '')
+                ));
+                $department = strtolower($row->evaluatee->department->name ?? '');
+                $branch = strtolower($row->evaluatee->branch->name ?? '');
+                $status = strtolower($row->status ?? '');
 
-                    return 
-                        strpos($formName, $searchTerm) !== false ||
-                        strpos($date, $searchTerm) !== false ||
-                        strpos($fullName, $searchTerm) !== false ||
-                        strpos($department, $searchTerm) !== false ||
-                        strpos($branch, $searchTerm) !== false ||
-                        strpos($status, $searchTerm) !== false;
-                })->values();
-            }
-            
-
-            $page = $request->page ?? 1;
-            $limit = $request->limit ?? 10;
-            $skip = ($page - 1) * $limit;
-
-            // Use the filtered collection for pagination and counts
-            $totalResponseCount = $evaluationResponsesCollection->count();
-            $maxPageCount = ceil($totalResponseCount / $limit);
-            $pageResponseCount = min($limit, $totalResponseCount - $skip);
-
-            $evaluationResponses = $evaluationResponsesCollection
-                ->slice($skip, $limit)
-                ->values(); // Laravel collection
-
-            return response()->json([
-                'status' => 200,
-                'message' => 'Evaluation Responses successfully retrieved.',
-                'evaluationResponses' => $evaluationResponses,
-                'pageResponseCount' => $pageResponseCount,
-                'totalResponseCount' => $totalResponseCount,
-                'maxPageCount' => $maxPageCount
-            ]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                Log::error('Error getting evaluation responses: ' . $e->getMessage());
-                throw $e;
-            }
+                return 
+                    strpos($formName, $searchTerm) !== false ||
+                    strpos($date, $searchTerm) !== false ||
+                    strpos($fullName, $searchTerm) !== false ||
+                    strpos($department, $searchTerm) !== false ||
+                    strpos($branch, $searchTerm) !== false ||
+                    strpos($status, $searchTerm) !== false;
+            })->values();
         }
+        
+
+        $page = $request->page ?? 1;
+        $limit = $request->limit ?? 10;
+        $skip = ($page - 1) * $limit;
+
+        // Use the filtered collection for pagination and counts
+        $totalResponseCount = $evaluationResponsesCollection->count();
+        $maxPageCount = ceil($totalResponseCount / $limit);
+        $pageResponseCount = min($limit, $totalResponseCount - $skip);
+
+        $evaluationResponses = $evaluationResponsesCollection
+            ->slice($skip, $limit)
+            ->values(); // Laravel collection
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Evaluation Responses successfully retrieved.',
+            'evaluationResponses' => $evaluationResponses,
+            'pageResponseCount' => $pageResponseCount,
+            'totalResponseCount' => $totalResponseCount,
+            'maxPageCount' => $maxPageCount
+        ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error getting evaluation responses: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 
     public function saveEvaluationResponse(Request $request)
     {
