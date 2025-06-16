@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('deduction_id');
             $table->string('number', 64);
+            $table->enum('status', ['Active', 'Inactive'])->default('Active');
             $table->timestamps();
             $table->softDeletes();
 
@@ -31,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('employee_incentives');
+        Schema::dropIfExists('employee_deductions');
     }
 };

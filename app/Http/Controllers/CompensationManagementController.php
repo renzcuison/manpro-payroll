@@ -671,7 +671,7 @@ class CompensationManagementController extends Controller
         return response()->json(['status' => 200, 'deductions' => null]);
     }
 
-    public function saveDeduction(Request $request)
+    public function saveDeductions(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required',

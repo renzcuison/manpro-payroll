@@ -11,34 +11,34 @@ const DeductionsType = () => {
     const deductionsData = deductions.data?.deductions || [];
     const [openAddDeductionsModal, setOpenAddDeductonsModal] = useState(false);
 
-    const handleOpenAddBenefitsModal = () => {
+    const handleOpenAddDeductionsModal = () => {
         setOpenAddDeductonsModal(true);
     }
 
-    const handleCloseAddBenefitsModal = () => {
+    const handleCloseAddDeductionsModal = () => {
         setOpenAddDeductonsModal(false);
         deductions.refetch();
     }
 
     return (
-        <Layout title={"BenefitsList"}>
+        <Layout title={"DeductionsList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                            <Link to="/admin/employees/benefits" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to="/admin/employees/deductions" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
-                            &nbsp; Benefits Types
+                            &nbsp; Deductions Types
                         </Typography>
 
-                        <Button variant="contained" color="primary" onClick={handleOpenAddBenefitsModal}>
+                        <Button variant="contained" color="primary" onClick={handleOpenAddDeductionsModal}>
                             <p className='m-0'><i className="fa fa-plus"></i> Add </p>
                         </Button>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {isLoading ? (
+                        {deductions.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -85,7 +85,7 @@ const DeductionsType = () => {
                 </Box>
 
                 {openAddDeductionsModal &&
-                    <DeductionsAdd open={openAddDeductionsModal} close={handleCloseAddBenefitsModal}/>
+                    <DeductionsAdd open={openAddDeductionsModal} close={handleCloseAddDeductionsModal}/>
                 }
 
             </Box>

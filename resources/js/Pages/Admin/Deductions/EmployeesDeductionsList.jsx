@@ -61,7 +61,7 @@ const EmployeesDeductionsList = () => {
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Deductions</Typography>
 
-                        <Button variant="contained" color="primary" component={Link} to="/admin/employees/benefits-types">
+                        <Button variant="contained" color="primary" component={Link} to="/admin/employees/deductions-types">
                             <p className='m-0'><i className="fa fa-list" aria-hidden="true"></i> Types </p>
                         </Button>
                     </Box>

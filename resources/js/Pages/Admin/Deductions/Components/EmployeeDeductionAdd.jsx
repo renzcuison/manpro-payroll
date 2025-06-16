@@ -8,7 +8,6 @@ const EmployeeDeductionAdd = ({ userName, onClose }) => {
     
 
     const [deductionError, setDeductionError] = useState(false);
-    const [numberError, setNumberError] = useState(false);
 
     const deductionsData = deductions.data?.deductions || []; 
     const [deduction, setDeduction] = useState('');
@@ -22,17 +21,10 @@ const EmployeeDeductionAdd = ({ userName, onClose }) => {
         } else {
             setDeductionError(false);
         }
-
-        if (!number) {
-            setNumberError(true);
-        } else {
-            setNumberError(false);
-        }
-
-        if (deduction == '' || number == '') {
+        if (deduction == '') {
             Swal.fire({
                 customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
+                text: "Select a deduction!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: '#177604',
@@ -116,7 +108,6 @@ const EmployeeDeductionAdd = ({ userName, onClose }) => {
                         label="Number"
                         variant="outlined"
                         value={number}
-                        error={numberError}
                         onChange={(e) => setNumber(e.target.value)}
                     />
                 </FormControl>

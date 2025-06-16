@@ -712,6 +712,8 @@ public function addBranchPositionAssignments(Request $request)
             'can_note_request' => 'required|boolean',
             'can_accept_request' => 'required|boolean',
         ]);
+        $validated['client_id'] = $user->client_id;
+        
         $position = DepartmentPosition::updateOrCreate(
             ['id' => $request->id],
             array_merge($validated)

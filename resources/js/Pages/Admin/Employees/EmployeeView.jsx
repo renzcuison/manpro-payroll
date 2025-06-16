@@ -12,6 +12,7 @@ import { useEmployeeAllowances } from '../../../hooks/useAllowance';
 import { useEmployeeIncentives } from '../../../hooks/useIncentives';
 
 import { useBenefits } from '../../../hooks/useBenefits';
+import { useDeductions } from '../../../hooks/useDeductions';
 
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 import EmployeeEducationBackground from './Components/EmployeeEducationBackground';
@@ -28,8 +29,10 @@ import EmploymentDetails from './Components/EmploymentDetails';
 const EmployeeView = () => {
     const { user } = useParams();
     const {employeeBenefits} = useBenefits(user);
+    const {employeeDeductions} = useDeductions(user);
 
     const benefits = employeeBenefits.data?.benefits || [];
+    const deductions = employeeDeductions.data?.deductions || [];
 
     const {data: empAllowances, refetch: refetchAllowance} = useEmployeeAllowances(user);
     const {data: empIncentives, refetch: refetchIncentives} = useEmployeeIncentives(user);
@@ -160,7 +163,7 @@ const EmployeeView = () => {
                             <EmployeeBenefits userName={user} benefits={benefits} onRefresh={employeeBenefits.refetch}/>
                             <EmployeeAllowances userName={user} allowances={allowances} onRefresh={refetchAllowance}/>
                             <EmployeeIncentives userName={user} incentives={incentives} onRefresh={refetchIncentives}/>
-                            <EmployeeDeductions userName={user} headers={headers} />
+                            <EmployeeDeductions userName={user} deductions={deductions} onRefresh={employeeDeductions.refetch} />
                         </Grid>
 
                         <Grid size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>

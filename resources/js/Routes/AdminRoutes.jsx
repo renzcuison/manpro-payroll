@@ -168,7 +168,7 @@ const AdminRoutes = ({ user }) => {
                 }
             />
             <Route path="employees/deductions" element={<ProtectedRoute element={<EmployeesDeductionsList/>} user={user}/>}/>
-            <Route path="employees/deduction-types" element={<ProtectedRoute element={<DeductionsType />} user={user} /> } />
+            <Route path="employees/deductions-types" element={<ProtectedRoute element={<DeductionsType />} user={user} /> } />
 
             <Route path="employees/incentives-types" element={<ProtectedRoute element={<IncentivesTypes />} user={user} /> } />
 
