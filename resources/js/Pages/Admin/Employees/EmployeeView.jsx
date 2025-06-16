@@ -8,9 +8,12 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
+import { useIncentives } from '../../../hooks/useIncentives';
+import { useAllowances } from '../../../hooks/useAllowances';
+import { useBenefits } from '../../../hooks/useBenefits';
+import { useDeductions } from '../../../hooks/useDeductions';
+
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
-import AllowanceView from '../Allowance/Modals/EmployeeAllowanceView';
-import LeaveCreditView from '../LeaveCredits/Modals/LeaveCreditView';
 import EmployeeEducationBackground from './Components/EmployeeEducationBackground';
 
 import EmployeeInformation from './Components/EmployeeInformation';
@@ -20,10 +23,19 @@ import EmployeeDeductions from './Components/EmployeeDeductions';
 import EmployeeAllowances from './Components/EmployeeAllowances';
 import EmployeeIncentives from './Components/EmployeeIncentives';
 import EmployeeSummary from './Components/EmployeeSummary';
-import EmploymentDetails from './Components/EmployeeDetails';
+import EmploymentDetails from './Components/EmploymentDetails';
 
 const EmployeeView = () => {
     const { user } = useParams();
+    const {employeeBenefits} = useBenefits(user);
+    const {employeeDeductions} = useDeductions(user);
+    const {employeeIncentives} = useIncentives(user);
+    const {employeeAllowances} = useAllowances(user);
+
+    const benefits = employeeBenefits.data?.benefits || [];
+    const deductions = employeeDeductions.data?.deductions || [];
+    const incentives = employeeIncentives.data?.incentives || [];
+    const allowances = employeeAllowances.data?.allowances || [];
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -35,10 +47,7 @@ const EmployeeView = () => {
     const [educations, setEducations] = useState([]);
     const [imagePath, setImagePath] = useState('');
 
-    const [openEmployeeBenefitsModal, setOpenEmployeeBenefitsModal] = useState(false);
-    const [openEmployeeAllowanceModal, setOpenEmployeeAllowanceModal] = useState(false);
     const [openEmployeeDetailsEditModal, setOpenEmployeeDetailsEditModal] = useState(false);
-    const [openEmployeeLeaveCreditsModal, setOpenEmployeeLeaveCreditsModal] = useState(false);
 
     useEffect(() => {
         getEmployeeDetails();
@@ -100,9 +109,6 @@ const EmployeeView = () => {
         }
     }, []);
 
-    const formattedStartDate = employee.date_start ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_start)) : '';
-    const formattedEndDate = employee.date_end ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.date_end)) : '';
-
     const handleOpenActions = (event) => {
         setAnchorEl(event.currentTarget);
     };
@@ -119,32 +125,12 @@ const EmployeeView = () => {
         setOpenEmployeeDetailsEditModal(false);
         if (reload) {
             getEmployeeDetails();
+            employeeAllowances.refetch();
+            employeeBenefits.refetch();
+            employeeIncentives.refetch();
+            employeeDeductions.refetch();
             getEducationalBackground();
         }
-    }
-
-    // Benefits
-    const handleOpenEmployeeBenefitsModal = () => {
-        setOpenEmployeeBenefitsModal(true);
-    }
-    const handleCloseEmployeeBenefitsModal = () => {
-        setOpenEmployeeBenefitsModal(false);
-    }
-
-    // Allowance
-    const handleOpenEmployeeAllowanceModal = () => {
-        setOpenEmployeeAllowanceModal(true);
-    }
-    const handleCloseEmployeeAllowanceModal = () => {
-        setOpenEmployeeAllowanceModal(false);
-    }
-
-    // Leave Credits
-    const handleOpenEmployeeLeaveCreditsModal = () => {
-        setOpenEmployeeLeaveCreditsModal(true);
-    }
-    const handleCloseEmployeeLeaveCreditsModal = () => {
-        setOpenEmployeeLeaveCreditsModal(false);
     }
 
     return (
@@ -164,9 +150,6 @@ const EmployeeView = () => {
 
                         <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
                             <MenuItem onClick={handleOpenEmployeeDetailsEditModal}> Employee Details</MenuItem>
-                            {/* <MenuItem onClick={handleOpenEmployeeBenefitsModal}> View Benefits </MenuItem> */}
-                            {/* <MenuItem onClick={handleOpenEmployeeAllowanceModal}> View Allowance </MenuItem> */}
-                            {/* <MenuItem onClick={handleOpenEmployeeLeaveCreditsModal}> View Leave Credits </MenuItem> */}
                         </Menu>
 
                     </Box>
@@ -174,10 +157,10 @@ const EmployeeView = () => {
                     <Grid container spacing={4} sx={{ mt: 2 }}>
                         <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> 
                             <EmployeeInformation employee={employee} imagePath={imagePath}/>
-                            <EmployeeBenefits userName={user}/>
-                            <EmployeeAllowances userName={user}/>
-                            <EmployeeIncentives userName={user}/>
-                            <EmployeeDeductions userName={user} headers={headers} />
+                            <EmployeeBenefits userName={user} benefits={benefits} onRefresh={employeeBenefits.refetch}/>
+                            <EmployeeAllowances userName={user} allowances={allowances} onRefresh={employeeAllowances.refetch}/>
+                            <EmployeeIncentives userName={user} incentives={incentives} onRefresh={employeeIncentives.refetch}/>
+                            <EmployeeDeductions userName={user} deductions={deductions} onRefresh={employeeDeductions.refetch} />
                         </Grid>
 
                         <Grid size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
@@ -191,14 +174,6 @@ const EmployeeView = () => {
 
                 {openEmployeeDetailsEditModal &&
                     <EmployeeDetailsEdit open={openEmployeeDetailsEditModal} close={handleCloseEmployeeDetailsEditModal} employee={employee} userName={user} />
-                }
-
-                {openEmployeeAllowanceModal &&
-                    <AllowanceView open={openEmployeeAllowanceModal} close={handleCloseEmployeeAllowanceModal} userName={user} />
-                }
-
-                {openEmployeeLeaveCreditsModal &&
-                    <LeaveCreditView open={openEmployeeLeaveCreditsModal} close={handleCloseEmployeeLeaveCreditsModal} userName={user} />
                 }
 
             </Box>

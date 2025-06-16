@@ -296,7 +296,6 @@ class AnnouncementsController extends Controller
                         $q->where('department_id', $user->department_id);
                     });
                 })
-                // Filter by allowed roles, types, statuses
                 ->where(function ($query) use ($user) {
                     $query->whereDoesntHave('employeeRoles')
                         ->orWhereHas('employeeRoles', function ($q) use ($user) {
@@ -317,7 +316,7 @@ class AnnouncementsController extends Controller
                 })
                 ->with(['acknowledgements' => function ($query) use ($user) {
                     $query->where('user_id', $user->id);
-                }])
+                }, 'user.role']) // Load user and role relationships
                 ->get();
 
             $announcementData = $announcements->map(function ($announcement) use ($user) {
@@ -325,10 +324,27 @@ class AnnouncementsController extends Controller
                 $departmentMatched = $announcement->departments->pluck('department_id')->contains($user->department_id);
                 $acknowledgedOn = $announcement->acknowledgements->firstWhere('user_id', $user->id)?->created_at;
 
+                // Construct author name
+                $authorName = 'Unknown Author';
+                if ($announcement->user && ($announcement->user->first_name || $announcement->user->last_name)) {
+                    $authorName = implode(' ', array_filter([
+                        $announcement->user->first_name,
+                        $announcement->user->middle_name,
+                        $announcement->user->last_name,
+                        $announcement->user->suffix,
+                    ]));
+                }
+
+                // Get role name
+                $roleName = $announcement->user && $announcement->user->role ? $announcement->user->role->name : 'Unknown';
+
                 return [
                     'id' => $announcement->id,
                     'unique_code' => $announcement->unique_code,
                     'title' => $announcement->title,
+                    'user_id' => $announcement->user_id,
+                    'author_name' => $authorName,
+                    'role_name' => $roleName,
                     'updated_at' => $announcement->updated_at,
                     'branch_matched' => $branchMatched,
                     'department_matched' => $departmentMatched,

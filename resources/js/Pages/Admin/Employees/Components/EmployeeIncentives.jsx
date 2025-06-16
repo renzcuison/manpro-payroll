@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import { useEmployeeIncentives } from "../../../../hooks/useIncentives";
-import EmployeeAddAllowance from "../Modals/EmployeeAddAllowance";
-import EmployeeAddIncentives from "../Modals/EmployeeAddIncentives";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import EmployeeIncentiveView from "../../Incentives/Modals/EmployeeIncentiveView";
 
-const EmployeeIncentives = ({userName}) => {
-    const [openEmployeeAddIncentives, setOpenEmployeeAddIncentives] = useState(false);
-    const {data, refetch} = useEmployeeIncentives(userName);
-    const incentives = data?.incentives || [];
-
-    const handleOpenAddEmployeeAllowance = ()=>{
-        setOpenEmployeeAddIncentives(true);
+const EmployeeIncentives = ({userName, incentives, onRefresh}) => {
+    const [openEmployeeViewIncentives, setOpenEmployeeViewIncentives] = useState(false);
+    
+    const handleOpenViewEmployeeIncentive = ()=>{
+        setOpenEmployeeViewIncentives(true);
     }
-    const handleCloseAddEmployeeAllowance = (reload) => {
-        setOpenEmployeeAddIncentives(false);
+    const handleCloseViewEmployeeIncentive = (reload) => {
+        setOpenEmployeeViewIncentives(false);
         if(reload){
-            refetch();
+            onRefresh();
         }
     }
     return(
@@ -23,8 +20,8 @@ const EmployeeIncentives = ({userName}) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Incentives </Typography>
 
-                <Button variant="contained" color="primary" onClick={() => handleOpenAddEmployeeAllowance()}>
-                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
+                <Button variant="text" sx={{fontSize: 15, textAlign:'right'}} onClick={() => handleOpenViewEmployeeIncentive()}>
+                    View
                 </Button>
             </Box>
 
@@ -61,8 +58,8 @@ const EmployeeIncentives = ({userName}) => {
                     </TableBody>
                 </Table>
             </TableContainer>
-            {openEmployeeAddIncentives && <EmployeeAddIncentives userName={userName}
-            open={openEmployeeAddIncentives} onClose={handleCloseAddEmployeeAllowance}/>}
+            {openEmployeeViewIncentives && <EmployeeIncentiveView userName={userName}
+            open={openEmployeeViewIncentives} close={handleCloseViewEmployeeIncentive}/>}
         </Box>
     )
 }

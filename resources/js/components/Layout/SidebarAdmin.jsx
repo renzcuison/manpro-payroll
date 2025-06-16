@@ -473,14 +473,14 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span className="sidebar-mini-hidden text-dark"> Compensation Management </span>
                                     </li>
 
-                                    <StyledNav to={`/admin/employees/allowance`}>
-                                        <i className="fa fa-money" style={{ color: "#2a800f" }} ></i>
-                                        <span id="navName" className="sidebar-mini-hide"> Allowance </span>
-                                    </StyledNav>
-
                                     <StyledNav to={`/admin/employees/benefits`}>
                                         <i className="fa fa-university" style={{ color: "#2a800f" }} ></i>
                                         <span id="navName" className="sidebar-mini-hide"> Benefits </span>
+                                    </StyledNav>
+
+                                    <StyledNav to={`/admin/employees/allowance`}>
+                                        <i className="fa fa-money" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Allowance </span>
                                     </StyledNav>
 
                                     <StyledNav to={`/admin/employees/incentives`}>
@@ -491,6 +491,11 @@ const Sidebar = ({ children, closeMini }) => {
                                     <StyledNav to={`/admin/employees/salary-plans`}>
                                         <i className="fa fa-address-book-o" style={{ color: "#2a800f" }}></i>
                                         <span id="navName" className="sidebar-mini-hide"> Salary Plans </span>
+                                    </StyledNav>
+                                    
+                                    <StyledNav to={`/admin/employees/deductions`}>
+                                        <i className="fa fa-minus-circle" style={{ color: "#2a800f" }}></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Deductions </span>
                                     </StyledNav>
 
                                     <li className="nav-main-heading">
@@ -511,11 +516,16 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span className="sidebar-mini-hidden text-dark"> Announcements </span>
                                     </li>
 
-                                     {announcementsItems.map((items, index) => {
+                                    <StyledNav to={`/admin/announcements`}>
+                                        <i className="fa fa-bullhorn" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Announcements </span>
+                                    </StyledNav>
+
+                                    {/* {announcementsItems.map((items, index) => {
                                         return (
                                             <SideItem key={index} items={items} />
                                         );
-                                    })}
+                                    })} */}
 
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Records </span>

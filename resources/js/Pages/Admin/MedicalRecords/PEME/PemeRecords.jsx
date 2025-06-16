@@ -25,12 +25,14 @@ const PemeRecords = () => {
 
     const [pemeRecords, setPemeRecords] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] = useState(false);
+    const [openAddPemeRecordsModal, setOpenAddPemeRecordsModal] = useState(
+        false
+    );
     const [search, setSearch] = useState("");
 
     useEffect(() => {
         axiosInstance
-            .get("/pemes", { headers })
+            .get("/getPemeList", { headers })
             .then((response) => {
                 setPemeRecords(response.data);
                 setIsLoading(false);
@@ -69,43 +71,68 @@ const PemeRecords = () => {
 
     return (
         <Layout title={"Pre-Employment Medical Exam Records"}>
-            <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }} >
+            <Box
+                sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}
+            >
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                    <Box
+                        sx={{
+                            mt: 5,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            px: 1,
+                            alignItems: "center",
+                        }}
+                    >
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                            Pre-Employment Medical Exam Records
+                        </Typography>
+                        <Button
+                            onClick={() => setOpenAddPemeRecordsModal(true)}
+                            variant="contained"
+                            style={{ color: "#e8f1e6" }}
+                        >
+                            <i className="fa fa-plus pr-2"></i> Add
+                        </Button>
+                    </Box>
 
-                    <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                            <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Pre-Employment Medical Exam Records </Typography>
-                            <></>
-
-                            <Button
-                                onClick={() => setOpenAddPemeRecordsModal(true)}
-                                variant="contained"
-                                style={{ color: "#e8f1e6" }}
-                            >
-                                <i className="fa fa-plus pr-2"></i> Add
-                            </Button>
-                        </Box>
-
-                        <Box>
-                            <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
-                                <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
-                                <InputLabel htmlFor="custom-search" >Search Date or Exam</InputLabel>
-                                <OutlinedInput
-                                    id="custom-search"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    endAdornment={
+                    <Box
+                        sx={{
+                            mt: 6,
+                            p: 3,
+                            bgcolor: "#ffffff",
+                            borderRadius: "8px",
+                        }}
+                    >
+                        <FormControl
+                            variant="outlined"
+                            sx={{ width: 652, mb: 1 }}
+                        >
+                            <InputLabel htmlFor="custom-search">
+                                Search Date or Exam
+                            </InputLabel>
+                            <OutlinedInput
+                                id="custom-search"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                endAdornment={
                                     search && (
                                         <InputAdornment position="end">
-                                        <Typography variant="body2" sx={{ color: 'gray' }}>
-                                            {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
-                                        </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{ color: "gray" }}
+                                            >
+                                                {resultsCount}{" "}
+                                                {resultsCount === 1
+                                                    ? "Result"
+                                                    : "Results"}
+                                            </Typography>
                                         </InputAdornment>
                                     )
-                                    }
-                                    label="Search Date or Exam"
-                                    />
-                                </FormControl>
-                        </Box>
+                                }
+                                label="Search Date or Exam"
+                            />
+                        </FormControl>
                     </Box>
 
                     <Box
@@ -141,11 +168,10 @@ const PemeRecords = () => {
                                 overflow: "hidden",
                             }}
                         >
-                        <PemeExamTypeTable
-                            records={filteredRecords}
-                            onRowClick={handleOnRowClick}
-                            search={search}
-                        />
+                            <PemeExamTypeTable
+                                records={filteredRecords}
+                                onRowClick={handleOnRowClick}
+                            />
                         </Box>
                     </Box>
                 </Box>

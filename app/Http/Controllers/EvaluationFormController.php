@@ -296,7 +296,7 @@ class EvaluationFormController extends Controller
             ]);
 
             $evaluationForm = EvaluationForm
-                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+                ::join('users', 'evaluation_forms.creator_id', '=', 'users.id')                
                 ->select(
                     'evaluation_forms.id',
                     'evaluation_forms.name', 
@@ -386,7 +386,7 @@ class EvaluationFormController extends Controller
         try {
 
             $evaluationForms = EvaluationForm
-                ::join('users', 'evaluation_forms.id', '=', 'users.id')
+                ::join('users', 'evaluation_forms.creator_id', '=', 'users.id')                
                 ->select(
                     'evaluation_forms.id',
                     'evaluation_forms.name', 
@@ -394,7 +394,7 @@ class EvaluationFormController extends Controller
                     'users.user_name as creator_user_name',
                     'evaluation_forms.created_at',
                     'evaluation_forms.updated_at'
-                )
+                );
             ;
             if( $request->creator_id ) {
 

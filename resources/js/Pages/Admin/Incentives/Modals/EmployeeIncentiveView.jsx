@@ -10,16 +10,20 @@ dayjs.extend(localizedFormat);
 
 import EmployeeIncentiveAdd from "../Components/EmployeeIncentiveAdd";
 import EmployeeIncentivesList from "../Components/EmployeeIncentiveList";
+import EmployeeIncentiveEdit from "../Components/EmployeeIncentiveEdit";
+import { useIncentives } from "../../../../hooks/useIncentives";
 
 const EmployeeIncentiveView = ({ open, close, userName }) => {
-
+    const {employeeIncentives} = useIncentives(userName);
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+    const incentives = employeeIncentives.data?.incentives || [];
 
     const [incentivesAddOpen, setIncentivesAddOpen] = useState(false);
+    const [incentivesEditOpen, setEditIncentivesOpen] = useState(false);
     const [incentivesListOpen, setIncentivesListOpen] = useState(false);
-
     const [employee, setEmployee] = useState([]);
+    const [selectedIncentive, setSelectedIncentive] = useState('');
 
     useEffect(() => {
         getEmployeeDetails();
@@ -42,9 +46,26 @@ const EmployeeIncentiveView = ({ open, close, userName }) => {
         setIncentivesAddOpen(true);
     }
 
-    const handleCloseAddEmployeeIncentive = () => {
+    const handleCloseAddEmployeeIncentive = (reload) => {
         setIncentivesAddOpen(false);
         setIncentivesListOpen(true);
+        if(reload){
+            employeeIncentives.refetch();
+        }
+    }
+
+    const handleOpenEditEmployeeIncentives = (index) => {
+        setSelectedIncentive(index);
+        setIncentivesListOpen(false);
+        setEditIncentivesOpen(true);
+    }
+
+    const handleCloseEditEmployeeIncentives = (reload) => {
+        setIncentivesListOpen(true);
+        setEditIncentivesOpen(false);
+        if(reload){
+            employeeIncentives.refetch();
+        }
     }
 
     return (
@@ -73,11 +94,16 @@ const EmployeeIncentiveView = ({ open, close, userName }) => {
                     </Box>
                     
                     {incentivesListOpen && (
-                        <EmployeeIncentivesList userName={userName} headers={headers} onAdd={() => handleOpenAddEmployeeIncentive()} />
+                        <EmployeeIncentivesList incentives={incentives} isLoading={employeeIncentives.isLoading} onAdd={() => handleOpenAddEmployeeIncentive()} 
+                        onEdit={(index) => handleOpenEditEmployeeIncentives(index)}/>
+                    )}
+
+                    {incentivesEditOpen && (
+                        <EmployeeIncentiveEdit incentives={incentives[selectedIncentive]} onClose={handleCloseEditEmployeeIncentives}/>
                     )}
 
                     {incentivesAddOpen && (
-                        <EmployeeIncentiveAdd userName={userName} headers={headers} onClose={() => handleCloseAddEmployeeIncentive()} />
+                        <EmployeeIncentiveAdd userName={userName} headers={headers} onClose={handleCloseAddEmployeeIncentive} />
                     )}
 
                 </DialogContent>

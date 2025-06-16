@@ -1,20 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, TablePagination, Button } from '@mui/material';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, 
+    FormControl, CircularProgress, TablePagination, Button, MenuItem} from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
 
 
 import EmployeeBenefitView from './Modals/EmployeeBenefitView';
-import { useEmployeesBenefits } from '../../../hooks/useBenefits';
+import { useBenefits } from '../../../hooks/useBenefits';
+import { useDepartments } from '../../../hooks/useDepartments';
+import { useBranches } from '../../../hooks/useBranches';
 
 
 const EmployeesBenefitsList = () => {
-    const { data, isLoading, error, refetch } = useEmployeesBenefits();
-    const employees = data?.employees || [];
+    const { employeesBenefits } = useBenefits();
+    const {departments: departmentData} = useDepartments();
+    const { data: branchesData } = useBranches();
+
+    const employees = employeesBenefits.data?.employees || [];
+    const departments = departmentData.data?.departments || [];
+    const branches = branchesData?.branches || [];
 
     const [searchName, setSearchName] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [selectedDepartment, setSelectedDepartment] = useState(0);
+    const [selectedBranch, setSelectedBranch] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     
@@ -24,12 +34,15 @@ const EmployeesBenefitsList = () => {
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
-        refetch();
+        employeesBenefits.refetch();
     };
 
     const filteredEmployees = employees.filter((employee) => {
         const fullName = `${employee.name}`.toLowerCase();
-        return fullName.includes(searchName.toLowerCase());
+        const matchedName = fullName.includes(searchName.toLowerCase());
+        const filteredBranch = selectedBranch === 0 || employee.branch_id === selectedBranch;
+        const filteredDepartment= selectedDepartment === 0 || employee.department_id === selectedDepartment;
+        return matchedName && filteredBranch && filteredDepartment;
     });
 
     const handleChangePage = (_, newPage) => {
@@ -58,17 +71,58 @@ const EmployeesBenefitsList = () => {
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
-                            <Grid container item direction="row" justifyContent="flex-start" xs={4} spacing={2}>
-                                <Grid item xs={6}>
-                                    <FormControl sx={{ width: '150%'}} >
-                                        <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
+                            {/* Filtering Containers*/}
+                            <Grid container size={12} direction="row" justifyContent="flex-start" xs={4} spacing={2}>
+                                <Grid size={6}>
+                                    <FormControl sx={{width:'50%'}}>
+                                        <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)}/>
                                     </FormControl>
+                                </Grid>
+
+                                <Grid size={3}>
+                                    <TextField
+                                        select
+                                        id="branch-view-select"
+                                        label="Filter by Branch"
+                                        value={selectedBranch}
+                                        onChange={(event) => {
+                                            setSelectedBranch(event.target.value );
+                                        }}
+                                        sx={{ width: "100%" }}
+                                    >   
+                                        <MenuItem value={0}>All Branches</MenuItem>
+                                        {branches.map((branch) => (
+                                            <MenuItem key={branch.id} value={branch.id}>
+                                                {" "}{branch.name}{" "}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+
+                                <Grid size={3}>
+                                    <TextField
+                                        select
+                                        id="department-view-select"
+                                        label="Filter by Department"
+                                        value={selectedDepartment}
+                                        onChange={(event) => {
+                                            setSelectedDepartment(event.target.value);
+                                        }}
+                                        sx={{ width: "100%" }}
+                                    >   
+                                        <MenuItem value={0}>All Departments</MenuItem>
+                                        {departments.map((department, index) => (
+                                            <MenuItem key={department.id} value={department.id}>
+                                                {" "}{department.name}{" "}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
                                 </Grid>
                             </Grid>
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
-                        {isLoading ? (
+                        {employeesBenefits.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -81,8 +135,8 @@ const EmployeesBenefitsList = () => {
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="left"> Employee Name </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Branch </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Department </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employee Contribution </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employer Contribution </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employee Contribution </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -93,8 +147,8 @@ const EmployeesBenefitsList = () => {
                                                             <TableCell align="left">{employee.name || '-'}</TableCell>
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                            <TableCell align="center">₱{Number(employee.employee_amount || 0).toFixed(2)}</TableCell>
                                                             <TableCell align="center">₱{Number(employee.employer_amount || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="center">₱{Number(employee.employee_amount || 0).toFixed(2)}</TableCell>
                                                         </TableRow>
                                                     );
                                                 })

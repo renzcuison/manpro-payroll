@@ -1,25 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import dayjs from "dayjs";
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
-import { useEmployeeBenefits } from "../../../../hooks/useBenefits";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
+import EmployeeBenefitView from "../../Benefits/Modals/EmployeeBenefitView";
 
-import EmployeeAddBenefit from '../Modals/EmployeeAddBenefit';
-
-const EmployeeBenefits = ({ userName, headers }) => {
-    const [openEmployeeAddBenefit, setOpenEmployeeAddBenefit] = useState(false);
-    const {data, refetch} = useEmployeeBenefits(userName);
-    const benefits = data?.benefits || [];
+const EmployeeBenefits = ({ userName, benefits, onRefresh }) => {
+    const [openEmployeeViewBenefit, setOpenEmployeeViewBenefit] = useState(false);
     
-    const handleOpenAddEmployeeBenefit = () => {
-        console.log("handleOpenAddEmployeeBenefit()");
-        setOpenEmployeeAddBenefit(true);
+    
+    const handleCloseViewEmployeeBenefits = () => {
+        setOpenEmployeeViewBenefit(true);
     }
 
     const handleCloseAddEmployeeBenefit = (reload) => {
-        setOpenEmployeeAddBenefit(false);
+        setOpenEmployeeViewBenefit(false);
         if(reload){
-            refetch();
+            onRefresh();    
         }
     }
 
@@ -29,8 +23,8 @@ const EmployeeBenefits = ({ userName, headers }) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Statutory Benefits </Typography>
 
-                <Button variant="contained" color="primary" onClick={() => handleOpenAddEmployeeBenefit()}>
-                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
+                <Button variant="text" sx={{fontSize: 15, textAlign:'right'}} onClick={() => handleCloseViewEmployeeBenefits()}>
+                    View
                 </Button>
             </Box>
 
@@ -73,8 +67,8 @@ const EmployeeBenefits = ({ userName, headers }) => {
             </TableContainer>
 
             
-            {openEmployeeAddBenefit &&
-                <EmployeeAddBenefit open={openEmployeeAddBenefit} onClose={handleCloseAddEmployeeBenefit} userName={userName} />
+            {openEmployeeViewBenefit &&
+                <EmployeeBenefitView open={openEmployeeViewBenefit} close={handleCloseAddEmployeeBenefit} userName={userName} />
             }
         </Box>
     );

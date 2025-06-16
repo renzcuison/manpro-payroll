@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('peme_id');
-            $table->dateTime('expiry_date');
-            $table->dateTime('next_schedule');
+            $table->dateTime('expiry_date')->nullable();
+            $table->dateTime('next_schedule')->nullable();
             $table->enum('status', ['Clear', 'Rejected', 'Pending'])->default('Clear');
             $table->timestamps();
             $table->softDeletes();

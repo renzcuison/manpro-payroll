@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PemeResponseDetails extends Model implements HasMedia
 {
@@ -17,15 +18,12 @@ class PemeResponseDetails extends Model implements HasMedia
         'peme_response_id',
         'peme_q_item_id',
         'peme_q_type_id',
-        'value_text',
-        'value_remark',
-        'value_pass_fail',
-        'value_pos_neg',
+        'value'
     ];
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('attachment')->singleFile();
+        $this->addMediaCollection('attachment');
     }
 
     public function response()
@@ -33,7 +31,7 @@ class PemeResponseDetails extends Model implements HasMedia
         return $this->belongsTo(PemeResponse::class, 'peme_response_id');
     }
 
-    public function questionItem()
+    public function question()
     {
         return $this->belongsTo(PemeQItem::class, 'peme_q_item_id');
     }
@@ -41,5 +39,15 @@ class PemeResponseDetails extends Model implements HasMedia
     public function inputType()
     {
         return $this->belongsTo(PemeQType::class, 'peme_q_type_id');
+    }
+
+    public function getMediaDirectory(): string
+    {
+        return 'attachments/' . auth()->user()->user_name;
+    }
+
+    public function media(): MorphMany
+    {
+        return $this->morphMany(\Spatie\MediaLibrary\MediaCollections\Models\Media::class, 'model');
     }
 }

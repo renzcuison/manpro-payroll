@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import { useEmployeeAllowances } from "../../../../hooks/useAllowance";
-import EmployeeAddAllowance from "../Modals/EmployeeAddAllowance";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import EmployeeAllowanceView from "../../Allowance/Modals/EmployeeAllowanceView";
 
-const EmployeeAllowances = ({userName}) => {
-    const [openEmployeeAddAllowance, setOpenEmployeeAddAllowance] = useState(false);
-    const {data, isLoading, error, refetch} = useEmployeeAllowances(userName);
-    const allowances = data?.allowances || [];
+const EmployeeAllowances = ({userName, allowances, onRefresh}) => {
+    const [openEmployeeViewAllowance, setOpenEmployeeViewAllowance] = useState(false);
 
-    const handleOpenAddEmployeeAllowance = ()=>{
-        setOpenEmployeeAddAllowance(true);
+    const handleOpenViewEmployeeAllowance = ()=>{
+        setOpenEmployeeViewAllowance(true);
     }
-    const handleCloseAddEmployeeAllowance = (reload) => {
-        setOpenEmployeeAddAllowance(false);
+    const handleCloseViewEmployeeAllowance = (reload) => {
+        setOpenEmployeeViewAllowance(false);
         if(reload){
-            refetch();
+            onRefresh();
         }
     }
     return(
@@ -22,8 +20,8 @@ const EmployeeAllowances = ({userName}) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Allowances </Typography>
 
-                <Button variant="contained" color="primary" onClick={() => handleOpenAddEmployeeAllowance()}>
-                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
+                <Button variant="text" sx={{fontSize: 15, textAlign:'right'}} onClick={() => handleOpenViewEmployeeAllowance()}>
+                    View
                 </Button>
             </Box>
 
@@ -60,8 +58,8 @@ const EmployeeAllowances = ({userName}) => {
                     </TableBody>
                 </Table>
             </TableContainer>
-            {openEmployeeAddAllowance && <EmployeeAddAllowance userName={userName}
-            open={openEmployeeAddAllowance} onClose={handleCloseAddEmployeeAllowance}></EmployeeAddAllowance>}
+            {openEmployeeViewAllowance && <EmployeeAllowanceView userName={userName}
+            open={openEmployeeViewAllowance} close={handleCloseViewEmployeeAllowance}></EmployeeAllowanceView>}
         </Box>
     )
 }

@@ -30,7 +30,8 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             department_id?: number,
-            branch_id?: number
+            branch_id?: number,
+            exclude?: number[]
         */
 
         // returns:
@@ -40,20 +41,33 @@ class EvaluationResponseController extends Controller
             }
         */
 
-        if (!$this->checkUser()) return response()->json([
-            'status' => 403,
-            'message' => 'Unauthorized access!'
-        ], 403);
-        $user = Auth::user();
+         if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
+
+        $user = DB::table('users')->select()->where('id', $userID)->first();
+
+        if (!Auth::check()) {
+            return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+        }
 
         $commentors = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
             ->where('client_id', $user->client_id)
+            ->whereNot('id', $user->id)
+            ->whereNull('deleted_at')
         ;
         if($request->department_id !== null)
             $commentors = $commentors->where('department_id', $request->department_id);
         if($request->branch_id !== null)
             $commentors = $commentors->where('branch_id', $request->branch_id);
+        if($request->exclude)
+            $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
         $commentors = $commentors
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -74,45 +88,59 @@ class EvaluationResponseController extends Controller
 
     public function getEvaluatees(Request $request)
     {
-        // inputs:
-        /*
-            department_id?: number,
-            branch_id?: number
-        */
+        // Ensure authentication
+        if (!\Auth::check()) {
+            return response()->json([
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+        }
 
-        // returns:
-        /*
-            users: {
-                id, last_name, first_name, middle_name, suffix
-            }
-        */
+        $userID = \Auth::id();
+        $user = \DB::table('users')->select()->where('id', $userID)->first();
 
-        if (!$this->checkUser()) return response()->json([
-            'status' => 403,
-            'message' => 'Unauthorized access!'
-        ], 403);
-        $user = Auth::user();
-
-        $evaluatees = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+        $evaluatees = \App\Models\UsersModel::select(
+                'id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix'
+            )
             ->where('client_id', $user->client_id)
-            ->where('user_type', 'Employee')
-        ;
-        if($request->department_id !== null)
+            ->whereNull('deleted_at');
+
+        // Optional: filter by user_type(s) if provided
+        if ($request->has('user_type')) {
+            $userType = $request->user_type;
+            if (is_array($userType)) {
+                $evaluatees = $evaluatees->whereIn('user_type', $userType);
+            } elseif (is_string($userType)) {
+                $types = array_map('trim', explode(',', $userType));
+                $evaluatees = $evaluatees->whereIn('user_type', $types);
+            }
+        }
+
+        // Optional: filter by department and branch
+        if ($request->department_id !== null) {
             $evaluatees = $evaluatees->where('department_id', $request->department_id);
-        if($request->branch_id !== null)
+        }
+        if ($request->branch_id !== null) {
             $evaluatees = $evaluatees->where('branch_id', $request->branch_id);
+        }
+        if ($request->exclude) {
+            $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
+        }
+
         $evaluatees = $evaluatees
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->orderBy('middle_name')
             ->orderBy('suffix')
-            ->get()
-        ;
-        if(!$evaluatees) return response()->json([ 
-            'status' => 404,
-            'message' => 'Evaluatees not found!'
-        ]);
+            ->get();
+
+        if ($evaluatees->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Evaluatees not found!',
+                'evaluatees' => []
+            ]);
+        }
         return response()->json([
             'status' => 200,
             'message' => 'Evaluatees successfully retrieved.',
@@ -122,48 +150,64 @@ class EvaluationResponseController extends Controller
 
     public function getEvaluators(Request $request)
     {
-        // inputs:
-        /*
-            department_id?: number,
-            branch_id?: number
-        */
-
-        // returns:
-        /*
-            users: {
-                id, last_name, first_name, middle_name, suffix
-            }
-        */
-
-        if (!$this->checkUser()) return response()->json([
-            'status' => 403,
-            'message' => 'Unauthorized access!'
-        ], 403);
-        $user = Auth::user();
+        if (!Auth::check()) {
+            return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
+        }
+        $userID = Auth::id();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
         $evaluators = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'department_id')
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
+            ->whereNot('id', $user->id)
             ->where('client_id', $user->client_id)
-        ;
+            ->whereNull('deleted_at');
+
         if($request->department_id !== null)
             $evaluators = $evaluators->where('department_id', $request->department_id);
+
         if($request->branch_id !== null)
             $evaluators = $evaluators->where('branch_id', $request->branch_id);
+
+        // Support for flexible user_type filtering
+        if ($request->has('user_type')) {
+            $userType = $request->user_type;
+            // Accepts either array or comma-separated string
+            if (is_array($userType)) {
+                $evaluators = $evaluators->whereIn('user_type', $userType);
+            } elseif (is_string($userType)) {
+                // Handles comma-separated string or single type
+                $types = array_map('trim', explode(',', $userType));
+                $evaluators = $evaluators->whereIn('user_type', $types);
+            } else {
+                // Fallback to both Admin and Employee if something unexpected
+                $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
+            }
+        } else {
+            // Default: both Admin and Employee
+            $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
+        }
+
+        if($request->exclude)
+            $evaluators = $evaluators->whereNotIn('id', $request->exclude);
+
         $evaluators = $evaluators
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->orderBy('middle_name')
             ->orderBy('suffix')
-            ->get()
-        ;
-        if(!$evaluators) return response()->json([ 
+            ->get();
+
+        if($evaluators->isEmpty()) return response()->json([ 
             'status' => 404,
             'message' => 'Evaluators not found!'
         ]);
         return response()->json([
             'status' => 200,
             'message' => 'Evaluators successfully retrieved.',
-            'evaluatees' => $evaluators
+            'users' => $evaluators
         ]);
     }
 
@@ -284,6 +328,7 @@ class EvaluationResponseController extends Controller
                 'creator_signature_filepath', 'evaluatee_signature_filepath', 'created_at', 'updated_at'
             )
                 ->where('id', $request->id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
             if( !$evaluationResponse ) return response()->json([ 
@@ -449,7 +494,7 @@ class EvaluationResponseController extends Controller
                 ->addSelect('evaluation_responses.form_id', 'users.user_name as creator_user_name')
                 ->with(['form' => fn ($evaluationForm) =>
                     $evaluationForm
-                        ->join('users', 'evaluation_forms.id', '=', 'users.id')
+                        ->join('users', 'evaluation_forms.creator_id', '=', 'users.id')
                         ->select(
                             'evaluation_forms.id',
                             'evaluation_forms.name', 
@@ -552,342 +597,357 @@ class EvaluationResponseController extends Controller
         }
     }
 
-
-    // public function getEvaluationResponses(Request $request)
-    // {
-    //     // inputs:
-    //     /*
-    //         page: number = 1,                   // counting starts at 1
-    //         limit: number = 10,
-    //         form_id?: number,                   // gets all if none given
-    //         search: string,                     // searches for form name, date, evalautee name, department name, branch name, or status
-    //         order_by: {
-    //             key:
-    //                 'updated_at' | 'form_name' | 'last_name' | 'first_name' |
-    //                 'middle_name' | 'suffix' | 'department_name' | 'branch_name' |
-    //                 'status'                    // pending first -> finished last
-    //             ,
-    //             sort_order: 'asc' | 'desc' = 'asc'
-    //         }[];
-    //     */
-
-    //     // outputs:
-    //     /*
-    //         evaluationResponses: {
-    //             id, form_id, form_name, date, role,
-    //             evaluatee_id, evaluatee: { id, last_name, first_name, middle_name, suffix },
-    //             department_id, department_name, branch_id, branch_name, status,
-    //             created_at, updated_at
-    //         }[],
-    //         pageResponseCount,
-    //         totalResponseCount,
-    //         maxPageCount
-    //     */
-
-    //     Log::info('EvaluationResponseController::getEvaluationResponses');
-
-    //     try {
-
-    //         if (Auth::check()) {
-    //             $userID = Auth::id();
-    //         } else {
-    //             $userID = null;
-    //         }
-
-    //         $user = DB::table('users')->where('id', $userID)->first();
-
-    //         if($request->page === null) $request->page = 1;
-    //         if($request->limit === null) $request->limit = 10;
-    //         if ($request->page < 1 || $request->limit < 1)
-    //             return response()->json([
-    //                 'status' => 400,
-    //                 'message' => 'Invalid page or limit!'
-    //             ]);
-
-    //         $evaluationResponses = EvaluationResponse
-    //             ::leftJoin('evaluation_evaluators as evaluators', 'evaluation_responses.id', '=', 'evaluators.response_id')
-    //             ->leftJoin('evaluation_commentors as commentors', 'evaluation_responses.id', '=', 'commentors.response_id')
-    //             ->join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
-    //             ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
-    //             ->leftJoin('departments', 'evaluatees.department_id', '=', 'departments.id')
-    //             ->leftJoin('branches', 'evaluatees.branch_id', '=', 'branches.id')
-    //             ->select('evaluation_responses.id', 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name')
-    //             ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
-    //             ->selectRaw(
-    //                 '
-    //                     CASE
-    //                         WHEN evaluation_responses.evaluatee_id = ? THEN "Evaluatee"
-    //                         WHEN evaluators.evaluator_id = ? THEN "Evaluator"
-    //                         WHEN commentors.commentor_id = ? THEN "Commentor"
-    //                     ELSE "None" END as role
-    //                 ',
-    //                 [$user ? $user->id : 0, $user ? $user->id : 0, $user ? $user->id : 0]
-    //             )
-    //             ->addSelect('evaluatee_id')
-    //             ->addSelect('evaluation_responses.deleted_at')
-    //             ->with(['evaluatee' => fn ($evaluatee) =>
-    //                 $evaluatee->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
-    //             ])
-    //             ->addSelect(
-    //                 'departments.id as department_id', 'departments.name as department_name',
-    //                 'branches.id as branch_id', 'branches.name as branch_name',
-    //                 DB::raw("'Pending' as status"),
-    //                 'evaluation_responses.created_at',
-    //                 'evaluation_responses.updated_at'
-    //             )
-    //             ->whereNull('evaluation_responses.deleted_at')
-    //         ;
-
-    //         if($request->search)
-    //             $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
-    //                 $query
-    //                     ->where('evaluation_forms.name', 'LIKE', "%$request->search%")
-    //                     ->orWhere(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
-    //                     ->orWhere(
-    //                         DB::raw('CONCAT(
-    //                             evaluatees.last_name, ", ",
-    //                             evaluatees.first_name,
-    //                             IF(ISNULL(evaluatees.middle_name), "", CONCAT(" ", evaluatees.middle_name)),
-    //                             IF(ISNULL(evaluatees.suffix), "", CONCAT(" ", evaluatees.suffix))
-    //                         )'),
-    //                         'LIKE', "%$request->search%"
-    //                     )
-    //                     ->orWhere('departments.name', 'LIKE', "%$request->search%")
-    //                     ->orWhere('branches.name', 'LIKE', "%$request->search%");
-    //             });
-
-    //         if ($request->form_id !== null)
-    //             $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
-
-    //         // ====== REMOVED USER-BASED FILTERING HERE ======
-    //         // (do not filter by evaluatee/evaluator/commentor)
-
-    //         $evaluationResponses = $evaluationResponses->groupBy('evaluation_responses.id');
-
-    //         if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
-    //             $sortOrder = $order_by_param['sort_order'] ?? 'asc';
-    //             if ($sortOrder != 'asc' && $sortOrder != 'desc')
-    //                 return response()->json([
-    //                     'status' => 400,
-    //                     'message' => 'Sort order is invalid!'
-    //                 ]);
-    //             switch ($order_by_param['key']) {
-    //                 case 'branch_name':
-    //                     $evaluationResponses = $evaluationResponses->orderBy('branches.name', $sortOrder);
-    //                     break;
-    //                 case 'department_name':
-    //                     $evaluationResponses = $evaluationResponses->orderBy('departments.name', $sortOrder);
-    //                     break;
-    //                 case 'last_name':
-    //                     $evaluationResponses = $evaluationResponses->orderBy('evaluatees.last_name', $sortOrder);
-    //                     break;
-    //                 case 'first_name':
-    //                     $evaluationResponses = $evaluationResponses->orderBy('evaluatees.first_name', $sortOrder);
-    //                     break;
-    //                 case 'middle_name':
-    //                     $evaluationResponses = $evaluationResponses->orderBy('evaluatees.middle_name', $sortOrder);
-    //                     break;
-    //                 case 'suffix':
-    //                     $evaluationResponses = $evaluationResponses->orderBy('evaluatees.suffix', $sortOrder);
-    //                     break;
-    //                 case 'updated_at':
-    //                     $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrder);
-    //                     break;
-    //                 default:
-    //                     return response()->json([
-    //                         'status' => 400,
-    //                         'message' => 'Order by option is invalid!'
-    //                     ]);
-    //             }
-    //         }
-
-    //         $page = $request->page ?? 1;
-    //         $limit = $request->limit ?? 10;
-    //         $totalResponseCount = $evaluationResponses->count();
-    //         $maxPageCount = ceil($totalResponseCount / $limit);
-
-    //         // Instead of returning 404 for no results, always return an empty array
-    //         $pageResponseCount =
-    //             ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
-    //             : $limit;
-    //         $skip = ($page - 1) * $limit;
-    //         $evaluationResponses = $evaluationResponses->skip($skip)->take($limit)->get();
-
-    //         return response()->json([
-    //             'status' => 200,
-    //             'message' => 'Evaluation Responses successfully retrieved.',
-    //             'evaluationResponses' => $evaluationResponses,
-    //             'pageResponseCount' => $pageResponseCount,
-    //             'totalResponseCount' => $totalResponseCount,
-    //             'maxPageCount' => $maxPageCount
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         Log::error('Error getting evaluation responses: ' . $e->getMessage());
-    //         throw $e;
-    //     }
-    // }
-
-
     public function getEvaluationResponses(Request $request)
-{
-    // inputs:
-    /*
-        page: number = 1,                   // counting starts at 1
-        limit: number = 10,
-        form_id?: number,                   // gets all if none given
-        search: string,                     // searches for form name, date, evalautee name, department name, branch name, or status
-        order_by: {
-            key:
-                'updated_at' | 'form_name' | 'last_name' | 'first_name' |
-                'middle_name' | 'suffix' | 'department_name' | 'branch_name' |
-                'status'                    // pending first -> finished last
-            ,
-            sort_order: 'asc' | 'desc' = 'asc'
-        }[];
-    */
+    {
+        // inputs:
+        /*
+            page: number = 1,                   // counting starts at 1
+            limit: number = 10,
+            form_id?: number,                   // gets all if none given
+            search: string,                     // searches for form name, date, evalautee name, department name, branch name, or status
+            order_by: {
+                key:
+                    'updated_at' | 'form_name' | 'last_name' | 'first_name' |
+                    'middle_name' | 'suffix' | 'department_name' | 'branch_name' |
+                    'status'                    // pending first -> finished last
+                ,
+                sort_order: 'asc' | 'desc' = 'asc'
+            }[];
+        */
 
-    // outputs:
-    /*
-        evaluationResponses: {
-            id, form_id, form_name, date, role,
-            evaluatee_id, evaluatee: { id, last_name, first_name, middle_name, suffix },
-            department_id, department_name, branch_id, branch_name, status,
-            created_at, updated_at
-        }[],
-        pageResponseCount,
-        totalResponseCount,
-        maxPageCount
-    */
+        // outputs:
+        /*
+            evaluationResponses: {
+                id, role, status, commentor_order,
+                evaluators_unsigned_count, commentors_unsigned_count, commentors_signed_count,
+                date, form_id, evaluatee_id,
+                created_at, updated_at,
+                form: { id, form_name },
+                evaluatee: {
+                    id, last_name, first_name, middle_name, suffix,
+                    branch: { id, name },
+                    department: { id, name }
+                },
+            }[],
+            pageResponseCount,
+            totalResponseCount,
+            maxPageCount
+        */
 
-    Log::info('EvaluationResponseController::getEvaluationResponses');
+        Log::info('EvaluationResponseController::getEvaluationResponses');
 
-    try {
+        try {
 
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+            if (Auth::check()) {
+                $userID = Auth::id();
+            } else {
+                $userID = null;
+            }
 
-        $user = DB::table('users')->where('id', $userID)->first();
+            $user = UsersModel::where('id', $userID)->first();
 
-        if($request->page === null) $request->page = 1;
-        if($request->limit === null) $request->limit = 10;
-        if ($request->page < 1 || $request->limit < 1)
-            return response()->json([
-                'status' => 400,
-                'message' => 'Invalid page or limit!'
-            ]);
-
-        $evaluationResponses = EvaluationResponse
-            ::leftJoin('evaluation_evaluators as evaluators', 'evaluation_responses.id', '=', 'evaluators.response_id')
-            ->leftJoin('evaluation_commentors as commentors', 'evaluation_responses.id', '=', 'commentors.response_id')
-            ->join('evaluation_forms', 'evaluation_responses.form_id', '=', 'evaluation_forms.id')
-            ->join('users as evaluatees', 'evaluation_responses.evaluatee_id', '=', 'evaluatees.id')
-            ->leftJoin('departments', 'evaluatees.department_id', '=', 'departments.id')
-            ->leftJoin('branches', 'evaluatees.branch_id', '=', 'branches.id')
-            ->select('evaluation_responses.id', 'evaluation_forms.id as form_id', 'evaluation_forms.name as form_name')
-            ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y') as date")
-            ->selectRaw(
-                '
-                    CASE
-                        WHEN evaluation_responses.evaluatee_id = ? THEN "Evaluatee"
-                        WHEN evaluators.evaluator_id = ? THEN "Evaluator"
-                        WHEN commentors.commentor_id = ? THEN "Commentor"
-                    ELSE "None" END as role
-                ',
-                [$user ? $user->id : 0, $user ? $user->id : 0, $user ? $user->id : 0]
-            )
-            ->addSelect('evaluatee_id')
-            ->addSelect('evaluation_responses.deleted_at')
-            ->with(['evaluatee' => fn ($evaluatee) =>
-                $evaluatee->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
-            ])
-            ->addSelect(
-                'departments.id as department_id', 'departments.name as department_name',
-                'branches.id as branch_id', 'branches.name as branch_name',
-                DB::raw("'Pending' as status"),
-                'evaluation_responses.created_at',
-                'evaluation_responses.updated_at'
-            )
-            ->whereNull('evaluation_responses.deleted_at')
-        ;
-
-        if($request->search)
-            $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
-                $query
-                    ->where('evaluation_forms.name', 'LIKE', "%$request->search%")
-                    ->orWhere(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
-                    ->orWhere(
-                        DB::raw('CONCAT(
-                            evaluatees.last_name, ", ",
-                            evaluatees.first_name,
-                            IF(ISNULL(evaluatees.middle_name), "", CONCAT(" ", evaluatees.middle_name)),
-                            IF(ISNULL(evaluatees.suffix), "", CONCAT(" ", evaluatees.suffix))
-                        )'),
-                        'LIKE', "%$request->search%"
-                    )
-                    ->orWhere('departments.name', 'LIKE', "%$request->search%")
-                    ->orWhere('branches.name', 'LIKE', "%$request->search%");
-            });
-
-        if ($request->form_id !== null)
-            $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
-
-        // ====== REMOVED USER-BASED FILTERING HERE ======
-        // (do not filter by evaluatee/evaluator/commentor)
-
-        $evaluationResponses = $evaluationResponses->groupBy('evaluation_responses.id');
-
-        if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
-            $sortOrder = $order_by_param['sort_order'] ?? 'asc';
-            if ($sortOrder != 'asc' && $sortOrder != 'desc')
+            if($request->page === null) $request->page = 1;
+            if($request->limit === null) $request->limit = 10;
+            if ($request->page < 1 || $request->limit < 1)
                 return response()->json([
                     'status' => 400,
-                    'message' => 'Sort order is invalid!'
+                    'message' => 'Invalid page or limit!'
                 ]);
-            switch ($order_by_param['key']) {
-                case 'branch_name':
-                    $evaluationResponses = $evaluationResponses->orderBy('branches.name', $sortOrder);
-                    break;
-                case 'department_name':
-                    $evaluationResponses = $evaluationResponses->orderBy('departments.name', $sortOrder);
-                    break;
-                case 'last_name':
-                    $evaluationResponses = $evaluationResponses->orderBy('evaluatees.last_name', $sortOrder);
-                    break;
-                case 'first_name':
-                    $evaluationResponses = $evaluationResponses->orderBy('evaluatees.first_name', $sortOrder);
-                    break;
-                case 'middle_name':
-                    $evaluationResponses = $evaluationResponses->orderBy('evaluatees.middle_name', $sortOrder);
-                    break;
-                case 'suffix':
-                    $evaluationResponses = $evaluationResponses->orderBy('evaluatees.suffix', $sortOrder);
-                    break;
-                case 'updated_at':
-                    $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrder);
-                    break;
-                default:
-                    return response()->json([
-                        'status' => 400,
-                        'message' => 'Order by option is invalid!'
-                    ]);
-            }
+            
+            $evaluateeResponses = $user
+                ->evaluateeResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
+                ->select(
+                    'id',
+                    DB::raw("'Evaluatee' as role"),
+                    DB::raw("
+                        IF(ISNULL(evaluatee_signature_filepath), 'Pending', 'Done')
+                        as status
+                    "),
+                    DB::raw('null as commentor_order')
+                )
+                ->withCount([
+                    'evaluators as evaluators_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_signed_count' => function ($query) {
+                        $query->whereNotNull('signature_filepath');
+                    }
+                ])
+                ->addSelect(
+                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    'form_id',
+                    'evaluatee_id',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
+                ->whereNotNull('creator_signature_filepath')
+                ->having('evaluators_unsigned_count', 0)
+                ->having('commentors_unsigned_count', 0)
+            ;
+            $createdResponses = $user
+                ->createdResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
+                ->select(
+                    'id',
+                    DB::raw("'Creator' as role"),
+                    DB::raw("
+                        IF(ISNULL(creator_signature_filepath), 'Pending', 'Done')
+                        as status
+                    "),
+                    DB::raw('null as commentor_order')
+                )
+                ->withCount([
+                    'evaluators as evaluators_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_signed_count' => function ($query) {
+                        $query->whereNotNull('signature_filepath');
+                    }
+                ])
+                ->addSelect(
+                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    'form_id',
+                    'evaluatee_id',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
+                ->having('evaluators_unsigned_count', 0)
+                ->having('commentors_unsigned_count', 0)
+            ;
+            $evaluatorResponses = $user
+                ->evaluatorResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
+                ->select(
+                    'id',
+                    DB::raw("'Evaluator' as role"),
+                    DB::raw("
+                        IF(ISNULL(signature_filepath), 'Pending', 'Done')
+                        as status
+                    "),
+                    DB::raw('null as commentor_order')
+                )
+                ->withCount([
+                    'evaluators as evaluators_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_signed_count' => function ($query) {
+                        $query->whereNotNull('signature_filepath');
+                    }
+                ])
+                ->addSelect(
+                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    'form_id',
+                    'evaluatee_id',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
+            ;
+            $commentorResponses = $user
+                ->commentorResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
+                ->select(
+                    'id',
+                    DB::raw("'Commentor' as role"),
+                    DB::raw("
+                        IF(ISNULL(signature_filepath), 'Pending', 'Done')
+                        as status
+                    "),
+                    'order as commentor_order'
+                )
+                ->withCount([
+                    'evaluators as evaluators_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_signed_count' => function ($query) {
+                        $query->whereNotNull('signature_filepath');
+                    }
+                ])
+                ->addSelect(
+                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    'form_id',
+                    'evaluatee_id',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
+                ->having('evaluators_unsigned_count', 0)
+                ->having('commentor_order', '<=', DB::raw('commentors_signed_count + 1'))
+            ;
+            $evaluationResponses = $evaluateeResponses
+                ->union($createdResponses)
+                ->union($evaluatorResponses)
+                ->union($commentorResponses)
+                ->with(['form' => function ($form) {
+                    $form->select('id', 'name');
+                    
+                }])
+                ->with(['evaluatee' => function ($form) {
+                    $form
+                        ->select(
+                            'id', 'last_name', 'first_name', 'middle_name', 'suffix', 'branch_id', 'department_id'
+                        )
+                        
+                        ->with(['branch' => function ($form) {
+                            $form->select('id', 'name');
+                            
+                        }])
+                        ->with(['department' => function ($form) {
+                            $form->select('id', 'name');
+                        }])
+                    ;
+                }])
+                ->orderBy('created_at', 'desc')
+            ;
+
+            // searching code here
+
+            // if($request->search) {
+            //     $evaluationResponses = $evaluationResponses
+            //         ->whereHas('form', function ($query) use ($request) {
+            //             // $query->where('name', 'LIKE', "%$request->search%");
+            //             $query->where(DB::raw('id'), '=', 2);
+            //         })
+            //     ;
+            // }
+
+                // $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
+                //     $query
+                //         // ->whereHas(DB::raw('form.name'), 'LIKE', "%$request->search%")
+                //         ->whereHas('form', function (Builder $query) {
+                //             $query->where('name', 'like', "%$request->search%");
+                //         })
+                //         // ->orWhere(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
+                //         // ->orWhere(
+                //         //     DB::raw('CONCAT(
+                //         //         evaluatees.last_name, ", ",
+                //         //         evaluatees.first_name,
+                //         //         IF(ISNULL(evaluatees.middle_name), "", CONCAT(" ", evaluatees.middle_name)),
+                //         //         IF(ISNULL(evaluatees.suffix), "", CONCAT(" ", evaluatees.suffix))
+                //         //     )'),
+                //         //     'LIKE', "%$request->search%"
+                //         // )
+                //         // ->orWhere('departments.name', 'LIKE', "%$request->search%")
+                //         // ->orWhere('branches.name', 'LIKE', "%$request->search%")
+                //     ;
+                // });
+
+            if ($request->form_id !== null)
+                $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
+
+            // if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
+            //     $sortOrder = $order_by_param['sort_order'] ?? 'asc';
+            //     if ($sortOrder != 'asc' && $sortOrder != 'desc')
+            //         return response()->json([
+            //             'status' => 400,
+            //             'message' => 'Sort order is invalid!'
+            //         ]);
+            //     switch ($order_by_param['key']) {
+            //         case 'branch_name':
+            //             $evaluationResponses = $evaluationResponses->orderBy('branches.name', $sortOrder);
+            //             break;
+            //         case 'department_name':
+            //             $evaluationResponses = $evaluationResponses->orderBy('departments.name', $sortOrder);
+            //             break;
+            //         case 'last_name':
+            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.last_name', $sortOrder);
+            //             break;
+            //         case 'first_name':
+            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.first_name', $sortOrder);
+            //             break;
+            //         case 'middle_name':
+            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.middle_name', $sortOrder);
+            //             break;
+            //         case 'suffix':
+            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.suffix', $sortOrder);
+            //             break;
+            //         case 'updated_at':
+            //             $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrder);
+            //             break;
+            //         default:
+            //             return response()->json([
+            //                 'status' => 400,
+            //                 'message' => 'Order by option is invalid!'
+            //             ]);
+            //     }
+            // }
+
+            $evaluationResponsesCollection = $evaluationResponses->get();
+
+        // 2. Filter in PHP if searching
+        if ($request->search) {
+            $searchTerm = strtolower(trim($request->search));
+            $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
+                $formName = strtolower($row->form->name ?? '');
+                $date = strtolower($row->date ?? '');
+                $fullName = strtolower(trim(
+                    ($row->evaluatee->last_name ?? '') . ', ' .
+                    ($row->evaluatee->first_name ?? '') . ' ' .
+                    ($row->evaluatee->middle_name ?? '') . ' ' .
+                    ($row->evaluatee->suffix ?? '')
+                ));
+                $department = strtolower($row->evaluatee->department->name ?? '');
+                $branch = strtolower($row->evaluatee->branch->name ?? '');
+                $status = strtolower($row->status ?? '');
+
+                return 
+                    strpos($formName, $searchTerm) !== false ||
+                    strpos($date, $searchTerm) !== false ||
+                    strpos($fullName, $searchTerm) !== false ||
+                    strpos($department, $searchTerm) !== false ||
+                    strpos($branch, $searchTerm) !== false ||
+                    strpos($status, $searchTerm) !== false;
+            })->values();
         }
+        
 
         $page = $request->page ?? 1;
         $limit = $request->limit ?? 10;
-        $totalResponseCount = $evaluationResponses->count();
-        $maxPageCount = ceil($totalResponseCount / $limit);
-
-        // Instead of returning 404 for no results, always return an empty array
-        $pageResponseCount =
-            ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
-            : $limit;
         $skip = ($page - 1) * $limit;
-        $evaluationResponses = $evaluationResponses->skip($skip)->take($limit)->get();
+
+        // Use the filtered collection for pagination and counts
+        $totalResponseCount = $evaluationResponsesCollection->count();
+        $maxPageCount = ceil($totalResponseCount / $limit);
+        $pageResponseCount = min($limit, $totalResponseCount - $skip);
+
+        $evaluationResponses = $evaluationResponsesCollection
+            ->slice($skip, $limit)
+            ->values(); // Laravel collection
 
         return response()->json([
             'status' => 200,
@@ -897,12 +957,12 @@ class EvaluationResponseController extends Controller
             'totalResponseCount' => $totalResponseCount,
             'maxPageCount' => $maxPageCount
         ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Error getting evaluation responses: ' . $e->getMessage());
-        throw $e;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error getting evaluation responses: ' . $e->getMessage());
+            throw $e;
+        }
     }
-}
 
     public function saveEvaluationResponse(Request $request)
     {
@@ -984,10 +1044,9 @@ class EvaluationResponseController extends Controller
             $newEvaluationResponse = EvaluationResponse::create([
                 'evaluatee_id' => $request->evaluatee_id,
                 'form_id' => $request->form_id,
+                'creator_id' => $userID,
                 'period_start_at' => $request->period_start_at,
-                'period_end_at' => $request->period_end_at,
-                'status' => 'pending',
-                'current_step' => 'evaluator'
+                'period_end_at' => $request->period_end_at
             ]);
 
             foreach ($request->evaluators as $index => $evaluator_id) {
@@ -1058,9 +1117,10 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $evaluationEvaluator = EvaluationEvaluator
-                ::select('*')
+                ::select()
                 ->where('response_id', $request->response_id)
                 ->where('evaluator_id', $request->evaluator_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -1142,6 +1202,7 @@ class EvaluationResponseController extends Controller
                 )
                 ->where('response_id', $request->response_id)
                 ->where('evaluator_id', $request->evaluator_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -1155,14 +1216,25 @@ class EvaluationResponseController extends Controller
                 $evaluationEvaluator->comment = $request->comment;
             if($request->signature_filepath !== null)
                 $evaluationEvaluator->signature_filepath = $request->signature_filepath;
+            // $request->signature_filepath = $_POST['signature_filepath'];
+            // $request->signature_filepath = str_replace('data:image/png;base64,', '', $request->signature_filepath);
+            // $request->signature_filepath = str_replace(' ', '+', $request->signature_filepath);
+            // echo $request->signature_filepath;
+            // $request->signature_filepath = base64_decode($request->signature_filepath);
+            $saved = $request->hasFile('signature_filepath');
+            if ($request->hasFile('signature_filepath')) {
+			    $evaluationEvaluator->clearMediaCollection('signatures');
+                $evaluationEvaluator->addMediaFromRequest('signature_filepath')->toMediaCollection('signatures');
+            }
             $evaluationEvaluator->save();
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
                 'evaluationEvaluator' => $evaluationEvaluator,
-                'message' => 'Evaluation Evaluator successfully updated'
+                'message' => 'Evaluation Evaluator successfully updated',
+                'saved' => $saved
             ]);
 
         } catch (\Exception $e) {
@@ -1217,6 +1289,7 @@ class EvaluationResponseController extends Controller
                 )
                 ->where('evaluation_evaluators.response_id', $request->response_id)
                 ->where('evaluation_evaluators.evaluator_id', $request->evaluator_id)
+                ->whereNull('evaluation_evaluators.deleted_at')
                 ->first()
             ;
             if( !$evaluationEvaluator ) return response()->json([
@@ -1276,6 +1349,7 @@ class EvaluationResponseController extends Controller
                     'users.suffix'
                 )
                 ->where('evaluation_evaluators.response_id', $request->response_id)
+                ->whereNull('evaluation_evaluators.deleted_at')
                 ->get()
             ;
             if( !$evaluationEvaluators ) return response()->json([
@@ -1440,6 +1514,7 @@ class EvaluationResponseController extends Controller
                 ::select()
                 ->where('response_id', $request->response_id)
                 ->where('commentor_id', $request->commentor_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -1521,6 +1596,7 @@ class EvaluationResponseController extends Controller
                 )
                 ->where('response_id', $request->response_id)
                 ->where('commentor_id', $request->commentor_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -1596,6 +1672,7 @@ class EvaluationResponseController extends Controller
                 )
                 ->where('evaluation_commentors.response_id', $request->response_id)
                 ->where('evaluation_commentors.commentor_id', $request->commentor_id)
+                ->whereNull('evaluation_commentors.deleted_at')
                 ->first()
             ;
             if( !$evaluationCommentor ) return response()->json([
@@ -1655,6 +1732,7 @@ class EvaluationResponseController extends Controller
                     'users.suffix'
                 )
                 ->where('evaluation_commentors.response_id', $request->response_id)
+                ->whereNull('evaluation_commentors.deleted_at')
                 ->get()
             ;
             if( !$evaluationCommentors ) return response()->json([
@@ -1818,6 +1896,7 @@ class EvaluationResponseController extends Controller
                 ::select()
                 ->where('response_id', $request->response_id)
                 ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -1911,6 +1990,7 @@ class EvaluationResponseController extends Controller
                 ))
                 ->where('evaluation_percentage_answers.response_id', $request->response_id)
                 ->where('evaluation_percentage_answers.subcategory_id', $request->subcategory_id)
+                ->whereNull('evaluation_percentage_answers.deleted_at')
                 ->first()
             ;
 
@@ -1928,6 +2008,7 @@ class EvaluationResponseController extends Controller
             $subcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type', 'linear_scale_start', 'linear_scale_end')
                 ->where('id', $evaluationPercentageAnswer->subcategory_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -2015,6 +2096,7 @@ class EvaluationResponseController extends Controller
                 )
                 ->where('response_id', $request->response_id)
                 ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
             if( !$evaluationPercentageAnswer ) return response()->json([
@@ -2070,6 +2152,7 @@ class EvaluationResponseController extends Controller
                     'created_at', 'updated_at'
                 )
                 ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->get()
             ;
             if( !$evaluationPercentageAnswers ) return response()->json([
@@ -2132,6 +2215,7 @@ class EvaluationResponseController extends Controller
             $subcategory = EvaluationFormSubcategory
                 ::select('subcategory_type', 'linear_scale_start', 'linear_scale_end')
                 ->where('id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -2242,6 +2326,7 @@ class EvaluationResponseController extends Controller
                 ::select()
                 ->where('response_id', $request->response_id)
                 ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -2319,6 +2404,7 @@ class EvaluationResponseController extends Controller
                 ::select()
                 ->where('response_id', $request->response_id)
                 ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -2331,6 +2417,7 @@ class EvaluationResponseController extends Controller
             $subcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type')
                 ->where('id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -2399,6 +2486,7 @@ class EvaluationResponseController extends Controller
                 )
                 ->where('response_id', $request->response_id)
                 ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
             if( !$evaluationTextAnswer ) return response()->json([
@@ -2453,6 +2541,7 @@ class EvaluationResponseController extends Controller
                     'created_at', 'updated_at'
                 )
                 ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->get()
             ;
             if( !$evaluationTextAnswers ) return response()->json([
@@ -2509,6 +2598,7 @@ class EvaluationResponseController extends Controller
             $subcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type')
                 ->where('id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -2605,6 +2695,7 @@ class EvaluationResponseController extends Controller
                 ::select()
                 ->where('response_id', $request->response_id)
                 ->where('option_id', $request->option_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -2682,6 +2773,7 @@ class EvaluationResponseController extends Controller
                 ::select()
                 ->where('response_id', $request->response_id)
                 ->where('option_id', $request->option_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -2695,6 +2787,7 @@ class EvaluationResponseController extends Controller
             $evaluationFormSubcategory = EvaluationFormSubcategoryOption
                 ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                 ->select('evaluation_form_subcategories.id', 'evaluation_form_subcategories.subcategory_type')
+                ->whereNull('evaluation_form_subcategory_options.deleted_at')
                 ->first()
             ;
 
@@ -2714,6 +2807,7 @@ class EvaluationResponseController extends Controller
                         ::select('response_id', 'option_id')
                         ->where('response_id', '=', $request->response_id)
                         ->where('option_id', '=', $request->new_option_id)
+                        ->whereNull('deleted_at')
                         ->first()
                     ;
                     if($existingOptionAnswer) return response()->json([ 
@@ -2774,6 +2868,7 @@ class EvaluationResponseController extends Controller
                 ::select('response_id', 'option_id', 'created_at', 'updated_at')
                 ->where('response_id', $request->response_id)
                 ->where('option_id', $request->option_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
             if( !$evaluationOptionAnswer ) return response()->json([
@@ -2840,6 +2935,7 @@ class EvaluationResponseController extends Controller
                     'evaluation_option_answers.option_id',
                     'evaluation_option_answers.created_at', 'evaluation_option_answers.updated_at'
                 )
+                ->whereNull('evaluation_option_answers.deleted_at')
             ;
             
             if($request->response_id)
@@ -2898,7 +2994,9 @@ class EvaluationResponseController extends Controller
                     'evaluation_form_subcategories.id as subcategory_id',
                     'evaluation_option_answers.created_at',
                     'evaluation_option_answers.updated_at'
-                );
+                )
+                ->whereNull('evaluation_option_answers.deleted_at')
+            ;
 
             if ($request->response_id)
                 $evaluationOptionAnswers = $evaluationOptionAnswers->where(
@@ -2971,6 +3069,7 @@ class EvaluationResponseController extends Controller
                     'evaluation_form_subcategories.subcategory_type'
                 )
                 ->where('evaluation_form_subcategory_options.id', $request->option_id)
+                ->whereNull('evaluation_form_subcategory_options.deleted_at')
                 ->first()
             ;
 
@@ -2991,6 +3090,8 @@ class EvaluationResponseController extends Controller
                         ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.option_id', '=', $request->option_id)
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                        ->where('evaluation_form_subcategories.id', '=', $subcategory->id)
+                        ->whereNull('evaluation_option_answers.deleted_at')
                         ->first()
                     ;
                     if($existingOptionAnswer) return response()->json([ 
@@ -3006,7 +3107,8 @@ class EvaluationResponseController extends Controller
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                         ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
-                        ->where('evaluation_form_subcategories.id', '=', $subcategory->id) // restrict to this subcategory only
+                        ->where('evaluation_form_subcategories.id', '=', $subcategory->id)
+                        ->whereNull('evaluation_option_answers.deleted_at')
                         ->first()
                     ;
                     if($existingOptionAnswer) return response()->json([ 

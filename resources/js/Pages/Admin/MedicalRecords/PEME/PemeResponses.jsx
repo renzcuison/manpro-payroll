@@ -9,10 +9,12 @@ import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import Layout from "../../../../components/Layout/Layout";
 import PemeResponsesTable from "./PemeResponsesTable";
 import PemeDueDatePicker from "./PemeDueDatePicker";
-import DateRangePicker from '../../../../components/DateRangePicker';
+import DateRangePicker from "../../../../components/DateRangePicker";
+import PemeSettingsModal from "./Modals/PemeSettingsModal"
 
 // MUI components
 import {
+    Switch,
     Box,
     Button,
     Typography,
@@ -22,7 +24,11 @@ import {
     OutlinedInput,
     InputAdornment,
     Divider,
+    FormControlLabel,
+    IconButton,
 } from "@mui/material";
+import SettingsIcon from "@mui/icons-material/Settings";
+import Swal from "sweetalert2";
 
 // MUI X Date Picker
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -35,17 +41,23 @@ const PemeResponses = () => {
     const { PemeID } = useParams();
     const navigator = useNavigate();
     const [pemeRecords, setPemeRecords] = useState([]);
+    const [pemeResponses, setPemeResponses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     const [dueDate, setDueDate] = useState(null);
+    const [settingsOpen, setSettingsOpen] = useState(false);
 
+    // FETCH THE QUESTIONNAIRE STRUCTURE FOR THE GIVEN PEME ID
     useEffect(() => {
         axiosInstance
             .get(`/peme/${PemeID}/questionnaire`, { headers })
             .then((response) => {
                 setPemeRecords(response.data);
+                setVisible(response.data.isVisible === 1);
+                setEditable(response.data.isEditable === 1);
+                setMultiple(response.data.isEditable === 1);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -54,10 +66,87 @@ const PemeResponses = () => {
             });
     }, []);
 
-    const handleOnRowClick = () => {
+    // FETCH PEME RESPONSES FOR THE GIVEN PEME ID
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme-responses/${PemeID}`, { headers })
+            .then((response) => {
+                setPemeResponses([response.data]);
+                console.log("resposnes", response.data);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching PEME records:", error);
+                setIsLoading(false);
+            });
+    }, []);
+
+    const [visible, setVisible] = useState(true);
+    const [multiple, setMultiple] = useState(true);
+    const [editable, setEditable] = useState(true);
+
+    // const setIsHiddenOrVisible = async () => {
+    //     const isCurrentlyVisible = visible;
+    //     const newStatus = isCurrentlyVisible ? 0 : 1;
+
+    //     if (isCurrentlyVisible) {
+    //         Swal.fire({
+    //             title: "Hide this PEME Exam?",
+    //             text: `You are about to hide "${pemeRecords?.peme || "this PEME Exam"}".`,
+    //             icon: "warning",
+    //             showCancelButton: true,
+    //             confirmButtonText: "Hide",
+    //             cancelButtonText: "Cancel",
+    //             confirmButtonColor: "#d33",
+    //             customClass: { container: "my-swal" },
+    //         }).then(async (result) => {
+    //             if (result.isConfirmed) {
+    //                 try {
+    //                     const payload = { isVisible: 0 };
+
+    //                     await axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, { headers });
+
+    //                     Swal.fire({
+    //                         icon: "success",
+    //                         text: `PEME exam hidden successfully.`,
+    //                         showConfirmButton: false,
+    //                         timer: 1500,
+    //                     });
+
+    //                     setVisible(false);
+    //                 } catch (error) {
+    //                     console.error("Visibility toggle failed:", error);
+    //                     Swal.fire({
+    //                         icon: "error",
+    //                         title: "Error",
+    //                         text: "Failed to update visibility.",
+    //                     });
+    //                 }
+    //             }
+    //         });
+    //     } else {
+    //         try {
+    //             const payload = { isVisible: 1 };
+
+    //             await axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, { headers });
+    //             setVisible(true);
+    //         } catch (error) {
+    //             console.error("Visibility toggle failed:", error);
+    //             Swal.fire({
+    //                 icon: "error",
+    //                 title: "Error",
+    //                 text: "Failed to update visibility.",
+    //             });
+    //         }
+    //     }
+    // };
+
+
+    const handleOnRowClick = (responseID) => {
         navigator(
-            "/admin/medical-records/peme-records/peme-questionnaire-view"
+            `/admin/medical-records/peme-records/peme-questionnaire-view/${responseID}`
         );
+        console.log(responseID);
     };
 
     const handleOnPreviewClick = () => {
@@ -66,17 +155,44 @@ const PemeResponses = () => {
         );
     };
 
-    const dummyData = [
-        {
-            dueDate: "05-10-2025",
-            employee: "employee",
-            branch: "branch",
-            department: "department",
-            status: "status",
-        },
-    ];
+    const handleOnEditClick = () => {
+        navigator(`/admin/medical-records/peme-records/peme-form/${PemeID}`);
+    };
 
-    const filteredRecords = dummyData
+    const handleOnDeleteClick = () => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: `You want to delete ${pemeRecords.peme}?`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Delete",
+            confirmButtonColor: "#d33",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then(async (res) => {
+            if (res.isConfirmed) {
+                try {
+                    await axiosInstance.delete(`/deletePeme/${PemeID}`, {
+                        headers,
+                    });
+
+                    Swal.fire({
+                        icon: "success",
+                        text: "Question deleted successfully.",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+
+                    navigator("/admin/medical-records/peme-records");
+                } catch {
+                    console.log("unable to delete");
+                }
+            }
+        });
+    };
+
+    const filteredRecords = pemeResponses
         .filter((response) =>
             [
                 dayjs(response.date).format("MMMM D, YYYY"),
@@ -132,12 +248,14 @@ const PemeResponses = () => {
             return recordDueDate.isSame(dayjs(dueDate).startOf("day"));
         });
 
-        const resultsCount = filteredRecords.length;
+    const resultsCount = filteredRecords.length;
 
-        const handleDateRangeChange = (start, end) => {
+    const handleDateRangeChange = (start, end) => {
         setFromDate(start);
         setToDate(end);
-        };
+    };
+
+    // Route::patch('/updatePemeSettings/{id}', [PemeController::class, 'updatePemeSettings']);
 
     return (
         <Layout title="Pre-Employment Medical Exam Type Responses">
@@ -157,15 +275,56 @@ const PemeResponses = () => {
                             px: 1,
                         }}
                     >
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            Respondents
-                        </Typography>
-                        <Button
-                            onClick={handleOnPreviewClick}
-                            variant="contained"
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 2,
+                            }}
                         >
-                            Preview
-                        </Button>
+                            <Typography
+                                variant="h4"
+                                sx={{ fontWeight: "bold" }}
+                            >
+                                Respondents
+                            </Typography>
+                            <Typography
+                                variant="h5"
+                                sx={{ fontWeight: "bold" }}
+                            >
+                                {pemeRecords.peme}
+                            </Typography>
+                        </Box>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 2,
+                                alignItems: "center",
+                            }}
+                        >
+                            <Button
+                                onClick={handleOnDeleteClick}
+                                variant="contained"
+                                sx={{ backgroundColor: "Red" }}
+                            >
+                                Delete
+                            </Button>
+                            <Button
+                                onClick={handleOnEditClick}
+                                variant="contained"
+                            >
+                                Edit
+                            </Button>
+                            <Button
+                                onClick={handleOnPreviewClick}
+                                variant="contained"
+                            >
+                                Preview
+                            </Button>
+                            <IconButton onClick={() => setSettingsOpen(true)} aria-label="Settings">
+                                <SettingsIcon />
+                            </IconButton>
+                        </Box>
                     </Box>
 
                     <Box
@@ -178,8 +337,8 @@ const PemeResponses = () => {
                     >
                         <Grid container spacing={2} gap={2}>
                             <Grid item>
-                                <DateRangePicker 
-                                onRangeChange={handleDateRangeChange} 
+                                <DateRangePicker
+                                    onRangeChange={handleDateRangeChange}
                                 />
                             </Grid>
                             <Grid item>
@@ -205,9 +364,16 @@ const PemeResponses = () => {
                                 endAdornment={
                                     search && (
                                         <InputAdornment position="end">
-                                        <Typography variant="body2" sx={{ color: 'gray' }}>
-                                            {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
-                                        </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{ color: "gray" }}
+                                            >
+                                                {resultsCount}{" "}
+                                                {resultsCount === 1 ||
+                                                    resultsCount === 0
+                                                    ? "Match"
+                                                    : "Matches"}
+                                            </Typography>
                                         </InputAdornment>
                                     )
                                 }
@@ -225,6 +391,19 @@ const PemeResponses = () => {
                     </Box>
                 </Box>
             </Box>
+            <PemeSettingsModal
+                open={settingsOpen}
+                onClose={() => setSettingsOpen(false)}
+                visible={visible}
+                setVisible={setVisible}
+                multiple={multiple}
+                setMultiple={setMultiple}
+                editable={editable}
+                setEditable={setEditable}
+                PemeID={PemeID}
+                pemeRecords={pemeRecords}
+                headers={headers}
+            />
         </Layout>
     );
 };

@@ -658,9 +658,9 @@ const PerformanceEvaluationEvaluateePage = () => {
                     boxShadow: 2,
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                  {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
                     {getOrderLabel(i)} Commentor
-                  </Typography>
+                  </Typography> */}
                   <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(commentor)}
                   </Typography>

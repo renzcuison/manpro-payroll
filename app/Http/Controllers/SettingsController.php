@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class SettingsController extends Controller
 {
@@ -33,7 +34,6 @@ class SettingsController extends Controller
                 return true;
             }
         }
-
         return false;
     }
 
@@ -333,7 +333,12 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
         if(!$this->checkUser()){
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
-        $positions = DepartmentPosition::orderBy('name')->get();
+        $user = Auth::user();
+        
+        $positions = DepartmentPosition::where('client_id', $user->client_id)
+        ->orderBy('name')
+        ->get();
+
         return response()->json(['status' => 200, 'positions' => $positions]);
     }
 
@@ -442,7 +447,7 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
     }
 
     //get each of the department's details, along with their assigned employees per department position
-    public function getDepartmentWithEmployeePosition(Request $request)
+    public function getDepartmentWithEmployeePosition()
     {
         if (!$this->checkUser()) {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
@@ -535,8 +540,10 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
         }
 
         // Load employees that belong to this department (including their branch and position)
-        $employees = UsersModel::with(['branch', 'departmentPosition'])
-            ->where('department_id', $id)
+        $employees = UsersModel::select('id','email', 'user_name', 'first_name', 
+            'last_name', 'user_type', 'profile_pic', 'branch_id', 'department_id', 'department_position_id')
+            ->with(['branch', 'departmentPosition'])
+            ->where('department_id', $id)       
             ->get();
 
         return response()->json([
@@ -707,6 +714,8 @@ public function addBranchPositionAssignments(Request $request)
             'can_note_request' => 'required|boolean',
             'can_accept_request' => 'required|boolean',
         ]);
+        $validated['client_id'] = $user->client_id;
+        
         $position = DepartmentPosition::updateOrCreate(
             ['id' => $request->id],
             array_merge($validated)

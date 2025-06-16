@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import { useAllowances, useSaveEmployeeAllowance } from "../../../../hooks/useAllowance";
+import { useAllowances } from "../../../../hooks/useAllowances";
 
-const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
-    const {data} = useAllowances();
-    const allowances = data?.allowances || [];
-    const saveEmployeeAllowance = useSaveEmployeeAllowance();
+const EmployeeAllowanceAdd = ({ userName, onClose }) => {
+    const {allowances: allowancesQuery, saveEmployeeAllowances} = useAllowances();
+    const allowances = allowancesQuery.data?.allowances || [];
 
     const [allowanceError, setAllowanceError] = useState(false);
     const [numberError, setNumberError] = useState(false);
@@ -58,21 +57,19 @@ const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
     const saveInput = (event) => {
         event.preventDefault();
         const data = { userName: userName, allowance: allowance, number: number };
-        saveEmployeeAllowance.mutate(data, {
-            onSuccess: (response) => {
-                if(response.status === 200){
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Allowance added successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        onClose(true);
-                    });
-                }
+        saveEmployeeAllowances.mutate(data, {
+            onSuccess: () => {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Allowance added successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    onClose(true);
+                    
+                });
             },
             onError: (error) =>{
                 console.error('Error:', error);
@@ -125,7 +122,7 @@ const EmployeeAllowanceAdd = ({ userName, headers, onClose }) => {
                 <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white', mx: 1 }}>
                     <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                 </Button>
-                <Button type="submit" variant="contained" sx={{ backgroundColor: '#636c74', color: 'white', mx: 1 }} onClick={onClose}>
+                <Button type="submit" variant="contained" sx={{ backgroundColor: '#636c74', color: 'white', mx: 1 }} onClick={() => onClose(false)}>
                     <p className='m-0'><i class="fa fa-times" aria-hidden="true"></i> Cancel </p>
                 </Button>
             </Box>

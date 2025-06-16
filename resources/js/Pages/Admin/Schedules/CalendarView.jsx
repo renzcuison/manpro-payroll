@@ -43,20 +43,24 @@ const CalendarView = ({ setCalendarEvents }) => {
                 headers,
             });
 
-            const mappedEvents = res.data.map((event) => ({
-                id: event.id,
-                title: event.title,
-                start: dayjs(event.start).toISOString(),
-                end: dayjs(event.end).toISOString(),
-                color: event.calendar?.includes("holiday")
-                    ? "#e53935"
-                    : "#1976d2", // 🔴 red for holidays, blue for schedules
-                type: event.calendar?.includes("holiday")
-                    ? "holiday"
-                    : "schedule",
-                description: event.description,
-                visibility_type: event.visibility_type,
-            }));
+            const mappedEvents = res.data
+                .map((event) => ({
+                    id: event.id,
+                    title: event.title,
+                    start: dayjs(event.start).toISOString(),
+                    end: dayjs(event.end).toISOString(),
+                    color: event.calendar?.includes("holiday")
+                        ? "#e53935"
+                        : "#1976d2", // 🔴 red for holidays, blue for schedules
+                    type: event.calendar?.includes("holiday")
+                        ? "holiday"
+                        : "schedule",
+                    description: event.description,
+                    visibility_type: event.visibility_type,
+                }))
+                .sort((a, b) => {
+                    return new Date(a.start) - new Date(b.start);
+                });
 
             setEvents(mappedEvents);
             setCalendarEvents(mappedEvents);
