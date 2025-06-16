@@ -492,7 +492,6 @@ class PayrollController extends Controller
             ['name' => 'Eid’l Adha', 'date' => '2025-06-06'],
         ];
 
-        
         foreach ($logs as $log) {
             $logDate = Carbon::parse($log['timestamp'])->format('Y-m-d');
 

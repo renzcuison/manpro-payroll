@@ -165,85 +165,117 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                 "MMMM D, YYYY"
                             );
 
-                            return (
-                                <TableRow
-                                    key={response.response_id || index}
-                                    onClick={() =>
-                                        onRowClick(response.response_id)
-                                    }
-                                    sx={{
-                                        cursor: "pointer",
-                                        transition: ".15s",
-                                        "&:hover": {
-                                            backgroundColor: "#e0e0e0",
-                                        },
-                                    }}
-                                >
-                                    <TableCell align="center">
-                                        {highlightMatch(formattedDate, search)}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {dayjs(response.expiry_date).format(
-                                            "MMMM D, YYYY"
-                                        )}{" "}
-                                        <p></p>{" "}
-                                        {getDueStatus(response.expiry_date)}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {dayjs(response.next_schedule).format(
-                                            "MMMM D, YYYY"
-                                        )}{" "}
-                                        <p></p>{" "}
-                                        {getDueStatus(response.next_schedule)}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {highlightMatch(
-                                            response.respondent,
-                                            search
-                                        )}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {highlightMatch(
-                                            response.branch,
-                                            search
-                                        )}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {highlightMatch(
-                                            response.department,
-                                            search
-                                        )}
-                                    </TableCell>
+                            return response.map((detail, index) => {
+                                console.log("DETAILS", detail);
+                                return (
+                                    <TableRow
+                                        key={detail.id || index}
+                                        onClick={() =>
+                                            onRowClick(detail.response_id)
+                                        }
+                                        sx={{
+                                            cursor: "pointer",
+                                            transition: ".15s",
+                                            "&:hover": {
+                                                backgroundColor: "#e0e0e0",
+                                            },
+                                        }}
+                                    >
+                                        <TableCell align="center">
+                                            {highlightMatch(
+                                                formattedDate,
+                                                search
+                                            )}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {dayjs(detail.expiry_date).format(
+                                                "MMMM D, YYYY"
+                                            )}{" "}
+                                            <p></p>{" "}
+                                            {getDueStatus(detail.expiry_date)}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {dayjs(detail.next_schedule).format(
+                                                "MMMM D, YYYY"
+                                            )}{" "}
+                                            <p></p>{" "}
+                                            {getDueStatus(detail.next_schedule)}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {highlightMatch(
+                                                detail.respondent,
+                                                search
+                                            )}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {highlightMatch(
+                                                detail.branch,
+                                                search
+                                            )}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {highlightMatch(
+                                                detail.department,
+                                                search
+                                            )}
+                                        </TableCell>
 
-                                    <TableCell align="center">
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                alignItems: "center",
-                                                gap: 1,
-                                            }}
-                                        >
-                                            <GradientProgressBar
-                                                percentage={
-                                                    response.progress.percent
-                                                }
-                                                status={response.status}
-                                            ></GradientProgressBar>
-                                            <Typography>
-                                                {response.progress.completed} /{" "}
-                                                {response.progress.total}
-                                            </Typography>
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {highlightMatch(
-                                            response.status,
-                                            search
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            );
+                                        <TableCell align="center">
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                    gap: 1,
+                                                }}
+                                            >
+                                                {detail.progress ? (
+                                                    <>
+                                                        <GradientProgressBar
+                                                            percentage={
+                                                                detail.progress
+                                                                    .percent
+                                                            }
+                                                            status={
+                                                                detail.status
+                                                            }
+                                                        />
+                                                        <Typography>
+                                                            {
+                                                                detail.progress
+                                                                    .completed
+                                                            }{" "}
+                                                            /{" "}
+                                                            {
+                                                                detail.progress
+                                                                    .total
+                                                            }
+                                                        </Typography>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <GradientProgressBar
+                                                            percentage={0}
+                                                            status={
+                                                                detail.status
+                                                            }
+                                                        />
+                                                        <Typography>
+                                                            0 / 0
+                                                        </Typography>
+                                                    </>
+                                                )}
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {highlightMatch(
+                                                detail.status,
+                                                search
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            });
                         })
                     )}
                 </TableBody>

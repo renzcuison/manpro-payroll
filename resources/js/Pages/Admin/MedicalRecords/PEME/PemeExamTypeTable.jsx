@@ -9,12 +9,11 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 
-
 const highlightMatch = (text, keyword) => {
     if (!keyword) return text;
 
     // Escape regex special characters in the keyword
-    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     const regex = new RegExp(`(${escapedKeyword})`, "gi");
     const parts = text.split(regex);
