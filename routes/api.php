@@ -228,7 +228,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             SettingsController::class,
             'getDepartment',
         ]);
-        Route::post('/saveDepartment/{departmentId}', [
+        Route::post('/saveDepartment', [
             SettingsController::class,
             'saveDepartment',
         ]);

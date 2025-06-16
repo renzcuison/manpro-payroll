@@ -64,12 +64,12 @@ class CompensationManagementController extends Controller
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
         $employees = [];
+        $total = 0;
 
         foreach($client->employees as $employee){
             $baseSalary = floatval($employee->salary);
             $incentives = EmployeeIncentivesModel::where('user_id', $employee->id)->get();
             $amount = 0;
-
 
             foreach($incentives as $incentive){
                 $type = $incentive->incentive->type;
@@ -80,6 +80,7 @@ class CompensationManagementController extends Controller
                     $amount += $baseSalary * ($incentive->incentive->percentage / 100);
                 }
             }
+            $total += $amount;
 
             $employees[] = [
                 'user_name' => $employee->user_name,
@@ -88,10 +89,11 @@ class CompensationManagementController extends Controller
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
                 'branch_id' => $employee->branch->id, 
                 'department_id' => $employee->department->id,
-                'total' => $amount,
+                'amount' => $amount,
             ];
         }
-        return response()->json(['status' => 200, 'employees' => $employees]);
+        
+        return response()->json(['status' => 200, 'employees' => $employees, 'total' => $total]);
     }
 
     public function getEmployeeIncentives(Request $request)
@@ -260,21 +262,23 @@ class CompensationManagementController extends Controller
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
         $employees = [];
+        $employer_total = 0;
+        $employee_total = 0;
 
         foreach ($client->employees as $employee){
             $benefits = [];
-            $employee_total = 0;
-            $employer_total = 0;
+            $employee_calc_amount = 0;
+            $employer_calc_amount = 0;
             $baseSalary = floatval($employee->salary);
             $rawBenefits = EmployeeBenefitsModel::with('benefit')->where('user_id', $employee->id)->where('deleted_at', null)->get();
             foreach ($rawBenefits as $rawBenefit) {
-
                 $benefitCalc = $this->calculateBenefits($rawBenefit, $baseSalary);
                 $benefits[] = $benefitCalc;
-
-                $employee_total += $benefitCalc['employee_contribution'];
-                $employer_total += $benefitCalc['employer_contribution'];
+                $employee_calc_amount += $benefitCalc['employee_contribution'];
+                $employer_calc_amount += $benefitCalc['employer_contribution'];
             }
+            $employer_total += $employer_calc_amount;
+            $employee_total += $employee_calc_amount;
 
             $employees[] = [
                 'user_name' => $employee->user_name,
@@ -284,11 +288,11 @@ class CompensationManagementController extends Controller
                 'branch_id' => $employee->branch->id, 
                 'department_id' => $employee->department->id,        
                 'benefits' => $benefits,
-                'employee_amount' => $employee_total,
-                'employer_amount' => $employer_total,
+                'employee_amount' => $employee_calc_amount,
+                'employer_amount' => $employer_calc_amount,
             ];   
         }
-        return response()->json(['status' => 200, 'employees' => $employees]);
+        return response()->json(['status' => 200, 'employees' => $employees, 'employer_total' => $employer_total, 'employee_total' => $employee_total]);
     }
 
     public function getEmployeeBenefits(Request $request)
@@ -558,6 +562,7 @@ class CompensationManagementController extends Controller
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
         $employees = [];
+        $total = 0;
         foreach($client->employees as $employee){  
             $baseSalary = floatval($employee->salary);
             $allowances = EmployeeAllowancesModel::where('user_id', $employee->id)->get();
@@ -572,6 +577,7 @@ class CompensationManagementController extends Controller
                     $amount += $baseSalary * ($allowance->allowance->percentage / 100);
                 }
             }
+            $total += $amount;
 
             $employees[] = [
                 'user_name' => $employee->user_name,
@@ -580,10 +586,10 @@ class CompensationManagementController extends Controller
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
                 'branch_id' => $employee->branch->id, 
                 'department_id' => $employee->department->id,
-                'total' => $amount,
+                'amount' => $amount,
             ];
         }
-        return response()->json(['status' => 200, 'employees' => $employees]);
+        return response()->json(['status' => 200, 'employees' => $employees, 'total' => $total]);
     }
 
     public function saveEmployeeAllowance(Request $request)
@@ -751,6 +757,7 @@ class CompensationManagementController extends Controller
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
         $employees = [];
+        $total = 0;
         foreach($client->employees as $employee){  
             $baseSalary = floatval($employee->salary);
             $deductions = EmployeeDeductionsModel::where('user_id', $employee->id)->get();
@@ -765,7 +772,7 @@ class CompensationManagementController extends Controller
                     $amount += $baseSalary * ($deduction->deduction->percentage / 100);
                 }
             }
-
+            $total += $amount;
             $employees[] = [
                 'user_name' => $employee->user_name,
                 'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
@@ -773,10 +780,10 @@ class CompensationManagementController extends Controller
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
                 'branch_id' => $employee->branch->id, 
                 'department_id' => $employee->department->id,
-                'total' => $amount,
+                'amount' => $amount,
             ];
         }
-        return response()->json(['status' => 200, 'employees' => $employees]);
+        return response()->json(['status' => 200, 'employees' => $employees, 'total' => $total]);
     }
 
     public function saveEmployeeDeductions(Request $request)

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography,
+import { Table, TableHead, TableBody, TableFooter, TableCell, TableContainer, TableRow, Box, Typography,
      Grid, TextField, FormControl, CircularProgress, TablePagination, Button, MenuItem } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,9 +12,11 @@ import { useBranches } from '../../../hooks/useBranches';
 const EmployeesAllowanceList = () => {
     const { employeesAllowances } = useAllowances();
     const { departments: departmentData } = useDepartments();
-     const { data: branchesData } = useBranches();
+    const { data: branchesData } = useBranches();
 
     const employees = employeesAllowances.data?.employees || [];
+    const total = employeesAllowances.data?.total || 0;
+
     const departments = departmentData.data?.departments || [];
     const branches = branchesData?.branches || [];
 
@@ -52,6 +54,7 @@ const EmployeesAllowanceList = () => {
     };
 
     const paginatedEmployees = filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    const paginatedTotal = paginatedEmployees.reduce((acc,emp) => acc + emp.amount, 0);
    
     return (
         <Layout title={"LeaveCreditList"}>
@@ -61,7 +64,7 @@ const EmployeesAllowanceList = () => {
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Allowances </Typography>
 
-                        <Button variant="contained" color="primary" component={Link} to="/admin/employees/allowance-types">
+                        <Button variant="contained" color="primary" component={Link} to="/admin/compensation/allowance-types">
                             <p className='m-0'><i className="fa fa-list" aria-hidden="true"></i> Types </p>
                         </Button>
                     </Box>
@@ -136,16 +139,32 @@ const EmployeesAllowanceList = () => {
                                         </TableHead>
                                         <TableBody>
                                             {paginatedEmployees.length > 0 ? (
-                                                paginatedEmployees.map((employee, index) => {
+                                                <>
+                                                {paginatedEmployees.map((employee, index) => {
                                                     return (
                                                         <TableRow key={employee.user_name} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
                                                             <TableCell align="left">{employee.name || '-'}</TableCell>
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                            <TableCell align="center">₱{Number(employee.total || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="center">
+                                                                ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(employee.amount)}
+                                                            </TableCell>
                                                         </TableRow>
                                                     );
-                                                })
+                                                })}
+                                                <TableRow sx={{ backgroundColor: (page * rowsPerPage + paginatedEmployees.length) % 2 === 0 ? 
+                                                '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
+                                                    <TableCell align='left'>
+                                                        <Typography sx={{fontWeight: 'bold'}}>TOTAL:</Typography>
+                                                    </TableCell>
+                                                    <TableCell colSpan={2}/> 
+                                                    <TableCell align="center">
+                                                        <Typography sx={{fontWeight: 'bold'}}>
+                                                            ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(paginatedTotal)}
+                                                        </Typography>
+                                                    </TableCell>  
+                                                </TableRow>
+                                                </>
                                             ) : (
                                                 <TableRow>
                                                     <TableCell colSpan={6} align="center" sx={{ color: "text.secondary", p: 1 }}>

@@ -55,37 +55,14 @@ const DepartmentAdd = ({open, close}) =>{
         event.preventDefault(); 
 
         const data = {
+            id: null,
             name: name,
             acronym: acronym,
             description: description,
         };
 
-        // saveDepartment.mutate({data: data, onSuccessCallback: () => close(true)})
-        axiosInstance.post('/settings/saveDepartment', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Department saved successfully!",
-                        icon: "success",
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        close(true);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Error saving department!",
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                });
-            });
+        saveDepartment.mutate({data: data, onSuccessCallback: () => close(true)})
+        
     };
 
     return(

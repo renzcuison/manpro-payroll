@@ -1,6 +1,6 @@
 {
   "node_modules/canvg/lib/index.es.js": {
-    "file": "assets/index.es-DTYIoJKK.js",
+    "file": "assets/index.es-D47AbmeI.js",
     "name": "index.es",
     "src": "node_modules/canvg/lib/index.es.js",
     "isDynamicEntry": true,
@@ -9,7 +9,7 @@
     ]
   },
   "node_modules/dompurify/dist/purify.es.mjs": {
-    "file": "assets/purify.es-CQJ0hv7W.js",
+    "file": "assets/purify.es-Bf0oSh3b.js",
     "name": "purify.es",
     "src": "node_modules/dompurify/dist/purify.es.mjs",
     "isDynamicEntry": true
@@ -75,8 +75,7 @@
     "src": "public/media/assets/PowerPoint_file_icon.png"
   },
   "resources/css/app.css": {
-    "file": "assets/app-l0sNRNKZ.js",
-    "name": "app",
+    "file": "assets/app-D_WZjgo6.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -101,7 +100,7 @@
     "src": "resources/js/Assets/default_perimeter_image.png"
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-39ilc9pF.js",
+    "file": "assets/app-Bf-6u0X6.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -119,7 +118,6 @@
       "assets/ManProTab-CLvA6S6_.png",
       "assets/PDF_file_icon-Ch7fGXyF.png",
       "assets/Docx_file_icon-Cp9-MzLG.png",
-      "assets/Excel_file_icon-DMClTl-X.png",
       "assets/PowerPoint_file_icon-B50ZtqDv.png",
       "assets/default_perimeter_image-tEbXnaKu.png",
       "assets/ajax-loader-BcnMEykj.gif",

@@ -557,14 +557,14 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
         ]);
     }
     
-    public function saveDepartment(Request $request, $departmentId)
+    public function saveDepartment(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required',
             'acronym' => 'required',
         ]);
 
-        if (!$this->checkUser()) {
+        if (!$this->checkUser() && !$validated) {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
 
@@ -573,16 +573,16 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
 
         try {
             DB::beginTransaction();
-            $department = DepartmentsModel::updateOrCreate(
+            DepartmentsModel::updateOrCreate(
                 [
-                    'id' => $departmentId,
+                    'id' => $request->id,
                     'client_id' => $client->id,
                 ],
                 [
                     'name' => $request->name,
                     'acronym' => $request->acronym,
                     'description' => $request->description,
-                    'status' => $departmentId ? $request->status : 'Active', // On creation, set status to active
+                    'status' => $request->id ? $request->status : 'Active', // On creation, set status to active
                     'client_id' => $client->id, 
                 ]
             );

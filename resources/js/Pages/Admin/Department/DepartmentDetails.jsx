@@ -25,8 +25,6 @@ const DepartmentDetails = () => {
 
     const [openEditModal, setOpenEditModal] = useState(false);
     const [openPositionAssignModal, setOpenPositionAssignModal] = useState(false);
-
-    console.log(department)
     //modal handlings
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -83,7 +81,6 @@ const DepartmentDetails = () => {
         }); 
     }
     //end of fetching data
-    console.log(department)
     const filteredEmployees = department?.employees
     ?.filter(emp => {
         const nameMatch = `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchKeyword.toLowerCase());
