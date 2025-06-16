@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress, Divider, TextField, InputAdornment, IconButton } from '@mui/material';
+import {
+    Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
+    TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
+    Divider, TextField, InputAdornment, IconButton
+} from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { getFullName } from '../../../utils/user-utils';
@@ -7,6 +11,28 @@ import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+
+const rolePriority = {
+    "Creator": 1,
+    "Evaluatee": 2,
+    "Evaluator": 3,
+    "Commentor": 4
+};
+
+const getEvaluationRoleRoute = (row) => {
+    switch (row.role) {
+        case "Creator":
+            return `/admin/performance-evaluation/creator/${row.id}`;
+        case "Evaluatee":
+            return `/admin/performance-evaluation/evaluatee/${row.id}`;
+        case "Evaluator":
+            return `/admin/performance-evaluation/answer/${row.id}`;
+        case "Commentor":
+            return `/admin/performance-evaluation/commentor/${row.id}`;
+        default:
+            return `/admin/performance-evaluation/answer/${row.id}`;
+    }
+};
 
 const PerformanceEvaluationList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -57,20 +83,30 @@ const PerformanceEvaluationList = () => {
                 ]
             }
         })
-        .then((response) => {
-            if (response.data.status === 200) {
-                setEvaluationResponses(response.data.evaluationResponses);
-                setTotalCount(response.data.totalResponseCount);
-            } else {
+            .then((response) => {
+                if (response.data.status === 200) {
+                    // Deduplicate by id, keep highest priority role
+                    const seen = {};
+                    for (const row of response.data.evaluationResponses) {
+                        if (
+                            !seen[row.id] ||
+                            (rolePriority[row.role] < rolePriority[seen[row.id].role])
+                        ) {
+                            seen[row.id] = row;
+                        }
+                    }
+                    setEvaluationResponses(Object.values(seen));
+                    setTotalCount(response.data.totalResponseCount);
+                } else {
+                    setEvaluationResponses([]);
+                    setTotalCount(0);
+                }
+            })
+            .catch(() => {
                 setEvaluationResponses([]);
                 setTotalCount(0);
-            }
-        })
-        .catch(() => {
-            setEvaluationResponses([]);
-            setTotalCount(0);
-        })
-        .finally(() => setIsLoading(false));
+            })
+            .finally(() => setIsLoading(false));
     }, [page, rowsPerPage, searchValue]);
 
     const handleChangePage = (event, newPage) => {
@@ -118,76 +154,75 @@ const PerformanceEvaluationList = () => {
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                 {/* Search Field */}
                                 <Box
-                                component="form"
-                                onSubmit={handleSearchSubmit}
-                                sx={{ mr: 1, width: 260 }}
+                                    component="form"
+                                    onSubmit={handleSearchSubmit}
+                                    sx={{ mr: 1, width: 260 }}
                                 >
-                                <TextField
-                                    placeholder="Search..."
-                                    value={searchInput}
-                                    onChange={handleSearchChange}
-                                    size="small"
-                                    fullWidth
-                                    InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                        <SearchIcon />
-                                        </InputAdornment>
-                                    ),
-                                    endAdornment: (
-                                        searchInput && (
-                                        <InputAdornment position="end">
-                                            <IconButton
-                                            aria-label="clear search"
-                                            onClick={handleClearSearch}
-                                            edge="end"
-                                            size="small"
-                                            >
-                                                <ClearIcon />
-                                            </IconButton>
-                                        </InputAdornment>
-                                        )
-                                    )
-                                    }}
-                                />
+                                    <TextField
+                                        placeholder="Search..."
+                                        value={searchInput}
+                                        onChange={handleSearchChange}
+                                        size="small"
+                                        fullWidth
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <SearchIcon />
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: (
+                                                searchInput && (
+                                                    <InputAdornment position="end">
+                                                        <IconButton
+                                                            aria-label="clear search"
+                                                            onClick={handleClearSearch}
+                                                            edge="end"
+                                                            size="small"
+                                                        >
+                                                            <ClearIcon />
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                )
+                                            )
+                                        }}
+                                    />
                                 </Box>
                                 {/* Forms Dropdown Button */}
                                 <Button
-                                id="performance-evaluation-menu"
-                                variant="contained"
-                                color="success"
-                                aria-controls={open ? 'perf-eval-menu' : undefined}
-                                aria-haspopup="true"
-                                aria-expanded={open ? 'true' : undefined}
-                                onClick={handleMenuOpen}
+                                    id="performance-evaluation-menu"
+                                    variant="contained"
+                                    color="success"
+                                    aria-controls={open ? 'perf-eval-menu' : undefined}
+                                    aria-haspopup="true"
+                                    aria-expanded={open ? 'true' : undefined}
+                                    onClick={handleMenuOpen}
                                 >
-                                Forms <i className="fa fa-caret-down ml-2"></i>
+                                    Forms <i className="fa fa-caret-down ml-2"></i>
                                 </Button>
                                 <Menu
-                                id="perf-eval-menu"
-                                anchorEl={anchorEl}
-                                open={open}
-                                onClose={handleMenuClose}
-                                MenuListProps={{
-                                    'aria-labelledby': 'performance-evaluation-menu',
-                                }}
+                                    id="perf-eval-menu"
+                                    anchorEl={anchorEl}
+                                    open={open}
+                                    onClose={handleMenuClose}
+                                    MenuListProps={{
+                                        'aria-labelledby': 'performance-evaluation-menu',
+                                    }}
                                 >
-                                {performanceEvaluations.map(({name }) => (
-                                    <MenuItem key={name} onClick={() => {
-                                    handleMenuClose();
-                                    // Use id or name as appropriate for navigation
-                                    navigate(`/admin/performance-evaluation/form/${name}`);
-                                    }}>
-                                    {name}
+                                    {performanceEvaluations.map(({ name }) => (
+                                        <MenuItem key={name} onClick={() => {
+                                            handleMenuClose();
+                                            navigate(`/admin/performance-evaluation/form/${name}`);
+                                        }}>
+                                            {name}
+                                        </MenuItem>
+                                    ))}
+                                    <Divider sx={{ my: 1 }} />
+                                    <MenuItem
+                                        onClick={() => { setModalOpen(true); handleMenuClose(); }}
+                                        sx={{ display: 'flex', alignItems: 'center' }}
+                                    >
+                                        <Typography variant="body1" sx={{ mr: 1, fontWeight: 'bold' }}>+</Typography> New Form
                                     </MenuItem>
-                                ))}
-                                <Divider sx={{ my: 1 }} />
-                                <MenuItem
-                                    onClick={() => { setModalOpen(true); handleMenuClose(); }}
-                                    sx={{ display: 'flex', alignItems: 'center' }}
-                                >
-                                    <Typography variant="body1" sx={{ mr: 1, fontWeight: 'bold' }}>+</Typography> New Form
-                                </MenuItem>
                                 </Menu>
                             </Box>
                         </Box>
@@ -206,11 +241,11 @@ const PerformanceEvaluationList = () => {
                         ) : (
                             <>
                                 <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                    <Table aria-label="simple table"  sx={{
-                                            '& .MuiTableCell-root': {
+                                    <Table aria-label="simple table" sx={{
+                                        '& .MuiTableCell-root': {
                                             borderBottom: 'none',
-                                            },
-                                        }}>
+                                        },
+                                    }}>
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center">DATE</TableCell>
@@ -220,7 +255,7 @@ const PerformanceEvaluationList = () => {
                                                 <TableCell align="center">STATUS</TableCell>
                                             </TableRow>
                                         </TableHead>
-                                       <TableBody>
+                                        <TableBody>
                                             {evaluationResponses.length === 0 ? (
                                                 <TableRow>
                                                     <TableCell colSpan={5} align="center">
@@ -229,19 +264,19 @@ const PerformanceEvaluationList = () => {
                                                 </TableRow>
                                             ) : (
                                                 evaluationResponses.map((row, idx) => (
-                                                    <TableRow 
+                                                    <TableRow
                                                         key={row.id}
                                                         hover
                                                         style={{ cursor: 'pointer' }}
-                                                        onClick={() => navigate(`/admin/performance-evaluation/answer/${row.id}`)}
+                                                        onClick={() => navigate(getEvaluationRoleRoute(row))}
                                                         sx={{
-                                                        backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper'
+                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper'
                                                         }}
                                                     >
                                                         <TableCell align="center">{row.date}</TableCell>
                                                         <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee.department?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee.branch?.name ?? '—'}</TableCell>
+                                                        <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
+                                                        <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
                                                         <TableCell align="center">{row.status}</TableCell>
                                                     </TableRow>
                                                 ))
@@ -259,7 +294,7 @@ const PerformanceEvaluationList = () => {
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}
-                                        onRowsPerPageChange={() => {}}
+                                        onRowsPerPageChange={() => { }}
                                     />
                                 </Box>
                             </>

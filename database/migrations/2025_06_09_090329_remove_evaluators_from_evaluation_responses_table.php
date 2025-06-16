@@ -24,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('evaluation_responses', function (Blueprint $table) {
-            //
+            $table->unsignedBigInteger('evaluator_id');
+            $table->foreign('evaluator_id')->references('id')->on('users');
+            $table->string('evaluator_comment')->nullable();
         });
     }
 };
