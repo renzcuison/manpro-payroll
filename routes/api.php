@@ -30,6 +30,7 @@ use App\Http\Controllers\LoanApplicationsController;
 use App\Http\Controllers\SignatoryController;
 use App\Http\Controllers\RadiusPerimeterController;
 use App\Http\Controllers\BranchPositionController;
+use App\Http\Controllers\SalaryPlansController;
 
 
 
@@ -819,6 +820,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/google/events', [GoogleController::class, 'getEvents']);
     Route::put('/google/event/{id}', [GoogleController::class, 'updateEvent']);
     Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent']);
+
+    //Salary Plans
+    Route::get('getSalaryPlans', [SalaryPlansController::class, 'getSalaryPlans']);
+    Route::post('/saveSalaryGrade', [SalaryPlansController::class, 'saveSalaryGrade']);
+    Route::post('/editSalaryGrade/{id}', [SalaryPlansController::class, 'editSalaryGrade']);
+    Route::post('/deleteSalaryGrade', [SalaryPlansController::class, 'deleteSalaryGrade']);
 });
 
 Route::get('/google/redirect', [GoogleController::class, 'redirectToGoogle']);
