@@ -18,66 +18,99 @@ const PemeSettingsModal = ({
     onClose,
     visible,
     setVisible,
+    multiple,
+    setMultiple,
+    editable,
+    setEditable,
     PemeID,
     pemeRecords,
     headers,
 }) => {
-    const handleVisibilityToggle = async () => {
-        const isCurrentlyVisible = visible;
+    const handleMultipleToggle = async () => {
+        const newValue = multiple ? 0 : 1;
 
-        if (isCurrentlyVisible) {
+        try {
+            await axiosInstance.patch(
+                `/updatePemeSettings/${PemeID}`,
+                { isMultiple: newValue },
+                { headers }
+            );
+            setMultiple(!!newValue);
             Swal.fire({
-                title: "Hide this PEME Exam?",
-                text: `You are about to hide "${pemeRecords?.peme || "this PEME Exam"}".`,
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Hide",
-                cancelButtonText: "Cancel",
-                confirmButtonColor: "#d33",
-                customClass: { container: "my-swal" },
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        await axiosInstance.patch(
-                            `/updatePemeSettings/${PemeID}`,
-                            { isVisible: 0 },
-                            { headers }
-                        );
-                        setVisible(false);
-                        Swal.fire({
-                            icon: "success",
-                            text: `PEME exam hidden successfully.`,
-                            showConfirmButton: false,
-                            timer: 1500,
-                        });
-                    } catch (error) {
-                        console.error("Visibility toggle failed:", error);
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: "Failed to update visibility.",
-                        });
-                    }
-                }
+                icon: "success",
+                text: `Multiple responses ${newValue ? "enabled" : "disabled"}.`,
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 1500,
             });
-        } else {
-            try {
-                await axiosInstance.patch(
-                    `/updatePemeSettings/${PemeID}`,
-                    { isVisible: 1 },
-                    { headers }
-                );
-                setVisible(true);
-            } catch (error) {
-                console.error("Visibility toggle failed:", error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: "Failed to update visibility.",
-                });
-            }
+        } catch (error) {
+            console.error("Multiple toggle failed:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to update multiple setting.",
+            });
         }
     };
+
+
+    const handleEditableToggle = async () => {
+        const newValue = editable ? 0 : 1;
+
+        try {
+            await axiosInstance.patch(
+                `/updatePemeSettings/${PemeID}`,
+                { isEditable: newValue },
+                { headers }
+            );
+            setEditable(!!newValue);
+            Swal.fire({
+                icon: "success",
+                text: `Editing has been ${newValue ? "enabled" : "disabled"}.`,
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 1500,
+            });
+        } catch (error) {
+            console.error("Editable toggle failed:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to update editable setting.",
+            });
+        }
+    };
+
+    const handleVisibilityToggle = async () => {
+        const newValue = visible ? 0 : 1;
+
+        try {
+            await axiosInstance.patch(
+                `/updatePemeSettings/${PemeID}`,
+                { isVisible: newValue },
+                { headers }
+            );
+            setVisible(!!newValue);
+            Swal.fire({
+                icon: "success",
+                text: `PEME exam is now ${newValue ? "visible" : "hidden"}.`,
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 1500,
+            });
+        } catch (error) {
+            console.error("Visibility toggle failed:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to update visibility.",
+            });
+        }
+    };
+
 
     return (
         <Dialog
@@ -87,7 +120,7 @@ const PemeSettingsModal = ({
             PaperProps={{
                 sx: {
                     backgroundColor: "#f8f9fa",
-                    width: { xs: "100%", md: "25vw" },
+                    width: { xs: "100%", md: "23vw" },
                     borderRadius: "20px",
                     boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                     display: "flex",
@@ -117,7 +150,33 @@ const PemeSettingsModal = ({
                                 onClick={handleVisibilityToggle}
                             />
                         }
-                        label={`Exam Visibility: ${visible ? "Visible" : "Hidden"}`}
+                        label={`Exam Visibility: ${visible ? "Public" : "Hidden"}`}
+                    />
+                </Box>
+
+                <Box sx={{ mt: 2 }}>
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={multiple}
+                                onClick={handleMultipleToggle}
+                            />
+                        }
+                        label={`Allow Multiple: ${multiple ? "Yes" : "No"}`}
+                    />
+                </Box>
+
+                <Box sx={{ mt: 2 }}>
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={editable}
+                                onClick={handleEditableToggle}
+                                disabled={!editable}
+                            />
+                        }
+                        label={`Editable: ${editable ? "Yes" : "No"}`}
+                        sx={{ opacity: editable ? 1 : 0.5 }}
                     />
                 </Box>
             </DialogContent>
@@ -125,6 +184,7 @@ const PemeSettingsModal = ({
             <DialogActions
                 sx={{
                     padding: 3,
+                    mt: -3,
                     justifyContent: "flex-end",
                 }}
             >

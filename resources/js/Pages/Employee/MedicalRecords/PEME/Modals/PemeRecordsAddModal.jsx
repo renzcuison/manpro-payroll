@@ -13,6 +13,7 @@ import {
 import React from "react";
 import axiosInstance from "@/utils/axiosConfig";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const PemeRecordsAddModal = ({ open, close, records }) => {
     const navigator = useNavigate();
@@ -28,10 +29,7 @@ const PemeRecordsAddModal = ({ open, close, records }) => {
 
     const handleSelectChange = (event) => {
         setSelectedRecord(event.target.value);
-        const selectedExam = records.find(
-            (exam) => exam.id === event.target.value
-        );
-
+        const selectedExam = records.find((exam) => exam.id === event.target.value);
         setSelectedExamID(event.target.value);
         console.log("Selected Exam ID:", selectedExamID);
         console.log("Selected Exam Name:", selectedExam?.name);
@@ -40,20 +38,41 @@ const PemeRecordsAddModal = ({ open, close, records }) => {
     const handleSubmit = async () => {
         const storedUser = localStorage.getItem("nasya_user");
         const headers = getJWTHeader(JSON.parse(storedUser));
+
         try {
-            const payload = {
-                peme_id: selectedExamID,
-            };
+            const payload = { peme_id: selectedExamID };
             console.log(payload);
-            const response = await axiosInstance.post(
-                "/peme-responses",
-                payload,
-                { headers }
-            );
+
+            const response = await axiosInstance.post("/peme-responses", payload, { headers });
+
             console.log("Successfully created questionnaire:", response.data);
+
+            Swal.fire({
+                title: "Success!",
+                text: "PEME response created successfully.",
+                icon: "success",
+                confirmButtonColor: "#177604",
+            });
+
+            close(true); 
         } catch (error) {
             console.error("Error creating questionnaire:", error);
-            return null;
+
+            if (error.response?.status === 409) {
+                Swal.fire({
+                    title: "Already Submitted",
+                    text: "You have already submitted a response for this exam.",
+                    icon: "warning",
+                    confirmButtonColor: "#177604",
+                });
+            } else {
+                Swal.fire({
+                    title: "Error",
+                    text: "Something went wrong. Please try again later.",
+                    icon: "error",
+                    confirmButtonColor: "#177604",
+                });
+            }
         }
     };
 
@@ -86,7 +105,7 @@ const PemeRecordsAddModal = ({ open, close, records }) => {
                 </Box>
             </DialogTitle>
             <DialogContent sx={{ padding: 5 }}>
-                <Box component={`form`} autoComplete="off">
+                <Box component="form" autoComplete="off">
                     <FormControl
                         fullWidth
                         sx={{
@@ -117,7 +136,7 @@ const PemeRecordsAddModal = ({ open, close, records }) => {
                                 {records.map((exam) => (
                                     <MenuItem
                                         key={exam.id}
-                                        value={exam.id} // <-- use exam.id here
+                                        value={exam.id}
                                         sx={{ paddingY: 2 }}
                                     >
                                         {exam.name}
@@ -131,26 +150,20 @@ const PemeRecordsAddModal = ({ open, close, records }) => {
                                 justifyContent: "space-between",
                             }}
                         >
-                            <Box>
-                                <Button
-                                    onClick={close}
-                                    variant="contained"
-                                    sx={{ backgroundColor: "#727F91" }}
-                                >
-                                    Cancel
-                                </Button>
-                            </Box>
-                            <Box>
-                                <Button
-                                    onClick={() => {
-                                        handleSubmit();
-                                        close(true);
-                                    }}
-                                    variant="contained"
-                                >
-                                    Create
-                                </Button>
-                            </Box>
+                            <Button
+                                onClick={close}
+                                variant="contained"
+                                sx={{ backgroundColor: "#727F91" }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleSubmit}
+                                variant="contained"
+                                disabled={!selectedExamID}
+                            >
+                                Create
+                            </Button>
                         </Box>
                     </FormControl>
                 </Box>

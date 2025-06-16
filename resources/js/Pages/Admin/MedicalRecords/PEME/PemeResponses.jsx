@@ -56,6 +56,8 @@ const PemeResponses = () => {
             .then((response) => {
                 setPemeRecords(response.data);
                 setVisible(response.data.isVisible === 1);
+                setEditable(response.data.isEditable === 1);
+                setMultiple(response.data.isEditable === 1);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -80,62 +82,64 @@ const PemeResponses = () => {
     }, []);
 
     const [visible, setVisible] = useState(true);
+    const [multiple, setMultiple] = useState(true);
+    const [editable, setEditable] = useState(true);
 
-    const setIsHiddenOrVisible = async () => {
-        const isCurrentlyVisible = visible;
-        const newStatus = isCurrentlyVisible ? 0 : 1;
+    // const setIsHiddenOrVisible = async () => {
+    //     const isCurrentlyVisible = visible;
+    //     const newStatus = isCurrentlyVisible ? 0 : 1;
 
-        if (isCurrentlyVisible) {
-            Swal.fire({
-                title: "Hide this PEME Exam?",
-                text: `You are about to hide "${pemeRecords?.peme || "this PEME Exam"}".`,
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Hide",
-                cancelButtonText: "Cancel",
-                confirmButtonColor: "#d33",
-                customClass: { container: "my-swal" },
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        const payload = { isVisible: 0 };
+    //     if (isCurrentlyVisible) {
+    //         Swal.fire({
+    //             title: "Hide this PEME Exam?",
+    //             text: `You are about to hide "${pemeRecords?.peme || "this PEME Exam"}".`,
+    //             icon: "warning",
+    //             showCancelButton: true,
+    //             confirmButtonText: "Hide",
+    //             cancelButtonText: "Cancel",
+    //             confirmButtonColor: "#d33",
+    //             customClass: { container: "my-swal" },
+    //         }).then(async (result) => {
+    //             if (result.isConfirmed) {
+    //                 try {
+    //                     const payload = { isVisible: 0 };
 
-                        await axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, { headers });
+    //                     await axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, { headers });
 
-                        Swal.fire({
-                            icon: "success",
-                            text: `PEME exam hidden successfully.`,
-                            showConfirmButton: false,
-                            timer: 1500,
-                        });
+    //                     Swal.fire({
+    //                         icon: "success",
+    //                         text: `PEME exam hidden successfully.`,
+    //                         showConfirmButton: false,
+    //                         timer: 1500,
+    //                     });
 
-                        setVisible(false);
-                    } catch (error) {
-                        console.error("Visibility toggle failed:", error);
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: "Failed to update visibility.",
-                        });
-                    }
-                }
-            });
-        } else {
-            try {
-                const payload = { isVisible: 1 };
+    //                     setVisible(false);
+    //                 } catch (error) {
+    //                     console.error("Visibility toggle failed:", error);
+    //                     Swal.fire({
+    //                         icon: "error",
+    //                         title: "Error",
+    //                         text: "Failed to update visibility.",
+    //                     });
+    //                 }
+    //             }
+    //         });
+    //     } else {
+    //         try {
+    //             const payload = { isVisible: 1 };
 
-                await axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, { headers });
-                setVisible(true);
-            } catch (error) {
-                console.error("Visibility toggle failed:", error);
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: "Failed to update visibility.",
-                });
-            }
-        }
-    };
+    //             await axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, { headers });
+    //             setVisible(true);
+    //         } catch (error) {
+    //             console.error("Visibility toggle failed:", error);
+    //             Swal.fire({
+    //                 icon: "error",
+    //                 title: "Error",
+    //                 text: "Failed to update visibility.",
+    //             });
+    //         }
+    //     }
+    // };
 
 
     const handleOnRowClick = (responseID) => {
@@ -392,6 +396,10 @@ const PemeResponses = () => {
                 onClose={() => setSettingsOpen(false)}
                 visible={visible}
                 setVisible={setVisible}
+                multiple={multiple}
+                setMultiple={setMultiple}
+                editable={editable}
+                setEditable={setEditable}
                 PemeID={PemeID}
                 pemeRecords={pemeRecords}
                 headers={headers}
