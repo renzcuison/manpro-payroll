@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
     Box,
     Button,
@@ -16,6 +16,8 @@ import GroupLifeAssignEmployee from "./Modal/GroupLifeAssignEmployee";
 import GroupLifeEditEmployee from "./Modal/GroupLifeEditEmployee";
 
 const GroupLifeEmployees = () => {
+    const location = useLocation();
+    const planDetails = location.state || {};
     const navigator = useNavigate();
     const [search, setSearch] = useState("");
     const [openAssignEmployeeModal, setOpenAssignEmployeeModal] = useState(false);
@@ -63,7 +65,7 @@ const GroupLifeEmployees = () => {
             <Box sx={{ mx: 'auto', width: '100%', px: { xs: 1, md: 3 } }}>
                 <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        InsuranceCompanyName
+                        {planDetails.planType}
                     </Typography>
                     <Grid container spacing={2} gap={2}>
                         <Button
@@ -93,7 +95,7 @@ const GroupLifeEmployees = () => {
                                         <Typography variant="subtitle1" fontWeight="bold">Payment Type:</Typography>
                                     </Grid>
                                     <Grid item xs={6} sm={8}>
-                                        <Typography variant="body1">{'N/A'}</Typography>
+                                        <Typography variant="body1">{planDetails.paymentType || 'N/A'}</Typography>
                                     </Grid>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
@@ -101,7 +103,7 @@ const GroupLifeEmployees = () => {
                                         <Typography variant="subtitle1" fontWeight="bold">Employer Share:</Typography>
                                     </Grid>
                                     <Grid item xs={6} sm={8}>
-                                        <Typography variant="body1">{'Unassigned'}</Typography>
+                                        <Typography variant="body1">{planDetails.employerShare !== undefined ? `₱${planDetails.employerShare.toFixed(2)}` : 'Unassigned'}</Typography>
                                     </Grid>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
@@ -109,7 +111,7 @@ const GroupLifeEmployees = () => {
                                         <Typography variant="subtitle1" fontWeight="bold">Employee Share:</Typography>
                                     </Grid>
                                     <Grid item xs={6} sm={8}>
-                                        <Typography variant="body1">{'N/A'}</Typography>
+                                        <Typography variant="body1">{planDetails.employeeShare !== undefined ? `₱${planDetails.employeeShare.toFixed(2)}` : 'N/A'}</Typography>
                                     </Grid>
                                 </Box>
                             </Grid>
@@ -176,6 +178,7 @@ const GroupLifeEmployees = () => {
                         close={setOpenAssignEmployeeModal}
                     />
                 )}
+                
             </Box>
         </Layout>
     );
