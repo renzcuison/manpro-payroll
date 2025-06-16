@@ -472,6 +472,11 @@ const Sidebar = ({ children, closeMini }) => {
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Compensation Management </span>
                                     </li>
+                                    
+                                    <StyledNav to={`/admin/compensation/salary-plans`}>
+                                        <i className="fa fa-address-book-o" style={{ color: "#2a800f" }}></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Salary Plans </span>
+                                    </StyledNav>
 
                                     <StyledNav to={`/admin/compensation/benefits`}>
                                         <i className="fa fa-university" style={{ color: "#2a800f" }} ></i>
@@ -486,11 +491,6 @@ const Sidebar = ({ children, closeMini }) => {
                                     <StyledNav to={`/admin/compensation/incentives`}>
                                         <i className="fa fa-credit-card" style={{ color: "#2a800f" }}></i>
                                         <span id="navName" className="sidebar-mini-hide"> Incentives </span>
-                                    </StyledNav>
-
-                                    <StyledNav to={`/admin/compensation/salary-plans`}>
-                                        <i className="fa fa-address-book-o" style={{ color: "#2a800f" }}></i>
-                                        <span id="navName" className="sidebar-mini-hide"> Salary Plans </span>
                                     </StyledNav>
                                     
                                     <StyledNav to={`/admin/compensation/deductions`}>
