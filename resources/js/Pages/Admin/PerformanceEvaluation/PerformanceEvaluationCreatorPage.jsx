@@ -172,12 +172,12 @@ const PerformanceEvaluationCreatorPage = () => {
                 <Typography variant="body1">{subCategory.linear_scale_end_label}</Typography>
               </Grid>
             </Grid>
-            <Typography variant="body1" sx={{ mt: 1 }}>
+            {/* <Typography variant="body1" sx={{ mt: 1 }}>
               Selected: {typeof subCategory.percentage_answer?.value === 'number'
                 ? subCategory.percentage_answer.value
                 : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
               }
-            </Typography>
+            </Typography> */}
           </Box>
         );
       case 'short_answer':
