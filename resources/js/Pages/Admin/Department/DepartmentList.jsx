@@ -219,7 +219,7 @@ const DepartmentList = () => {
                                                                 ))}
                                                             </Box>
                                                             ) : (
-                                                            <Typography>--</Typography>
+                                                            <Typography>-</Typography>
                                                             )}
                                                         </TableCell>
                                                         );

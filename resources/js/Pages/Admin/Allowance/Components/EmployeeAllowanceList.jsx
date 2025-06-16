@@ -33,10 +33,11 @@ const EmployeeAllowanceList = ({ allowances, isLoading, onAdd, onEdit }) => {
                                         <Typography>{allowance.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{allowance.number}</Typography>
+                                        <Typography>{allowance.number || '-'}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>₱{(allowance.calculated_amount).toFixed(2)}</Typography>
+                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).
+                                        format(allowance.calculated_amount)}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography>{dayjs(allowance.created_at).format("MMM DD, YYYY")}</Typography>
@@ -44,7 +45,7 @@ const EmployeeAllowanceList = ({ allowances, isLoading, onAdd, onEdit }) => {
                                     <TableCell align="center">
                                         <Tooltip title="Edit">
                                             <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
-                                                <i class="fa fa-pencil-square-o fa-lg"/>
+                                                <i className="fa fa-pencil-square-o fa-lg"/>
                                             </Button>
                                         </Tooltip>
                                     </TableCell>

@@ -41,7 +41,7 @@ const EmployeeDeductions = ({userName, deductions, onRefresh}) => {
                                         <Typography>{deduction.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{deduction.number}</Typography>
+                                        <Typography>{deduction.number || '-'}</Typography>
                                     </TableCell>
                                     <TableCell align="right">
                                         <Typography>₱{(deduction.calculated_amount).toFixed(2)}</Typography>
