@@ -21,37 +21,39 @@ export function useDepartments(departmentId = null){
         return data;
     });
 
-    const saveDepartment = useMutation( async(data) => {
-        await axiosInstance.post('settings/saveDepartment', data, {headers});
-    },{
-        onSuccess: (response, variables) => {
-            if (response.data.status === 200) {
+    const saveDepartment = useMutation(
+        async ({ data }) => {
+            return await axiosInstance.post('/settings/saveDepartment', data, { headers });
+        },
+        {
+            onSuccess: (response, variables) => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Department saved successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        if (variables?.onSuccessCallback) {
+                            variables.onSuccessCallback();
+                        }
+                    });
+                }
+            },
+            onError: (error) => {
+                console.error("Error:", error);
                 Swal.fire({
                     customClass: { container: 'my-swal' },
-                    text: "Department saved successfully!",
-                    icon: "success",
+                    text: "Error saving department!",
+                    icon: "error",
                     showConfirmButton: true,
-                    confirmButtonText: 'Proceed',
                     confirmButtonColor: '#177604',
-                }).then(() => {
-                    if (variables?.onSuccessCallback) {
-                        variables.onSuccessCallback();
-                    }
                 });
             }
         }
-    },{
-        onError: (error) => {
-            console.error("Error:", error);
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "Error saving department!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        }
-    })
+    );
 
     return{
         departments, departmentPositions, departmentsWithPositions, saveDepartment
