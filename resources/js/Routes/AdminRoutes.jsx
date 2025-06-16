@@ -32,6 +32,7 @@ import DeductionsType from "../Pages/Admin/Deductions/DeductionsType";
 
 import BenefitView from "../Pages/Admin/Benefits/BenefitView";
 
+import EmployeeSalaryPlansList from "../Pages/Admin/SalaryPlans/EmployeeSalaryPlansList";
 
 import ApplicationsList from "../Pages/Admin/Applications/ApplicationsList";
 import ApplicationTypes from "../Pages/Admin/Applications/ApplicationTypes";
@@ -147,6 +148,10 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees/benefits" element={<ProtectedRoute element={<EmployeesBenefitsList />} user={user} /> } />
             <Route path="employees/benefits-types" element={<ProtectedRoute element={<BenefitsTypes />} user={user} /> } />
             <Route path="employees/benefits/:benefitID" element={<ProtectedRoute element={<BenefitView />} user={user} /> } />
+
+            <Route path="employees/salary-plans" element={<ProtectedRoute element={<EmployeeSalaryPlansList />} user={user} /> } />
+
+            <Route path="employees/salary-plans" element={<ProtectedRoute element={<EmployeeSalaryPlansList />} user={user} /> } />
 
             <Route
                 path="department/departmentlist"

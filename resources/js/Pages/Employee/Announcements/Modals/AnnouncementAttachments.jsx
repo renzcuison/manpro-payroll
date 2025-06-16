@@ -7,7 +7,6 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 const AnnouncementAttachments = ({
   open,
   onClose,
-  onExited, 
   type,
   items,
   handleFileDownload, // from AnnouncementManage
@@ -15,7 +14,7 @@ const AnnouncementAttachments = ({
   handlePreviewImage,
   renderImage,        // from AnnouncementManage (optional)
 }) => (
-  <Dialog open={open} onClose={onClose} onExited={onExited} maxWidth="md" fullWidth>
+  <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
     <DialogTitle
       sx={{
         fontSize: { xs: "1.5rem", sm: "2rem" },
