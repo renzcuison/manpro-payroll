@@ -1214,27 +1214,37 @@ class EvaluationResponseController extends Controller
 
             if($request->comment !== null)
                 $evaluationEvaluator->comment = $request->comment;
-            if($request->signature_filepath !== null)
-                $evaluationEvaluator->signature_filepath = $request->signature_filepath;
+            // if($request->signature_filepath !== null)
+            //     $evaluationEvaluator->signature_filepath = $request->signature_filepath;
             // $request->signature_filepath = $_POST['signature_filepath'];
-            // $request->signature_filepath = str_replace('data:image/png;base64,', '', $request->signature_filepath);
-            // $request->signature_filepath = str_replace(' ', '+', $request->signature_filepath);
+            // 
+            // 
             // echo $request->signature_filepath;
             // $request->signature_filepath = base64_decode($request->signature_filepath);
-            $saved = $request->hasFile('signature_filepath');
+            
+            // $request->signature_filepath = str_replace('data:image/png;base64,', '', $request->signature_filepath);
+            // $request->signature_filepath = str_replace(' ', '+', $request->signature_filepath);
+            // $path = $request->signature_filepath;
             if ($request->hasFile('signature_filepath')) {
-			    $evaluationEvaluator->clearMediaCollection('signatures');
-                $evaluationEvaluator->addMediaFromRequest('signature_filepath')->toMediaCollection('signatures');
+                // $evaluationEvaluator
+                //     ->clearMediaCollection('signatures')
+                // ;
+                
+                $evaluationEvaluator
+                    ->addMedia($request->file('signature_filepath'))
+                    ->toMediaCollection('signatures')
+                ;
             }
             $evaluationEvaluator->save();
 
             DB::commit();
 
+            $media = $evaluationEvaluator->getFirstMedia('signatures');
+
             return response()->json([
                 'status' => 200,
                 'evaluationEvaluator' => $evaluationEvaluator,
-                'message' => 'Evaluation Evaluator successfully updated',
-                'saved' => $saved
+                'message' => 'Evaluation Evaluator successfully updated'
             ]);
 
         } catch (\Exception $e) {

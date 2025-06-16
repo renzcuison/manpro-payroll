@@ -30,6 +30,12 @@ class EvaluationEvaluator extends Model implements HasMedia
         return $this->belongsTo(UsersModel::class, 'evaluator_id');
     }
 
+    public function getKeyName()
+    {
+        return 'evaluator_id';
+
+    }
+
     protected function getKeyForSaveQuery()
     {
 
