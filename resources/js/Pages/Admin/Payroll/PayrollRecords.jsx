@@ -176,7 +176,7 @@ const PayrollRecords = () => {
                                                 <TableCell align="center">Payroll Date</TableCell>
                                                 <TableCell align="center">Cut-Off</TableCell>
                                                 <TableCell align="center">Net Pay</TableCell>
-                                                <TableCell align="center">Status</TableCell>
+                                                {/* <TableCell align="center">Status</TableCell> */}
                                             </TableRow>
                                         </TableHead>
 
@@ -191,7 +191,7 @@ const PayrollRecords = () => {
                                                     <TableCell align="center">{dayjs(record.payrollStartDate).format("MMM D, YYYY")} - {dayjs(record.payrollEndDate).format("MMM D, YYYY")}</TableCell>
                                                     <TableCell align="center">{record.payrollCutOff}</TableCell>
                                                     <TableCell align="center">{new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(record.payrollGrossPay)}</TableCell>
-                                                    <TableCell align="center"></TableCell>
+                                                    {/* <TableCell align="center"></TableCell> */}
                                                 </TableRow>
                                                 ))
                                             ) : (
