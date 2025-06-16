@@ -28,12 +28,25 @@ class SalaryPlansController extends Controller {
         $user = Auth::user();
 
         if ($this->checkUser()) {
-            $salaryPlans = SalaryPlansModel::where('client_id', $user->client_id)
-                ->where('deleted_at', NULL)
-                ->orderByRaw('CAST(salary_grade AS UNSIGNED) ASC') // <-- Add this line
+            $page = (int) $request->input('page', 1); // Default to 1 if not provided
+            $limit = (int) $request->input('limit', 10); // Default to 10 if not provided
+
+            $query = SalaryPlansModel::where('client_id', $user->client_id)
+                ->whereNull('deleted_at');
+
+            $totalCount = $query->count();
+
+            $salaryPlans = $query
+                ->orderByRaw('CAST(salary_grade AS UNSIGNED) ASC')
+                ->skip(($page - 1) * $limit)
+                ->take($limit)
                 ->get();
 
-            return response()->json(['status' => 200, 'salaryPlans' => $salaryPlans]);
+            return response()->json([
+                'status' => 200,
+                'salaryPlans' => $salaryPlans,
+                'totalCount' => $totalCount,
+            ]);
         } 
 
         return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button, IconButton} from '@mui/material';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button, IconButton} from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import EditIcon from '@mui/icons-material/Edit';
@@ -20,19 +20,30 @@ const SalaryPlans = () => {
     const [openAddSalaryGrade, setOpenAddSalaryGrade] = useState(false);
     const [openEditSalaryGrade, setOpenEditSalaryGrade] = useState(false);
 
+    const [page, setPage] = useState(0); // 0-based for TablePagination
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
     useEffect(() => {
         fetchSalaryPlans();
-    }, []);
+    }, [page, rowsPerPage]);    
 
     const fetchSalaryPlans = () => {
         axiosInstance
-            .get("/getSalaryPlans", { headers })
+            .get("/getSalaryPlans", {
+                headers,
+                params: {
+                    page: page + 1, // backend is usually 1-based
+                    limit: rowsPerPage,
+                }
+            })
             .then((response) => {
-                setSalaryPlans(response.data.salaryPlans || []); // Ensure it's an array
+                setSalaryPlans(response.data.salaryPlans || []);
+                setTotalCount(response.data.totalCount || 0); // Make sure your backend returns this
                 setIsLoading(false);
             })
             .catch((error) => {
-                console.error("Error fetching application types:", error);
+                console.error("Error fetching salary plans:", error);
                 setIsLoading(false);
             });
     };
@@ -57,6 +68,16 @@ const SalaryPlans = () => {
         setOpenEditSalaryGrade(false);
         fetchSalaryPlans();
     }
+
+    //Pagination Functions
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
 
     const handleDeleteSalaryGrade = (salaryGrade) => {
             Swal.fire({
@@ -101,7 +122,7 @@ const SalaryPlans = () => {
     return (
         <Layout title={"Salary Plans"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
+                <Box sx={{ mx: 'auto', my: 5, width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
                             &nbsp; Salary Plans
@@ -168,6 +189,18 @@ const SalaryPlans = () => {
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
+                                {/* Pagination controls */}
+                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                                    <TablePagination
+                                        rowsPerPageOptions={[10, 25, 50]}
+                                        component="div"
+                                        count={totalCount}
+                                        rowsPerPage={rowsPerPage}
+                                        page={page}
+                                        onPageChange={handleChangePage}
+                                        onRowsPerPageChange={handleChangeRowsPerPage}
+                                    />
+                                </Box>
                             </>
                         )}
                     </Box>
