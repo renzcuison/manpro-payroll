@@ -135,21 +135,23 @@ const AdminRoutes = ({ user }) => {
             <Route path="employees/add" element={ <ProtectedRoute element={<EmployeesAdd />} user={user} /> } />
             <Route path="employees/formlinks" element={ <ProtectedRoute element={<EmployeeFormLinks />} user={user} /> } />
 
-            <Route path="compensation/allowance" element={ <ProtectedRoute element={<EmployeesAllowanceList />} user={user} /> } />
-            <Route path="compensation/allowance-types" element={ <ProtectedRoute element={<AllowanceTypes />} user={user} /> } />
+            <Route path="compensation">
+                <Route path="salary-plans" element={<ProtectedRoute element={<EmployeeSalaryPlansList />} user={user} />} />
 
-            <Route path="compensation/deductions" element={<ProtectedRoute element={<EmployeesDeductionsList/>} user={user}/>}/>
-            <Route path="compensation/deductions-types" element={<ProtectedRoute element={<DeductionsType />} user={user} /> } />
+                <Route path="allowance" element={<ProtectedRoute element={<EmployeesAllowanceList />} user={user} />} />
+                <Route path="allowance-types" element={<ProtectedRoute element={<AllowanceTypes />} user={user} />} />
 
-            <Route path="compensation/incentives" element={<ProtectedRoute element={<EmployeesIncentivesList />} user={user} /> } />
-            <Route path="compensation/incentives-types" element={<ProtectedRoute element={<IncentivesTypes />} user={user} /> } />
+                <Route path="deductions" element={<ProtectedRoute element={<EmployeesDeductionsList />} user={user} />} />
+                <Route path="deductions-types" element={<ProtectedRoute element={<DeductionsType />} user={user} />} />
 
-            <Route path="compensation/benefits" element={<ProtectedRoute element={<EmployeesBenefitsList />} user={user} /> } />
-            <Route path="compensation/benefits-types" element={<ProtectedRoute element={<BenefitsTypes />} user={user} /> } />
+                <Route path="incentives" element={<ProtectedRoute element={<EmployeesIncentivesList />} user={user} />} />
+                <Route path="incentives-types" element={<ProtectedRoute element={<IncentivesTypes />} user={user} />} />
+
+                <Route path="benefits" element={<ProtectedRoute element={<EmployeesBenefitsList />} user={user} />} />
+                <Route path="benefits-types" element={<ProtectedRoute element={<BenefitsTypes />} user={user} />} />
+            </Route>
 
             <Route path="employees/benefits/:benefitID" element={<ProtectedRoute element={<BenefitView />} user={user} /> } />
-
-            <Route path="employees/salary-plans" element={<ProtectedRoute element={<EmployeeSalaryPlansList />} user={user} /> } />
 
             <Route
                 path="department/departmentlist"
