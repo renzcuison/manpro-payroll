@@ -1,30 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField,  FormControl, FormGroup, InputAdornment } from "@mui/material";
+import dayjs from "dayjs";
 import Swal from "sweetalert2";
-import { useAllowances } from "../../../../hooks/useAllowances";
+import { useDeductions } from "../../../../hooks/useDeductions";
 
-const EmployeeAllowanceEdit = ({allowances, onClose}) => {
-    const {updateEmployeeAllowance} = useAllowances();
-    const [number, setNumber] = useState(allowances?.number)
-    const [selectedStatus, setSelectedStatus] = useState(allowances?.status);
+const EmployeeDeductionEdit = ({deductions, onClose}) => {
+    const {updateEmployeeDeduction} = useDeductions();
+
+    const [number, setNumber] = useState(deductions?.number)
+    const [selectedStatus, setSelectedStatus] = useState(deductions?.status);
 
     const checkInput = (event) => {
         event.preventDefault();
-        if(!number || number === ''){
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "Number must not be empty!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            }).then(()=>{
-                return;
-            });
-        }
+        
         Swal.fire({
             customClass: { container: 'my-swal' },
             title: "Are you sure?",
-            text: "Update this allowance",
+            text: "Update this deduction?",
             icon: "warning",
             showConfirmButton: true,
             confirmButtonText: "Confirm",
@@ -32,15 +24,15 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
             confirmButtonColor: '#177604',
         }).then((res) => {
             if(res.isConfirmed){
-                saveAllowance(event);
+                saveDeduction(event);
             }
         });
     }
 
-    const saveAllowance = (event) => {
+    const saveDeduction = (event) => {
         event.preventDefault();
-        const data = {emp_allowance_id: allowances.id, number: number}
-        updateEmployeeAllowance.mutate(data,
+        const data = {emp_deduction_id: deductions.id, number: number}
+        updateEmployeeDeduction.mutate(data,
         {
             onSuccess: () => {
                 Swal.fire({
@@ -63,14 +55,15 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
     return (
         <>
             <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
+                {/*Details <Read-Only>*/}
                 <FormGroup row={true} className="d-flex justify-content-between" sx={{mb:4}}>
                     <FormControl sx={{
                      width: '35%', '& label.Mui-focused': { color: '#97a5ba' },
                     '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                 }}>
                         <TextField
-                            label={'Allowance'}
-                            value={allowances.name}
+                            label={'Benefits'}
+                            value={deductions.name}
                             InputProps={{ readOnly: true }}
                          />                    
                     </FormControl>
@@ -107,4 +100,4 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
         </>
     )
 }
-export default EmployeeAllowanceEdit;
+export default EmployeeDeductionEdit;

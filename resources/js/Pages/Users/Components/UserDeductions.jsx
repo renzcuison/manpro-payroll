@@ -1,51 +1,55 @@
 import React from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import { useAllowances } from "../../../hooks/useAllowances";
+import { useDeductions } from "../../../hooks/useDeductions";
 
-const UserAllowances = ({userName}) => {
-    const {employeeAllowances} = useAllowances(userName);
-    const allowances = employeeAllowances.data?.allowances || [];
+const UserDeductions = ({ userName }) => {
+    const {employeeDeductions} = useDeductions(userName);
 
-    return(
+    const deductions = employeeDeductions.data?.deductions || [];
+
+    return (
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
+
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Allowances </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Deductions </Typography>
             </Box>
 
             <TableContainer>
                 <Table size="small">
                     <TableHead>
                         <TableRow>
-                            <TableCell align="left">Allowance</TableCell>
+                            <TableCell align="left">Deduction</TableCell>
                             <TableCell align="center">Number</TableCell>
-                            <TableCell align="right">Amount</TableCell>
+                            <TableCell align="center">Amount</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {allowances.length > 0 ? (
-                            allowances.map((allowance, index) => (
+                        {deductions.length > 0 ? (
+                            deductions.map((deduction, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
-                                        <Typography>{allowance.name}</Typography>
+                                        <Typography>{deduction.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{allowance.number}</Typography>
+                                        <Typography>{deduction.number}</Typography>
                                     </TableCell>
-                                    <TableCell align="right">
-                                        <Typography>₱{(allowance.calculated_amount).toFixed(2)}</Typography>
+                                    <TableCell align="center">
+                                        <Typography>₱{(deduction.calcuated_amount).toFixed(2)}</Typography>
                                     </TableCell>
                                 </TableRow>
                             ))) :
                             <TableRow>
                                 <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }} >
-                                    No Allowances Found
+                                    No Deductions Found
                                 </TableCell>
                             </TableRow>
                         }
                     </TableBody>
                 </Table>
             </TableContainer>
+
         </Box>
-    )
-}
-export default UserAllowances;
+    );
+};
+
+export default UserDeductions;

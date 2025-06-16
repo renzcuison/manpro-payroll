@@ -7,28 +7,28 @@ import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
+import EmployeeDeductionAdd from "../Components/EmployeeDeductionAdd";
+import EmployeeDeductionList from "../Components/EmployeeDeductionList";
+import EmployeeDeductionEdit from "../Components/EmployeeDeductionEdit";
 
-import EmployeeBenefitAdd from "../Components/EmployeeBenefitAdd";
-import EmployeeBenefitList from "../Components/EmployeeBenefitList";
-import EmployeeBenefitEdit from "../Components/EmployeeBenefitEdit";
-import { useBenefits } from "../../../../hooks/useBenefits";
+import { useDeductions } from "../../../../hooks/useDeductions";
 
-const EmployeeBenefitView = ({ open, close, userName }) => {
-    const {employeeBenefits} = useBenefits(userName);
+const EmployeeDeductionView = ({ open, close, userName }) => {
+    const { employeeDeductions } = useDeductions(userName);
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const benefits = employeeBenefits.data?.benefits || [];
+    const deductions = employeeDeductions.data?.deductions || [];
     
-    const [benefitsAddOpen, setBenefitsAddOpen] = useState(false);
-    const [benefitEditOpen, setBenefitEditOpen] = useState(false);
-    const [benefitsListOpen, setBenefitsListOpen] = useState(false);
+    const [deductionsAddOpen, setDeductionsAddOpen] = useState(false);
+    const [deductionEditOpen, setDeductionEditOpen] = useState(false);
+    const [deductionsListOpen, setDeductionsListOpen] = useState(false);
     const [employee, setEmployee] = useState([]);
-    const [selectedBenefit, setSelectedBenefit] = useState(null);
+    const [selectedDeduction, setSelectedDeduction] = useState(null);
 
     useEffect(() => {
         getEmployeeDetails();
-        setBenefitsListOpen(true);
+        setDeductionsListOpen(true);
     }, []);
 
     const getEmployeeDetails = () => {
@@ -42,30 +42,30 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
             });
     };
 
-    const handleOpenAddEmployeeBenefits = () => {
-        setBenefitsListOpen(false);
-        setBenefitsAddOpen(true);
+    const handleOpenAddEmployeeDeductions = () => {
+        setDeductionsListOpen(false);
+        setDeductionsAddOpen(true);
     }
 
-    const handleCloseAddEmployeeBenefits = (reload) => {
-        setBenefitsAddOpen(false);
-        setBenefitsListOpen(true);
+    const handleCloseAddEmployeeDeductions = (reload) => {
+        setDeductionsAddOpen(false);
+        setDeductionsListOpen(true);
         if(reload){
-            employeeBenefits.refetch();
+            employeeDeductions.refetch();
         }
     }
 
-    const handleOpenEditEmployeeBenefits = (index) => {
-        setSelectedBenefit(index);
-        setBenefitsListOpen(false);
-        setBenefitEditOpen(true);
+    const handleOpenEditEmployeeDeductions = (index) => {
+        setSelectedDeduction(index);
+        setDeductionsListOpen(false);
+        setDeductionEditOpen(true);
     }
 
-    const handleCloseEditEmployeeBenefits = (reload) => {
-        setBenefitsListOpen(true);
-        setBenefitEditOpen(false);
+    const handleCloseEditEmployeeDeductions = (reload) => {
+        setDeductionsListOpen(true);
+        setDeductionEditOpen(false);
         if(reload){
-            employeeBenefits.refetch();
+            employeeDeductions.refetch();
         }
     }
 
@@ -74,7 +74,7 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
             <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: "16px", backgroundColor: "#f8f9fa", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "20px", maxHeight: "600px", minWidth: { xs: "100%", sm: "750px" }, maxWidth: "1000px" }}}>
                 <DialogTitle sx={{ padding: 2, paddingBottom: 3 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}> Employee Benefits </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}> Employee Deductions </Typography>
                         <IconButton onClick={close}>
                             <i className="si si-close"></i>
                         </IconButton>
@@ -94,15 +94,15 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
                         </Typography>
                     </Box>
                     
-                    {benefitsListOpen && (
-                        <EmployeeBenefitList benefits={benefits} isLoading={employeeBenefits.isLoading} onAdd={() => handleOpenAddEmployeeBenefits()} 
-                        onEdit={(index) => handleOpenEditEmployeeBenefits(index)} />
+                    {deductionsListOpen && (
+                        <EmployeeDeductionList deductions={deductions} isLoading={employeeDeductions.isLoading} onAdd={() => handleOpenAddEmployeeDeductions()} 
+                        onEdit={(index) => handleOpenEditEmployeeDeductions(index)} />
                     )}
-                    {benefitEditOpen && (
-                        <EmployeeBenefitEdit benefits={benefits[selectedBenefit]} onClose={handleCloseEditEmployeeBenefits}/>
+                    {deductionEditOpen && (
+                        <EmployeeDeductionEdit deductions={deductions[selectedDeduction]} onClose={handleCloseEditEmployeeDeductions}/>
                     )}
-                    {benefitsAddOpen && (
-                        <EmployeeBenefitAdd userName={userName} headers={headers} onClose={handleCloseAddEmployeeBenefits} />
+                    {deductionsAddOpen && (
+                        <EmployeeDeductionAdd userName={userName} headers={headers} onClose={handleCloseAddEmployeeDeductions} />
                     )}
                 </DialogContent>
             </Dialog >
@@ -110,4 +110,4 @@ const EmployeeBenefitView = ({ open, close, userName }) => {
     );
 };
 
-export default EmployeeBenefitView;
+export default EmployeeDeductionView;

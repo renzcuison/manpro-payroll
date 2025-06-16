@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, Tooltip} from "@mui/material";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, TextField, Typography, Tooltip} from "@mui/material";
 import dayjs from "dayjs";
 import LoadingSpinner from "../../../../components/LoadingStates/LoadingSpinner";
 
-const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
+
+const EmployeeDeductionList = ({ deductions, isLoading, onAdd, onEdit }) => {
     if(isLoading){
         return (
             <Box display='flex' justifyContent='center'>
@@ -17,7 +18,7 @@ const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
                 <Table size="small" stickyHeader>
                     <TableHead>
                         <TableRow>
-                            <TableCell align="left">Incentives</TableCell>
+                            <TableCell align="left">Benefits</TableCell>
                             <TableCell align="center">Number</TableCell>
                             <TableCell align="center">Amount</TableCell>
                             <TableCell align="center">Date</TableCell>
@@ -25,26 +26,27 @@ const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {incentives.length > 0 ? (
-                            incentives.map((incentive, index) => (
+                        {deductions.length > 0 ? (       
+                            deductions.map((deduction, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
-                                        <Typography>{incentive.name}</Typography>
+                                        <Typography>{deduction.name}</Typography>
+                                    </TableCell>
+
+                                    <TableCell align="center">
+                                        <Typography>{deduction.number}</Typography>
+                                    </TableCell>
+
+                                    <TableCell align="center">
+                                        <Typography>₱{(deduction.calculated_amount).toFixed(2)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{incentive.number}</Typography>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Typography>₱{(incentive.calculated_amount).toFixed(2)}</Typography>
-                                    </TableCell>
-                                    
-                                    <TableCell align="center">
-                                        <Typography>{dayjs(incentive.created_at).format("MMM DD, YYYY")}</Typography>
+                                        <Typography>{dayjs(deduction.created_at).format("MMMM DD, YYYY")}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Tooltip title="Edit">
                                             <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
-                                                <i class="fa fa-pencil-square-o fa-lg"/>
+                                                <i className="fa fa-pencil-square-o fa-lg"/>
                                             </Button>
                                         </Tooltip>
                                     </TableCell>
@@ -52,8 +54,8 @@ const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", p: 1 }}>
-                                    No Incentives Found
+                                <TableCell colSpan={6} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                    No Deductions Found
                                 </TableCell>
                             </TableRow>
                         )}
@@ -64,7 +66,7 @@ const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
             <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
                 <Button variant="contained" sx={{ backgroundColor: "#177604", color: "white" }} onClick={onAdd} >
                     <p className="m-0">
-                        <i className="fa fa-plus mr-1"></i> Add Incentives
+                        <i className="fa fa-plus mr-2"></i> Add Deductions
                     </p>
                 </Button>
             </Box>
@@ -72,4 +74,4 @@ const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
     );
 };
 
-export default EmployeeIncentivesList;
+export default EmployeeDeductionList;

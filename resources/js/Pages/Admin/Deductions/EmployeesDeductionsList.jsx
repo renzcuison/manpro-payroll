@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography,
-     Grid, TextField, FormControl, CircularProgress, TablePagination, Button, MenuItem } from '@mui/material';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, 
+    FormControl, CircularProgress, TablePagination, Button, MenuItem} from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import { Link, useNavigate } from 'react-router-dom';
-
-import EmployeeAllowanceView from './Modals/EmployeeAllowanceView';
-import { useAllowances } from '../../../hooks/useAllowances';
+import EmployeeDeductionView from './Modals/EmployeeDeductionView';
+import { useDeductions } from '../../../hooks/useDeductions';
 import { useDepartments } from '../../../hooks/useDepartments';
 import { useBranches } from '../../../hooks/useBranches';
 
-const EmployeesAllowanceList = () => {
-    const { employeesAllowances } = useAllowances();
-    const { departments: departmentData } = useDepartments();
-     const { data: branchesData } = useBranches();
 
-    const employees = employeesAllowances.data?.employees || [];
+const EmployeesDeductionsList = () => {
+    const { employeesDeductions } = useDeductions();
+    const { departments: departmentData } = useDepartments(); 
+    const { data: branchesData } = useBranches();
+
+    const employees = employeesDeductions.data?.employees || [];
     const departments = departmentData.data?.departments || [];
     const branches = branchesData?.branches || [];
 
@@ -24,14 +24,14 @@ const EmployeesAllowanceList = () => {
     const [selectedBranch, setSelectedBranch] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-
+    
     const handleRowClick = (employee) => {
         setSelectedEmployee(employee.user_name);
     };
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
-        employeesAllowances.refetch();
+        employeesDeductions.refetch();
     };
 
     const filteredEmployees = employees.filter((employee) => {
@@ -42,7 +42,7 @@ const EmployeesAllowanceList = () => {
         return matchedName && filteredBranch && filteredDepartment;
     });
 
-    const handleChangePage = (event, newPage) => {
+    const handleChangePage = (_, newPage) => {
         setPage(newPage);
     };
 
@@ -52,22 +52,23 @@ const EmployeesAllowanceList = () => {
     };
 
     const paginatedEmployees = filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-   
-    return (
-        <Layout title={"LeaveCreditList"}>
+
+    return(
+        <Layout title={"EmployeesDeductionsList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
 
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Allowances </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Deductions</Typography>
 
-                        <Button variant="contained" color="primary" component={Link} to="/admin/employees/allowance-types">
+                        <Button variant="contained" color="primary" component={Link} to="/admin/employees/deductions-types">
                             <p className='m-0'><i className="fa fa-list" aria-hidden="true"></i> Types </p>
                         </Button>
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                         <Grid container direction="row" justifyContent="space-between" sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }}>
+                            {/* Filtering Containers*/}
                             <Grid container size={12} direction="row" justifyContent="flex-start" xs={4} spacing={2}>
                                 <Grid size={6}>
                                     <FormControl sx={{width:'50%'}}>
@@ -107,7 +108,7 @@ const EmployeesAllowanceList = () => {
                                         sx={{ width: "100%" }}
                                     >   
                                         <MenuItem value={0}>All Departments</MenuItem>
-                                        {departments.map((department) => (
+                                        {departments.map((department, index) => (
                                             <MenuItem key={department.id} value={department.id}>
                                                 {" "}{department.name}{" "}
                                             </MenuItem>
@@ -118,7 +119,7 @@ const EmployeesAllowanceList = () => {
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
-                        {employeesAllowances.isLoading ? (
+                        {employeesDeductions.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -132,6 +133,7 @@ const EmployeesAllowanceList = () => {
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Branch </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Department </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Amount </TableCell>
+                                            
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -175,13 +177,13 @@ const EmployeesAllowanceList = () => {
                         )}
                     </Box>
                 </Box>
-
                 {selectedEmployee && (
-                    <EmployeeAllowanceView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
+                    <EmployeeDeductionView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
                 )}
             </Box>
         </Layout>
-    );
-};
+    )
 
-export default EmployeesAllowanceList;
+}
+
+export default EmployeesDeductionsList;

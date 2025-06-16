@@ -1,36 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import { useAllowances } from "../../../../hooks/useAllowances";
+import { useDeductions } from "../../../../hooks/useDeductions";
 
-const EmployeeAllowanceAdd = ({ userName, onClose }) => {
-    const {allowances: allowancesQuery, saveEmployeeAllowances} = useAllowances();
-    const allowances = allowancesQuery.data?.allowances || [];
+const EmployeeDeductionAdd = ({ userName, onClose }) => {
+    const {saveEmployeeDeductions, deductions} = useDeductions();
+    
 
-    const [allowanceError, setAllowanceError] = useState(false);
-    const [numberError, setNumberError] = useState(false);
-    const [allowance, setAllowance] = useState('');
+    const [deductionError, setDeductionError] = useState(false);
+
+    const deductionsData = deductions.data?.deductions || []; 
+    const [deduction, setDeduction] = useState('');
     const [number, setNumber] = useState('');
-
+    
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!allowance) {
-            setAllowanceError(true);
+        if (!deduction) {
+            setDeductionError(true);
         } else {
-            setAllowanceError(false);
+            setDeductionError(false);
         }
-
-        if (!number) {
-            setNumberError(true);
-        } else {
-            setNumberError(false);
-        }
-
-        if (allowance == '' || number == '') {
+        if (deduction == '') {
             Swal.fire({
                 customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
+                text: "Select a deduction!",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: '#177604',
@@ -39,7 +33,7 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to add this allowance?",
+                text: "You want to save this deduction?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -56,25 +50,27 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-        const data = { userName: userName, allowance: allowance, number: number };
-        saveEmployeeAllowances.mutate(data, {
+        const data = { userName: userName, deduction: deduction, number: number };
+        saveEmployeeDeductions.mutate(data, {
             onSuccess: () => {
                 Swal.fire({
                     customClass: { container: 'my-swal' },
-                    text: "Allowance added successfully!",
+                    text: "Deduction added successfully!",
                     icon: "success",
+                    timer: 1000,
                     showConfirmButton: true,
                     confirmButtonText: 'Proceed',
                     confirmButtonColor: '#177604',
                 }).then(() => {
                     onClose(true);
-                    
                 });
-            },
-            onError: (error) =>{
+            }
+        },
+        {
+            onError: (error) => {
                 console.error('Error:', error);
             }
-        });
+        })
     };
 
     return (
@@ -90,14 +86,14 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
                     <TextField
                         required
                         select
-                        id="allowance"
-                        label="Allowance"
-                        value={allowance}
-                        error={allowanceError}
-                        onChange={(event) => setAllowance(event.target.value)}
+                        id="deductions"
+                        label="Deduction"
+                        value={deduction}
+                        error={deductionError}
+                        onChange={(event) => setDeduction(event.target.value)}
                     >
-                        {allowances.map((allowance) => (
-                            <MenuItem key={allowance.id} value={allowance.id}> {allowance.name} </MenuItem>
+                        {deductionsData.map((deduction) => (
+                            <MenuItem key={deduction.id} value={deduction.id}> {deduction.name} </MenuItem>
                         ))}
                     </TextField>
                 </FormControl>
@@ -112,7 +108,6 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
                         label="Number"
                         variant="outlined"
                         value={number}
-                        error={numberError}
                         onChange={(e) => setNumber(e.target.value)}
                     />
                 </FormControl>
@@ -123,11 +118,11 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
                     <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                 </Button>
                 <Button type="submit" variant="contained" sx={{ backgroundColor: '#636c74', color: 'white', mx: 1 }} onClick={() => onClose(false)}>
-                    <p className='m-0'><i class="fa fa-times" aria-hidden="true"></i> Cancel </p>
+                    <p className='m-0'><i class Name="fa fa-times" aria-hidden="true"></i> Cancel </p>
                 </Button>
             </Box>
         </Box>
     );
 };
 
-export default EmployeeAllowanceAdd;
+export default EmployeeDeductionAdd;
