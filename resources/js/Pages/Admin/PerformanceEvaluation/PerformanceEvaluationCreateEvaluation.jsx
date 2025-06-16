@@ -229,68 +229,79 @@ const PerformanceEvaluationCreateEvaluation = () => {
         fetchDepartments(formValues.branch);
     }, [formValues.branch]);
 
-    useEffect(() => {
-        // Employees
-        const fetchEmployees = async (branchId, departmentId) => {
-            try {
-                const params = {
-                    branch_id: branchId,
-                    department_id: departmentId,
-                    user_type: 'Employee'
-                };
-                const response = await axiosInstance.get('/settings/getUsers', { params, headers });
-                if (response.data.status === 200) setEmployees(response.data.users);
-                else setEmployees([]);
-            } catch (error) {
-                setEmployees([]);
-                console.error('Error fetching employees:', error);
-            }
-        };
-        if (formValues.branch && formValues.department) {
-            fetchEmployees(formValues.branch, formValues.department);
-        } else {
-            setEmployees([]);
-            setFormValues(prev => ({ ...prev, employeeName: '' }));
-        }
-    }, [formValues.department, formValues.branch]);
 
     // Change the confition so that it can fetch the evaluatee regardless of user_type
     useEffect(() => {
-        // Employees (now AdminOrEmployee)
-        const fetchEmployees = async (branchId, departmentId) => {
+        const fetchEmployees = async () => {
+            setIsLoading(true);
             try {
+                // Get the logged-in user's ID
+                const storedUser = localStorage.getItem("nasya_user");
+                const currentUser = storedUser ? JSON.parse(storedUser) : null;
+                const currentUserId = currentUser?.id;
+
                 const params = {
-                    branch_id: branchId,
-                    department_id: departmentId,
-                    user_type: 'AdminOrEmployee' 
+                    branch_id: formValues.branch,
+                    department_id: formValues.department,
+                    exclude: currentUserId ? [currentUserId] : undefined, // Exclude the current user
                 };
-                const response = await axiosInstance.get('/settings/getUsers', { params, headers });
-                if (response.data.status === 200) setEmployees(response.data.users);
-                else setEmployees([]);
+                const response = await axiosInstance.get('/getEvaluatees', { params, headers });
+                if (response.data.status === 200) {
+                    setEmployees(response.data.evaluatees);
+                } else {
+                    setEmployees([]);
+                }
             } catch (error) {
                 setEmployees([]);
-                console.error('Error fetching employees:', error);
+                console.error('Error fetching evaluatees:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
         if (formValues.branch && formValues.department) {
-            fetchEmployees(formValues.branch, formValues.department);
+            fetchEmployees();
         } else {
             setEmployees([]);
             setFormValues(prev => ({ ...prev, employeeName: '' }));
         }
-    }, [formValues.department, formValues.branch]);
+    }, [formValues.branch, formValues.department]);
+        useEffect(() => {
+            setIsLoading(true);
+            axiosInstance.get('/getEvaluationForms', { headers })
+                .then((response) => {
+                    setEvaluationForm(response.data.evaluationForms || []);
+                })
+                .catch(() => {
+                    setEvaluationForm([]);
+                })
+                .finally(() => setIsLoading(false));
+        }, []);
 
     useEffect(() => {
-        setIsLoading(true);
-        axiosInstance.get('/getEvaluationForms', { headers })
-            .then((response) => {
-                setEvaluationForm(response.data.evaluationForms || []);
-            })
-            .catch(() => {
-                setEvaluationForm([]);
-            })
-            .finally(() => setIsLoading(false));
-    }, []);
+        const fetchAdmins = async () => {
+            setLoadingAdmins(true);
+            try {
+                const params = {
+                    branch_id: formValues.branch,
+                    department_id: formValues.department,
+                };
+                const response = await axiosInstance.get('/getEvaluators', { params, headers });
+                if (response.data.status === 200) setAdmins(response.data.users);
+                else setAdmins([]);
+            } catch (error) {
+                setAdmins([]);
+                console.error('Error fetching evaluators:', error);
+            } finally {
+                setLoadingAdmins(false);
+            }
+        };
+        if (formValues.branch && formValues.department) {
+            fetchAdmins();
+        } else {
+            setAdmins([]);
+        }
+    }, [formValues.branch, formValues.department]);
+
 
     // Render
     return (

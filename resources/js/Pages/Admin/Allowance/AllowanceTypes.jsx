@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
-import { useAllowances } from '../../../hooks/useAllowance';
+import { useAllowances } from '../../../hooks/useAllowances';
 
 import AllowanceAdd from './Modals/AllowanceAdd';
 
 const AllowanceTypes = () => {
-    const { data, isLoading, error, refetch } = useAllowances();
-    const allowances = data?.allowances || [];
+    const {allowances: allowanceQuery} = useAllowances();
+    const allowances = allowanceQuery.data?.allowances || [];
 
     const [openAddAllowanceModal, setOpenAddAllowanceModal] = useState(false);
 
@@ -40,7 +39,7 @@ const AllowanceTypes = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {isLoading ? (
+                        {allowanceQuery.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>

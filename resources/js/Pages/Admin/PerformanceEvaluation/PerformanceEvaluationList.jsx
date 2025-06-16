@@ -240,8 +240,8 @@ const PerformanceEvaluationList = () => {
                                                     >
                                                         <TableCell align="center">{row.date}</TableCell>
                                                         <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
-                                                        <TableCell align="center">{row.department_name}</TableCell>
-                                                        <TableCell align="center">{row.branch_name}</TableCell>
+                                                        <TableCell align="center">{row.evaluatee.department?.name ?? '—'}</TableCell>
+                                                        <TableCell align="center">{row.evaluatee.branch?.name ?? '—'}</TableCell>
                                                         <TableCell align="center">{row.status}</TableCell>
                                                     </TableRow>
                                                 ))

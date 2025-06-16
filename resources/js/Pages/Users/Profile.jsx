@@ -15,6 +15,7 @@ import EducationalBackground from "./Components/EducationalBackground";
 import UserIncentives from "./Components/UserIncentives";
 import UserAllowances from "./Components/UserAllowances";
 import UserBenefits from "./Components/UserBenefits";
+import UserDeductions from "./Components/UserDeductions";
 
 const Profile = () => {
     const theme = useTheme();
@@ -97,8 +98,7 @@ const Profile = () => {
                             <UserBenefits userName={user.user_name}/>
                             <UserAllowances userName={user.user_name}/>
                             <UserIncentives userName={user.user_name}/>
-                            
-                            <EmployeeDeductions userName={user.user_name} headers={headers} />
+                            <UserDeductions userName={user.user_name}/>
                         </Grid>
 
                         {/*<---Right Side---->*/}
