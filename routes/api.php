@@ -1288,6 +1288,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         'saveEvaluationResponse',
     ]);
 
+    Route::get('/getEvaluatees', [EvaluationResponseController::class, 'getEvaluatees']);
+    Route::get('/getEvaluators', [EvaluationResponseController::class, 'getEvaluators']);
+    Route::get('/getCommentors', [EvaluationResponseController::class, 'getCommentors']);
     Route::post('/deleteEvaluationEvaluator', [
         EvaluationResponseController::class,
         'deleteEvaluationEvaluator',
