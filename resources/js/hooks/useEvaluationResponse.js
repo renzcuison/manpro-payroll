@@ -474,14 +474,11 @@ export function useEvaluationResponse(responseId) {
     // For saving comment and signature for the evaluator - Khim
     async function editEvaluationEvaluator({ response_id, evaluator_id, comment, signature_filepath }) {
         try {
-            const payload = {
-                response_id,
-                evaluator_id,
-            };
-            if (comment !== undefined) payload.comment = comment;
-            console.log(signature_filepath)
-            if (signature_filepath !== undefined) payload.signature_filepath = signature_filepath;
-
+            const payload = new FormData();
+            payload.append('response_id', response_id);
+            payload.append('evaluator_id', evaluator_id);
+            if (comment !== undefined) payload.append('comment', comment);
+            if (signature_filepath !== undefined) payload.append('signature_filepath', signature_filepath);
             const response = await axiosInstance.post(
                 '/editEvaluationEvaluator',
                 payload,
