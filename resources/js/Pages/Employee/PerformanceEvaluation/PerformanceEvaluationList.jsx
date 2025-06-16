@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
-    TablePagination, Box, Typography, CircularProgress
+    TablePagination, Box, Typography, CircularProgress, Tooltip
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
@@ -28,6 +28,16 @@ const getEvaluationRoleRoute = (row) => {
         default:
             return `/employee/performance-evaluation/answer/${row.id}`;
     }
+};
+
+// Helper to determine if an item is expired and pending
+const isExpiredAndPending = (row) => {
+    // Assumes row.date is end date in YYYY-MM-DD or ISO format
+    if (!row.date) return false;
+    const periodEnd = new Date(row.date);
+    const now = new Date();
+    // If ended before today and still pending
+    return periodEnd < now && row.status === "Pending";
 };
 
 const PerformanceEvaluationList = () => {
@@ -124,7 +134,7 @@ const PerformanceEvaluationList = () => {
                             <Box
                                 component="form"
                                 onSubmit={handleSearchSubmit}
-                                sx={{ mr: 1, width: 260 }}
+                                sx={{ mr: 1, width: 260, position: 'relative' }}
                             >
                                 <input
                                     placeholder="Search..."
@@ -184,23 +194,73 @@ const PerformanceEvaluationList = () => {
                                                     </TableCell>
                                                 </TableRow>
                                             ) : (
-                                                evaluationResponses.map((row, idx) => (
-                                                    <TableRow
-                                                        key={row.id}
-                                                        hover
-                                                        style={{ cursor: 'pointer' }}
-                                                        onClick={() => navigate(getEvaluationRoleRoute(row))}
-                                                        sx={{
-                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper'
-                                                        }}
-                                                    >
-                                                        <TableCell align="center">{row.date}</TableCell>
-                                                        <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.status}</TableCell>
-                                                    </TableRow>
-                                                ))
+                                                evaluationResponses.map((row, idx) => {
+                                                    const expiredAndPending = isExpiredAndPending(row);
+                                                    const tooltipTitle = expiredAndPending
+                                                        ? "This evaluation is way past the period and still pending. Action is disabled."
+                                                        : "";
+
+                                                    // For disabled row, wrap each TableCell's content with Tooltip
+                                                    return (
+                                                        <TableRow
+                                                            key={row.id}
+                                                            hover={!expiredAndPending}
+                                                            style={{
+                                                                cursor: expiredAndPending ? "not-allowed" : "pointer",
+                                                                backgroundColor: expiredAndPending
+                                                                    ? "#e0e0e0"
+                                                                    : idx % 2 === 0
+                                                                        ? 'rgba(0,0,0,0.03)'
+                                                                        : '#fff',
+                                                            }}
+                                                            onClick={() => {
+                                                                if (!expiredAndPending) {
+                                                                    navigate(getEvaluationRoleRoute(row));
+                                                                }
+                                                            }}
+                                                            sx={{
+                                                                opacity: expiredAndPending ? 0.6 : 1,
+                                                                pointerEvents: expiredAndPending ? 'none' : 'auto',
+                                                            }}
+                                                        >
+                                                            <TableCell align="center">
+                                                                {expiredAndPending ? (
+                                                                    <Tooltip title={tooltipTitle} arrow>
+                                                                        <span>{row.date}</span>
+                                                                    </Tooltip>
+                                                                ) : row.date}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {expiredAndPending ? (
+                                                                    <Tooltip title={tooltipTitle} arrow>
+                                                                        <span>{getFullName(row.evaluatee)}</span>
+                                                                    </Tooltip>
+                                                                ) : getFullName(row.evaluatee)}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {expiredAndPending ? (
+                                                                    <Tooltip title={tooltipTitle} arrow>
+                                                                        <span>{row.evaluatee?.department?.name ?? '—'}</span>
+                                                                    </Tooltip>
+                                                                ) : row.evaluatee?.department?.name ?? '—'}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {expiredAndPending ? (
+                                                                    <Tooltip title={tooltipTitle} arrow>
+                                                                        <span>{row.evaluatee?.branch?.name ?? '—'}</span>
+                                                                    </Tooltip>
+                                                                ) : row.evaluatee?.branch?.name ?? '—'}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                {expiredAndPending ? (
+                                                                    <Tooltip title={tooltipTitle} arrow>
+                                                                        <span>{row.status}</span>
+                                                                    </Tooltip>
+                                                                ) : row.status}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })
                                             )}
                                         </TableBody>
                                     </Table>
