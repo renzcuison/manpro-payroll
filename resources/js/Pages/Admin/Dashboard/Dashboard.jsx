@@ -17,6 +17,7 @@ import {
     Skeleton,
     Stack,
     CircularProgress,
+    Box,
 } from "@mui/material";
 
 import dayjs from "dayjs";
@@ -38,6 +39,7 @@ import SchedulesHolidays from "./SchedulesHolidays";
 import { useDashboard } from "./useDashboard";
 import { useMilestones } from "../Milestones/hook/useMilestones";
 import { useUser } from "../../../hooks/useUser";
+import OverviewStatistics from "./OverviewStatistics";
 
 const Dashboard = () => {
     const { user, isFetched: userIsFetched } = useUser();
@@ -48,32 +50,27 @@ const Dashboard = () => {
         isLoading,
     } = useDashboard();
 
-    const {
-        data: milestones,
-        isLoading: isLoadingMilestones,
-    } = useMilestones();
+    // const {
+    //     data: milestones,
+    //     isLoading: isLoadingMilestones,
+    // } = useMilestones();
 
     const milestonesToday = useMemo(() => {
-        if (!data) {
-            return [];
+        if (dashboard) {
+            return dashboard.milestones?.filter((milestone) => {
+                const milestoneDate = moment(milestone.date).format(
+                    "YYYY-MM-DD"
+                );
+                const today = moment().format("YYYY-MM-DD");
+                return milestoneDate === today;
+            });
         }
-        return data.milestones?.filter((milestone) => {
-            const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");
-            const today = moment().format("YYYY-MM-DD");
-            return milestoneDate === today;
-        });
-    }, [data]);
-
-    console.log("milestonesToday: ", milestonesToday);
+    }, [dashboard, isFetchedDashboard]);
 
     const [value, setValue] = useState("one");
     const [selectedDate, setSelectedDate] = useState(
         moment().format("YYYY-MM-DD")
     );
-
-    const handleChange = (event, newValue) => {
-        setValue(newValue);
-    };
 
     const [adminName, setAdminName] = useState("Admin");
 
@@ -204,30 +201,35 @@ const Dashboard = () => {
     const infoCardsData = [
         {
             title: "Total Employees",
+            slug: "employees",
             value: dashboard?.employees?.length,
             icon: <Users size={42} />,
             link: "/admin/employees",
         },
         {
             title: "Present",
+            slug: "present",
             value: presentUsers?.length,
             icon: <Check size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "Late",
+            slug: "late",
             value: lateUsers?.length,
             icon: <Clock size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "On Leave",
+            slug: "leave",
             value: onLeave?.length,
             icon: <CalendarCheck size={42} />,
             link: "/admin/attendance/today",
         },
         {
             title: "Absent",
+            slug: "absent",
             value:
                 dashboard?.employees?.length -
                 presentUsers?.length -
@@ -288,25 +290,7 @@ const Dashboard = () => {
                     size={{ xs: 12, lg: 8 }}
                     sx={{ display: "flex", flexDirection: "column", gap: 2 }}
                 >
-                    <Paper sx={{ p: 3, borderRadius: 5 }}>
-                        <Typography
-                            variant="h5"
-                            sx={{ fontWeight: 600, color: "#4d4d4d" }}
-                        >
-                            Overview Summary
-                        </Typography>
-                        <Tabs
-                            value={value}
-                            onChange={handleChange}
-                            textColor="primary"
-                            indicatorColor="primary"
-                            aria-label="secondary tabs example"
-                        >
-                            <Tab value="one" label="Item One" />
-                            <Tab value="two" label="Item Two" />
-                            <Tab value="three" label="Item Three" />
-                        </Tabs>
-                    </Paper>
+                    <OverviewStatistics />
                 </Grid>
                 {/* BIRTHDAYS AND MILESTONES CARD */}
                 <Grid
