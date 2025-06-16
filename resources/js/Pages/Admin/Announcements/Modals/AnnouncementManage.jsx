@@ -487,21 +487,29 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
     const handlePreviewFile = (filename, id, mimeType) => {
         axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
             .then(async (response) => {
-                const blob = new Blob([response.data], { type: mimeType });
+                // Force correct mime type for PDF
+                let type = mimeType;
+                if (
+                    mimeType?.toLowerCase().includes("pdf") ||
+                    filename?.toLowerCase().endsWith(".pdf")
+                ) {
+                    type = "application/pdf";
+                }
+                const blob = new Blob([response.data], { type });
                 const url = URL.createObjectURL(blob);
 
                 if (
-                    mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                    type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
                     filename.endsWith(".docx")
                 ) {
                     const arrayBuffer = await blob.arrayBuffer();
                     mammoth.convertToHtml({ arrayBuffer }).then(result => {
                         setDocxHtml(result.value);
-                        setPreviewFile({ url, mimeType, filename });
+                        setPreviewFile({ url, mimeType: type, filename });
                         setPreviewOpen(true);
                     });
                 } else {
-                    setPreviewFile({ url, mimeType, filename });
+                    setPreviewFile({ url, mimeType: type, filename });
                     setPreviewOpen(true);
                 }
             })

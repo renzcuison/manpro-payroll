@@ -7,15 +7,22 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 const AnnouncementAttachments = ({
   open,
   onClose,
-  onExited, 
   type,
   items,
   handleFileDownload, // from AnnouncementManage
   handlePreviewFile,  // from AnnouncementManage
   handlePreviewImage,
   renderImage,        // from AnnouncementManage (optional)
-}) => (
-  <Dialog open={open} onClose={onClose} onExited={onExited} maxWidth="md" fullWidth>
+}) => {
+  const getMimeType = (filename, mimeType) => {
+    if (mimeType) return mimeType;
+    if (filename.endsWith('.pdf')) return 'application/pdf';
+    if (filename.endsWith('.docx')) return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    return '';
+  };
+
+  return (
+  <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
     <DialogTitle
       sx={{
         fontSize: { xs: "1.5rem", sm: "2rem" },
@@ -170,5 +177,6 @@ const AnnouncementAttachments = ({
     </DialogContent>
   </Dialog>
 );
+}
 
 export default AnnouncementAttachments;     
