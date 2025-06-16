@@ -5,7 +5,6 @@ import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
 import EmployeeIncentiveView from './Modals/EmployeeIncentiveView';
-import { useEmployeesIncentives } from '../../../hooks/useIncentives';
 import { useIncentives } from '../../../hooks/useIncentives';
 import { useDepartments } from '../../../hooks/useDepartments';
 import { useBranches } from '../../../hooks/useBranches';

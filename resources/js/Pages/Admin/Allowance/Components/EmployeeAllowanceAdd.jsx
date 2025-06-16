@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import { useAllowances, useSaveEmployeeAllowance } from "../../../../hooks/useAllowance";
+import { useAllowances } from "../../../../hooks/useAllowances";
 
 const EmployeeAllowanceAdd = ({ userName, onClose }) => {
-    const {data} = useAllowances();
-    const allowances = data?.allowances || [];
-    const saveEmployeeAllowance = useSaveEmployeeAllowance();
+    const {allowances: allowancesQuery, saveEmployeeAllowances} = useAllowances();
+    const allowances = allowancesQuery.data?.allowances || [];
 
     const [allowanceError, setAllowanceError] = useState(false);
     const [numberError, setNumberError] = useState(false);
@@ -58,7 +57,7 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
     const saveInput = (event) => {
         event.preventDefault();
         const data = { userName: userName, allowance: allowance, number: number };
-        saveEmployeeAllowance.mutate(data, {
+        saveEmployeeAllowances.mutate(data, {
             onSuccess: () => {
                 Swal.fire({
                     customClass: { container: 'my-swal' },
@@ -68,7 +67,6 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
                     confirmButtonText: 'Proceed',
                     confirmButtonColor: '#177604',
                 }).then(() => {
-                    console.log('YOHOOO');
                     onClose(true);
                     
                 });

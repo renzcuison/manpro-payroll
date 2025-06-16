@@ -5,16 +5,16 @@ import Layout from '../../../components/Layout/Layout';
 import { Link, useNavigate } from 'react-router-dom';
 
 import EmployeeAllowanceView from './Modals/EmployeeAllowanceView';
-import { useEmployeesAllowances } from '../../../hooks/useAllowance';
+import { useAllowances } from '../../../hooks/useAllowances';
 import { useDepartments } from '../../../hooks/useDepartments';
 import { useBranches } from '../../../hooks/useBranches';
 
 const EmployeesAllowanceList = () => {
-    const { data: empAllowanceData, isLoading, error, refetch } = useEmployeesAllowances();
-    const {departments: departmentData} = useDepartments();
+    const { employeesAllowances } = useAllowances();
+    const { departments: departmentData } = useDepartments();
      const { data: branchesData } = useBranches();
 
-    const employees = empAllowanceData?.employees || [];
+    const employees = employeesAllowances.data?.employees || [];
     const departments = departmentData.data?.departments || [];
     const branches = branchesData?.branches || [];
 
@@ -31,7 +31,7 @@ const EmployeesAllowanceList = () => {
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
-        refetch();
+        employeesAllowances.refetch();
     };
 
     const filteredEmployees = employees.filter((employee) => {
@@ -107,7 +107,7 @@ const EmployeesAllowanceList = () => {
                                         sx={{ width: "100%" }}
                                     >   
                                         <MenuItem value={0}>All Departments</MenuItem>
-                                        {departments.map((department, index) => (
+                                        {departments.map((department) => (
                                             <MenuItem key={department.id} value={department.id}>
                                                 {" "}{department.name}{" "}
                                             </MenuItem>
@@ -118,7 +118,7 @@ const EmployeesAllowanceList = () => {
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
-                        {isLoading ? (
+                        {employeesAllowances.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>

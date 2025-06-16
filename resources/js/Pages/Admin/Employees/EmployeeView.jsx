@@ -8,11 +8,8 @@ import PageToolbar from '../../../components/Table/PageToolbar'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
-import { useEmployeeAllowances } from '../../../hooks/useAllowance';
-import { useEmployeeIncentives } from '../../../hooks/useIncentives';
-
 import { useIncentives } from '../../../hooks/useIncentives';
-
+import { useAllowances } from '../../../hooks/useAllowances';
 import { useBenefits } from '../../../hooks/useBenefits';
 import { useDeductions } from '../../../hooks/useDeductions';
 
@@ -33,19 +30,18 @@ const EmployeeView = () => {
     const {employeeBenefits} = useBenefits(user);
     const {employeeDeductions} = useDeductions(user);
     const {employeeIncentives} = useIncentives(user);
+    const {employeeAllowances} = useAllowances(user);
 
     const benefits = employeeBenefits.data?.benefits || [];
     const deductions = employeeDeductions.data?.deductions || [];
     const incentives = employeeIncentives.data?.incentives || [];
+    const allowances = employeeAllowances.data?.allowances || [];
 
-    const {data: empAllowances, refetch: refetchAllowance} = useEmployeeAllowances(user);
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-
-    const allowances = empAllowances?.allowances || [];
 
     const [employee, setEmployee] = useState('');
     const [educations, setEducations] = useState([]);
@@ -129,7 +125,7 @@ const EmployeeView = () => {
         setOpenEmployeeDetailsEditModal(false);
         if (reload) {
             getEmployeeDetails();
-            refetchAllowance();
+            employeeAllowances.refetch();
             employeeBenefits.refetch();
             employeeIncentives.refetch();
             employeeDeductions.refetch();
@@ -162,7 +158,7 @@ const EmployeeView = () => {
                         <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> 
                             <EmployeeInformation employee={employee} imagePath={imagePath}/>
                             <EmployeeBenefits userName={user} benefits={benefits} onRefresh={employeeBenefits.refetch}/>
-                            <EmployeeAllowances userName={user} allowances={allowances} onRefresh={refetchAllowance}/>
+                            <EmployeeAllowances userName={user} allowances={allowances} onRefresh={employeeAllowances.refetch}/>
                             <EmployeeIncentives userName={user} incentives={incentives} onRefresh={employeeIncentives.refetch}/>
                             <EmployeeDeductions userName={user} deductions={deductions} onRefresh={employeeDeductions.refetch} />
                         </Grid>
