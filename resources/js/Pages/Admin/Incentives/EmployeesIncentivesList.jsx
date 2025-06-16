@@ -31,7 +31,7 @@ const EmployeesIncentivesList = () => {
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
-        refetch();
+        employeesIncentives.refetch();
     };
 
     const filteredEmployees = employees.filter((employee) => {
@@ -118,7 +118,7 @@ const EmployeesIncentivesList = () => {
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
-                        {isLoading ? (
+                        {employeesIncentives.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
