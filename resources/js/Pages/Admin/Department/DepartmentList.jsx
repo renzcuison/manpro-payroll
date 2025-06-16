@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Button, TextField, Grid, Checkbox, ListItemText,
-MenuItem, Avatar, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, FormGroup, FormControl, InputAdornment, Tooltip, Menu } from "@mui/material";
+MenuItem, Avatar, InputAdornment, Tooltip, Menu } from "@mui/material";
 import { Link } from "react-router-dom";
 import { useDepartments } from "../../../hooks/useDepartments";
 import Layout from "../../../components/Layout/Layout";
-import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
-import Swal from "sweetalert2";
 import DepartmentPositionSettings from "./Modals/DepartmentPositionSettings";
 import SearchIcon from "@mui/icons-material/Search";
 import DepartmentAdd from "./Modals/DepartmentAdd";
