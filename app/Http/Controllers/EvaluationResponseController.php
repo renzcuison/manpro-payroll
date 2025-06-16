@@ -494,7 +494,7 @@ class EvaluationResponseController extends Controller
                 ->addSelect('evaluation_responses.form_id', 'users.user_name as creator_user_name')
                 ->with(['form' => fn ($evaluationForm) =>
                     $evaluationForm
-                        ->join('users', 'evaluation_forms.id', '=', 'users.id')
+                        ->join('users', 'evaluation_forms.creator_id', '=', 'users.id')
                         ->select(
                             'evaluation_forms.id',
                             'evaluation_forms.name', 
