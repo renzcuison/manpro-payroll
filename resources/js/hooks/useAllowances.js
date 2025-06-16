@@ -5,43 +5,46 @@ import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 //all employees
-export function useEmployeesAllowances(){
-    return useQuery(["employeesAllowances"], async () => {
-        const { data } = await axiosInstance.get("compensation/getEmployeesAllowance", {
-            headers,
-        });
-        return data;
-    });
-}
 
-export function useAllowances(){
-    return useQuery(["allowances"], async () => {
+export function useAllowances(userName = null){
+    const allowances = useQuery(["allowances"], async () => {
         const {data} = await axiosInstance.get('/compensation/getAllowances', { 
             headers,
         });
         return data;
     });
-}
-//for one specific employee
-export function useEmployeeAllowances(userName){
-    return useQuery(["employeeAllowance", userName], async () => {
+    
+    const employeesAllowances = useQuery(["employeesAllowances"], async () => {
+        const { data } = await axiosInstance.get("compensation/getEmployeesAllowance", {
+            headers,
+        });
+        return data;
+    });
+
+    const employeeAllowances = useQuery(["employeeAllowance", userName], async () => {
         const {data} = await axiosInstance.get("compensation/getEmployeeAllowance", {
             headers, params: {username: userName},
         });
         return data;
+    }, {
+        enabled: !!userName,
     });
-}
 
-export function useSaveEmployeeAllowance() {
-    return useMutation(async (data) => {
+    const saveEmployeeAllowances = useMutation(async (data) => {
         const response = await axiosInstance.post('/compensation/saveEmployeeAllowance', data, { headers });
         return response.data;
     });
-}
 
-export function useUpdateEmployeeAllowance() {
-    return useMutation(async (data) => {
+    const updateEmployeeAllowance = useMutation(async (data) => {
         const response = await axiosInstance.post('/compensation/updateEmployeeAllowance', data, { headers });
         return response.data;
     });
+
+    return{
+        allowances,
+        employeesAllowances,
+        employeeAllowances,
+        saveEmployeeAllowances,
+        updateEmployeeAllowance,
+    }
 }

@@ -36,7 +36,8 @@ const highlightMatch = (text, keyword) => {
     );
 };
 
-const PemeResponsesTable = ({ responses, onRowClick, search }) => {
+const GroupLifeCompanyTable = ({ rows, onRowClick, search }) => {
+    
     return (
         <TableContainer
             sx={{
@@ -55,22 +56,23 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                         <TableCell align="center"> Payment Type </TableCell>
                         <TableCell align="center"> Employer Share </TableCell>
                         <TableCell align="center"> Employee Share </TableCell>
+                        <TableCell align="center"> Employees Assigned </TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {responses.length === 0 ? (
+                    {rows.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={5} align="center">
                                 <Typography>No Result Found</Typography>
                             </TableCell>
                         </TableRow>
                     ) : (
-                        responses.map((response) => {
+                        rows.map((row, idx) => {
 
                             return (
                                 <TableRow
-                                    key={response.companyname}
-                                    onClick={onRowClick}
+                                    key={idx}
+                                    onClick={() => onRowClick(row)}
                                     sx={{
                                         cursor: "pointer",
                                         transition: ".15s",
@@ -81,28 +83,32 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                 >
                                         <TableCell align="center">
                                         {highlightMatch(
-                                            response.companyname,
+                                            row.groupLifeName, 
+                                            search)}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        {highlightMatch(
+                                            row.planType,
                                             search
                                         )}
                                     </TableCell>
                                     <TableCell align="center">
                                         {highlightMatch(
-                                            response.planType,
+                                            row.paymentType,
                                             search
                                         )}
                                     </TableCell>
                                     <TableCell align="center">
-                                        {highlightMatch(
-                                            response.paymentType,
-                                            search
-                                        )}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {highlightMatch(Number(response.employerShare).toFixed(2), search)}
+                                        {highlightMatch(Number(row.employerShare).toFixed(2), search)}
                                     </TableCell>
 
                                     <TableCell align="center">
-                                        {highlightMatch(Number(response.employeeShare).toFixed(2), search)}
+                                        {highlightMatch(Number(row.employeeShare).toFixed(2), search)}
+                                    </TableCell>
+
+                                    
+                                    <TableCell align="center">
+                                        0
                                     </TableCell>
                                 </TableRow>
                             );
@@ -114,4 +120,4 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
     );
 };
 
-export default PemeResponsesTable;
+export default GroupLifeCompanyTable;

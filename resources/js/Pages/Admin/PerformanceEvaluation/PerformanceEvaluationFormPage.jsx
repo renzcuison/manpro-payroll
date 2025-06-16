@@ -7,15 +7,9 @@ import {
   Menu,
   MenuItem,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField
+  Button
 } from '@mui/material';
 import CheckUser from '../../Errors/Error404';
-import CloseIcon from '@mui/icons-material/Close';
 import {
     DndContext, 
     closestCenter,
@@ -37,6 +31,8 @@ import Swal from 'sweetalert2';
 import { useEvaluationForm } from '../../../hooks/useEvaluationForm';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import PerformanceEvaluationEditModal from './Modals/PerformanceEvaluationEditModal';
+import PerformanceEvaluationDeleteModal from './Modals/PerformanceEvaluationDeleteModal';
 
 const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams();
@@ -64,7 +60,6 @@ const PerformanceEvaluationFormPage = () => {
 
     // Edit form dialog
     const [editOpen, setEditOpen] = useState(false);
-    const [newName, setNewName] = useState(formName);
 
     // Delete form dialog
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -82,94 +77,14 @@ const PerformanceEvaluationFormPage = () => {
 
     // Edit Form Handlers
     const handleEditMenuClick = () => {
-        setNewName(formName || '');
         setEditOpen(true);
         handleSettingsClose();
-    };
-
-    const handleEditSave = async () => {
-    if (!newName.trim()) {
-        Swal.fire({
-        text: "Form Name is required!",
-        icon: "error",
-        confirmButtonColor: '#177604',
-        });
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('id', formId);
-    formData.append('name', newName);
-
-    setEditOpen(false);
-    Swal.fire({
-        title: "Are you sure?",
-        text: "You want to save this evaluation form?",
-        icon: "warning",
-        showConfirmButton: true,
-        confirmButtonText: 'Save',
-        confirmButtonColor: '#177604',
-        showCancelButton: true,
-        cancelButtonText: 'Cancel',
-    }).then(async (res) => {
-        if (res.isConfirmed) {
-        try {
-            const response = await axiosInstance.post('/editEvaluationForm', formData, { headers });
-            if (response.data.status === 200) {
-            await Swal.fire({
-                text: "Evaluation form updated successfully!",
-                icon: "success",
-                confirmButtonText: 'Proceed',
-                confirmButtonColor: '#177604',
-            });
-            navigate(`/admin/performance-evaluation/form/${newName}`);
-            }
-        } catch (error) {
-            console.error("Error while editing form:", error);
-        }
-        }
-    });
     };
 
     // Delete Form Handlers
     const handleDeleteMenuClick = () => {
         setDeleteOpen(true);
         handleSettingsClose();
-    };
-
-    const handleDeleteConfirm = async () => {
-    const formData = new FormData();
-    formData.append('id', formId);
-
-    setDeleteOpen(false); 
-    Swal.fire({
-        title: "Are you sure?",
-        text: "You want to delete this evaluation form?",
-        icon: "warning",
-        showConfirmButton: true,
-        confirmButtonText: 'Delete',
-        confirmButtonColor: '#d32f2f',
-        showCancelButton: true,
-        cancelButtonText: 'Cancel',
-    }).then(async (res) => {
-        if (res.isConfirmed) {
-        try {
-            const response = await axiosInstance.post('/deleteEvaluationForm', formData, { headers });
-            if (response.data.status === 200) {
-            setDeleteOpen(false); // <-- close dialog immediately
-            await Swal.fire({
-                text: "Evaluation form deleted successfully!",
-                icon: "success",
-                confirmButtonText: 'Proceed',
-                confirmButtonColor: '#177604',
-            });
-            navigate('/admin/performance-evaluation');
-            }
-        } catch (error) {
-            console.error("Error while deleting form:", error);
-        }
-        }
-    });
     };
 
     // Section modal
@@ -190,7 +105,6 @@ const PerformanceEvaluationFormPage = () => {
     // Section moving
 
     const sensors = useSensors(
-        // useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
         useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
         useSensor(AccordionSummaryMouseSensor, { activationConstraint: { distance: 10 } })
     );
@@ -205,18 +119,6 @@ const PerformanceEvaluationFormPage = () => {
             event.over.data.current.order
         );
     }
-
-    // const [a, setA] = useState();
-
-    useEffect(() => {
-        axiosInstance.get(`/getEvaluationResponse`, { headers, params: {formName} })
-        .then((response) => {
-            const { evaluationResponse } = response.data;
-            if(!evaluationResponse) return;
-            console.log(evaluationResponse)
-            setA(evaluationResponse)
-        })
-    }, [])
 
     if (notFound) return <CheckUser />;
 
@@ -245,7 +147,6 @@ const PerformanceEvaluationFormPage = () => {
                         color: '#bdbdbd',
                         borderRadius: '50%',
                         padding: '5px',
-                        color: '#BEBEBE',
                     }}
                     aria-controls={settingsOpen ? 'settings-menu' : undefined}
                     aria-haspopup="true"
@@ -315,6 +216,7 @@ const PerformanceEvaluationFormPage = () => {
                         </Box>
                     </CardContent>
                 )}
+
                 {/* Add Section Modal */}
                 <PerformanceEvaluationFormAddSection
                     open={addSectionOpen}
@@ -322,58 +224,31 @@ const PerformanceEvaluationFormPage = () => {
                     onSave={handleSaveSection}
                 />
 
-        {/* Edit Form Dialog */}
-        <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
-          <DialogTitle>Edit Form Name</DialogTitle>
-          <DialogContent>
-            <TextField
-              label="Form Name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              fullWidth
-              autoFocus
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button variant="contained" onClick={handleEditSave}>
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog>
+                {/* Edit Form Modal */}
+                <PerformanceEvaluationEditModal
+                    open={editOpen}
+                    onClose={() => setEditOpen(false)}
+                    initialName={formName}
+                    formId={formId}
+                    mode="edit"
+                    onSuccess={(newName) => {
+                        navigate(`/admin/performance-evaluation/form/${newName}`);
+                    }}
+                />
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
-          <DialogTitle>Delete Form?</DialogTitle>
-          <DialogActions>
-            <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
-            <Button variant="contained" color="error" onClick={handleDeleteConfirm}>
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+                {/* Delete Confirmation Modal */}
+                <PerformanceEvaluationDeleteModal
+                    open={deleteOpen}
+                    onClose={() => setDeleteOpen(false)}
+                    formId={formId}
+                    formName={formName}
+                    onSuccess={() => {
+                        navigate('/admin/performance-evaluation');
+                    }}
+                />
             </Box>
-            {/* {
-                a ? <Box>
-                    {a.form.sections.map(section => <div>
-                        Section: { section.name }<br/>
-                        {
-                            section.subcategories.map(subcategory => {
-                                return <>
-                                    
-                                    -----------{subcategory.textAnswer ? "yes text" : "no text"}<br/>
-                                    -----------{subcategory.percentageAnswer ? "yes percentage" : "no percentage"}<br/>
-                                    -----------{subcategory.options ? "yes options" : "no options"}<br/>
-                                </>
-                            })
-                        }
-                        <br/>
-                    </div>)}
-                    <br/>
-                </Box> : undefined
-            } */}
-    </Layout>
-  );
+        </Layout>
+    );
 };
 
 export default PerformanceEvaluationFormPage;

@@ -11,12 +11,12 @@ dayjs.extend(localizedFormat);
 import EmployeeAllowanceAdd from "../Components/EmployeeAllowanceAdd";
 import EmployeeAllowanceList from "../Components/EmployeeAllowanceList";
 import EmployeeAllowanceEdit from "../Components/EmployeeAllowanceEdit";
-import { useEmployeeAllowances } from "../../../../hooks/useAllowance";
+import { useAllowances } from "../../../../hooks/useAllowances";
 
 const EmployeeAllowanceView = ({ open, close, userName }) => {
-
-    const {data, isLoading,  refetch} = useEmployeeAllowances(userName);
-    const allowances = data?.allowances || [];
+    const {employeeAllowances} = useAllowances(userName);
+    
+    const allowances = employeeAllowances.data?.allowances || [];
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
@@ -51,7 +51,7 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
         setAllowanceAddOpen(false);
         setAllowanceListOpen(true);
         if(reload){
-            refetch();
+            employeeAllowances.refetch();
         }
     }
 
@@ -65,7 +65,7 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
         setAllowanceListOpen(true);
         setAllowanceEditOpen(false);
         if(reload){
-            refetch();
+            employeeAllowances.refetch();
         }
     }
 
@@ -96,7 +96,7 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
                     </Box>
                     
                     {allowanceListOpen && (
-                        <EmployeeAllowanceList allowances={allowances} onAdd={() => handleOpenAddEmployeeAllowance()} 
+                        <EmployeeAllowanceList allowances={allowances} isLoading={employeeAllowances.isLoading} onAdd={() => handleOpenAddEmployeeAllowance()} 
                         onEdit={(index) => handleOpenEditEmployeeAllowance(index)}/>
                     )}
 

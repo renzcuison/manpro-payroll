@@ -40,50 +40,30 @@ const AttendanceItems = [
     },
 ];
 
-const evaluationItems = [
+const medicalRecords = [
     {
-        id: 2,
-        text: "Performance Evaluation",
-        icon: "fa fa-check",
+        id: 3,
+        text: "Medical Records",
+        icon: "fa fa-medkit",
         children: [
             {
-                href: `/member/evaluate`,
-                text: "Evaluate",
+                href: `/employee/medical-records/peme/peme-responses`,
+                text: "PEME",
+                icon: "fa fa-cogs",
             },
             {
-                href: `/member/evaluation`,
-                text: "My Evaluation",
+                href: `/employee/medical-records/group-life-masterlist-records`,
+                text: "Group Life Masterlist",
+                icon: "fa fa-cogs",
+            },
+            {
+                href: `/employee/medical-records/hmo-masterlist-records`,
+                text: "HMO Masterlist",
+                icon: "fa fa-cogs",
             },
         ],
     },
 ];
-
-    const medicalRecords = [
-        {
-            id: 3,
-            text: "Medical Records",
-            icon: "fa fa-medkit",
-            children: [
-                {
-                    href: `/employee/medical-records/peme/peme-responses`,
-                    text: "PEME",
-                    icon: "fa fa-cogs",
-                },
-                {
-                    href: `/employee/medical-records/group-life-masterlist-records`,
-
-                    text: "Group Life Masterlist",
-                    icon: "fa fa-cogs",
-                },
-                {
-                    href: `/employee/medical-records/hmo-masterlist-records`,
-
-                    text: "HMO Masterlist",
-                    icon: "fa fa-cogs",
-                },
-            ],
-        },
-    ];
 
 const StyledNav = styled(NavLink)(({ isActive }) => ({
     backgroundColor: "transparent",
@@ -196,7 +176,6 @@ const Sidebar = ({ children, closeMini }) => {
                                 <i className="fa fa-pencil-square-o" style={{ color: "#2a800f" }}></i> <span id="navName" className="sidebar-mini-hide" > Applications </span>
                             </StyledNav>
 
-                            
                             {medicalRecords.map((items, index) => {
                                 return <SideItem key={index} items={items} />;
                             })}
@@ -216,16 +195,12 @@ const Sidebar = ({ children, closeMini }) => {
                             <StyledNav to={`/employee/trainings`}>
                                 <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i> <span id="navName" className="sidebar-mini-hide" > Trainings </span>
                             </StyledNav>
-                            
 
-                            {/*
-                            {evaluationItems.map((items, index) => {
-                                return <SideItem key={index} items={items} />;
-                            })}
-
-                            <StyledNav to={`/reports`} className={ isReportsActive || isReportCreateActive || isReportEditActive ? "active" : "" } >
-                                <i className="fa fa-file-text" style={{ color: "#2a800f" }} ></i>{" "} <span id="navName" className="sidebar-mini-hide" > Documents </span>
-                            </StyledNav> */}
+                            {/* Performance Evaluation Sidebar Item */}
+                            <StyledNav to={`/employee/performance-evaluation`}>
+                                <i className="fa fa-check" style={{ color: "#2a800f" }}></i>
+                                <span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
+                            </StyledNav>
                         </ul>
                     </div>
                 </div>

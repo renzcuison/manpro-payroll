@@ -488,6 +488,11 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span id="navName" className="sidebar-mini-hide"> Incentives </span>
                                     </StyledNav>
 
+                                    <StyledNav to={`/admin/employees/deductions`}>
+                                        <i className="fa fa-minus-circle" style={{ color: "#2a800f" }}></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Deductions </span>
+                                    </StyledNav>
+
                                     <li className="nav-main-heading">
                                         <span className="sidebar-mini-hidden text-dark"> Payroll </span>
                                     </li>

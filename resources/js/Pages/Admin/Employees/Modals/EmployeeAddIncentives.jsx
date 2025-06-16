@@ -4,11 +4,12 @@ import Swal from 'sweetalert2';
 
 import { useIncentives, useSaveEmployeeIncentives } from "../../../../hooks/useIncentives";
 
+import { useIncentives } from "../../../../hooks/useIncentives";
+
 const EmployeeAddIncentives = ({userName, open, onClose }) => {
 
-    const saveEmployeeIncentives = useSaveEmployeeIncentives();
-    const {data, isLoading, error, refetch} = useIncentives();
-    const incentives = data?.incentives || [];
+    const {incentives: incentivesTypes, saveEmployeeIncentives} = useIncentives();
+    const incentives = incentivesTypes.data?.incentives || [];
 
     const [incentivesError, setIncentivesError] = useState(false);
     const [numberError, setNumberError] = useState(false);
@@ -139,7 +140,7 @@ const EmployeeAddIncentives = ({userName, open, onClose }) => {
                     <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white', mx: 1 }}>
                         <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                     </Button>
-                    <Button type="submit" variant="contained" sx={{ backgroundColor: '#636c74', color: 'white', mx: 1 }} onClick={onClose}>
+                    <Button variant="contained" sx={{ backgroundColor: '#636c74', color: 'white', mx: 1 }} onClick={onClose}>
                         <p className='m-0'><i class="fa fa-times" aria-hidden="true"></i> Cancel </p>
                     </Button>
                 </Box>

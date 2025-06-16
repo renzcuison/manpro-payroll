@@ -27,6 +27,8 @@ import IncentivesTypes from "../Pages/Admin/Incentives/IncentivesTypes";
 import EmployeesBenefitsList from "../Pages/Admin/Benefits/EmployeesBenefitsList";
 import BenefitsTypes from "../Pages/Admin/Benefits/BenefitsTypes";
 
+import EmployeesDeductionsList from "../Pages/Admin/Deductions/EmployeesDeductionsList";
+import DeductionsType from "../Pages/Admin/Deductions/DeductionsType";
 
 import BenefitView from "../Pages/Admin/Benefits/BenefitView";
 
@@ -115,7 +117,7 @@ const AdminRoutes = ({ user }) => {
     return (
         <Routes>
              <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview/>} user={user} />} />
-             <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} />
+             {/* <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} /> */}
              <Route path="performance-evaluation/answer/:id" element={<ProtectedRoute element={<PerformanceEvaluationAnswerPage />} user={user} />} />
              <Route path="performance-evaluation/commentor/:id" element={<ProtectedRoute element={<PerformanceEvaluationCommentorPage />} user={user} />} />
             <Route path="performance-evaluation/evaluatee/:id" element={<ProtectedRoute element={<PerformanceEvaluationEvaluateePage />} user={user} />} />
@@ -170,6 +172,10 @@ const AdminRoutes = ({ user }) => {
                     <ProtectedRoute element={<AllowanceTypes />} user={user} />
                 }
             />
+            <Route path="employees/deductions" element={<ProtectedRoute element={<EmployeesDeductionsList/>} user={user}/>}/>
+            <Route path="employees/deductions-types" element={<ProtectedRoute element={<DeductionsType />} user={user} /> } />
+
+            <Route path="employees/incentives-types" element={<ProtectedRoute element={<IncentivesTypes />} user={user} /> } />
 
             <Route path="employees/incentives" element={<ProtectedRoute element={<EmployeesIncentivesList />} user={user} /> } />
             <Route path="employees/incentives-types" element={<ProtectedRoute element={<IncentivesTypes />} user={user} /> } />

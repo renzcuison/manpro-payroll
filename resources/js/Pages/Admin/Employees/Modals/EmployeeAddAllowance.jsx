@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField, FormControl, FormGroup, Dialog, DialogTitle, DialogContent, Typography, IconButton} from "@mui/material";
 import Swal from 'sweetalert2';
 import axiosInstance, {getJWTHeader} from "../../../../utils/axiosConfig";
-import { useAllowances, useSaveEmployeeAllowance } from "../../../../hooks/useAllowance";
+import { useAllowances, useSaveEmployeeAllowance } from "../../../../hooks/useAllowances";
 
 const EmployeeAddAllowance = ({userName, open, onClose }) => {
 

@@ -2,25 +2,18 @@ import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
 import axiosInstance from "../../../../utils/axiosConfig";
+import { useBenefits } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
+    const {saveEmployeeBenefits, benefits} = useBenefits();
 
     const [benefitError, setBenefitError] = useState(false);
     const [numberError, setNumberError] = useState(false);
 
-    const [benefits, setBenefits] = useState([]);
+    const benefitsData = benefits.data?.benefits || []; 
     const [benefit, setBenefit] = useState('');
     const [number, setNumber] = useState('');
     
-    useEffect(() => {
-        axiosInstance.get('/compensation/getBenefits', { headers })
-            .then((response) => {
-                setBenefits(response.data.benefits);
-            }).catch((error) => {
-                console.error('Error fetching benefits:', error);
-            });
-    }, []);
-
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -65,28 +58,27 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
         const data = { userName: userName, benefit: benefit, number: number };
-
-        axiosInstance.post('/compensation/saveEmployeeBenefits', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Benifit added successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        onClose(true);
-                    });
-                }
-            })
-            .catch(error => {
+        saveEmployeeBenefits.mutate(data, {
+            onSuccess: () => {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Benifit added successfully!",
+                    icon: "success",
+                    timer: 1000,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    onClose(true);
+                });
+            }
+        },
+        {
+            onError: (error) => {
                 console.error('Error:', error);
-            });
+            }
+        })
     };
 
     return (
@@ -108,7 +100,7 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
                         error={benefitError}
                         onChange={(event) => setBenefit(event.target.value)}
                     >
-                        {benefits.map((benefit) => (
+                        {benefitsData.map((benefit) => (
                             <MenuItem key={benefit.id} value={benefit.id}> {benefit.name} </MenuItem>
                         ))}
                     </TextField>
@@ -135,7 +127,7 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
                     <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                 </Button>
                 <Button type="submit" variant="contained" sx={{ backgroundColor: '#636c74', color: 'white', mx: 1 }} onClick={() => onClose(false)}>
-                    <p className='m-0'><i class="fa fa-times" aria-hidden="true"></i> Cancel </p>
+                    <p className='m-0'><i class Name="fa fa-times" aria-hidden="true"></i> Cancel </p>
                 </Button>
             </Box>
         </Box>
