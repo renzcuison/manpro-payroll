@@ -492,7 +492,6 @@ class PayrollController extends Controller
             ['name' => 'Eid’l Adha', 'date' => '2025-06-06'],
         ];
 
-        
         foreach ($logs as $log) {
             $logDate = Carbon::parse($log['timestamp'])->format('Y-m-d');
 
@@ -1018,7 +1017,8 @@ class PayrollController extends Controller
                     'payrollEndDate' => $rawRecord->period_end ?? '-',
                     'payrollCutOff' => $rawRecord->cut_off ?? '-',
                     'payrollWorkingDays' => $rawRecord->working_days ?? '-',
-                    'payrollGrossPay' => $rawRecord->rate_monthly ?? '-',
+                    // 'payrollGrossPay' => $rawRecord->rate_monthly ?? '-',
+                    'payrollGrossPay' => $rawRecord->total_earnings ?? 0 - $rawRecord->total_deductions ?? 0,
                 ];
             }
 
@@ -1335,7 +1335,7 @@ class PayrollController extends Controller
                 $totalShiftDuration = 0;
                 $totalRendered = 0;
 
-                // Calculate total shift duration
+                // Calculate total shift duraton
                 if ($shift->workHour->shift_type == "Regular") {
                     $shiftStart = Carbon::parse($shift->workHour->first_time_in);
                     $shiftEnd = Carbon::parse($shift->workHour->first_time_out);
