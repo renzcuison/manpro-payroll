@@ -43,9 +43,18 @@ function OverviewStatistics() {
     ];
 
     const generateChartData = (label, color) => {
-        const data = months.map((month, i) =>
-            i < 5 ? Math.floor(Math.random() * 100) + 50 : 0
-        );
+        if (label === "Attendance") {
+        }
+        const data =
+            label === "Attendance" ||
+            label === "Milestone" ||
+            label === "Turnover Rate"
+                ? months.map((month, i) =>
+                      i < 5 ? Math.floor(Math.random() * 100) : 0
+                  )
+                : months.map((month, i) =>
+                      i < 5 ? Math.floor(Math.random() * 40000) + 50 : 0
+                  );
 
         return {
             labels: months,
