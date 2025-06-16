@@ -818,6 +818,8 @@ class EvaluationResponseController extends Controller
 
             // searching code here
 
+            
+
             // if($request->search) {
             //     $evaluationResponses = $evaluationResponses
             //         ->whereHas('form', function ($query) use ($request) {
@@ -887,18 +889,48 @@ class EvaluationResponseController extends Controller
             //             ]);
             //     }
             // }
+
+            $evaluationResponsesCollection = $evaluationResponses->get();
+
+            // 2. Filter in PHP if searching
+            if ($request->search) {
+                $searchTerm = strtolower(trim($request->search));
+                $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
+                    $formName = strtolower($row->form->name ?? '');
+                    $date = strtolower($row->date ?? '');
+                    $fullName = strtolower(trim(
+                        ($row->evaluatee->last_name ?? '') . ', ' .
+                        ($row->evaluatee->first_name ?? '') . ' ' .
+                        ($row->evaluatee->middle_name ?? '') . ' ' .
+                        ($row->evaluatee->suffix ?? '')
+                    ));
+                    $department = strtolower($row->evaluatee->department->name ?? '');
+                    $branch = strtolower($row->evaluatee->branch->name ?? '');
+                    $status = strtolower($row->status ?? '');
+
+                    return 
+                        strpos($formName, $searchTerm) !== false ||
+                        strpos($date, $searchTerm) !== false ||
+                        strpos($fullName, $searchTerm) !== false ||
+                        strpos($department, $searchTerm) !== false ||
+                        strpos($branch, $searchTerm) !== false ||
+                        strpos($status, $searchTerm) !== false;
+                })->values();
+            }
             
 
             $page = $request->page ?? 1;
             $limit = $request->limit ?? 10;
-            $totalResponseCount = $evaluationResponses->count();
-            $maxPageCount = ceil($totalResponseCount / $limit);
-
-            $pageResponseCount =
-                ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
-                : $limit;
             $skip = ($page - 1) * $limit;
-            $evaluationResponses = $evaluationResponses->skip($skip)->take($limit)->get();
+
+            // Use the filtered collection for pagination and counts
+            $totalResponseCount = $evaluationResponsesCollection->count();
+            $maxPageCount = ceil($totalResponseCount / $limit);
+            $pageResponseCount = min($limit, $totalResponseCount - $skip);
+
+            $evaluationResponses = $evaluationResponsesCollection
+                ->slice($skip, $limit)
+                ->values(); // Laravel collection
 
             return response()->json([
                 'status' => 200,
@@ -908,12 +940,12 @@ class EvaluationResponseController extends Controller
                 'totalResponseCount' => $totalResponseCount,
                 'maxPageCount' => $maxPageCount
             ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error getting evaluation responses: ' . $e->getMessage());
-            throw $e;
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error getting evaluation responses: ' . $e->getMessage());
+                throw $e;
+            }
         }
-    }
 
     public function saveEvaluationResponse(Request $request)
     {
