@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
     TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
-    Divider, TextField, InputAdornment, IconButton
+    Divider, TextField, InputAdornment, IconButton, Tooltip
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
@@ -32,6 +32,16 @@ const getEvaluationRoleRoute = (row) => {
         default:
             return `/admin/performance-evaluation/answer/${row.id}`;
     }
+};
+
+// Helper to determine if an item is expired and pending
+const isExpiredAndPending = (row) => {
+    // Assumes row.date is end date in YYYY-MM-DD or ISO format
+    if (!row.date) return false;
+    const periodEnd = new Date(row.date);
+    const now = new Date();
+    // If ended before today and still pending
+    return periodEnd < now && row.status === "Pending";
 };
 
 const PerformanceEvaluationList = () => {
@@ -263,23 +273,43 @@ const PerformanceEvaluationList = () => {
                                                     </TableCell>
                                                 </TableRow>
                                             ) : (
-                                                evaluationResponses.map((row, idx) => (
-                                                    <TableRow
-                                                        key={row.id}
-                                                        hover
-                                                        style={{ cursor: 'pointer' }}
-                                                        onClick={() => navigate(getEvaluationRoleRoute(row))}
-                                                        sx={{
-                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper'
-                                                        }}
-                                                    >
-                                                        <TableCell align="center">{row.date}</TableCell>
-                                                        <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.status}</TableCell>
-                                                    </TableRow>
-                                                ))
+                                                evaluationResponses.map((row, idx) => {
+                                                    const expiredAndPending = isExpiredAndPending(row);
+                                                    return (
+                                                        <Tooltip
+                                                            key={row.id}
+                                                            title={expiredAndPending
+                                                                ? "This evaluation is way past the period and still pending. Action is disabled."
+                                                                : ""}
+                                                            arrow
+                                                        >
+                                                            <TableRow
+                                                                hover={!expiredAndPending}
+                                                                style={{
+                                                                    cursor: expiredAndPending ? "not-allowed" : "pointer",
+                                                                    backgroundColor: expiredAndPending
+                                                                        ? "#e0e0e0"
+                                                                        : (idx % 2 === 0 ? 'rgba(0,0,0,0.03)' : '#fff')
+                                                                }}
+                                                                onClick={() => {
+                                                                    if (!expiredAndPending) {
+                                                                        navigate(getEvaluationRoleRoute(row));
+                                                                    }
+                                                                }}
+                                                                sx={{
+                                                                    opacity: expiredAndPending ? 0.6 : 1,
+                                                                    pointerEvents: expiredAndPending ? 'none' : 'auto'
+                                                                }}
+                                                            >
+                                                                <TableCell align="center">{row.date}</TableCell>
+                                                                <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
+                                                                <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
+                                                                <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
+                                                                <TableCell align="center">{row.status}</TableCell>
+                                                            </TableRow>
+                                                        </Tooltip>
+                                                    );
+                                                })
                                             )}
                                         </TableBody>
                                     </Table>
