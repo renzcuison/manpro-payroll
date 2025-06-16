@@ -479,6 +479,7 @@ export function useEvaluationResponse(responseId) {
                 evaluator_id,
             };
             if (comment !== undefined) payload.comment = comment;
+            console.log(signature_filepath)
             if (signature_filepath !== undefined) payload.signature_filepath = signature_filepath;
 
             const response = await axiosInstance.post(
@@ -491,6 +492,7 @@ export function useEvaluationResponse(responseId) {
                 (response.status && String(response.status).startsWith('2')) ||
                 (response.data && response.data.status && String(response.data.status).startsWith('2'))
             ) {
+                console.log(response.data)
                 return response.data.evaluationEvaluator;
             } else {
                 throw new Error(response.data?.message || 'Failed to save comment.');

@@ -386,7 +386,7 @@ class EvaluationFormController extends Controller
         try {
 
             $evaluationForms = EvaluationForm
-                ::join('users', 'evaluation_forms.creator_id', '=', 'users.id')
+                ::join('users', 'evaluation_forms.creator_id', '=', 'users.id')                
                 ->select(
                     'evaluation_forms.id',
                     'evaluation_forms.name', 

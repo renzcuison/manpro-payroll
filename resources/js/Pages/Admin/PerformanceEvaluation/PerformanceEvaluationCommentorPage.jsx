@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  IconButton, Menu, MenuItem, Paper, Chip, TextField, Grid, FormControlLabel, Radio, Button, Divider
+  IconButton, Menu, MenuItem, Paper, TextField, Button, Divider
 } from '@mui/material';
 import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
@@ -10,7 +10,6 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
 import PerformanceEvaluationCommentorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvalutionCommentorAcknowledge';
 import Swal from 'sweetalert2';
-
 
 // --- Overall Rating Calculation Helper ---
 const getSectionScore = (section) => {
@@ -84,7 +83,7 @@ const Bar = ({ value, max = 100, sx = {} }) => {
           width: `${pct}%`,
           height: '100%',
           background: 'linear-gradient(90deg, #367C2B 0%, #EAB31A 100%)',
-          borderRadius: '9px', // Make both ends rounded
+          borderRadius: '9px',
           position: 'absolute',
           top: 0,
           left: 0,
@@ -107,26 +106,27 @@ const PerformanceEvaluationCommentorPage = () => {
 
   const [loading, setLoading] = useState(true);
   const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
-  const [commentorComments, setCommentorComments] = useState([]);
-  const [savingIds, setSavingIds] = useState([]);
+  const [commentInput, setCommentInput] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [openAcknowledge, setOpenAcknowledge] = useState(false);
 
-  // Modal state per commentor
-  const [openAcknowledgeFor, setOpenAcknowledgeFor] = useState(null);
+  const storedUser = localStorage.getItem("nasya_user");
+  const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
-      if (Array.isArray(evaluationResponse.commentors) && evaluationResponse.commentors.length > 0) {
-        setCommentorComments(
-          evaluationResponse.commentors.map(c => ({
-            commentor_id: c.commentor_id,
-            comment: c.comment || '',
-            name: getFullName(c)
-          }))
+      // Pre-fill comment if user already has one (editing)
+      if (evaluationResponse.commentors && loggedInUser) {
+        const thisCommentor = evaluationResponse.commentors.find(
+          c => c.commentor_id === loggedInUser.id
         );
+        if (thisCommentor && thisCommentor.comment) {
+          setCommentInput(thisCommentor.comment);
+        }
       }
     }
-  }, [evaluationResponse]);
+  }, [evaluationResponse, loggedInUser]);
 
   const handleSettingsClick = (event) => {
     setSettingsAnchorEl(event.currentTarget);
@@ -136,28 +136,35 @@ const PerformanceEvaluationCommentorPage = () => {
   };
   const settingsOpen = Boolean(settingsAnchorEl);
 
-  const handleCommentInput = (commentor_id, value) => {
-    setCommentorComments(prev =>
-      prev.map(c =>
-        c.commentor_id === commentor_id ? { ...c, comment: value } : c
-      )
-    );
+  // Find this user as commentor, and their order
+  const allCommentors = Array.isArray(evaluationResponse?.commentors) ? evaluationResponse.commentors : [];
+  const thisCommentor = loggedInUser
+    ? allCommentors.find(c => c.commentor_id === loggedInUser.id)
+    : null;
+
+  // Only show previous commentors (order < this one and have signed)
+  const previousCommentors = thisCommentor
+    ? allCommentors
+        .filter(c => c.order < thisCommentor.order && c.signature_filepath)
+        .sort((a, b) => a.order - b.order)
+    : [];
+
+  // --- Evaluators for preview ---
+  const allEvaluators = Array.isArray(evaluationResponse?.evaluators) ? evaluationResponse.evaluators : [];
+
+  // Save handler for this commentor
+  const handleSaveComment = () => {
+    setOpenAcknowledge(true); // Open signature modal
   };
 
-  // Show modal first, then save after signature
-  const handleOpenAcknowledgeModal = (commentor_id) => {
-    setOpenAcknowledgeFor(commentor_id);
-  };
-
-  // Called after signature is done in modal
-  const handleProceedAcknowledge = async (signatureData, commentor_id) => {
-    setSavingIds(prev => [...prev, commentor_id]);
-    const commentObj = commentorComments.find(c => c.commentor_id === commentor_id);
+  // After signature modal
+  const handleProceedAcknowledge = async (signatureData) => {
+    setSaving(true);
     try {
       await editEvaluationCommentor({
         response_id: evaluationResponse.id,
-        commentor_id,
-        comment: commentObj ? commentObj.comment : "",
+        commentor_id: thisCommentor.commentor_id,
+        comment: commentInput,
         signature_filepath: signatureData // PNG dataURL
       });
       Swal.fire({
@@ -180,8 +187,8 @@ const PerformanceEvaluationCommentorPage = () => {
         position: 'center'
       });
     } finally {
-      setSavingIds(prev => prev.filter(id => id !== commentor_id));
-      setOpenAcknowledgeFor(null); // Close modal after try/catch
+      setSaving(false);
+      setOpenAcknowledge(false);
     }
   };
 
@@ -234,41 +241,12 @@ const PerformanceEvaluationCommentorPage = () => {
             <Typography variant="body2" sx={{ fontWeight: 700 }}>
               Answer:
             </Typography>
-            <Grid container alignItems="center" spacing={2} justifyContent='center'>
-              <Grid item>
-                <Typography variant="body1">{subCategory.linear_scale_start_label}</Typography>
-              </Grid>
-              <Grid item xs>
-                <Grid container justifyContent="center" spacing={1}>
-                  {[...Array(subCategory.linear_scale_end - subCategory.linear_scale_start + 1)].map((_, index) => {
-                    const value = subCategory.linear_scale_start + index;
-                    return (
-                      <Grid item key={value}>
-                        <FormControlLabel
-                          control={
-                            <Radio
-                              checked={subCategory.percentage_answer?.value === value}
-                              disabled
-                            />
-                          }
-                          label={value}
-                          labelPlacement="top"
-                        />
-                      </Grid>
-                    );
-                  })}
-                </Grid>
-              </Grid>
-              <Grid item>
-                <Typography variant="body1">{subCategory.linear_scale_end_label}</Typography>
-              </Grid>
-            </Grid>
-            {/* <Typography variant="body1" sx={{ mt: 1 }}>
+            <Box sx={{ mt: 1 }}>
               {typeof subCategory.percentage_answer?.value === 'number'
                 ? subCategory.percentage_answer.value
                 : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
               }
-            </Typography> */}
+            </Box>
           </Box>
         );
       case 'short_answer':
@@ -308,9 +286,7 @@ const PerformanceEvaluationCommentorPage = () => {
             ) : (
               <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>
             )}
-
-             <Divider sx={{ my: 2 }} />
-
+            <Divider sx={{ my: 2 }} />
             {/* Legend for multiple_choice, checkbox, dropdown */}
             {(subCategory.subcategory_type === 'multiple_choice' ||
               subCategory.subcategory_type === 'checkbox' ||
@@ -341,24 +317,6 @@ const PerformanceEvaluationCommentorPage = () => {
           </Typography>
         );
     }
-  };
-
-  const allCommentors = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
-    ? responseMeta.commentors
-    : [];
-
-  const allEvaluators = Array.isArray(responseMeta.evaluators) && responseMeta.evaluators.length > 0
-    ? responseMeta.evaluators
-    : [];
-
-  const getOrderLabel = (idx) => {
-    const n = idx + 1;
-    if (n === 1) return "First";
-    if (n === 2) return "Second";
-    if (n === 3) return "Third";
-    if (n === 4) return "Fourth";
-    if (n === 5) return "Fifth";
-    return `${n}th`;
   };
 
   return (
@@ -525,6 +483,7 @@ const PerformanceEvaluationCommentorPage = () => {
           </Accordion>
         ))}
 
+        {/* Evaluator Comments Preview */}
         <Box sx={{ mt: 6 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
             Evaluator Comments:
@@ -550,7 +509,6 @@ const PerformanceEvaluationCommentorPage = () => {
                     boxShadow: 2,
                   }}
                 >
-                  
                   <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(evaluator)}
                   </Typography>
@@ -574,73 +532,116 @@ const PerformanceEvaluationCommentorPage = () => {
           )}
         </Box>
 
-       <Box sx={{ mt: 6 }}>
-  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-    Comments:
-  </Typography>
-  {allCommentors.length > 0 ? (
-    <Box>
-      {allCommentors.map((commentor, i) => (
-        <Paper
-          key={commentor.commentor_id}
-          elevation={2}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            width: '100%',
-            bgcolor: '#fff',
-            borderRadius: 2,
-            borderLeft: '8px solid #eab31a',
-            px: 2,
-            pt: 2,
-            pb: 2,
-            mt: 2,
-            mb: 2,
-            boxShadow: 2,
-          }}
-        >
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-            {commentor.client_id}
-          </Typography>
-          <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-            {getFullName(commentor)}
-          </Typography>
-          <TextField
-            label="Comment"
-            multiline
-            minRows={3}
-            fullWidth
-            value={
-              commentorComments.find(c => c.commentor_id === commentor.commentor_id)?.comment || ''
-            }
-            sx={{ mt: 1 }}
-            onChange={e => handleCommentInput(commentor.commentor_id, e.target.value)}
-            placeholder="Enter your comment here"
-            disabled={savingIds.includes(commentor.commentor_id)}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => handleOpenAcknowledgeModal(commentor.commentor_id)}
-              disabled={savingIds.includes(commentor.commentor_id)}
-            >
-              {savingIds.includes(commentor.commentor_id) ? "Saving..." : "Save Comment"}
-            </Button>
+        {/* Previous Commentors Preview */}
+        {previousCommentors.length > 0 && (
+          <Box sx={{ mt: 6 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+              Previous Commentor Comments:
+            </Typography>
+            {previousCommentors.map((prev, i) => (
+              <Paper
+                key={prev.commentor_id}
+                elevation={2}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '100%',
+                  bgcolor: '#fff',
+                  borderRadius: 2,
+                  borderLeft: '8px solid #eab31a',
+                  px: 2,
+                  pt: 2,
+                  pb: 2,
+                  mt: 2,
+                  mb: 2,
+                  boxShadow: 2,
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                  {prev.client_id}
+                </Typography>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                  {getFullName(prev)}
+                </Typography>
+                <TextField
+                  label="Comment"
+                  multiline
+                  minRows={3}
+                  fullWidth
+                  value={prev.comment || ''}
+                  sx={{ mt: 1 }}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+              </Paper>
+            ))}
           </Box>
-          {/* Modal for this commentor */}
-          <PerformanceEvaluationCommentorAcknowledge
-            open={openAcknowledgeFor === commentor.commentor_id}
-            onClose={() => setOpenAcknowledgeFor(null)}
-            onProceed={signatureData => handleProceedAcknowledge(signatureData, commentor.commentor_id)}
-          />
-        </Paper>
-      ))}
-    </Box>
-  ) : (
-    <Typography color="text.secondary"><i>No commentors found.</i></Typography>
-  )}
-</Box>
+        )}
+
+        {/* This Commentor's Section */}
+        {thisCommentor ? (
+          <Box sx={{ mt: 6 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+              Your Comment Section:
+            </Typography>
+            <Paper
+              elevation={2}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#fff',
+                borderRadius: 2,
+                borderLeft: '8px solid #eab31a',
+                px: 2,
+                pt: 2,
+                pb: 2,
+                mt: 2,
+                mb: 2,
+                boxShadow: 2,
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                {thisCommentor.client_id}
+              </Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                {getFullName(thisCommentor)}
+              </Typography>
+              <TextField
+                label="Comment"
+                multiline
+                minRows={3}
+                fullWidth
+                value={commentInput}
+                onChange={e => setCommentInput(e.target.value)}
+                sx={{ mt: 1 }}
+                placeholder="Enter your comment here"
+                disabled={saving || thisCommentor.signature_filepath}
+              />
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleSaveComment}
+                  disabled={saving || thisCommentor.signature_filepath}
+                >
+                  {thisCommentor.signature_filepath ? "Signed" : saving ? "Saving..." : "Save Comment"}
+                </Button>
+              </Box>
+              {/* Modal for this commentor */}
+              <PerformanceEvaluationCommentorAcknowledge
+                open={openAcknowledge}
+                onClose={() => setOpenAcknowledge(false)}
+                onProceed={handleProceedAcknowledge}
+              />
+            </Paper>
+          </Box>
+        ) : (
+          <Typography sx={{ mt: 4, color: 'red', textAlign: 'center' }}>
+            You are not assigned as a commentor for this evaluation.
+          </Typography>
+        )}
       </Box>
     </Layout>
   );
