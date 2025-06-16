@@ -29,7 +29,7 @@ const getSectionScore = (section) => {
           subScore = ((Number(selected.score) || 1) / highestScore) * 5;
         }
       }
-      subcatScores.push({ name: subcat.name, score: subScore, description: subcat.description });
+      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'checkbox') {
@@ -39,7 +39,7 @@ const getSectionScore = (section) => {
       if (allSum > 0) {
         subScore = (selectedSum / allSum) * 5;
       }
-      subcatScores.push({ name: subcat.name, score: subScore, description: subcat.description });
+      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'linear_scale') {
@@ -51,7 +51,7 @@ const getSectionScore = (section) => {
           subScore = ((value - start) / (end - start)) * 5;
         }
       }
-      subcatScores.push({ name: subcat.name, score: subScore, description: subcat.description });
+      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     }
@@ -203,20 +203,35 @@ const PerformanceEvaluationEvaluateePage = () => {
     doc.text("Signatures:", margin, y);
     y += 18;
 
-    async function addSignatureImage(url, label, y) {
-      if (!url) return y;
-      try {
-        const img = await loadImageAsBase64(url);
-        doc.setFontSize(12);
-        doc.text(label, margin + 10, y + 15);
-        doc.addImage(img, "PNG", margin + 120, y, 80, 40);
-        y += 50;
-      } catch {
-        doc.text(`${label} (signature not found)`, margin + 10, y + 15);
-        y += 20;
-      }
-      return y;
-    }
+async function addSignatureImage(url, label, y) {
+  if (!url || url === "data:image/png;base64,") return y;
+  try {
+    // Try to "sanitize" the image by drawing it on a canvas and re-exporting as PNG
+    const img = new window.Image();
+    img.src = url;
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const pngDataUrl = canvas.toDataURL('image/png');
+
+    doc.setFontSize(12);
+    doc.text(label, margin + 10, y + 15);
+    doc.addImage(pngDataUrl, "PNG", margin + 120, y, 80, 40);
+    y += 50;
+  } catch (err) {
+    console.error("Error rendering signature", label, err, url);
+    doc.text(`${label} (signature not found)`, margin + 10, y + 15);
+    y += 20;
+  }
+  return y;
+}
 
     if (responseMeta.creator_signature_filepath) {
       y = await addSignatureImage(responseMeta.creator_signature_filepath, "Creator Signature", y);
@@ -405,12 +420,12 @@ const PerformanceEvaluationEvaluateePage = () => {
                   <>
                     {/* SCORES BAR CHART */}
                     <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
-                      {subcatScores.map(({ name, score, description }, idx) => (
-                        <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={idx}>
+                      {subcatScores.map(({ name, score, description, id }, idx) => (
+                        <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={id}>
                           <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
                             <Box
                               component="span"
-                              onMouseEnter={() => setHoveredSubcat(`name-${name}`)}
+                              onMouseEnter={() => setHoveredSubcat(`name-${id}`)}
                               onMouseLeave={() => setHoveredSubcat(null)}
                               sx={{
                                 fontWeight: 'bold',
@@ -421,7 +436,7 @@ const PerformanceEvaluationEvaluateePage = () => {
                               }}
                             >
                               {name}
-                              {hoveredSubcat === `name-${name}` && !!description && (
+                              {hoveredSubcat === `name-${id}` && !!description && (
                                 <Box
                                   sx={{
                                     position: 'absolute',
