@@ -11,6 +11,8 @@ import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 import { useEmployeeAllowances } from '../../../hooks/useAllowance';
 import { useEmployeeIncentives } from '../../../hooks/useIncentives';
 
+import { useIncentives } from '../../../hooks/useIncentives';
+
 import { useBenefits } from '../../../hooks/useBenefits';
 import { useDeductions } from '../../../hooks/useDeductions';
 
@@ -30,13 +32,13 @@ const EmployeeView = () => {
     const { user } = useParams();
     const {employeeBenefits} = useBenefits(user);
     const {employeeDeductions} = useDeductions(user);
+    const {employeeIncentives} = useIncentives(user);
 
     const benefits = employeeBenefits.data?.benefits || [];
     const deductions = employeeDeductions.data?.deductions || [];
+    const incentives = employeeIncentives.data?.incentives || [];
 
     const {data: empAllowances, refetch: refetchAllowance} = useEmployeeAllowances(user);
-    const {data: empIncentives, refetch: refetchIncentives} = useEmployeeIncentives(user);
-    
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
@@ -44,8 +46,6 @@ const EmployeeView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const allowances = empAllowances?.allowances || [];
-    
-    const incentives = empIncentives?.incentives || [];
 
     const [employee, setEmployee] = useState('');
     const [educations, setEducations] = useState([]);
@@ -131,7 +131,8 @@ const EmployeeView = () => {
             getEmployeeDetails();
             refetchAllowance();
             employeeBenefits.refetch();
-            refetchIncentives();
+            employeeIncentives.refetch();
+            employeeDeductions.refetch();
             getEducationalBackground();
         }
     }
@@ -162,7 +163,7 @@ const EmployeeView = () => {
                             <EmployeeInformation employee={employee} imagePath={imagePath}/>
                             <EmployeeBenefits userName={user} benefits={benefits} onRefresh={employeeBenefits.refetch}/>
                             <EmployeeAllowances userName={user} allowances={allowances} onRefresh={refetchAllowance}/>
-                            <EmployeeIncentives userName={user} incentives={incentives} onRefresh={refetchIncentives}/>
+                            <EmployeeIncentives userName={user} incentives={incentives} onRefresh={employeeIncentives.refetch}/>
                             <EmployeeDeductions userName={user} deductions={deductions} onRefresh={employeeDeductions.refetch} />
                         </Grid>
 

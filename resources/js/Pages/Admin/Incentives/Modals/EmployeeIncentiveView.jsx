@@ -11,15 +11,13 @@ dayjs.extend(localizedFormat);
 import EmployeeIncentiveAdd from "../Components/EmployeeIncentiveAdd";
 import EmployeeIncentivesList from "../Components/EmployeeIncentiveList";
 import EmployeeIncentiveEdit from "../Components/EmployeeIncentiveEdit";
-import { useEmployeeIncentives } from "../../../../hooks/useIncentives";
+import { useIncentives } from "../../../../hooks/useIncentives";
 
 const EmployeeIncentiveView = ({ open, close, userName }) => {
-
+    const {employeeIncentives} = useIncentives(userName);
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-
-    const {data, isLoading, refetch} = useEmployeeIncentives(userName);
-    const incentives = data?.incentives || [];
+    const incentives = employeeIncentives.data?.incentives || [];
 
     const [incentivesAddOpen, setIncentivesAddOpen] = useState(false);
     const [incentivesEditOpen, setEditIncentivesOpen] = useState(false);
@@ -52,7 +50,7 @@ const EmployeeIncentiveView = ({ open, close, userName }) => {
         setIncentivesAddOpen(false);
         setIncentivesListOpen(true);
         if(reload){
-            refetch();
+            employeeIncentives.refetch();
         }
     }
 
@@ -66,7 +64,7 @@ const EmployeeIncentiveView = ({ open, close, userName }) => {
         setIncentivesListOpen(true);
         setEditIncentivesOpen(false);
         if(reload){
-            refetch();
+            employeeIncentives.refetch();
         }
     }
 
@@ -96,7 +94,7 @@ const EmployeeIncentiveView = ({ open, close, userName }) => {
                     </Box>
                     
                     {incentivesListOpen && (
-                        <EmployeeIncentivesList incentives={incentives} isLoading={isLoading} onAdd={() => handleOpenAddEmployeeIncentive()} 
+                        <EmployeeIncentivesList incentives={incentives} isLoading={employeeIncentives.isLoading} onAdd={() => handleOpenAddEmployeeIncentive()} 
                         onEdit={(index) => handleOpenEditEmployeeIncentives(index)}/>
                     )}
 
