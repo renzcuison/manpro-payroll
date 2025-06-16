@@ -88,57 +88,59 @@ class EvaluationResponseController extends Controller
 
     public function getEvaluatees(Request $request)
     {
-        // inputs:
-        /*
-            department_id?: number,
-            branch_id?: number,
-            exclude?: number[]
-        */
-
-        // returns:
-        /*
-            users: {
-                id, last_name, first_name, middle_name, suffix
-            }
-        */
-
-         if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
-
-        $user = DB::table('users')->select()->where('id', $userID)->first();
-
-        if (!Auth::check()) {
-            return response()->json([ 
+        // Ensure authentication
+        if (!\Auth::check()) {
+            return response()->json([
                 'status' => 403,
                 'message' => 'Unauthorized access!'
             ]);
         }
 
-        $evaluatees = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
+        $userID = \Auth::id();
+        $user = \DB::table('users')->select()->where('id', $userID)->first();
+
+        $evaluatees = \App\Models\UsersModel::select(
+                'id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix'
+            )
             ->where('client_id', $user->client_id)
-            ->whereNull('deleted_at')
-        ;
-        if($request->department_id !== null)
+            ->whereNull('deleted_at');
+
+        // Optional: filter by user_type(s) if provided
+        if ($request->has('user_type')) {
+            $userType = $request->user_type;
+            if (is_array($userType)) {
+                $evaluatees = $evaluatees->whereIn('user_type', $userType);
+            } elseif (is_string($userType)) {
+                $types = array_map('trim', explode(',', $userType));
+                $evaluatees = $evaluatees->whereIn('user_type', $types);
+            }
+        }
+
+        // Optional: filter by department and branch
+        if ($request->department_id !== null) {
             $evaluatees = $evaluatees->where('department_id', $request->department_id);
-        if($request->branch_id !== null)
+        }
+        if ($request->branch_id !== null) {
             $evaluatees = $evaluatees->where('branch_id', $request->branch_id);
-        if($request->exclude)
+        }
+        if ($request->exclude) {
             $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
+        }
+
         $evaluatees = $evaluatees
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->orderBy('middle_name')
             ->orderBy('suffix')
-            ->get()
-        ;
-        if(!$evaluatees) return response()->json([ 
-            'status' => 404,
-            'message' => 'Evaluatees not found!'
-        ]);
+            ->get();
+
+        if ($evaluatees->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Evaluatees not found!',
+                'evaluatees' => []
+            ]);
+        }
         return response()->json([
             'status' => 200,
             'message' => 'Evaluatees successfully retrieved.',
@@ -148,62 +150,64 @@ class EvaluationResponseController extends Controller
 
     public function getEvaluators(Request $request)
     {
-        // inputs:
-        /*
-            department_id?: number,
-            branch_id?: number,
-            exclude?: number[]
-        */
-
-        // returns:
-        /*
-            users: {
-                id, last_name, first_name, middle_name, suffix
-            }
-        */
-
-         if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
-
-        $user = DB::table('users')->select()->where('id', $userID)->first();
-
         if (!Auth::check()) {
             return response()->json([ 
                 'status' => 403,
                 'message' => 'Unauthorized access!'
             ]);
         }
+        $userID = Auth::id();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
         $evaluators = UsersModel
             ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
             ->whereNot('id', $user->id)
             ->where('client_id', $user->client_id)
-            ->whereNull('deleted_at')
-        ;
+            ->whereNull('deleted_at');
+
         if($request->department_id !== null)
             $evaluators = $evaluators->where('department_id', $request->department_id);
+
         if($request->branch_id !== null)
             $evaluators = $evaluators->where('branch_id', $request->branch_id);
+
+        // Support for flexible user_type filtering
+        if ($request->has('user_type')) {
+            $userType = $request->user_type;
+            // Accepts either array or comma-separated string
+            if (is_array($userType)) {
+                $evaluators = $evaluators->whereIn('user_type', $userType);
+            } elseif (is_string($userType)) {
+                // Handles comma-separated string or single type
+                $types = array_map('trim', explode(',', $userType));
+                $evaluators = $evaluators->whereIn('user_type', $types);
+            } else {
+                // Fallback to both Admin and Employee if something unexpected
+                $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
+            }
+        } else {
+            // Default: both Admin and Employee
+            $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
+        }
+
         if($request->exclude)
-            $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
+            $evaluators = $evaluators->whereNotIn('id', $request->exclude);
+
         $evaluators = $evaluators
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->orderBy('middle_name')
             ->orderBy('suffix')
-            ->get()
-        ;
-        if(!$evaluators) return response()->json([ 
+            ->get();
+
+        if($evaluators->isEmpty()) return response()->json([ 
             'status' => 404,
             'message' => 'Evaluators not found!'
         ]);
         return response()->json([
             'status' => 200,
             'message' => 'Evaluators successfully retrieved.',
-            'evaluatees' => $evaluators
+            'users' => $evaluators
         ]);
     }
 
@@ -652,6 +656,9 @@ class EvaluationResponseController extends Controller
             
             $evaluateeResponses = $user
                 ->evaluateeResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
                 ->select(
                     'id',
                     DB::raw("'Evaluatee' as role"),
@@ -689,6 +696,9 @@ class EvaluationResponseController extends Controller
             ;
             $createdResponses = $user
                 ->createdResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
                 ->select(
                     'id',
                     DB::raw("'Creator' as role"),
@@ -725,6 +735,9 @@ class EvaluationResponseController extends Controller
             ;
             $evaluatorResponses = $user
                 ->evaluatorResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
                 ->select(
                     'id',
                     DB::raw("'Evaluator' as role"),
@@ -759,6 +772,9 @@ class EvaluationResponseController extends Controller
             ;
             $commentorResponses = $user
                 ->commentorResponses()
+                ->whereHas('form', function ($q) {
+                    $q->whereNull('evaluation_responses.deleted_at');
+                })
                 ->select(
                     'id',
                     DB::raw("'Commentor' as role"),
@@ -799,14 +815,17 @@ class EvaluationResponseController extends Controller
                 ->union($commentorResponses)
                 ->with(['form' => function ($form) {
                     $form->select('id', 'name');
+                    
                 }])
                 ->with(['evaluatee' => function ($form) {
                     $form
                         ->select(
                             'id', 'last_name', 'first_name', 'middle_name', 'suffix', 'branch_id', 'department_id'
                         )
+                        
                         ->with(['branch' => function ($form) {
                             $form->select('id', 'name');
+                            
                         }])
                         ->with(['department' => function ($form) {
                             $form->select('id', 'name');
@@ -887,27 +906,57 @@ class EvaluationResponseController extends Controller
             //             ]);
             //     }
             // }
-            
 
-            $page = $request->page ?? 1;
-            $limit = $request->limit ?? 10;
-            $totalResponseCount = $evaluationResponses->count();
-            $maxPageCount = ceil($totalResponseCount / $limit);
+            $evaluationResponsesCollection = $evaluationResponses->get();
 
-            $pageResponseCount =
-                ($page * $limit > $totalResponseCount) ? $totalResponseCount % $limit
-                : $limit;
-            $skip = ($page - 1) * $limit;
-            $evaluationResponses = $evaluationResponses->skip($skip)->take($limit)->get();
+        // 2. Filter in PHP if searching
+        if ($request->search) {
+            $searchTerm = strtolower(trim($request->search));
+            $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
+                $formName = strtolower($row->form->name ?? '');
+                $date = strtolower($row->date ?? '');
+                $fullName = strtolower(trim(
+                    ($row->evaluatee->last_name ?? '') . ', ' .
+                    ($row->evaluatee->first_name ?? '') . ' ' .
+                    ($row->evaluatee->middle_name ?? '') . ' ' .
+                    ($row->evaluatee->suffix ?? '')
+                ));
+                $department = strtolower($row->evaluatee->department->name ?? '');
+                $branch = strtolower($row->evaluatee->branch->name ?? '');
+                $status = strtolower($row->status ?? '');
 
-            return response()->json([
-                'status' => 200,
-                'message' => 'Evaluation Responses successfully retrieved.',
-                'evaluationResponses' => $evaluationResponses,
-                'pageResponseCount' => $pageResponseCount,
-                'totalResponseCount' => $totalResponseCount,
-                'maxPageCount' => $maxPageCount
-            ]);
+                return 
+                    strpos($formName, $searchTerm) !== false ||
+                    strpos($date, $searchTerm) !== false ||
+                    strpos($fullName, $searchTerm) !== false ||
+                    strpos($department, $searchTerm) !== false ||
+                    strpos($branch, $searchTerm) !== false ||
+                    strpos($status, $searchTerm) !== false;
+            })->values();
+        }
+        
+
+        $page = $request->page ?? 1;
+        $limit = $request->limit ?? 10;
+        $skip = ($page - 1) * $limit;
+
+        // Use the filtered collection for pagination and counts
+        $totalResponseCount = $evaluationResponsesCollection->count();
+        $maxPageCount = ceil($totalResponseCount / $limit);
+        $pageResponseCount = min($limit, $totalResponseCount - $skip);
+
+        $evaluationResponses = $evaluationResponsesCollection
+            ->slice($skip, $limit)
+            ->values(); // Laravel collection
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Evaluation Responses successfully retrieved.',
+            'evaluationResponses' => $evaluationResponses,
+            'pageResponseCount' => $pageResponseCount,
+            'totalResponseCount' => $totalResponseCount,
+            'maxPageCount' => $maxPageCount
+        ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error getting evaluation responses: ' . $e->getMessage());
@@ -3041,6 +3090,7 @@ class EvaluationResponseController extends Controller
                         ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.option_id', '=', $request->option_id)
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                        ->where('evaluation_form_subcategories.id', '=', $subcategory->id)
                         ->whereNull('evaluation_option_answers.deleted_at')
                         ->first()
                     ;
@@ -3057,6 +3107,7 @@ class EvaluationResponseController extends Controller
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                         ->select('evaluation_option_answers.option_id')
                         ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                        ->where('evaluation_form_subcategories.id', '=', $subcategory->id)
                         ->whereNull('evaluation_option_answers.deleted_at')
                         ->first()
                     ;
