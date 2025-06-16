@@ -4,11 +4,16 @@ import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 
-export function useDepartments(){
-    return useQuery(["departments"], async () => {
-        const departments = await axiosInstance.get("settings/getDepartments", {
+export function useDepartments(departmentId = null){
+    const departments = useQuery(["departments"], async () => {
+        const {data} = await axiosInstance.get("settings/getDepartments", {
             headers,
         });
-        return departments.data;
+        return data;
     });
+
+    return{
+        departments
+    }
+
 }

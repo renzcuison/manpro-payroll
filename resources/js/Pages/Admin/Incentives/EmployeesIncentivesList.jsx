@@ -11,11 +11,11 @@ import { useBranches } from '../../../hooks/useBranches';
 
 const EmployeesIncentivesList = () => {
     const { data: empIncentiveData, isLoading, error, refetch } = useEmployeesIncentives();
-    const { data: departmentData } = useDepartments(); 
+    const { departments: departmentData } = useDepartments(); 
     const { data: branchesData } = useBranches();
 
     const employees = empIncentiveData?.employees || [];
-    const departments = departmentData?.departments || [];
+    const departments = departmentData.data?.departments || [];
     const branches = branchesData?.branches || [];
 
     const [searchName, setSearchName] = useState('');
