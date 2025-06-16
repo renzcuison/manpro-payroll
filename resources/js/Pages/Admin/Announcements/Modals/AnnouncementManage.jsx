@@ -85,10 +85,6 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
         setAttachmentsModal((prev) => ({ ...prev, open: false }));
     };
 
-    const handleExitedAttachmentsModal = () => {
-        setAttachmentsModal({ open: false, type: null });
-    };
-
     const handlePreviewImage = (img) => {
         let src = img.url || (img.id && renderImage ? renderImage(img.id, img.data, img.mime_type) : "");
         setImagePreviewSrc(src);
@@ -1125,7 +1121,6 @@ const AnnouncementManage = ({ open, close, announceInfo }) => {
                 <AnnouncementAttachments
                     open={attachmentsModal.open}
                     onClose={handleCloseAttachmentsModal}
-                    onExited={handleExitedAttachmentsModal}
                     type={attachmentsModal.type}
                     items={attachmentsModal.type === "images" ? images : attachments}
                     handleFileDownload={handleFileDownload}
