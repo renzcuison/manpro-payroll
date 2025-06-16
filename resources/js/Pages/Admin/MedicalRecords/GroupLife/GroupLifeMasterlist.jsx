@@ -8,6 +8,7 @@ import {
     InputLabel,
     OutlinedInput,
     InputAdornment,
+    TablePagination,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../../../components/Layout/Layout";
@@ -27,6 +28,7 @@ const GroupLifeMasterlist = () => {
     const [search, setSearch] = useState("");
 
     const [listOfCompanies, setListOfCompanies] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const storedUser = useMemo(() => {
         const item = localStorage.getItem("nasya_user");
@@ -41,6 +43,9 @@ const GroupLifeMasterlist = () => {
 
     useEffect(() => {
         if (!user) return;
+
+        setLoading(true);
+
         axiosInstance
             .get("/medicalRecords/getGroupLifeCompanies", { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
@@ -57,26 +62,42 @@ const GroupLifeMasterlist = () => {
     useEffect(() => {
         
         if (!user) return;
+
+        setLoading(true);
+
         axiosInstance
             .get("/medicalRecords/getGroupLifePlans", { headers: { Authorization: `Bearer ${user.token}` } })
-            .then(res => {
+            .then(res => {const plans = res.data.plans || [];
+                // setRows(
+                //     Array.isArray(res.data)
+                //         ? res.data.map(row => ({
+                //             groupLifeName: row.group_life_company_name, // map BE to FE
+                //             planType: row.plan_name,
+                //             paymentType: row.type,
+                //             employerShare: row.employer_share,
+                //             employeeShare: row.employee_share,
+                //         }))
+                //         : []
+                // );
                 setRows(
-                    Array.isArray(res.data)
-                        ? res.data.map(row => ({
-                            groupLifeName: row.group_life_company_name, // map BE to FE
-                            planType: row.plan_name,
-                            paymentType: row.type,
-                            employerShare: row.employer_share,
-                            employeeShare: row.employee_share,
-                        }))
-                        : []
-                );
+    plans.map(row => ({
+        groupLifeName: row.group_life_company_name,
+        planType: row.plan_name,
+        paymentType: row.type,
+        employerShare: row.employer_share,
+        employeeShare: row.employee_share,
+    }))
+);
+
             })
             .catch(console.error);
     }, [user]);
 
     const refreshCompanies = () => {
         if (!user) return;
+
+        setLoading(true);
+
         axiosInstance.get('/group-life-companies', { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
                 console.log("Rows updated", rows);
@@ -91,6 +112,9 @@ const GroupLifeMasterlist = () => {
     };
 
     const refreshPlans = () => {
+
+        setLoading(true);
+
         axiosInstance
             .get("/medicalRecords/getGroupLifePlans", {
                 headers: { Authorization: `Bearer ${user.token}` }
@@ -149,9 +173,10 @@ const GroupLifeMasterlist = () => {
 
     const resultsCount = filteredRecords.length;
 
-    const handleOnRowClick = () => {
+    const handleOnRowClick = (row) => {
         navigator(
-            `/admin/medical-records/group-life-masterlist/group-life-employees/`
+            `/admin/medical-records/group-life-masterlist/group-life-employees/`,
+            { state: row }
         );
     };
 
@@ -188,6 +213,15 @@ const GroupLifeMasterlist = () => {
                 });
         }
     };
+
+    const [currentPage, setCurrentPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
+
+    const paginatedRows = useMemo(() => {
+        const startIndex = currentPage * rowsPerPage; // remove -1
+        return filteredRecords.slice(startIndex, startIndex + rowsPerPage);
+    }, [filteredRecords, currentPage, rowsPerPage]);
 
     return (
     <Layout title={"Pre-Employment Medical Exam Records"}>
@@ -251,11 +285,36 @@ const GroupLifeMasterlist = () => {
                         <Box sx={{ width: "80%", minWidth: 300, backgroundColor: "white", borderRadius: 2, padding: 2, overflow: "hidden" }}>
                             <GroupLifeCompanyTable
                                 onRowClick={handleOnRowClick}
-                                rows={filteredRecords}
+                                // rows={filteredRecords}
+                                rows={paginatedRows}
                                 search={search}
                                 refreshPlans={refreshPlans}
+                                loading={loading}
                                 />
+                                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                                <TablePagination
+                                    rowsPerPageOptions={[5, 10, 25]}
+                                    component="div"
+                                    count={filteredRecords.length}
+                                    rowsPerPage={rowsPerPage}
+                                    page={currentPage}
+                                    onPageChange={(event, newPage) => setCurrentPage(newPage)}
+                                    onRowsPerPageChange={(event) => {
+                                        setRowsPerPage(parseInt(event.target.value, 10));
+                                        setCurrentPage(0);
+                                    }}
+                                    sx={{
+                                        ".MuiTablePagination-actions": { mb: 2 },
+                                        ".MuiInputBase-root": { mb: 1 },
+                                        bgcolor: "#ffffff",
+                                        borderRadius: "8px",
+                                        width: "fit-content",
+                                        mt: 2
+                                    }}
+                                    />
+                                    </Box>
                         </Box>
+                        
                     </Box>
 
                     {openAddGroupLifeModal && (
@@ -280,6 +339,8 @@ const GroupLifeMasterlist = () => {
                         }}
                     />
                     )}
+
+
                 </Box>
             </Box>
     </Layout>

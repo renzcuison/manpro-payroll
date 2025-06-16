@@ -117,7 +117,7 @@ const AdminRoutes = ({ user }) => {
     return (
         <Routes>
              <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview/>} user={user} />} />
-             <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} />
+             {/* <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} /> */}
              <Route path="performance-evaluation/answer/:id" element={<ProtectedRoute element={<PerformanceEvaluationAnswerPage />} user={user} />} />
              <Route path="performance-evaluation/commentor/:id" element={<ProtectedRoute element={<PerformanceEvaluationCommentorPage />} user={user} />} />
             <Route path="performance-evaluation/evaluatee/:id" element={<ProtectedRoute element={<PerformanceEvaluationEvaluateePage />} user={user} />} />

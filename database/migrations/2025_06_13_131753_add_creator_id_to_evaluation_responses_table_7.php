@@ -33,7 +33,14 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('evaluation_responses', function (Blueprint $table) {
-            //
+            $table->string('current_step')->nullable();
+            $table->string('status')->default('pending');
+            $table->timestamp('evaluator_completed_at')->nullable();
+            $table->timestamp('first_commentor_completed_at')->nullable();
+            $table->timestamp('second_commentor_completed_at')->nullable();
+            $table->timestamp('evaluatee_acknowledged_at')->nullable();
+            $table->dropForeign(['creator_id']);
+            $table->dropColumn('creator_id');
         });
     }
 };
