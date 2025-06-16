@@ -118,6 +118,8 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
                 : cleanNumber(employerPercentageShare),
         };
 
+        console.log("Payload being sent:", payload);
+
         try {
             await axiosInstance.post("/medicalRecords/saveGroupLifePlans", payload, {
                 headers: { Authorization: `Bearer ${user.token}` }

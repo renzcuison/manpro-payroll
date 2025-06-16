@@ -49,15 +49,23 @@ const GroupLifeMasterlist = () => {
         axiosInstance
             .get("/medicalRecords/getGroupLifeCompanies", { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
+                console.log("API response:", res.data); 
                 setListOfCompanies(
-                    res.data.map(company => ({
+                    (res.data.companies || []).map(company => ({
                         companyMenuItem: company.name,
                         id: company.id
                     }))
                 );
             })
-            .catch(console.error);
-    }, [user]);
+            .catch(console.error)
+            .finally(() => setLoading(false));
+
+
+
+
+        }, [user]);
+        
+        
 
     useEffect(() => {
         
@@ -68,30 +76,20 @@ const GroupLifeMasterlist = () => {
         axiosInstance
             .get("/medicalRecords/getGroupLifePlans", { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {const plans = res.data.plans || [];
-                // setRows(
-                //     Array.isArray(res.data)
-                //         ? res.data.map(row => ({
-                //             groupLifeName: row.group_life_company_name, // map BE to FE
-                //             planType: row.plan_name,
-                //             paymentType: row.type,
-                //             employerShare: row.employer_share,
-                //             employeeShare: row.employee_share,
-                //         }))
-                //         : []
-                // );
                 setRows(
-    plans.map(row => ({
-        groupLifeName: row.group_life_company_name,
-        planType: row.plan_name,
-        paymentType: row.type,
-        employerShare: row.employer_share,
-        employeeShare: row.employee_share,
-    }))
-);
+                plans.map(row => ({
+                groupLifeName: row.group_life_company_name,
+                planType: row.plan_name,
+                paymentType: row.type,
+                employerShare: row.employer_share,
+                employeeShare: row.employee_share,
+            }))
+        );
 
-            })
-            .catch(console.error);
-    }, [user]);
+                })
+                .catch(console.error);
+                
+        }, [user]);
 
     const refreshCompanies = () => {
         if (!user) return;
@@ -108,7 +106,8 @@ const GroupLifeMasterlist = () => {
                     }))
                 );
             })
-            .catch(console.error);
+            .catch(console.error)
+            .finally(() => setLoading(false));
     };
 
     const refreshPlans = () => {
@@ -132,7 +131,8 @@ const GroupLifeMasterlist = () => {
                     }))
                 );
             })
-            .catch(console.error);
+            .catch(console.error)
+            .finally(() => setLoading(false));
     };
 
         const companies = [
@@ -180,40 +180,6 @@ const GroupLifeMasterlist = () => {
         );
     };
 
-    const handleAddRow = async (newRow) => {
-        console.log("newRow:", newRow);
-        const company = listOfCompanies.find(c => c.companyMenuItem === newRow.groupLifeName);
-        console.log("Matched company:", company);
-
-        const payload = {
-        group_life_company_id: Number(newRow.groupLifeName),
-        plan_name: newRow.planType, 
-        type: newRow.paymentType,
-        employer_share: Number(newRow.employerShare),
-        employee_share: Number(newRow.employeeShare),
-
-        };
-
-        try {
-            await axiosInstance.post("/medicalRecords/saveGroupLifePlans", payload, {
-            headers: { Authorization: `Bearer ${user.token}` }
-            });
-            setOpenAddGroupLifeModal(false);
-            Swal.fire({
-                icon: 'success',
-                text: 'Group Life Plan saved successfully!',
-                timer: 2000,
-                showConfirmButton: false
-                });
-            refreshPlans();
-            } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error saving Group Life Plan!',
-                });
-        }
-    };
-
     const [currentPage, setCurrentPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -222,6 +188,8 @@ const GroupLifeMasterlist = () => {
         const startIndex = currentPage * rowsPerPage; // remove -1
         return filteredRecords.slice(startIndex, startIndex + rowsPerPage);
     }, [filteredRecords, currentPage, rowsPerPage]);
+
+    console.log("Rows sent to chart:", rows);
 
     return (
     <Layout title={"Pre-Employment Medical Exam Records"}>
@@ -279,7 +247,7 @@ const GroupLifeMasterlist = () => {
                     <Box sx={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "nowrap", justifyContent: "flex-start", alignItems: "flex-start" }}>
                     
                         <Box sx={{width: "25%", minWidth: 280, backgroundColor: "white", borderRadius: 2, padding: 2, flexShrink: 0 }}>
-                            <GroupLifeOverview records={companies} />
+                            <GroupLifeOverview records={rows} />
                         </Box>
 
                         <Box sx={{ width: "80%", minWidth: 300, backgroundColor: "white", borderRadius: 2, padding: 2, overflow: "hidden" }}>

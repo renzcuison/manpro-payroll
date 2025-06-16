@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
     Box,
@@ -8,7 +8,8 @@ import {
     InputLabel,
     FormControl,
     OutlinedInput,
-    InputAdornment
+    InputAdornment,
+    TablePagination
 } from "@mui/material";
 import Layout from "../../../../components/Layout/Layout";
 import GroupLifeEmployeeTable from "./GroupLifeEmployeeTable";
@@ -59,6 +60,15 @@ const GroupLifeEmployees = () => {
     );
 
     const resultsCount = filteredRecords.length;
+
+    const [currentPage, setCurrentPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
+
+    const paginatedRows = useMemo(() => {
+        const startIndex = currentPage * rowsPerPage; // remove -1
+        return filteredRecords.slice(startIndex, startIndex + rowsPerPage);
+    }, [filteredRecords, currentPage, rowsPerPage]);
 
     return (
         <Layout title="GroupLife Masterlist">
@@ -161,6 +171,28 @@ const GroupLifeEmployees = () => {
                                 onRowClick={() => setOpenEditEmployeeModal(true)}
                                 search={search} // <--- pass the search prop!
                             />
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                            <TablePagination
+                                rowsPerPageOptions={[5, 10, 25]}
+                                component="div"
+                                count={filteredRecords.length}
+                                rowsPerPage={rowsPerPage}
+                                page={currentPage}
+                                onPageChange={(event, newPage) => setCurrentPage(newPage)}
+                                onRowsPerPageChange={(event) => {
+                                    setRowsPerPage(parseInt(event.target.value, 10));
+                                    setCurrentPage(0);
+                                }}
+                                sx={{
+                                    ".MuiTablePagination-actions": { mb: 2 },
+                                    ".MuiInputBase-root": { mb: 1 },
+                                    bgcolor: "#ffffff",
+                                    borderRadius: "8px",
+                                    width: "fit-content",
+                                    mt: 2
+                                }}
+                                />
                         </Box>
                     </Grid>
                 </Grid>
