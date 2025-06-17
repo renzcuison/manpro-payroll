@@ -663,7 +663,7 @@ class EvaluationResponseController extends Controller
                     $q->whereNull('evaluation_responses.deleted_at');
                 })
                 ->select(
-                    'id',
+                    'evaluation_responses.id',
                     DB::raw("'Evaluatee' as role"),
                     DB::raw("IF(ISNULL(evaluatee_signature_filepath), 'Pending', 'Done') as status"),
                     DB::raw('null as commentor_order')
@@ -702,7 +702,7 @@ class EvaluationResponseController extends Controller
                     $q->whereNull('evaluation_responses.deleted_at');
                 })
                 ->select(
-                    'id',
+                    'evaluation_responses.id',
                     DB::raw("'Creator' as role"),
                     DB::raw("IF(ISNULL(creator_signature_filepath), 'Pending', 'Done') as status"),
                     DB::raw('null as commentor_order')
@@ -740,7 +740,7 @@ class EvaluationResponseController extends Controller
                     $q->whereNull('evaluation_responses.deleted_at');
                 })
                 ->select(
-                    'id',
+                    'evaluation_responses.id',
                     DB::raw("'Evaluator' as role"),
                     DB::raw("IF(ISNULL(signature_filepath), 'Pending', 'Done') as status"),
                     DB::raw('null as commentor_order')
@@ -776,7 +776,7 @@ class EvaluationResponseController extends Controller
                     $q->whereNull('evaluation_responses.deleted_at');
                 })
                 ->select(
-                    'id',
+                    'evaluation_responses.id',
                     DB::raw("'Commentor' as role"),
                     DB::raw("IF(ISNULL(signature_filepath), 'Pending', 'Done') as status"),
                     'order as commentor_order'
@@ -1209,7 +1209,8 @@ class EvaluationResponseController extends Controller
             if($evaluatorSignature) {
                 $evaluationEvaluator->signature_filepath = $evaluatorSignature->getPath();
                 $evaluationEvaluator->save();
-            }
+                $evaluationEvaluator->evaluator_signature = base64_encode(file_get_contents($evaluatorSignature->getPath()));
+            } else $evaluationEvaluator->evaluator_signature = null;
 
             DB::commit();
 
