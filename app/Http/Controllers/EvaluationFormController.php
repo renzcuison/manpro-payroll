@@ -1163,7 +1163,7 @@ class EvaluationFormController extends Controller
                     $option
                         ->select(
                             'subcategory_id', 'id',
-                            'label', 'score', 'order'
+                            'label', 'score', 'order', 'description'
                         )
                         ->orderBy('order');
                 }])
@@ -1542,6 +1542,7 @@ class EvaluationFormController extends Controller
                                 'label' => $label,
                                 'score' => (isset($option['score']) && is_numeric($option['score']) ? (double) $option['score'] : 1),
                                 'order' => $optionOrder + 1,
+                                'description' => $option['description'] ?? null,
                                 
                             ]);
                         }
@@ -1601,7 +1602,8 @@ class EvaluationFormController extends Controller
                             'subcategory_id' => $newEvaluationFormSubcategory->id,
                             'label' => $label,
                             'score' => (isset($option['score']) && is_numeric($option['score']) ? (double) $option['score'] : 1),
-                            'order' => $optionOrder + 1
+                            'order' => $optionOrder + 1,
+                            'description' => $option['description'] ?? null,
                         ]);
                     }
                 }
@@ -1776,7 +1778,7 @@ class EvaluationFormController extends Controller
             $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
                 ::select(
                     'subcategory_id', 'id',
-                    'label', 'score', 'order'
+                    'label', 'score', 'order', 'description'
                 )
                 ->where('id', $request->id)
                 ->orderBy('order')
@@ -1972,7 +1974,8 @@ class EvaluationFormController extends Controller
                 'subcategory_id' => $request->subcategory_id,
                 'label' => $request->label,
                 'score' => (is_numeric($request->score) ? (double) $request->score : 1),
-                'order' => $order
+                'order' => $order,
+                'description' => $request->description,
             ]);
 
             DB::commit();
