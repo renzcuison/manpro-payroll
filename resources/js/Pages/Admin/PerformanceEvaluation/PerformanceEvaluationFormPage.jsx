@@ -33,6 +33,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import PerformanceEvaluationEditModal from './Modals/PerformanceEvaluationEditModal';
 import PerformanceEvaluationDeleteModal from './Modals/PerformanceEvaluationDeleteModal';
+import PerformanceEvaluationSectionRatingModal from './Modals/PerformanceEvaluationSectionRatingModal.jsx';
 
 const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams();
@@ -85,6 +86,18 @@ const PerformanceEvaluationFormPage = () => {
     const handleDeleteMenuClick = () => {
         setDeleteOpen(true);
         handleSettingsClose();
+    };
+
+    const [ratingModalOpen, setRatingModalOpen] = useState(false);
+
+    const handleSetRatings = () => setRatingModalOpen(true);
+    const handleSaveRatings = async (scores) => {
+        // scores is { sectionId: score, ... }
+        for (const [id, score] of Object.entries(scores)) {
+            await axiosInstance.post('/editEvaluationFormSection', { id, score }, { headers });
+        }
+        // Optionally refresh page/sections here
+        window.location.reload(); // or better: refetch sections
     };
 
     // Section modal
@@ -162,8 +175,15 @@ const PerformanceEvaluationFormPage = () => {
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                     transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 >
+                    <MenuItem
+                        onClick={() => {
+                            handleSettingsClose();
+                            setTimeout(handleSetRatings, 100);
+                        }}
+                    >Set Ratings</MenuItem>
                     <MenuItem onClick={handleEditMenuClick}>Edit Form</MenuItem>
                     <MenuItem onClick={handleDeleteMenuClick}>Delete Form</MenuItem>
+                    
                     <MenuItem
                         onClick={() => {
                             handleSettingsClose();
@@ -171,6 +191,13 @@ const PerformanceEvaluationFormPage = () => {
                         }}
                     >Exit Form</MenuItem>
                 </Menu>
+
+                <PerformanceEvaluationSectionRatingModal
+                    open={ratingModalOpen}
+                    onClose={() => setRatingModalOpen(false)}
+                    sections={sections}
+                    onSave={handleSaveRatings}
+                />
 
                 {loading ? (
                     <Typography variant="h6">Loading...</Typography>
