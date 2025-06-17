@@ -1540,7 +1540,6 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             response_id: number,
-            commentor_id: number,
             comment?: string,
             signature_filepath?: string
         */
@@ -1573,11 +1572,11 @@ class EvaluationResponseController extends Controller
 
             $evaluationCommentor = EvaluationCommentor
                 ::select(
-                    'response_id', 'commentor_id', 'comment', 'order', 'signature_filepath',
-                    'created_at', 'updated_at'
+                    'id', 'response_id', 'commentor_id', 'comment', 'order',
+                    'signature_filepath', 'created_at', 'updated_at'
                 )
                 ->where('response_id', $request->response_id)
-                ->where('commentor_id', $request->commentor_id)
+                ->where('commentor_id', $userID)
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -1590,15 +1589,21 @@ class EvaluationResponseController extends Controller
 
             if($request->comment !== null)
                 $evaluationCommentor->comment = $request->comment;
-            if($request->signature_filepath !== null)
-                $evaluationCommentor->signature_filepath = $request->signature_filepath;
+            if ($request->hasFile('signature_filepath')) {
+                $evaluationCommentor->clearMediaCollection('signatures');
+                $evaluationCommentor
+                    ->addMedia($request->file('signature_filepath'))
+                    ->toMediaCollection('signatures')
+                ;
+            }
             $evaluationCommentor->save();
 
             $commentorSignature = $evaluationCommentor->getFirstMedia('signatures');
             if($commentorSignature) {
                 $evaluationCommentor->signature_filepath = $commentorSignature->getPath();
                 $evaluationCommentor->save();
-            }
+                $evaluationCommentor->commentor_signature = base64_encode(file_get_contents($commentorSignature->getPath()));
+            } else $evaluationCommentor->commentor_signature = null;
 
             DB::commit();
 
