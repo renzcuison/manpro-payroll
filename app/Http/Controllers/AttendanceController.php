@@ -240,9 +240,7 @@ class AttendanceController extends Controller
     }
 
     public function saveAttendanceSummary($user, $workHour, $attendanceLog)
-    public function saveAttendanceSummary($user, $workHour, $attendanceLog)
     {
-        // Log::info("AttendanceController::saveAttendanceSummary");
         // Log::info("AttendanceController::saveAttendanceSummary");
 
         $timestamp = $attendanceLog->timestamp;
@@ -271,8 +269,6 @@ class AttendanceController extends Controller
                 "work_day_end" => $dayEnd,
                 "day_type" => ($timestamp >= Carbon::parse($timestamp)->startOfWeek()->addDays(6)->toDateString()) ? 'Rest Day' : 'Regular Day',
                 "minutes_late" => 0,
-                "day_type" => ($timestamp >= Carbon::parse($timestamp)->startOfWeek()->addDays(6)->toDateString()) ? 'Rest Day' : 'Regular Day',
-                "minutes_late" => 0,
                 "latest_log_id" => $attendanceLog->id,
             ]);
         } else {
@@ -285,15 +281,9 @@ class AttendanceController extends Controller
         $attendanceLog->attendance_summary_id = $summary->id;
         $attendanceLog->save();
 
-        Log::info("Attendance summary saved/updated");
-
         return $summary;
     }
-    }
 
-    public function calculateAttendanceSummary()
-    {
-        Log::info("AttendanceController::calculateAttendanceSummary");
     public function calculateAttendanceSummary()
     {
         Log::info("AttendanceController::calculateAttendanceSummary");
