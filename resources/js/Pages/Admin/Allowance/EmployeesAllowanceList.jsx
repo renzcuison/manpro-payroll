@@ -10,22 +10,37 @@ import { useDepartments } from '../../../hooks/useDepartments';
 import { useBranches } from '../../../hooks/useBranches';
 
 const EmployeesAllowanceList = () => {
-    const { employeesAllowances } = useAllowances({loadEmployeesAllowances: true});
-    const { departments: departmentData } = useDepartments({loadDepartments: true});
-    const { data: branchesData } = useBranches();
-
-    const employees = employeesAllowances.data?.employees || [];
-    const total = employeesAllowances.data?.total || 0;
-
-    const departments = departmentData.data?.departments || [];
-    const branches = branchesData?.branches || [];
-
     const [searchName, setSearchName] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState(0);
     const [selectedBranch, setSelectedBranch] = useState(0);
+    const [selectedAllowance, setSelectedAllowance] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    
+    const { employeesAllowances, allowances: allowancesData } = useAllowances({
+        loadEmployeesAllowances: true,
+        loadAllowances: true,
+        filters: {
+            name: searchName,
+            branchId: selectedBranch,
+            departmentId: selectedDepartment,
+            allowanceId: selectedAllowance,
+        },
+        pagination: {
+            page: page,
+            perPage: rowsPerPage,
+        }
+    });
+    const { departments: departmentData } = useDepartments({loadDepartments: true});
+    const { data: branchesData } = useBranches();
+
+    const employees = employeesAllowances.data?.employees || [];
+    const allowances = allowancesData.data?.allowances || [];
+    const total = employeesAllowances.data?.total || 0;
+
+    const departments = departmentData.data?.departments || [];
+    const branches = branchesData?.branches || [];
 
     const handleRowClick = (employee) => {
         setSelectedEmployee(employee.user_name);
@@ -36,14 +51,6 @@ const EmployeesAllowanceList = () => {
         employeesAllowances.refetch();
     };
 
-    const filteredEmployees = employees.filter((employee) => {
-        const fullName = `${employee.name}`.toLowerCase();
-        const matchedName = fullName.includes(searchName.toLowerCase());
-        const filteredBranch = selectedBranch === 0 || employee.branch_id === selectedBranch;
-        const filteredDepartment= selectedDepartment === 0 || employee.department_id === selectedDepartment;
-        return matchedName && filteredBranch && filteredDepartment;
-    });
-
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -52,9 +59,6 @@ const EmployeesAllowanceList = () => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
-
-    const paginatedEmployees = filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-    const paginatedTotal = paginatedEmployees.reduce((acc,emp) => acc + emp.amount, 0);
    
     return (
         <Layout title={"LeaveCreditList"}>
@@ -77,8 +81,28 @@ const EmployeesAllowanceList = () => {
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)}/>
                                     </FormControl>
                                 </Grid>
+                                
+                                <Grid size={2}>
+                                    <TextField
+                                        select
+                                        id="allowance-view-select"
+                                        label="Filter Calculation by Type"
+                                        value={selectedAllowance}
+                                        onChange={(event) => {
+                                            setSelectedAllowance( event.target.value );
+                                        }}
+                                        sx={{ width: "100%" }}
+                                    >   
+                                        <MenuItem value={0}>All Allowances</MenuItem>
+                                        {allowances.map((allowance) => (
+                                            <MenuItem key={allowance.id} value={allowance.id}>
+                                                {" "}{allowance.name}{" "}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
 
-                                <Grid size={3}>
+                                <Grid size={2}>
                                     <TextField
                                         select
                                         id="branch-view-select"
@@ -98,7 +122,7 @@ const EmployeesAllowanceList = () => {
                                     </TextField>
                                 </Grid>
 
-                                <Grid size={3}>
+                                <Grid size={2}>
                                     <TextField
                                         select
                                         id="department-view-select"
@@ -110,7 +134,7 @@ const EmployeesAllowanceList = () => {
                                         sx={{ width: "100%" }}
                                     >   
                                         <MenuItem value={0}>All Departments</MenuItem>
-                                        {departments.map((department) => (
+                                        {departments.map((department, index) => (
                                             <MenuItem key={department.id} value={department.id}>
                                                 {" "}{department.name}{" "}
                                             </MenuItem>
@@ -138,9 +162,9 @@ const EmployeesAllowanceList = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {paginatedEmployees.length > 0 ? (
+                                            {employees.length > 0 ? (
                                                 <>
-                                                {paginatedEmployees.map((employee, index) => {
+                                                {employees.map((employee, index) => {
                                                     return (
                                                         <TableRow key={employee.user_name} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
                                                             <TableCell align="left">{employee.name || '-'}</TableCell>
@@ -152,7 +176,7 @@ const EmployeesAllowanceList = () => {
                                                         </TableRow>
                                                     );
                                                 })}
-                                                <TableRow sx={{ backgroundColor: (page * rowsPerPage + paginatedEmployees.length) % 2 === 0 ? 
+                                                <TableRow sx={{ backgroundColor: (page * rowsPerPage + employees.length) % 2 === 0 ? 
                                                 '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                     <TableCell align='left'>
                                                         <Typography sx={{fontWeight: 'bold'}}>TOTAL:</Typography>
@@ -160,7 +184,7 @@ const EmployeesAllowanceList = () => {
                                                     <TableCell colSpan={2}/> 
                                                     <TableCell align="center">
                                                         <Typography sx={{fontWeight: 'bold'}}>
-                                                            ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(paginatedTotal)}
+                                                            ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total)}
                                                         </Typography>
                                                     </TableCell>  
                                                 </TableRow>
@@ -181,7 +205,7 @@ const EmployeesAllowanceList = () => {
                                     <TablePagination
                                         rowsPerPageOptions={[5, 10, 25]}
                                         component="div"
-                                        count={filteredEmployees.length}
+                                        count={employees.length}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}
@@ -196,7 +220,7 @@ const EmployeesAllowanceList = () => {
                 </Box>
 
                 {selectedEmployee && (
-                    <EmployeeAllowanceView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
+                    <EmployeeAllowanceView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} allowance={selectedAllowance}/>
                 )}
             </Box>
         </Layout>
