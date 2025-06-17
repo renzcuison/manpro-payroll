@@ -12,6 +12,7 @@ import PerformanceEvaluationEvaluateeAcknowledge from '../../Admin/PerformanceEv
 import Swal from 'sweetalert2';
 import ScoreLinearBar from './Test/ScoreLinearBar';
 import jsPDF from "jspdf";
+import ModalReviewForm from './Modals/ModalReviewForm';
 
 const getSectionScore = (section) => {
   if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [] };
@@ -22,33 +23,33 @@ const getSectionScore = (section) => {
   section.subcategories.forEach(subcat => {
     let subScore = 0;
     if (subcat.subcategory_type === 'multiple_choice') {
+      // Just get the selected answer's score
       const selected = subcat.options.find(opt => opt.option_answer);
       if (selected) {
-        const highestScore = Math.max(...subcat.options.map(o => Number(o.score) || 1));
-        if (highestScore > 0) {
-          subScore = ((Number(selected.score) || 1) / highestScore) * 5;
-        }
+        subScore = Number(selected.score) || 0;
       }
       subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'checkbox') {
+      // Sum selected, divide by total, multiply by 100
       const selected = subcat.options.filter(opt => opt.option_answer);
       const selectedSum = selected.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
       const allSum = subcat.options.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
       if (allSum > 0) {
-        subScore = (selectedSum / allSum) * 5;
+        subScore = (selectedSum / allSum) * 100;
       }
       subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'linear_scale') {
+      // Normalize, multiply by 100
       if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
         const start = Number(subcat.linear_scale_start) || 1;
         const end = Number(subcat.linear_scale_end) || 5;
         const value = Number(subcat.percentage_answer.value);
         if (end > start) {
-          subScore = ((value - start) / (end - start)) * 5;
+          subScore = ((value - start) / (end - start)) * 100;
         }
       }
       subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
@@ -60,6 +61,8 @@ const getSectionScore = (section) => {
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;
   return { sectionScore, subcatScores };
 };
+
+
 
 function loadImageAsBase64(url) {
   if (url && url.startsWith('data:image/')) {
@@ -89,6 +92,7 @@ const PerformanceEvaluationEvaluateePage = () => {
   const [savingAcknowledge, setSavingAcknowledge] = useState(false);
   const [hoveredSubcat, setHoveredSubcat] = useState(null);
   const [hoveredOpenAnswer, setHoveredOpenAnswer] = useState(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
@@ -345,17 +349,31 @@ async function addSignatureImage(url, label, y) {
                 setTimeout(() => navigate('/admin/performance-evaluation'), 100);
               }}
             >Exit Form</MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleSettingsClose();
+                setReviewModalOpen(true);
+              }}
+            >
+              Review Form
+            </MenuItem>
+            
             <MenuItem onClick={async () => {
               handleSettingsClose();
               await handleDownloadPDF();
             }}>Download Results</MenuItem>
           </Menu>
+                    <ModalReviewForm
+              open={reviewModalOpen}
+              onClose={() => setReviewModalOpen(false)}
+              id={id} // pass the evaluation id
+            />
           <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
             {form.name}
           </Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
-          Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
+          Employee Name: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
@@ -471,16 +489,16 @@ async function addSignatureImage(url, label, y) {
                           </Grid>
                           <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
                             <Box
-                              onMouseEnter={() => setHoveredSubcat(`bar-${name}`)}
+                              onMouseEnter={() => setHoveredSubcat(`bar-${id}`)}
                               onMouseLeave={() => setHoveredSubcat(null)}
                               sx={{ display: 'inline-block', width: '100%', position: 'relative' }}
                             >
                               <ScoreLinearBar
                                 variant="determinate"
-                                value={(score / 5) * 100}
-                                sx={{ width: '100%', minWidth: 580 }}
+                                value={(score)}
+                                sx={{ width: '100%', minWidth: 550 }}
                               />
-                              {hoveredSubcat === `bar-${name}` && !!description && (
+                              {hoveredSubcat === `bar-${id}` && !!description && (
                                 <Box
                                   sx={{
                                     position: 'absolute',
@@ -531,8 +549,8 @@ async function addSignatureImage(url, label, y) {
                         <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
                           <ScoreLinearBar
                             variant="determinate"
-                            value={(sectionScore / 5) * 100}
-                            sx={{ width: '100%', minWidth: 590 }}
+                            value={(sectionScore)}
+                            sx={{ width: '100%', minWidth: 550 }}
                           />
                         </Grid>
                         <Grid item xs={2}>
