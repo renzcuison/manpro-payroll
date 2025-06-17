@@ -709,6 +709,7 @@ class EmployeesController extends Controller
                 $employee->job_title_id = $request->selectedJobTitle;
                 $employee->department_id = $request->selectedDepartment;
                 $employee->work_group_id = $request->selectedWorkGroup;
+                $employee->salary_grade = $request->selectedSalaryGrade;
 
                 $employee->employment_type = $request->selectedType;
                 $employee->employment_status = $request->selectedStatus;
