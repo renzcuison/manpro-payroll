@@ -1047,7 +1047,9 @@ class EvaluationResponseController extends Controller
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at'
+                    'evaluation_responses.updated_at',
+                    'evaluation_responses.period_start_at',
+                    'evaluation_responses.period_end_at'
                 )
                 ->whereNotNull('creator_signature_filepath')
                 ->having('evaluators_unsigned_count', 0)
@@ -1084,7 +1086,9 @@ class EvaluationResponseController extends Controller
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at'
+                    'evaluation_responses.updated_at',
+                    'evaluation_responses.period_start_at',
+                    'evaluation_responses.period_end_at'
                 )
                 ->having('evaluators_unsigned_count', 0)
                 ->having('commentors_unsigned_count', 0)
@@ -1120,7 +1124,9 @@ class EvaluationResponseController extends Controller
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at'
+                    'evaluation_responses.updated_at',
+                    'evaluation_responses.period_start_at',
+                    'evaluation_responses.period_end_at'
                 )
             ;
             $commentorResponses = $user
@@ -1154,7 +1160,9 @@ class EvaluationResponseController extends Controller
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at'
+                    'evaluation_responses.updated_at',
+                    'evaluation_responses.period_start_at',
+                    'evaluation_responses.period_end_at'
                 )
                 ->having('evaluators_unsigned_count', 0)
                 ->having('commentor_order', '<=', DB::raw('commentors_signed_count + 1'))

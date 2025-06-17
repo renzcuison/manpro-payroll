@@ -139,6 +139,34 @@ const PerformanceEvaluationList = () => {
         setPage(0); // reset to first page
     };
 
+    // Check if the evaluation/comment period is disabled
+    const isRowDisabled = (row) => {
+        const now = new Date();
+        // The backend should provide these as ISO strings; fallback to undefined if missing
+        const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
+        const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
+        if (!periodStart || !periodEnd) return false;
+        return now < periodStart || now > periodEnd;
+    };
+
+    // Handle row click for period validation
+    const handleRowClick = (row) => {
+        const now = new Date();
+        const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
+        const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
+        // Allow navigation if dates are missing for some reason
+        if (!periodStart || !periodEnd) {
+            navigate(getEvaluationRoleRoute(row));
+            return;
+        }
+        // Disallow if now is not within the period
+        if (now < periodStart || now > periodEnd) {
+            alert('Evaluation or Comments for this form has been disabled');
+            return;
+        }
+        navigate(getEvaluationRoleRoute(row));
+    };
+
     return (
         <Layout title={"PerformanceEvaluation"}>
             <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
@@ -289,11 +317,12 @@ const PerformanceEvaluationList = () => {
                                                     <TableRow
                                                         key={row.id}
                                                         hover
-                                                        style={{ cursor: 'pointer' }}
-                                                        onClick={() => navigate(getEvaluationRoleRoute(row))}
-                                                        sx={{
-                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper'
+                                                        style={{
+                                                            cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
+                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
+                                                            opacity: isRowDisabled(row) ? 0.5 : 1,
                                                         }}
+                                                        onClick={() => handleRowClick(row)}
                                                     >
                                                         <TableCell align="center">{row.date}</TableCell>
                                                         <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
