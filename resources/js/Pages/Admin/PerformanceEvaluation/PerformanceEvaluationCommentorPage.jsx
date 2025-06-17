@@ -128,7 +128,7 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
         }
       }
     }
-  }, [evaluationResponse, loggedInUser]);
+  }, [evaluationResponse]);
 
   const handleSettingsClick = (event) => {
     setSettingsAnchorEl(event.currentTarget);
@@ -139,20 +139,16 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   const settingsOpen = Boolean(settingsAnchorEl);
 
   // Find this user as commentor, and their order
-  const allCommentors = Array.isArray(evaluationResponse?.commentors) ? evaluationResponse.commentors : [];
+  const allCommentors = evaluationResponse?.commentors ?? [];
   const thisCommentor = loggedInUser
     ? allCommentors.find(c => c.commentor_id === loggedInUser.id)
     : null;
 
   // Only show previous commentors (order < this one and have signed)
-  const previousCommentors = thisCommentor
-    ? allCommentors
-        .filter(c => c.order < thisCommentor.order && c.signature_filepath)
-        .sort((a, b) => a.order - b.order)
-    : [];
+  const previousCommentors = thisCommentor ? allCommentors.slice(0, thisCommentor.order - 1) : [];
 
   // --- Evaluators for preview ---
-  const allEvaluators = Array.isArray(evaluationResponse?.evaluators) ? evaluationResponse.evaluators : [];
+  const allEvaluators = evaluationResponse?.evaluators ?? [];
 
   // Save handler for this commentor
   const handleSaveComment = () => {
@@ -165,9 +161,8 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
     try {
       await editEvaluationCommentor({
         response_id: evaluationResponse.id,
-        commentor_id: thisCommentor.commentor_id,
         comment: commentInput,
-        signature_filepath: signatureData // PNG dataURL
+        signature_filepath: signatureData
       });
       Swal.fire({
         icon: 'success',
