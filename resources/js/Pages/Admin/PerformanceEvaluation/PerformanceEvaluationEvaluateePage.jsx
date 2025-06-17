@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  IconButton, Menu, MenuItem, Paper, TextField, Grid, Button, Divider
+  IconButton, Menu, MenuItem, Paper, TextField, Grid, Button, Table, TableHead, TableBody, TableRow, TableCell, Divider
 } from '@mui/material';
 import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
@@ -15,7 +15,7 @@ import jsPDF from "jspdf";
 import ModalReviewForm from './Modals/ModalReviewForm';
 
 const getSectionScore = (section) => {
-  if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [] };
+  if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [], weightedScore: 0 };
   let scoreTotal = 0;
   let counted = 0;
   const subcatScores = [];
@@ -23,7 +23,6 @@ const getSectionScore = (section) => {
   section.subcategories.forEach(subcat => {
     let subScore = 0;
     if (subcat.subcategory_type === 'multiple_choice') {
-      // Just get the selected answer's score
       const selected = subcat.options.find(opt => opt.option_answer);
       if (selected) {
         subScore = Number(selected.score) || 0;
@@ -32,7 +31,6 @@ const getSectionScore = (section) => {
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'checkbox') {
-      // Sum selected, divide by total, multiply by 100
       const selected = subcat.options.filter(opt => opt.option_answer);
       const selectedSum = selected.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
       const allSum = subcat.options.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
@@ -43,7 +41,6 @@ const getSectionScore = (section) => {
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'linear_scale') {
-      // Normalize, multiply by 100
       if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
         const start = Number(subcat.linear_scale_start) || 1;
         const end = Number(subcat.linear_scale_end) || 5;
@@ -59,8 +56,11 @@ const getSectionScore = (section) => {
   });
 
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;
-  return { sectionScore, subcatScores };
+  const weightedScore = ((sectionScore / 100) * (section.score || 0));
+  return { sectionScore, subcatScores, weightedScore };
 };
+
+
 
 const PerformanceEvaluationEvaluateePage = () => {
   const { id } = useParams();
@@ -598,6 +598,72 @@ async function addSignatureImage(url, label, y) {
             </Accordion>
           );
         })}
+
+  {/* --- Weighted Section Scores Summary (styled like sections) --- */}
+<Box sx={{ mt: 6, mb: 4, bgcolor: 'white', borderRadius: 2, boxShadow: 3 }}>
+  <Box
+    sx={{
+      bgcolor: '#E9AE20',
+      borderBottom: '1px solid #ffe082',
+      borderTopLeftRadius: '8px',
+      borderTopRightRadius: '8px',
+      py: 2,
+      px: 3
+    }}
+  >
+    <Typography variant="h5" sx={{ fontWeight: 'bold', color: "white" }}>
+      Weighted Scores
+    </Typography>
+  </Box>
+  <Box sx={{ p: 3 }}>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableCell sx={{ fontWeight: 700, fontSize: 16 }}>Section (Score Set)</TableCell>
+          <TableCell align="right" sx={{ fontWeight: 700, fontSize: 16 }}>Subcategory Average</TableCell>
+          <TableCell align="right" sx={{ fontWeight: 700, fontSize: 16 }}>Weighted Average</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {form.sections.filter(section =>
+          section.subcategories.some(sc =>
+            sc.subcategory_type === 'multiple_choice' ||
+            sc.subcategory_type === 'checkbox' ||
+            sc.subcategory_type === 'linear_scale'
+          )
+        ).map(section => {
+          const { sectionScore, weightedScore } = getSectionScore(section);
+          return (
+            <TableRow key={section.id}>
+              <TableCell>
+                {section.name} - <b>{section.score || 0}</b>
+              </TableCell>
+              <TableCell align="right">{sectionScore.toFixed(2)}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>{weightedScore.toFixed(2)}</TableCell>
+            </TableRow>
+          );
+        })}
+        <TableRow>
+          <TableCell colSpan={2} sx={{ fontWeight: 700, fontSize: 18 }}>Total</TableCell>
+          <TableCell align="right" sx={{ fontWeight: 700, color: "#137333", fontSize: 18 }}>
+            {form.sections
+              .filter(section =>
+                section.subcategories.some(sc =>
+                  sc.subcategory_type === 'multiple_choice' ||
+                  sc.subcategory_type === 'checkbox' ||
+                  sc.subcategory_type === 'linear_scale'
+                )
+              )
+              .reduce((sum, section) =>
+                sum + getSectionScore(section).weightedScore, 0
+              ).toFixed(2)
+            }
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  </Box>
+</Box>
 
         {/* All Evaluators Section - Each in its own box, stacked vertically */}
         <Box sx={{ mt: 6 }}>
