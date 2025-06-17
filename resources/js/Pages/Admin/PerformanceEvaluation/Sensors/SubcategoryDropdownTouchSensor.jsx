@@ -1,15 +1,14 @@
-import { MouseSensor } from "@dnd-kit/core";
+import { TouchSensor } from "@dnd-kit/core";
 
-export class SectionDropdownMouseSensor extends MouseSensor {
+export class SubcategoryDropdownTouchSensor extends TouchSensor {
     static activators = [
         {
-            eventName: "onMouseDown",
+            eventName: "onTouchStart",
             handler: ({ nativeEvent: event }) => {
-                if(event.button !== 0) return false;
                 const element = event.target;
                 if(!element) return false;
                 if(element.tagName.toLowerCase() === 'input') return false;
-                if(!element.closest('.MuiAccordion-heading')) return false;
+                if(!element.closest('.subcategory-dropdown')) return false;
                 return true;
             },
         },
