@@ -226,8 +226,8 @@ class AttendanceController extends Controller
 
                 $summary = $this->saveAttendanceSummary($user, $workHour, $attendanceLog);
 
-                $attendanceLog->attendance_summary_id = $summary->id;
-                $attendanceLog->save();
+                // $attendanceLog->attendance_summary_id = $summary->id;
+                // $attendanceLog->save();
 
                 DB::commit();
 
