@@ -542,7 +542,7 @@ class EvaluationResponseController extends Controller
                                             'options' => fn ($option) =>
                                                 $option
                                                     ->select(
-                                                        'subcategory_id', 'id', 'label', 'score', 'order'
+                                                        'subcategory_id', 'id', 'label', 'score', 'order', 'description'
                                                     )
                                                     ->whereNull('deleted_at')
                                                     ->with([

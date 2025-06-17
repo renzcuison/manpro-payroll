@@ -240,6 +240,27 @@ const PerformanceEvaluationCreatorPage = () => {
                     </Typography>
                   ))}
                 </Box>
+                <Divider sx={{ my: 2 }} />
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                      Description:
+                    </Typography>
+                    <Box>
+                      {subCategory.options?.map((opt, index) =>
+                          opt.description ? (
+                            <Typography
+                              key={opt.id + "_desc"}
+                              variant="body2"
+                              sx={{fontSize: '0.8rem'}}
+                            >
+                              {opt.score} - {opt.description}
+                            </Typography>
+                          ) : null
+                        )}
+                    </Box>
+                    
+
+                </Box>
               </Box>
             )}
           </Box>
