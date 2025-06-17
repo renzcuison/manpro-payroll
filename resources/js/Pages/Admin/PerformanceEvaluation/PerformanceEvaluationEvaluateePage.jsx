@@ -79,7 +79,7 @@ const PerformanceEvaluationEvaluateePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const {
-    evaluationResponse, evaluateeSignatureFilePath,
+    evaluateeSignatureFilePath, evaluationResponse,
     editEvaluationSignature
   } = useEvaluationResponse(id);
 

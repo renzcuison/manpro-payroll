@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class EvaluationCommentor extends Model
+class EvaluationCommentor extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $table = 'evaluation_commentors';
 
@@ -30,6 +32,11 @@ class EvaluationCommentor extends Model
     public function response()
     {
         return $this->belongsTo(EvaluationResponse::class, 'response_id');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('signatures')->singleFile();
     }
     
 }

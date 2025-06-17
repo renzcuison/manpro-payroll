@@ -13,8 +13,7 @@ export function useEvaluationResponse(responseId) {
     const [commentors, setCommentors] = useState([]);
     const [periodStartAt, setPeriodStartAt] = useState('');
     const [periodStartEnd, setPeriodStartEnd] = useState('');
-    const [evaluateeSignatureFilePath, setEvaluateeSignatureFilePath] = useState('');
-    const [evaluatorSignatureFilePaths, setEvaluatorSignatureFilePaths] = useState('');
+    const [signatureFilePaths, setSignatureFilePaths] = useState({});
     const subcategories = evaluationResponse.form?.sections.reduce((subcategories, section) => {
         for(let subcategory of section.subcategories) subcategories[subcategory.id] = subcategory;
         return subcategories;
@@ -24,6 +23,7 @@ export function useEvaluationResponse(responseId) {
         for(let option of subcategory.options) options[option.id] = option;
         return options;
     }, {});
+    const evaluateeSignatureFilePath = signatureFilePaths[evaluateeId];
 
     useEffect(() => {
         if(responseId == undefined) return;
@@ -72,24 +72,28 @@ export function useEvaluationResponse(responseId) {
             .then((response) => {
                 const { evaluationResponse } = response.data;
                 if(!evaluationResponse) return;
+                const { evaluatee_signature, commentors, evaluators } = evaluationResponse;
+                if(evaluatee_signature) loadSignatureFilePath(evaluatee_signature);
+                // for(let { signature_filepath } of [...commentors, ...evaluators])
+                //     if(signature_filepath) loadSignatureFilePath(signature_filepath);
+                console.log(evaluationResponse)
                 setEvaluationResponse(evaluationResponse);
-                const { evaluatee_signature } = evaluationResponse;
-                if(!evaluatee_signature) return;
-                const byteCharacters = window.atob(evaluatee_signature);
-                const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                const byteArray = new Uint8Array(byteNumbers);
-                const blob = new Blob([byteArray], { type: 'image/png' });
-
-                if (evaluateeSignatureFilePath && evaluateeSignatureFilePath.startsWith('blob:'))
-                    URL.revokeObjectURL(evaluateeSignatureFilePath);
-                setEvaluateeSignatureFilePath(URL.createObjectURL(blob));
             })
             .catch(error => {
                 console.error('Error fetching response data:', error);
             });
+    }
+
+    function loadSignatureFilePath(userId, filePath) {
+        const byteCharacters = window.atob(filePath);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++)
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+        if (filePath && filePath.startsWith('blob:')) URL.revokeObjectURL(filePath);
+        signatureFilePaths[userId] = URL.createObjectURL(blob);
+        setSignatureFilePaths({ ...signatureFilePaths });
     }
 
     function reloadEvaluationResponse() {
@@ -552,8 +556,8 @@ export function useEvaluationResponse(responseId) {
     }
 
     return {
-        evaluationResponse, options, subcategories,
-        evaluateeSignatureFilePath, evaluatorSignatureFilePaths,
+        evaluateeSignatureFilePath, evaluationResponse, options, signatureFilePaths,
+        subcategories,
         deleteEvaluationResponse, editEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
