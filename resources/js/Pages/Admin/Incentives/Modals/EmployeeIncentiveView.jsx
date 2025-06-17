@@ -14,7 +14,7 @@ import EmployeeIncentiveEdit from "../Components/EmployeeIncentiveEdit";
 import { useIncentives } from "../../../../hooks/useIncentives";
 
 const EmployeeIncentiveView = ({ open, close, userName }) => {
-    const {employeeIncentives} = useIncentives(userName);
+    const { employeeIncentives } = useIncentives({userName: userName});
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const incentives = employeeIncentives.data?.incentives || [];

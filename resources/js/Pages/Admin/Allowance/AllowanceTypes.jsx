@@ -7,7 +7,7 @@ import { useAllowances } from '../../../hooks/useAllowances';
 import AllowanceAdd from './Modals/AllowanceAdd';
 
 const AllowanceTypes = () => {
-    const {allowances: allowanceQuery} = useAllowances();
+    const {allowances: allowanceQuery} = useAllowances({loadAllowances: true});
     const allowances = allowanceQuery.data?.allowances || [];
 
     const [openAddAllowanceModal, setOpenAddAllowanceModal] = useState(false);
@@ -18,7 +18,7 @@ const AllowanceTypes = () => {
 
     const handleCloseAddAllowanceModal = () => {
         setOpenAddAllowanceModal(false);
-        refetch();
+        allowanceQuery.refetch();
     }
 
     return (

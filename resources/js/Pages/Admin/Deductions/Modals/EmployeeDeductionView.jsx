@@ -14,7 +14,7 @@ import EmployeeDeductionEdit from "../Components/EmployeeDeductionEdit";
 import { useDeductions } from "../../../../hooks/useDeductions";
 
 const EmployeeDeductionView = ({ open, close, userName }) => {
-    const { employeeDeductions } = useDeductions(userName);
+    const { employeeDeductions } = useDeductions({userName: userName});
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 

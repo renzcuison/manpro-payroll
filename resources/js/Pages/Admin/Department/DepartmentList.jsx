@@ -11,7 +11,7 @@ import DepartmentAdd from "./Modals/DepartmentAdd";
 
 const DepartmentList = () => {
     const [searchKeyword, setSearchKeyword] = useState("");
-    const {departmentsWithPositions, departmentPositions} = useDepartments();
+    const {departmentsWithPositions, departmentPositions} = useDepartments({loadDeptWithPositions: true, loadDeptPositions: true});
     const departments = departmentsWithPositions.data?.departments || [];
     const deptPositions = departmentPositions.data?.positions || [];
 
@@ -272,7 +272,7 @@ const DepartmentList = () => {
             {openModal && <DepartmentAdd open={openModal} close={setOpenModal}></DepartmentAdd>}
 
             {/* Department Positions Settings Modal */}
-            {openSettingsModal && <DepartmentPositionSettings open={openSettingsModal} close={setOpenSettingsModal}></DepartmentPositionSettings>}
+            {openSettingsModal && <DepartmentPositionSettings open={openSettingsModal} close={(e) => setOpenSettingsModal(e)}></DepartmentPositionSettings>}
         </Layout>
     );
 };

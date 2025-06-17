@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import { useAllowances } from "../../../../hooks/useAllowances";
 
 const EmployeeAllowanceAdd = ({ userName, onClose }) => {
-    const {allowances: allowancesQuery, saveEmployeeAllowances} = useAllowances();
+    const {allowances: allowancesQuery, saveEmployeeAllowances} = useAllowances({loadAllowances: true});
     const allowances = allowancesQuery.data?.allowances || [];
 
     const [allowanceError, setAllowanceError] = useState(false);

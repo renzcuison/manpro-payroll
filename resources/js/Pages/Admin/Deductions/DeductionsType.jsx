@@ -6,7 +6,7 @@ import DeductionsAdd from './Modals/DeductionsAdd';
 import { useDeductions } from '../../../hooks/useDeductions';
 
 const DeductionsType = () => {
-    const {deductions} = useDeductions();
+    const {deductions} = useDeductions({loadDeductions: true});
 
     const deductionsData = deductions.data?.deductions || [];
     const [openAddDeductionsModal, setOpenAddDeductonsModal] = useState(false);

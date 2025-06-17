@@ -13,21 +13,39 @@ import { useBranches } from '../../../hooks/useBranches';
 
 
 const EmployeesBenefitsList = () => {
-    const { employeesBenefits } = useBenefits();
-    const {departments: departmentData} = useDepartments();
-    const { data: branchesData } = useBranches();
-
-    const employees = employeesBenefits.data?.employees || [];
-    const departments = departmentData.data?.departments || [];
-    const branches = branchesData?.branches || [];
-
     const [searchName, setSearchName] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState(0);
+    const [selectedBenefit, setSelectedBenefit] = useState(0);
     const [selectedBranch, setSelectedBranch] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
- 
+
+    const { employeesBenefits, benefits: benefitsData } = useBenefits({
+        loadBenefits: true,
+        loadEmployeesBenefits: true,
+        filters: {
+            name: searchName,
+            branchId: selectedBranch,
+            departmentId: selectedDepartment,
+            benefitId: selectedBenefit,
+        },
+        pagination: {
+            page: page,
+            perPage: rowsPerPage,
+        }
+    });
+
+    const { departments: departmentData } = useDepartments({loadDepartments: true});
+    const { data: branchesData } = useBranches();
+    
+    const employees = employeesBenefits.data?.employees || [];
+    const employer_total = employeesBenefits.data?.employer_total || 0;
+    const employee_total = employeesBenefits.data?.employee_total || 0;
+    const departments = departmentData.data?.departments || [];
+    const branches = branchesData?.branches || [];
+    const benefits = benefitsData.data?.benefits || [];
+
     const handleRowClick = (employee) => {
         setSelectedEmployee(employee.user_name);
     };
@@ -36,15 +54,6 @@ const EmployeesBenefitsList = () => {
         setSelectedEmployee(null);
         employeesBenefits.refetch();
     };
-
-    const filteredEmployees = employees.filter((employee) => {
-        const fullName = `${employee.name}`.toLowerCase();
-        const matchedName = fullName.includes(searchName.toLowerCase());
-        const filteredBranch = selectedBranch === 0 || employee.branch_id === selectedBranch;
-        const filteredDepartment= selectedDepartment === 0 || employee.department_id === selectedDepartment;
-        return matchedName && filteredBranch && filteredDepartment;
-    });
-
     const handleChangePage = (_, newPage) => {
         setPage(newPage);
     };
@@ -53,11 +62,6 @@ const EmployeesBenefitsList = () => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
-
-    const paginatedEmployees = filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-    const paginatedEmployeeTotal = paginatedEmployees.reduce((acc,emp) => acc + emp.employee_amount, 0);
-    const paginatedEmployerTotal = paginatedEmployees.reduce((acc, emp) => acc + emp.employer_amount, 0);
     return(
         <Layout title={"EmployeeBenefitsList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -80,8 +84,28 @@ const EmployeesBenefitsList = () => {
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)}/>
                                     </FormControl>
                                 </Grid>
+                                
+                                <Grid size={2}>
+                                    <TextField
+                                        select
+                                        id="benefit-view-select"
+                                        label="Filter Calculation by Type"
+                                        value={selectedBenefit}
+                                        onChange={(event) => {
+                                            setSelectedBenefit( event.target.value );
+                                        }}
+                                        sx={{ width: "100%" }}
+                                    >   
+                                        <MenuItem value={0}>All Benefits</MenuItem>
+                                        {benefits.map((benefit) => (
+                                            <MenuItem key={benefit.id} value={benefit.id}>
+                                                {" "}{benefit.name}{" "}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
 
-                                <Grid size={3}>
+                                <Grid size={2}>
                                     <TextField
                                         select
                                         id="branch-view-select"
@@ -101,7 +125,7 @@ const EmployeesBenefitsList = () => {
                                     </TextField>
                                 </Grid>
 
-                                <Grid size={3}>
+                                <Grid size={2}>
                                     <TextField
                                         select
                                         id="department-view-select"
@@ -142,9 +166,9 @@ const EmployeesBenefitsList = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {paginatedEmployees.length > 0 ? (
+                                            {employees.length > 0 ? (
                                                 <>
-                                                {paginatedEmployees.map((employee, index) => {
+                                                {employees.map((employee, index) => {
                                                     return (
                                                         <TableRow key={employee.user_name} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
                                                             <TableCell align="left">{employee.name || '-'}</TableCell>
@@ -159,19 +183,19 @@ const EmployeesBenefitsList = () => {
                                                         </TableRow>
                                                     );
                                                 })}
-                                                <TableRow sx={{ backgroundColor: (page * rowsPerPage + paginatedEmployees.length) % 2 === 0 ? 
+                                                <TableRow sx={{ backgroundColor: (page * rowsPerPage + employees.length) % 2 === 0 ? 
                                                 '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                     <TableCell align='left' colSpan={3}>
                                                         <Typography sx={{fontWeight: 'bold'}}>TOTAL:</Typography>
                                                     </TableCell>                                                   
                                                     <TableCell align="center">
                                                         <Typography sx={{fontWeight: 'bold'}}>
-                                                            ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(paginatedEmployerTotal)}
+                                                            ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(employer_total)}
                                                         </Typography>
                                                     </TableCell>
                                                     <TableCell align="center">
                                                         <Typography sx={{fontWeight: 'bold'}}>
-                                                            ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(paginatedEmployeeTotal)}
+                                                            ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(employee_total)}
                                                         </Typography>
                                                     </TableCell> 
                                                 </TableRow>
@@ -194,7 +218,7 @@ const EmployeesBenefitsList = () => {
                                     <TablePagination
                                         rowsPerPageOptions={[5, 10, 25]}
                                         component="div"
-                                        count={filteredEmployees.length}
+                                        count={employees.length}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}
@@ -208,7 +232,7 @@ const EmployeesBenefitsList = () => {
                     </Box>
                 </Box>
                 {selectedEmployee && (
-                    <EmployeeBenefitView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
+                    <EmployeeBenefitView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} benefit={selectedBenefit}/>
                 )}
             </Box>
         </Layout>

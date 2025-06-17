@@ -3,7 +3,7 @@ import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, Tab
 import { useDeductions } from "../../../hooks/useDeductions";
 
 const UserDeductions = ({ userName }) => {
-    const {employeeDeductions} = useDeductions(userName);
+    const {employeeDeductions} = useDeductions({userName: userName});
 
     const deductions = employeeDeductions.data?.deductions || [];
 
