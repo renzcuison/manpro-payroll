@@ -416,7 +416,7 @@ async function addSignatureImage(url, label, y) {
                 sx={{
                   bgcolor: '#E9AE20',
                   borderBottom: '1px solid #ffe082',
-                  cursor: 'default',
+                  cursor: 'default!important',
                   minHeight: 0,
                   mt: 3,
                   borderTopLeftRadius: '8px',
@@ -448,7 +448,7 @@ async function addSignatureImage(url, label, y) {
                               sx={{
                                 fontWeight: 'bold',
                                 whiteSpace: 'nowrap',
-                                cursor: 'pointer',
+                                cursor: 'default',
                                 position: 'relative',
                                 color: '#222'
                               }}
@@ -568,7 +568,7 @@ async function addSignatureImage(url, label, y) {
                         <Box
                           onMouseEnter={() => setHoveredOpenAnswer(subcat.id)}
                           onMouseLeave={() => setHoveredOpenAnswer(null)}
-                          sx={{ display: 'inline-block', fontWeight: 'bold', mb: 1, position: 'relative', cursor: !!subcat.description ? 'pointer' : 'default' }}
+                          sx={{ display: 'inline-block', fontWeight: 'bold', mb: 1, position: 'relative', cursor: 'default' }}
                         >
                           Open-ended Answers: {subcat.name}
                           {hoveredOpenAnswer === subcat.id && !!subcat.description && (
@@ -646,16 +646,13 @@ async function addSignatureImage(url, label, y) {
                     {getFullName(evaluator)}
                   </Typography>
                   <TextField
-                    label="Evaluator Comment"
                     multiline
                     minRows={3}
                     fullWidth
                     value={evaluator.comment || ''}
                     sx={{ mt: 1 }}
                     placeholder="No comment provided"
-                    InputProps={{
-                      readOnly: true,
-                    }}
+                    InputProps={{ readOnly: true }}
                   />
                 </Paper>
               ))}
@@ -698,7 +695,6 @@ async function addSignatureImage(url, label, y) {
                     {getFullName(commentor)}
                   </Typography>
                   <TextField
-                    label="Comment"
                     multiline
                     minRows={3}
                     fullWidth

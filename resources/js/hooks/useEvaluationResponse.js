@@ -22,7 +22,7 @@ export function useEvaluationResponse(responseId) {
         for(let option of subcategory.options) options[option.id] = option;
         return options;
     }, {});
-    const evaluateeSignatureFilePath = signatureFilePaths[evaluateeId];
+    const evaluateeSignatureFilePath = signatureFilePaths[evaluationResponse?.evaluatee_id];
 
     useEffect(() => {
         if(responseId == undefined) return;
@@ -71,13 +71,15 @@ export function useEvaluationResponse(responseId) {
             .then((response) => {
                 const { evaluationResponse } = response.data;
                 if(!evaluationResponse) return;
-                const { evaluatee_signature, commentors, evaluators } = evaluationResponse;
+                const {
+                    evaluatee_id, evaluatee_signature, commentors, evaluators
+                } = evaluationResponse;
                 const userId = JSON.parse(storedUser).id;
-                if(evaluatee_signature) loadSignatureFilePath(evaluatee_signature);
-                for(let { commentor_signature } of commentors)
-                    if(commentor_signature) loadSignatureFilePath(commentor_signature);
+                if(evaluatee_signature) loadSignatureFilePath(evaluatee_id, evaluatee_signature);
+                for(let { commentor_id, commentor_signature } of commentors)
+                    if(commentor_signature) loadSignatureFilePath(commentor_id, commentor_signature);
                 for(let { evaluator_id, evaluator_signature } of evaluators) {
-                    if(evaluator_signature) loadSignatureFilePath(evaluator_signature);
+                    if(evaluator_signature) loadSignatureFilePath(evaluator_id, evaluator_signature);
                     if(evaluator_id === userId) setEvaluatorId(evaluator_id);
                 }
                 setEvaluationResponse(evaluationResponse);

@@ -427,15 +427,17 @@ class EvaluationResponseController extends Controller
                 id, evaluatee_id, datetime,
                 period_start_date, period_end_date,
                 created_at, updated_at,
-                status,                 // returns 'pending' always for now
+                status,
                 evaluatee: { id, response_id, last_name, first_name, middle_name, suffix },
-                evaluatee_signature,
-                // other signatures
+                evaluatee_signature, evaluatee_signature_filepath
+                creator_signature, creator_signature_filepath
                 evaluators: {
-                    evaluator_id, response_id, last_name, first_name, middle_name, suffix, comment, order, signature_filepath
+                    evaluator_id, response_id, last_name, first_name, middle_name, suffix,
+                    comment, order, evalator_signature, signature_filepath
                 }[],
                 commentors: {
-                    commentor_id, response_id, last_name, first_name, middle_name, suffix, comment, order, signature_filepath
+                    commentor_id, response_id, last_name, first_name, middle_name, suffix,
+                    comment, order, commentor_signature, signature_filepath
                 }[],
                 form_id, creator_user_name, form: {
                     id, name, creator_id, creator_user_name,
@@ -604,8 +606,15 @@ class EvaluationResponseController extends Controller
                 ]);
             }
             $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
-            if ($evaluateeSignature)
-                $evaluationResponse->evaluatee_signature = base64_encode(file_get_contents($evaluateeSignature->getPath()));
+            $evaluationResponse->evaluatee_signature = (
+                $evaluateeSignature ? base64_encode(file_get_contents($evaluateeSignature->getPath()))
+                : null
+            );
+            $creatorSignature = $evaluationResponse->getFirstMedia('creator_signatures');
+            $evaluationResponse->creator_signature = (
+                $creatorSignature ? base64_encode(file_get_contents($creatorSignature->getPath()))
+                : null
+            );
             foreach ($evaluationResponse->evaluators as $index => $evaluator) {
                 $evaluatorSignature = $evaluator->getFirstMedia('signatures');
                 $evaluator->evaluator_signature = (
