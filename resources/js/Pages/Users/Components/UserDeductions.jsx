@@ -31,7 +31,7 @@ const UserDeductions = ({ userName }) => {
                                         <Typography>{deduction.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{deduction.number}</Typography>
+                                        <Typography>{deduction.number || '-'}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography>₱{(deduction.calcuated_amount).toFixed(2)}</Typography>

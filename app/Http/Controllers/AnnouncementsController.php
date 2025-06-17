@@ -782,7 +782,6 @@ class AnnouncementsController extends Controller
     // Files
     public function downloadFile($id)
     {
-        //Log::info('AnnouncementsController::downloadFile');
         $media  = Media::find($id);
 
         if (!$media) {
@@ -794,7 +793,11 @@ class AnnouncementsController extends Controller
             return response()->json(['status' => 404, 'message' => 'File not found'], 404);
         }
 
-        return response()->download($filePath, $media->file_name);
+        $mimeType = $media->mime_type ?? 'application/octet-stream';
+
+        return response()->download($filePath, $media->file_name, [
+            'Content-Type' => $mimeType
+        ]);
     }
 
     public function getThumbnail($code)
@@ -877,6 +880,7 @@ class AnnouncementsController extends Controller
                     'id' => $media->id,
                     'filename' => $media->file_name,
                     'type' => $media->getCustomProperty('type'),
+                    'mime_type' => $media->mime_type 
                 ];
             })->all();
 

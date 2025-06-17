@@ -35,8 +35,7 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
     const [acronym, setAcronym] = useState("");
     const [description, setDescription] = useState("");
     const [status, setStatus] = useState('');
-
-    console.log(status)
+    
     useEffect(()=>{
         getDepartment();
     },[])
@@ -93,13 +92,14 @@ const DepartmentEdit = ({open, close, departmentId}) =>{
         event.preventDefault();
 
         const data = {
+            id: departmentId,
             name: name,
             acronym: acronym,
             description: description,
             status: status,
         };
 
-        axiosInstance.post(`/settings/saveDepartment/${departmentId}`, data, { headers })
+        axiosInstance.post(`/settings/saveDepartment`, data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({

@@ -494,7 +494,7 @@ class EvaluationResponseController extends Controller
                 ->addSelect('evaluation_responses.form_id', 'users.user_name as creator_user_name')
                 ->with(['form' => fn ($evaluationForm) =>
                     $evaluationForm
-                        ->join('users', 'evaluation_forms.id', '=', 'users.id')
+                        ->join('users', 'evaluation_forms.creator_id', '=', 'users.id')
                         ->select(
                             'evaluation_forms.id',
                             'evaluation_forms.name', 
@@ -1216,14 +1216,25 @@ class EvaluationResponseController extends Controller
                 $evaluationEvaluator->comment = $request->comment;
             if($request->signature_filepath !== null)
                 $evaluationEvaluator->signature_filepath = $request->signature_filepath;
+            // $request->signature_filepath = $_POST['signature_filepath'];
+            // $request->signature_filepath = str_replace('data:image/png;base64,', '', $request->signature_filepath);
+            // $request->signature_filepath = str_replace(' ', '+', $request->signature_filepath);
+            // echo $request->signature_filepath;
+            // $request->signature_filepath = base64_decode($request->signature_filepath);
+            $saved = $request->hasFile('signature_filepath');
+            if ($request->hasFile('signature_filepath')) {
+			    $evaluationEvaluator->clearMediaCollection('signatures');
+                $evaluationEvaluator->addMediaFromRequest('signature_filepath')->toMediaCollection('signatures');
+            }
             $evaluationEvaluator->save();
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
                 'evaluationEvaluator' => $evaluationEvaluator,
-                'message' => 'Evaluation Evaluator successfully updated'
+                'message' => 'Evaluation Evaluator successfully updated',
+                'saved' => $saved
             ]);
 
         } catch (\Exception $e) {
