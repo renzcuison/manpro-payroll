@@ -1145,7 +1145,6 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             response_id: number,
-            evaluator_id: number,
             comment?: string,
             signature_filepath?: string
         */
@@ -1182,7 +1181,7 @@ class EvaluationResponseController extends Controller
                     'signature_filepath', 'created_at', 'updated_at'
                 )
                 ->where('response_id', $request->response_id)
-                ->where('evaluator_id', $request->evaluator_id)
+                ->where('evaluator_id', $userID)
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -1190,7 +1189,7 @@ class EvaluationResponseController extends Controller
             if(!$evaluationEvaluator) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Evaluator not found!',
-                'evaluationEvaluatorID' => $request->evaluator_id
+                'evaluationEvaluatorID' => $userID
             ]);
 
             if($request->comment !== null)
