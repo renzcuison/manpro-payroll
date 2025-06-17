@@ -111,10 +111,12 @@ class CompensationManagementController extends Controller
                 'amount' => $amount,
             ]);   
         }
+        $total_count = $resultEmployees->count();
         $paginated = $resultEmployees->forPage($page, $perPage)->values();
 
         return response()->json([
             'status' => 200,
+            'employee_count' => $total_count,
             'employees' => $paginated,
             'total' => $paginated->sum('amount'),
             'current_page' => $page,
@@ -363,7 +365,7 @@ class CompensationManagementController extends Controller
             ]);
         }
 
-        $total = $resultEmployees->count();
+        $total_count = $resultEmployees->count();
         $paginated = $resultEmployees->forPage($page, $perPage)->values();
 
         return response()->json([
@@ -371,7 +373,7 @@ class CompensationManagementController extends Controller
             'employees' => $paginated,
             'employee_total' => $paginated->sum('employee_amount'),
             'employer_total' => $paginated->sum('employer_amount'),
-            'total' => $total,
+            'total' => $total_count,
             'current_page' => $page,
         ]);
     }
@@ -725,10 +727,12 @@ class CompensationManagementController extends Controller
                 'amount' => $amount,
             ]);   
         }
+        $total_count = $resultEmployees->count();
         $paginated = $resultEmployees->forPage($page, $perPage)->values();
 
         return response()->json([
             'status' => 200,
+            'employee_count' => $total_count,
             'employees' => $paginated,
             'total' => $paginated->sum('amount'),
             'current_page' => $page,
@@ -966,10 +970,12 @@ class CompensationManagementController extends Controller
                 'amount' => $amount,
             ]);      
         }
+        $total_count = $resultEmployees->count();
         $paginated = $resultEmployees->forPage($page, $perPage)->values();
 
         return response()->json([
             'status' => 200,
+            'employee_count' => $total_count,
             'employees' => $paginated,
             'total' => $paginated->sum('amount'),
             'current_page' => $page,

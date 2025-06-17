@@ -35,9 +35,11 @@ const EmployeesAllowanceList = () => {
     const { departments: departmentData } = useDepartments({loadDepartments: true});
     const { data: branchesData } = useBranches();
 
+
     const employees = employeesAllowances.data?.employees || [];
     const allowances = allowancesData.data?.allowances || [];
     const total = employeesAllowances.data?.total || 0;
+    const employee_count = employeesAllowances.data?.employee_count || 0;
 
     const departments = departmentData.data?.departments || [];
     const branches = branchesData?.branches || [];

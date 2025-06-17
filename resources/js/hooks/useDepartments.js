@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 
-export function useDepartments({departmentId = null, loadDepartments = false, loadDeptWithPositions = false, loadDeptPositions = false}){
+export function useDepartments({departmentId = null, loadDepartments = false, loadDeptWithPositions = false, loadDeptPositions = false} = {}){
     const departments = useQuery(["departments"], async () => {
         const {data} = await axiosInstance.get("settings/getDepartments", { headers });
         return data;
@@ -60,7 +60,6 @@ export function useDepartments({departmentId = null, loadDepartments = false, lo
         }
     );
     
-
     return{
         departments, departmentPositions, departmentDetails, departmentsWithPositions, saveDepartment
     }
