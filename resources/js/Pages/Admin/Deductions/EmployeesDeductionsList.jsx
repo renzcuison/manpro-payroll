@@ -10,7 +10,7 @@ import { useBranches } from '../../../hooks/useBranches';
 
 
 const EmployeesDeductionsList = () => {
-    const { employeesDeductions } = useDeductions();
+    const { employeesDeductions } = useDeductions({loadEmployeesDeductions: true});
     const { departments: departmentData } = useDepartments({loadDepartments: true}); 
     const { data: branchesData } = useBranches();
 

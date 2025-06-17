@@ -28,7 +28,7 @@ import EmploymentDetails from './Components/EmploymentDetails';
 const EmployeeView = () => {
     const { user } = useParams();
     const {employeeBenefits} = useBenefits(user);
-    const {employeeDeductions} = useDeductions(user);
+    const {employeeDeductions} = useDeductions({userName: user});
     const {employeeIncentives} = useIncentives({userName: user});
     const {employeeAllowances} = useAllowances({userName: user});
 
