@@ -631,7 +631,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                     setSubcategoryOptions(newOptions);
                                                                 }}
                                                                 sx={{ width: 80 }}
-                                                                size="small"
+                                                                
                                                                 inputProps={{ min: 0, step: 1 }}
                                                             />
                                                         </Grid>
@@ -647,7 +647,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                 newOptions[index].description = e.target.value;
                                                                 setSubcategoryOptions(newOptions);
                                                                 }}
-                                                                size="small"
+                                                               
                                                                 fullWidth
                                                             />
                                                         </Grid>

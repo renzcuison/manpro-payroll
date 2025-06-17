@@ -136,13 +136,13 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                 </Box>
 
                 {(responseType === 'multipleChoice' || responseType === 'checkbox') && (
-                    <Box sx={{ mb: 2 }}>
+                    <Box sx={{ mb: 2, width: '100%'}}>
                         {options.map(({ label, score, description }, index) => (
-                            <Grid container spacing={2} key={index} sx={{ mb: 2 }} alignItems="center">
+                            <Grid container spacing={3} key={index} sx={{ mb: 2 }} alignItems="center">
                                 <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                     <Typography variant="body1">{index + 1}.</Typography>
                                 </Grid>
-                                <Grid item xs={7}>
+                                <Grid item xs={3}>
                                     <TextField
                                         variant="outlined"
                                         fullWidth
@@ -163,7 +163,7 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                                         inputProps={{ min: 0, step: 1 }}
                                     />
                                 </Grid>
-                                <Grid item xs={4}>
+                                <Grid item xs={12}>
                                     <TextField
                                     variant="outlined"
                                     multiline
@@ -172,10 +172,11 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                                     value={description || ""}
                                     onChange={e => handleOptionDescriptionChange(index, e)}
                                     fullWidth
+                                    
                                 />
                                 </Grid>
                                 
-                                <Grid item xs={2}>
+                                <Grid item xs={1}>
                                     <IconButton
                                         onClick={() => handleRemoveOption(index)}
                                         sx={{ color: 'gray' }}
