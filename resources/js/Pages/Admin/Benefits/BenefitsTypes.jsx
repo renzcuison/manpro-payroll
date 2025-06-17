@@ -19,7 +19,7 @@ const BenefitsTypes = () => {
 
     const handleCloseAddBenefitsModal = () => {
         setOpenAddBenefitsModal(false);
-        refetch();
+        benefits.refetch();
     }
 
     return (
