@@ -254,45 +254,89 @@ class CompensationManagementController extends Controller
         ];
     }
 
-    public function getEmployeesBenefits()
+    public function getEmployeesBenefits(Request $request)
     {
-        if(!$this->checkUserAdmin()){
-            return response()->json(['status' => 200, 'benefits' => null]);
+        if (!$this->checkUserAdmin()) {
+            return response()->json([
+                'status' => 200,
+                'employees' => [],
+                'employee_total' => 0,
+                'employer_total' => 0,
+                'total' => 0,
+            ]);
         }
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
-        $employees = [];
-        $employer_total = 0;
-        $employee_total = 0;
 
-        foreach ($client->employees as $employee){
-            $benefits = [];
+        $filterName = strtolower($request->input('name'));
+        $filterBranchId = $request->input('branch_id');
+        $filterDepartmentId = $request->input('department_id');
+        $filterBenefitId = $request->filled('benefit_id') ? Crypt::decrypt($request->input('benefit_id')) : null;
+        $page = max(1, (int)$request->input('page', 1));
+        $perPage = max(1, (int)$request->input('per_page', 10));
+
+        $filteredEmployees = $client->employees->filter(function ($employee) use ($filterName, $filterBranchId, $filterDepartmentId) {
+            $fullName = strtolower($employee->last_name . ", " . $employee->first_name);
+            $matchesName = $filterName === '' || str_contains($fullName, $filterName);
+            $matchesBranch = !$filterBranchId || $employee->branch_id == $filterBranchId;
+            $matchesDepartment = !$filterDepartmentId || $employee->department_id == $filterDepartmentId;
+            return $matchesName && $matchesBranch && $matchesDepartment;
+        });
+
+        $resultEmployees = collect();
+
+        foreach($filteredEmployees as $employee){
+            $rawBenefitsQuery = EmployeeBenefitsModel::with('benefit')->where('user_id', $employee->id)->whereNull('deleted_at');
+            if($filterBenefitId){
+                $rawBenefitsQuery->where('benefit_id', $filterBenefitId);
+            }
+            $rawBenefits = $rawBenefitsQuery->get();
+
+            //if there are no matching benefits held by the employee
+            if($filterBenefitId && $rawBenefits->isEmpty()){
+                continue;
+            }
+
+            $baseSalary = floatval($employee->salary);
             $employee_calc_amount = 0;
             $employer_calc_amount = 0;
-            $baseSalary = floatval($employee->salary);
-            $rawBenefits = EmployeeBenefitsModel::with('benefit')->where('user_id', $employee->id)->where('deleted_at', null)->get();
-            foreach ($rawBenefits as $rawBenefit) {
-                $benefitCalc = $this->calculateBenefits($rawBenefit, $baseSalary);
-                $benefits[] = $benefitCalc;
-                $employee_calc_amount += $benefitCalc['employee_contribution'];
-                $employer_calc_amount += $benefitCalc['employer_contribution'];
-            }
-            $employer_total += $employer_calc_amount;
-            $employee_total += $employee_calc_amount;
+            $benefits = [];
 
-            $employees[] = [
+            foreach($rawBenefits as $rawBenefit){
+                //if benefit filter is provided, then those that do not match with the benefit id gets skipped in the calculation
+                if ($filterBenefitId && $rawBenefit->benefit_id != $filterBenefitId) {
+                    continue;
+                }
+                $calc = $this->calculateBenefits($rawBenefit, $baseSalary);
+                $benefits[] = $calc;
+                $employee_calc_amount += $calc['employee_contribution'];
+                $employer_calc_amount += $calc['employer_contribution'];
+            }
+
+            $resultEmployees->push([
                 'user_name' => $employee->user_name,
-                'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
+                'name' => "{$employee->last_name}, {$employee->first_name} {$employee->middle_name} {$employee->suffix}",
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
-                'branch_id' => $employee->branch->id, 
-                'department_id' => $employee->department->id,        
+                'branch_id' => $employee->branch_id,
+                'department_id' => $employee->department_id,
                 'benefits' => $benefits,
                 'employee_amount' => $employee_calc_amount,
                 'employer_amount' => $employer_calc_amount,
-            ];   
+            ]);
         }
-        return response()->json(['status' => 200, 'employees' => $employees, 'employer_total' => $employer_total, 'employee_total' => $employee_total]);
+
+        $total = $resultEmployees->count();
+        $paginated = $resultEmployees->forPage($page, $perPage)->values();
+
+        return response()->json([
+            'status' => 200,
+            'employees' => $paginated,
+            'employee_total' => $paginated->sum('employee_amount'),
+            'employer_total' => $paginated->sum('employer_amount'),
+            'total' => $total,
+            'current_page' => $page,
+        ]);
     }
 
     public function getEmployeeBenefits(Request $request)
@@ -304,8 +348,22 @@ class CompensationManagementController extends Controller
         $employee = UsersModel::where('user_name', $request->username)->first();
         $baseSalary = floatval($employee->salary);
         $benefits = [];
+        $filterBenefitId = $request->input('benefit_id');
+        $decryptedBenefitId = null;
 
+        if (!empty($filterBenefitId)) {
+            try {
+                $decryptedBenefitId = Crypt::decrypt($filterBenefitId);
+            } catch (\Exception $e) {
+                $decryptedBenefitId = null;
+            }
+        }
         foreach($employee->benefits as $benefit){
+            //skips those that do not match with the inputted benefit id
+            if ($decryptedBenefitId && $benefit->benefit_id != $decryptedBenefitId) {
+                continue; // skip if not matching filtered benefit id
+            }
+    
             $employee_amount = 0;
             $employer_amount = 0;
             $type = $benefit->benefit->type;

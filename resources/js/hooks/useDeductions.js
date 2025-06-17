@@ -4,7 +4,7 @@ import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 
-export function useDeductions({userName = null, loadDeductions = false, loadEmployeesDeductions = false}){
+export function useDeductions({userName = null, loadDeductions = false, loadEmployeesDeductions = false} = {}){
     const employeesDeductions = useQuery(["employeesDeductions"], async () => {
         const { data } = await axiosInstance.get("compensation/getEmployeesDeductions", {
             headers,

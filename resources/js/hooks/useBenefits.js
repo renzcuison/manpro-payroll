@@ -4,10 +4,22 @@ import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 
-export function useBenefits({userName = null, loadEmployeesBenefits = false, loadBenefits = false}){
-    const employeesBenefits = useQuery(["employeesBenefits"], async () => {
+export function useBenefits({userName = null, loadEmployeesBenefits = false, loadBenefits = false, filters = {}, pagination = {}} = {}){
+    //mostly will be used in the employees benefits list component
+    const {name, branchId, departmentId, benefitId} = filters;
+    const {page = 1, perPage = 10} = pagination;
+    const params = {};
+    
+    if (name) params.name = name;
+    if (branchId) params.branch_id = branchId;
+    if (departmentId) params.department_id = departmentId;
+    if (benefitId) params.benefit_id = benefitId;
+    if (page) params.page = page;
+    if (perPage) params.per_page = perPage;
+    
+    const employeesBenefits = useQuery(["employeesBenefits", {filters, pagination}], async () => {
         const { data } = await axiosInstance.get("compensation/getEmployeesBenefits", {
-            headers,
+            headers, params,
         });
         return data;
     }, {enabled: loadEmployeesBenefits});
@@ -19,9 +31,9 @@ export function useBenefits({userName = null, loadEmployeesBenefits = false, loa
         return data;
     }, {enabled: loadBenefits});
 
-    const employeeBenefits = useQuery(["employeeBenefits", userName], async () => {
+    const employeeBenefits = useQuery(["employeeBenefits", userName, filters.benefitId], async () => {
         const {data} = await axiosInstance.get("compensation/getEmployeeBenefits", {
-            headers, params: {username: userName},
+            headers, params: {username: userName, benefit_id: benefitId},
         });
         return data;
     },{
@@ -47,44 +59,4 @@ export function useBenefits({userName = null, loadEmployeesBenefits = false, loa
     }
 }
 
-// export function useEmployeesBenefits(){
-//     return useQuery(["employeesBenefits"], async () => {
-//         const { data } = await axiosInstance.get("compensation/getEmployeesBenefits", {
-//             headers,
-//         });
-//         return data;
-//     });
-// }
-
-// export function useBenefits(){
-//     return useQuery(["benefits"], async () => {
-//         const { data } = await axiosInstance.get("compensation/getBenefits", {
-//             headers,
-//         });
-//         return data;
-//     });
-// }
-
-// export function useEmployeeBenefits(userName){
-//     return useQuery(["employeeBenefits", userName], async () => {
-//         const {data} = await axiosInstance.get("compensation/getEmployeeBenefits", {
-//             headers, params: {username: userName},
-//         });
-//         return data;
-//     });
-// }
-
-// export function useSaveEmployeeBenefits() {
-//     return useMutation(async (data) => {
-//         const response = await axiosInstance.post('/compensation/saveEmployeeBenefits', data, { headers });
-//         return response.data;
-//     });
-// }
-
-// export function useUpdateEmployeeBenefit() {
-//     return useMutation(async (data) => {
-//         const response = await axiosInstance.post('/compensation/updateEmployeeBenefit', data, { headers });
-//         return response.data;
-//     });
-// }
 

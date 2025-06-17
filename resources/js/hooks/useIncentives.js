@@ -3,7 +3,7 @@ import axiosInstance, { getJWTHeader }  from "../utils/axiosConfig";
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 
-export function useIncentives({userName = null, loadIncentives = false, loadEmployeesIncentives = false}){
+export function useIncentives({userName = null, loadIncentives = false, loadEmployeesIncentives = false} ={}){
     const incentives = useQuery(["incentives"], async () => {
         const { data } = await axiosInstance.get("compensation/getIncentives", {
             headers,
