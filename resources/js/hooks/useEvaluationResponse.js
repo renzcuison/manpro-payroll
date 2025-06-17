@@ -7,7 +7,6 @@ export function useEvaluationResponse(responseId) {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [evaluationResponse, setEvaluationResponse] = useState({});
-    const [evaluateeId, setEvaluateeId] = useState();
     const [evaluatorId, setEvaluatorId] = useState();
     const [formId, setFormId] = useState();
     const [periodStartAt, setPeriodStartAt] = useState('');
@@ -23,6 +22,7 @@ export function useEvaluationResponse(responseId) {
         return options;
     }, {});
     const evaluateeSignatureFilePath = signatureFilePaths[evaluationResponse?.evaluatee_id];
+    const creatorSignatureFilePath = signatureFilePaths[evaluationResponse?.creator_id];
 
     useEffect(() => {
         if(responseId == undefined) return;
@@ -72,10 +72,12 @@ export function useEvaluationResponse(responseId) {
                 const { evaluationResponse } = response.data;
                 if(!evaluationResponse) return;
                 const {
-                    evaluatee_id, evaluatee_signature, commentors, evaluators
+                    evaluatee_id, creator_id, evaluatee_signature, creator_signature,
+                    commentors, evaluators
                 } = evaluationResponse;
                 const userId = JSON.parse(storedUser).id;
                 if(evaluatee_signature) loadSignatureFilePath(evaluatee_id, evaluatee_signature);
+                if(creator_signature) loadSignatureFilePath(creator_id, creator_signature);
                 for(let { commentor_id, commentor_signature } of commentors)
                     if(commentor_signature) loadSignatureFilePath(commentor_id, commentor_signature);
                 for(let { evaluator_id, evaluator_signature } of evaluators) {
@@ -557,8 +559,9 @@ export function useEvaluationResponse(responseId) {
     }
 
     return {
-        evaluateeSignatureFilePath, evaluationResponse, evaluatorId, options, signatureFilePaths,
-        subcategories,
+        creatorSignatureFilePath, evaluateeSignatureFilePath,
+        evaluationResponse, evaluatorId, signatureFilePaths,
+        options, subcategories,
         deleteEvaluationResponse, editEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,

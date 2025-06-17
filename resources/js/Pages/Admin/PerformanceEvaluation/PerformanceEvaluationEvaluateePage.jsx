@@ -62,27 +62,11 @@ const getSectionScore = (section) => {
   return { sectionScore, subcatScores };
 };
 
-
-
-async function loadImageAsBase64(url) {
-  if (url && url.startsWith('data:image/')) {
-    return Promise.resolve(url);
-  }
-  return fetch(url)
-    .then(res => res.blob())
-    .then(blob => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    }));
-}
-
 const PerformanceEvaluationEvaluateePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const {
-    evaluateeSignatureFilePath, evaluationResponse,
+    creatorSignatureFilePath, evaluateeSignatureFilePath, evaluationResponse, signatureFilePaths,
     editEvaluationSignature
   } = useEvaluationResponse(id);
 
@@ -154,7 +138,7 @@ const PerformanceEvaluationEvaluateePage = () => {
     doc.text(`Evaluatee: ${responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}`, margin, y);
     y += 18;
     doc.text(
-      `Evaluators: ${responseMeta?.evaluators ? responseMeta.evaluators.map(getFullName).join(', ') : ''}`,
+      `Evaluators: ${responseMeta?.evaluators ? responseMeta.evaluators.map(getFullName).join('—') : ''}`,
       margin, y
     );
     y += 18;
@@ -237,27 +221,26 @@ async function addSignatureImage(url, label, y) {
   return y;
 }
 
-    if (responseMeta.creator_signature_filepath) {
-      y = await addSignatureImage(responseMeta.creator_signature_filepath, "Creator Signature", y);
+    if (creatorSignatureFilePath) {
+      y = await addSignatureImage(creatorSignatureFilePath, "Creator Signature", y);
     }
     if (evaluateeSignatureFilePath) {
       y = await addSignatureImage(evaluateeSignatureFilePath, "Evaluatee Signature", y);
     }
-    if (Array.isArray(responseMeta.evaluators)) {
+    if (responseMeta?.evaluators)
       for (const evaluator of responseMeta.evaluators) {
-        if (evaluator.signature_filepath) {
-          y = await addSignatureImage(evaluator.signature_filepath, `${getFullName(evaluator)} (Evaluator)`, y);
+        const signatureFilePath = signatureFilePaths[evaluator.id];
+        if (signatureFilePath) {
+          y = await addSignatureImage(signatureFilePath, `${getFullName(evaluator)} (Evaluator)`, y);
         }
       }
-    }
-    if (Array.isArray(responseMeta.commentors)) {
+    if (responseMeta?.commentors)
       for (const commentor of responseMeta.commentors) {
-        if (commentor.signature_filepath) {
-          y = await addSignatureImage(commentor.signature_filepath, `${getFullName(commentor)} (Commentor)`, y);
+        const signatureFilePath = signatureFilePaths[commentor.id];
+        if (signatureFilePath) {
+          y = await addSignatureImage(signatureFilePath, `${getFullName(commentor)} (Commentor)`, y);
         }
       }
-    }
-
     doc.save(`evaluation_${form.name.replace(/\s+/g, '_')}.pdf`);
   };
 
