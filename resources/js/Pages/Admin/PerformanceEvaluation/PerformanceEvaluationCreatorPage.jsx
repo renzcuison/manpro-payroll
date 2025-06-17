@@ -493,7 +493,6 @@ const PerformanceEvaluationCreatorPage = () => {
                     {getFullName(evaluator)}
                   </Typography>
                   <TextField
-                    label="Evaluator Comment"
                     multiline
                     minRows={3}
                     fullWidth
@@ -543,7 +542,6 @@ const PerformanceEvaluationCreatorPage = () => {
                     {getFullName(commentor)}
                   </Typography>
                   <TextField
-                    label="Commentor Comment"
                     multiline
                     minRows={3}
                     fullWidth

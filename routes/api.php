@@ -1321,6 +1321,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         EvaluationResponseController::class,
         'editEvaluationResponse',
     ]);
+    Route::get('/getEvaluateeResponses', [
+        EvaluationResponseController::class,
+        'getEvaluateeResponses',
+    ]);
     Route::get('/getEvaluationResponse', [
         EvaluationResponseController::class,
         'getEvaluationResponse',

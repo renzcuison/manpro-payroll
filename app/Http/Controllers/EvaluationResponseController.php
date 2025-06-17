@@ -285,8 +285,256 @@ class EvaluationResponseController extends Controller
         }
     }
 
+    public function getEvaluateeResponses(Request $request)
+    {
+        // inputs:
+        /*
+        */
+
+        // returns:
+        /*
+            evaluationResponses: {
+                id, evaluatee_id, date,
+                created_at, updated_at,
+                evaluators_unsigned_count, commentors_unsigned_count,
+                form_id, creator_user_name, form: {
+                    id, name, creator_id, creator_user_name,
+                    sections: {
+                        form_id, id, name, category, order,
+                        subcategories: {
+                            section_id, id, name, subcategory_type, description, required,
+                            allow_other_option, linear_scale_start, linear_scale_end, order,
+                            options: {
+                                subcategory_id, id, label, order,
+                                option_answer: { id, response_id, option_id }
+                            }[],
+                            percentage_answer: { id, response_id, subcategory_id, percentage, value, linear_scale_index } | null,
+                            text_answer: { id, response_id, subcategory_id, answer } | null
+                        }[]
+                    }[]
+                }
+            }[]
+            
+        */
+
+        Log::info('EvaluationResponseController::getEvaluateeResponses');
+
+        try {
+            if (Auth::check()) {
+                $userID = Auth::id();
+            } else {
+                $userID = null;
+            }
+
+            $user = UsersModel::where('id', $userID)->first();
+
+            if($request->page === null) $request->page = 1;
+            if($request->limit === null) $request->limit = 10;
+            if ($request->page < 1 || $request->limit < 1)
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Invalid page or limit!'
+                ]);
+            
+            $evaluationResponses = $user
+                ->evaluateeResponses()
+                ->whereHas('form', function ($query) {
+                    $query->whereNull('deleted_at');
+                })
+                ->select('evaluation_responses.id')
+                ->withCount([
+                    'evaluators as evaluators_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->addSelect(
+                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    'form_id',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
+                ->whereNotNull('creator_signature_filepath')
+                ->whereNotNull('evaluatee_signature_filepath')
+                ->having('evaluators_unsigned_count', 0)
+                ->having('commentors_unsigned_count', 0)
+                ->with(['form' => fn ($evaluationForm) =>
+                    $evaluationForm
+                        ->join('users', 'evaluation_forms.creator_id', '=', 'users.id')
+                        ->select(
+                            'evaluation_forms.id',
+                            'evaluation_forms.name', 
+                            'evaluation_forms.creator_id',
+                            'users.user_name as creator_user_name'
+                        )
+                        ->with(['sections' => fn ($section) =>
+                            $section
+                                ->select('form_id', 'id', 'name', 'category', 'order')
+                                ->whereNull('deleted_at')
+                                ->with(['subcategories' => fn ($subcategory) =>
+                                    $subcategory
+                                        ->select(
+                                            'section_id', 'id',
+                                            'name', 'subcategory_type', 'description',
+                                            'required', 'allow_other_option',
+                                            'linear_scale_start', 'linear_scale_end', 'linear_scale_end_label', 'linear_scale_start_label',
+                                            'order'
+                                        )
+                                        ->whereNull('deleted_at')
+                                        ->with([
+                                            'options' => fn ($option) =>
+                                                $option
+                                                    ->select(
+                                                        'subcategory_id', 'id', 'label', 'score', 'order', 'description'
+                                                    )
+                                                    ->whereNull('deleted_at')
+                                                    ->with([
+                                                        'optionAnswer' => fn ($optionAnswer) =>
+                                                            $optionAnswer
+                                                                ->select('response_id', 'option_id')
+                                                                ->whereNull('deleted_at')
+                                                                ->where('response_id', $request->id)
+                                                    ])
+                                                    ->orderBy('order')
+                                                    
+                                            ,
+                                            'percentageAnswer' => fn ($percentageAnswer) =>
+                                                $percentageAnswer
+                                                    ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+                                                    ->select(
+                                                        'evaluation_percentage_answers.response_id',
+                                                        'evaluation_percentage_answers.subcategory_id',
+                                                        'evaluation_percentage_answers.percentage',
+                                                        'evaluation_form_subcategories.subcategory_type'
+                                                    )
+                                                    ->addSelect(DB::raw(
+                                                        "round(evaluation_percentage_answers.percentage*"
+                                                        ."(evaluation_form_subcategories.linear_scale_end"
+                                                        ."-evaluation_form_subcategories.linear_scale_start)"
+                                                        ."+evaluation_form_subcategories.linear_scale_start)"
+                                                        ." as value"
+                                                    ))
+                                                    ->addSelect(DB::raw(
+                                                        "round(evaluation_percentage_answers.percentage*"
+                                                        ."(evaluation_form_subcategories.linear_scale_end"
+                                                        ."-evaluation_form_subcategories.linear_scale_start))"
+                                                        ." as linear_scale_index"
+                                                    ))
+                                                    ->whereNull('evaluation_percentage_answers.deleted_at')
+                                                    ->where('response_id', $request->id)
+                                            ,
+                                            'textAnswer' => fn ($textAnswer) =>
+                                                $textAnswer
+                                                    ->select('response_id', 'subcategory_id', 'answer')
+                                                    ->whereNull('deleted_at')
+                                                    ->where('response_id', $request->id)
+                                        ])
+                                        ->orderBy('order')
+                                ])
+                                ->orderBy('order')
+                        ])
+                ])
+            ;
+
+            if ($request->form_id !== null)
+                $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
+
+            $evaluationResponsesCollection = $evaluationResponses->get();
+
+            // --- PHP-level filtering and sorting ---
+            // 1. Searching
+            if ($request->search) {
+                $searchTerm = strtolower(trim($request->search));
+                $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
+                    $formName = strtolower($row->form->name ?? '');
+                    $date = strtolower($row->date ?? '');
+                    $department = strtolower($row->evaluatee->department->name ?? '');
+                    $branch = strtolower($row->evaluatee->branch->name ?? '');
+
+                    return 
+                        strpos($formName, $searchTerm) !== false ||
+                        strpos($date, $searchTerm) !== false ||
+                        strpos($department, $searchTerm) !== false ||
+                        strpos($branch, $searchTerm) !== false
+                    ;
+                })->values();
+            }
+
+            // 2. Sorting (multi-column, supports front-end's order_by array)
+            if ($request->order_by && is_array($request->order_by)) {
+                $orderByArray = $request->order_by;
+                $evaluationResponsesCollection = $evaluationResponsesCollection->sort(function ($a, $b) use ($orderByArray) {
+                    foreach ($orderByArray as $order) {
+                        $key = $order['key'] ?? null;
+                        $sortOrder = strtolower($order['sort_order'] ?? 'asc');
+
+                        // PHP property/attribute access
+                        switch ($key) {
+                            case 'updated_at':
+                            case 'created_at':
+                                $valA = strtotime($a->$key);
+                                $valB = strtotime($b->$key);
+                                break;
+                            case 'form_name':
+                                $valA = strtolower($a->form->name ?? '');
+                                $valB = strtolower($b->form->name ?? '');
+                                break;
+                            case 'department_name':
+                                $valA = strtolower($a->evaluatee->department->name ?? '');
+                                $valB = strtolower($b->evaluatee->department->name ?? '');
+                                break;
+                            case 'branch_name':
+                                $valA = strtolower($a->evaluatee->branch->name ?? '');
+                                $valB = strtolower($b->evaluatee->branch->name ?? '');
+                                break;
+                            default:
+                                $valA = '';
+                                $valB = '';
+                        }
+
+                        if ($valA == $valB) continue;
+                        return ($valA < $valB ? -1 : 1) * ($sortOrder === 'asc' ? 1 : -1);
+                    }
+                    return 0;
+                })->values();
+            }
+
+            // 3. Pagination
+            $page = $request->page ?? 1;
+            $limit = $request->limit ?? 10;
+            $skip = ($page - 1) * $limit;
+
+            $totalResponseCount = $evaluationResponsesCollection->count();
+            $maxPageCount = ceil($totalResponseCount / $limit);
+            $pageResponseCount = min($limit, max(0, $totalResponseCount - $skip));
+
+            $evaluationResponses = $evaluationResponsesCollection
+                ->slice($skip, $limit)
+                ->values()
+            ;
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Responses successfully retrieved.',
+                'evaluationResponses' => $evaluationResponses,
+                'pageResponseCount' => $pageResponseCount,
+                'totalResponseCount' => $totalResponseCount,
+                'maxPageCount' => $maxPageCount
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error getting evaluation responses: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
     public function editEvaluationResponse(Request $request)
     {
+
         // inputs:
         /*
             id: number,
@@ -665,11 +913,10 @@ class EvaluationResponseController extends Controller
                     'message' => 'Invalid page or limit!'
                 ]);
             
-            // --- Build queries (NO ORDERING YET) ---
             $evaluateeResponses = $user
                 ->evaluateeResponses()
-                ->whereHas('form', function ($q) {
-                    $q->whereNull('evaluation_responses.deleted_at');
+                ->whereHas('form', function ($query) {
+                    $query->whereNull('deleted_at');
                 })
                 ->select(
                     'evaluation_responses.id',
@@ -708,7 +955,7 @@ class EvaluationResponseController extends Controller
             $createdResponses = $user
                 ->createdResponses()
                 ->whereHas('form', function ($q) {
-                    $q->whereNull('evaluation_responses.deleted_at');
+                    $q->whereNull('deleted_at');
                 })
                 ->select(
                     'evaluation_responses.id',
@@ -746,7 +993,7 @@ class EvaluationResponseController extends Controller
             $evaluatorResponses = $user
                 ->evaluatorResponses()
                 ->whereHas('form', function ($q) {
-                    $q->whereNull('evaluation_responses.deleted_at');
+                    $q->whereNull('deleted_at');
                 })
                 ->select(
                     'evaluation_responses.id',
@@ -782,7 +1029,7 @@ class EvaluationResponseController extends Controller
             $commentorResponses = $user
                 ->commentorResponses()
                 ->whereHas('form', function ($q) {
-                    $q->whereNull('evaluation_responses.deleted_at');
+                    $q->whereNull('deleted_at');
                 })
                 ->select(
                     'evaluation_responses.id',
