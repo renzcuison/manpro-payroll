@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('salary_plans_logs', function (Blueprint $table) {
             $table->id();
+            $table->timestamps();
+            $table->softDeletes();
 
             $table->unsignedBigInteger('client_id'); // Client to which the salary plan belongs
             $table->unsignedBigInteger('admin_id'); // Admin who made the change
