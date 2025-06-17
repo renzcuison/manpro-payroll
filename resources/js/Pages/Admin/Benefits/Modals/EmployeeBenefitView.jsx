@@ -14,7 +14,7 @@ import EmployeeBenefitEdit from "../Components/EmployeeBenefitEdit";
 import { useBenefits } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitView = ({ open, close, userName }) => {
-    const {employeeBenefits} = useBenefits(userName);
+    const {employeeBenefits} = useBenefits({userName: userName});
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 

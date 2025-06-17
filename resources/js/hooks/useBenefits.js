@@ -4,20 +4,20 @@ import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 
-export function useBenefits(userName = null){
+export function useBenefits({userName = null, loadEmployeesBenefits = false, loadBenefits = false}){
     const employeesBenefits = useQuery(["employeesBenefits"], async () => {
         const { data } = await axiosInstance.get("compensation/getEmployeesBenefits", {
             headers,
         });
         return data;
-    });
+    }, {enabled: loadEmployeesBenefits});
 
     const benefits = useQuery(["benefits"], async () => {
         const { data } = await axiosInstance.get("compensation/getBenefits", {
             headers,
         });
         return data;
-    });
+    }, {enabled: loadBenefits});
 
     const employeeBenefits = useQuery(["employeeBenefits", userName], async () => {
         const {data} = await axiosInstance.get("compensation/getEmployeeBenefits", {

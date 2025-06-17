@@ -5,7 +5,7 @@ import axiosInstance from "../../../../utils/axiosConfig";
 import { useBenefits } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
-    const {saveEmployeeBenefits, benefits} = useBenefits();
+    const {saveEmployeeBenefits, benefits} = useBenefits({loadBenefits: true});
 
     const [benefitError, setBenefitError] = useState(false);
     const [numberError, setNumberError] = useState(false);
