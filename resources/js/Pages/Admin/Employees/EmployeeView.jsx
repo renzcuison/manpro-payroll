@@ -29,7 +29,7 @@ const EmployeeView = () => {
     const { user } = useParams();
     const {employeeBenefits} = useBenefits(user);
     const {employeeDeductions} = useDeductions(user);
-    const {employeeIncentives} = useIncentives(user);
+    const {employeeIncentives} = useIncentives({userName: user});
     const {employeeAllowances} = useAllowances(user);
 
     const benefits = employeeBenefits.data?.benefits || [];

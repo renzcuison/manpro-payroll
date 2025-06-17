@@ -5,7 +5,7 @@ import { useIncentives } from "../../../../hooks/useIncentives";
 
 const EmployeeAddIncentives = ({userName, open, onClose }) => {
 
-    const {incentives: incentivesTypes, saveEmployeeIncentives} = useIncentives();
+    const {incentives: incentivesTypes, saveEmployeeIncentives} = useIncentives({loadIncentives: true});
     const incentives = incentivesTypes.data?.incentives || [];
 
     const [incentivesError, setIncentivesError] = useState(false);
