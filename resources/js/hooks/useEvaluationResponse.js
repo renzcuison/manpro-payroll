@@ -7,10 +7,9 @@ export function useEvaluationResponse(responseId) {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [evaluationResponse, setEvaluationResponse] = useState({});
-    const [evaluateeId, setEvaluateeId] = useState('');
-    const [formId, setFormId] = useState('');
-    const [evaluators, setEvaluators] = useState([]);
-    const [commentors, setCommentors] = useState([]);
+    const [evaluateeId, setEvaluateeId] = useState();
+    const [evaluatorId, setEvaluatorId] = useState();
+    const [formId, setFormId] = useState();
     const [periodStartAt, setPeriodStartAt] = useState('');
     const [periodStartEnd, setPeriodStartEnd] = useState('');
     const [signatureFilePaths, setSignatureFilePaths] = useState({});
@@ -73,10 +72,14 @@ export function useEvaluationResponse(responseId) {
                 const { evaluationResponse } = response.data;
                 if(!evaluationResponse) return;
                 const { evaluatee_signature, commentors, evaluators } = evaluationResponse;
+                const userId = JSON.parse(storedUser).id;
                 if(evaluatee_signature) loadSignatureFilePath(evaluatee_signature);
-                // for(let { signature_filepath } of [...commentors, ...evaluators])
-                //     if(signature_filepath) loadSignatureFilePath(signature_filepath);
-                console.log(evaluationResponse)
+                for(let { commentor_signature } of commentors)
+                    if(commentor_signature) loadSignatureFilePath(commentor_signature);
+                for(let { evaluator_id, evaluator_signature } of evaluators) {
+                    if(evaluator_signature) loadSignatureFilePath(evaluator_signature);
+                    if(evaluator_id === userId) setEvaluatorId(evaluator_id);
+                }
                 setEvaluationResponse(evaluationResponse);
             })
             .catch(error => {
@@ -556,12 +559,13 @@ export function useEvaluationResponse(responseId) {
     }
 
     return {
-        evaluateeSignatureFilePath, evaluationResponse, options, signatureFilePaths,
+        evaluateeSignatureFilePath, evaluationResponse, evaluatorId, options, signatureFilePaths,
         subcategories,
         deleteEvaluationResponse, editEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
         getMultipleChoiceOptionId,
-        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationSignature
+        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationSignature,
+        reloadEvaluationResponse
     };
 }
