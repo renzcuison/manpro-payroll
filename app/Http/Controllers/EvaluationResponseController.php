@@ -774,7 +774,7 @@ class EvaluationResponseController extends Controller
                         )
                         ->with(['sections' => fn ($section) =>
                             $section
-                                ->select('form_id', 'id', 'name', 'category', 'order')
+                                ->select('form_id', 'id', 'name', 'category', 'order', 'score')
                                 ->whereNull('deleted_at')
                                 ->with(['subcategories' => fn ($subcategory) =>
                                     $subcategory

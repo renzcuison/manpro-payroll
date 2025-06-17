@@ -538,7 +538,7 @@ const ModalReviewForm = ({ open, onClose, id }) => {
                     placeholder="Enter your comment here"
                     disabled={savingIds.includes(commentor.commentor_id)}
                   />
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                  {/* <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                     <Button
                       variant="contained"
                       size="small"
@@ -547,7 +547,7 @@ const ModalReviewForm = ({ open, onClose, id }) => {
                     >
                       {savingIds.includes(commentor.commentor_id) ? "Saving..." : "Save Comment"}
                     </Button>
-                  </Box>
+                  </Box> */}
                   {/* Modal for this commentor */}
                   <PerformanceEvaluationCommentorAcknowledge
                     open={openAcknowledgeFor === commentor.commentor_id}
