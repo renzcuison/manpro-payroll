@@ -72,6 +72,7 @@ class EvaluationResponse extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('signatures')->singleFile();
+        $this->addMediaCollection('evaluatee_signatures')->singleFile();
+        $this->addMediaCollection('creator_signatures')->singleFile();
     }
 }

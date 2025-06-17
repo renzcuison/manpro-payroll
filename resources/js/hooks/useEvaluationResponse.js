@@ -14,6 +14,7 @@ export function useEvaluationResponse(responseId) {
     const [periodStartAt, setPeriodStartAt] = useState('');
     const [periodStartEnd, setPeriodStartEnd] = useState('');
     const [evaluateeSignatureFilePath, setEvaluateeSignatureFilePath] = useState('');
+    const [evaluatorSignatureFilePaths, setEvaluatorSignatureFilePaths] = useState('');
     const subcategories = evaluationResponse.form?.sections.reduce((subcategories, section) => {
         for(let subcategory of section.subcategories) subcategories[subcategory.id] = subcategory;
         return subcategories;
@@ -552,11 +553,11 @@ export function useEvaluationResponse(responseId) {
 
     return {
         evaluationResponse, options, subcategories,
+        evaluateeSignatureFilePath, evaluatorSignatureFilePaths,
         deleteEvaluationResponse, editEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
         getMultipleChoiceOptionId,
-        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationSignature,
-        evaluateeSignatureFilePath
+        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationSignature
     };
 }

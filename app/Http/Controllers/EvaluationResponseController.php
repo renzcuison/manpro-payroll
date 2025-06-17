@@ -375,13 +375,31 @@ class EvaluationResponseController extends Controller
             if ($request->has('creator_signature_filepath')) {
                 $evaluationResponse->creator_signature_filepath = $request->creator_signature_filepath;
             }
-            if ($request->hasFile('evaluatee_signature_filepath'))
+            if ($request->hasFile('evaluatee_signature_filepath')) {
+                $evaluationResponse->clearMediaCollection('evaluatee_signatures');
                 $evaluationResponse
                     ->addMedia($request->file('evaluatee_signature_filepath'))
-                    ->toMediaCollection('signatures')
+                    ->toMediaCollection('evaluatee_signatures')
                 ;
-
+            }
+            if ($request->hasFile('creator_signature_filepath')) {
+                $evaluationResponse->clearMediaCollection('creator_signatures');
+                $evaluationResponse
+                    ->addMedia($request->file('creator_signature_filepath'))
+                    ->toMediaCollection('creator_signatures')
+                ;
+            }
             $evaluationResponse->save();
+
+            $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
+            if($evaluateeSignature)
+                $evaluationResponse->evaluatee_signature_filepath = $evaluateeSignature->getPath();
+            $creatorSignature = $evaluationResponse->getFirstMedia('creator_signatures');
+            if($creatorSignature)
+                $evaluationResponse->creator_signature_filepath = $creatorSignature->getPath();
+
+            if($evaluateeSignature || $creatorSignature) $evaluationResponse->save();
+
             DB::commit();
 
             return response()->json([
@@ -585,9 +603,14 @@ class EvaluationResponseController extends Controller
                     'message' => 'Evaluation Response not found!'
                 ]);
             }
-            $evaluateeSignature = $evaluationResponse->getFirstMedia('signatures');
+            $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
             if ($evaluateeSignature)
                 $evaluationResponse->evaluatee_signature = base64_encode(file_get_contents($evaluateeSignature->getPath()));
+            foreach ($evaluationResponse->evaluators as $index => $evaluator) {
+                $evaluatorSignature = $evaluator->getFirstMedia('signatures');
+                if ($evaluatorSignature)
+                    $evaluationResponse->evaluator_signature = base64_encode(file_get_contents($evaluatorSignature->getPath()));
+            }
 
             return response()->json([
                 'status' => 200,
@@ -1523,12 +1546,21 @@ class EvaluationResponseController extends Controller
 
             if($request->comment !== null)
                 $evaluationEvaluator->comment = $request->comment;
-            if ($request->hasFile('signature_filepath'))
+
+            if ($request->hasFile('signature_filepath')) {
+                $evaluationEvaluator->clearMediaCollection('signatures');
                 $evaluationEvaluator
                     ->addMedia($request->file('signature_filepath'))
                     ->toMediaCollection('signatures')
                 ;
+            }
             $evaluationEvaluator->save();
+
+            $evaluatorSignature = $evaluationEvaluator->getFirstMedia('signatures');
+            if($evaluatorSignature) {
+                $evaluationEvaluator->signature_filepath = $evaluatorSignature->getPath();
+                $evaluationEvaluator->save();
+            }
 
             DB::commit();
 
@@ -1912,6 +1944,12 @@ class EvaluationResponseController extends Controller
             if($request->signature_filepath !== null)
                 $evaluationCommentor->signature_filepath = $request->signature_filepath;
             $evaluationCommentor->save();
+
+            $commentorSignature = $evaluationCommentor->getFirstMedia('signatures');
+            if($commentorSignature) {
+                $evaluationCommentor->signature_filepath = $commentorSignature->getPath();
+                $evaluationCommentor->save();
+            }
 
             DB::commit();
 
