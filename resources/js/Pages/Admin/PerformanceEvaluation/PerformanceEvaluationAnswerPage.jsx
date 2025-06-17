@@ -17,10 +17,11 @@ const PerformanceEvaluationAnswerPage = () => {
   const navigate = useNavigate();
 
   const {
-    evaluationResponse, options, subcategories,
+    evaluationResponse, evaluatorId, options, signatureFilePaths, subcategories,
     editEvaluationResponse, setPercentageAnswer, setTextAnswer,
     setOptionAnswer, getMultipleChoiceOptionId,
-    editEvaluationEvaluator // You must implement this in your hook/backend, similar to editEvaluationCommentor
+    editEvaluationEvaluator,
+    reloadEvaluationResponse
   } = useEvaluationResponse(id);
 
   const { deleteEvaluationResponse } = useEvaluationResponse(id);
@@ -36,25 +37,12 @@ const PerformanceEvaluationAnswerPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
 
-  // EVALUATOR COMMENTS STATE
-  const [evaluatorComments, setEvaluatorComments] = useState([]);
   // Modal state for evaluator signature
   const [openEvaluatorAcknowledge, setOpenEvaluatorAcknowledge] = useState(false);
-  const [signatureData, setSignatureData] = useState(null);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
-      // Initialize evaluator comments state
-      if (Array.isArray(evaluationResponse.evaluators) && evaluationResponse.evaluators.length > 0) {
-        setEvaluatorComments(
-          evaluationResponse.evaluators.map(e => ({
-            evaluator_id: e.evaluator_id || e.id || e.user_id,
-            comment: e.comment || '',
-            name: getFullName(e)
-          }))
-        );
-      }
     }
   }, [evaluationResponse]);
 
@@ -86,12 +74,9 @@ const PerformanceEvaluationAnswerPage = () => {
   const handleLongAnswerChange = (subcategoryId, value) => setTextAnswer(subcategoryId, value);
 
   // EVALUATOR COMMENT HANDLING
-  const handleEvaluatorCommentInput = (evaluator_id, value) => {
-    setEvaluatorComments(prev =>
-      prev.map(e =>
-        e.evaluator_id === evaluator_id ? { ...e, comment: value } : e
-      )
-    );
+  const handleEvaluatorCommentInput = (evaluator, value) => {
+    evaluator.comment = value;
+    reloadEvaluationResponse();
   };
 
   // Submit Handler - open modal for signature
@@ -105,17 +90,16 @@ const PerformanceEvaluationAnswerPage = () => {
     setOpenEvaluatorAcknowledge(false);
     setSubmitting(true);
     try {
-      // Save all evaluator comments and signature
-      if (Array.isArray(evaluatorComments)) {
-        for (let evaluator of evaluatorComments) {
-          await editEvaluationEvaluator({
-            response_id: evaluationResponse.id,
-            evaluator_id: evaluator.evaluator_id,
-            comment: evaluator.comment,
-            signature_filepath: signatureData
-          });
-        }
-      }
+      // Save current evaluator comment and signature
+      await editEvaluationEvaluator({
+        response_id: evaluationResponse.id,
+        comment: evaluationResponse
+          .evaluators
+          .find(({evaluator_id}) => evaluator_id === evaluatorId)
+          ?.comment
+        ,
+        signature_filepath: signatureData
+      });
       // Save the rest of the evaluation form
       await editEvaluationResponse();
       Swal.fire({
@@ -152,7 +136,7 @@ const PerformanceEvaluationAnswerPage = () => {
     );
   }
 
-  const form = evaluationResponse.form;
+  const { evaluators, form } = evaluationResponse;
   const responseMeta = evaluationResponse;
 
   if (!form || !responseMeta) {
@@ -444,8 +428,30 @@ const PerformanceEvaluationAnswerPage = () => {
                                   {opt.label} - {opt.score ?? 1} {index !== subCategory.options.length - 1 && ','}
                                 </Typography>
                               ))}
+                              </Box>
+                              <Divider sx={{ my: 2 }} />
+                              <Box sx={{ mt: 2 }}>
+                                <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                                  Description:
+                                </Typography>
+                                <Box>
+                                  {subCategory.options?.map((opt, index) =>
+                                      opt.description ? (
+                                        <Typography
+                                          key={opt.id + "_desc"}
+                                          variant="body2"
+                                          sx={{fontSize: '0.8rem'}}
+                                        >
+                                          {opt.score} - {opt.description}
+                                        </Typography>
+                                      ) : null
+                                    )}
+                                </Box>
+                                
+
                             </Box>
                           </Box>
+                          
                         </>
                       )}
 
@@ -460,11 +466,11 @@ const PerformanceEvaluationAnswerPage = () => {
             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
               Evaluator Comments:
             </Typography>
-            {evaluatorComments.length > 0 ? (
+            {evaluators.length > 0 ? (
               <Box>
-                {evaluatorComments.map((evaluator, i) => (
+                {evaluators.map((evaluator, index) => (
                   <Paper
-                    key={evaluator.evaluator_id || i}
+                    key={evaluator.evaluator_id || index}
                     elevation={2}
                     sx={{
                       display: 'flex',
@@ -485,16 +491,18 @@ const PerformanceEvaluationAnswerPage = () => {
                       {evaluator.evaluator_id}
                     </Typography> */}
                     <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                      {evaluator.name}
+                      {getFullName(evaluator)}
+                      {evaluator.evaluator_id}, {evaluatorId}
                     </Typography>
                     <TextField
                       label="Evaluator Comment"
                       multiline
                       minRows={3}
                       fullWidth
+                      inputProps={{readOnly: evaluator.evaluator_id !== evaluatorId}}
                       value={evaluator.comment}
                       sx={{ mt: 1 }}
-                      onChange={e => handleEvaluatorCommentInput(evaluator.evaluator_id, e.target.value)}
+                      onChange={e => handleEvaluatorCommentInput(evaluator, e.target.value)}
                       placeholder="Enter your comment here"
                     />
                   </Paper>

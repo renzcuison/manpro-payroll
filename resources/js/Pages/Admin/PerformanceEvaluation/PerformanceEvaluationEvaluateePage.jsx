@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  IconButton, Menu, MenuItem, Paper, TextField, Grid, Button, Divider
+  IconButton, Menu, MenuItem, Paper, TextField, Grid, Button, Table, TableHead, TableBody, TableRow, TableCell, Divider
 } from '@mui/material';
 import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
@@ -12,9 +12,10 @@ import PerformanceEvaluationEvaluateeAcknowledge from '../../Admin/PerformanceEv
 import Swal from 'sweetalert2';
 import ScoreLinearBar from './Test/ScoreLinearBar';
 import jsPDF from "jspdf";
+import ModalReviewForm from './Modals/ModalReviewForm';
 
 const getSectionScore = (section) => {
-  if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [] };
+  if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [], weightedScore: 0 };
   let scoreTotal = 0;
   let counted = 0;
   const subcatScores = [];
@@ -24,12 +25,9 @@ const getSectionScore = (section) => {
     if (subcat.subcategory_type === 'multiple_choice') {
       const selected = subcat.options.find(opt => opt.option_answer);
       if (selected) {
-        const highestScore = Math.max(...subcat.options.map(o => Number(o.score) || 1));
-        if (highestScore > 0) {
-          subScore = ((Number(selected.score) || 1) / highestScore) * 5;
-        }
+        subScore = Number(selected.score) || 0;
       }
-      subcatScores.push({ name: subcat.name, score: subScore, description: subcat.description });
+      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'checkbox') {
@@ -37,9 +35,9 @@ const getSectionScore = (section) => {
       const selectedSum = selected.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
       const allSum = subcat.options.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
       if (allSum > 0) {
-        subScore = (selectedSum / allSum) * 5;
+        subScore = (selectedSum / allSum) * 100;
       }
-      subcatScores.push({ name: subcat.name, score: subScore, description: subcat.description });
+      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'linear_scale') {
@@ -48,39 +46,28 @@ const getSectionScore = (section) => {
         const end = Number(subcat.linear_scale_end) || 5;
         const value = Number(subcat.percentage_answer.value);
         if (end > start) {
-          subScore = ((value - start) / (end - start)) * 5;
+          subScore = ((value - start) / (end - start)) * 100;
         }
       }
-      subcatScores.push({ name: subcat.name, score: subScore, description: subcat.description });
+      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
       scoreTotal += subScore;
       counted++;
     }
   });
 
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;
-  return { sectionScore, subcatScores };
+  const weightedScore = ((sectionScore / 100) * (section.score || 0));
+  return { sectionScore, subcatScores, weightedScore };
 };
 
-function loadImageAsBase64(url) {
-  if (url && url.startsWith('data:image/')) {
-    return Promise.resolve(url);
-  }
-  return fetch(url)
-    .then(res => res.blob())
-    .then(blob => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    }));
-}
+
 
 const PerformanceEvaluationEvaluateePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const {
-    evaluationResponse,
-    editEvaluationCreatorSignature
+    creatorSignatureFilePath, evaluateeSignatureFilePath, evaluationResponse, signatureFilePaths,
+    editEvaluationSignature
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
@@ -89,6 +76,7 @@ const PerformanceEvaluationEvaluateePage = () => {
   const [savingAcknowledge, setSavingAcknowledge] = useState(false);
   const [hoveredSubcat, setHoveredSubcat] = useState(null);
   const [hoveredOpenAnswer, setHoveredOpenAnswer] = useState(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
@@ -103,7 +91,7 @@ const PerformanceEvaluationEvaluateePage = () => {
   const handleAcknowledge = async (signatureData) => {
     setSavingAcknowledge(true);
     try {
-      await editEvaluationCreatorSignature({
+      await editEvaluationSignature({
         response_id: evaluationResponse.id,
         evaluatee_signature_filepath: signatureData,
       });
@@ -150,7 +138,7 @@ const PerformanceEvaluationEvaluateePage = () => {
     doc.text(`Evaluatee: ${responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}`, margin, y);
     y += 18;
     doc.text(
-      `Evaluators: ${responseMeta?.evaluators ? responseMeta.evaluators.map(getFullName).join(', ') : ''}`,
+      `Evaluators: ${responseMeta?.evaluators ? responseMeta.evaluators.map(getFullName).join('—') : ''}`,
       margin, y
     );
     y += 18;
@@ -203,42 +191,56 @@ const PerformanceEvaluationEvaluateePage = () => {
     doc.text("Signatures:", margin, y);
     y += 18;
 
-    async function addSignatureImage(url, label, y) {
-      if (!url) return y;
-      try {
-        const img = await loadImageAsBase64(url);
-        doc.setFontSize(12);
-        doc.text(label, margin + 10, y + 15);
-        doc.addImage(img, "PNG", margin + 120, y, 80, 40);
-        y += 50;
-      } catch {
-        doc.text(`${label} (signature not found)`, margin + 10, y + 15);
-        y += 20;
-      }
-      return y;
-    }
+async function addSignatureImage(url, label, y) {
+  if (!url || url === "data:image/png;base64,") return y;
+  try {
+    // Try to "sanitize" the image by drawing it on a canvas and re-exporting as PNG
+    const img = new window.Image();
+    img.src = url;
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
 
-    if (responseMeta.creator_signature_filepath) {
-      y = await addSignatureImage(responseMeta.creator_signature_filepath, "Creator Signature", y);
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const pngDataUrl = canvas.toDataURL('image/png');
+
+    doc.setFontSize(12);
+    doc.text(label, margin + 10, y + 15);
+    doc.addImage(pngDataUrl, "PNG", margin + 120, y, 80, 40);
+    y += 50;
+  } catch (err) {
+    console.error("Error rendering signature", label, err, url);
+    doc.text(`${label} (signature not found)`, margin + 10, y + 15);
+    y += 20;
+  }
+  return y;
+}
+
+    if (creatorSignatureFilePath) {
+      y = await addSignatureImage(creatorSignatureFilePath, "Creator Signature", y);
     }
-    if (responseMeta.evaluatee_signature_filepath) {
-      y = await addSignatureImage(responseMeta.evaluatee_signature_filepath, "Evaluatee Signature", y);
+    if (evaluateeSignatureFilePath) {
+      y = await addSignatureImage(evaluateeSignatureFilePath, "Evaluatee Signature", y);
     }
-    if (Array.isArray(responseMeta.evaluators)) {
+    if (responseMeta?.evaluators)
       for (const evaluator of responseMeta.evaluators) {
-        if (evaluator.signature_filepath) {
-          y = await addSignatureImage(evaluator.signature_filepath, `${getFullName(evaluator)} (Evaluator)`, y);
+        const signatureFilePath = signatureFilePaths[evaluator.id];
+        if (signatureFilePath) {
+          y = await addSignatureImage(signatureFilePath, `${getFullName(evaluator)} (Evaluator)`, y);
         }
       }
-    }
-    if (Array.isArray(responseMeta.commentors)) {
+    if (responseMeta?.commentors)
       for (const commentor of responseMeta.commentors) {
-        if (commentor.signature_filepath) {
-          y = await addSignatureImage(commentor.signature_filepath, `${getFullName(commentor)} (Commentor)`, y);
+        const signatureFilePath = signatureFilePaths[commentor.id];
+        if (signatureFilePath) {
+          y = await addSignatureImage(signatureFilePath, `${getFullName(commentor)} (Commentor)`, y);
         }
       }
-    }
-
     doc.save(`evaluation_${form.name.replace(/\s+/g, '_')}.pdf`);
   };
 
@@ -283,9 +285,9 @@ const PerformanceEvaluationEvaluateePage = () => {
     ? responseMeta.evaluators
     : [];
 
-  const hasAcknowledged = !!responseMeta.evaluatee_signature_filepath;
+  const hasAcknowledged = Boolean(evaluateeSignatureFilePath);
 
-  return (
+  return <>
     <Layout title="Performance Evaluation Answers">
       <Box
         sx={{
@@ -330,17 +332,31 @@ const PerformanceEvaluationEvaluateePage = () => {
                 setTimeout(() => navigate('/admin/performance-evaluation'), 100);
               }}
             >Exit Form</MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleSettingsClose();
+                setReviewModalOpen(true);
+              }}
+            >
+              Review Form
+            </MenuItem>
+            
             <MenuItem onClick={async () => {
               handleSettingsClose();
               await handleDownloadPDF();
             }}>Download Results</MenuItem>
           </Menu>
+                    <ModalReviewForm
+              open={reviewModalOpen}
+              onClose={() => setReviewModalOpen(false)}
+              id={id} // pass the evaluation id
+            />
           <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
             {form.name}
           </Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
-          Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
+          Employee Name: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
@@ -383,7 +399,7 @@ const PerformanceEvaluationEvaluateePage = () => {
                 sx={{
                   bgcolor: '#E9AE20',
                   borderBottom: '1px solid #ffe082',
-                  cursor: 'default',
+                  cursor: 'default!important',
                   minHeight: 0,
                   mt: 3,
                   borderTopLeftRadius: '8px',
@@ -405,23 +421,23 @@ const PerformanceEvaluationEvaluateePage = () => {
                   <>
                     {/* SCORES BAR CHART */}
                     <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
-                      {subcatScores.map(({ name, score, description }, idx) => (
-                        <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={idx}>
+                      {subcatScores.map(({ name, score, description, id }, idx) => (
+                        <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={id}>
                           <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
                             <Box
                               component="span"
-                              onMouseEnter={() => setHoveredSubcat(`name-${name}`)}
+                              onMouseEnter={() => setHoveredSubcat(`name-${id}`)}
                               onMouseLeave={() => setHoveredSubcat(null)}
                               sx={{
                                 fontWeight: 'bold',
                                 whiteSpace: 'nowrap',
-                                cursor: 'pointer',
+                                cursor: 'default',
                                 position: 'relative',
                                 color: '#222'
                               }}
                             >
                               {name}
-                              {hoveredSubcat === `name-${name}` && !!description && (
+                              {hoveredSubcat === `name-${id}` && !!description && (
                                 <Box
                                   sx={{
                                     position: 'absolute',
@@ -456,16 +472,16 @@ const PerformanceEvaluationEvaluateePage = () => {
                           </Grid>
                           <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
                             <Box
-                              onMouseEnter={() => setHoveredSubcat(`bar-${name}`)}
+                              onMouseEnter={() => setHoveredSubcat(`bar-${id}`)}
                               onMouseLeave={() => setHoveredSubcat(null)}
                               sx={{ display: 'inline-block', width: '100%', position: 'relative' }}
                             >
                               <ScoreLinearBar
                                 variant="determinate"
-                                value={(score / 5) * 100}
-                                sx={{ width: '100%', minWidth: 580 }}
+                                value={(score)}
+                                sx={{ width: '100%', minWidth: 550 }}
                               />
-                              {hoveredSubcat === `bar-${name}` && !!description && (
+                              {hoveredSubcat === `bar-${id}` && !!description && (
                                 <Box
                                   sx={{
                                     position: 'absolute',
@@ -516,8 +532,8 @@ const PerformanceEvaluationEvaluateePage = () => {
                         <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
                           <ScoreLinearBar
                             variant="determinate"
-                            value={(sectionScore / 5) * 100}
-                            sx={{ width: '100%', minWidth: 590 }}
+                            value={(sectionScore)}
+                            sx={{ width: '100%', minWidth: 550 }}
                           />
                         </Grid>
                         <Grid item xs={2}>
@@ -535,7 +551,7 @@ const PerformanceEvaluationEvaluateePage = () => {
                         <Box
                           onMouseEnter={() => setHoveredOpenAnswer(subcat.id)}
                           onMouseLeave={() => setHoveredOpenAnswer(null)}
-                          sx={{ display: 'inline-block', fontWeight: 'bold', mb: 1, position: 'relative', cursor: !!subcat.description ? 'pointer' : 'default' }}
+                          sx={{ display: 'inline-block', fontWeight: 'bold', mb: 1, position: 'relative', cursor: 'default' }}
                         >
                           Open-ended Answers: {subcat.name}
                           {hoveredOpenAnswer === subcat.id && !!subcat.description && (
@@ -583,6 +599,72 @@ const PerformanceEvaluationEvaluateePage = () => {
           );
         })}
 
+  {/* --- Weighted Section Scores Summary (styled like sections) --- */}
+<Box sx={{ mt: 6, mb: 4, bgcolor: 'white', borderRadius: 2, boxShadow: 3 }}>
+  <Box
+    sx={{
+      bgcolor: '#E9AE20',
+      borderBottom: '1px solid #ffe082',
+      borderTopLeftRadius: '8px',
+      borderTopRightRadius: '8px',
+      py: 2,
+      px: 3
+    }}
+  >
+    <Typography variant="h5" sx={{ fontWeight: 'bold', color: "white" }}>
+      Weighted Scores
+    </Typography>
+  </Box>
+  <Box sx={{ p: 3 }}>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableCell sx={{ fontWeight: 700, fontSize: 16 }}>Section (Score Set)</TableCell>
+          <TableCell align="right" sx={{ fontWeight: 700, fontSize: 16 }}>Subcategory Average</TableCell>
+          <TableCell align="right" sx={{ fontWeight: 700, fontSize: 16 }}>Weighted Average</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {form.sections.filter(section =>
+          section.subcategories.some(sc =>
+            sc.subcategory_type === 'multiple_choice' ||
+            sc.subcategory_type === 'checkbox' ||
+            sc.subcategory_type === 'linear_scale'
+          )
+        ).map(section => {
+          const { sectionScore, weightedScore } = getSectionScore(section);
+          return (
+            <TableRow key={section.id}>
+              <TableCell>
+                {section.name} - <b>{section.score || 0}</b>
+              </TableCell>
+              <TableCell align="right">{sectionScore.toFixed(2)}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>{weightedScore.toFixed(2)}</TableCell>
+            </TableRow>
+          );
+        })}
+        <TableRow>
+          <TableCell colSpan={2} sx={{ fontWeight: 700, fontSize: 18 }}>Total</TableCell>
+          <TableCell align="right" sx={{ fontWeight: 700, color: "#137333", fontSize: 18 }}>
+            {form.sections
+              .filter(section =>
+                section.subcategories.some(sc =>
+                  sc.subcategory_type === 'multiple_choice' ||
+                  sc.subcategory_type === 'checkbox' ||
+                  sc.subcategory_type === 'linear_scale'
+                )
+              )
+              .reduce((sum, section) =>
+                sum + getSectionScore(section).weightedScore, 0
+              ).toFixed(2)
+            }
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  </Box>
+</Box>
+
         {/* All Evaluators Section - Each in its own box, stacked vertically */}
         <Box sx={{ mt: 6 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
@@ -613,16 +695,13 @@ const PerformanceEvaluationEvaluateePage = () => {
                     {getFullName(evaluator)}
                   </Typography>
                   <TextField
-                    label="Evaluator Comment"
                     multiline
                     minRows={3}
                     fullWidth
                     value={evaluator.comment || ''}
                     sx={{ mt: 1 }}
                     placeholder="No comment provided"
-                    InputProps={{
-                      readOnly: true,
-                    }}
+                    InputProps={{ readOnly: true }}
                   />
                 </Paper>
               ))}
@@ -665,7 +744,6 @@ const PerformanceEvaluationEvaluateePage = () => {
                     {getFullName(commentor)}
                   </Typography>
                   <TextField
-                    label="Comment"
                     multiline
                     minRows={3}
                     fullWidth
@@ -718,7 +796,7 @@ const PerformanceEvaluationEvaluateePage = () => {
         />
       </Box>
     </Layout>
-  );
+  </>;
 };
 
 export default PerformanceEvaluationEvaluateePage;

@@ -19,6 +19,7 @@ class EvaluationFormSection extends Model
         'name',
         'description',
         'order',
+        'score',
         'deleted_at'
     ];
 

@@ -285,8 +285,256 @@ class EvaluationResponseController extends Controller
         }
     }
 
+    public function getEvaluateeResponses(Request $request)
+    {
+        // inputs:
+        /*
+        */
+
+        // returns:
+        /*
+            evaluationResponses: {
+                id, evaluatee_id, date,
+                created_at, updated_at,
+                evaluators_unsigned_count, commentors_unsigned_count,
+                form_id, creator_user_name, form: {
+                    id, name, creator_id, creator_user_name,
+                    sections: {
+                        form_id, id, name, category, order,
+                        subcategories: {
+                            section_id, id, name, subcategory_type, description, required,
+                            allow_other_option, linear_scale_start, linear_scale_end, order,
+                            options: {
+                                subcategory_id, id, label, order,
+                                option_answer: { id, response_id, option_id }
+                            }[],
+                            percentage_answer: { id, response_id, subcategory_id, percentage, value, linear_scale_index } | null,
+                            text_answer: { id, response_id, subcategory_id, answer } | null
+                        }[]
+                    }[]
+                }
+            }[]
+            
+        */
+
+        Log::info('EvaluationResponseController::getEvaluateeResponses');
+
+        try {
+            if (Auth::check()) {
+                $userID = Auth::id();
+            } else {
+                $userID = null;
+            }
+
+            $user = UsersModel::where('id', $userID)->first();
+
+            if($request->page === null) $request->page = 1;
+            if($request->limit === null) $request->limit = 10;
+            if ($request->page < 1 || $request->limit < 1)
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Invalid page or limit!'
+                ]);
+            
+            $evaluationResponses = $user
+                ->evaluateeResponses()
+                ->whereHas('form', function ($query) {
+                    $query->whereNull('deleted_at');
+                })
+                ->select('evaluation_responses.id')
+                ->withCount([
+                    'evaluators as evaluators_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->withCount([
+                    'commentors as commentors_unsigned_count' => function ($query) {
+                        $query->whereNull('signature_filepath');
+                    }
+                ])
+                ->addSelect(
+                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    'form_id',
+                    'evaluation_responses.created_at',
+                    'evaluation_responses.updated_at'
+                )
+                ->whereNotNull('creator_signature_filepath')
+                ->whereNotNull('evaluatee_signature_filepath')
+                ->having('evaluators_unsigned_count', 0)
+                ->having('commentors_unsigned_count', 0)
+                ->with(['form' => fn ($evaluationForm) =>
+                    $evaluationForm
+                        ->join('users', 'evaluation_forms.creator_id', '=', 'users.id')
+                        ->select(
+                            'evaluation_forms.id',
+                            'evaluation_forms.name', 
+                            'evaluation_forms.creator_id',
+                            'users.user_name as creator_user_name'
+                        )
+                        ->with(['sections' => fn ($section) =>
+                            $section
+                                ->select('form_id', 'id', 'name', 'category', 'order')
+                                ->whereNull('deleted_at')
+                                ->with(['subcategories' => fn ($subcategory) =>
+                                    $subcategory
+                                        ->select(
+                                            'section_id', 'id',
+                                            'name', 'subcategory_type', 'description',
+                                            'required', 'allow_other_option',
+                                            'linear_scale_start', 'linear_scale_end', 'linear_scale_end_label', 'linear_scale_start_label',
+                                            'order'
+                                        )
+                                        ->whereNull('deleted_at')
+                                        ->with([
+                                            'options' => fn ($option) =>
+                                                $option
+                                                    ->select(
+                                                        'subcategory_id', 'id', 'label', 'score', 'order', 'description'
+                                                    )
+                                                    ->whereNull('deleted_at')
+                                                    ->with([
+                                                        'optionAnswer' => fn ($optionAnswer) =>
+                                                            $optionAnswer
+                                                                ->select('response_id', 'option_id')
+                                                                ->whereNull('deleted_at')
+                                                                ->where('response_id', $request->id)
+                                                    ])
+                                                    ->orderBy('order')
+                                                    
+                                            ,
+                                            'percentageAnswer' => fn ($percentageAnswer) =>
+                                                $percentageAnswer
+                                                    ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+                                                    ->select(
+                                                        'evaluation_percentage_answers.response_id',
+                                                        'evaluation_percentage_answers.subcategory_id',
+                                                        'evaluation_percentage_answers.percentage',
+                                                        'evaluation_form_subcategories.subcategory_type'
+                                                    )
+                                                    ->addSelect(DB::raw(
+                                                        "round(evaluation_percentage_answers.percentage*"
+                                                        ."(evaluation_form_subcategories.linear_scale_end"
+                                                        ."-evaluation_form_subcategories.linear_scale_start)"
+                                                        ."+evaluation_form_subcategories.linear_scale_start)"
+                                                        ." as value"
+                                                    ))
+                                                    ->addSelect(DB::raw(
+                                                        "round(evaluation_percentage_answers.percentage*"
+                                                        ."(evaluation_form_subcategories.linear_scale_end"
+                                                        ."-evaluation_form_subcategories.linear_scale_start))"
+                                                        ." as linear_scale_index"
+                                                    ))
+                                                    ->whereNull('evaluation_percentage_answers.deleted_at')
+                                                    ->where('response_id', $request->id)
+                                            ,
+                                            'textAnswer' => fn ($textAnswer) =>
+                                                $textAnswer
+                                                    ->select('response_id', 'subcategory_id', 'answer')
+                                                    ->whereNull('deleted_at')
+                                                    ->where('response_id', $request->id)
+                                        ])
+                                        ->orderBy('order')
+                                ])
+                                ->orderBy('order')
+                        ])
+                ])
+            ;
+
+            if ($request->form_id !== null)
+                $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
+
+            $evaluationResponsesCollection = $evaluationResponses->get();
+
+            // --- PHP-level filtering and sorting ---
+            // 1. Searching
+            if ($request->search) {
+                $searchTerm = strtolower(trim($request->search));
+                $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
+                    $formName = strtolower($row->form->name ?? '');
+                    $date = strtolower($row->date ?? '');
+                    $department = strtolower($row->evaluatee->department->name ?? '');
+                    $branch = strtolower($row->evaluatee->branch->name ?? '');
+
+                    return 
+                        strpos($formName, $searchTerm) !== false ||
+                        strpos($date, $searchTerm) !== false ||
+                        strpos($department, $searchTerm) !== false ||
+                        strpos($branch, $searchTerm) !== false
+                    ;
+                })->values();
+            }
+
+            // 2. Sorting (multi-column, supports front-end's order_by array)
+            if ($request->order_by && is_array($request->order_by)) {
+                $orderByArray = $request->order_by;
+                $evaluationResponsesCollection = $evaluationResponsesCollection->sort(function ($a, $b) use ($orderByArray) {
+                    foreach ($orderByArray as $order) {
+                        $key = $order['key'] ?? null;
+                        $sortOrder = strtolower($order['sort_order'] ?? 'asc');
+
+                        // PHP property/attribute access
+                        switch ($key) {
+                            case 'updated_at':
+                            case 'created_at':
+                                $valA = strtotime($a->$key);
+                                $valB = strtotime($b->$key);
+                                break;
+                            case 'form_name':
+                                $valA = strtolower($a->form->name ?? '');
+                                $valB = strtolower($b->form->name ?? '');
+                                break;
+                            case 'department_name':
+                                $valA = strtolower($a->evaluatee->department->name ?? '');
+                                $valB = strtolower($b->evaluatee->department->name ?? '');
+                                break;
+                            case 'branch_name':
+                                $valA = strtolower($a->evaluatee->branch->name ?? '');
+                                $valB = strtolower($b->evaluatee->branch->name ?? '');
+                                break;
+                            default:
+                                $valA = '';
+                                $valB = '';
+                        }
+
+                        if ($valA == $valB) continue;
+                        return ($valA < $valB ? -1 : 1) * ($sortOrder === 'asc' ? 1 : -1);
+                    }
+                    return 0;
+                })->values();
+            }
+
+            // 3. Pagination
+            $page = $request->page ?? 1;
+            $limit = $request->limit ?? 10;
+            $skip = ($page - 1) * $limit;
+
+            $totalResponseCount = $evaluationResponsesCollection->count();
+            $maxPageCount = ceil($totalResponseCount / $limit);
+            $pageResponseCount = min($limit, max(0, $totalResponseCount - $skip));
+
+            $evaluationResponses = $evaluationResponsesCollection
+                ->slice($skip, $limit)
+                ->values()
+            ;
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Responses successfully retrieved.',
+                'evaluationResponses' => $evaluationResponses,
+                'pageResponseCount' => $pageResponseCount,
+                'totalResponseCount' => $totalResponseCount,
+                'maxPageCount' => $maxPageCount
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error getting evaluation responses: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
     public function editEvaluationResponse(Request $request)
     {
+
         // inputs:
         /*
             id: number,
@@ -375,11 +623,31 @@ class EvaluationResponseController extends Controller
             if ($request->has('creator_signature_filepath')) {
                 $evaluationResponse->creator_signature_filepath = $request->creator_signature_filepath;
             }
-            if ($request->has('evaluatee_signature_filepath')) {
-                $evaluationResponse->evaluatee_signature_filepath = $request->evaluatee_signature_filepath;
+            if ($request->hasFile('evaluatee_signature_filepath')) {
+                $evaluationResponse->clearMediaCollection('evaluatee_signatures');
+                $evaluationResponse
+                    ->addMedia($request->file('evaluatee_signature_filepath'))
+                    ->toMediaCollection('evaluatee_signatures')
+                ;
             }
-
+            if ($request->hasFile('creator_signature_filepath')) {
+                $evaluationResponse->clearMediaCollection('creator_signatures');
+                $evaluationResponse
+                    ->addMedia($request->file('creator_signature_filepath'))
+                    ->toMediaCollection('creator_signatures')
+                ;
+            }
             $evaluationResponse->save();
+
+            $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
+            if($evaluateeSignature)
+                $evaluationResponse->evaluatee_signature_filepath = $evaluateeSignature->getPath();
+            $creatorSignature = $evaluationResponse->getFirstMedia('creator_signatures');
+            if($creatorSignature)
+                $evaluationResponse->creator_signature_filepath = $creatorSignature->getPath();
+
+            if($evaluateeSignature || $creatorSignature) $evaluationResponse->save();
+
             DB::commit();
 
             return response()->json([
@@ -406,15 +674,18 @@ class EvaluationResponseController extends Controller
             evaluationResponse: {
                 id, evaluatee_id, datetime,
                 period_start_date, period_end_date,
-                signature_filepath,
                 created_at, updated_at,
-                status,                 // returns 'pending' always for now
+                status,
                 evaluatee: { id, response_id, last_name, first_name, middle_name, suffix },
+                evaluatee_signature, evaluatee_signature_filepath
+                creator_signature, creator_signature_filepath
                 evaluators: {
-                    evaluator_id, response_id, last_name, first_name, middle_name, suffix, comment, order, signature_filepath
+                    evaluator_id, response_id, last_name, first_name, middle_name, suffix,
+                    comment, order, evalator_signature, signature_filepath
                 }[],
                 commentors: {
-                    commentor_id, response_id, last_name, first_name, middle_name, suffix, comment, order, signature_filepath
+                    commentor_id, response_id, last_name, first_name, middle_name, suffix,
+                    comment, order, commentor_signature, signature_filepath
                 }[],
                 form_id, creator_user_name, form: {
                     id, name, creator_id, creator_user_name,
@@ -431,9 +702,9 @@ class EvaluationResponseController extends Controller
                             text_answer: { id, response_id, subcategory_id, answer } | null
                         }[]
                     }[]
-                },
-
+                }
             }
+            
         */
 
         log::info('EvaluationResponseController::getEvaluationResponse');
@@ -503,7 +774,7 @@ class EvaluationResponseController extends Controller
                         )
                         ->with(['sections' => fn ($section) =>
                             $section
-                                ->select('form_id', 'id', 'name', 'category', 'order')
+                                ->select('form_id', 'id', 'name', 'category', 'order', 'score')
                                 ->whereNull('deleted_at')
                                 ->with(['subcategories' => fn ($subcategory) =>
                                     $subcategory
@@ -519,7 +790,7 @@ class EvaluationResponseController extends Controller
                                             'options' => fn ($option) =>
                                                 $option
                                                     ->select(
-                                                        'subcategory_id', 'id', 'label', 'score', 'order'
+                                                        'subcategory_id', 'id', 'label', 'score', 'order', 'description'
                                                     )
                                                     ->whereNull('deleted_at')
                                                     ->with([
@@ -582,6 +853,30 @@ class EvaluationResponseController extends Controller
                     'message' => 'Evaluation Response not found!'
                 ]);
             }
+            $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
+            $evaluationResponse->evaluatee_signature = (
+                $evaluateeSignature ? base64_encode(file_get_contents($evaluateeSignature->getPath()))
+                : null
+            );
+            $creatorSignature = $evaluationResponse->getFirstMedia('creator_signatures');
+            $evaluationResponse->creator_signature = (
+                $creatorSignature ? base64_encode(file_get_contents($creatorSignature->getPath()))
+                : null
+            );
+            foreach ($evaluationResponse->evaluators as $index => $evaluator) {
+                $evaluatorSignature = $evaluator->getFirstMedia('signatures');
+                $evaluator->evaluator_signature = (
+                    $evaluatorSignature ? base64_encode(file_get_contents($evaluatorSignature->getPath()))
+                    : null
+                );
+            }
+            foreach ($evaluationResponse->commentors as $index => $commentor) {
+                $commentorSignature = $commentor->getFirstMedia('signatures');
+                $commentor->commentor_signature = (
+                    $commentorSignature ? base64_encode(file_get_contents($commentorSignature->getPath()))
+                    : null
+                );
+            }
 
             return response()->json([
                 'status' => 200,
@@ -599,45 +894,9 @@ class EvaluationResponseController extends Controller
 
     public function getEvaluationResponses(Request $request)
     {
-        // inputs:
-        /*
-            page: number = 1,                   // counting starts at 1
-            limit: number = 10,
-            form_id?: number,                   // gets all if none given
-            search: string,                     // searches for form name, date, evalautee name, department name, branch name, or status
-            order_by: {
-                key:
-                    'updated_at' | 'form_name' | 'last_name' | 'first_name' |
-                    'middle_name' | 'suffix' | 'department_name' | 'branch_name' |
-                    'status'                    // pending first -> finished last
-                ,
-                sort_order: 'asc' | 'desc' = 'asc'
-            }[];
-        */
-
-        // outputs:
-        /*
-            evaluationResponses: {
-                id, role, status, commentor_order,
-                evaluators_unsigned_count, commentors_unsigned_count, commentors_signed_count,
-                date, form_id, evaluatee_id,
-                created_at, updated_at,
-                form: { id, form_name },
-                evaluatee: {
-                    id, last_name, first_name, middle_name, suffix,
-                    branch: { id, name },
-                    department: { id, name }
-                },
-            }[],
-            pageResponseCount,
-            totalResponseCount,
-            maxPageCount
-        */
-
         Log::info('EvaluationResponseController::getEvaluationResponses');
 
         try {
-
             if (Auth::check()) {
                 $userID = Auth::id();
             } else {
@@ -656,16 +915,13 @@ class EvaluationResponseController extends Controller
             
             $evaluateeResponses = $user
                 ->evaluateeResponses()
-                ->whereHas('form', function ($q) {
-                    $q->whereNull('evaluation_responses.deleted_at');
+                ->whereHas('form', function ($query) {
+                    $query->whereNull('deleted_at');
                 })
                 ->select(
-                    'id',
+                    'evaluation_responses.id',
                     DB::raw("'Evaluatee' as role"),
-                    DB::raw("
-                        IF(ISNULL(evaluatee_signature_filepath), 'Pending', 'Done')
-                        as status
-                    "),
+                    DB::raw("IF(ISNULL(evaluatee_signature_filepath), 'Pending', 'Done') as status"),
                     DB::raw('null as commentor_order')
                 )
                 ->withCount([
@@ -688,7 +944,9 @@ class EvaluationResponseController extends Controller
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at'
+                    'evaluation_responses.updated_at',
+                    'evaluation_responses.period_start_at',
+                    'evaluation_responses.period_end_at'
                 )
                 ->whereNotNull('creator_signature_filepath')
                 ->having('evaluators_unsigned_count', 0)
@@ -697,15 +955,12 @@ class EvaluationResponseController extends Controller
             $createdResponses = $user
                 ->createdResponses()
                 ->whereHas('form', function ($q) {
-                    $q->whereNull('evaluation_responses.deleted_at');
+                    $q->whereNull('deleted_at');
                 })
                 ->select(
-                    'id',
+                    'evaluation_responses.id',
                     DB::raw("'Creator' as role"),
-                    DB::raw("
-                        IF(ISNULL(creator_signature_filepath), 'Pending', 'Done')
-                        as status
-                    "),
+                    DB::raw("IF(ISNULL(creator_signature_filepath), 'Pending', 'Done') as status"),
                     DB::raw('null as commentor_order')
                 )
                 ->withCount([
@@ -728,7 +983,9 @@ class EvaluationResponseController extends Controller
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at'
+                    'evaluation_responses.updated_at',
+                    'evaluation_responses.period_start_at',
+                    'evaluation_responses.period_end_at'
                 )
                 ->having('evaluators_unsigned_count', 0)
                 ->having('commentors_unsigned_count', 0)
@@ -736,15 +993,12 @@ class EvaluationResponseController extends Controller
             $evaluatorResponses = $user
                 ->evaluatorResponses()
                 ->whereHas('form', function ($q) {
-                    $q->whereNull('evaluation_responses.deleted_at');
+                    $q->whereNull('deleted_at');
                 })
                 ->select(
-                    'id',
+                    'evaluation_responses.id',
                     DB::raw("'Evaluator' as role"),
-                    DB::raw("
-                        IF(ISNULL(signature_filepath), 'Pending', 'Done')
-                        as status
-                    "),
+                    DB::raw("IF(ISNULL(signature_filepath), 'Pending', 'Done') as status"),
                     DB::raw('null as commentor_order')
                 )
                 ->withCount([
@@ -767,21 +1021,20 @@ class EvaluationResponseController extends Controller
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at'
+                    'evaluation_responses.updated_at',
+                    'evaluation_responses.period_start_at',
+                    'evaluation_responses.period_end_at'
                 )
             ;
             $commentorResponses = $user
                 ->commentorResponses()
                 ->whereHas('form', function ($q) {
-                    $q->whereNull('evaluation_responses.deleted_at');
+                    $q->whereNull('deleted_at');
                 })
                 ->select(
-                    'id',
+                    'evaluation_responses.id',
                     DB::raw("'Commentor' as role"),
-                    DB::raw("
-                        IF(ISNULL(signature_filepath), 'Pending', 'Done')
-                        as status
-                    "),
+                    DB::raw("IF(ISNULL(signature_filepath), 'Pending', 'Done') as status"),
                     'order as commentor_order'
                 )
                 ->withCount([
@@ -804,7 +1057,9 @@ class EvaluationResponseController extends Controller
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at'
+                    'evaluation_responses.updated_at',
+                    'evaluation_responses.period_start_at',
+                    'evaluation_responses.period_end_at'
                 )
                 ->having('evaluators_unsigned_count', 0)
                 ->having('commentor_order', '<=', DB::raw('commentors_signed_count + 1'))
@@ -815,148 +1070,130 @@ class EvaluationResponseController extends Controller
                 ->union($commentorResponses)
                 ->with(['form' => function ($form) {
                     $form->select('id', 'name');
-                    
                 }])
                 ->with(['evaluatee' => function ($form) {
                     $form
                         ->select(
                             'id', 'last_name', 'first_name', 'middle_name', 'suffix', 'branch_id', 'department_id'
                         )
-                        
                         ->with(['branch' => function ($form) {
                             $form->select('id', 'name');
-                            
                         }])
                         ->with(['department' => function ($form) {
                             $form->select('id', 'name');
-                        }])
-                    ;
-                }])
-                ->orderBy('created_at', 'desc')
-            ;
-
-            // searching code here
-
-            // if($request->search) {
-            //     $evaluationResponses = $evaluationResponses
-            //         ->whereHas('form', function ($query) use ($request) {
-            //             // $query->where('name', 'LIKE', "%$request->search%");
-            //             $query->where(DB::raw('id'), '=', 2);
-            //         })
-            //     ;
-            // }
-
-                // $evaluationResponses = $evaluationResponses->where(function ($query) use ($request) {
-                //     $query
-                //         // ->whereHas(DB::raw('form.name'), 'LIKE', "%$request->search%")
-                //         ->whereHas('form', function (Builder $query) {
-                //             $query->where('name', 'like', "%$request->search%");
-                //         })
-                //         // ->orWhere(DB::raw("date_format(evaluation_responses.updated_at, '%b %d, %Y')"), 'LIKE', "%$request->search%")
-                //         // ->orWhere(
-                //         //     DB::raw('CONCAT(
-                //         //         evaluatees.last_name, ", ",
-                //         //         evaluatees.first_name,
-                //         //         IF(ISNULL(evaluatees.middle_name), "", CONCAT(" ", evaluatees.middle_name)),
-                //         //         IF(ISNULL(evaluatees.suffix), "", CONCAT(" ", evaluatees.suffix))
-                //         //     )'),
-                //         //     'LIKE', "%$request->search%"
-                //         // )
-                //         // ->orWhere('departments.name', 'LIKE', "%$request->search%")
-                //         // ->orWhere('branches.name', 'LIKE', "%$request->search%")
-                //     ;
-                // });
+                        }]);
+                }]);
 
             if ($request->form_id !== null)
                 $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
 
-            // if ($request->order_by) foreach ($request->order_by as $index => $order_by_param) {
-            //     $sortOrder = $order_by_param['sort_order'] ?? 'asc';
-            //     if ($sortOrder != 'asc' && $sortOrder != 'desc')
-            //         return response()->json([
-            //             'status' => 400,
-            //             'message' => 'Sort order is invalid!'
-            //         ]);
-            //     switch ($order_by_param['key']) {
-            //         case 'branch_name':
-            //             $evaluationResponses = $evaluationResponses->orderBy('branches.name', $sortOrder);
-            //             break;
-            //         case 'department_name':
-            //             $evaluationResponses = $evaluationResponses->orderBy('departments.name', $sortOrder);
-            //             break;
-            //         case 'last_name':
-            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.last_name', $sortOrder);
-            //             break;
-            //         case 'first_name':
-            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.first_name', $sortOrder);
-            //             break;
-            //         case 'middle_name':
-            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.middle_name', $sortOrder);
-            //             break;
-            //         case 'suffix':
-            //             $evaluationResponses = $evaluationResponses->orderBy('evaluatees.suffix', $sortOrder);
-            //             break;
-            //         case 'updated_at':
-            //             $evaluationResponses = $evaluationResponses->orderBy('evaluation_responses.updated_at', $sortOrder);
-            //             break;
-            //         default:
-            //             return response()->json([
-            //                 'status' => 400,
-            //                 'message' => 'Order by option is invalid!'
-            //             ]);
-            //     }
-            // }
-
             $evaluationResponsesCollection = $evaluationResponses->get();
 
-        // 2. Filter in PHP if searching
-        if ($request->search) {
-            $searchTerm = strtolower(trim($request->search));
-            $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
-                $formName = strtolower($row->form->name ?? '');
-                $date = strtolower($row->date ?? '');
-                $fullName = strtolower(trim(
-                    ($row->evaluatee->last_name ?? '') . ', ' .
-                    ($row->evaluatee->first_name ?? '') . ' ' .
-                    ($row->evaluatee->middle_name ?? '') . ' ' .
-                    ($row->evaluatee->suffix ?? '')
-                ));
-                $department = strtolower($row->evaluatee->department->name ?? '');
-                $branch = strtolower($row->evaluatee->branch->name ?? '');
-                $status = strtolower($row->status ?? '');
+            // --- PHP-level filtering and sorting ---
+            // 1. Searching
+            if ($request->search) {
+                $searchTerm = strtolower(trim($request->search));
+                $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
+                    $formName = strtolower($row->form->name ?? '');
+                    $date = strtolower($row->date ?? '');
+                    $fullName = strtolower(trim(
+                        ($row->evaluatee->last_name ?? '') . ', ' .
+                        ($row->evaluatee->first_name ?? '') . ' ' .
+                        ($row->evaluatee->middle_name ?? '') . ' ' .
+                        ($row->evaluatee->suffix ?? '')
+                    ));
+                    $department = strtolower($row->evaluatee->department->name ?? '');
+                    $branch = strtolower($row->evaluatee->branch->name ?? '');
+                    $status = strtolower($row->status ?? '');
 
-                return 
-                    strpos($formName, $searchTerm) !== false ||
-                    strpos($date, $searchTerm) !== false ||
-                    strpos($fullName, $searchTerm) !== false ||
-                    strpos($department, $searchTerm) !== false ||
-                    strpos($branch, $searchTerm) !== false ||
-                    strpos($status, $searchTerm) !== false;
-            })->values();
-        }
-        
+                    return 
+                        strpos($formName, $searchTerm) !== false ||
+                        strpos($date, $searchTerm) !== false ||
+                        strpos($fullName, $searchTerm) !== false ||
+                        strpos($department, $searchTerm) !== false ||
+                        strpos($branch, $searchTerm) !== false ||
+                        strpos($status, $searchTerm) !== false;
+                })->values();
+            }
 
-        $page = $request->page ?? 1;
-        $limit = $request->limit ?? 10;
-        $skip = ($page - 1) * $limit;
+            // 2. Status filter
+            if ($request->status && in_array($request->status, ['Pending', 'Done'])) {
+                $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($request) {
+                    return $row->status === $request->status;
+                })->values();
+            }
 
-        // Use the filtered collection for pagination and counts
-        $totalResponseCount = $evaluationResponsesCollection->count();
-        $maxPageCount = ceil($totalResponseCount / $limit);
-        $pageResponseCount = min($limit, $totalResponseCount - $skip);
+            // 3. Sorting (multi-column, supports front-end's order_by array)
+            if ($request->order_by && is_array($request->order_by)) {
+                $orderByArray = $request->order_by;
+                $evaluationResponsesCollection = $evaluationResponsesCollection->sort(function ($a, $b) use ($orderByArray) {
+                    foreach ($orderByArray as $order) {
+                        $key = $order['key'] ?? null;
+                        $sortOrder = strtolower($order['sort_order'] ?? 'asc');
 
-        $evaluationResponses = $evaluationResponsesCollection
-            ->slice($skip, $limit)
-            ->values(); // Laravel collection
+                        // PHP property/attribute access
+                        switch ($key) {
+                            case 'updated_at':
+                            case 'created_at':
+                                $valA = strtotime($a->$key);
+                                $valB = strtotime($b->$key);
+                                break;
+                            case 'form_name':
+                                $valA = strtolower($a->form->name ?? '');
+                                $valB = strtolower($b->form->name ?? '');
+                                break;
+                            case 'last_name':
+                            case 'first_name':
+                            case 'middle_name':
+                            case 'suffix':
+                                $valA = strtolower($a->evaluatee->{$key} ?? '');
+                                $valB = strtolower($b->evaluatee->{$key} ?? '');
+                                break;
+                            case 'department_name':
+                                $valA = strtolower($a->evaluatee->department->name ?? '');
+                                $valB = strtolower($b->evaluatee->department->name ?? '');
+                                break;
+                            case 'branch_name':
+                                $valA = strtolower($a->evaluatee->branch->name ?? '');
+                                $valB = strtolower($b->evaluatee->branch->name ?? '');
+                                break;
+                            case 'status':
+                                $valA = strtolower($a->status ?? '');
+                                $valB = strtolower($b->status ?? '');
+                                break;
+                            default:
+                                $valA = '';
+                                $valB = '';
+                        }
 
-        return response()->json([
-            'status' => 200,
-            'message' => 'Evaluation Responses successfully retrieved.',
-            'evaluationResponses' => $evaluationResponses,
-            'pageResponseCount' => $pageResponseCount,
-            'totalResponseCount' => $totalResponseCount,
-            'maxPageCount' => $maxPageCount
-        ]);
+                        if ($valA == $valB) continue;
+                        return ($valA < $valB ? -1 : 1) * ($sortOrder === 'asc' ? 1 : -1);
+                    }
+                    return 0;
+                })->values();
+            }
+
+            // 4. Pagination
+            $page = $request->page ?? 1;
+            $limit = $request->limit ?? 10;
+            $skip = ($page - 1) * $limit;
+
+            $totalResponseCount = $evaluationResponsesCollection->count();
+            $maxPageCount = ceil($totalResponseCount / $limit);
+            $pageResponseCount = min($limit, max(0, $totalResponseCount - $skip));
+
+            $evaluationResponses = $evaluationResponsesCollection
+                ->slice($skip, $limit)
+                ->values();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Responses successfully retrieved.',
+                'evaluationResponses' => $evaluationResponses,
+                'pageResponseCount' => $pageResponseCount,
+                'totalResponseCount' => $totalResponseCount,
+                'maxPageCount' => $maxPageCount
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error getting evaluation responses: ' . $e->getMessage());
@@ -1164,7 +1401,6 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             response_id: number,
-            evaluator_id: number,
             comment?: string,
             signature_filepath?: string
         */
@@ -1197,11 +1433,11 @@ class EvaluationResponseController extends Controller
 
             $evaluationEvaluator = EvaluationEvaluator
                 ::select(
-                    'response_id', 'evaluator_id', 'comment', 'order', 'signature_filepath',
-                    'created_at', 'updated_at'
+                    'id', 'response_id', 'evaluator_id', 'comment', 'order',
+                    'signature_filepath', 'created_at', 'updated_at'
                 )
                 ->where('response_id', $request->response_id)
-                ->where('evaluator_id', $request->evaluator_id)
+                ->where('evaluator_id', $userID)
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -1209,32 +1445,34 @@ class EvaluationResponseController extends Controller
             if(!$evaluationEvaluator) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Evaluator not found!',
-                'evaluationEvaluatorID' => $request->evaluator_id
+                'evaluationEvaluatorID' => $userID
             ]);
 
             if($request->comment !== null)
                 $evaluationEvaluator->comment = $request->comment;
-            if($request->signature_filepath !== null)
-                $evaluationEvaluator->signature_filepath = $request->signature_filepath;
-            // $request->signature_filepath = $_POST['signature_filepath'];
-            // $request->signature_filepath = str_replace('data:image/png;base64,', '', $request->signature_filepath);
-            // $request->signature_filepath = str_replace(' ', '+', $request->signature_filepath);
-            // echo $request->signature_filepath;
-            // $request->signature_filepath = base64_decode($request->signature_filepath);
-            $saved = $request->hasFile('signature_filepath');
+
             if ($request->hasFile('signature_filepath')) {
-			    $evaluationEvaluator->clearMediaCollection('signatures');
-                $evaluationEvaluator->addMediaFromRequest('signature_filepath')->toMediaCollection('signatures');
+                $evaluationEvaluator->clearMediaCollection('signatures');
+                $evaluationEvaluator
+                    ->addMedia($request->file('signature_filepath'))
+                    ->toMediaCollection('signatures')
+                ;
             }
             $evaluationEvaluator->save();
+
+            $evaluatorSignature = $evaluationEvaluator->getFirstMedia('signatures');
+            if($evaluatorSignature) {
+                $evaluationEvaluator->signature_filepath = $evaluatorSignature->getPath();
+                $evaluationEvaluator->save();
+                $evaluationEvaluator->evaluator_signature = base64_encode(file_get_contents($evaluatorSignature->getPath()));
+            } else $evaluationEvaluator->evaluator_signature = null;
 
             DB::commit();
 
             return response()->json([
                 'status' => 200,
                 'evaluationEvaluator' => $evaluationEvaluator,
-                'message' => 'Evaluation Evaluator successfully updated',
-                'saved' => $saved
+                'message' => 'Evaluation Evaluator successfully updated'
             ]);
 
         } catch (\Exception $e) {
@@ -1558,7 +1796,6 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             response_id: number,
-            commentor_id: number,
             comment?: string,
             signature_filepath?: string
         */
@@ -1591,11 +1828,11 @@ class EvaluationResponseController extends Controller
 
             $evaluationCommentor = EvaluationCommentor
                 ::select(
-                    'response_id', 'commentor_id', 'comment', 'order', 'signature_filepath',
-                    'created_at', 'updated_at'
+                    'id', 'response_id', 'commentor_id', 'comment', 'order',
+                    'signature_filepath', 'created_at', 'updated_at'
                 )
                 ->where('response_id', $request->response_id)
-                ->where('commentor_id', $request->commentor_id)
+                ->where('commentor_id', $userID)
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -1608,9 +1845,21 @@ class EvaluationResponseController extends Controller
 
             if($request->comment !== null)
                 $evaluationCommentor->comment = $request->comment;
-            if($request->signature_filepath !== null)
-                $evaluationCommentor->signature_filepath = $request->signature_filepath;
+            if ($request->hasFile('signature_filepath')) {
+                $evaluationCommentor->clearMediaCollection('signatures');
+                $evaluationCommentor
+                    ->addMedia($request->file('signature_filepath'))
+                    ->toMediaCollection('signatures')
+                ;
+            }
             $evaluationCommentor->save();
+
+            $commentorSignature = $evaluationCommentor->getFirstMedia('signatures');
+            if($commentorSignature) {
+                $evaluationCommentor->signature_filepath = $commentorSignature->getPath();
+                $evaluationCommentor->save();
+                $evaluationCommentor->commentor_signature = base64_encode(file_get_contents($commentorSignature->getPath()));
+            } else $evaluationCommentor->commentor_signature = null;
 
             DB::commit();
 

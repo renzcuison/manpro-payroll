@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
     TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
-    Divider, TextField, InputAdornment, IconButton
+    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
@@ -34,6 +34,12 @@ const getEvaluationRoleRoute = (row) => {
     }
 };
 
+const STATUS_OPTIONS = [
+    { value: '', label: "All" },
+    { value: 'Pending', label: "Pending" },
+    { value: 'Done', label: "Done" },
+];
+
 const PerformanceEvaluationList = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const user = JSON.parse(storedUser);
@@ -53,6 +59,9 @@ const PerformanceEvaluationList = () => {
     const [searchValue, setSearchValue] = useState('');
     const [searchInput, setSearchInput] = useState('');
 
+    // Status filter state
+    const [statusFilter, setStatusFilter] = useState('');
+
     // Menu Items
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -62,7 +71,6 @@ const PerformanceEvaluationList = () => {
     // Modal state for New Form
     const [modalOpen, setModalOpen] = useState(false);
 
-    // Fetch evaluation forms for menu dropdown
     useEffect(() => {
         axiosInstance.get('/getEvaluationForms', { headers })
             .then((response) => setPerformanceEvaluation(response.data.evaluationForms || []))
@@ -72,15 +80,14 @@ const PerformanceEvaluationList = () => {
     // Fetch evaluation responses for the current user (as evaluatee or evaluator or commentor)
     useEffect(() => {
         setIsLoading(true);
+
         axiosInstance.get('/getEvaluationResponses', {
             headers,
             params: {
                 page: page + 1, // backend is 1-based
                 limit: rowsPerPage,
                 search: searchValue,
-                order_by: [
-                    { key: "updated_at", sort_order: "desc" }
-                ]
+                status: statusFilter || undefined, // only send if set
             }
         })
             .then((response) => {
@@ -107,27 +114,57 @@ const PerformanceEvaluationList = () => {
                 setTotalCount(0);
             })
             .finally(() => setIsLoading(false));
-    }, [page, rowsPerPage, searchValue]);
+    }, [page, rowsPerPage, searchValue, statusFilter]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
     // Search handlers
-    const handleSearchChange = (e) => {
-        setSearchInput(e.target.value);
-    };
-
+    const handleSearchChange = (e) => setSearchInput(e.target.value);
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         setPage(0);
         setSearchValue(searchInput.trim());
     };
-
     const handleClearSearch = () => {
         setSearchInput('');
         setSearchValue('');
         setPage(0);
+    };
+
+    // Status filter handler
+    const handleStatusChange = (e) => {
+        setStatusFilter(e.target.value);
+        setPage(0); // reset to first page
+    };
+
+    // Check if the evaluation/comment period is disabled
+    const isRowDisabled = (row) => {
+        const now = new Date();
+        // The backend should provide these as ISO strings; fallback to undefined if missing
+        const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
+        const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
+        if (!periodStart || !periodEnd) return false;
+        return now < periodStart || now > periodEnd;
+    };
+
+    // Handle row click for period validation
+    const handleRowClick = (row) => {
+        const now = new Date();
+        const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
+        const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
+        // Allow navigation if dates are missing for some reason
+        if (!periodStart || !periodEnd) {
+            navigate(getEvaluationRoleRoute(row));
+            return;
+        }
+        // Disallow if now is not within the period
+        if (now < periodStart || now > periodEnd) {
+            alert('Evaluation or Comments for this form has been disabled');
+            return;
+        }
+        navigate(getEvaluationRoleRoute(row));
     };
 
     return (
@@ -150,13 +187,13 @@ const PerformanceEvaluationList = () => {
                             >
                                 <i className="fa"></i> Create Evaluation
                             </Button>
-                            {/* Right group: Search and Forms */}
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {/* Right group: Search, Status Filter, Forms */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                 {/* Search Field */}
                                 <Box
                                     component="form"
                                     onSubmit={handleSearchSubmit}
-                                    sx={{ mr: 1, width: 260 }}
+                                    sx={{ width: 220 }}
                                 >
                                     <TextField
                                         placeholder="Search..."
@@ -187,6 +224,19 @@ const PerformanceEvaluationList = () => {
                                         }}
                                     />
                                 </Box>
+                                {/* Status Filter */}
+                                <FormControl size="small" sx={{ minWidth: 110 }}>
+                                    <InputLabel>Status</InputLabel>
+                                    <Select
+                                        value={statusFilter}
+                                        label="Status"
+                                        onChange={handleStatusChange}
+                                    >
+                                        {STATUS_OPTIONS.map(opt => (
+                                            <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
                                 {/* Forms Dropdown Button */}
                                 <Button
                                     id="performance-evaluation-menu"
@@ -267,11 +317,12 @@ const PerformanceEvaluationList = () => {
                                                     <TableRow
                                                         key={row.id}
                                                         hover
-                                                        style={{ cursor: 'pointer' }}
-                                                        onClick={() => navigate(getEvaluationRoleRoute(row))}
-                                                        sx={{
-                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper'
+                                                        style={{
+                                                            cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
+                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
+                                                            opacity: isRowDisabled(row) ? 0.5 : 1,
                                                         }}
+                                                        onClick={() => handleRowClick(row)}
                                                     >
                                                         <TableCell align="center">{row.date}</TableCell>
                                                         <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>

@@ -15,6 +15,7 @@ export function useEvaluationFormSection(section) {
     const [editableCategory, setEditableCategory] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [order, setOrder] = useState();
+    const [draggedSubcategoryId, setDraggedSubcategoryId] = useState(null);
     const [subcategories, setSubcategories] = useState([]);
 
     useEffect(() => {
@@ -83,7 +84,6 @@ export function useEvaluationFormSection(section) {
 
     // subcategory operations
 
-    // Updated: replace in array if exists, otherwise append
     function upsertSubcategory(subcategory) {
         setSubcategories(prev => {
             const exists = prev.some(sc => sc.id === subcategory.id);
@@ -95,7 +95,6 @@ export function useEvaluationFormSection(section) {
         });
     }
 
-    // Updated: Just use upsert!
     function getSubcategory(subcategoryId) {
         axiosInstance
             .get(`/getEvaluationFormSubcategory`, {
@@ -111,7 +110,30 @@ export function useEvaluationFormSection(section) {
             })
     }
 
-    // Updated: expect whole subcategory from backend for robust update
+    function moveSubcategory(oldOrder, newOrder) {
+        if(oldOrder === newOrder) return;
+        axiosInstance
+            .post('/moveEvaluationFormSubcategory', {
+                id: subcategories[oldOrder - 1].id,
+                order: newOrder
+            }, { headers })
+            .catch(error => {
+                console.error('Error moving subcategory: ', error);
+                setSubcategories([...subcategories]);
+            })
+        ;
+        const moveUp = oldOrder < newOrder;
+        for(
+            let order = moveUp ? oldOrder + 1 : oldOrder - 1;
+            moveUp ? (order <= newOrder) : (order >= newOrder);
+            order += (moveUp ? 1 : -1) * 1
+        ) subcategories[order - 1].order = order + (moveUp ? -1 : 1);
+        const removed = subcategories.splice(oldOrder - 1, 1)[0];
+        removed.order = newOrder;
+        subcategories.splice(newOrder - 1, 0, removed);
+        setSubcategories([...subcategories]);
+    }
+
     function saveSubcategory(subcategory) {
         if(!sectionCategory) {
             Swal.fire({
@@ -190,7 +212,7 @@ export function useEvaluationFormSection(section) {
         });
     }
 
-    let returnData = {
+    return {
         section: {
             id: sectionId,
             name: sectionName,
@@ -199,18 +221,14 @@ export function useEvaluationFormSection(section) {
             subcategories
         },
         sectionId,
+        editSection,
         sectionName, setSectionName,
         editableSectionName, toggleEditableSection,
         sectionCategory, setSectionCategory,
         editableCategory, toggleEditableCategory,
         expanded, toggleExpand,
         order,
-        subcategories, saveSubcategory,
-        deleteSubcategory
+        subcategories, saveSubcategory, moveSubcategory, deleteSubcategory,
+        draggedSubcategoryId, setDraggedSubcategoryId,
     };
-
-    if(!isNew)
-        returnData = { ...returnData, editSection };
-
-    return returnData;
 }

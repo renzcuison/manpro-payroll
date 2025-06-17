@@ -37,18 +37,24 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
     };
 
     const handleOptionScoreChange = (index, event) => {
-        // Ensure the correct value is being passed to the editOption function
-        editOption(index, options[index].label, Number(event.target.value)); // converting value to number
+        editOption(index, options[index].label, Number(event.target.value));
+    };
+
+    const handleOptionDescriptionChange = (index, event) => {
+        // Add this function
+        editOption(index, options[index].label, options[index].score, event.target.value);
     };
 
 
     const handleAddOption = () => {
-        saveOption('', 1); 
+        saveOption('', 1, ''); 
     };
 
     const handleRemoveOption = (index) => {
         deleteOption(index);
     };
+
+    
 
     return (
         
@@ -130,13 +136,13 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                 </Box>
 
                 {(responseType === 'multipleChoice' || responseType === 'checkbox') && (
-                    <Box sx={{ mb: 2 }}>
-                        {options.map(({ label, score }, index) => (
-                            <Grid container spacing={2} key={index} sx={{ mb: 2 }} alignItems="center">
+                    <Box sx={{ mb: 2, width: '100%'}}>
+                        {options.map(({ label, score, description }, index) => (
+                            <Grid container spacing={3} key={index} sx={{ mb: 2 }} alignItems="center">
                                 <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
                                     <Typography variant="body1">{index + 1}.</Typography>
                                 </Grid>
-                                <Grid item xs={7}>
+                                <Grid item xs={3}>
                                     <TextField
                                         variant="outlined"
                                         fullWidth
@@ -153,11 +159,24 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                                         type="number"
                                         onChange={(e) => handleOptionScoreChange(index, e)}
                                         sx={{ width: 80 }}
-                                        size="small"
+                                        
                                         inputProps={{ min: 0, step: 1 }}
                                     />
                                 </Grid>
-                                <Grid item xs={2}>
+                                <Grid item xs={12}>
+                                    <TextField
+                                    variant="outlined"
+                                    multiline
+                                    label="Description"
+                                    placeholder="Why this score?"
+                                    value={description || ""}
+                                    onChange={e => handleOptionDescriptionChange(index, e)}
+                                    fullWidth
+                                    
+                                />
+                                </Grid>
+                                
+                                <Grid item xs={1}>
                                     <IconButton
                                         onClick={() => handleRemoveOption(index)}
                                         sx={{ color: 'gray' }}
