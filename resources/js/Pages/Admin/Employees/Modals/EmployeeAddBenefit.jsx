@@ -14,12 +14,12 @@ import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
 import { useBenefits, useSaveEmployeeBenefits } from '../../../../hooks/useBenefits';
+import { useBenefits } from '../../../../hooks/useBenefits';
 
 const EmployeeAddBenefit = ({ open, onClose, userName }) => {
     const navigate = useNavigate();
-    const saveEmployeeBenefits = useSaveEmployeeBenefits();
-    const {data} = useBenefits();
-    const benefits = data?.benefits || [];
+    const {benefits: benefitsQuery, saveEmployeeBenefits} = useBenefits({loadBenefits: true})
+    const benefits = benefitsQuery.data?.benefits || [];
     const [benefitError, setBenefitError] = useState(false);
     const [numberError, setNumberError] = useState(false);
 
