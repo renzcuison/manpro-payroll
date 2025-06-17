@@ -115,7 +115,7 @@ const LeaveCreditList = () => {
                                                         <TableCell align="center">{employee.department || '-'}</TableCell>
                                                         <TableCell align="center">{Number(employee.total || 0).toFixed(2)}</TableCell>
                                                         <TableCell align="center">{Number(employee.used || 0).toFixed(2)}</TableCell>
-                                                        <TableCell align="center">{Number(employee.remaining || 0).toFixed(2)}</TableCell>
+                                                        <TableCell align="center" sx={{ fontWeight: '800' }}>{Number(employee.remaining || 0).toFixed(2)}</TableCell>
                                                     </TableRow>
                                                 ))
                                             ) : (

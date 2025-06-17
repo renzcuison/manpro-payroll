@@ -1,26 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {
-    Box,
-    Typography,
-    Button,
-    TextField,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    Chip,
-    ListItemText,
-    Checkbox,
-    Menu,
-    MenuItem,
-    IconButton,
-    Grid,
-    FormGroup,
-    FormControl,
-} from "@mui/material";
+import { Box, Typography, Button, TextField, Dialog, DialogTitle, DialogContent, Chip, ListItemText,
+Checkbox, Menu, MenuItem, IconButton, Grid, FormGroup, FormControl, } from "@mui/material";
 import axiosInstance,{ getJWTHeader }  from "../../../../utils/axiosConfig";
 import Swal from "sweetalert2";
+import { useDepartments } from "../../../../hooks/useDepartments";
 
 const DepartmentAdd = ({open, close}) =>{
+    const {saveDepartment} = useDepartments();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
@@ -30,8 +16,6 @@ const DepartmentAdd = ({open, close}) =>{
     const [acronym, setAcronym] = useState("");
     const [description, setDescription] = useState("");
      
-
-
     // Add New Department to the Backend functions
     const checkInput = (event) => {
         event.preventDefault();
@@ -68,39 +52,17 @@ const DepartmentAdd = ({open, close}) =>{
     };
 
     const saveInput = (event) => {
-        event.preventDefault();
+        event.preventDefault(); 
 
         const data = {
+            id: null,
             name: name,
             acronym: acronym,
             description: description,
         };
 
-        axiosInstance.post('/settings/saveDepartment', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Department saved successfully!",
-                        icon: "success",
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        close(true);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Error saving department!",
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                });
-            });
+        saveDepartment.mutate({data: data, onSuccessCallback: () => close(true)})
+        
     };
 
     return(

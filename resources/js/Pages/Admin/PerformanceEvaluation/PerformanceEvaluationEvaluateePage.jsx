@@ -64,7 +64,7 @@ const getSectionScore = (section) => {
 
 
 
-function loadImageAsBase64(url) {
+async function loadImageAsBase64(url) {
   if (url && url.startsWith('data:image/')) {
     return Promise.resolve(url);
   }
@@ -82,8 +82,8 @@ const PerformanceEvaluationEvaluateePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const {
-    evaluationResponse,
-    editEvaluationCreatorSignature
+    evaluationResponse, evaluateeSignatureFilePath,
+    editEvaluationSignature
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
@@ -107,7 +107,7 @@ const PerformanceEvaluationEvaluateePage = () => {
   const handleAcknowledge = async (signatureData) => {
     setSavingAcknowledge(true);
     try {
-      await editEvaluationCreatorSignature({
+      await editEvaluationSignature({
         response_id: evaluationResponse.id,
         evaluatee_signature_filepath: signatureData,
       });
@@ -240,8 +240,8 @@ async function addSignatureImage(url, label, y) {
     if (responseMeta.creator_signature_filepath) {
       y = await addSignatureImage(responseMeta.creator_signature_filepath, "Creator Signature", y);
     }
-    if (responseMeta.evaluatee_signature_filepath) {
-      y = await addSignatureImage(responseMeta.evaluatee_signature_filepath, "Evaluatee Signature", y);
+    if (evaluateeSignatureFilePath) {
+      y = await addSignatureImage(evaluateeSignatureFilePath, "Evaluatee Signature", y);
     }
     if (Array.isArray(responseMeta.evaluators)) {
       for (const evaluator of responseMeta.evaluators) {
@@ -302,9 +302,9 @@ async function addSignatureImage(url, label, y) {
     ? responseMeta.evaluators
     : [];
 
-  const hasAcknowledged = !!responseMeta.evaluatee_signature_filepath;
+  const hasAcknowledged = Boolean(evaluateeSignatureFilePath);
 
-  return (
+  return <>
     <Layout title="Performance Evaluation Answers">
       <Box
         sx={{
@@ -751,7 +751,7 @@ async function addSignatureImage(url, label, y) {
         />
       </Box>
     </Layout>
-  );
+  </>;
 };
 
 export default PerformanceEvaluationEvaluateePage;

@@ -10,6 +10,7 @@ import Layout from "../../../../components/Layout/Layout";
 import PemeResponsesTable from "./PemeResponsesTable";
 import PemeDueDatePicker from "./PemeDueDatePicker";
 import DateRangePicker from "../../../../components/DateRangePicker";
+import PemeSettingsModal from "./Modals/PemeSettingsModal"
 
 // MUI components
 import {
@@ -24,8 +25,9 @@ import {
     InputAdornment,
     Divider,
     FormControlLabel,
+    IconButton,
 } from "@mui/material";
-
+import SettingsIcon from "@mui/icons-material/Settings";
 import Swal from "sweetalert2";
 
 // MUI X Date Picker
@@ -45,6 +47,7 @@ const PemeResponses = () => {
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     const [dueDate, setDueDate] = useState(null);
+    const [settingsOpen, setSettingsOpen] = useState(false);
 
     // FETCH THE QUESTIONNAIRE STRUCTURE FOR THE GIVEN PEME ID
     useEffect(() => {
@@ -52,6 +55,9 @@ const PemeResponses = () => {
             .get(`/peme/${PemeID}/questionnaire`, { headers })
             .then((response) => {
                 setPemeRecords(response.data);
+                setVisible(response.data.isVisible === 1);
+                setEditable(response.data.isEditable === 1);
+                setMultiple(response.data.isEditable === 1);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -76,33 +82,65 @@ const PemeResponses = () => {
     }, []);
 
     const [visible, setVisible] = useState(true);
+    const [multiple, setMultiple] = useState(true);
+    const [editable, setEditable] = useState(true);
 
-    const setIsHiddenOrVisible = async () => {
-        if (pemeRecords.isVisible === 1) {
-            try {
-                const payload = {
-                    isVisible: 0,
-                };
-                console.log("pasylaod", payload);
-                await axiosInstance.patch(
-                    `/updatePemeSettings/${PemeID}`,
-                    payload,
-                    {
-                        headers,
-                    }
-                );
-            } catch {
-                console.log("error");
-            }
-        } else {
-            const payload = {
-                isVisible: 1,
-            };
-            axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, {
-                headers,
-            });
-        }
-    };
+    // const setIsHiddenOrVisible = async () => {
+    //     const isCurrentlyVisible = visible;
+    //     const newStatus = isCurrentlyVisible ? 0 : 1;
+
+    //     if (isCurrentlyVisible) {
+    //         Swal.fire({
+    //             title: "Hide this PEME Exam?",
+    //             text: `You are about to hide "${pemeRecords?.peme || "this PEME Exam"}".`,
+    //             icon: "warning",
+    //             showCancelButton: true,
+    //             confirmButtonText: "Hide",
+    //             cancelButtonText: "Cancel",
+    //             confirmButtonColor: "#d33",
+    //             customClass: { container: "my-swal" },
+    //         }).then(async (result) => {
+    //             if (result.isConfirmed) {
+    //                 try {
+    //                     const payload = { isVisible: 0 };
+
+    //                     await axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, { headers });
+
+    //                     Swal.fire({
+    //                         icon: "success",
+    //                         text: `PEME exam hidden successfully.`,
+    //                         showConfirmButton: false,
+    //                         timer: 1500,
+    //                     });
+
+    //                     setVisible(false);
+    //                 } catch (error) {
+    //                     console.error("Visibility toggle failed:", error);
+    //                     Swal.fire({
+    //                         icon: "error",
+    //                         title: "Error",
+    //                         text: "Failed to update visibility.",
+    //                     });
+    //                 }
+    //             }
+    //         });
+    //     } else {
+    //         try {
+    //             const payload = { isVisible: 1 };
+
+    //             await axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, { headers });
+    //             setVisible(true);
+    //         } catch (error) {
+    //             console.error("Visibility toggle failed:", error);
+    //             Swal.fire({
+    //                 icon: "error",
+    //                 title: "Error",
+    //                 text: "Failed to update visibility.",
+    //             });
+    //         }
+    //     }
+    // };
+
 
     const handleOnRowClick = (responseID) => {
         navigator(
@@ -283,24 +321,9 @@ const PemeResponses = () => {
                             >
                                 Preview
                             </Button>
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={visible}
-                                        onChange={(e) =>
-                                            setVisible(e.target.checked)
-                                        }
-                                        onClick={() => setIsHiddenOrVisible()}
-                                    />
-                                }
-                                label="Visible"
-                                sx={{
-                                    "& .MuiFormControlLabel-label": {
-                                        color: visible ? "green" : "gray",
-                                        fontWeight: "bold",
-                                    },
-                                }}
-                            />
+                            <IconButton onClick={() => setSettingsOpen(true)} aria-label="Settings">
+                                <SettingsIcon />
+                            </IconButton>
                         </Box>
                     </Box>
 
@@ -347,7 +370,7 @@ const PemeResponses = () => {
                                             >
                                                 {resultsCount}{" "}
                                                 {resultsCount === 1 ||
-                                                resultsCount === 0
+                                                    resultsCount === 0
                                                     ? "Match"
                                                     : "Matches"}
                                             </Typography>
@@ -368,6 +391,19 @@ const PemeResponses = () => {
                     </Box>
                 </Box>
             </Box>
+            <PemeSettingsModal
+                open={settingsOpen}
+                onClose={() => setSettingsOpen(false)}
+                visible={visible}
+                setVisible={setVisible}
+                multiple={multiple}
+                setMultiple={setMultiple}
+                editable={editable}
+                setEditable={setEditable}
+                PemeID={PemeID}
+                pemeRecords={pemeRecords}
+                headers={headers}
+            />
         </Layout>
     );
 };

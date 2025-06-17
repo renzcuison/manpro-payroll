@@ -8,8 +8,8 @@ import { useIncentives } from '../../../hooks/useIncentives';
 import IncentivesAdd from './Modals/IncentivesAdd';
 
 const IncentivesTypes = () => {
-    const {data, isLoading, error, refetch} = useIncentives();
-    const incentives = data?.incentives || [];
+    const { incentives: incentivesQuery } = useIncentives();
+    const incentives = incentivesQuery.data?.incentives || [];
     const [openAddIncentiveseModal, setOpenAddIncentivesModal] = useState(false);
 
     const handleOpenAddIncentiveseModal = () => {
@@ -27,7 +27,7 @@ const IncentivesTypes = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                            <Link to="/admin/employees/incentives" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to="/admin/compensation/incentives" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
                             &nbsp; Incentives Types

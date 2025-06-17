@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('evaluation_form_subcategories', function (Blueprint $table) {
-            //
-        });
+        DB::statement(
+            "ALTER TABLE `evaluation_form_subcategories` CHANGE `subcategory_type` `subcategory_type` ENUM('checkbox','linear_scale','long_answer','dropdown','multiple_choice','short_answer') NOT NULL;"
+        );
     }
 };

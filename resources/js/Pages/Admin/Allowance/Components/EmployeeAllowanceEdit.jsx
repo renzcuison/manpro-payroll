@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField,  FormControl, FormGroup, InputAdornment } from "@mui/material";
 import Swal from "sweetalert2";
-import { useUpdateEmployeeAllowance } from "../../../../hooks/useAllowance";
+import { useAllowances } from "../../../../hooks/useAllowances";
 
 const EmployeeAllowanceEdit = ({allowances, onClose}) => {
-    const updateEmpAllowance = useUpdateEmployeeAllowance();
-
+    const {updateEmployeeAllowance} = useAllowances();
     const [number, setNumber] = useState(allowances?.number)
     const [selectedStatus, setSelectedStatus] = useState(allowances?.status);
 
@@ -41,7 +40,7 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
     const saveAllowance = (event) => {
         event.preventDefault();
         const data = {emp_allowance_id: allowances.id, number: number}
-        updateEmpAllowance.mutate(data,
+        updateEmployeeAllowance.mutate(data,
         {
             onSuccess: () => {
                 Swal.fire({

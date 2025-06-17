@@ -40,7 +40,6 @@ const PerformanceEvaluationAnswerPage = () => {
   const [evaluatorComments, setEvaluatorComments] = useState([]);
   // Modal state for evaluator signature
   const [openEvaluatorAcknowledge, setOpenEvaluatorAcknowledge] = useState(false);
-  const [signatureData, setSignatureData] = useState(null);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {

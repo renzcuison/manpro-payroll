@@ -13,6 +13,8 @@ export function useEvaluationResponse(responseId) {
     const [commentors, setCommentors] = useState([]);
     const [periodStartAt, setPeriodStartAt] = useState('');
     const [periodStartEnd, setPeriodStartEnd] = useState('');
+    const [evaluateeSignatureFilePath, setEvaluateeSignatureFilePath] = useState('');
+    const [evaluatorSignatureFilePaths, setEvaluatorSignatureFilePaths] = useState('');
     const subcategories = evaluationResponse.form?.sections.reduce((subcategories, section) => {
         for(let subcategory of section.subcategories) subcategories[subcategory.id] = subcategory;
         return subcategories;
@@ -71,6 +73,19 @@ export function useEvaluationResponse(responseId) {
                 const { evaluationResponse } = response.data;
                 if(!evaluationResponse) return;
                 setEvaluationResponse(evaluationResponse);
+                const { evaluatee_signature } = evaluationResponse;
+                if(!evaluatee_signature) return;
+                const byteCharacters = window.atob(evaluatee_signature);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'image/png' });
+
+                if (evaluateeSignatureFilePath && evaluateeSignatureFilePath.startsWith('blob:'))
+                    URL.revokeObjectURL(evaluateeSignatureFilePath);
+                setEvaluateeSignatureFilePath(URL.createObjectURL(blob));
             })
             .catch(error => {
                 console.error('Error fetching response data:', error);
@@ -474,13 +489,11 @@ export function useEvaluationResponse(responseId) {
     // For saving comment and signature for the evaluator - Khim
     async function editEvaluationEvaluator({ response_id, evaluator_id, comment, signature_filepath }) {
         try {
-            const payload = {
-                response_id,
-                evaluator_id,
-            };
-            if (comment !== undefined) payload.comment = comment;
-            if (signature_filepath !== undefined) payload.signature_filepath = signature_filepath;
-
+            const payload = new FormData();
+            payload.append('response_id', response_id);
+            payload.append('evaluator_id', evaluator_id);
+            if (comment !== undefined) payload.append('comment', comment);
+            if (signature_filepath !== undefined) payload.append('signature_filepath', signature_filepath);
             const response = await axiosInstance.post(
                 '/editEvaluationEvaluator',
                 payload,
@@ -505,15 +518,14 @@ export function useEvaluationResponse(responseId) {
     }
 
     // For saving evaluatee/creator signature
-    async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath, evaluatee_signature_filepath }) {
+    async function editEvaluationSignature({ response_id, creator_signature_filepath, evaluatee_signature_filepath }) {
         try {
-            const payload = {
-                id: response_id,
-            };
+            const payload = new FormData();
+            payload.set('id', response_id);
             if (creator_signature_filepath !== undefined)
-                payload.creator_signature_filepath = creator_signature_filepath;
+                payload.set('creator_signature_filepath', creator_signature_filepath);
             if (evaluatee_signature_filepath !== undefined)
-                payload.evaluatee_signature_filepath = evaluatee_signature_filepath;
+                payload.set('evaluatee_signature_filepath', evaluatee_signature_filepath);
 
             const response = await axiosInstance.post(
                 '/editEvaluationResponse',
@@ -541,10 +553,11 @@ export function useEvaluationResponse(responseId) {
 
     return {
         evaluationResponse, options, subcategories,
+        evaluateeSignatureFilePath, evaluatorSignatureFilePaths,
         deleteEvaluationResponse, editEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
         getMultipleChoiceOptionId,
-        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationCreatorSignature,
+        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationSignature
     };
 }

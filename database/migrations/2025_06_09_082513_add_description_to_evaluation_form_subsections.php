@@ -27,8 +27,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('evaluation_form_subsections', function (Blueprint $table) {
-            //
+        Schema::table('evaluation_form_sections', function (Blueprint $table) {
+            $table->dropColumn('description');
+        });
+        Schema::table('evaluation_form_subcategories', function (Blueprint $table) {
+            $table->dropColumn('description');
+        });
+        Schema::table('evaluation_form_subcategory_options', function (Blueprint $table) {
+            $table->dropColumn('description');
         });
     }
 };

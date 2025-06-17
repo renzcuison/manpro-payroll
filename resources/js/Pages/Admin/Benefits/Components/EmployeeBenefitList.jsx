@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, TextField, Typography } from "@mui/material";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, TextField, Typography, Tooltip} from "@mui/material";
 import dayjs from "dayjs";
+import LoadingSpinner from "../../../../components/LoadingStates/LoadingSpinner";
 
 
-const EmployeeBenefitList = ({ benefits,  onAdd, onEdit }) => {
+const EmployeeBenefitList = ({ benefits, isLoading, onAdd, onEdit }) => {
+    if(isLoading){
+        return (
+            <Box display='flex' justifyContent='center'>
+                <LoadingSpinner/>
+            </Box>
+        )
+    }
     return (
         <Box>
             <TableContainer>
@@ -27,22 +35,26 @@ const EmployeeBenefitList = ({ benefits,  onAdd, onEdit }) => {
                                     </TableCell>
 
                                     <TableCell align="center">
-                                        <Typography>{benefit.number}</Typography>
+                                        <Typography>{benefit.number || '-'}</Typography>
+                                    </TableCell>    
+                                    <TableCell align="center">
+                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).
+                                        format(benefit.employer_contribution)}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).
+                                        format(benefit.employee_contribution)}
                                     </TableCell>
 
-                                    <TableCell align="center">
-                                        <Typography>₱{(benefit.employer_contribution).toFixed(2)}</Typography>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Typography>₱{(benefit.employee_contribution).toFixed(2)}</Typography>
-                                    </TableCell>
                                     <TableCell align="center">
                                         <Typography>{dayjs(benefit.created_at).format("MMMM DD, YYYY")}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
-                                            <i class="fa fa-pencil-square-o fa-lg"/>
-                                        </Button>
+                                        <Tooltip title="Edit">
+                                            <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
+                                                <i className="fa fa-pencil-square-o fa-lg"/>
+                                            </Button>
+                                        </Tooltip>
                                     </TableCell>
                                 </TableRow>
                             ))

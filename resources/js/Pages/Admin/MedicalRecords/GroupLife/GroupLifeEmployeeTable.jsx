@@ -61,7 +61,7 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search }) => {
                 <TableBody>
                     {employees.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={4} align="center">
+                            <TableCell colSpan={10} align="center">
                                 <Typography>No Result Found</Typography>
                             </TableCell>
                         </TableRow>
@@ -71,7 +71,7 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search }) => {
                             return (
                                 <TableRow
                                     key={response.employee}
-                                    onClick={onRowClick}
+                                    onClick={() => onRowClick(response)}
                                     sx={{
                                         cursor: "pointer",
                                         transition: ".15s",

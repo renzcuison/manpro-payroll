@@ -6,9 +6,9 @@ const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 
 export function useBranches(){
     return useQuery(["branches"], async () => {
-        const branch = await axiosInstance.get("settings/getBranches", {
+        const branches = await axiosInstance.get("settings/getBranches", {
             headers,
         });
-        return branch.data;
+        return branches.data;
     });
 }

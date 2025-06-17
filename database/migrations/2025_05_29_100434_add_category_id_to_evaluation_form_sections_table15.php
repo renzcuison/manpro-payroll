@@ -38,7 +38,26 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('evaluation_form_sections', function (Blueprint $table) {
-            //
+            $table->dropColumn('category');
         });
+        Schema::create('evaluation_form_categories', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('section_id');
+            $table->unsignedBigInteger('order');
+            $table->string('name');
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('section_id')->references('id')->on('evaluation_form_sections');
+            $table->unique(['section_id','order']);
+        });
+        Schema::table('evaluation_form_subcategories', function (Blueprint $table) {
+            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('order');
+            $table->foreign('category_id')->references('id')->on('evaluation_form_categories');
+            $table->dropForeign(['section_id']);
+            $table->dropColumn('section_id');
+        });
+
     }
 };

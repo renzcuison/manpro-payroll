@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('category_in_evaluation_form_sections', function (Blueprint $table) {
-            //
+        Schema::table('evaluation_form_sections', function (Blueprint $table) {
+            $table->string('category')->nullable(false)->change();
         });
     }
 };

@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
-import { useAllowances } from '../../../hooks/useAllowance';
+import { useAllowances } from '../../../hooks/useAllowances';
 
 import AllowanceAdd from './Modals/AllowanceAdd';
 
 const AllowanceTypes = () => {
-    const { data, isLoading, error, refetch } = useAllowances();
-    const allowances = data?.allowances || [];
+    const {allowances: allowanceQuery} = useAllowances();
+    const allowances = allowanceQuery.data?.allowances || [];
 
     const [openAddAllowanceModal, setOpenAddAllowanceModal] = useState(false);
 
@@ -28,7 +27,7 @@ const AllowanceTypes = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                            <Link to="/admin/employees/allowance" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to="/admin/compensation/allowance" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
                             &nbsp; Allowance Types
@@ -40,7 +39,7 @@ const AllowanceTypes = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {isLoading ? (
+                        {allowanceQuery.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>

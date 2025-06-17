@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, useAsyncError } from "react-router-dom";
+import {Link, useParams, useNavigate, useAsyncError } from "react-router-dom";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import Layout from "../../../components/Layout/Layout";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
-import {Box,Typography,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Button,Avatar,Grid,TextField, IconButton,Dialog,DialogTitle,DialogContent,FormGroup,
+import {Box,Typography,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Button,Avatar,Grid,TextField,
 FormControl,InputLabel,Select,MenuItem,InputAdornment, Menu, ListItemText} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
@@ -25,8 +25,6 @@ const DepartmentDetails = () => {
 
     const [openEditModal, setOpenEditModal] = useState(false);
     const [openPositionAssignModal, setOpenPositionAssignModal] = useState(false);
-
-
     //modal handlings
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -83,14 +81,12 @@ const DepartmentDetails = () => {
         }); 
     }
     //end of fetching data
-    console.log(department)
     const filteredEmployees = department?.employees
     ?.filter(emp => {
         const nameMatch = `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchKeyword.toLowerCase());
         const branchMatch = branchFilter === "all" || emp.branch_id === branchFilter;
         return nameMatch && branchMatch;
     }) || [];
-
     if (error) return (
         <Layout title={"Departments"}>
             <Typography color="error">{error}</Typography>
@@ -239,8 +235,15 @@ const DepartmentDetails = () => {
                                         <TableBody>
                                         {filteredEmployees.length > 0 ? (
                                             filteredEmployees.map(emp => (
-                                                <TableRow key={emp.id}>
-                                                    <TableCell>{emp.first_name} {emp.last_name}</TableCell>
+                                                <TableRow key={emp.id} sx={{ "&:last-child td, &:last-child th": { border: 0 }, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer", }, }} >
+                                                    <TableCell>
+                                                        <Link to={`/admin/employee/${emp.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >
+                                                            <Box display="flex" sx={{ alignItems: "center", }} >
+                                                                <Avatar src={emp.avatar} sx={{ mr: 2 }} />
+                                                                {emp.last_name}{", "}{emp.first_name}{" "}{emp.middle_name || ""}{" "}{emp.suffix || ""}
+                                                            </Box>
+                                                        </Link>
+                                                    </TableCell>
                                                     {emp.department_position ? (
                                                         <TableCell>
                                                             {emp.department_position.name}
@@ -266,16 +269,7 @@ const DepartmentDetails = () => {
                                 </TableContainer>
                                 
                                 {filteredEmployees.length > 0 && (
-                                    <Box
-                                        display="flex"
-                                        sx={{
-                                            py: 2,
-                                            pr: 2,
-                                            width: "100%",
-                                            justifyContent: "flex-end",
-                                            alignItems: "center",
-                                        }}
-                                    >
+                                    <Box display="flex" sx={{ py: 2, pr: 2, width: "100%", justifyContent: "flex-end", alignItems: "center", }} >
                                         <Typography sx={{ mr: 2 }}>
                                             Number of Employees:
                                         </Typography>

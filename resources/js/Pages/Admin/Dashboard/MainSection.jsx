@@ -206,7 +206,10 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                         }}
                         key={index}
                         component={Link}
-                        to={info.link}
+                        to={{
+                            pathname: info.link,
+                            search: `?tab=${info.slug}`,
+                        }}
                     >
                         <Typography
                             variant="subtitle1"
@@ -339,7 +342,8 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                                                         component="span"
                                                         variant="body2"
                                                         sx={{
-                                                            color: "text.primary",
+                                                            color:
+                                                                "text.primary",
                                                             display: "inline",
                                                         }}
                                                     >

@@ -68,7 +68,7 @@ const PerformanceEvaluationCreatorPage = () => {
 
   const {
     evaluationResponse,
-    editEvaluationCreatorSignature
+    editEvaluationSignature
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
@@ -88,7 +88,7 @@ const PerformanceEvaluationCreatorPage = () => {
   async function handleCreatorSignature(signatureData) {
     setSaving(true);
     try {
-      await editEvaluationCreatorSignature({
+      await editEvaluationSignature({
         response_id: evaluationResponse.id,
         creator_signature_filepath: signatureData
       });
@@ -172,12 +172,12 @@ const PerformanceEvaluationCreatorPage = () => {
                 <Typography variant="body1">{subCategory.linear_scale_end_label}</Typography>
               </Grid>
             </Grid>
-            <Typography variant="body1" sx={{ mt: 1 }}>
+            {/* <Typography variant="body1" sx={{ mt: 1 }}>
               Selected: {typeof subCategory.percentage_answer?.value === 'number'
                 ? subCategory.percentage_answer.value
                 : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
               }
-            </Typography>
+            </Typography> */}
           </Box>
         );
       case 'short_answer':

@@ -30,8 +30,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('evaluation_answer_tables', function (Blueprint $table) {
-            //
+        Schema::table('evaluation_text_answers', function (Blueprint $table) {
+            $table->id();
+        });
+        Schema::table('evaluation_percentage_answers', function (Blueprint $table) {
+            $table->id();
+        });
+        Schema::table('evaluation_option_answers', function (Blueprint $table) {
+            $table->id();
         });
     }
 };

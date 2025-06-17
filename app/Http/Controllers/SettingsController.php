@@ -540,8 +540,10 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
         }
 
         // Load employees that belong to this department (including their branch and position)
-        $employees = UsersModel::with(['branch', 'departmentPosition'])
-            ->where('department_id', $id)
+        $employees = UsersModel::select('id','email', 'user_name', 'first_name', 
+            'last_name', 'user_type', 'profile_pic', 'branch_id', 'department_id', 'department_position_id')
+            ->with(['branch', 'departmentPosition'])
+            ->where('department_id', $id)       
             ->get();
 
         return response()->json([
@@ -555,14 +557,14 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
         ]);
     }
     
-    public function saveDepartment(Request $request, $departmentId)
+    public function saveDepartment(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required',
             'acronym' => 'required',
         ]);
 
-        if (!$this->checkUser()) {
+        if (!$this->checkUser() && !$validated) {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
 
@@ -571,16 +573,16 @@ public function updateBranchPositionAssignments(Request $request, $branchId)
 
         try {
             DB::beginTransaction();
-            $department = DepartmentsModel::updateOrCreate(
+            DepartmentsModel::updateOrCreate(
                 [
-                    'id' => $departmentId,
+                    'id' => $request->id,
                     'client_id' => $client->id,
                 ],
                 [
                     'name' => $request->name,
                     'acronym' => $request->acronym,
                     'description' => $request->description,
-                    'status' => $departmentId ? $request->status : 'Active', // On creation, set status to active
+                    'status' => $request->id ? $request->status : 'Active', // On creation, set status to active
                     'client_id' => $client->id, 
                 ]
             );
@@ -712,6 +714,8 @@ public function addBranchPositionAssignments(Request $request)
             'can_note_request' => 'required|boolean',
             'can_accept_request' => 'required|boolean',
         ]);
+        $validated['client_id'] = $user->client_id;
+        
         $position = DepartmentPosition::updateOrCreate(
             ['id' => $request->id],
             array_merge($validated)

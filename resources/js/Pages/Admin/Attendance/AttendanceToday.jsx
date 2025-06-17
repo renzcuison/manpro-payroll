@@ -24,6 +24,7 @@ import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 
 import ApplicationManage from "../Applications/Modals/ApplicationManage";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
@@ -32,13 +33,33 @@ const AttendanceToday = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
+    const [searchParams] = useSearchParams();
+    const tabName = searchParams.get("tab");
+
+    const tabNumber = (tabName) => {
+        switch (tabName) {
+            case "present":
+                return 1;
+            case "late":
+                return 2;
+            case "absent":
+                return 3;
+            case "leave":
+                return 4;
+            default:
+                return 1;
+        }
+    };
+
     const [attendance, setAttendance] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const [searchName, setSearchName] = useState("");
 
-    const [attendanceTab, setAttendanceTab] = useState("1");
+    const [attendanceTab, setAttendanceTab] = useState(
+        tabNumber(tabName).toString()
+    );
     const [attendanceLoading, setAttendanceLoading] = useState(true);
 
     useEffect(() => {
@@ -65,8 +86,6 @@ const AttendanceToday = () => {
                 setAttendanceLoading(false);
             });
     };
-
-    console.log(attendance);
 
     // Attendance Pagination Controls
     const handleChangePage = (event, newPage) => {
@@ -366,63 +385,55 @@ const AttendanceToday = () => {
                                                                     const isRegular =
                                                                         attend.shift_type ==
                                                                         "Regular";
-                                                                    const currentTime =
-                                                                        dayjs();
-                                                                    const currentDate =
-                                                                        currentTime.format(
-                                                                            "YYYY-MM-DD"
-                                                                        );
+                                                                    const currentTime = dayjs();
+                                                                    const currentDate = currentTime.format(
+                                                                        "YYYY-MM-DD"
+                                                                    );
 
-                                                                    const firstIn =
-                                                                        attend.first_time_in
-                                                                            ? dayjs(
-                                                                                  attend.first_time_in
-                                                                              ).format(
-                                                                                  "hh:mm:ss A"
-                                                                              )
-                                                                            : "-";
-                                                                    const firstOut =
-                                                                        attend.first_time_out
-                                                                            ? dayjs(
-                                                                                  attend.first_time_out
-                                                                              ).format(
-                                                                                  "hh:mm:ss A"
-                                                                              )
-                                                                            : attend.first_time_in
-                                                                            ? "Ongoing"
-                                                                            : "-";
+                                                                    const firstIn = attend.first_time_in
+                                                                        ? dayjs(
+                                                                              attend.first_time_in
+                                                                          ).format(
+                                                                              "hh:mm:ss A"
+                                                                          )
+                                                                        : "-";
+                                                                    const firstOut = attend.first_time_out
+                                                                        ? dayjs(
+                                                                              attend.first_time_out
+                                                                          ).format(
+                                                                              "hh:mm:ss A"
+                                                                          )
+                                                                        : attend.first_time_in
+                                                                        ? "Ongoing"
+                                                                        : "-";
 
-                                                                    const secondIn =
-                                                                        attend.second_time_in
-                                                                            ? dayjs(
-                                                                                  attend.second_time_in
-                                                                              ).format(
-                                                                                  "hh:mm:ss A"
-                                                                              )
-                                                                            : "-";
-                                                                    const secondOut =
-                                                                        attend.second_time_out
-                                                                            ? dayjs(
-                                                                                  attend.second_time_out
-                                                                              ).format(
-                                                                                  "hh:mm:ss A"
-                                                                              )
-                                                                            : attend.second_time_in
-                                                                            ? "Ongoing"
-                                                                            : "-";
+                                                                    const secondIn = attend.second_time_in
+                                                                        ? dayjs(
+                                                                              attend.second_time_in
+                                                                          ).format(
+                                                                              "hh:mm:ss A"
+                                                                          )
+                                                                        : "-";
+                                                                    const secondOut = attend.second_time_out
+                                                                        ? dayjs(
+                                                                              attend.second_time_out
+                                                                          ).format(
+                                                                              "hh:mm:ss A"
+                                                                          )
+                                                                        : attend.second_time_in
+                                                                        ? "Ongoing"
+                                                                        : "-";
 
-                                                                    const breakStart =
-                                                                        attend.break_start
-                                                                            ? dayjs(
-                                                                                  `${currentDate} ${attend.break_start}`
-                                                                              )
-                                                                            : null;
-                                                                    const breakEnd =
-                                                                        attend.break_end
-                                                                            ? dayjs(
-                                                                                  `${currentDate} ${attend.break_end}`
-                                                                              )
-                                                                            : null;
+                                                                    const breakStart = attend.break_start
+                                                                        ? dayjs(
+                                                                              `${currentDate} ${attend.break_start}`
+                                                                          )
+                                                                        : null;
+                                                                    const breakEnd = attend.break_end
+                                                                        ? dayjs(
+                                                                              `${currentDate} ${attend.break_end}`
+                                                                          )
+                                                                        : null;
 
                                                                     return (
                                                                         <TableRow
@@ -455,8 +466,10 @@ const AttendanceToday = () => {
                                                                                         )}
                                                                                         sx={{
                                                                                             mr: 1,
-                                                                                            height: "36px",
-                                                                                            width: "36px",
+                                                                                            height:
+                                                                                                "36px",
+                                                                                            width:
+                                                                                                "36px",
                                                                                         }}
                                                                                     />
                                                                                     {
@@ -529,7 +542,8 @@ const AttendanceToday = () => {
                                                                     colSpan={5}
                                                                     align="center"
                                                                     sx={{
-                                                                        color: "text.secondary",
+                                                                        color:
+                                                                            "text.secondary",
                                                                         p: 1,
                                                                     }}
                                                                 >
@@ -681,8 +695,10 @@ const AttendanceToday = () => {
                                                                                     )}
                                                                                     sx={{
                                                                                         mr: 1,
-                                                                                        height: "36px",
-                                                                                        width: "36px",
+                                                                                        height:
+                                                                                            "36px",
+                                                                                        width:
+                                                                                            "36px",
                                                                                     }}
                                                                                 />
                                                                                 {
@@ -769,7 +785,8 @@ const AttendanceToday = () => {
                                                                     colSpan={7}
                                                                     align="center"
                                                                     sx={{
-                                                                        color: "text.secondary",
+                                                                        color:
+                                                                            "text.secondary",
                                                                         p: 1,
                                                                     }}
                                                                 >
@@ -873,8 +890,10 @@ const AttendanceToday = () => {
                                                                                     )}
                                                                                     sx={{
                                                                                         mr: 1,
-                                                                                        height: "36px",
-                                                                                        width: "36px",
+                                                                                        height:
+                                                                                            "36px",
+                                                                                        width:
+                                                                                            "36px",
                                                                                     }}
                                                                                 />
                                                                                 {
@@ -898,7 +917,8 @@ const AttendanceToday = () => {
                                                                     colSpan={5}
                                                                     align="center"
                                                                     sx={{
-                                                                        color: "text.secondary",
+                                                                        color:
+                                                                            "text.secondary",
                                                                         p: 1,
                                                                     }}
                                                                 >
@@ -1030,8 +1050,10 @@ const AttendanceToday = () => {
                                                                                     )}
                                                                                     sx={{
                                                                                         mr: 1,
-                                                                                        height: "36px",
-                                                                                        width: "36px",
+                                                                                        height:
+                                                                                            "36px",
+                                                                                        width:
+                                                                                            "36px",
                                                                                     }}
                                                                                 />
                                                                                 {
@@ -1077,7 +1099,8 @@ const AttendanceToday = () => {
                                                                     colSpan={5}
                                                                     align="center"
                                                                     sx={{
-                                                                        color: "text.secondary",
+                                                                        color:
+                                                                            "text.secondary",
                                                                         p: 1,
                                                                     }}
                                                                 >

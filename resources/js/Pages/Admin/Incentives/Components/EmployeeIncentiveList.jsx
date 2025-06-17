@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, Tooltip} from "@mui/material";
 import dayjs from "dayjs";
-import axiosInstance from "../../../../utils/axiosConfig";
+import LoadingSpinner from "../../../../components/LoadingStates/LoadingSpinner";
 
-const EmployeeIncentivesList = ({incentives, onAdd, onEdit }) => {
+const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
+    if(isLoading){
+        return (
+            <Box display='flex' justifyContent='center'>
+                <LoadingSpinner/>
+            </Box>
+        )
+    }
     return (
         <Box>
             <TableContainer>
@@ -25,19 +32,22 @@ const EmployeeIncentivesList = ({incentives, onAdd, onEdit }) => {
                                         <Typography>{incentive.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{incentive.number}</Typography>
+                                        <Typography>{incentive.number || '-'}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>₱{(incentive.calculated_amount).toFixed(2)}</Typography>
+                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).
+                                        format(incentive.calculated_amount)}
                                     </TableCell>
                                     
                                     <TableCell align="center">
                                         <Typography>{dayjs(incentive.created_at).format("MMM DD, YYYY")}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
-                                            <i class="fa fa-pencil-square-o fa-lg"/>
-                                        </Button>
+                                        <Tooltip title="Edit">
+                                            <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
+                                                <i className="fa fa-pencil-square-o fa-lg"/>
+                                            </Button>
+                                        </Tooltip>
                                     </TableCell>
                                 </TableRow>
                             ))

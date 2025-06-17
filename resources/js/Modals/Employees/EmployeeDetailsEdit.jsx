@@ -180,6 +180,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             birthdate: birthdate,
 
             salary: salary,
+            fixedSalary: fixedSalary === '1' ? true: false,
             salaryType: salaryType,
             creditLimit: creditLimit,
             tinNumber: tinNumber,

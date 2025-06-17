@@ -1,48 +1,19 @@
 import React, { useEffect, useState } from "react";
-import {
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    Box,
-    Typography,
-    Button,
-    TextField,
-    Grid,
-    Checkbox,
-    ListItemText,
-    MenuItem,
-    Avatar,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    IconButton,
-    FormGroup,
-    FormControl,
-    InputAdornment,
-    Tooltip,
-    Menu
-} from "@mui/material";
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Button, TextField, Grid, Checkbox, ListItemText,
+MenuItem, Avatar, InputAdornment, Tooltip, Menu } from "@mui/material";
 import { Link } from "react-router-dom";
+import { useDepartments } from "../../../hooks/useDepartments";
 import Layout from "../../../components/Layout/Layout";
-import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
-import Swal from "sweetalert2";
 import DepartmentPositionSettings from "./Modals/DepartmentPositionSettings";
 import SearchIcon from "@mui/icons-material/Search";
 import DepartmentAdd from "./Modals/DepartmentAdd";
 
 const DepartmentList = () => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-    const [isLoading, setIsLoading] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState("");
-    const [departmentPositions, setDepartmentPositions] = useState([]);
-
-    const [departments, setDepartments] = useState([]);
+    const {departmentsWithPositions, departmentPositions} = useDepartments();
+    const departments = departmentsWithPositions.data?.departments || [];
+    const deptPositions = departmentPositions.data?.positions || [];
 
     // Add Department Modal
     const [openModal, setOpenModal] = useState(false);
@@ -55,35 +26,6 @@ const DepartmentList = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-
-                //get all departments, with their respected assigned employees
-                const departmentResponse = await axiosInstance
-                .get("/settings/getDepartmentWithEmployeePosition", {headers});
-                setDepartments(departmentResponse.data.departments);
-
-                // Fetch department positions
-                const posResponse = await axiosInstance.get('/settings/getDepartmentPositions', { headers });
-                setDepartmentPositions(posResponse.data.positions);
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Error loading data!",
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
-    }, []);
-    
     const filteredDepartments = departments.filter(dep =>
         dep.name.toLowerCase().includes(searchKeyword.toLowerCase())
     );
@@ -184,7 +126,7 @@ const DepartmentList = () => {
                             </Grid>
                         </Grid>
 
-                        {isLoading ? (
+                        {departmentsWithPositions.isLoading ? (
                             <LoadingSpinner />
                         ) : (
                             <>
@@ -193,8 +135,8 @@ const DepartmentList = () => {
                                         <TableHead>
                                             <TableRow >
                                                 <TableCell align='center' sx={{ fontWeight: 'bold'}}>Department</TableCell>
-                                                {departmentPositions.length > 0 ? (
-                                                    departmentPositions.map((position) => (
+                                                {deptPositions.length > 0 ? (
+                                                    deptPositions.map((position) => (
                                                         <TableCell key={position.id} align="center" sx={{ fontWeight: 'bold' }}>
                                                         {position.name}
                                                         </TableCell>
@@ -251,7 +193,7 @@ const DepartmentList = () => {
                                                         </TableCell>
 
                                                     {/* Per-Position Employee Avatars */}
-                                                    {departmentPositions.map((position) => {
+                                                    {deptPositions.map((position) => {
                                                         const employees = groupedByPosition[position.id] || [];
                                                         return (
                                                         <TableCell key={position.id} align="center">
@@ -277,7 +219,7 @@ const DepartmentList = () => {
                                                                 ))}
                                                             </Box>
                                                             ) : (
-                                                            <Typography>--</Typography>
+                                                            <Typography>-</Typography>
                                                             )}
                                                         </TableCell>
                                                         );
@@ -291,7 +233,7 @@ const DepartmentList = () => {
                                                     )
                                             ) : (
                                                 <TableRow>
-                                                <TableCell colSpan={2 + departmentPositions.length}>
+                                                <TableCell colSpan={2 + deptPositions.length}>
                                                     No department found
                                                 </TableCell>
                                                 </TableRow>
@@ -331,7 +273,6 @@ const DepartmentList = () => {
 
             {/* Department Positions Settings Modal */}
             {openSettingsModal && <DepartmentPositionSettings open={openSettingsModal} close={setOpenSettingsModal}></DepartmentPositionSettings>}
-            
         </Layout>
     );
 };

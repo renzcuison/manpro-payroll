@@ -265,7 +265,7 @@ class EvaluationFormController extends Controller
                 id, name, creator_id, creator_user_name,
                 created_at, updated_at,
                 sections: {
-                    form_id, id, name, category, order,
+                    form_id, id, name, category, score, order,
                     subcategories: {
                         section_id, id, name, subcategory_type, description, required,
                         allow_other_option, linear_scale_start, linear_scale_end, order,
@@ -312,7 +312,7 @@ class EvaluationFormController extends Controller
                 ->with(['sections' => fn ($section) =>
                     $section
                         ->whereNull('deleted_at')
-                        ->select('form_id', 'id', 'name', 'category', 'order')
+                        ->select('form_id', 'id', 'name', 'category', 'score', 'order')
                         ->orderBy('order')
                         ->with(['subcategories' => fn ($subcategory) =>
                             $subcategory
@@ -386,7 +386,7 @@ class EvaluationFormController extends Controller
         try {
 
             $evaluationForms = EvaluationForm
-                ::join('users', 'evaluation_forms.creator_id', '=', 'users.id')
+                ::join('users', 'evaluation_forms.creator_id', '=', 'users.id')                
                 ->select(
                     'evaluation_forms.id',
                     'evaluation_forms.name', 
@@ -578,13 +578,16 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id: number
+            id: number,
+            name?: string,
+            category?: string,
+            score?: number
         */
 
         // returns:
         /*
             evaluationFormSection: {
-                id, name, order, created_at, updated_at
+                id, name, category, order, score, created_at, updated_at
             }
         */
 
@@ -622,15 +625,12 @@ class EvaluationFormController extends Controller
                 'evaluationFormSectionID' => $request->id
             ]);
 
-            $isEmptyName = $request->has('name') && !$request->name;
-            if($isEmptyName) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Form Section Name is required!'
-            ]);
-            if($request->name)
+            if($request->name != null)
                 $evaluationFormSection->name = $request->name;
-            if($request->category)
+            if($request->category != null)
                 $evaluationFormSection->category = $request->category;
+            if($request->score != null)
+                $evaluationFormSection->score = (double) $request->score;
 
             $evaluationFormSection->save();
 
@@ -662,7 +662,7 @@ class EvaluationFormController extends Controller
         // returns:
         /*
             evaluationFormSection: {
-                id, form_id, name, category, order, created_at, updated_at,
+                id, form_id, name, category, score, order, created_at, updated_at,
                 subcategories: {
                     section_id, id, name, subcategory_type, description, required,
                     allow_other_option, linear_scale_start, linear_scale_end, order,
@@ -686,7 +686,7 @@ class EvaluationFormController extends Controller
         try {
 
             $evaluationFormSection = EvaluationFormSection
-                ::select('form_id', 'id', 'name', 'category', 'order')
+                ::select('form_id', 'id', 'name', 'category', 'score', 'order')
                 ->where('id', $request->id)
                 ->with(['subcategories' => fn ($subcategory) =>
                     $subcategory
@@ -835,7 +835,10 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            name: string
+            form_id: number,
+            name: string,
+            category: string,
+            score: number
         */
 
         // returns:
@@ -878,7 +881,8 @@ class EvaluationFormController extends Controller
                 'form_id' => $request->form_id,
                 'name' => $request->name,
                 'category' => $request->category,
-                'order' => $order
+                'order' => $order,
+                'score' => (double) $request->score
             ]);
 
             DB::commit();

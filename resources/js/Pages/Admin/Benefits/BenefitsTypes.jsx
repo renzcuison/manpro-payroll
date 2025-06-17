@@ -8,8 +8,9 @@ import { useBenefits } from '../../../hooks/useBenefits';
 
 
 const BenefitsTypes = () => {
-    const {data, isLoading, error, refetch} = useBenefits();
-    const benefits = data?.benefits || [];
+    const {benefits} = useBenefits();
+    
+    const benefitsData = benefits.data?.benefits || [];
     const [openAddBenefitsModal, setOpenAddBenefitsModal] = useState(false);
 
     const handleOpenAddBenefitsModal = () => {
@@ -27,7 +28,7 @@ const BenefitsTypes = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                            <Link to="/admin/employees/benefits" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to="/admin/compensation/benefits" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
                             &nbsp; Benefits Types
@@ -39,7 +40,7 @@ const BenefitsTypes = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {isLoading ? (
+                        {benefits.isLoading? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -56,8 +57,8 @@ const BenefitsTypes = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {benefits.length > 0 ? (
-                                                benefits.map((benefit) => (
+                                            {benefitsData.length > 0 ? (
+                                                benefitsData.map((benefit) => (
                                                     <TableRow key={benefit.id}>
                                                         <TableCell align="center">{benefit.name}</TableCell>
                                                         <TableCell align="center">{benefit.type}</TableCell>

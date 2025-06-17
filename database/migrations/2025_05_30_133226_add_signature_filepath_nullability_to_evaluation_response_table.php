@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('evaluation_response', function (Blueprint $table) {
-            //
+            $table->string('signature_filepath')->nullable(false)->change();
         });
     }
 };
