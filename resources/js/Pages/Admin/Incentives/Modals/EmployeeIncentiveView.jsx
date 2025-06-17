@@ -13,8 +13,8 @@ import EmployeeIncentivesList from "../Components/EmployeeIncentiveList";
 import EmployeeIncentiveEdit from "../Components/EmployeeIncentiveEdit";
 import { useIncentives } from "../../../../hooks/useIncentives";
 
-const EmployeeIncentiveView = ({ open, close, userName }) => {
-    const { employeeIncentives } = useIncentives({userName: userName});
+const EmployeeIncentiveView = ({ open, close, userName, incentive}) => {
+    const { employeeIncentives } = useIncentives({userName: userName, filters: {incentiveId: incentive}});
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const incentives = employeeIncentives.data?.incentives || [];

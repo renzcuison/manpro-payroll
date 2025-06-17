@@ -4,13 +4,18 @@ import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 
-export function useDeductions({userName = null, loadDeductions = false, loadEmployeesDeductions = false} = {}){
-    const employeesDeductions = useQuery(["employeesDeductions"], async () => {
-        const { data } = await axiosInstance.get("compensation/getEmployeesDeductions", {
-            headers,
-        });
-        return data;
-    }, {enabled: loadEmployeesDeductions});
+export function useDeductions({userName = null, loadDeductions = false, loadEmployeesDeductions = false, filters = {}, pagination = {}} = {}){
+    
+    const {name, branchId, departmentId, deductionId} = filters;
+    const {page = 1, perPage = 10} = pagination;
+    const params = {};
+    
+    if (name) params.name = name;
+    if (branchId) params.branch_id = branchId;
+    if (departmentId) params.department_id = departmentId;
+    if (deductionId) params.deduction_id = deductionId;
+    if (page) params.page = page;
+    if (perPage) params.per_page = perPage;
 
     const deductions = useQuery(["deductions"], async () => {
         const { data } = await axiosInstance.get("compensation/getDeductions", {
@@ -19,9 +24,16 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
         return data;
     }, {enabled: loadDeductions});
 
-    const employeeDeductions = useQuery(["employeeDeductions", userName], async () => {
+    const employeesDeductions = useQuery(["employeesDeductions", {filters, pagination}], async () => {
+        const { data } = await axiosInstance.get("compensation/getEmployeesDeductions", {
+            headers, params,
+        });
+        return data;
+    }, {enabled: loadEmployeesDeductions});
+
+    const employeeDeductions = useQuery(["employeeDeductions", userName, filters.deductionId], async () => {
         const {data} = await axiosInstance.get("compensation/getEmployeeDeductions", {
-            headers, params: {username: userName},
+            headers, params: {username: userName, deduction_id: deductionId},
         });
         return data;
     },{

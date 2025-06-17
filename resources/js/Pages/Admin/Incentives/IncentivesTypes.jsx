@@ -16,11 +16,13 @@ const IncentivesTypes = () => {
         setOpenAddIncentivesModal(true);
     }
 
-    const handleCloseAddIncentiveseModal = () => {
+    const handleCloseAddIncentiveseModal = (reload) => {
         setOpenAddIncentivesModal(false);
-        refetch();
+        if(reload){
+            incentivesQuery.refetch();
+        }
     }
-
+    
     return (
         <Layout title={"IncentivesList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -39,7 +41,7 @@ const IncentivesTypes = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {isLoading ? (
+                        {incentivesQuery.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>

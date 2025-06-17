@@ -138,7 +138,7 @@ const IncentivesAdd = ({ open, close }) => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        close();
+                        close(true);
                     });
                 }
             })
@@ -179,7 +179,7 @@ const IncentivesAdd = ({ open, close }) => {
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Incentives </Typography>
-                        <IconButton onClick={close}><i className="si si-close"></i></IconButton>
+                        <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
