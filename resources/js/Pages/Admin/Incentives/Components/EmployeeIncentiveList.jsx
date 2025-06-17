@@ -32,10 +32,11 @@ const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
                                         <Typography>{incentive.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{incentive.number}</Typography>
+                                        <Typography>{incentive.number || '-'}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>₱{(incentive.calculated_amount).toFixed(2)}</Typography>
+                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).
+                                        format(incentive.calculated_amount)}
                                     </TableCell>
                                     
                                     <TableCell align="center">
@@ -44,7 +45,7 @@ const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
                                     <TableCell align="center">
                                         <Tooltip title="Edit">
                                             <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>
-                                                <i class="fa fa-pencil-square-o fa-lg"/>
+                                                <i className="fa fa-pencil-square-o fa-lg"/>
                                             </Button>
                                         </Tooltip>
                                     </TableCell>

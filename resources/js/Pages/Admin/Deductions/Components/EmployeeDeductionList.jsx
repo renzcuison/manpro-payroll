@@ -34,11 +34,12 @@ const EmployeeDeductionList = ({ deductions, isLoading, onAdd, onEdit }) => {
                                     </TableCell>
 
                                     <TableCell align="center">
-                                        <Typography>{deduction.number}</Typography>
+                                        <Typography>{deduction.number || '-'}</Typography>
                                     </TableCell>
 
                                     <TableCell align="center">
-                                        <Typography>₱{(deduction.calculated_amount).toFixed(2)}</Typography>
+                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).
+                                        format(deduction.calculated_amount)}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography>{dayjs(deduction.created_at).format("MMMM DD, YYYY")}</Typography>
