@@ -122,8 +122,6 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search, loading }) => {
                                 </TableRow>
                             );
                         })
-
-                        
                     )}
                 </TableBody>
             </Table>

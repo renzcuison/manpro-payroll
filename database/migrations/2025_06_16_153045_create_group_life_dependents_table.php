@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('group_life_employee_id')->references('id')->on('group_life_employees');
+            $table->foreign('group_life_employee_id')->references('id')->on('group_life_employee_plan');
         });
     }
 

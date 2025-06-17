@@ -34,7 +34,8 @@ const GroupLifeMasterlist = () => {
         const item = localStorage.getItem("nasya_user");
         return item ? JSON.parse(item) : null;
         }, []);
-        const user = storedUser;
+        
+    const user = storedUser;
 
     // const storedUser = localStorage.getItem("nasya_user");
     // const user = storedUser ? JSON.parse(storedUser) : null;
@@ -78,6 +79,7 @@ const GroupLifeMasterlist = () => {
             .then(res => {const plans = res.data.plans || [];
                 setRows(
                 plans.map(row => ({
+                id: row.id,
                 groupLifeName: row.group_life_company_name,
                 planType: row.plan_name,
                 paymentType: row.type,
@@ -91,10 +93,10 @@ const GroupLifeMasterlist = () => {
                 
         }, [user]);
 
-    const refreshCompanies = () => {
-        if (!user) return;
+        const refreshCompanies = () => {
+            if (!user) return;
 
-        setLoading(true);
+            setLoading(true);
 
         axiosInstance.get('/group-life-companies', { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
@@ -123,6 +125,7 @@ const GroupLifeMasterlist = () => {
                 console.log("Processed plans:", plans);
                 setRows(
                     plans.map(row => ({
+                        id: row.id,
                         groupLifeName: row.group_life_company_name,
                         planType: row.plan_name,
                         paymentType: row.type,
@@ -135,27 +138,9 @@ const GroupLifeMasterlist = () => {
             .finally(() => setLoading(false));
     };
 
-        const companies = [
-                {
-                    id: 1,
-                    companyname: "St. Peter Life Plan",
-                    planType: "Traditional",
-                    paymentType: "Amount",
-                    employerShare: 300.00,
-                    employeeShare: 400.00,
-                },
-                {
-                    id: 2,
-                    companyname: "Evergreen Life Plan",
-                    planType: "Cremation",
-                    paymentType: "Amount",
-                    employerShare: 300.00,
-                    employeeShare: 400.00,
-                }
-            ];
-
     const filteredRecords = rows
     .filter((row) => [
+        row.id,
         row.groupLifeName,
         row.planType,
         row.paymentType,
@@ -174,8 +159,9 @@ const GroupLifeMasterlist = () => {
     const resultsCount = filteredRecords.length;
 
     const handleOnRowClick = (row) => {
+        localStorage.setItem("selected_plan_details", JSON.stringify(row));
         navigator(
-            `/admin/medical-records/group-life-masterlist/group-life-employees/`,
+            `/admin/medical-records/group-life-masterlist/group-life-employees/${row.id}`,
             { state: row }
         );
     };
@@ -185,7 +171,7 @@ const GroupLifeMasterlist = () => {
 
 
     const paginatedRows = useMemo(() => {
-        const startIndex = currentPage * rowsPerPage; // remove -1
+        const startIndex = currentPage * rowsPerPage;
         return filteredRecords.slice(startIndex, startIndex + rowsPerPage);
     }, [filteredRecords, currentPage, rowsPerPage]);
 
@@ -211,7 +197,7 @@ const GroupLifeMasterlist = () => {
                                     variant="contained"
                                     style={{ color: "#e8f1e6" }}
                                     >
-                                    <i className="fa fa-plus pr-2"></i> Add
+                                    Add Plan
                                 </Button>
                             </Grid>
                     </Box>
@@ -307,7 +293,6 @@ const GroupLifeMasterlist = () => {
                         }}
                     />
                     )}
-
 
                 </Box>
             </Box>

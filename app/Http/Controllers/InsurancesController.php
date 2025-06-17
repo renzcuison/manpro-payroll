@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GroupLifeCompany;
 use App\Models\GroupLifeCompanyPlan;
+use App\Models\GroupLifeEmployeePlan;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -144,6 +145,53 @@ class InsurancesController extends Controller
         $plan = GroupLifeCompanyPlan::create($validated);
         
         return response()->json($plan, 201);
+    }
+
+    public function getGroupLifeEmployeePlan()
+    {
+        log::info("InsurancesController::getGroupLifeCompanies");
+
+        $user = Auth::user();
+
+        $rawCompanies = GroupLifeCompany::withCount('plans')->where('client_id', $user->client_id)->get();
+
+        $companies = [];
+
+        foreach ($rawCompanies as $company) {
+            $companies[] = [
+                'id' => $company->id,
+                'name' => $company->name,
+                'plans' => $company->plans_count,
+            ];
+        }
+
+        return response()->json([
+            'status' => 200,
+            'companies' => $companies,
+        ]);
+    }
+
+    public function getAllGroupLifeEmployees()
+    {
+    Log::info("InsurancesController::getAllGroupLifeEmployees"); // ✅ Right place
+
+    $employees = GroupLifeEmployeePlan::with(['employee', 'dependents'])->get();
+
+    $formatted = $employees->map(function ($record) {
+        return [
+            'plan_id' => $record->group_life_plan_id,
+            'employee_id' => $record->employee_id,
+                                'employee_name' => $record->employee ? $record->employee->employee_name : 'Unknown',
+            'enroll_date' => $record->enroll_date,
+            'dependents_count' => $record->dependents->count(),
+            'dependents' => $record->dependents
+        ];
+    });
+
+    return response()->json([
+        'status' => 200,
+        'employees' => $formatted
+    ]);
     }
 
 }

@@ -15,6 +15,7 @@ import {
     LinearProgress,
     Box,
     Typography,
+    CircularProgress,
 } from "@mui/material";
 
 
@@ -36,7 +37,7 @@ const highlightMatch = (text, keyword) => {
     );
 };
 
-const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search }) => {
+const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search, loading }) => {
     return (
         <TableContainer
             sx={{
@@ -51,7 +52,7 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search }) => {
                 <TableHead>
                     <TableRow>
                         <TableCell align="center"> Employee </TableCell>
-                        <TableCell align="center"> Dependents</TableCell>
+                        <TableCell align="center"> Number of Dependents</TableCell>
                         <TableCell align="center"> Enroll Date</TableCell>
                         <TableCell align="center"> Branch </TableCell>
                         <TableCell align="center"> Department</TableCell>
@@ -59,7 +60,16 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search }) => {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {employees.length === 0 ? (
+                    {loading ? (
+                    <TableRow>
+                        <TableCell colSpan={6} align="center">
+                            <Box display="flex" justifyContent="center" alignItems="center" height={200}>
+                                <CircularProgress />
+                            </Box>
+                        </TableCell>
+                    </TableRow>
+                    ) :
+                    employees.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={10} align="center">
                                 <Typography>No Result Found</Typography>
@@ -70,7 +80,7 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search }) => {
 
                             return (
                                 <TableRow
-                                    key={response.employee}
+                                    key={response.employee_id}
                                     onClick={() => onRowClick(response)}
                                     sx={{
                                         cursor: "pointer",
@@ -81,40 +91,40 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search }) => {
                                     }}
                                 >
                                         <TableCell align="center">
-                                        {highlightMatch(
-                                            response.employee,
-                                            search
-                                        )}
+                                            {highlightMatch(
+                                                response.employee_name ?? "Unknown",
+                                                search)}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(
-                                            response.dependents,
-                                            search
-                                        )}
+                                            {highlightMatch(
+                                                String(
+                                                    response.dependents_count ?? 0),
+                                                    search)}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(
-                                            response.enrollDate,
-                                            search
-                                        )}
+                                            {highlightMatch(
+                                                response.enroll_date ?? "N/A", 
+                                                search)}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(
+                                        {/* {highlightMatch(
                                             response.branch,
                                             search
-                                        )}
+                                        )} */} N/A
                                         </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(
+                                        {/* {highlightMatch(
                                             response.department,
                                             search
-                                        )}
+                                        )} */}
+                                        N/A
                                         </TableCell>      
                                         <TableCell align="center">
-                                        {highlightMatch(
+                                        {/* {highlightMatch(
                                             response.role,
                                             search
-                                        )}
+                                        )} */}
+                                        N/A
                                         </TableCell>                                    
                                 </TableRow>
                             );
