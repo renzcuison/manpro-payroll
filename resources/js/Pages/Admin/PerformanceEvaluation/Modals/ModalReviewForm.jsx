@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
-  IconButton, Menu, MenuItem, Paper, TextField, Button, Divider
+  Dialog, DialogContent, DialogTitle, IconButton, Box, Typography, CircularProgress, Accordion,
+  AccordionSummary, AccordionDetails, Menu, MenuItem, Paper, Chip, TextField, Grid,
+  FormControlLabel, Radio, Button, Divider
 } from '@mui/material';
-import { getFullName } from '../../../utils/user-utils';
-import Layout from '../../../components/Layout/Layout';
-import SettingsIcon from '@mui/icons-material/Settings';
-import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
-import PerformanceEvaluationCommentorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvalutionCommentorAcknowledge';
+import CloseIcon from '@mui/icons-material/Close';
+import { getFullName } from '../../../../utils/user-utils';
+import { useEvaluationResponse } from '../../../../hooks/useEvaluationResponse';
+import PerformanceEvaluationCommentorAcknowledge from '../../../Admin/PerformanceEvaluation/Modals/PerformanceEvalutionCommentorAcknowledge';
 import Swal from 'sweetalert2';
 
-// --- Overall Rating Calculation Helper ---
 const getSectionScore = (section) => {
   if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [] };
   let scoreTotal = 0;
@@ -62,111 +60,61 @@ const getSectionScore = (section) => {
   return { sectionScore, subcatScores };
 };
 
-// --- Score Linear Bar ---
-const Bar = ({ value, max = 100, sx = {} }) => {
-  const pct = Math.max(0, Math.min(1, value / max)) * 100;
-  return (
-    <Box
-      sx={{
-        width: '100%',
-        height: 18,
-        borderRadius: '9px',
-        background: '#e0e0e0',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0px 1px 2px #e0e0e0',
-        ...sx,
-      }}
-    >
-      <Box
-        sx={{
-          width: `${pct}%`,
-          height: '100%',
-          background: 'linear-gradient(90deg, #367C2B 0%, #EAB31A 100%)',
-          borderRadius: '9px',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      />
-    </Box>
-  );
+const responseTypeMap = {
+  'linear_scale': 'Linear Scale',
+  'multiple_choice': 'Multiple Choice',
+  'checkbox': 'Checkbox',
+  'short_answer': 'Short Answer',
+  'long_answer': 'Long Answer',
+  'dropdown': 'Dropdown'
 };
-// --- END Overall Rating Helper ---
 
-const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
-  const navigate = useNavigate();
-
-  const params = useParams();
-  const id = propId || params.id;
-
+const ModalReviewForm = ({ open, onClose, id }) => {
   const {
     evaluationResponse,
     editEvaluationCommentor
   } = useEvaluationResponse(id);
 
   const [loading, setLoading] = useState(true);
-  const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
-  const [commentInput, setCommentInput] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [openAcknowledge, setOpenAcknowledge] = useState(false);
-
-  const storedUser = localStorage.getItem("nasya_user");
-  const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
+  const [commentorComments, setCommentorComments] = useState([]);
+  const [savingIds, setSavingIds] = useState([]);
+  const [openAcknowledgeFor, setOpenAcknowledgeFor] = useState(null);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
-      // Pre-fill comment if user already has one (editing)
-      if (evaluationResponse.commentors && loggedInUser) {
-        const thisCommentor = evaluationResponse.commentors.find(
-          c => c.commentor_id === loggedInUser.id
+      if (Array.isArray(evaluationResponse.commentors) && evaluationResponse.commentors.length > 0) {
+        setCommentorComments(
+          evaluationResponse.commentors.map(c => ({
+            commentor_id: c.commentor_id,
+            comment: c.comment || '',
+            name: getFullName(c)
+          }))
         );
-        if (thisCommentor && thisCommentor.comment) {
-          setCommentInput(thisCommentor.comment);
-        }
       }
     }
-  }, [evaluationResponse, loggedInUser]);
+  }, [evaluationResponse]);
 
-  const handleSettingsClick = (event) => {
-    setSettingsAnchorEl(event.currentTarget);
-  };
-  const handleSettingsClose = () => {
-    setSettingsAnchorEl(null);
-  };
-  const settingsOpen = Boolean(settingsAnchorEl);
-
-  // Find this user as commentor, and their order
-  const allCommentors = Array.isArray(evaluationResponse?.commentors) ? evaluationResponse.commentors : [];
-  const thisCommentor = loggedInUser
-    ? allCommentors.find(c => c.commentor_id === loggedInUser.id)
-    : null;
-
-  // Only show previous commentors (order < this one and have signed)
-  const previousCommentors = thisCommentor
-    ? allCommentors
-        .filter(c => c.order < thisCommentor.order && c.signature_filepath)
-        .sort((a, b) => a.order - b.order)
-    : [];
-
-  // --- Evaluators for preview ---
-  const allEvaluators = Array.isArray(evaluationResponse?.evaluators) ? evaluationResponse.evaluators : [];
-
-  // Save handler for this commentor
-  const handleSaveComment = () => {
-    setOpenAcknowledge(true); // Open signature modal
+  const handleCommentInput = (commentor_id, value) => {
+    setCommentorComments(prev =>
+      prev.map(c =>
+        c.commentor_id === commentor_id ? { ...c, comment: value } : c
+      )
+    );
   };
 
-  // After signature modal
-  const handleProceedAcknowledge = async (signatureData) => {
-    setSaving(true);
+  const handleOpenAcknowledgeModal = (commentor_id) => {
+    setOpenAcknowledgeFor(commentor_id);
+  };
+
+  const handleProceedAcknowledge = async (signatureData, commentor_id) => {
+    setSavingIds(prev => [...prev, commentor_id]);
+    const commentObj = commentorComments.find(c => c.commentor_id === commentor_id);
     try {
       await editEvaluationCommentor({
         response_id: evaluationResponse.id,
-        commentor_id: thisCommentor.commentor_id,
-        comment: commentInput,
+        commentor_id,
+        comment: commentObj ? commentObj.comment : "",
         signature_filepath: signatureData // PNG dataURL
       });
       Swal.fire({
@@ -189,27 +137,21 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
         position: 'center'
       });
     } finally {
-      setSaving(false);
-      setOpenAcknowledge(false);
+      setSavingIds(prev => prev.filter(id => id !== commentor_id));
+      setOpenAcknowledgeFor(null); // Close modal after try/catch
     }
-  };
-
-  const responseTypeMap = {
-    'linear_scale': 'Linear Scale',
-    'multiple_choice': 'Multiple Choice',
-    'checkbox': 'Checkbox',
-    'short_answer': 'Short Answer',
-    'long_answer': 'Long Answer',
-    'dropdown': 'Dropdown'
   };
 
   if (loading) {
     return (
-      <Layout title="Performance Evaluation Answers">
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-          <CircularProgress />
-        </Box>
-      </Layout>
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <DialogTitle>Review Results</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+            <CircularProgress />
+          </Box>
+        </DialogContent>
+      </Dialog>
     );
   }
 
@@ -218,24 +160,38 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
 
   if (!form || !responseMeta) {
     return (
-      <Layout title="Performance Evaluation Answers">
-        <Box sx={{ textAlign: 'center', mt: 6 }}>
-          <Typography variant="h6" color="error">Evaluation Form or Response Not Found</Typography>
-        </Box>
-      </Layout>
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <DialogTitle>Review Results</DialogTitle>
+        <DialogContent>
+          <Box sx={{ textAlign: 'center', mt: 6 }}>
+            <Typography variant="h6" color="error">Evaluation Form or Response Not Found</Typography>
+          </Box>
+        </DialogContent>
+      </Dialog>
     );
   }
 
-  // --- Overall Rating Section: only code added below ---
-  const overallRatingSections = (form.sections || []).filter(section =>
-    section.subcategories?.some(
-      subcat => ['multiple_choice', 'checkbox', 'linear_scale'].includes(subcat.subcategory_type)
-    )
-  );
-  // --- End Overall Rating Section code ---
+  const allCommentors = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
+    ? responseMeta.commentors
+    : [];
 
-  // Render answer with legend
+  const allEvaluators = Array.isArray(responseMeta.evaluators) && responseMeta.evaluators.length > 0
+    ? responseMeta.evaluators
+    : [];
+
+  const getOrderLabel = (idx) => {
+    const n = idx + 1;
+    if (n === 1) return "First";
+    if (n === 2) return "Second";
+    if (n === 3) return "Third";
+    if (n === 4) return "Fourth";
+    if (n === 5) return "Fifth";
+    return `${n}th`;
+  };
+
+  // Use your renderAnswer function as before (copy from your original)
   const renderAnswer = (subCategory) => {
+    // ...copy your renderAnswer code here...
     switch (subCategory.subcategory_type) {
       case 'linear_scale':
         return (
@@ -243,12 +199,35 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
             <Typography variant="body2" sx={{ fontWeight: 700 }}>
               Answer:
             </Typography>
-            <Box sx={{ mt: 1 }}>
-              {typeof subCategory.percentage_answer?.value === 'number'
-                ? subCategory.percentage_answer.value
-                : <span style={{ color: '#ccc', fontStyle: 'italic' }}>No answer</span>
-              }
-            </Box>
+            <Grid container alignItems="center" spacing={2} justifyContent='center'>
+              <Grid item>
+                <Typography variant="body1">{subCategory.linear_scale_start_label}</Typography>
+              </Grid>
+              <Grid item xs>
+                <Grid container justifyContent="center" spacing={1}>
+                  {[...Array(subCategory.linear_scale_end - subCategory.linear_scale_start + 1)].map((_, index) => {
+                    const value = subCategory.linear_scale_start + index;
+                    return (
+                      <Grid item key={value}>
+                        <FormControlLabel
+                          control={
+                            <Radio
+                              checked={subCategory.percentage_answer?.value === value}
+                              disabled
+                            />
+                          }
+                          label={value}
+                          labelPlacement="top"
+                        />
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </Grid>
+              <Grid item>
+                <Typography variant="body1">{subCategory.linear_scale_end_label}</Typography>
+              </Grid>
+            </Grid>
           </Box>
         );
       case 'short_answer':
@@ -288,7 +267,9 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
             ) : (
               <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>
             )}
-            <Divider sx={{ my: 2 }} />
+
+             <Divider sx={{ my: 2 }} />
+
             {/* Legend for multiple_choice, checkbox, dropdown */}
             {(subCategory.subcategory_type === 'multiple_choice' ||
               subCategory.subcategory_type === 'checkbox' ||
@@ -322,59 +303,21 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   };
 
   return (
-    <Layout title="Performance Evaluation Answers">
-      <Box
-        sx={{
-          mt: 5,
-          p: 5,
-          bgcolor: 'white',
-          borderRadius: '8px',
-          maxWidth: '1000px',
-          mx: 'auto',
-          boxShadow: 3,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, position: 'relative' }}>
-          <IconButton
-            onClick={handleSettingsClick}
-            sx={{
-              position: 'absolute',
-              top: 5,
-              right: 10,
-              color: '#bdbdbd',
-              borderRadius: '50%',
-              padding: '5px',
-              color: '#BEBEBE',
-            }}
-            aria-controls={settingsOpen ? 'settings-menu' : undefined}
-            aria-haspopup="true"
-            aria-expanded={settingsOpen ? 'true' : undefined}
-          >
-            <SettingsIcon sx={{ fontSize: 28 }} />
-          </IconButton>
-          <Menu
-            id="settings-menu"
-            anchorEl={settingsAnchorEl}
-            open={settingsOpen}
-            onClose={handleSettingsClose}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-          >
-            <MenuItem
-              onClick={() => {
-                handleSettingsClose();
-                setTimeout(() => navigate('/admin/performance-evaluation'), 100);
-              }}
-            >Exit Form</MenuItem>
-          </Menu>
-          <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
-            {form.name}
-          </Typography>
-        </Box>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        Review Results
+        <IconButton onClick={onClose} sx={{ ml: 2 }}>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent sx={{ p: 3, minHeight: 400 }}>
+        <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
+          {form.name}
+        </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
           Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
-        <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
+        <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
           Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
             evaluator => getFullName(evaluator)
           ).join(' & ') : ''}
@@ -382,7 +325,6 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
         </Typography>
-
         {(!form.sections || form.sections.length === 0) && (
           <Typography>No sections available for this form.</Typography>
         )}
@@ -484,8 +426,6 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
             </AccordionDetails>
           </Accordion>
         ))}
-
-        {/* Evaluator Comments Preview */}
         <Box sx={{ mt: 6 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
             Evaluator Comments:
@@ -533,120 +473,76 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
             <Typography color="text.secondary"><i>No evaluators found.</i></Typography>
           )}
         </Box>
-
-        {/* Previous Commentors Preview */}
-        {previousCommentors.length > 0 && (
-          <Box sx={{ mt: 6 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-              Previous Commentor Comments:
-            </Typography>
-            {previousCommentors.map((prev, i) => (
-              <Paper
-                key={prev.commentor_id}
-                elevation={2}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  width: '100%',
-                  bgcolor: '#fff',
-                  borderRadius: 2,
-                  borderLeft: '8px solid #eab31a',
-                  px: 2,
-                  pt: 2,
-                  pb: 2,
-                  mt: 2,
-                  mb: 2,
-                  boxShadow: 2,
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-                  {prev.client_id}
-                </Typography>
-                <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                  {getFullName(prev)}
-                </Typography>
-                <TextField
-                  label="Comment"
-                  multiline
-                  minRows={3}
-                  fullWidth
-                  value={prev.comment || ''}
-                  sx={{ mt: 1 }}
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                />
-              </Paper>
-            ))}
-          </Box>
-        )}
-
-        {/* This Commentor's Section */}
-        {thisCommentor ? (
-          <Box sx={{ mt: 6 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-              Your Comment Section:
-            </Typography>
-            <Paper
-              elevation={2}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                width: '100%',
-                bgcolor: '#fff',
-                borderRadius: 2,
-                borderLeft: '8px solid #eab31a',
-                px: 2,
-                pt: 2,
-                pb: 2,
-                mt: 2,
-                mb: 2,
-                boxShadow: 2,
-              }}
-            >
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-                {thisCommentor.client_id}
-              </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                {getFullName(thisCommentor)}
-              </Typography>
-              <TextField
-                label="Comment"
-                multiline
-                minRows={3}
-                fullWidth
-                value={commentInput}
-                onChange={e => setCommentInput(e.target.value)}
-                sx={{ mt: 1 }}
-                placeholder="Enter your comment here"
-                disabled={saving || thisCommentor.signature_filepath}
-              />
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={handleSaveComment}
-                  disabled={saving || thisCommentor.signature_filepath}
-                >
-                  {thisCommentor.signature_filepath ? "Signed" : saving ? "Saving..." : "Save Comment"}
-                </Button>
-              </Box>
-              {/* Modal for this commentor */}
-              <PerformanceEvaluationCommentorAcknowledge
-                open={openAcknowledge}
-                onClose={() => setOpenAcknowledge(false)}
-                onProceed={handleProceedAcknowledge}
-              />
-            </Paper>
-          </Box>
-        ) : (
-          <Typography sx={{ mt: 4, color: 'red', textAlign: 'center' }}>
-            You are not assigned as a commentor for this evaluation.
+        <Box sx={{ mt: 6 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+            Comments:
           </Typography>
-        )}
-      </Box>
-    </Layout>
+          {allCommentors.length > 0 ? (
+            <Box>
+              {allCommentors.map((commentor, i) => (
+                <Paper
+                  key={commentor.commentor_id}
+                  elevation={2}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: '100%',
+                    bgcolor: '#fff',
+                    borderRadius: 2,
+                    borderLeft: '8px solid #eab31a',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    boxShadow: 2,
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                    {commentor.client_id}
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                    {getFullName(commentor)}
+                  </Typography>
+                  <TextField
+                    label="Comment"
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    value={
+                      commentorComments.find(c => c.commentor_id === commentor.commentor_id)?.comment || ''
+                    }
+                    sx={{ mt: 1 }}
+                    onChange={e => handleCommentInput(commentor.commentor_id, e.target.value)}
+                    placeholder="Enter your comment here"
+                    disabled={savingIds.includes(commentor.commentor_id)}
+                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleOpenAcknowledgeModal(commentor.commentor_id)}
+                      disabled={savingIds.includes(commentor.commentor_id)}
+                    >
+                      {savingIds.includes(commentor.commentor_id) ? "Saving..." : "Save Comment"}
+                    </Button>
+                  </Box>
+                  {/* Modal for this commentor */}
+                  <PerformanceEvaluationCommentorAcknowledge
+                    open={openAcknowledgeFor === commentor.commentor_id}
+                    onClose={() => setOpenAcknowledgeFor(null)}
+                    onProceed={signatureData => handleProceedAcknowledge(signatureData, commentor.commentor_id)}
+                  />
+                </Paper>
+              ))}
+            </Box>
+          ) : (
+            <Typography color="text.secondary"><i>No commentors found.</i></Typography>
+          )}
+        </Box>
+      </DialogContent>
+    </Dialog>
   );
 };
 
-export default PerformanceEvaluationCommentorPage;
+export default ModalReviewForm;
