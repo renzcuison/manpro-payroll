@@ -1,4 +1,3 @@
-import { AccordionSummaryMouseSensor } from './Sensors/AccordionSummaryMouseSensor';
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import {
   Box,
@@ -13,7 +12,6 @@ import CheckUser from '../../Errors/Error404';
 import {
     DndContext, 
     closestCenter,
-    TouchSensor,
     useSensor,
     useSensors
 } from '@dnd-kit/core';
@@ -30,10 +28,12 @@ import {
 import Swal from 'sweetalert2';
 import { useEvaluationForm } from '../../../hooks/useEvaluationForm';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import PerformanceEvaluationEditModal from './Modals/PerformanceEvaluationEditModal';
 import PerformanceEvaluationDeleteModal from './Modals/PerformanceEvaluationDeleteModal';
 import PerformanceEvaluationSectionRatingModal from './Modals/PerformanceEvaluationSectionRatingModal.jsx';
+import { SectionDropdownMouseSensor } from './Sensors/SectionDropdownMouseSensor';
+import { SectionDropdownTouchSensor } from "./Sensors/SectionDropdownTouchSensor.jsx";
 
 const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams();
@@ -118,8 +118,8 @@ const PerformanceEvaluationFormPage = () => {
     // Section moving
 
     const sensors = useSensors(
-        useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
-        useSensor(AccordionSummaryMouseSensor, { activationConstraint: { distance: 10 } })
+        useSensor(SectionDropdownTouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+        useSensor(SectionDropdownMouseSensor, { activationConstraint: { distance: 10 } })
     );
     const handleDragStart = (event) => {
         setDraggedSectionId(event.active?.id ?? null);

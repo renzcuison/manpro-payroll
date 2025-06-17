@@ -525,7 +525,9 @@ export function useEvaluationResponse(responseId) {
     }
 
     // For saving evaluatee/creator signature
-    async function editEvaluationSignature({ response_id, creator_signature_filepath, evaluatee_signature_filepath }) {
+    async function editEvaluationSignature({
+        response_id, creator_signature_filepath, evaluatee_signature_filepath
+    }) {
         try {
             const payload = new FormData();
             payload.set('id', response_id);

@@ -1,4 +1,4 @@
-import { AccordionSummaryMouseSensor } from './Sensors/AccordionSummaryMouseSensor';
+import { SectionDropdownMouseSensor } from './Sensors/SectionDropdownMouseSensor';
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import {
   Box,
@@ -192,7 +192,7 @@ const PerformanceEvaluationFormPage = () => {
     const sensors = useSensors(
         // useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
         useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
-        useSensor(AccordionSummaryMouseSensor, { activationConstraint: { distance: 10 } })
+        useSensor(SectionDropdownMouseSensor, { activationConstraint: { distance: 10 } })
     );
     const handleDragStart = (event) => {
         setDraggedSectionId(event.active?.id ?? null);
