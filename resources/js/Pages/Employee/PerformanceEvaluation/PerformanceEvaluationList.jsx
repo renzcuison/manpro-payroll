@@ -248,6 +248,7 @@ const PerformanceEvaluationList = () => {
                                                 <TableCell align="center">NAME</TableCell>
                                                 <TableCell align="center">DEPARTMENT</TableCell>
                                                 <TableCell align="center">BRANCH</TableCell>
+                                                <TableCell align="center">ROLE</TableCell>
                                                 <TableCell align="center">STATUS</TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -260,22 +261,23 @@ const PerformanceEvaluationList = () => {
                                                 </TableRow>
                                             ) : (
                                                 evaluationResponses.map((row, idx) => (
-                                                    <TableRow
-                                                        key={row.id}
-                                                        hover
-                                                        style={{
-                                                            cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
-                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
-                                                            opacity: isRowDisabled(row) ? 0.5 : 1,
-                                                        }}
-                                                        onClick={() => handleRowClick(row)}
-                                                    >
-                                                        <TableCell align="center">{row.date}</TableCell>
-                                                        <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.status}</TableCell>
-                                                    </TableRow>
+                                                <TableRow
+                                                    key={row.id}
+                                                    hover
+                                                    style={{
+                                                        cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
+                                                        backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
+                                                        opacity: isRowDisabled(row) ? 0.5 : 1,
+                                                    }}
+                                                    onClick={() => handleRowClick(row)}
+                                                >
+                                                    <TableCell align="center">{row.date}</TableCell>
+                                                    <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
+                                                    <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
+                                                    <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
+                                                    <TableCell align="center">{row.role}</TableCell>
+                                                    <TableCell align="center">{row.status}</TableCell>
+                                                </TableRow>
                                                 ))
                                             )}
                                         </TableBody>

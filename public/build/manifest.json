@@ -10,6 +10,7 @@
   },
   "node_modules/dompurify/dist/purify.es.mjs": {
     "file": "assets/purify.es-Bf0oSh3b.js",
+    "file": "assets/purify.es-Bf0oSh3b.js",
     "name": "purify.es",
     "src": "node_modules/dompurify/dist/purify.es.mjs",
     "isDynamicEntry": true
@@ -75,6 +76,7 @@
     "src": "public/media/assets/PowerPoint_file_icon.png"
   },
   "resources/css/app.css": {
+    "file": "assets/app-D_WZjgo6.css",
     "file": "assets/app-D_WZjgo6.css",
     "src": "resources/css/app.css",
     "isEntry": true
