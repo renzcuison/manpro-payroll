@@ -34,6 +34,8 @@ const GroupLifeEmployees = () => {
     const [employees, setEmployees] = useState([]);
     const [planName, setPlanName] = useState("");
     const [loading, setLoading] = useState(true);
+    const [employeePlans, setEmployeePlans] = useState([]);
+    const [rows, setRows] = useState([]);  
 
     console.log("Loaded planDetails from localStorage:", planDetails);
 
@@ -86,6 +88,57 @@ const GroupLifeEmployees = () => {
         const startIndex = currentPage * rowsPerPage;
         return filteredRecords.slice(startIndex, startIndex + rowsPerPage);
     }, [filteredRecords, currentPage, rowsPerPage]);
+
+    const refreshEmployees = () => {
+    console.log("🔄 Refreshing employee plans..."); // <--- Add this
+
+    setLoading(true);
+
+    axiosInstance
+        .get("/medicalRecords/getGroupLifeEmployees", {
+            headers: { Authorization: `Bearer ${user.token}` }
+        })
+    .then(res => {
+        const employees = res.data.employees || [];
+        setEmployees(
+            employees.map(emp => ({
+                employee_id: emp.employee_id,
+                employee_name: emp.employee_name,
+                enroll_date: emp.enroll_date,
+                dependents_count: emp.dependents_count,
+                dependents: emp.dependents
+            }))
+        );
+    })
+
+        .catch(console.error)
+        .finally(() => setLoading(false));
+};
+
+    // const refreshEmployees = () => {
+    
+    //         setLoading(true);
+    
+    //         axiosInstance
+    //             .get("/medicalRecords/getGroupLifeEmployees", {
+    //                 headers: { Authorization: `Bearer ${user.token}` }
+    //             })
+    //             .then(res => {
+    //                 const plans = res.data.plans || [];
+    //                 console.log("Processed plans:", plans);
+    //                 setRows(
+    //                     plans.map(row => ({
+    //                         id: row.plan_id,
+    //                         employee_id: row.employee_id,
+    //                         enroll_date: row.enroll_date,
+    //                         dependents_count: row.dependents_count,
+    //                         dependents: row.dependents
+    //                     }))
+    //                 );
+    //             })
+    //             .catch(console.error)
+    //             .finally(() => setLoading(false));
+    //     };
 
     return (
         <Layout title="GroupLife Masterlist">
@@ -234,6 +287,7 @@ const GroupLifeEmployees = () => {
                         open={openAssignEmployeeModal}
                         close={setOpenAssignEmployeeModal}
                         planId={id}
+                        refreshEmployees={refreshEmployees}
                     />
                 )}
                 

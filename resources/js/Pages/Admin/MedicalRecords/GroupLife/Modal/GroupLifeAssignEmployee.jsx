@@ -21,11 +21,11 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-const GroupLifeAssignEmployee = ({ open, close, planId }) => {
+const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
     console.log("Received planId:", planId);
 
     const storedUser = localStorage.getItem("nasya_user");
-        const user = storedUser ? JSON.parse(storedUser) : null;
+    const user = storedUser ? JSON.parse(storedUser) : null;
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [employees, setEmployees] = useState([]);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -95,7 +95,12 @@ const GroupLifeAssignEmployee = ({ open, close, planId }) => {
                 dependents: dependents.filter(dep => dep.name && dep.relationship)
             };
 
-            const res = await axiosInstance.post('/medicalRecords/saveGroupLifeEmployees', payload, { headers: { Authorization: `Bearer ${user.token}`} });
+            const res = await axiosInstance.post('/medicalRecords/saveGroupLifeEmployees', payload, {
+            headers: { Authorization: `Bearer ${user.token}` }
+                });
+                refreshEmployees(); 
+
+                close();
 
             console.log("Success:", res.data);
             alert("Employee assigned successfully!");
