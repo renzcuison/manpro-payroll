@@ -2017,6 +2017,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/saveSalaryGrade', [SalaryPlansController::class, 'saveSalaryGrade']);
     Route::post('/editSalaryGrade/{id}', [SalaryPlansController::class, 'editSalaryGrade']);
     Route::post('/deleteSalaryGrade', [SalaryPlansController::class, 'deleteSalaryGrade']);
+    Route::get('/getSalaryLogs', [SalaryPlansController::class, 'getSalaryLogs']);
     Route::delete('/google/event/{id}', [
         GoogleController::class,
         'deleteEvent',
