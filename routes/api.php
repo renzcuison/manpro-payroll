@@ -1930,7 +1930,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('/deletePeme/{id}', [PemeController::class, 'deletePeme']);
 
     // PEME Questionnaire
-    Route::post('/pemCe/questionnaire', [
+    Route::post('/peme/questionnaire', [
         PemeQuestionnaireController::class,
         'store',
     ]);
@@ -1938,7 +1938,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         PemeQuestionnaireController::class,
         'getQuestionnaire',
     ]);
-    Route::put('/questionnaire/{questionId}', [
+    Route::put('peme/{pemeID}/question/{questionId}', [
         PemeQuestionnaireController::class,
         'update',
     ]);
@@ -1956,6 +1956,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         PemeResponseController::class,
         'storeAll',
     ]);
+    
     Route::get('/peme-responses/filter', [
         PemeResponseController::class,
         'filter',

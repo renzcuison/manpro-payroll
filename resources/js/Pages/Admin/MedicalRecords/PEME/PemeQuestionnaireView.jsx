@@ -166,6 +166,10 @@ const PemeQuestionnaireView = () => {
     const [selectedFile, setSelectedFile] = useState(null);
 
     useEffect(() => {
+
+        console.log("storedUser", storedUser);
+        console.log("headers", headers);
+
         axiosInstance
             .get(`/peme-response/${PemeResponseID}/details`, {
                 headers,
@@ -246,10 +250,83 @@ const PemeQuestionnaireView = () => {
             `/admin/medical-records/peme-records/peme-responses/${PemeResponseID}`
         );
     };
+
     const handleFileClick = (fileUrl, fileName = "File Preview") => {
         setSelectedFile({ url: fileUrl, file_name: fileName });
         setFilePreviewOpen(true);
     };
+
+    // const handleSaveDraft = async () => {
+    //     const responses = [];
+    //     const attachedMedia = [];
+
+    //     if (Array.isArray(employeeResponse.details)) {
+    //         employeeResponse.details.forEach((form) => {
+    //             if (Array.isArray(form.input_type)) {
+    //                 form.input_type.forEach((type) => {
+    //                     // Get the value from answers state
+    //                     const value =
+    //                         answers[form.question_id]?.[type.input_type] ??
+    //                         null;
+
+    //                     // Handle attachments as comma-separated file names
+    //                     let answerValue = value;
+
+    //                     responses.push({
+    //                         peme_q_item_id: form.question_id,
+    //                         peme_q_type_id: type.id,
+    //                         value: answerValue,
+    //                     });
+
+    //                     // If value is a File
+    //                     if (value instanceof File) {
+    //                         attachedMedia.push({
+    //                             question_id: form.question_id,
+    //                             input_type: type.input_type,
+    //                             file: answerValue,
+    //                         });
+    //                     }
+
+    //                     // If value is an array of Files
+    //                     if (Array.isArray(value) && value[0] instanceof File) {
+    //                         value.forEach((file) => {
+    //                             attachedMedia.push({
+    //                                 question_id: form.question_id,
+    //                                 input_type: type.input_type,
+    //                                 file: file,
+    //                             });
+    //                         });
+    //                     }
+    //                 });
+    //             }
+    //         });
+    //     }
+
+    //     const payload = {
+    //         peme_response_id: PemeResponseID,
+    //         responses: responses,
+    //     };
+
+    //     const formData = new FormData();
+    //     attachedMedia.forEach((file, index) => {
+    //         formData.append("files", file);
+    //     });
+
+    //     try {
+    //         console.log("pressed");
+    //         axiosInstance
+    //             .post(
+    //                 `peme-response-details/${PemeResponseID}/attach-media`,
+    //                 formData,
+    //                 { headers }
+    //             )
+    //             .then((response) => {
+    //                 console.log("response", response.data);
+    //             });
+    //     } catch (error) {
+    //         console.log("error", error);
+    //     }
+    // };
 
     return (
         <Layout>
