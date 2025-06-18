@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import 'react-quill/dist/quill.snow.css';
 
-const SalaryGradeEdit = ({ open, close, salaryGradeInfo }) => {
+const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSalaryGrades }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -22,6 +22,8 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
+        const duplicate = existingSalaryGrades.some((grade) => String(grade) === String(salary_grade));
+
         setSalaryGradeError(!salary_grade);
         setAmountError(!amount);
 
@@ -29,6 +31,14 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo }) => {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        } else if (duplicate) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "That salary grade already exists.",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: '#177604',
@@ -76,6 +86,7 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo }) => {
                         confirmButtonColor: '#177604',
                     }).then(() => {
                         close();
+                        if (onDeleted) onDeleted();
                     });
                 }
             })
@@ -109,6 +120,47 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo }) => {
     const handleInputChange = (e, setValue) => {
         const formattedValue = formatCurrency(e.target.value);
         setValue(formattedValue);
+    };
+
+        
+        
+    const handleDeleteSalaryGrade = (salaryGrade) => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: `Delete Salary Grade?`,
+            text: `Are you sure you want to delete this salary grade? This action can't be undone!`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Delete",
+            confirmButtonColor: "#E9AE20",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const data = {
+                    salary_grade: salaryGrade.id, // or salaryGrade.salary_grade if your backend expects that
+                };
+
+                axiosInstance.post('/deleteSalaryGrade', data, { headers })
+                    .then(response => {
+                        Swal.fire({
+                            customClass: { container: 'my-swal' },
+                            text: "Salary grade deleted successfully!",
+                            icon: "success",
+                            timer: 1000,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Proceed',
+                            confirmButtonColor: '#177604',
+                        }).then(() => {
+                            close(); // Close the modal
+                            // Optionally, you can call a prop like onDeleted() to refresh the parent list
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+        });
     };
 
     return (
@@ -172,9 +224,12 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo }) => {
                             </FormControl>
                         </FormGroup>
 
-                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px', gap: 3 }}>
+                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white'}} className="m-1">
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Update Salary Grade </p>
+                            </Button>
+                            <Button onClick={(event) => {event.stopPropagation(); handleDeleteSalaryGrade(salaryGradeInfo);}} variant="contained" sx={{ backgroundColor: '#dc3545', color: 'white' }} className="m-1">
+                                <p className='m-0'><i className="fa fa-trash mr-2 mt-1"></i> Delete Salary Grade </p>
                             </Button>
                         </Box>
 
