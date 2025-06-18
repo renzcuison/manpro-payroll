@@ -43,7 +43,6 @@ import { SubcategoryDropdownTouchSensor } from '../Sensors/SubcategoryDropdownTo
 import Swal from 'sweetalert2';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import { useClickAway } from '../Test/useClickAway';
-import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
 
@@ -106,12 +105,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
             event.over.data.current.order
         );
     }
-
-    // Section header click (single: expand/collapse, double: edit)
-    const onSectionClick = useClickHandler({
-        onSingleClick: () => toggleExpand(),
-        onDoubleClick: toggleEditableSection
-    });
 
     // Category modal state
     const [addCategoryOpen, setAddCategoryOpen] = useState(false);
@@ -371,7 +364,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     return <>
         <Accordion
             expanded={expanded}
-            onChange={onSectionClick}
+            onChange={toggleExpand}
             sx={{
                 my: 2,
                 boxShadow: 2,
