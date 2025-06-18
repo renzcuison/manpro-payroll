@@ -3,7 +3,7 @@ import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, Tab
 import { useAllowances } from "../../../hooks/useAllowances";
 
 const UserAllowances = ({userName}) => {
-    const {employeeAllowances} = useAllowances(userName);
+    const {employeeAllowances} = useAllowances({userName: userName});
     const allowances = employeeAllowances.data?.allowances || [];
 
     return(

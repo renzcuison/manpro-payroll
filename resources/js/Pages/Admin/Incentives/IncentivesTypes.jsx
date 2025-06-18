@@ -8,7 +8,7 @@ import { useIncentives } from '../../../hooks/useIncentives';
 import IncentivesAdd from './Modals/IncentivesAdd';
 
 const IncentivesTypes = () => {
-    const { incentives: incentivesQuery } = useIncentives();
+    const { incentives: incentivesQuery } = useIncentives({loadIncentives: true});
     const incentives = incentivesQuery.data?.incentives || [];
     const [openAddIncentiveseModal, setOpenAddIncentivesModal] = useState(false);
 

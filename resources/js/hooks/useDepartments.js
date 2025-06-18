@@ -5,21 +5,26 @@ import Swal from "sweetalert2";
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 
-export function useDepartments(departmentId = null){
+export function useDepartments({departmentId = null, loadDepartments = false, loadDeptWithPositions = false, loadDeptPositions = false}){
     const departments = useQuery(["departments"], async () => {
         const {data} = await axiosInstance.get("settings/getDepartments", { headers });
         return data;
-    });
+    }, {enabled: loadDepartments});
 
     const departmentsWithPositions = useQuery(['departmentsWithPositions'], async () => {
         const {data} = await axiosInstance.get('/settings/getDepartmentWithEmployeePosition', { headers });
         return data;
-    });
+    }, {enabled: loadDeptWithPositions});
 
     const departmentPositions = useQuery(['departmentPositions'], async () => {
         const {data} = await axiosInstance.get('/settings/getDepartmentPositions', { headers });
         return data;
-    });
+    }, {enabled: loadDeptPositions});
+
+    const departmentDetails = useQuery(['departmentDetails', departmentId], async () => {
+        const {data} = await axiosInstance.get('settings/getDepartmentDetails', {headers, params: {departmentId: departmentId}});
+        return data;
+    }, {enabled: !! departmentId});
 
     const saveDepartment = useMutation(
         async ({ data }) => {
@@ -54,9 +59,10 @@ export function useDepartments(departmentId = null){
             }
         }
     );
+    
 
     return{
-        departments, departmentPositions, departmentsWithPositions, saveDepartment
+        departments, departmentPositions, departmentDetails, departmentsWithPositions, saveDepartment
     }
 
 }

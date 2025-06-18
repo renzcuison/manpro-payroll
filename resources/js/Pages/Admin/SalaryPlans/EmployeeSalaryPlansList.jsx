@@ -154,7 +154,7 @@ const SalaryPlans = () => {
                                                 salaryPlans.map((salaryPlan) => (
                                                     // onClick={() => setOpenEditSalaryType(salaryPlan)}
                                                     <TableRow key={salaryPlan.id}>
-                                                        <TableCell sx={{fontSize: 14}} align="center">{salaryPlan.salary_grade}</TableCell>
+                                                        <TableCell sx={{fontSize: 14}} align="center">Grade {salaryPlan.salary_grade}</TableCell>
                                                         <TableCell sx={{ fontSize: 14 }} align="left">
                                                             ₱ {Number(salaryPlan.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </TableCell>
@@ -206,7 +206,7 @@ const SalaryPlans = () => {
                     </Box>
                 </Box>
                 {openAddSalaryGrade &&
-                    <SalaryGradeAdd open={openAddSalaryGrade} close={handleCloseAddSalaryGrade} />
+                    <SalaryGradeAdd open={openAddSalaryGrade} close={handleCloseAddSalaryGrade} existingSalaryGrades={salaryPlans.map(plan => plan.salary_grade)} />
                 }
                 {openEditSalaryGrade &&
                     <SalaryGradeEdit open={openEditSalaryGrade} close={handleCloseEditSalaryGrade} salaryGradeInfo={loadSalaryGrade} />

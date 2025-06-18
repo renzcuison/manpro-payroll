@@ -6,18 +6,18 @@ import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 import {Box,Typography,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Button,Avatar,Grid,TextField,
 FormControl,InputLabel,Select,MenuItem,InputAdornment, Menu, ListItemText} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-
+import { useDepartments } from "../../../hooks/useDepartments";
 import DepartmentEdit from "./Modals/DepartmentEdit";
 import DepartmentAssignPosition from "./Modals/DepartmentAssignPosition";
 
 const DepartmentDetails = () => {
     const { id } = useParams();
+    const { departmentDetails } = useDepartments({departmentId: id});
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [department, setDepartment] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const department = departmentDetails.data?.department || [];
     const [error, setError] = useState(null);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [branchFilter, setBranchFilter] = useState("all");
@@ -45,7 +45,7 @@ const DepartmentDetails = () => {
         setOpenEditModal(false);
         if(reload){
             fetchBranches();
-            fetchDepartmentDetail();
+            departmentDetails.refetch();
         }
     }
 
@@ -56,7 +56,7 @@ const DepartmentDetails = () => {
     const handleClosePositionAssignModal = (reload) => {
         setOpenPositionAssignModal(false)
         if(reload){
-            fetchDepartmentDetail();
+            departmentDetails.refetch();
             fetchBranches();
         }
     }
@@ -64,20 +64,12 @@ const DepartmentDetails = () => {
 
     useEffect(() => {
         fetchBranches();
-        fetchDepartmentDetail();
     }, [id]);
 
     //fetching data 
-    const fetchDepartmentDetail = () => {
-        axiosInstance.get(`/settings/getDepartmentDetails/${id}`, { headers }).then((response) => {
-            setDepartment(response.data.department);
-            setIsLoading(false);
-        });
-    }
     const fetchBranches = () => {
         axiosInstance.get('/settings/getBranches', { headers }).then((response) => {
             setBranches(response.data.branches);
-            setIsLoading(false);
         }); 
     }
     //end of fetching data
@@ -87,6 +79,7 @@ const DepartmentDetails = () => {
         const branchMatch = branchFilter === "all" || emp.branch_id === branchFilter;
         return nameMatch && branchMatch;
     }) || [];
+
     if (error) return (
         <Layout title={"Departments"}>
             <Typography color="error">{error}</Typography>
@@ -101,7 +94,7 @@ const DepartmentDetails = () => {
 
     return (
         <Layout title={"Departments"}>
-            {isLoading ? (
+            {departmentDetails.isLoading ? (
                 <Box sx={{ 
                     display: 'flex', 
                     justifyContent: 'center', 
@@ -249,8 +242,8 @@ const DepartmentDetails = () => {
                                                             {emp.department_position.name}
                                                         </TableCell>
                                                         ):(
-                                                        <TableCell>
-                                                            --
+                                                        <TableCell align="center">
+                                                            -
                                                         </TableCell>
                                                         )
                                                     }

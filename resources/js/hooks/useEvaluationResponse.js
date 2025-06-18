@@ -7,12 +7,11 @@ export function useEvaluationResponse(responseId) {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [evaluationResponse, setEvaluationResponse] = useState({});
-    const [evaluateeId, setEvaluateeId] = useState('');
-    const [formId, setFormId] = useState('');
-    const [evaluators, setEvaluators] = useState([]);
-    const [commentors, setCommentors] = useState([]);
+    const [evaluatorId, setEvaluatorId] = useState();
+    const [formId, setFormId] = useState();
     const [periodStartAt, setPeriodStartAt] = useState('');
     const [periodStartEnd, setPeriodStartEnd] = useState('');
+    const [signatureFilePaths, setSignatureFilePaths] = useState({});
     const subcategories = evaluationResponse.form?.sections.reduce((subcategories, section) => {
         for(let subcategory of section.subcategories) subcategories[subcategory.id] = subcategory;
         return subcategories;
@@ -22,6 +21,8 @@ export function useEvaluationResponse(responseId) {
         for(let option of subcategory.options) options[option.id] = option;
         return options;
     }, {});
+    const evaluateeSignatureFilePath = signatureFilePaths[evaluationResponse?.evaluatee_id];
+    const creatorSignatureFilePath = signatureFilePaths[evaluationResponse?.creator_id];
 
     useEffect(() => {
         if(responseId == undefined) return;
@@ -70,11 +71,36 @@ export function useEvaluationResponse(responseId) {
             .then((response) => {
                 const { evaluationResponse } = response.data;
                 if(!evaluationResponse) return;
+                const {
+                    evaluatee_id, creator_id, evaluatee_signature, creator_signature,
+                    commentors, evaluators
+                } = evaluationResponse;
+                const userId = JSON.parse(storedUser).id;
+                if(evaluatee_signature) loadSignatureFilePath(evaluatee_id, evaluatee_signature);
+                if(creator_signature) loadSignatureFilePath(creator_id, creator_signature);
+                for(let { commentor_id, commentor_signature } of commentors)
+                    if(commentor_signature) loadSignatureFilePath(commentor_id, commentor_signature);
+                for(let { evaluator_id, evaluator_signature } of evaluators) {
+                    if(evaluator_signature) loadSignatureFilePath(evaluator_id, evaluator_signature);
+                    if(evaluator_id === userId) setEvaluatorId(evaluator_id);
+                }
                 setEvaluationResponse(evaluationResponse);
             })
             .catch(error => {
                 console.error('Error fetching response data:', error);
             });
+    }
+
+    function loadSignatureFilePath(userId, filePath) {
+        const byteCharacters = window.atob(filePath);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++)
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+        if (filePath && filePath.startsWith('blob:')) URL.revokeObjectURL(filePath);
+        signatureFilePaths[userId] = URL.createObjectURL(blob);
+        setSignatureFilePaths({ ...signatureFilePaths });
     }
 
     function reloadEvaluationResponse() {
@@ -439,15 +465,12 @@ export function useEvaluationResponse(responseId) {
     }
 
     // For saving comment and signature for the commentor - Khim
-    async function editEvaluationCommentor({ response_id, commentor_id, comment, signature_filepath }) {
+    async function editEvaluationCommentor({ response_id, comment, signature_filepath }) {
         try {
-            const payload = {
-                response_id,
-                commentor_id,
-            };
-            if (comment !== undefined) payload.comment = comment;
-            if (signature_filepath !== undefined) payload.signature_filepath = signature_filepath;
-
+            const payload = new FormData();
+            payload.append('response_id', response_id);
+            if (comment !== undefined) payload.append('comment', comment);
+            if (signature_filepath !== undefined) payload.append('signature_filepath', signature_filepath);
             const response = await axiosInstance.post(
                 '/editEvaluationCommentor',
                 payload,
@@ -474,14 +497,10 @@ export function useEvaluationResponse(responseId) {
     // For saving comment and signature for the evaluator - Khim
     async function editEvaluationEvaluator({ response_id, evaluator_id, comment, signature_filepath }) {
         try {
-            const payload = {
-                response_id,
-                evaluator_id,
-            };
-            if (comment !== undefined) payload.comment = comment;
-            console.log(signature_filepath)
-            if (signature_filepath !== undefined) payload.signature_filepath = signature_filepath;
-
+            const payload = new FormData();
+            payload.append('response_id', response_id);
+            if (comment !== undefined) payload.append('comment', comment);
+            if (signature_filepath !== undefined) payload.append('signature_filepath', signature_filepath);
             const response = await axiosInstance.post(
                 '/editEvaluationEvaluator',
                 payload,
@@ -492,7 +511,6 @@ export function useEvaluationResponse(responseId) {
                 (response.status && String(response.status).startsWith('2')) ||
                 (response.data && response.data.status && String(response.data.status).startsWith('2'))
             ) {
-                console.log(response.data)
                 return response.data.evaluationEvaluator;
             } else {
                 throw new Error(response.data?.message || 'Failed to save comment.');
@@ -507,15 +525,16 @@ export function useEvaluationResponse(responseId) {
     }
 
     // For saving evaluatee/creator signature
-    async function editEvaluationCreatorSignature({ response_id, creator_signature_filepath, evaluatee_signature_filepath }) {
+    async function editEvaluationSignature({
+        response_id, creator_signature_filepath, evaluatee_signature_filepath
+    }) {
         try {
-            const payload = {
-                id: response_id,
-            };
+            const payload = new FormData();
+            payload.set('id', response_id);
             if (creator_signature_filepath !== undefined)
-                payload.creator_signature_filepath = creator_signature_filepath;
+                payload.set('creator_signature_filepath', creator_signature_filepath);
             if (evaluatee_signature_filepath !== undefined)
-                payload.evaluatee_signature_filepath = evaluatee_signature_filepath;
+                payload.set('evaluatee_signature_filepath', evaluatee_signature_filepath);
 
             const response = await axiosInstance.post(
                 '/editEvaluationResponse',
@@ -542,11 +561,14 @@ export function useEvaluationResponse(responseId) {
     }
 
     return {
-        evaluationResponse, options, subcategories,
+        creatorSignatureFilePath, evaluateeSignatureFilePath,
+        evaluationResponse, evaluatorId, signatureFilePaths,
+        options, subcategories,
         deleteEvaluationResponse, editEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,
         getMultipleChoiceOptionId,
-        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationCreatorSignature,
+        editEvaluationCommentor, editEvaluationEvaluator, editEvaluationSignature,
+        reloadEvaluationResponse
     };
 }

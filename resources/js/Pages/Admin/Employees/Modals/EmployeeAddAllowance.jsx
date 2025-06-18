@@ -3,12 +3,11 @@ import { Box, Button, MenuItem, TextField, FormControl, FormGroup, Dialog, Dialo
 import Swal from 'sweetalert2';
 import axiosInstance, {getJWTHeader} from "../../../../utils/axiosConfig";
 import { useAllowances, useSaveEmployeeAllowance } from "../../../../hooks/useAllowances";
+import { useAllowances } from "../../../../hooks/useAllowances";
 
 const EmployeeAddAllowance = ({userName, open, onClose }) => {
-
-    const saveEmployeeAllowance = useSaveEmployeeAllowance();
-    const {data, isLoading, error, refetch} = useAllowances();
-    const allowances = data?.allowances || [];
+    const {allowances: allowanceQuery, saveEmployeeAllowances} = useAllowances({loadAllowances: true});
+    const allowances = allowanceQuery.data?.allowances || [];
     const [allowanceError, setAllowanceError] = useState(false);
     const [numberError, setNumberError] = useState(false);
 
@@ -60,7 +59,7 @@ const EmployeeAddAllowance = ({userName, open, onClose }) => {
     const saveInput = (event) => {
         event.preventDefault();
         const data = { userName: userName, allowance: allowance, number: number };
-        saveEmployeeAllowance.mutate(data, {
+        saveEmployeeAllowances.mutate(data, {
             onSuccess: (response) => {
                 if(response.status === 200){
                     Swal.fire({
