@@ -618,16 +618,20 @@ class EvaluationResponseController extends Controller
                 ]);
             }
             // 2. Fetching signatures
+            $role = null;
             $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
             $evaluationResponse->evaluatee_signature = (
                 $evaluateeSignature ? base64_encode(file_get_contents($evaluateeSignature->getPath()))
                 : null
             );
+            if($evaluationResponse->evaluatee_id == $userID) $role = 'Evaluatee';
             $creatorSignature = $evaluationResponse->getFirstMedia('creator_signatures');
             $evaluationResponse->creator_signature = (
                 $creatorSignature ? base64_encode(file_get_contents($creatorSignature->getPath()))
                 : null
             );
+            if($evaluationResponse->creator_id == $userID) $role = 'Creator';
+            // here
             foreach ($evaluationResponse->evaluators as $index => $evaluator) {
                 $evaluatorSignature = $evaluator->getFirstMedia('signatures');
                 $evaluator->evaluator_signature = (
@@ -680,7 +684,8 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Response successfully retrieved.',
-                'evaluationResponse' => $evaluationResponse
+                'evaluationResponse' => $evaluationResponse,
+                'role' => $role
             ]);
         } catch (\Exception $e) {
             Log::error('Error getting evaluation response: ' . $e->getMessage());

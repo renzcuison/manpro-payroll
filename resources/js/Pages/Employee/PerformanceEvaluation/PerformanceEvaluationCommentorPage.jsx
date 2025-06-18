@@ -8,7 +8,7 @@ import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
-import PerformanceEvaluationCommentorAcknowledge from '../PerformanceEvaluation/Modals/PerformanceEvalutionCommentorAcknowledge';
+import PerformanceEvaluationCommentorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvalutionCommentorAcknowledge';
 import Swal from 'sweetalert2';
 
 // --- Overall Rating Calculation Helper ---
@@ -95,9 +95,11 @@ const Bar = ({ value, max = 100, sx = {} }) => {
 };
 // --- END Overall Rating Helper ---
 
-const PerformanceEvaluationCommentorPage = () => {
-  const { id } = useParams();
+const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   const navigate = useNavigate();
+
+  const params = useParams();
+  const id = propId || params.id;
 
   const {
     evaluationResponse,
@@ -109,24 +111,26 @@ const PerformanceEvaluationCommentorPage = () => {
   const [commentInput, setCommentInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [openAcknowledge, setOpenAcknowledge] = useState(false);
-
-  const storedUser = localStorage.getItem("nasya_user");
-  const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
+  const [thisCommentor, setThisCommentor] = useState();
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
-      setLoading(false);
       // Pre-fill comment if user already has one (editing)
+      const storedUser = localStorage.getItem("nasya_user");
+      const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
       if (evaluationResponse.commentors && loggedInUser) {
         const thisCommentor = evaluationResponse.commentors.find(
           c => c.commentor_id === loggedInUser.id
         );
+        console.log(loggedInUser)
+        setThisCommentor(thisCommentor);
         if (thisCommentor && thisCommentor.comment) {
           setCommentInput(thisCommentor.comment);
         }
       }
+      setLoading(false);
     }
-  }, [evaluationResponse, loggedInUser]);
+  }, [evaluationResponse]);
 
   const handleSettingsClick = (event) => {
     setSettingsAnchorEl(event.currentTarget);
@@ -137,20 +141,13 @@ const PerformanceEvaluationCommentorPage = () => {
   const settingsOpen = Boolean(settingsAnchorEl);
 
   // Find this user as commentor, and their order
-  const allCommentors = Array.isArray(evaluationResponse?.commentors) ? evaluationResponse.commentors : [];
-  const thisCommentor = loggedInUser
-    ? allCommentors.find(c => c.commentor_id === loggedInUser.id)
-    : null;
+  const allCommentors = evaluationResponse?.commentors ?? [];
 
   // Only show previous commentors (order < this one and have signed)
-  const previousCommentors = thisCommentor
-    ? allCommentors
-        .filter(c => c.order < thisCommentor.order && c.signature_filepath)
-        .sort((a, b) => a.order - b.order)
-    : [];
+  const previousCommentors = thisCommentor ? allCommentors.slice(0, thisCommentor.order - 1) : [];
 
   // --- Evaluators for preview ---
-  const allEvaluators = Array.isArray(evaluationResponse?.evaluators) ? evaluationResponse.evaluators : [];
+  const allEvaluators = evaluationResponse?.evaluators ?? [];
 
   // Save handler for this commentor
   const handleSaveComment = () => {
@@ -163,9 +160,8 @@ const PerformanceEvaluationCommentorPage = () => {
     try {
       await editEvaluationCommentor({
         response_id: evaluationResponse.id,
-        commentor_id: thisCommentor.commentor_id,
         comment: commentInput,
-        signature_filepath: signatureData // PNG dataURL
+        signature_filepath: signatureData
       });
       Swal.fire({
         icon: 'success',
@@ -305,6 +301,28 @@ const PerformanceEvaluationCommentorPage = () => {
                       {opt.label} - {opt.score ?? 1}{index !== subCategory.options.length - 1 && ','}
                     </Typography>
                   ))}
+                  
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                      Description:
+                    </Typography>
+                    <Box>
+                      {subCategory.options?.map((opt, index) =>
+                          opt.description ? (
+                            <Typography
+                              key={opt.id + "_desc"}
+                              variant="body2"
+                              sx={{fontSize: '0.8rem'}}
+                            >
+                              {opt.score} - {opt.description}
+                            </Typography>
+                          ) : null
+                        )}
+                    </Box>
+                    
+
                 </Box>
               </Box>
             )}
@@ -341,7 +359,7 @@ const PerformanceEvaluationCommentorPage = () => {
               right: 10,
               borderRadius: '50%',
               padding: '5px',
-              color: '#BEBEBE', // removed duplicate color
+              color: '#BEBEBE',
             }}
             aria-controls={settingsOpen ? 'settings-menu' : undefined}
             aria-haspopup="true"
@@ -459,16 +477,16 @@ const PerformanceEvaluationCommentorPage = () => {
                   <Box
                     key={subCategory.id}
                     sx={{
-                      border: '1px solid #ddd',
-                      borderRadius: 2,
-                      px: 2,
-                      pt: 2,
-                      pb: 2,
-                      mt: 2,
-                      mb: 2, // removed duplicate mb
-                      mx: 2,
-                      bgcolor: '#f3f3f3',
-                      boxShadow: 2
+                    border: '1px solid #ddd',
+                    borderRadius: 2,
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    mx: 2,
+                    bgcolor: '#f3f3f3',
+                    boxShadow: 2
                     }}
                   >
                     <Typography variant="h6" color="black" sx={{ mb: 0.5 }}>
@@ -513,72 +531,152 @@ const PerformanceEvaluationCommentorPage = () => {
                   <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(evaluator)}
                   </Typography>
-                  <TextField
-                    label="Evaluator Comment"
-                    multiline
-                    minRows={3}
-                    fullWidth
-                    value={evaluator.comment || ''}
-                    sx={{ mt: 1 }}
-                    placeholder="No comment provided"
-                    InputProps={{
-                      readOnly: true,
+                  <Box
+                    sx={{
+                      border: "1.5px solid #ccc",
+                      borderRadius: "8px",
+                      px: 2,
+                      pt: 2,
+                      pb: 0.5,
+                      background: "#fff",
+                      minHeight: 100,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
                     }}
-                  />
+                  >
+                    <TextField
+                      label="Evaluator Comment"
+                      variant="standard"
+                      multiline
+                      minRows={3}
+                      fullWidth
+                      value={evaluator.comment || ''}
+                      placeholder="No comment provided"
+                      InputProps={{
+                        readOnly: true,
+                        disableUnderline: true,
+                        style: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#222",
+                        }
+                      }}
+                      sx={{
+                        pb: 2,
+                        '& .MuiInputBase-input': { padding: 0 },
+                        '& label': { color: '#999', fontWeight: 400 }
+                      }}
+                    />
+                    {evaluator.signature_filepath && evaluator.updated_at && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#888",
+                          fontStyle: "italic",
+                          mt: 1,
+                          mb: 1,
+                          ml: 0.5,
+                        }}
+                      >
+                        Signed - {evaluator.updated_at.slice(0, 10)}
+                      </Typography>
+                    )}
+                  </Box>
                 </Paper>
               ))}
             </Box>
           ) : (
             <Typography color="text.secondary"><i>No evaluators found.</i></Typography>
           )}
-        </Box>
+        </Box>                
 
         {/* Previous Commentors Preview */}
-        {previousCommentors.length > 0 && (
-          <Box sx={{ mt: 6 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-              Previous Commentor Comments:
-            </Typography>
-            {previousCommentors.map((prev, i) => (
-              <Paper
-                key={prev.commentor_id}
-                elevation={2}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  width: '100%',
-                  bgcolor: '#fff',
-                  borderRadius: 2,
-                  borderLeft: '8px solid #eab31a',
-                  px: 2,
-                  pt: 2,
-                  pb: 2,
-                  mt: 2,
-                  mb: 2,
-                  boxShadow: 2,
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-                  {prev.client_id}
-                </Typography>
-                <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                  {getFullName(prev)}
-                </Typography>
-                <TextField
-                  label="Comment"
-                  multiline
-                  minRows={3}
-                  fullWidth
-                  value={prev.comment || ''}
-                  sx={{ mt: 1 }}
-                  InputProps={{
-                    readOnly: true,
+          {previousCommentors.length > 0 && (
+            <Box sx={{ mt: 6 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Previous Commentor Comments:
+              </Typography>
+              {previousCommentors.map((prev, i) => (
+                <Paper
+                  key={prev.commentor_id}
+                  elevation={2}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: '100%',
+                    bgcolor: '#fff',
+                    borderRadius: 2,
+                    borderLeft: '8px solid #eab31a',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    boxShadow: 2,
                   }}
-                />
-              </Paper>
-            ))}
-          </Box>
-        )}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                    {prev.client_id}
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                    {getFullName(prev)}
+                  </Typography>
+                  <Box
+                    sx={{
+                      border: "1.5px solid #ccc",
+                      borderRadius: "8px",
+                      px: 2,
+                      pt: 2,
+                      pb: 0.5,
+                      background: "#fff",
+                      minHeight: 100,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <TextField
+                      label="Comment"
+                      variant="standard"
+                      multiline
+                      minRows={3}
+                      fullWidth
+                      value={prev.comment || ''}
+                      InputProps={{
+                        readOnly: true,
+                        disableUnderline: true,
+                        style: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#222",
+                        }
+                      }}
+                      sx={{
+                        pb: 2,
+                        '& .MuiInputBase-input': { padding: 0 },
+                        '& label': { color: '#999', fontWeight: 400 }
+                      }}
+                    />
+                    {prev.signature_filepath && prev.updated_at && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#888",
+                          fontStyle: "italic",
+                          mt: 1,
+                          mb: 1,
+                          ml: 0.5,
+                        }}
+                      >
+                        Signed - {prev.updated_at.slice(0, 10)}
+                      </Typography>
+                    )}
+                  </Box>
+                </Paper>
+              ))}
+            </Box>
+          )}
 
         {/* This Commentor's Section */}
         {thisCommentor ? (
@@ -609,17 +707,59 @@ const PerformanceEvaluationCommentorPage = () => {
               <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                 {getFullName(thisCommentor)}
               </Typography>
-              <TextField
-                label="Comment"
-                multiline
-                minRows={3}
-                fullWidth
-                value={commentInput}
-                onChange={e => setCommentInput(e.target.value)}
-                sx={{ mt: 1 }}
-                placeholder="Enter your comment here"
-                disabled={saving || thisCommentor.signature_filepath}
-              />
+              <Box
+                sx={{
+                  border: "1.5px solid #ccc",
+                  borderRadius: "8px",
+                  px: 2,
+                  pt: 2,
+                  pb: 0.5,
+                  background: "#fff",
+                  minHeight: 100,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <TextField
+                  label="Comment"
+                  variant="standard"
+                  multiline
+                  minRows={3}
+                  fullWidth
+                  value={commentInput}
+                  onChange={e => setCommentInput(e.target.value)}
+                  placeholder="Enter your comment here"
+                  disabled={saving || thisCommentor.signature_filepath}
+                  InputProps={{
+                    disableUnderline: true,
+                    style: {
+                      fontSize: "1rem",
+                      fontWeight: 400,
+                      color: "#222",
+                    }
+                  }}
+                  sx={{
+                    pb: 2,
+                    '& .MuiInputBase-input': { padding: 0 },
+                    '& label': { color: '#999', fontWeight: 400 }
+                  }}
+                />
+                {thisCommentor.signature_filepath && thisCommentor.updated_at && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "#888",
+                      fontStyle: "italic",
+                      mt: 1,
+                      mb: 1,
+                      ml: 0.5,
+                    }}
+                  >
+                    Signed - {thisCommentor.updated_at.slice(0, 10)}
+                  </Typography>
+                )}
+              </Box>
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <Button
                   variant="contained"

@@ -111,6 +111,7 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   const [commentInput, setCommentInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [openAcknowledge, setOpenAcknowledge] = useState(false);
+  const [thisCommentor, setThisCommentor] = useState();
 
   const storedUser = localStorage.getItem("nasya_user");
   const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
@@ -123,6 +124,7 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
         const thisCommentor = evaluationResponse.commentors.find(
           c => c.commentor_id === loggedInUser.id
         );
+        setThisCommentor(thisCommentor);
         if (thisCommentor && thisCommentor.comment) {
           setCommentInput(thisCommentor.comment);
         }
@@ -140,9 +142,6 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
 
   // Find this user as commentor, and their order
   const allCommentors = evaluationResponse?.commentors ?? [];
-  const thisCommentor = loggedInUser
-    ? allCommentors.find(c => c.commentor_id === loggedInUser.id)
-    : null;
 
   // Only show previous commentors (order < this one and have signed)
   const previousCommentors = thisCommentor ? allCommentors.slice(0, thisCommentor.order - 1) : [];
