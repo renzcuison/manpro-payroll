@@ -786,7 +786,7 @@ class CompensationManagementController extends Controller
         $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_deduction_id);
 
         if($emp_allowance){
-            $emp_allowance->number = $request->number;
+            $emp_allowance->status = $request->status;
             $emp_allowance->save();
         }
         return response()->json(['status' => 200]);
