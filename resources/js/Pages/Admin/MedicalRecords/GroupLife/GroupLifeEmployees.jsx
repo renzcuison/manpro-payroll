@@ -19,6 +19,7 @@ import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 
 const GroupLifeEmployees = () => {
     const location = useLocation();
+    const { id } = useParams();
 
     const storedPlanDetails = localStorage.getItem("selected_plan_details");
     const planDetails = storedPlanDetails ? JSON.parse(storedPlanDetails) : {};
@@ -37,24 +38,24 @@ const GroupLifeEmployees = () => {
     console.log("Loaded planDetails from localStorage:", planDetails);
 
     useEffect(() => {
+        if (!id) return;
         setLoading(true);
-        const fetchAllEmployees = async () => {
-            try {
-                const res = await axiosInstance.get('/medicalRecords/getAllGroupLifeEmployees', {
-                    headers: { Authorization: `Bearer ${user.token}` }
-                    
-                })
-                .finally(() => setLoading(false));
-                console.log("All employees:", res.data);
-                setEmployees(res.data.employees || []);
-            } catch (err) {
-                console.error("Error fetching all employees:", err);
-                setEmployees([]);
-            }
-        };
 
-        fetchAllEmployees();
-    }, []);
+        axiosInstance
+        .get(`/medicalRecords/getGroupLifeEmployees`, {
+            headers: { Authorization: `Bearer ${user.token}` },
+            params: { plan_id: id }
+        })
+        .then(res => {
+            console.log("Filtered employees:", res.data);
+            setEmployees(res.data.employees || []);
+        })
+        .catch(err => {
+            console.error("Error fetching filtered employees:", err);
+            setEmployees([]);
+        })
+        .finally(() => setLoading(false));
+    }, [id]);
 
     const handleOnBackClick = () => {
         navigator("/admin/medical-records/group-life-masterlist-records");
@@ -224,6 +225,7 @@ const GroupLifeEmployees = () => {
                     <GroupLifeEditEmployee
                         open={openEditEmployeeModal}
                         close={setOpenEditEmployeeModal}
+                        
                     />
                 )}
 
@@ -231,6 +233,7 @@ const GroupLifeEmployees = () => {
                     <GroupLifeAssignEmployee
                         open={openAssignEmployeeModal}
                         close={setOpenAssignEmployeeModal}
+                        planId={id}
                     />
                 )}
                 

@@ -560,7 +560,7 @@ const AdminRoutes = ({ user }) => {
             />
 
             <Route
-                path="medical-records/group-life-masterlist/group-life-employees/:planID"
+                path="medical-records/group-life-masterlist/group-life-employees/:id"
                 element={
                     <ProtectedRoute
                         element={<GroupLifeEmployees />}

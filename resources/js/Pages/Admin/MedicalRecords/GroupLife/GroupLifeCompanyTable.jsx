@@ -22,7 +22,7 @@ import {
 const highlightMatch = (text, keyword) => {
     if (!keyword) return text;
 
-    const strText = text?.toString?.() ?? ""; // ensures numbers (e.g. 300.00) are handled
+    const strText = text?.toString?.() ?? ""; 
     const regex = new RegExp(`(${keyword})`, "gi");
     const parts = strText.split(regex);
 
