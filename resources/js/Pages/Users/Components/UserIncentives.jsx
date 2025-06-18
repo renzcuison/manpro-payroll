@@ -3,7 +3,7 @@ import { Box, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, 
 import { useIncentives } from "../../../hooks/useIncentives";
 
 const UserIncentives = ({userName}) => {
-    const {employeeIncentives} = useIncentives(userName);
+    const {employeeIncentives} = useIncentives({userName: userName});
     const incentives = employeeIncentives.data?.incentives || [];
     return(
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
@@ -22,16 +22,16 @@ const UserIncentives = ({userName}) => {
                     </TableHead>
                     <TableBody>
                         {incentives.length > 0 ? (
-                            incentives.map((allowance, index) => (
+                            incentives.map((incentive, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
-                                        <Typography>{allowance.name}</Typography>
+                                        <Typography>{incentive.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{allowance.number}</Typography>
+                                        <Typography>{incentive.number}</Typography>
                                     </TableCell>
-                                    <TableCell align="right">
-                                        <Typography>₱{(allowance.calculated_amount).toFixed(2)}</Typography>
+                                    <TableCell align="center">
+                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(incentive.calculated_amount)}
                                     </TableCell>
                                 </TableRow>
                             ))) :

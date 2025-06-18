@@ -8,7 +8,7 @@ import { useBenefits } from '../../../hooks/useBenefits';
 
 
 const BenefitsTypes = () => {
-    const {benefits} = useBenefits();
+    const {benefits} = useBenefits({loadBenefits:true});
     
     const benefitsData = benefits.data?.benefits || [];
     const [openAddBenefitsModal, setOpenAddBenefitsModal] = useState(false);
@@ -19,7 +19,7 @@ const BenefitsTypes = () => {
 
     const handleCloseAddBenefitsModal = () => {
         setOpenAddBenefitsModal(false);
-        refetch();
+        benefits.refetch();
     }
 
     return (

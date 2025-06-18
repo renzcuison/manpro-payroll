@@ -35,7 +35,9 @@ class EvaluationFormSubcategory extends Model
 
     public function options()
     {
-        return $this->hasMany(EvaluationFormSubcategoryOption::class, 'subcategory_id');
+       return $this->hasMany(EvaluationFormSubcategoryOption::class, 'subcategory_id', 'id')
+            ->select(['id', 'subcategory_id', 'label', 'score', 'order', 'description'])
+            ->orderBy('order');
     }
 
     public function percentageAnswer()

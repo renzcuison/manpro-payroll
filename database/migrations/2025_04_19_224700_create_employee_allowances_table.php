@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('allowance_id');
-            $table->string('number', 64);
+            $table->string('number', 64)->nullable();
             $table->timestamps();
             $table->softDeletes();
 

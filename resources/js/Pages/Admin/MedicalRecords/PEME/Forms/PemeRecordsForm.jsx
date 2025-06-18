@@ -7,6 +7,8 @@ import {
     TextField,
     FormControlLabel,
     Checkbox,
+    Switch,
+    CircularProgress,
 } from "@mui/material";
 import Swal from "sweetalert2";
 
@@ -258,6 +260,7 @@ const PemeRecordsForm = () => {
             .then((response) => {
                 setPemeForms(response.data);
                 setIsLoading(false);
+                console.log("QUESTIONNAIRE", response.data);
             })
             .catch((error) => {
                 console.error("Error fetching loan applications:", error);
@@ -486,11 +489,11 @@ const PemeRecordsForm = () => {
     const [editSavedFormName, setEditSavedFormName] = useState("");
     const [editSavedFormType, setEditSavedFormType] = useState([]);
     const [editSavedFileSize, setEditSavedFileSize] = useState(10);
+    const [editSavedIsRequired, setEditSavedIsRequired] = useState(null);
 
     //EDIT SAVED FORMS FROM DB
     const handleEditSavedForm = (form) => {
         setIsEdit(false);
-
         setEditingSavedId(form.id);
         setEditSavedFormName(form.question);
         setEditSavedFormType(form.input_types.map((item) => item.input_type));
@@ -498,6 +501,7 @@ const PemeRecordsForm = () => {
             form.input_types.find((item) => item.input_type === "attachment")
                 ?.file_size_limit ?? 10
         );
+        setEditSavedIsRequired(form.isRequired);
     };
 
     //SAVE EDITS TO DB
@@ -517,31 +521,52 @@ const PemeRecordsForm = () => {
                 const storedUser = localStorage.getItem("nasya_user");
                 const headers = getJWTHeader(JSON.parse(storedUser));
                 console.log("FINAL SAVED FORM", form);
+
                 try {
                     const payload = {
                         question: editSavedFormName,
                         input_types: editSavedFormType,
                         file_size_limit: editSavedFileSize,
+                        isRequired: editSavedIsRequired,
                     };
-                    ``;
+
+                    console.log("PAYLOAD", payload);
+
                     await axiosInstance.put(
                         `/peme/${PemeID}/question/${form.id}`,
                         payload,
                         { headers }
                     );
 
-                    // Update local state
-                    setPemeForms((prev) => ({
-                        ...prev,
-                        questions: prev.questions.map((f) =>
-                            f.id === form.id ? { ...f, ...payload } : f
-                        ),
-                    }));
+                    axiosInstance
+                        .get(`/peme/${PemeID}/questionnaire`, { headers })
+                        .then((response) => {
+                            setPemeForms(response.data);
+                            setIsLoading(false);
+                            console.log("QUESTIONNAIRE", response.data);
+                        })
+                        .catch((error) => {
+                            console.error(
+                                "Error fetching loan applications:",
+                                error
+                            );
+                            Swal.fire({
+                                title: "Error",
+                                text:
+                                    "Failed to fetch forms. Please try again later.",
+                                icon: "error",
+                                confirmButtonText: "Okay",
+                                confirmButtonColor: "#177604",
+                            });
+                            setIsLoading(false);
+                        });
 
+                    // RESET
                     setEditingSavedId(null);
                     setEditSavedFormName("");
                     setEditSavedFormType([]);
                     setEditSavedFileSize(10);
+                    setEditSavedIsRequired(null);
 
                     Swal.fire({
                         icon: "success",
@@ -550,6 +575,7 @@ const PemeRecordsForm = () => {
                         timer: 1500,
                     });
                 } catch (error) {
+                    console.log(error);
                     Swal.fire({
                         title: "Error",
                         text: "Failed to update form. Please try again.",
@@ -592,8 +618,9 @@ const PemeRecordsForm = () => {
                         <Button
                             onClick={handleConfirmQuestionnaire}
                             variant="contained"
+                            sx={{ backgroundColor: "#8f8f8f" }}
                         >
-                            Confirm
+                            Return
                         </Button>
                     </Box>
 
@@ -634,6 +661,7 @@ const PemeRecordsForm = () => {
                             </Button>
                         </Box>
                     </Box>
+
                     {/* INITIAL FORM */}
                     <Box
                         sx={{
@@ -652,6 +680,16 @@ const PemeRecordsForm = () => {
                                 gap: 2,
                             }}
                         >
+                            {isLoading && (
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "center",
+                                    }}
+                                >
+                                    <CircularProgress></CircularProgress>
+                                </Box>
+                            )}
                             {initialForms.map((form, index) => {
                                 //Track ID being edited
                                 const isEditing =
@@ -725,6 +763,10 @@ const PemeRecordsForm = () => {
                                                 gap: 2,
                                             }}
                                         >
+                                            <FormControlLabel
+                                                control={<Switch />}
+                                                label="Required"
+                                            ></FormControlLabel>
                                             {isEditing ? (
                                                 <Button
                                                     variant="contained"
@@ -853,6 +895,28 @@ const PemeRecordsForm = () => {
                                                 gap: 2,
                                             }}
                                         >
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={
+                                                            isEditing
+                                                                ? editSavedIsRequired ===
+                                                                  1
+                                                                : form.isRequired ===
+                                                                  1
+                                                        }
+                                                        onChange={(e) =>
+                                                            setEditSavedIsRequired(
+                                                                e.target.checked
+                                                                    ? 1
+                                                                    : 0
+                                                            )
+                                                        }
+                                                        disabled={!isEditing}
+                                                    />
+                                                }
+                                                label="Required"
+                                            />
                                             {isEditing ? (
                                                 <Button
                                                     variant="contained"

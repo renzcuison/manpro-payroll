@@ -13,8 +13,8 @@ import EmployeeAllowanceList from "../Components/EmployeeAllowanceList";
 import EmployeeAllowanceEdit from "../Components/EmployeeAllowanceEdit";
 import { useAllowances } from "../../../../hooks/useAllowances";
 
-const EmployeeAllowanceView = ({ open, close, userName }) => {
-    const {employeeAllowances} = useAllowances(userName);
+const EmployeeAllowanceView = ({ open, close, userName, allowance }) => {
+    const {employeeAllowances} = useAllowances({userName: userName, filters: {allowanceId: allowance}});
     
     const allowances = employeeAllowances.data?.allowances || [];
     const storedUser = localStorage.getItem("nasya_user");

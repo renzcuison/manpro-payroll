@@ -135,10 +135,7 @@ const getDueStatus = (dueDateString) => {
 
 const PemeResponsesTable = ({ responses, onRowClick, search }) => {
     return (
-        <TableContainer
-            style={{ overflowX: "auto" }}
-            sx={{ minHeight: 400, maxHeight: 500 }}
-        >
+        <TableContainer style={{ overflowY: "scroll" }} sx={{ height: 400 }}>
             <Table stickyHeader aria-label="simple table">
                 <TableHead>
                     <TableRow>

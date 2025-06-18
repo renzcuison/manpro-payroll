@@ -15,7 +15,7 @@ return new class extends Migration
             $table->dropForeign('evaluation_form_categories_section_id_foreign');
             $table->dropUnique(['section_id', 'order']);
             $table->dropColumn('section_id');
-            $table->dropColumn('order'); 
+            $table->dropColumn('order');
         });
         Schema::table('evaluation_form_subcategories', function (Blueprint $table) {
             $table->dropForeign('evaluation_form_subcategories_category_id_foreign');
