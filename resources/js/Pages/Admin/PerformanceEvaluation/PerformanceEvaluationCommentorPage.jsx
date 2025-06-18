@@ -531,72 +531,152 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
                   <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(evaluator)}
                   </Typography>
-                  <TextField
-                    label="Evaluator Comment"
-                    multiline
-                    minRows={3}
-                    fullWidth
-                    value={evaluator.comment || ''}
-                    sx={{ mt: 1 }}
-                    placeholder="No comment provided"
-                    InputProps={{
-                      readOnly: true,
+                  <Box
+                    sx={{
+                      border: "1.5px solid #ccc",
+                      borderRadius: "8px",
+                      px: 2,
+                      pt: 2,
+                      pb: 0.5,
+                      background: "#fff",
+                      minHeight: 100,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
                     }}
-                  />
+                  >
+                    <TextField
+                      label="Evaluator Comment"
+                      variant="standard"
+                      multiline
+                      minRows={3}
+                      fullWidth
+                      value={evaluator.comment || ''}
+                      placeholder="No comment provided"
+                      InputProps={{
+                        readOnly: true,
+                        disableUnderline: true,
+                        style: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#222",
+                        }
+                      }}
+                      sx={{
+                        pb: 2,
+                        '& .MuiInputBase-input': { padding: 0 },
+                        '& label': { color: '#999', fontWeight: 400 }
+                      }}
+                    />
+                    {evaluator.signature_filepath && evaluator.updated_at && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#888",
+                          fontStyle: "italic",
+                          mt: 1,
+                          mb: 1,
+                          ml: 0.5,
+                        }}
+                      >
+                        Signed - {evaluator.updated_at.slice(0, 10)}
+                      </Typography>
+                    )}
+                  </Box>
                 </Paper>
               ))}
             </Box>
           ) : (
             <Typography color="text.secondary"><i>No evaluators found.</i></Typography>
           )}
-        </Box>
+        </Box>                
 
         {/* Previous Commentors Preview */}
-        {previousCommentors.length > 0 && (
-          <Box sx={{ mt: 6 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-              Previous Commentor Comments:
-            </Typography>
-            {previousCommentors.map((prev, i) => (
-              <Paper
-                key={prev.commentor_id}
-                elevation={2}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  width: '100%',
-                  bgcolor: '#fff',
-                  borderRadius: 2,
-                  borderLeft: '8px solid #eab31a',
-                  px: 2,
-                  pt: 2,
-                  pb: 2,
-                  mt: 2,
-                  mb: 2,
-                  boxShadow: 2,
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-                  {prev.client_id}
-                </Typography>
-                <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                  {getFullName(prev)}
-                </Typography>
-                <TextField
-                  label="Comment"
-                  multiline
-                  minRows={3}
-                  fullWidth
-                  value={prev.comment || ''}
-                  sx={{ mt: 1 }}
-                  InputProps={{
-                    readOnly: true,
+          {previousCommentors.length > 0 && (
+            <Box sx={{ mt: 6 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Previous Commentor Comments:
+              </Typography>
+              {previousCommentors.map((prev, i) => (
+                <Paper
+                  key={prev.commentor_id}
+                  elevation={2}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: '100%',
+                    bgcolor: '#fff',
+                    borderRadius: 2,
+                    borderLeft: '8px solid #eab31a',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    boxShadow: 2,
                   }}
-                />
-              </Paper>
-            ))}
-          </Box>
-        )}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                    {prev.client_id}
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                    {getFullName(prev)}
+                  </Typography>
+                  <Box
+                    sx={{
+                      border: "1.5px solid #ccc",
+                      borderRadius: "8px",
+                      px: 2,
+                      pt: 2,
+                      pb: 0.5,
+                      background: "#fff",
+                      minHeight: 100,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <TextField
+                      label="Comment"
+                      variant="standard"
+                      multiline
+                      minRows={3}
+                      fullWidth
+                      value={prev.comment || ''}
+                      InputProps={{
+                        readOnly: true,
+                        disableUnderline: true,
+                        style: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#222",
+                        }
+                      }}
+                      sx={{
+                        pb: 2,
+                        '& .MuiInputBase-input': { padding: 0 },
+                        '& label': { color: '#999', fontWeight: 400 }
+                      }}
+                    />
+                    {prev.signature_filepath && prev.updated_at && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#888",
+                          fontStyle: "italic",
+                          mt: 1,
+                          mb: 1,
+                          ml: 0.5,
+                        }}
+                      >
+                        Signed - {prev.updated_at.slice(0, 10)}
+                      </Typography>
+                    )}
+                  </Box>
+                </Paper>
+              ))}
+            </Box>
+          )}
 
         {/* This Commentor's Section */}
         {thisCommentor ? (
@@ -627,17 +707,59 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
               <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                 {getFullName(thisCommentor)}
               </Typography>
-              <TextField
-                label="Comment"
-                multiline
-                minRows={3}
-                fullWidth
-                value={commentInput}
-                onChange={e => setCommentInput(e.target.value)}
-                sx={{ mt: 1 }}
-                placeholder="Enter your comment here"
-                disabled={saving || thisCommentor.signature_filepath}
-              />
+              <Box
+                sx={{
+                  border: "1.5px solid #ccc",
+                  borderRadius: "8px",
+                  px: 2,
+                  pt: 2,
+                  pb: 0.5,
+                  background: "#fff",
+                  minHeight: 100,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <TextField
+                  label="Comment"
+                  variant="standard"
+                  multiline
+                  minRows={3}
+                  fullWidth
+                  value={commentInput}
+                  onChange={e => setCommentInput(e.target.value)}
+                  placeholder="Enter your comment here"
+                  disabled={saving || thisCommentor.signature_filepath}
+                  InputProps={{
+                    disableUnderline: true,
+                    style: {
+                      fontSize: "1rem",
+                      fontWeight: 400,
+                      color: "#222",
+                    }
+                  }}
+                  sx={{
+                    pb: 2,
+                    '& .MuiInputBase-input': { padding: 0 },
+                    '& label': { color: '#999', fontWeight: 400 }
+                  }}
+                />
+                {thisCommentor.signature_filepath && thisCommentor.updated_at && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "#888",
+                      fontStyle: "italic",
+                      mt: 1,
+                      mb: 1,
+                      ml: 0.5,
+                    }}
+                  >
+                    Signed - {thisCommentor.updated_at.slice(0, 10)}
+                  </Typography>
+                )}
+              </Box>
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <Button
                   variant="contained"

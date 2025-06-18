@@ -694,15 +694,59 @@ async function addSignatureImage(url, label, y) {
                   <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(evaluator)}
                   </Typography>
-                  <TextField
-                    multiline
-                    minRows={3}
-                    fullWidth
-                    value={evaluator.comment || ''}
-                    sx={{ mt: 1 }}
-                    placeholder="No comment provided"
-                    InputProps={{ readOnly: true }}
-                  />
+                  <Box
+                    sx={{
+                      border: "1.5px solid #ccc",
+                      borderRadius: "8px",
+                      px: 2,
+                      pt: 2,
+                      pb: 0.5,
+                      background: "#fff",
+                      minHeight: 100,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      mt: 1,
+                    }}
+                  >
+                    <TextField
+                      variant="standard"
+                      InputProps={{
+                        disableUnderline: true,
+                        readOnly: true,
+                        style: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#222",
+                        }
+                      }}
+                      label="Evaluator Comment"
+                      multiline
+                      minRows={3}
+                      fullWidth
+                      value={evaluator.comment || ''}
+                      placeholder="No comment provided"
+                      sx={{
+                        pb: 2,
+                        '& .MuiInputBase-input': { padding: 0 },
+                        '& label': { color: '#999', fontWeight: 400 }
+                      }}
+                    />
+                    {evaluator.updated_at && evaluator.signature_filepath && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#888",
+                          fontStyle: "italic",
+                          mt: 1,
+                          mb: 1,
+                          ml: 0.5,
+                        }}
+                      >
+                        Signed - {evaluator.updated_at.slice(0, 10)}
+                      </Typography>
+                    )}
+                  </Box>
                 </Paper>
               ))}
             </Box>
@@ -743,17 +787,59 @@ async function addSignatureImage(url, label, y) {
                   <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(commentor)}
                   </Typography>
-                  <TextField
-                    multiline
-                    minRows={3}
-                    fullWidth
-                    value={commentor.comment || ''}
-                    sx={{ mt: 1 }}
-                    placeholder="No comment provided"
-                    InputProps={{
-                      readOnly: true,
-                    }}
-                  />
+                    <Box
+                      sx={{
+                        border: "1.5px solid #ccc",
+                        borderRadius: "8px",
+                        px: 2,
+                        pt: 2,
+                        pb: 0.5,
+                        background: "#fff",
+                        minHeight: 100,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        mt: 1,
+                      }}
+                    >
+                      <TextField
+                        variant="standard"
+                        InputProps={{
+                          disableUnderline: true,
+                          readOnly: true,
+                          style: {
+                            fontSize: "1rem",
+                            fontWeight: 400,
+                            color: "#222",
+                          }
+                        }}
+                        label="Commentor Comment"
+                        multiline
+                        minRows={3}
+                        fullWidth
+                        value={commentor.comment || ''}
+                        placeholder="No comment provided"
+                        sx={{
+                          pb: 2,
+                          '& .MuiInputBase-input': { padding: 0 },
+                          '& label': { color: '#999', fontWeight: 400 }
+                        }}
+                      />
+                      {commentor.updated_at && commentor.signature_filepath &&(
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "#888",
+                            fontStyle: "italic",
+                            mt: 1,
+                            mb: 1,
+                            ml: 0.5,
+                          }}
+                        >
+                          Signed - {commentor.updated_at.slice(0, 10)}
+                        </Typography>
+                      )}
+                    </Box>
                 </Paper>
               ))}
             </Box>
