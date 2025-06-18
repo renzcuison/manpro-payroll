@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import 'react-quill/dist/quill.snow.css';
 
-const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted }) => {
+const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSalaryGrades }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -22,6 +22,8 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
+        const duplicate = existingSalaryGrades.some((grade) => String(grade) === String(salary_grade));
+
         setSalaryGradeError(!salary_grade);
         setAmountError(!amount);
 
@@ -29,6 +31,14 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted }) => {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        } else if (duplicate) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "That salary grade already exists.",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: '#177604',

@@ -169,7 +169,15 @@ const SalaryPlans = () => {
                     <SalaryGradeAdd open={openAddSalaryGrade} close={handleCloseAddSalaryGrade} existingSalaryGrades={salaryPlans.map(plan => plan.salary_grade)} />
                 }
                 {openEditSalaryGrade &&
-                    <SalaryGradeEdit open={openEditSalaryGrade} close={handleCloseEditSalaryGrade} salaryGradeInfo={loadSalaryGrade} onDeleted={fetchSalaryPlans}/>
+                    <SalaryGradeEdit
+                        open={openEditSalaryGrade}
+                        close={handleCloseEditSalaryGrade}
+                        salaryGradeInfo={loadSalaryGrade}
+                        onDeleted={fetchSalaryPlans}
+                        existingSalaryGrades={salaryPlans
+                            .filter(plan => plan.id !== loadSalaryGrade?.id)
+                            .map(plan => plan.salary_grade)}
+                    />
                 }
             </Box>
         </Layout>
