@@ -638,7 +638,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                                     onChange={(event) => setSelectedSalaryGrade(event.target.value)}
                                 >
                                     {salaryPlans.map((grade) => (
-                                        <MenuItem key={grade.id} value={grade.salary_grade}> Grade {grade.salary_grade} </MenuItem>
+                                        <MenuItem key={grade.id} value={grade.salary_grade}> {grade.salary_grade} </MenuItem>
                                     ))}
                                 </TextField>
                             </FormControl>
