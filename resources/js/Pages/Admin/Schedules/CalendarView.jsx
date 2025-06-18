@@ -5,7 +5,7 @@ import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import dayjs from "dayjs";
 
 // MUI imports
-import { Box, Typography, Skeleton, useTheme, Stack } from "@mui/material";
+import { Box, Typography, Skeleton, Stack } from "@mui/material";
 import EventDialog from "../Dashboard/components/EventDialog";
 
 const CalendarView = ({ setCalendarEvents }) => {
@@ -27,9 +27,21 @@ const CalendarView = ({ setCalendarEvents }) => {
             end: event.end,
             description: event.extendedProps.description,
             type: event.extendedProps.type,
+            status: event.extendedProps.status,
             visibility_type: event.extendedProps.visibility_type,
         });
         setModalOpen(true);
+    };
+
+    const eventColor = (status) => {
+        switch (status) {
+            case "done":
+                return "#129c20"; // green
+            case "suspended":
+                return "#b71c1c"; // red
+            default:
+                return "#1976d2"; // blue
+        }
     };
 
     const fetchEvents = async () => {
@@ -46,17 +58,18 @@ const CalendarView = ({ setCalendarEvents }) => {
             const mappedEvents = res.data
                 .map((event) => ({
                     id: event.id,
-                    title: event.title,
+                    title: `${event.title}`,
                     start: dayjs(event.start).toISOString(),
                     end: dayjs(event.end).toISOString(),
                     color: event.calendar?.includes("holiday")
                         ? "#e53935"
-                        : "#1976d2", // 🔴 red for holidays, blue for schedules
+                        : eventColor(event.status), // 🔴 red for holidays, blue for schedules
                     type: event.calendar?.includes("holiday")
                         ? "holiday"
                         : "schedule",
                     description: event.description,
                     visibility_type: event.visibility_type,
+                    status: event.status,
                 }))
                 .sort((a, b) => {
                     return new Date(a.start) - new Date(b.start);

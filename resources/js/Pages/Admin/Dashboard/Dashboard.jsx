@@ -40,6 +40,7 @@ import { useDashboard } from "./useDashboard";
 import { useMilestones } from "../Milestones/hook/useMilestones";
 import { useUser } from "../../../hooks/useUser";
 import OverviewStatistics from "./OverviewStatistics";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
     const { user, isFetched: userIsFetched } = useUser();
@@ -347,6 +348,8 @@ const Dashboard = () => {
                                                                   ?.original_url
                                                             : ""
                                                     }
+                                                    component={Link}
+                                                    to={`/admin/employee/${emp.user?.user_name}`}
                                                 />
                                             </ListItemAvatar>
                                             <ListItemText

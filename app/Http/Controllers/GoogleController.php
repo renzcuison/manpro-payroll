@@ -132,54 +132,109 @@ class GoogleController extends Controller
     
     public function updateEvent(Request $request, $id)
     {
+        $user = auth()->user();
+
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => 'required|string',
             'description' => 'nullable|string',
             'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
+            'end_time' => 'required|date',
+            'visibility' => 'required|in:public,private',
         ]);
-    
-        $user = auth()->user();
-    
-        if (!$user->google_token) {
-            return response()->json(['error' => 'Google Calendar not connected.'], 403);
-        }
-    
-        $token = json_decode($user->google_token, true);
-        $client = $this->getGoogleClient();
-        $client->setAccessToken($token);
-    
-        if ($client->isAccessTokenExpired() && isset($token['refresh_token'])) {
-            $client->fetchAccessTokenWithRefreshToken($token['refresh_token']);
-            $user->google_token = json_encode($client->getAccessToken());
-            $user->save();
-        }
-    
-        $service = new \Google_Service_Calendar($client);
-    
-        try {
-            $event = $service->events->get('primary', $id);
-            $event->setSummary($request->title);
-            $event->setDescription($request->description);
-    
-            $start = new \Google_Service_Calendar_EventDateTime();
-            $start->setDateTime(Carbon::parse($request->start_time)->toRfc3339String());
-            $start->setTimeZone('Asia/Manila');
-            $event->setStart($start);
-    
-            $end = new \Google_Service_Calendar_EventDateTime();
-            $end->setDateTime(Carbon::parse($request->end_time)->toRfc3339String());
-            $end->setTimeZone('Asia/Manila');
-            $event->setEnd($end);
-    
-            $updatedEvent = $service->events->update('primary', $id, $event);
-    
-            return response()->json(['message' => 'Event updated successfully.']);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to update event.',
-                'details' => $e->getMessage()
-            ], 500);
+
+        $isPublicEvent = str_starts_with($id, 'db-');
+
+        if ($isPublicEvent) {
+            $realId = str_replace('db-', '', $id);
+            $event = PublicEvent::where('id', $realId)->where('user_id', $user->id)->firstOrFail();
+
+            // ➤ If switched to PRIVATE → migrate to Google
+            if ($request->visibility === 'private') {
+                $token = json_decode($user->google_token, true);
+                $client = $this->getGoogleClient();
+                $client->setAccessToken($token);
+
+                if ($client->isAccessTokenExpired() && isset($token['refresh_token'])) {
+                    $client->fetchAccessTokenWithRefreshToken($token['refresh_token']);
+                    $user->google_token = json_encode($client->getAccessToken());
+                    $user->save();
+                }
+
+                $service = new \Google_Service_Calendar($client);
+
+                $googleEvent = new \Google_Service_Calendar_Event([
+                    'summary' => $request->title,
+                    'description' => $request->description,
+                    'start' => [
+                        'dateTime' => Carbon::parse($request->start_time)->toRfc3339String(),
+                        'timeZone' => config('app.timezone'),
+                    ],
+                    'end' => [
+                        'dateTime' => Carbon::parse($request->end_time)->toRfc3339String(),
+                        'timeZone' => config('app.timezone'),
+                    ],
+                ]);
+
+                $createdEvent = $service->events->insert('primary', $googleEvent);
+                $event->delete();
+
+                return response()->json([
+                    'message' => 'Event migrated to Google Calendar.',
+                    'google_event_id' => $createdEvent->getId(),
+                ]);
+            }
+
+            // ➤ Still public → just update
+            $event->update($request->only(['title', 'description', 'start_time', 'end_time']));
+            return response()->json(['message' => 'Public event updated.']);
+
+        } else {
+            // This is a PRIVATE (Google) event
+            $token = json_decode($user->google_token, true);
+            $client = $this->getGoogleClient();
+            $client->setAccessToken($token);
+
+            if ($client->isAccessTokenExpired() && isset($token['refresh_token'])) {
+                $client->fetchAccessTokenWithRefreshToken($token['refresh_token']);
+                $user->google_token = json_encode($client->getAccessToken());
+                $user->save();
+            }
+
+            $service = new \Google_Service_Calendar($client);
+
+            if ($request->visibility === 'public') {
+                // ➤ Migrate to DB (delete from Google after copying)
+                $googleEvent = $service->events->get('primary', $id);
+
+                PublicEvent::create([
+                    'user_id' => $user->id,
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'start_time' => $request->start_time,
+                    'end_time' => $request->end_time,
+                ]);
+
+                $service->events->delete('primary', $id);
+
+                return response()->json(['message' => 'Event migrated to public (local DB).']);
+            }
+
+            // ➤ Still private → update Google
+            $googleEvent = $service->events->get('primary', $id);
+            $googleEvent->setSummary($request->title);
+            $googleEvent->setDescription($request->description);
+            $googleEvent->setStart(new \Google_Service_Calendar_EventDateTime([
+                'dateTime' => Carbon::parse($request->start_time)->toRfc3339String(),
+                'timeZone' => config('app.timezone'),
+            ]));
+            $googleEvent->setEnd(new \Google_Service_Calendar_EventDateTime([
+                'dateTime' => Carbon::parse($request->end_time)->toRfc3339String(),
+                'timeZone' => config('app.timezone'),
+            ]));
+
+            $service->events->update('primary', $id, $googleEvent);
+
+            return response()->json(['message' => 'Google event updated.']);
         }
     }
     
@@ -197,6 +252,7 @@ class GoogleController extends Controller
                 'start' => $e->start_time,
                 'end' => $e->end_time,
                 'description' => $e->description,
+                'status' => $e->status,
                 'visibility_type' => 'public',
                 'color' => '#43a047',
             ]; 
@@ -315,7 +371,7 @@ class GoogleController extends Controller
         ]);
 
         $event = PublicEvent::where('user_id', auth()->id())->findOrFail($id);
-        $event->update($request->only(['title', 'description', 'start_time', 'end_time']));
+        $event->update($request->only(['title', 'description', 'start_time', 'end_time', 'status']));
 
         return response()->json(['message' => 'Public event updated successfully.']);
     }
