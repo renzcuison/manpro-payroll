@@ -178,10 +178,6 @@ class PemeResponseController extends Controller
     public function storeAll(Request $request)
     {
 
-        \Log::info('FILE DEBUG: incoming file keys', [
-            'all_files' => array_keys($request->allFiles()),
-        ]);
-
         $validated = $request->validate([
             'peme_response_id' => 'required|string',
             'responses' => 'required|array',
@@ -192,6 +188,11 @@ class PemeResponseController extends Controller
             'responses.*.files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png',
             'isDraft' => 'required|boolean',
         ]);
+
+        foreach ($request->input('responses', []) as $index => $response) {
+            $files = data_get($request->allFiles(), "responses.$index.files", []);
+            $files = is_array($files) ? $files : [$files];
+        }
 
         $pemeResponseId = Crypt::decrypt($validated['peme_response_id']);
         $pemeResponse = PemeResponse::where('id', $pemeResponseId)
@@ -252,26 +253,13 @@ class PemeResponseController extends Controller
                     'value' => $response['value'] ?? null,
                 ]);
 
-                \Log::info("Checking file for responses.$index.files", [
-                    'request_all' => $request->all(),
-                    'file_present' => $request->file("responses.$index.files") !== null,
-                    'has_file' => $request->hasFile("responses.$index.files"),
-                    'file_name' => optional($request->file("responses.$index.files"))->getClientOriginalName(),
-                ]);
+                $files = data_get($request->allFiles(), "responses.$index.files", []);
 
-                if ($request->hasFile("responses.$index.files")) {
-                    $files = $request->file("responses.$index.files");
+                if (!is_array($files)) {
+                    $files = [$files];
+                }
 
-                    if (!is_array($files)) {
-                        $files = [$files];
-                    }
-
-                    \Log::info("FILES RECEIVED FOR INDEX $index", [
-                        'has_file' => $request->hasFile("responses.$index.files"),
-                        'file_present' => $request->file("responses.$index.files") !== null,
-                        'original_name' => optional($request->file("responses.$index.files"))->getClientOriginalName(),
-                    ]);
-
+                if (count($files)) {
                     $maxFiles = $detail->question->max_files ?? 1;
                     $existingCount = $detail->getMedia('attachments')->count();
                     $newFilesCount = count($files);
@@ -292,7 +280,7 @@ class PemeResponseController extends Controller
                         }
                         Validator::make(['file' => $file], $rules)->validate();
 
-                        $detail->addMedia($file)->toMediaCollection('attachments');
+                        $media = $detail->addMedia($file)->toMediaCollection('attachments');
                     }
                 }
 

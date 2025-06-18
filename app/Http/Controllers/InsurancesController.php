@@ -53,7 +53,7 @@ class InsurancesController extends Controller
         }
 
         $user = Auth::user();
-        
+
         $request->validate([
             'name' => 'required|string|max:64'
         ]);
@@ -143,7 +143,7 @@ class InsurancesController extends Controller
         ]);
 
         $plan = GroupLifeCompanyPlan::create($validated);
-        
+
         return response()->json($plan, 201);
     }
 
@@ -252,6 +252,6 @@ class InsurancesController extends Controller
                 'dependents' => $employeePlan->dependents,
             ]
         ]);
-    }   
+    }
 
 }

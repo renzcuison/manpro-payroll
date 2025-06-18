@@ -332,11 +332,17 @@ const PemeQuestionnaireView = () => {
                         // Handle attachments as comma-separated file names
                         let answerValue = value;
 
-                        responses.push({
+                        const responseEntry = {
                             peme_q_item_id: form.question_id,
                             peme_q_type_id: type.id,
                             value: answerValue,
-                        });
+                        };
+
+                        if (Array.isArray(answerValue) && answerValue[0] instanceof File) {
+                            responseEntry.files = answerValue;
+                        }
+
+                        responses.push(responseEntry);
 
                         // If value is an array of Files
                         if (Array.isArray(value) && value[0] instanceof File) {
@@ -373,14 +379,19 @@ const PemeQuestionnaireView = () => {
                 item.peme_q_type_id
             );
 
-            if (Array.isArray(item.value) && item.value[0] instanceof File) {
-                item.value.forEach((file) => {
-                    formData.append(`responses[${index}][files][]`, file);
+            if (Array.isArray(item.files) && item.files[0] instanceof File) {
+                item.files.forEach((file, fileIndex) => {
+                    formData.append(`responses[${index}][files][${fileIndex}]`, file);
                 });
+                formData.append(`responses[${index}][value]`, '');
             } else {
-                formData.append(`responses[${index}][value]`, item.value);
+                formData.append(`responses[${index}][value]`, item.value ?? '');
             }
         });
+
+        for (const pair of formData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
 
         try {
             // PAYLOAD FOR DATES AND STATUS
