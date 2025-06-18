@@ -102,7 +102,7 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   const id = propId || params.id;
 
   const {
-    evaluationResponse,
+    evaluationResponse, commentorId,
     editEvaluationCommentor
   } = useEvaluationResponse(id);
 
@@ -113,22 +113,15 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   const [openAcknowledge, setOpenAcknowledge] = useState(false);
   const [thisCommentor, setThisCommentor] = useState();
 
-  const storedUser = localStorage.getItem("nasya_user");
-  const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
-
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
       // Pre-fill comment if user already has one (editing)
-      if (evaluationResponse.commentors && loggedInUser) {
-        const thisCommentor = evaluationResponse.commentors.find(
-          c => c.commentor_id === loggedInUser.id
-        );
-        setThisCommentor(thisCommentor);
-        if (thisCommentor && thisCommentor.comment) {
-          setCommentInput(thisCommentor.comment);
-        }
-      }
+      const thisCommentor = evaluationResponse.commentors.find(
+        ({ commentor_id }) => commentor_id === commentorId
+      );
+      setThisCommentor(thisCommentor);
+      if (thisCommentor?.comment) setCommentInput(thisCommentor.comment);
     }
   }, [evaluationResponse]);
 
