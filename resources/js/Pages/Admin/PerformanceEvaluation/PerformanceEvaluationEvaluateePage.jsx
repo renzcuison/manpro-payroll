@@ -338,13 +338,13 @@ async function addSignatureImage(url, label, y) {
                 setReviewModalOpen(true);
               }}
             >
-              Review Form
+              View Form
             </MenuItem>
             
             <MenuItem onClick={async () => {
               handleSettingsClose();
               await handleDownloadPDF();
-            }}>Download Results</MenuItem>
+            }}>Download</MenuItem>
           </Menu>
                     <ModalReviewForm
               open={reviewModalOpen}
@@ -515,7 +515,7 @@ async function addSignatureImage(url, label, y) {
                             </Box>
                           </Grid>
                           <Grid item sx={{ minWidth: 40, textAlign: 'right' }}>
-                            <Typography sx={{ fontWeight: 'bold', ml: 1 }}>{score.toFixed(1)}</Typography>
+                            <Typography sx={{ fontWeight: 'bold', ml: 1 }}>{score.toFixed(1)} %</Typography>
                           </Grid>
                         </Grid>
                       ))}
@@ -537,7 +537,7 @@ async function addSignatureImage(url, label, y) {
                           />
                         </Grid>
                         <Grid item xs={2}>
-                          <Typography sx={{ fontWeight: 700, ml: 1 }}>{sectionScore.toFixed(1)}</Typography>
+                          <Typography sx={{ fontWeight: 700, ml: 1 }}>{sectionScore.toFixed(1)} %</Typography>
                         </Grid>
                       </Grid>
                     </Box>
@@ -599,71 +599,71 @@ async function addSignatureImage(url, label, y) {
           );
         })}
 
-  {/* --- Weighted Section Scores Summary (styled like sections) --- */}
-<Box sx={{ mt: 6, mb: 4, bgcolor: 'white', borderRadius: 2, boxShadow: 3 }}>
-  <Box
-    sx={{
-      bgcolor: '#E9AE20',
-      borderBottom: '1px solid #ffe082',
-      borderTopLeftRadius: '8px',
-      borderTopRightRadius: '8px',
-      py: 2,
-      px: 3
-    }}
-  >
-    <Typography variant="h5" sx={{ fontWeight: 'bold', color: "white" }}>
-      Weighted Scores
-    </Typography>
-  </Box>
-  <Box sx={{ p: 3 }}>
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell sx={{ fontWeight: 700, fontSize: 16 }}>Section (Score Set)</TableCell>
-          <TableCell align="right" sx={{ fontWeight: 700, fontSize: 16 }}>Subcategory Average</TableCell>
-          <TableCell align="right" sx={{ fontWeight: 700, fontSize: 16 }}>Weighted Average</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {form.sections.filter(section =>
-          section.subcategories.some(sc =>
-            sc.subcategory_type === 'multiple_choice' ||
-            sc.subcategory_type === 'checkbox' ||
-            sc.subcategory_type === 'linear_scale'
-          )
-        ).map(section => {
-          const { sectionScore, weightedScore } = getSectionScore(section);
-          return (
-            <TableRow key={section.id}>
-              <TableCell>
-                {section.name} - <b>{section.score || 0}</b>
-              </TableCell>
-              <TableCell align="right">{sectionScore.toFixed(2)}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>{weightedScore.toFixed(2)}</TableCell>
-            </TableRow>
-          );
-        })}
-        <TableRow>
-          <TableCell colSpan={2} sx={{ fontWeight: 700, fontSize: 18 }}>Total</TableCell>
-          <TableCell align="right" sx={{ fontWeight: 700, color: "#137333", fontSize: 18 }}>
-            {form.sections
-              .filter(section =>
-                section.subcategories.some(sc =>
-                  sc.subcategory_type === 'multiple_choice' ||
-                  sc.subcategory_type === 'checkbox' ||
-                  sc.subcategory_type === 'linear_scale'
-                )
-              )
-              .reduce((sum, section) =>
-                sum + getSectionScore(section).weightedScore, 0
-              ).toFixed(2)
-            }
-          </TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
-  </Box>
-</Box>
+        {/* --- Weighted Section Scores Summary (styled like sections) --- */}
+        <Box sx={{ mt: 6, mb: 4, bgcolor: 'white', borderRadius: 2, boxShadow: 3 }}>
+          <Box
+            sx={{
+              bgcolor: '#E9AE20',
+              borderBottom: '1px solid #ffe082',
+              borderTopLeftRadius: '8px',
+              borderTopRightRadius: '8px',
+              py: 2,
+              px: 3
+            }}
+          >
+            <Typography variant="h5" sx={{ fontWeight: 'bold', color: "white" }}>
+              Weighted Scores
+            </Typography>
+          </Box>
+          <Box sx={{ p: 3 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700, fontSize: 16 }}>Section (Score Set)</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: 16 }}>Subcategory Average</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: 16 }}>Weighted Average</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {form.sections.filter(section =>
+                  section.subcategories.some(sc =>
+                    sc.subcategory_type === 'multiple_choice' ||
+                    sc.subcategory_type === 'checkbox' ||
+                    sc.subcategory_type === 'linear_scale'
+                  )
+                ).map(section => {
+                  const { sectionScore, weightedScore } = getSectionScore(section);
+                  return (
+                    <TableRow key={section.id}>
+                      <TableCell>
+                        {section.name} - <b>{section.score || 0} %</b>
+                      </TableCell>
+                      <TableCell align="right">{sectionScore.toFixed(2)} %</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700 }}>{weightedScore.toFixed(2)} %</TableCell>
+                    </TableRow>
+                  );
+                })}
+                <TableRow>
+                  <TableCell colSpan={2} sx={{ fontWeight: 700, fontSize: 18 }}>Total</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700, color: "#137333", fontSize: 18 }}>
+                    {form.sections
+                      .filter(section =>
+                        section.subcategories.some(sc =>
+                          sc.subcategory_type === 'multiple_choice' ||
+                          sc.subcategory_type === 'checkbox' ||
+                          sc.subcategory_type === 'linear_scale'
+                        )
+                      )
+                      .reduce((sum, section) =>
+                        sum + getSectionScore(section).weightedScore, 0
+                      ).toFixed(2)
+                    } %
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Box>
+        </Box>
 
         {/* All Evaluators Section - Each in its own box, stacked vertically */}
         <Box sx={{ mt: 6 }}>

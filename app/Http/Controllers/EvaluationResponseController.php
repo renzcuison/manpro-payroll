@@ -297,13 +297,14 @@ class EvaluationResponseController extends Controller
                 id, evaluatee_id, date,
                 created_at, updated_at,
                 evaluators_unsigned_count, commentors_unsigned_count,
+                score, achieved_score,
                 form_id, creator_user_name, form: {
                     id, name, creator_id, creator_user_name,
                     sections: {
-                        form_id, id, name, category, order,
+                        form_id, id, name, category, order, score, achieved_score,
                         subcategories: {
-                            section_id, id, name, subcategory_type, description, required,
-                            allow_other_option, linear_scale_start, linear_scale_end, order,
+                            section_id, id, name, subcategory_type, description, order,
+                            linear_scale_start, linear_scale_end, score, achieved_score,
                             options: {
                                 subcategory_id, id, label, order,
                                 option_answer: { id, response_id, option_id }
@@ -373,24 +374,20 @@ class EvaluationResponseController extends Controller
                         )
                         ->with(['sections' => fn ($section) =>
                             $section
-                                ->select('form_id', 'id', 'name', 'category', 'order')
+                                ->select('form_id', 'id', 'name', 'category', 'order', 'score')
                                 ->whereNull('deleted_at')
                                 ->with(['subcategories' => fn ($subcategory) =>
                                     $subcategory
                                         ->select(
                                             'section_id', 'id',
                                             'name', 'subcategory_type', 'description',
-                                            'required', 'allow_other_option',
-                                            'linear_scale_start', 'linear_scale_end', 'linear_scale_end_label', 'linear_scale_start_label',
-                                            'order'
+                                            'linear_scale_start', 'linear_scale_end', 'order'
                                         )
                                         ->whereNull('deleted_at')
                                         ->with([
                                             'options' => fn ($option) =>
                                                 $option
-                                                    ->select(
-                                                        'subcategory_id', 'id', 'label', 'score', 'order', 'description'
-                                                    )
+                                                    ->select('subcategory_id', 'id', 'label', 'score', 'order', 'description')
                                                     ->whereNull('deleted_at')
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
@@ -516,6 +513,29 @@ class EvaluationResponseController extends Controller
                 ->slice($skip, $limit)
                 ->values()
             ;
+
+            foreach($evaluationResponses as $index => $evaluationResponse) {
+                $maxResponseScore = 0;
+                $achievedResponseScore = 0;
+                foreach($evaluationResponse->form->sections as $index => $section) {
+                    $maxSectionScore = 0;
+                    $achievedSectionScore = 0;
+                    foreach($section->subcategories as $index => $subcategory) {
+                        $maxSubcategoryScore = 0;
+                        $achievedSubcategoryScore = 0;
+                        switch($subcategory->subcategory_type) {
+                            case 'linear_scale':
+                                $maxSubcategoryScore += $subcategory->linear_scale_end;
+                                break;
+                        }
+                        $maxSectionScore += $maxSubcategoryScore;
+                        $achievedSectionScore += $achievedSubcategoryScore;
+                    }
+                    $section['achieved_score'] = $achievedSectionScore * $section->score / $maxSectionScore;
+                }
+                $evaluationResponse['score'] = $maxResponseScore;
+                $evaluationResponse['achieved_score'] = $achievedResponseScore;
+            }
 
             return response()->json([
                 'status' => 200,
