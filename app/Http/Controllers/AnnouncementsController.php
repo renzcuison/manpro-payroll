@@ -318,7 +318,7 @@ class AnnouncementsController extends Controller
                 ->with(['acknowledgements' => function ($query) use ($user) {
                     $query->where('user_id', $user->id);
                 }, 'user.role']) // Load user and role relationships
-                ->get();
+                ->whereNull('deleted_at')->get();
 
             $announcementData = $announcements->map(function ($announcement) use ($user) {
                 $branchMatched = $announcement->branches->pluck('branch_id')->contains($user->branch_id);
@@ -1100,7 +1100,7 @@ class AnnouncementsController extends Controller
 
             return response()->json(['status' => 200, 'type' => $type]);
         } catch (\Exception $e) {
-            \Log::error('addAnnouncementType: ' . $e->getMessage());
+            Log::error('addAnnouncementType: ' . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Server error'], 500);
         }
     }
@@ -1120,7 +1120,7 @@ class AnnouncementsController extends Controller
                 'types' => $types
             ]);
         } catch (\Exception $e) {
-            \Log::error('getAnnouncementType: ' . $e->getMessage());
+            Log::error('getAnnouncementType: ' . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Server error'], 500);
         }
     }
@@ -1133,7 +1133,7 @@ class AnnouncementsController extends Controller
             return response()->json(['status' => 401, 'message' => 'Unauthorized'], 401);
         }
 
-        $validator = \Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'id' => 'required|exists:announcement_types,id',
             'name' => 'required|string|max:255|unique:announcement_types,name,' . $request->id,
         ]);
@@ -1157,7 +1157,7 @@ class AnnouncementsController extends Controller
 
             return response()->json(['status' => 200, 'type' => $type]);
         } catch (\Exception $e) {
-            \Log::error('updateAnnouncementType: ' . $e->getMessage());
+            Log::error('updateAnnouncementType: ' . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Server error'], 500);
         }
     }
@@ -1298,13 +1298,13 @@ class AnnouncementsController extends Controller
             return response()->json(['status' => 200]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Error saving: " . $e->getMessage());
+            Log::error("Error saving: " . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Internal Server Error'], 500);
         }
     }
     public function getRoles()
     {
-        $user = \Auth::user();
+        $user = Auth::user();
         if (!$user) {
             return response()->json(['status' => 401, 'message' => 'Unauthorized'], 401);
         }
