@@ -77,7 +77,7 @@ const EmployeeDeductionAdd = ({ userName, onClose }) => {
                     <TextField
                         required
                         id="number"
-                        label="Number"
+                        label="Number (Optional)"
                         variant="outlined"
                         value={number}
                         onChange={(e) => setNumber(e.target.value)}

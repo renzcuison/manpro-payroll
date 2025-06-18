@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 
 const storedUser = localStorage.getItem("nasya_user");
@@ -6,6 +6,7 @@ const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 import Swal from "sweetalert2";
 
 export function useBenefits({userName = null, loadEmployeesBenefits = false, loadBenefits = false, filters = {}, pagination = {}} = {}){
+    const queryClient = useQueryClient();
     //mostly will be used in the employees benefits list component
     const {name, branchId, departmentId, benefitId} = filters;
     const {page = 1, perPage = 10} = pagination;
@@ -91,6 +92,8 @@ export function useBenefits({userName = null, loadEmployeesBenefits = false, loa
                         confirmButtonColor: '#177604',
                     }).then(() => {
                         if (variables?.onSuccessCallback) {
+                            queryClient.invalidateQueries({queryKey: ['employeesBenefits']});
+                            queryClient.invalidateQueries({queryKey: ['employeeBenefits']});
                             variables.onSuccessCallback();
                         }
                     });

@@ -52,7 +52,7 @@ const EmployeeDeductionEdit = ({deductions, onClose}) => {
 
                     <FormControl sx={{width:'30%'}}>
                         <TextField
-                            label={'Number'}
+                            label={'Number (Optional)'}
                             value={number}
                             onChange={(event) => setNumber(event.target.value)}
                          />                    

@@ -5,7 +5,7 @@ const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 import Swal from "sweetalert2";
 
 export function useAllowances({userName = null, loadAllowances = false, loadEmployeesAllowances = false, filters = {}, pagination = {}} = {}){
-
+    const queryClient = useQueryClient();
     const {name, branchId, departmentId, allowanceId} = filters;
     const {page = 1, perPage = 10} = pagination;
     const params = {};
@@ -90,6 +90,8 @@ export function useAllowances({userName = null, loadAllowances = false, loadEmpl
                         confirmButtonColor: '#177604',
                     }).then(() => {
                         if (variables?.onSuccessCallback) {
+                            queryClient.invalidateQueries({queryKey: ['employeesAllowances']});
+                            queryClient.invalidateQueries({queryKey: ['employeeAllowance']});
                             variables.onSuccessCallback();
                         }
                     });

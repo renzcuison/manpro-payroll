@@ -1,11 +1,12 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 import Swal from "sweetalert2";
 
 export function useDeductions({userName = null, loadDeductions = false, loadEmployeesDeductions = false, filters = {}, pagination = {}} = {}){
-    
+    const queryClient = useQueryClient();
+
     const {name, branchId, departmentId, deductionId} = filters;
     const {page = 1, perPage = 10} = pagination;
     const params = {};
@@ -90,6 +91,8 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
                         confirmButtonColor: '#177604',
                     }).then(() => {
                         if (variables?.onSuccessCallback) {
+                            queryClient.invalidateQueries({queryKey: ['employeesDeductions']});
+                            queryClient.invalidateQueries({queryKey: ['employeeDeductions']});
                             variables.onSuccessCallback();
                         }
                     });
