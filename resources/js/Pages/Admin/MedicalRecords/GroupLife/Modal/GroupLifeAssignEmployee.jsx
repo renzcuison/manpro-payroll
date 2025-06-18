@@ -21,50 +21,15 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-const GroupLifeAssignEmployee = ({ open, close }) => {
+const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
+    console.log("Received planId:", planId);
 
-const storedUser = localStorage.getItem("nasya_user");
-const headers = getJWTHeader(JSON.parse(storedUser));
+    const storedUser = localStorage.getItem("nasya_user");
+    const user = storedUser ? JSON.parse(storedUser) : null;
+    const headers = getJWTHeader(JSON.parse(storedUser));
     const [employees, setEmployees] = useState([]);
-
-    useEffect(() => {
-        axiosInstance
-            .get("/employee/getEmployees", { headers })
-            .then((response) => {
-                setEmployees(response.data.employees);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching clients:", error);
-                setIsLoading(false);
-            });
-
-        axiosInstance
-            .get("/settings/getDepartments", { headers })
-            .then((response) => {
-                const fetchedDepartments = response.data.departments;
-                setDepartments(fetchedDepartments);
-                const allDepartmentIds = fetchedDepartments.map(
-                    (department) => department.id
-                );
-                setSelectedDepartments(allDepartmentIds);
-            })
-            .catch((error) => {
-                console.error("Error fetching departments:", error);
-            });
-
-        axiosInstance
-            .get("/settings/getBranches", { headers })
-            .then((response) => {
-                const fetchedBranches = response.data.branches;
-                setBranches(fetchedBranches);
-                const allBranchIds = fetchedBranches.map((branch) => branch.id);
-                setSelectedBranches(allBranchIds);
-            })
-            .catch((error) => {
-                console.error("Error fetching branches:", error);
-            });
-    }, []);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [enrollDate, setEnrollDate] = useState(null);
 
     const [showDependents, setShowDependents] = useState(false);
 
@@ -73,6 +38,18 @@ const headers = getJWTHeader(JSON.parse(storedUser));
     const relationshipOptions = ["Spouse", "Child", "Parent"];
 
     const [dependentWarning, setDependentWarning] = useState('');
+
+    useEffect(() => {
+        axiosInstance
+            .get("/employee/getEmployees", { headers })
+            .then((response) => {
+                setEmployees(response.data.employees);
+            })
+            .catch((error) => {
+                console.error("Error fetching clients:", error);
+            });
+    }, []);
+
 
     const isFilled = (dep) =>
         dep &&
@@ -104,6 +81,39 @@ const headers = getJWTHeader(JSON.parse(storedUser));
         setDependents(updated);
     };
 
+    const handleSubmit = async () => {
+        try {
+            if (!selectedEmployee || !selectedEmployee.id || !enrollDate) {
+                alert("Please select an employee and enrollment date.");
+                return;
+            }
+
+            const payload = {
+                group_life_plan_id: planId, // TODO: define this or pass via props/context
+                employee_id: selectedEmployee.id,
+                enroll_date: enrollDate.format("YYYY-MM-DD"), // assuming dayjs
+                dependents: dependents.filter(dep => dep.name && dep.relationship)
+            };
+
+            const res = await axiosInstance.post('/medicalRecords/saveGroupLifeEmployees', payload, {
+            headers: { Authorization: `Bearer ${user.token}` }
+                });
+                refreshEmployees(); 
+
+                close();
+
+            console.log("Success:", res.data);
+            alert("Employee assigned successfully!");
+            close();
+        } catch (err) {
+            console.error("Error submitting:", err);
+            alert("Something went wrong while assigning the employee.");
+        }
+    };
+
+
+
+
     return (
         <>
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '500px', marginBottom: '5%' }}}>
@@ -131,6 +141,8 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                     getOptionLabel={(employee) =>
                                                         `${employee.first_name} ${employee.middle_name || ""} ${employee.last_name} ${employee.suffix || ""}`.trim()
                                                     }
+                                                    value={selectedEmployee}
+                                                    onChange={(e, newValue) => setSelectedEmployee(newValue)}
                                                     noOptionsText="No Employee Found"
                                                     renderInput={(params) => (
                                                         <TextField {...params} label="Select Employee" variant="outlined" />
@@ -180,8 +192,7 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                 <FormControl sx={{ marginLeft: 2, marginBottom: 3, width: '45%' }}>
                                                 <Autocomplete
                                                     options={relationshipOptions}
-                                                    value={dependents[0]?.relationship || ""}
-                                                    // Allow free text (not just from the list)
+                                                    value={dependents[0]?.relationship || ""}                                                    
                                                     freeSolo
                                                     onChange={(_, newValue) => {
                                                     const updated = [...dependents];
@@ -194,7 +205,6 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                                         {...params}
                                                         label="Relationship"
                                                         variant="outlined"
-                                                        // If you want to support typing and update as user types:
                                                         onChange={e => {
                                                         const updated = [...dependents];
                                                         if (!updated[0]) updated[0] = { name: "", relationship: "" };
@@ -277,7 +287,10 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                 <Box sx={{ height: 24 }} />
                                         <Box>
                                             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                <DatePicker label="Enroll Date" />
+                                                <DatePicker 
+                                                label="Enroll Date"
+                                                value={enrollDate}
+                                                onChange={(newValue) => setEnrollDate(newValue)} />
                                             </LocalizationProvider></Box>
                                 <Box sx={{ height: 24 }} />
 
@@ -291,6 +304,7 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                         </Button>
                                         <Button
                                             variant="contained"
+                                            onClick={handleSubmit}
                                         >
                                             Submit
                                     </Button>

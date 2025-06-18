@@ -1148,22 +1148,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('medicalRecords')->group(function () {
         // Group Life Company - New
-        Route::post('/saveGroupLifeCompanies', [
-            InsurancesController::class,
-            'saveGroupLifeCompanies',
-        ]);
-        Route::get('/getGroupLifeCompanies', [
-            InsurancesController::class,
-            'getGroupLifeCompanies',
-        ]);
-        Route::post('/saveGroupLifePlans', [
-            InsurancesController::class,
-            'saveGroupLifePlans',
-        ]);
-        Route::get('/getGroupLifePlans', [
-            InsurancesController::class,
-            'getGroupLifePlans',
-        ]);
+        Route::post('/saveGroupLifeCompanies', [InsurancesController::class, 'saveGroupLifeCompanies']);
+        Route::get('/getGroupLifeCompanies', [InsurancesController::class, 'getGroupLifeCompanies']);
+        Route::post('/saveGroupLifePlans', [InsurancesController::class, 'saveGroupLifePlans']);
+        Route::get('/getGroupLifePlans', [InsurancesController::class, 'getGroupLifePlans']);
+        Route::get('/getGroupLifeEmployees', [InsurancesController::class, 'getGroupLifeEmployees']);
+        Route::get('/getGroupLifeEmployeesByPlanId/{id}', [InsurancesController::class, 'getGroupLifeEmployeesByPlanId']);
+        Route::post('/saveGroupLifeEmployees', [InsurancesController::class, 'saveGroupLifeEmployees']);
+
     });
 
     // Hr employees
@@ -2009,7 +2001,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('/deletePeme/{id}', [PemeController::class, 'deletePeme']);
 
     // PEME Questionnaire
-    Route::post('/pemCe/questionnaire', [
+    Route::post('/peme/questionnaire', [
         PemeQuestionnaireController::class,
         'store',
     ]);
@@ -2017,7 +2009,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         PemeQuestionnaireController::class,
         'getQuestionnaire',
     ]);
-    Route::put('/questionnaire/{questionId}', [
+    Route::put('peme/{pemeID}/question/{questionId}', [
         PemeQuestionnaireController::class,
         'update',
     ]);
@@ -2035,6 +2027,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         PemeResponseController::class,
         'storeAll',
     ]);
+    
     Route::get('/peme-responses/filter', [
         PemeResponseController::class,
         'filter',

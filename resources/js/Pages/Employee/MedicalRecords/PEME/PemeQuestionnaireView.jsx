@@ -134,8 +134,8 @@ const PassOrFail = ({ value, onChange }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-            ? "Fail"
-            : "";
+                ? "Fail"
+                : "";
 
     return (
         <Box
@@ -164,8 +164,8 @@ const PostiveOrNegative = ({ value, onChange }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-            ? "Negative"
-            : "";
+                ? "Negative"
+                : "";
 
     return (
         <Box
@@ -332,11 +332,28 @@ const PemeQuestionnaireView = () => {
                         // Handle attachments as comma-separated file names
                         let answerValue = value;
 
-                        responses.push({
+                        const responseEntry = {
                             peme_q_item_id: form.question_id,
                             peme_q_type_id: type.id,
                             value: answerValue,
-                        });
+                        };
+
+                        if (Array.isArray(answerValue) && answerValue[0] instanceof File) {
+                            responseEntry.files = answerValue;
+                        }
+
+                        responses.push(responseEntry);
+
+                        // If value is an array of Files
+                        if (Array.isArray(value) && value[0] instanceof File) {
+                            value.forEach((file) => {
+                                attachedMedia.push({
+                                    // question_id: form.question_id,
+                                    // input_type: type.input_type,
+                                    file: file,
+                                });
+                            });
+                        }
                     });
                 }
             });
@@ -346,19 +363,6 @@ const PemeQuestionnaireView = () => {
             peme_response_id: PemeResponseID,
             responses: responses,
         };
-
-        // const formData = new FormData();
-
-        // formData.append("peme_response_id", PemeResponseID);
-        // formData.append("isDraft", isDraftStatus);
-
-        // console.log("asndqwrqw", answers);
-
-        // responses.forEach((item, index) => {
-        //     formData.append("peme_q_item_id[id]", item.peme_q_item_id);
-        //     formData.append("peme_q_type_id[id]", item.peme_q_type_id);
-        //     formData.append("value[id]", item.value);
-        // });
 
         const formData = new FormData();
 
@@ -375,12 +379,19 @@ const PemeQuestionnaireView = () => {
                 item.peme_q_type_id
             );
 
-            if (item.value instanceof File) {
-                formData.append(`responses.${index}.files`, item.value);
+            if (Array.isArray(item.files) && item.files[0] instanceof File) {
+                item.files.forEach((file, fileIndex) => {
+                    formData.append(`responses[${index}][files][${fileIndex}]`, file);
+                });
+                formData.append(`responses[${index}][value]`, '');
             } else {
-                formData.append(`responses[${index}][value]`, item.value ?? "");
+                formData.append(`responses[${index}][value]`, item.value ?? '');
             }
         });
+
+        for (const pair of formData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
 
         try {
             // PAYLOAD FOR DATES AND STATUS
@@ -417,8 +428,79 @@ const PemeQuestionnaireView = () => {
             });
 
             console.log(error);
+
         }
     };
+
+    // const handleSaveDraft = async () => {
+    //     const responses = [];
+
+    //     if (Array.isArray(employeeResponse.details)) {
+    //         employeeResponse.details.forEach((form) => {
+    //             if (Array.isArray(form.input_type)) {
+    //                 form.input_type.forEach((type) => {
+    //                     // Get the value from answers state
+    //                     const value =
+    //                         answers[form.question_id]?.[type.input_type] ??
+    //                         null;
+
+    //                     // Handle attachments as comma-separated file names
+    //                     let answerValue = value;
+
+    //                     responses.push({
+    //                         peme_q_item_id: form.question_id,
+    //                         peme_q_type_id: type.id,
+    //                         value: answerValue,
+    //                     });
+    //                 });
+    //             }
+    //         });
+    //     }
+
+    //     const payload = {
+    //         peme_response_id: PemeResponseID,
+    //         responses: responses,
+    //     };
+
+    //     console.log("TEST PAYLOAD", payload);
+
+    //     // try {
+    //     //     // PAYLOAD FOR DATES AND STATUS
+    //     //     const secondaryPayload = {
+    //     //         expiry_date: expirationDate,
+    //     //         next_schedule: nextSchedule,
+    //     //         status: status,
+    //     //     };
+    //     //     console.log(secondaryPayload);
+
+    //     //     await axiosInstance.patch(
+    //     //         `/peme-responses/${PemeResponseID}/status`,
+    //     //         secondaryPayload,
+    //     //         { headers }
+    //     //     );
+
+    //     //     console.log("ANSWERS", payload.responses);
+    //     //     await axiosInstance.post(`/peme-responses/storeAll`, payload, {
+    //     //         headers,
+    //     //     });
+    //     //     Swal.fire({
+    //     //         icon: "success",
+    //     //         text: "Draft saved successfully.",
+    //     //         showConfirmButton: false,
+    //     //         timer: 1500,
+    //     //     });
+    //     // } catch (error) {
+    //     //     Swal.fire({
+    //     //         title: "Error",
+    //     //         text: "Failed to save draft. Please try again.",
+    //     //         icon: "error",
+    //     //         confirmButtonText: "Okay",
+    //     //         confirmButtonColor: "#177604",
+    //     //     });
+
+    //     //     console.log(error);
+    //     // }
+    // };
 
     const navigator = useNavigate();
     const handleOnCancelClick = () => {
@@ -521,7 +603,7 @@ const PemeQuestionnaireView = () => {
                                     form.input_type.map((type, i) => {
                                         const value =
                                             answers[form.question_id]?.[
-                                                type.input_type
+                                            type.input_type
                                             ] || "";
 
                                         switch (type.input_type) {
