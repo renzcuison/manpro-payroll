@@ -1,3 +1,4 @@
+import AddIcon from '@mui/icons-material/Add';
 import {
     Box,
     Typography,
@@ -14,6 +15,8 @@ import {
     Grid,
     IconButton
 } from '@mui/material';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CloseIcon from '@mui/icons-material/Close';
 import {
     DndContext, 
     closestCenter,
@@ -22,16 +25,14 @@ import {
 } from '@dnd-kit/core';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
-import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import ShortTextIcon from '@mui/icons-material/ShortText';
-import TextFieldsIcon from '@mui/icons-material/TextFields';
-import CloseIcon from '@mui/icons-material/Close';
-import AddIcon from '@mui/icons-material/Add';
+import { OptionMouseSensor } from '../Sensors/OptionMouseSensor';
+import { OptionTouchSensor } from '../Sensors/OptionTouchSensor';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
 import PerformanceEvaluationRating from './PerformanceEvaluationRating';
 import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvaluationFormAddSubcategory';
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import ShortTextIcon from '@mui/icons-material/ShortText';
 import Sortable from './Sortable';
 import {
     SortableContext,
@@ -40,6 +41,7 @@ import {
 import { SubcategoryDropdownMouseSensor } from '../Sensors/SubcategoryDropdownMouseSensor';
 import { SubcategoryDropdownTouchSensor } from '../Sensors/SubcategoryDropdownTouchSensor';
 import Swal from 'sweetalert2';
+import TextFieldsIcon from '@mui/icons-material/TextFields';
 import { useClickAway } from '../Test/useClickAway';
 import { useClickHandler } from '../../../../hooks/useClickHandler';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
@@ -71,14 +73,32 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     const sectionNameWrapperRef = useRef(null);
 
     // Subcategory moving
-    const sensors = useSensors(
+    const subcategorySensors = useSensors(
         useSensor(SubcategoryDropdownTouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
         useSensor(SubcategoryDropdownMouseSensor, { activationConstraint: { distance: 10 } })
     );
-    const handleDragStart = (event) => {
+    const handleSubcategoryDragStart = (event) => {
         setDraggedSubcategoryId(event.active?.id ?? null);
     };
-    const handleDragEnd = (event) => {
+    const handleSubcategoryDragEnd = (event) => {
+        setDraggedSubcategoryId(null);
+        if(!event.active || !event.over) return;
+        moveSubcategory(
+            event.active.data.current.order,
+            event.over.data.current.order
+        );
+    }
+
+    // Option moving
+    const optionSensors = useSensors(
+        useSensor(OptionTouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+        useSensor(OptionMouseSensor, { activationConstraint: { distance: 10 } })
+    );
+    // here
+    const handleOptionDragStart = (event) => {
+        setDraggedSubcategoryId(event.active?.id ?? null);
+    };
+    const handleOptionDragEnd = (event) => {
         setDraggedSubcategoryId(null);
         if(!event.active || !event.over) return;
         moveSubcategory(
@@ -524,10 +544,10 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                         )}
                     {/* SUBCATEGORIES */}
                     <DndContext
-                        sensors={ sensors }
+                        sensors={ subcategorySensors }
                         collisionDetection={ closestCenter }
-                        onDragStart={ handleDragStart }
-                        onDragEnd={ handleDragEnd }
+                        onDragStart={ handleSubcategoryDragStart }
+                        onDragEnd={ handleSubcategoryDragEnd }
                         modifiers={ [restrictToFirstScrollableAncestor, restrictToVerticalAxis] }
                     ><SortableContext items={ subcategories.map(subcategory=>({ ...subcategory, id: 'subcategory_'+subcategory.id })) } strategy={ verticalListSortingStrategy }>
                         <Box sx={{ mt: 2, overflow: 'auto' }}>
@@ -537,7 +557,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                         key={subcategory.id}
                                         id={'subcategory_'+subcategory.id}
                                         order={subcategory.order}
-                                        draggedId={draggedSubcategoryId}
                                     >
                                         <Accordion
                                             expanded={expandedSubcategory === subcategory.id}
@@ -555,6 +574,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                 className='subcategory-dropdown'
                                                 expandIcon={<ExpandMoreIcon />}
                                                 sx={{
+                                                    cursor: draggedSubcategoryId ? 'move!important' : undefined,
                                                     minHeight: 56,
                                                     borderRadius: 2,
                                                     boxShadow: 'none',
@@ -620,61 +640,69 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                         </Box>
                                                         {(subcategoryDraft.subcategory_type === 'multiple_choice' || subcategoryDraft.subcategory_type === 'checkbox') && (
                                                             <Box sx={{ mb: 2 }}>
-                                                                {subcategoryOptions.map(({ label, score, description }, index) => (
-                                                                    <Grid container spacing={2} key={index} sx={{ mb: 2 }} alignItems="center">
-                                                                        <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                                                                            <Typography variant="body1">{index + 1}.</Typography>
-                                                                        </Grid>
-                                                                        <Grid item xs={7}>
-                                                                            <TextField
-                                                                                variant="outlined"
-                                                                                fullWidth
-                                                                                value={label}
-                                                                                onChange={e => handleOptionChange(index, e)}
-                                                                            />
-                                                                        </Grid>
-                                                                        <Grid item xs={2}>
-                                                                            <TextField
-                                                                                variant="outlined"
-                                                                                placeholder="Score"
-                                                                                value={score ?? ""}
-                                                                                type="number"
-                                                                                onChange={e => {
-                                                                                    const newOptions = [...subcategoryOptions];
-                                                                                    newOptions[index].score = Number(e.target.value);
-                                                                                    setSubcategoryOptions(newOptions);
-                                                                                }}
-                                                                                sx={{ width: 80 }}
-                                                                                
-                                                                                inputProps={{ min: 0, step: 1 }}
-                                                                            />
-                                                                        </Grid>
-                                                                        <Grid item xs={4}>
-                                                                            <TextField
-                                                                                variant="outlined"
-                                                                                multiline
-                                                                                label="Description"
-                                                                                placeholder="Why this score?"
-                                                                                value={description || ""}
-                                                                                onChange={e => {
-                                                                                const newOptions = [...subcategoryOptions];
-                                                                                newOptions[index].description = e.target.value;
-                                                                                setSubcategoryOptions(newOptions);
-                                                                                }}
-                                                                            
-                                                                                fullWidth
-                                                                            />
-                                                                        </Grid>
-                                                                        <Grid item xs={2}>
-                                                                            <IconButton
-                                                                                onClick={() => handleRemoveOption(index)}
-                                                                                sx={{ color: 'gray' }}
-                                                                            >
-                                                                                <CloseIcon />
-                                                                            </IconButton>
-                                                                        </Grid>
-                                                                    </Grid>
-                                                                ))}
+                                                                <DndContext
+                                                                    sensors={ optionSensors }
+                                                                    collisionDetection={ closestCenter }
+                                                                    onDragStart={ handleOptionDragStart }
+                                                                    onDragEnd={ handleOptionDragEnd }
+                                                                    modifiers={ [restrictToFirstScrollableAncestor, restrictToVerticalAxis] }
+                                                                ><SortableContext items={ subcategoryOptions.map(option=>({ ...option, id: 'option_'+option.id })) } strategy={ verticalListSortingStrategy }>
+                                                                    <Box sx={{ mt: 2, overflow: 'auto' }}>
+                                                                        {subcategoryOptions.map((option) => (
+                                                                            <Sortable key={option.id} id={'option_'+option.id} order={option.order}>
+                                                                                <Grid container spacing={2} key={option.order} sx={{ mb: 2 }} alignItems="center">
+                                                                                    <Grid className='option-dragger' item xs={1} sx={{ display: 'flex', alignItems: 'center', cursor: 'move' }}>
+                                                                                        <Typography variant="body1" sx={{ color: 'gray' }}>═</Typography>
+                                                                                    </Grid>
+                                                                                    <Grid item xs={7}>
+                                                                                        <TextField
+                                                                                            variant="outlined"
+                                                                                            fullWidth
+                                                                                            value={option.label}
+                                                                                            onChange={e => handleOptionChange(option.order - 1, e)}
+                                                                                        />
+                                                                                    </Grid>
+                                                                                    <Grid item xs={2}>
+                                                                                        <TextField
+                                                                                            variant="outlined"
+                                                                                            placeholder="Score"
+                                                                                            value={option.score ?? ""}
+                                                                                            type="number"
+                                                                                            onChange={e => {
+                                                                                                const newOptions = [...subcategoryOptions];
+                                                                                                newOptions[option.order - 1].score = Number(e.target.value);
+                                                                                                setSubcategoryOptions(newOptions);
+                                                                                            }}
+                                                                                            sx={{ width: 80 }}
+                                                                                            inputProps={{ min: 0, step: 1 }}
+                                                                                        />
+                                                                                    </Grid>
+                                                                                    <Grid item xs={4}>
+                                                                                        <TextField
+                                                                                            variant="outlined"
+                                                                                            multiline
+                                                                                            label="Description"
+                                                                                            placeholder="Why this score?"
+                                                                                            value={option.description || ""}
+                                                                                            onChange={e => {
+                                                                                                const newOptions = [...subcategoryOptions];
+                                                                                                newOptions[option.order - 1].description = e.target.value;
+                                                                                                setSubcategoryOptions(newOptions);
+                                                                                            }}
+                                                                                            fullWidth
+                                                                                        />
+                                                                                    </Grid>
+                                                                                    <Grid item xs={2}>
+                                                                                        <IconButton
+                                                                                            onClick={() => handleRemoveOption(option.order - 1)}
+                                                                                            sx={{ color: 'gray' }}
+                                                                                        ><CloseIcon/></IconButton>
+                                                                                    </Grid>
+                                                                                </Grid>
+                                                                            </Sortable>
+                                                                        ))}
+                                                                    </Box>
+                                                                </SortableContext></DndContext>
                                                                 <Typography
                                                                     onClick={handleAddOption}
                                                                     sx={{
@@ -684,7 +712,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                         marginTop: '8px',
                                                                     }}
                                                                 >
-                                                                    {subcategoryOptions.length + 1}. Add Option
+                                                                    + Add Option
                                                                 </Typography>
                                                             </Box>
                                                         )}
