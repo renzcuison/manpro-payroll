@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use App\Models\GroupLifeDependents;
 
-class GroupLifeEmployeePlan extends Pivot
+class GroupLifeEmployeePlan extends Model
 {
     use HasFactory, SoftDeletes;
 

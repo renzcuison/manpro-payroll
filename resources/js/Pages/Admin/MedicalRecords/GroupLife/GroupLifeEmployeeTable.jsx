@@ -2,6 +2,7 @@ import React from "react";
 import dayjs from "dayjs";
 import weekday from "dayjs/plugin/weekday";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import { useState, useEffect } from 'react';
 
 // MUI components
 import {
@@ -37,7 +38,12 @@ const highlightMatch = (text, keyword) => {
     );
 };
 
-const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search, loading }) => {
+const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search, loading, data }) => {
+    const [rows, setRows] = useState([]);
+
+    useEffect(() => {
+        setRows(data);
+    }, [data]);
     return (
         <TableContainer
             sx={{

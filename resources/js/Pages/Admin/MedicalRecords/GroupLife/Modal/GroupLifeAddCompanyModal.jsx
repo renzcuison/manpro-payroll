@@ -79,7 +79,7 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
         } catch (error) {
             Swal.fire({
                 icon: 'error',
-                text: 'Error saving department!'
+                text: 'Error saving company!'
                 });
         }
         if (!companyName.trim() || !user) {
