@@ -121,7 +121,6 @@ const PerformanceEvaluationEvaluateePage = () => {
   };
 
 const handleDownloadPDF = async () => {
-  console.log(evaluationResponse);
   const doc = new jsPDF("p", "pt", "a4");
   const margin = 40;
   let y = margin;
@@ -289,7 +288,7 @@ const handleDownloadPDF = async () => {
   // Evaluators
   if (responseMeta?.evaluators) {
     for (const evaluator of responseMeta.evaluators) {
-      const signatureFilePath = signatureFilePaths[evaluator.id];
+      const signatureFilePath = signatureFilePaths[evaluator.evaluator_id];
       if (signatureFilePath) {
         signatureBlocks.push({
           url: signatureFilePath,
@@ -302,7 +301,7 @@ const handleDownloadPDF = async () => {
   // Commentors
   if (responseMeta?.commentors) {
     for (const commentor of responseMeta.commentors) {
-      const signatureFilePath = signatureFilePaths[commentor.id];
+      const signatureFilePath = signatureFilePaths[commentor.commentor_id];
       if (signatureFilePath) {
         signatureBlocks.push({
           url: signatureFilePath,
@@ -341,7 +340,6 @@ const handleDownloadPDF = async () => {
   const cellWidth = 210; // adjust as needed
   const startX = margin; // left margin
   let sigY = y + 10; // starting y for signatures
-
   for (let i = 0; i < signatureBlocks.length; i += 2) {
     // First column
     await drawSignatureCell(signatureBlocks[i], startX, sigY, cellWidth);
