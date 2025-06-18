@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
     Box,
     Button,
@@ -8,46 +8,64 @@ import {
     InputLabel,
     FormControl,
     OutlinedInput,
-    InputAdornment
+    InputAdornment,
+    TablePagination
 } from "@mui/material";
 import Layout from "../../../../components/Layout/Layout";
 import GroupLifeEmployeeTable from "./GroupLifeEmployeeTable";
 import GroupLifeAssignEmployee from "./Modal/GroupLifeAssignEmployee";
 import GroupLifeEditEmployee from "./Modal/GroupLifeEditEmployee";
+import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 
 const GroupLifeEmployees = () => {
     const location = useLocation();
-    const planDetails = location.state || {};
+    const { id } = useParams();
+
+    const storedPlanDetails = localStorage.getItem("selected_plan_details");
+    const planDetails = storedPlanDetails ? JSON.parse(storedPlanDetails) : {};
+
+    console.log("Received planDetails:", planDetails);
     const navigator = useNavigate();
     const [search, setSearch] = useState("");
     const [openAssignEmployeeModal, setOpenAssignEmployeeModal] = useState(false);
     const [openEditEmployeeModal, setOpenEditEmployeeModal] = useState(false);
+    const storedUser = localStorage.getItem("nasya_user");
+    const user = storedUser ? JSON.parse(storedUser) : null;
+    const [employees, setEmployees] = useState([]);
+    const [planName, setPlanName] = useState("");
+    const [loading, setLoading] = useState(true);
 
-    // Dummy data
-    const employees = [
-        {
-            employee: "Samuel Christian D. Nacar",
-            dependents: "0",
-            enrollDate: "May 25, 2025",
-            branch: "Davao",
-            department: "Accounting Department",
-            role: "Accounting Operations",
-        }
-    ];
+    console.log("Loaded planDetails from localStorage:", planDetails);
+
+    useEffect(() => {
+        if (!id) return;
+        setLoading(true);
+
+        axiosInstance
+        .get(`/medicalRecords/getGroupLifeEmployees`, {
+            headers: { Authorization: `Bearer ${user.token}` },
+            params: { plan_id: id }
+        })
+        .then(res => {
+            console.log("Filtered employees:", res.data);
+            setEmployees(res.data.employees || []);
+        })
+        .catch(err => {
+            console.error("Error fetching filtered employees:", err);
+            setEmployees([]);
+        })
+        .finally(() => setLoading(false));
+    }, [id]);
 
     const handleOnBackClick = () => {
         navigator("/admin/medical-records/group-life-masterlist-records");
     };
 
-    // Filter records based on search string (case-insensitive)
-    const filteredRecords = employees.filter((employee) =>
+    const filteredRecords = employees.filter((employees) =>
         [
-            employee.employee,
-            employee.dependents,
-            employee.enrollDate,
-            employee.branch,
-            employee.department,
-            employee.role,
+        employees.employee_name,
+        employees.dependents_count,
+        employees.enroll_date,
         ].some((field) =>
             (typeof field === "number"
                 ? field.toFixed(2)
@@ -59,6 +77,15 @@ const GroupLifeEmployees = () => {
     );
 
     const resultsCount = filteredRecords.length;
+
+    const [currentPage, setCurrentPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
+
+    const paginatedRows = useMemo(() => {
+        const startIndex = currentPage * rowsPerPage;
+        return filteredRecords.slice(startIndex, startIndex + rowsPerPage);
+    }, [filteredRecords, currentPage, rowsPerPage]);
 
     return (
         <Layout title="GroupLife Masterlist">
@@ -80,7 +107,7 @@ const GroupLifeEmployees = () => {
                             variant="contained"
                             style={{ color: "#e8f1e6" }}
                         >
-                            <i className="fa fa-plus pr-2"></i> Assign
+                            Assign
                         </Button>
                     </Grid>
                 </Box>
@@ -95,7 +122,9 @@ const GroupLifeEmployees = () => {
                                         <Typography variant="subtitle1" fontWeight="bold">Payment Type:</Typography>
                                     </Grid>
                                     <Grid item xs={6} sm={8}>
-                                        <Typography variant="body1">{planDetails.paymentType || 'N/A'}</Typography>
+                                        <Typography variant="body1">
+                                            {planDetails.paymentType || 'N/A'}
+                                            </Typography>
                                     </Grid>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
@@ -103,7 +132,9 @@ const GroupLifeEmployees = () => {
                                         <Typography variant="subtitle1" fontWeight="bold">Employer Share:</Typography>
                                     </Grid>
                                     <Grid item xs={6} sm={8}>
-                                        <Typography variant="body1">{planDetails.employerShare !== undefined ? `₱${planDetails.employerShare.toFixed(2)}` : 'Unassigned'}</Typography>
+                                        <Typography variant="body1">
+                                            {planDetails.employerShare !== undefined ? `₱${planDetails.employerShare.toFixed(2)}` : 'Unassigned'}
+                                            </Typography>
                                     </Grid>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
@@ -111,7 +142,9 @@ const GroupLifeEmployees = () => {
                                         <Typography variant="subtitle1" fontWeight="bold">Employee Share:</Typography>
                                     </Grid>
                                     <Grid item xs={6} sm={8}>
-                                        <Typography variant="body1">{planDetails.employeeShare !== undefined ? `₱${planDetails.employeeShare.toFixed(2)}` : 'N/A'}</Typography>
+                                        <Typography variant="body1">
+                                            {planDetails.employeeShare !== undefined ? `₱${planDetails.employeeShare.toFixed(2)}` : 'N/A'}
+                                            </Typography>
                                     </Grid>
                                 </Box>
                             </Grid>
@@ -159,8 +192,31 @@ const GroupLifeEmployees = () => {
                             <GroupLifeEmployeeTable
                                 employees={filteredRecords}
                                 onRowClick={() => setOpenEditEmployeeModal(true)}
-                                search={search} // <--- pass the search prop!
+                                search={search}
+                                loading={loading}
                             />
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                            <TablePagination
+                                rowsPerPageOptions={[5, 10, 25]}
+                                component="div"
+                                count={filteredRecords.length}
+                                rowsPerPage={rowsPerPage}
+                                page={currentPage}
+                                onPageChange={(event, newPage) => setCurrentPage(newPage)}
+                                onRowsPerPageChange={(event) => {
+                                    setRowsPerPage(parseInt(event.target.value, 10));
+                                    setCurrentPage(0);
+                                }}
+                                sx={{
+                                    ".MuiTablePagination-actions": { mb: 2 },
+                                    ".MuiInputBase-root": { mb: 1 },
+                                    bgcolor: "#ffffff",
+                                    borderRadius: "8px",
+                                    width: "fit-content",
+                                    mt: 2
+                                }}
+                                />
                         </Box>
                     </Grid>
                 </Grid>
@@ -169,6 +225,7 @@ const GroupLifeEmployees = () => {
                     <GroupLifeEditEmployee
                         open={openEditEmployeeModal}
                         close={setOpenEditEmployeeModal}
+                        
                     />
                 )}
 
@@ -176,6 +233,7 @@ const GroupLifeEmployees = () => {
                     <GroupLifeAssignEmployee
                         open={openAssignEmployeeModal}
                         close={setOpenAssignEmployeeModal}
+                        planId={id}
                     />
                 )}
                 
@@ -183,5 +241,6 @@ const GroupLifeEmployees = () => {
         </Layout>
     );
 };
+
 
 export default GroupLifeEmployees;

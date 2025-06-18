@@ -157,7 +157,7 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
                                                 <TableCell align="left" component="th" scope="row">
                                                     {company.name}
                                                 </TableCell>
-                                                <TableCell> 0</TableCell>
+                                                <TableCell>{company.plans ?? 0}</TableCell>
                                             </TableRow>
                                             
                                         )) : (
