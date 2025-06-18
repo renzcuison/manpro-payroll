@@ -102,7 +102,7 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   const id = propId || params.id;
 
   const {
-    evaluationResponse,
+    evaluationResponse, commentorId,
     editEvaluationCommentor
   } = useEvaluationResponse(id);
 
@@ -111,22 +111,17 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   const [commentInput, setCommentInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [openAcknowledge, setOpenAcknowledge] = useState(false);
-
-  const storedUser = localStorage.getItem("nasya_user");
-  const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
+  const [thisCommentor, setThisCommentor] = useState();
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
       // Pre-fill comment if user already has one (editing)
-      if (evaluationResponse.commentors && loggedInUser) {
-        const thisCommentor = evaluationResponse.commentors.find(
-          c => c.commentor_id === loggedInUser.id
-        );
-        if (thisCommentor && thisCommentor.comment) {
-          setCommentInput(thisCommentor.comment);
-        }
-      }
+      const thisCommentor = evaluationResponse.commentors.find(
+        ({ commentor_id }) => commentor_id === commentorId
+      );
+      setThisCommentor(thisCommentor);
+      if (thisCommentor?.comment) setCommentInput(thisCommentor.comment);
     }
   }, [evaluationResponse]);
 
@@ -140,9 +135,6 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
 
   // Find this user as commentor, and their order
   const allCommentors = evaluationResponse?.commentors ?? [];
-  const thisCommentor = loggedInUser
-    ? allCommentors.find(c => c.commentor_id === loggedInUser.id)
-    : null;
 
   // Only show previous commentors (order < this one and have signed)
   const previousCommentors = thisCommentor ? allCommentors.slice(0, thisCommentor.order - 1) : [];

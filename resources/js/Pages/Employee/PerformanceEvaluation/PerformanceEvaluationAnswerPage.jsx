@@ -9,7 +9,7 @@ import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
-import PerformanceEvaluationEvaluatorAcknowledge from '../PerformanceEvaluation/Modals/PerformanceEvaluationEvaluatorAcknowledge';
+import PerformanceEvaluationEvaluatorAcknowledge from './Modals/PerformanceEvaluationEvaluatorAcknowledge';
 import Swal from 'sweetalert2';
 
 const PerformanceEvaluationAnswerPage = () => {
@@ -46,8 +46,12 @@ const PerformanceEvaluationAnswerPage = () => {
     }
   }, [evaluationResponse]);
 
-  const handleSettingsClick = (event) => setSettingsAnchorEl(event.currentTarget);
-  const handleSettingsClose = () => setSettingsAnchorEl(null);
+  const handleSettingsClick = (event) => {
+    setSettingsAnchorEl(event.currentTarget);
+  };
+  const handleSettingsClose = () => {
+    setSettingsAnchorEl(null);
+  };
   const settingsOpen = Boolean(settingsAnchorEl);
 
   const responseTypeMap = {
@@ -425,27 +429,30 @@ const PerformanceEvaluationAnswerPage = () => {
                                   {opt.label} - {opt.score ?? 1} {index !== subCategory.options.length - 1 && ','}
                                 </Typography>
                               ))}
-                            </Box>
-                            <Divider sx={{ my: 2 }} />
-                            <Box sx={{ mt: 2 }}>
-                              <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
-                                Description:
-                              </Typography>
-                              <Box>
-                                {subCategory.options?.map((opt, index) =>
-                                  opt.description ? (
-                                    <Typography
-                                      key={opt.id + "_desc"}
-                                      variant="body2"
-                                      sx={{fontSize: '0.8rem'}}
-                                    >
-                                      {opt.score} - {opt.description}
-                                    </Typography>
-                                  ) : null
-                                )}
                               </Box>
+                              <Divider sx={{ my: 2 }} />
+                              <Box sx={{ mt: 2 }}>
+                                <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                                  Description:
+                                </Typography>
+                                <Box>
+                                  {subCategory.options?.map((opt, index) =>
+                                      opt.description ? (
+                                        <Typography
+                                          key={opt.id + "_desc"}
+                                          variant="body2"
+                                          sx={{fontSize: '0.8rem'}}
+                                        >
+                                          {opt.score} - {opt.description}
+                                        </Typography>
+                                      ) : null
+                                    )}
+                                </Box>
+                                
+
                             </Box>
                           </Box>
+                          
                         </>
                       )}
 
@@ -481,8 +488,12 @@ const PerformanceEvaluationAnswerPage = () => {
                       boxShadow: 2,
                     }}
                   >
+                    {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                      {evaluator.evaluator_id}
+                    </Typography> */}
                     <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                       {getFullName(evaluator)}
+                      {evaluator.evaluator_id}, {evaluatorId}
                     </Typography>
                     <TextField
                       label="Evaluator Comment"

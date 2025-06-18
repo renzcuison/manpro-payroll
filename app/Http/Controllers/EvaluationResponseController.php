@@ -425,13 +425,13 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationResponse: {
-                id, evaluatee_id, datetime,
+                id, role, evaluatee_id, datetime,
                 period_start_date, period_end_date,
                 created_at, updated_at,
                 status,
                 evaluatee: { id, response_id, last_name, first_name, middle_name, suffix },
                 evaluatee_signature, evaluatee_signature_filepath
-                creator_signature, creator_signature_filepath
+                creator_signature, creator_signature_filepath,
                 evaluators: {
                     evaluator_id, response_id, last_name, first_name, middle_name, suffix,
                     comment, order, evalator_signature, signature_filepath
@@ -554,13 +554,15 @@ class EvaluationResponseController extends Controller
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
                                                             $optionAnswer
-                                                                ->select('response_id', 'option_id')
+                                                                ->select('id', 'response_id', 'option_id')
                                                                 ->whereNull('deleted_at')
+                                                                ->where('response_id', $request->id)
                                                     ])
                                                     ->withCount([
                                                         'optionAnswer' => fn ($optionAnswer) =>
                                                             $optionAnswer
                                                                 ->whereNull('deleted_at')
+                                                                ->where('response_id', $request->id)
                                                     ])
                                                     ->orderBy('order')
                                             ,
@@ -615,23 +617,27 @@ class EvaluationResponseController extends Controller
                     'message' => 'Evaluation Response not found!'
                 ]);
             }
-            // 2. Fetching signatures
+            // 2. Fetching signatures and role
+            $role = null;
             $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
             $evaluationResponse->evaluatee_signature = (
                 $evaluateeSignature ? base64_encode(file_get_contents($evaluateeSignature->getPath()))
                 : null
             );
+            if($evaluationResponse->evaluatee_id == $userID) $role = 'Evaluatee';
             $creatorSignature = $evaluationResponse->getFirstMedia('creator_signatures');
             $evaluationResponse->creator_signature = (
                 $creatorSignature ? base64_encode(file_get_contents($creatorSignature->getPath()))
                 : null
             );
+            if($evaluationResponse->creator_id == $userID) $role = 'Creator';
             foreach ($evaluationResponse->evaluators as $index => $evaluator) {
                 $evaluatorSignature = $evaluator->getFirstMedia('signatures');
                 $evaluator->evaluator_signature = (
                     $evaluatorSignature ? base64_encode(file_get_contents($evaluatorSignature->getPath()))
                     : null
                 );
+                if($evaluator->evaluator_id === $userID) $role = 'Evaluator';
             }
             foreach ($evaluationResponse->commentors as $index => $commentor) {
                 $commentorSignature = $commentor->getFirstMedia('signatures');
@@ -639,7 +645,9 @@ class EvaluationResponseController extends Controller
                     $commentorSignature ? base64_encode(file_get_contents($commentorSignature->getPath()))
                     : null
                 );
+                if($commentor->commentor_id === $userID) $role = 'Commentor';
             }
+            $evaluationResponse->role = $role;
             // 3. Calculating scores
             foreach($evaluationResponse->form->sections as $index => $section) {
                 $maxSectionScore = 0;
@@ -648,6 +656,7 @@ class EvaluationResponseController extends Controller
                     $maxSubcategoryScore = 0;
                     $achievedSubcategoryScore = 0;
                     switch($subcategory->subcategory_type) {
+                        case 'linear_scale':
                         case 'multiple_choice':
                             foreach($subcategory->options as $index => $option) {
                                 if($option->score > $maxSubcategoryScore)
@@ -678,6 +687,7 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Response successfully retrieved.',
+                'userID' => $userID,
                 'evaluationResponse' => $evaluationResponse
             ]);
         } catch (\Exception $e) {
