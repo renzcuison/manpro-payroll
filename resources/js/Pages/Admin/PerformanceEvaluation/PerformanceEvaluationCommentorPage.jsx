@@ -358,7 +358,6 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
               position: 'absolute',
               top: 5,
               right: 10,
-              color: '#bdbdbd',
               borderRadius: '50%',
               padding: '5px',
               color: '#BEBEBE',
@@ -479,14 +478,16 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
                   <Box
                     key={subCategory.id}
                     sx={{
-                      mb: 3, border: '1px solid #ddd', borderRadius: 2, px: 2,
-                      pt: 2,
-                      pb: 2,
-                      mt: 2,
-                      mb: 2,
-                      mx: 2,
-                      bgcolor: '#f3f3f3',
-                      boxShadow: 2
+                    border: '1px solid #ddd',
+                    borderRadius: 2,
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    mx: 2,
+                    bgcolor: '#f3f3f3',
+                    boxShadow: 2
                     }}
                   >
                     <Typography variant="h6" color="black" sx={{ mb: 0.5 }}>

@@ -307,7 +307,6 @@ async function addSignatureImage(url, label, y) {
               position: 'absolute',
               top: 5,
               right: 10,
-              color: '#bdbdbd',
               borderRadius: '50%',
               padding: '5px',
               color: '#BEBEBE',

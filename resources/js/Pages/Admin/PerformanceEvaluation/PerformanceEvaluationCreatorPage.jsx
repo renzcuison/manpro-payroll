@@ -319,7 +319,6 @@ const PerformanceEvaluationCreatorPage = () => {
               position: 'absolute',
               top: 5,
               right: 10,
-              color: '#bdbdbd',
               borderRadius: '50%',
               padding: '5px',
               color: '#BEBEBE',
@@ -439,7 +438,9 @@ const PerformanceEvaluationCreatorPage = () => {
                   <Box
                     key={subCategory.id}
                     sx={{
-                      mb: 3, border: '1px solid #ddd', borderRadius: 2, px: 2,
+                      border: '1px solid #ddd', 
+                      borderRadius: 2, 
+                      px: 2,
                       pt: 2,
                       pb: 2,
                       mt: 2,
