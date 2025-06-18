@@ -185,7 +185,7 @@ class GoogleController extends Controller
             }
 
             // ➤ Still public → just update
-            $event->update($request->only(['title', 'description', 'start_time', 'end_time']));
+            $event->update($request->only(['title', 'description', 'start_time', 'end_time', 'status']));
             return response()->json(['message' => 'Public event updated.']);
 
         } else {
