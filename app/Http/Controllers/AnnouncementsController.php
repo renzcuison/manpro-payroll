@@ -68,6 +68,7 @@ class AnnouncementsController extends Controller
         ])
         ->where('client_id', $user->client_id)
         ->whereIn('status', ['Published', 'Pending', 'Hidden'])
+        ->whereNull('deleted_at')
         ->orderBy('created_at', 'desc')
         ->get();
 
