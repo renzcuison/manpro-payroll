@@ -5,12 +5,15 @@ import { Link } from 'react-router-dom';
 import { useAllowances } from '../../../hooks/useAllowances';
 
 import AllowanceAdd from './Modals/AllowanceAdd';
+import AllowanceEdit from './Modals/AllowanceEdit';
 
 const AllowanceTypes = () => {
     const {allowances: allowanceQuery} = useAllowances({loadAllowances: true});
     const allowances = allowanceQuery.data?.allowances || [];
 
     const [openAddAllowanceModal, setOpenAddAllowanceModal] = useState(false);
+    const [openEditAllowanceModal, setOpenEditAllowanceModal] = useState(false);
+    const [selectedAllowance, setSelectedAllowance] = useState(null);
 
     const handleOpenAddAllowanceModal = () => {
         setOpenAddAllowanceModal(true);
@@ -21,6 +24,17 @@ const AllowanceTypes = () => {
         allowanceQuery.refetch();
     }
 
+    const handleOpenEditAllowanceModal = (allowance) => {
+        setOpenEditAllowanceModal(true);
+        setSelectedAllowance(allowance);
+    }
+    const handleCloseEditAllowanceModal = (reload) => {
+        setOpenEditAllowanceModal(false);
+        setSelectedAllowance(null);
+        if(reload){
+            allowanceQuery.refetch();
+        }
+    }
     return (
         <Layout title={"LeaveCreditList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -30,7 +44,7 @@ const AllowanceTypes = () => {
                             <Link to="/admin/compensation/allowance" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
-                            &nbsp; Allowance Types
+                            &nbsp; Allowances Types
                         </Typography>
 
                         <Button variant="contained" color="primary" onClick={handleOpenAddAllowanceModal}>
@@ -56,13 +70,18 @@ const AllowanceTypes = () => {
                                         </TableHead>
                                         <TableBody>
                                             {allowances.length > 0 ? (
-                                                allowances.map((allowance) => (
-                                                    <TableRow key={allowance.id}>
+                                                allowances.map((allowance, index) => (
+                                                    <TableRow key={allowance.id} onClick={() => handleOpenEditAllowanceModal(allowance)}
+                                                    sx={{ backgroundColor: index % 2 === 0 ? '#f8f8f8' : '#ffffff',
+                                                     '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{allowance.name}</TableCell>
                                                         <TableCell align="center">{allowance.type}</TableCell>
 
                                                         {allowance.type === "Amount" && (
-                                                            <TableCell align="center">₱{allowance.amount}</TableCell>
+                                                            <TableCell align="center">
+                                                                ₱ {new Intl.NumberFormat('en-US', 
+                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(allowance.amount)}
+                                                            </TableCell>
                                                         )}
 
                                                         {allowance.type === "Percentage" && (
@@ -85,6 +104,9 @@ const AllowanceTypes = () => {
 
                 {openAddAllowanceModal &&
                     <AllowanceAdd open={openAddAllowanceModal} close={handleCloseAddAllowanceModal}/>
+                }
+                {openEditAllowanceModal &&
+                    <AllowanceEdit open={openEditAllowanceModal} close={handleCloseEditAllowanceModal} allowance={selectedAllowance}/>
                 }
 
             </Box>

@@ -1,25 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
 import BenefitsAdd from './Modals/BenefitsAdd';
 import { useBenefits } from '../../../hooks/useBenefits';
-
+import BenefitsEdit from './Modals/BenefitsEdit';
 
 const BenefitsTypes = () => {
-    const {benefits} = useBenefits({loadBenefits:true});
+    const {benefits: benefitQuery} = useBenefits({loadBenefits:true});
     
-    const benefitsData = benefits.data?.benefits || [];
+    const benefits = benefitQuery.data?.benefits || [];
     const [openAddBenefitsModal, setOpenAddBenefitsModal] = useState(false);
+    const [openEditBenefitsModal, setOpenEditBenefitsModal] = useState(false);
+    const [selectedBenefit, setSelectedBenefit] = useState(null);
 
     const handleOpenAddBenefitsModal = () => {
         setOpenAddBenefitsModal(true);
     }
 
-    const handleCloseAddBenefitsModal = () => {
+    const handleCloseAddBenefitsModal = (reload) => {
         setOpenAddBenefitsModal(false);
-        benefits.refetch();
+        if(reload){
+            benefitQuery.refetch();
+        }
+    }
+
+    const handleOpenEditBenefitsModal = (incentive) => {
+        setSelectedBenefit(incentive);
+        setOpenEditBenefitsModal(true);
+        
+    }
+    const handleCloseEditBenefitsModal = (reload) => {
+        setOpenEditBenefitsModal(false);
+        setSelectedBenefit(null);
+        if(reload){
+            benefitQuery.refetch();
+        }
     }
 
     return (
@@ -57,15 +73,23 @@ const BenefitsTypes = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {benefitsData.length > 0 ? (
-                                                benefitsData.map((benefit) => (
-                                                    <TableRow key={benefit.id}>
+                                            {benefits.length > 0 ? (
+                                                benefits.map((benefit, index) => (
+                                                    <TableRow key={benefit.id} onClick={() => handleOpenEditBenefitsModal(benefit)}
+                                                    sx={{ backgroundColor: index % 2 === 0 ? '#f8f8f8' : '#ffffff',
+                                                     '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{benefit.name}</TableCell>
                                                         <TableCell align="center">{benefit.type}</TableCell>
                                                         {benefit.type === 'Amount' && 
                                                         <>
-                                                            <TableCell align="center">₱{benefit.employer_amount}</TableCell>
-                                                            <TableCell align="center">₱{benefit.employee_amount}</TableCell>
+                                                            <TableCell align="center">
+                                                                ₱ {new Intl.NumberFormat('en-US', 
+                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.employer_amount)}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                ₱ {new Intl.NumberFormat('en-US', 
+                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.employee_amount)}
+                                                            </TableCell>
                                                         </>
                                                         }
                                                         {benefit.type === 'Percentage' && 
@@ -92,7 +116,10 @@ const BenefitsTypes = () => {
                 {openAddBenefitsModal &&
                     <BenefitsAdd open={openAddBenefitsModal} close={handleCloseAddBenefitsModal}/>
                 }
-
+                {openEditBenefitsModal &&
+                    <BenefitsEdit open={openEditBenefitsModal} close={handleCloseEditBenefitsModal} benefit={selectedBenefit}/>
+                }
+                
             </Box>
         </Layout>
     );

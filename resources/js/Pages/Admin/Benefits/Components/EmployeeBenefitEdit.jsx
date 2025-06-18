@@ -41,7 +41,7 @@ const EmployeeBenefitEdit = ({benefits, onClose}) => {
 
     const saveBenefit = (event) => {
         event.preventDefault();
-        const data = {emp_benefit_id: benefits.id, number: number}
+        const data = {emp_benefit_id: benefits.id, number: number, status: selectedStatus}
         updateEmployeeBenefit.mutate(data,
         {
             onSuccess: () => {

@@ -229,6 +229,43 @@ class CompensationManagementController extends Controller
         }
     }
 
+    public function updateIncentives(Request $request){
+        $validated = $request->validate([
+            'name' => 'required',
+            'type' => 'required',
+            'amount' => 'required',
+            'percentage' => 'required',
+        ]);
+        if(!$this->checkUserAdmin() && !$validated){
+            return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
+        }
+
+        try{
+            $incentive_id = Crypt::decrypt($request->incentive_id);
+        }
+        catch(\Exception $e){
+            return response()->json(["status" => 403, 'message' => 'Invalid ID']);
+        }
+
+        $incentive = IncentivesModel::findOrFail($incentive_id);
+        if($incentive){
+            try{
+                DB::beginTransaction();
+                $incentive->name = $request->name;
+                $incentive->type = $request->type;
+                $incentive->amount = $request->amount;
+                $incentive->percentage = $request->percentage;
+                $incentive->save();
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+        return response()->json(['status' => 200, 'message' => 'Process Success']);
+    }
+
     public function saveEmployeeIncentives(Request $request)
     {
         $validated = $request->validate([
@@ -273,6 +310,7 @@ class CompensationManagementController extends Controller
 
         if($emp_incentive){
             $emp_incentive->number = $request->number;
+            $emp_incentive->status = $request->status;
             $emp_incentive->save();
         }
         return response()->json(['status' => 200]);
@@ -496,6 +534,48 @@ class CompensationManagementController extends Controller
         }
     }
 
+    public function updateBenefits(Request $request){
+        $validated = $request->validate([
+            'benefitName' => 'required',
+            'benefitType' => 'required',
+            'employeeAmount' => 'required',
+            'employerAmount' => 'required',
+            'employeePercentage' => 'required',
+            'employerPercentage' => 'required',
+        ]);
+
+        if(!$this->checkUserAdmin() && !$validated){
+            return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
+        }
+
+        try{
+            $benefit_id = Crypt::decrypt($request->benefit_id);
+        }
+        catch(\Exception $e){
+            return response()->json(["status" => 403, 'message' => 'Invalid ID']);
+        }
+
+        $benefit = BenefitsModel::findOrFail($benefit_id);
+        if($benefit){
+            try{
+                DB::beginTransaction();
+                $benefit->name = $request->benefitName;
+                $benefit->type = $request->benefitType;
+                $benefit->employer_amount = $request->employerAmount;
+                $benefit->employee_amount = $request->employeeAmount;
+                $benefit->employer_percentage = $request->employerPercentage;
+                $benefit->employee_percentage = $request->employeePercentage;
+                $benefit->save();
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+        return response()->json(['status' => 200, 'message' => 'Process Success']);
+    }
+
     public function saveEmployeeBenefits(Request $request)
     {
         $validated = $request->validate([
@@ -540,6 +620,7 @@ class CompensationManagementController extends Controller
 
         if($emp_benefit){
             $emp_benefit->number = $request->number;
+            $emp_benefit->status = $request->status;
             $emp_benefit->save();
         }
         return response()->json(['status' => 200]);
@@ -593,8 +674,7 @@ class CompensationManagementController extends Controller
 
             try {
                 DB::beginTransaction();
-
-                $allowance = AllowancesModel::create([
+                AllowancesModel::create([
                     "name" => $request->name,
                     "type" => $request->type,
                     "amount" => $request->amount,
@@ -613,6 +693,43 @@ class CompensationManagementController extends Controller
                 throw $e;
             }
         }
+    }
+
+    public function updateAllowance(Request $request){
+        $validated = $request->validate([
+            'name' => 'required',
+            'type' => 'required',
+            'amount' => 'required',
+            'percentage' => 'required',
+        ]);
+        if(!$this->checkUserAdmin() && !$validated){
+            return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
+        }
+
+        try{
+            $allowance_id = Crypt::decrypt($request->allowance_id);
+        }
+        catch(\Exception $e){
+            return response()->json(["status" => 403, 'message' => 'Invalid ID']);
+        }
+
+        $allowance = AllowancesModel::findOrFail($allowance_id);
+        if($allowance){
+            try{
+                DB::beginTransaction();
+                $allowance->name = $request->name;
+                $allowance->type = $request->type;
+                $allowance->amount = $request->amount;
+                $allowance->percentage = $request->percentage;
+                $allowance->save();
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+        return response()->json(['status' => 200, 'message' => 'Process Success']);
     }
 
     public function getEmployeeAllowance(Request $request)
@@ -746,7 +863,7 @@ class CompensationManagementController extends Controller
         $validated = $request->validate([
             'userName' => 'required',
             'allowance' => 'required',
-            'number' => 'required',
+            // 'number' => 'required',
         ]);
         if (!$this->checkUserAdmin() || !$validated) {
             return response()->json(['status' => 403]);
@@ -763,7 +880,7 @@ class CompensationManagementController extends Controller
                 "client_id" => $client->id,
                 "user_id" => $employee->id,
                 "allowance_id" => Crypt::decrypt($request->allowance),
-                "number" => $request->number,
+                // "number" => $request->number,
             ]);
 
             DB::commit();
@@ -782,8 +899,8 @@ class CompensationManagementController extends Controller
         if(!$this->checkUserAdmin()){
             return response()->json(['status' => 403]);
         }
-        $employee_deduction_id = Crypt::decrypt($request->emp_allowance_id);
-        $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_deduction_id);
+        $employee_allowance_id = Crypt::decrypt($request->emp_allowance_id);
+        $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_allowance_id);
 
         if($emp_allowance){
             $emp_allowance->status = $request->status;
@@ -859,6 +976,43 @@ class CompensationManagementController extends Controller
                 throw $e;
             }
         }
+    }
+
+    public function updateDeductions(Request $request){
+        $validated = $request->validate([
+            'name' => 'required',
+            'type' => 'required',
+            'amount' => 'required',
+            'percentage' => 'required',
+        ]);
+        if(!$this->checkUserAdmin() && !$validated){
+            return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
+        }
+
+        try{
+            $deduction_id = Crypt::decrypt($request->deduction_id);
+        }
+        catch(\Exception $e){
+            return response()->json(["status" => 403, 'message' => 'Invalid ID']);
+        }
+
+        $deduction = DeductionsModel::findOrFail($deduction_id);
+        if($deduction){
+            try{
+                DB::beginTransaction();
+                $deduction->name = $request->name;
+                $deduction->type = $request->type;
+                $deduction->amount = $request->amount;
+                $deduction->percentage = $request->percentage;
+                $deduction->save();
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+        return response()->json(['status' => 200, 'message' => 'Process Success']);
     }
 
     public function getEmployeeDeductions(Request $request)
@@ -1029,6 +1183,7 @@ class CompensationManagementController extends Controller
 
         if($emp_deduction){
             $emp_deduction->number = $request->number;
+            $emp_deduction->status = $request->status;
             $emp_deduction->save();
         }
         return response()->json(['status' => 200]);

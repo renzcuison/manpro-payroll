@@ -4,21 +4,20 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-
 import 'react-quill/dist/quill.snow.css';
 import { useAllowances } from '../../../../hooks/useAllowances';
 
-const AllowanceAdd = ({ open, close }) => {
-    const {saveAllowance} = useAllowances();
+const AllowanceEdit = ({allowance, open, close }) => {
+    const {updateAllowance} = useAllowances();
 
     const [allowanceNameError, setAllowanceNameError] = useState(false);
     const [allowanceAmountError, setAllowanceAmountError] = useState(false);
     const [allowancePercentageError, setAllowancePercentageError] = useState(false);
 
-    const [allowanceName, setAllowanceName] = useState('');
-    const [allowanceType, setAllowanceType] = useState('');
-    const [allowanceAmount, setAllowanceAmount] = useState('');
-    const [allowancePercentage, setAllowancePercentage] = useState('');
+    const [allowanceName, setAllowanceName] = useState(allowance?.name);
+    const [allowanceType, setAllowanceType] = useState(allowance?.type);
+    const [allowanceAmount, setAllowanceAmount] = useState(allowance?.amount);
+    const [allowancePercentage, setAllowancePercentage] = useState(allowance?.percentage);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -37,7 +36,6 @@ const AllowanceAdd = ({ open, close }) => {
             checkInputPercentage(event);
         }
     };
-
     const checkInputAmount = () => {
 
         if (!allowanceAmount) {
@@ -58,7 +56,7 @@ const AllowanceAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Allowance Type?",
+                text: "You want to Update this Allowance Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -74,6 +72,7 @@ const AllowanceAdd = ({ open, close }) => {
     }
 
     const checkInputPercentage = () => {
+
         if (!allowancePercentage) {
             setAllowancePercentageError(true);
         } else {
@@ -92,7 +91,7 @@ const AllowanceAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Allowance Type?",
+                text: "You want to Update this Allowance Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -107,19 +106,19 @@ const AllowanceAdd = ({ open, close }) => {
         }
     }
 
-    const saveInput = (event) => {
+    const saveInput     = (event) => {
         event.preventDefault();
-
         const amount = parseFloat(allowanceAmount.replace(/,/g, "")) || 0;
         const percentage = parseFloat(allowancePercentage.replace(/,/g, "")) || 0;
 
         const data = {
+            allowance_id: allowance.id,
             name: allowanceName,
             type: allowanceType,
             amount: amount,
             percentage: percentage,
         };
-        saveAllowance.mutate({data: data, onSuccessCallback: () => close(true)});
+        updateAllowance.mutate({data: data, onSuccessCallback: () => close(true)});
     };
 
     const formatCurrency = (value) => {
@@ -153,8 +152,8 @@ const AllowanceAdd = ({ open, close }) => {
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Allowance </Typography>
-                        <IconButton onClick={close}><i className="si si-close"></i></IconButton>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Edit Allowance </Typography>
+                        <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
@@ -162,7 +161,8 @@ const AllowanceAdd = ({ open, close }) => {
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
                         <FormGroup row={true} className="d-flex justify-content-between">
-                            <FormControl sx={{ marginBottom: 3, width: '69%'}}>
+                            <FormControl sx={{ marginBottom: 3, width: '69%',
+                            }}>
                                 <TextField
                                     required
                                     id="allowanceName"
@@ -171,10 +171,11 @@ const AllowanceAdd = ({ open, close }) => {
                                     value={allowanceName}
                                     error={allowanceNameError}
                                     onChange={(e) => setAllowanceName(e.target.value)}
-                                />
+                                />  
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%' }}>
+                            <FormControl sx={{ marginBottom: 3, width: '29%',
+                            }}>
                                 <TextField
                                     required
                                     select
@@ -192,8 +193,8 @@ const AllowanceAdd = ({ open, close }) => {
 
                         {allowanceType === "Amount" && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between" >
-                                    <FormControl sx={{ marginBottom: 3, width: '100%' }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ marginBottom: 3, width: '100%', }}>
                                         <InputLabel>Amount</InputLabel>
                                         <OutlinedInput
                                             required
@@ -211,8 +212,8 @@ const AllowanceAdd = ({ open, close }) => {
 
                         {allowanceType === "Percentage" && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between" >
-                                    <FormControl sx={{ marginBottom: 3, width: '100%' }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ marginBottom: 3, width: '100%', }}>
                                         <InputLabel>Percentage</InputLabel>
                                         <OutlinedInput
                                             required
@@ -245,4 +246,4 @@ const AllowanceAdd = ({ open, close }) => {
     )
 }
 
-export default AllowanceAdd;
+export default AllowanceEdit;

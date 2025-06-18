@@ -5,17 +5,12 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import Swal from 'sweetalert2';
-import ReactQuill from 'react-quill';
-import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
+import { useIncentives } from '../../../../hooks/useIncentives';
 
 const IncentivesAdd = ({ open, close }) => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+    const { saveIncentives } = useIncentives();
 
     const [incentivesNameError, setIncentivesNameError] = useState(false);
     const [incentivesAmountError, setIncentivesAmountError] = useState(false);
@@ -115,7 +110,6 @@ const IncentivesAdd = ({ open, close }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
         const amount = parseFloat(incentivesAmount.replace(/,/g, "")) || 0;
         const percentage = parseFloat(incentivesPercentage.replace(/,/g, "")) || 0;
 
@@ -125,26 +119,7 @@ const IncentivesAdd = ({ open, close }) => {
             amount: amount,
             percentage: percentage,
         };
-
-        axiosInstance.post('/compensation/saveIncentives', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Role saved successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        close(true);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        saveIncentives.mutate({data: data, onSuccessCallback: () => close(true)});
     };
 
     const formatCurrency = (value) => {
@@ -186,13 +161,8 @@ const IncentivesAdd = ({ open, close }) => {
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{ marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            <FormControl sx={{ marginBottom: 3, width: '69%', }}>
                                 <TextField
                                     required
                                     id="incentivesName"
@@ -204,9 +174,7 @@ const IncentivesAdd = ({ open, close }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
+                            <FormControl sx={{ marginBottom: 3, width: '29%' }}>
                                 <TextField
                                     required
                                     select
@@ -224,13 +192,9 @@ const IncentivesAdd = ({ open, close }) => {
 
                         {incentivesType === "Amount" && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
                                     <FormControl sx={{
-                                        marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                                        marginBottom: 3, width: '100%',
                                     }}>
                                         <InputLabel>Amount</InputLabel>
                                         <OutlinedInput
@@ -249,14 +213,8 @@ const IncentivesAdd = ({ open, close }) => {
 
                         {incentivesType === "Percentage" && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ marginBottom: 3, width: '100%', }}>
                                         <InputLabel>Percentage</InputLabel>
                                         <OutlinedInput
                                             required

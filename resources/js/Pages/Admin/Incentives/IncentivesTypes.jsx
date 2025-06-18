@@ -1,23 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
 import { useIncentives } from '../../../hooks/useIncentives';
 
 import IncentivesAdd from './Modals/IncentivesAdd';
+import IncentivesEdit from './Modals/IncentivesEdit';
 
 const IncentivesTypes = () => {
     const { incentives: incentivesQuery } = useIncentives({loadIncentives: true});
     const incentives = incentivesQuery.data?.incentives || [];
     const [openAddIncentiveseModal, setOpenAddIncentivesModal] = useState(false);
-
+    const [openEditIncentivesModal, setOpenEditIncentivesModal] = useState(false);
+    const [selectedIncentive, setSelectedIncentive] = useState(null);
     const handleOpenAddIncentiveseModal = () => {
         setOpenAddIncentivesModal(true);
     }
 
     const handleCloseAddIncentiveseModal = (reload) => {
         setOpenAddIncentivesModal(false);
+        if(reload){
+            incentivesQuery.refetch();
+        }
+    }
+
+    const handleOpenEditIncentivesModal = (incentive) => {
+        setSelectedIncentive(incentive);
+        setOpenEditIncentivesModal(true);
+        
+    }
+    const handleCloseEditIncentivesModal = (reload) => {
+        setOpenEditIncentivesModal(false);
+        setSelectedIncentive(null);
         if(reload){
             incentivesQuery.refetch();
         }
@@ -58,13 +72,18 @@ const IncentivesTypes = () => {
                                         </TableHead>
                                         <TableBody>
                                             {incentives.length > 0 ? (
-                                                incentives.map((incentive) => (
-                                                    <TableRow key={incentive.id}>
+                                                incentives.map((incentive, index) => (
+                                                    <TableRow key={incentive.id} onClick={() => handleOpenEditIncentivesModal(incentive)}
+                                                    sx={{ backgroundColor: index % 2 === 0 ? '#f8f8f8' : '#ffffff',
+                                                     '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{incentive.name}</TableCell>
                                                         <TableCell align="center">{incentive.type}</TableCell>
 
                                                         {incentive.type === "Amount" && (
-                                                            <TableCell align="center">₱{incentive.amount}</TableCell>
+                                                            <TableCell align="center">
+                                                                ₱ {new Intl.NumberFormat('en-US', 
+                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(incentive.amount)}
+                                                            </TableCell>
                                                         )}
 
                                                         {incentive.type === "Percentage" && (
@@ -87,6 +106,9 @@ const IncentivesTypes = () => {
 
                 {openAddIncentiveseModal &&
                     <IncentivesAdd open={openAddIncentiveseModal} close={handleCloseAddIncentiveseModal}/>
+                }
+                {openEditIncentivesModal &&
+                    <IncentivesEdit open={openEditIncentivesModal} close={handleCloseEditIncentivesModal} incentive={selectedIncentive}/>
                 }
 
             </Box>

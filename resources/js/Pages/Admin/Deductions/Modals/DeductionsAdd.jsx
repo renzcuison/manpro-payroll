@@ -8,10 +8,12 @@ import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 
 import 'react-quill/dist/quill.snow.css';
+import { useDeductions } from '../../../../hooks/useDeductions';
 
 const DeductionsAdd = ({ open, close }) => {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
+    const {saveDeductions} = useDeductions();
 
     const [deductionsNameError, setDeductionsNameError] = useState(false);
     const [deductionsAmountError, setDeductionsAmountError] = useState(false);
@@ -60,7 +62,7 @@ const DeductionsAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Incentives Type?",
+                text: "You want to save this Deductions Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -94,7 +96,7 @@ const DeductionsAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Incentives Type?",
+                text: "You want to save this Deductions Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -121,26 +123,7 @@ const DeductionsAdd = ({ open, close }) => {
             amount: amount,
             percentage: percentage,
         };
-
-        axiosInstance.post('/compensation/saveDeductions', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Deduction saved successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        close();
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        saveDeductions.mutate({data: data, onSuccessCallback: () => close(true)});
     };
 
     const formatCurrency = (value) => {
@@ -182,13 +165,8 @@ const DeductionsAdd = ({ open, close }) => {
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{ marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            <FormControl sx={{ marginBottom: 3, width: '69%' }}>
                                 <TextField
                                     required
                                     id="deductionsName"
@@ -200,9 +178,7 @@ const DeductionsAdd = ({ open, close }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
+                            <FormControl sx={{ marginBottom: 3, width: '29%'}}>
                                 <TextField
                                     required
                                     select
@@ -219,14 +195,9 @@ const DeductionsAdd = ({ open, close }) => {
 
                         {deductionsType === "Amount" && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
                                     <FormControl sx={{
-                                        marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
+                                        marginBottom: 3, width: '100%'}}>
                                         <InputLabel>Amount</InputLabel>
                                         <OutlinedInput
                                             required
@@ -244,14 +215,9 @@ const DeductionsAdd = ({ open, close }) => {
 
                         {deductionsType === "Percentage" && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
                                     <FormControl sx={{
-                                        marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
+                                        marginBottom: 3, width: '100%'}}>
                                         <InputLabel>Percentage</InputLabel>
                                         <OutlinedInput
                                             required

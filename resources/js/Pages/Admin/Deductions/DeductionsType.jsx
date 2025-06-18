@@ -3,13 +3,16 @@ import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, 
 import Layout from '../../../components/Layout/Layout';
 import { Link } from 'react-router-dom';
 import DeductionsAdd from './Modals/DeductionsAdd';
+import DeductionsEdit from './Modals/DeductionsEdit';
 import { useDeductions } from '../../../hooks/useDeductions';
 
 const DeductionsType = () => {
-    const {deductions} = useDeductions({loadDeductions: true});
+    const {deductions: deductionQuery} = useDeductions({loadDeductions: true});
+    const deductions = deductionQuery.data?.deductions || [];
 
-    const deductionsData = deductions.data?.deductions || [];
     const [openAddDeductionsModal, setOpenAddDeductonsModal] = useState(false);
+    const [openEditDeductionsModal, setOpenEditDeductionsModal] = useState(false);
+    const [selectedDeduction, setSelectedDeduction] = useState(null);
 
     const handleOpenAddDeductionsModal = () => {
         setOpenAddDeductonsModal(true);
@@ -17,7 +20,19 @@ const DeductionsType = () => {
 
     const handleCloseAddDeductionsModal = () => {
         setOpenAddDeductonsModal(false);
-        deductions.refetch();
+        deductionQuery.refetch();
+    }
+
+    const handleOpenEditAllowanceModal = (deduction) => {
+        setOpenEditDeductionsModal(true);
+        setSelectedDeduction(deduction);
+    }
+    const handleCloseEditDeductionsModal = (reload) => {
+        setOpenEditDeductionsModal(false);
+        setSelectedDeduction(null);
+        if(reload){
+            deductionQuery.refetch();
+        }
     }
 
     return (
@@ -54,15 +69,18 @@ const DeductionsType = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {deductionsData.length > 0 ? (
-                                                deductionsData.map((deduction) => (
-                                                    <TableRow key={deduction.id}>
+                                            {deductions.length > 0 ? (
+                                                deductions.map((deduction, index) => (
+                                                    <TableRow key={deduction.id} onClick={() => handleOpenEditAllowanceModal(deduction)}
+                                                    sx={{ backgroundColor: index % 2 === 0 ? '#f8f8f8' : '#ffffff',
+                                                     '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{deduction.name}</TableCell>
                                                         <TableCell align="center">{deduction.type}</TableCell>
                                                         {deduction.type === 'Amount' && 
-                                                        <>
-                                                            <TableCell align="center">₱{deduction.amount}</TableCell>
-                                                        </>
+                                                        <TableCell align="center">
+                                                            ₱ {new Intl.NumberFormat('en-US', 
+                                                            { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(deduction.amount)}
+                                                         </TableCell>
                                                         }
                                                         {deduction.type === 'Percentage' && 
                                                         <>
@@ -87,7 +105,9 @@ const DeductionsType = () => {
                 {openAddDeductionsModal &&
                     <DeductionsAdd open={openAddDeductionsModal} close={handleCloseAddDeductionsModal}/>
                 }
-
+                {openEditDeductionsModal &&
+                    <DeductionsEdit open={openEditDeductionsModal} close={handleCloseEditDeductionsModal} deduction={selectedDeduction}/>
+                }
             </Box>
         </Layout>
     );

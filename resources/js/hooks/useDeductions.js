@@ -1,8 +1,8 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
-
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
+import Swal from "sweetalert2";
 
 export function useDeductions({userName = null, loadDeductions = false, loadEmployeesDeductions = false, filters = {}, pagination = {}} = {}){
     
@@ -40,6 +40,74 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
         enabled: !!userName,
     });
 
+    const saveDeductions = useMutation(
+        async ({ data }) => {
+            return await axiosInstance.post('/compensation/saveDeductions', data, { headers });
+        },
+        {
+            onSuccess: (response, variables) => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Deduction Saved successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        if (variables?.onSuccessCallback) {
+                            variables.onSuccessCallback();
+                        }
+                    });
+                }
+            },
+            onError: (error) => {
+                console.error("Error:", error);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Error saving deduction!",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+            }
+        }
+    );
+
+    const updateDeductions = useMutation(
+        async ({ data }) => {
+            return await axiosInstance.post('/compensation/updateDeductions', data, { headers });
+        },
+        {
+            onSuccess: (response, variables) => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Deduction updated successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        if (variables?.onSuccessCallback) {
+                            variables.onSuccessCallback();
+                        }
+                    });
+                }
+            },
+            onError: (error) => {
+                console.error("Error:", error);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Error saving deduction!",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+            }
+        }
+    );
+
     const saveEmployeeDeductions = useMutation(async (data) => {
         const response = await axiosInstance.post('/compensation/saveEmployeeDeductions', data, { headers });
         return response.data;
@@ -54,6 +122,8 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
         employeesDeductions,
         deductions,
         employeeDeductions,
+        saveDeductions,
+        updateDeductions,
         saveEmployeeDeductions,
         updateEmployeeDeduction,
     }

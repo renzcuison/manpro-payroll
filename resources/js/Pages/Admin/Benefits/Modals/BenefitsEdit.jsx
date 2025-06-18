@@ -1,27 +1,30 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
+
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import React, { useState, useEffect } from 'react';
+import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
+
 import Swal from 'sweetalert2';
+
 import 'react-quill/dist/quill.snow.css';
 import { useBenefits } from '../../../../hooks/useBenefits';
 
-const BenefitsAdd = ({ open, close }) => {
-    const {saveBenefits} = useBenefits();
-
+const BenefitsEdit = ({ benefit, open, close }) => {
+    const {updateBenefits} = useBenefits();
     const [benefitNameError, setBenefitNameError] = useState(false);
     const [employeeAmountShareError, setEmployeeAmountShareError] = useState(false);
     const [employerAmountShareError, setEmployerAmountShareError] = useState(false);
     const [employeePercentageShareError, setEmployeePercentageShareError] = useState(false);
     const [employerPercentageShareError, setEmployerPercentageShareError] = useState(false);
 
-    const [benefitName, setBenefitName] = useState('');
-    const [benefitType, setBenefitType] = useState('');
-    const [employeeAmountShare, setEmployeeAmountShare] = useState('');
-    const [employerAmountShare, setEmployerAmountShare] = useState('');
-    const [employeePercentageShare, setEmployeePercentageShare] = useState('');
-    const [employerPercentageShare, setEmployerPercentageShare] = useState('');
+    const [benefitName, setBenefitName] = useState(benefit?.name);
+    const [benefitType, setBenefitType] = useState(benefit?.type);
+    const [employeeAmountShare, setEmployeeAmountShare] = useState(benefit?.employee_amount);
+    const [employerAmountShare, setEmployerAmountShare] = useState(benefit?.employer_amount);
+    const [employeePercentageShare, setEmployeePercentageShare] = useState(benefit?.employee_percentage);
+    const [employerPercentageShare, setEmployerPercentageShare] = useState(benefit?.employer_percentage);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -67,7 +70,7 @@ const BenefitsAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to add this benefit?",
+                text: "You want to save this Benefits Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -114,7 +117,7 @@ const BenefitsAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to add this benefit?",
+                text: "You want to save this Benefits Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -138,6 +141,7 @@ const BenefitsAdd = ({ open, close }) => {
         const employerPercentage = parseFloat(employerPercentageShare.replace(/,/g, "")) || 0;
 
         const data = {
+            benefit_id: benefit.id,
             benefitName: benefitName,
             benefitType: benefitType,
             employeeAmount: employeeAmount,
@@ -145,8 +149,7 @@ const BenefitsAdd = ({ open, close }) => {
             employeePercentage: employeePercentage,
             employerPercentage: employerPercentage,
         };
-
-        saveBenefits.mutate({data: data, onSuccesCallback: () => close(true)})
+        updateBenefits.mutate({data: data, onSuccessCallback: () => close(true)})
     };
 
     const formatCurrency = (value) => {
@@ -222,9 +225,7 @@ const BenefitsAdd = ({ open, close }) => {
                         {benefitType === "Amount" && (
                             <>
                                 <FormGroup row={true} className="d-flex justify-content-between">
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%',
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '49%' }}>
                                         <InputLabel htmlFor="employeeAmountShare">Employee Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -237,9 +238,7 @@ const BenefitsAdd = ({ open, close }) => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%',
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '49%'}}>
                                         <InputLabel htmlFor="employerAmountShare">Employer Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -257,10 +256,8 @@ const BenefitsAdd = ({ open, close }) => {
 
                         {benefitType === "Percentage" && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between">
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%',
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between" >
+                                    <FormControl sx={{ marginBottom: 3, width: '49%' }}>
                                         <InputLabel htmlFor="employeePercentageShare">Employee Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -273,9 +270,7 @@ const BenefitsAdd = ({ open, close }) => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%',
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '49%' }}>
                                         <InputLabel htmlFor="employerPercentageShare">Employer Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -308,4 +303,4 @@ const BenefitsAdd = ({ open, close }) => {
     )
 }
 
-export default BenefitsAdd;
+export default BenefitsEdit;

@@ -1,52 +1,52 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
+import FilledInput from '@mui/material/FilledInput';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-
 import 'react-quill/dist/quill.snow.css';
-import { useAllowances } from '../../../../hooks/useAllowances';
+import { useDeductions } from '../../../../hooks/useDeductions';
 
-const AllowanceAdd = ({ open, close }) => {
-    const {saveAllowance} = useAllowances();
+const DeductionsEdit = ({ deduction, open, close }) => {
+    const {updateDeductions} = useDeductions();
 
-    const [allowanceNameError, setAllowanceNameError] = useState(false);
-    const [allowanceAmountError, setAllowanceAmountError] = useState(false);
-    const [allowancePercentageError, setAllowancePercentageError] = useState(false);
+    const [deductionsNameError, setDeductionsNameError] = useState(false);
+    const [deductionsAmountError, setDeductionsAmountError] = useState(false);
+    const [deductionsPercentageError, setDeductionsPercentageError] = useState(false);
 
-    const [allowanceName, setAllowanceName] = useState('');
-    const [allowanceType, setAllowanceType] = useState('');
-    const [allowanceAmount, setAllowanceAmount] = useState('');
-    const [allowancePercentage, setAllowancePercentage] = useState('');
+    const [deductionsName, setDeductionsName] = useState(deduction?.name);
+    const [deductionsType, setDeductionsType] = useState(deduction?.type);
+    const [deductionsAmount, setDeductionsAmount] = useState(deduction?.amount);
+    const [deductionsPercentage, setDeductionsPercentage] = useState(deduction?.percentage);
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!allowanceName) {
-            setAllowanceNameError(true);
+        if (!deductionsName) {
+            setDeductionsNameError(true);
         } else {
-            setAllowanceNameError(false);
+            setDeductionsNameError(false);
         }
 
-        if ( allowanceType == "Amount" ) {
+        if ( deductionsType == "Amount" ) {
             checkInputAmount(event);
         }
 
-        if ( allowanceType == "Percentage" ) {
+        if ( deductionsType == "Percentage" ) {
             checkInputPercentage(event);
         }
     };
 
     const checkInputAmount = () => {
 
-        if (!allowanceAmount) {
-            setAllowanceAmountError(true);
+        if (!deductionsAmount) {
+            setDeductionsAmountError(true);
         } else {
-            setAllowanceAmountError(false);
+            setDeductionsAmountError(false);
         }
 
-        if ( allowanceNameError == true || allowanceAmountError == true ) {
+        if ( deductionsNameError == true || deductionsAmountError == true ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -58,7 +58,7 @@ const AllowanceAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Allowance Type?",
+                text: "You want to save this Deduction Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -74,13 +74,13 @@ const AllowanceAdd = ({ open, close }) => {
     }
 
     const checkInputPercentage = () => {
-        if (!allowancePercentage) {
-            setAllowancePercentageError(true);
+        if (!deductionsPercentage) {
+            setDeductionsPercentageError(true);
         } else {
-            setAllowancePercentageError(false);
+            setDeductionsPercentageError(false);
         }
 
-        if ( allowanceNameError == true || allowancePercentageError == true ) {
+        if ( deductionsNameError == true || deductionsPercentageError == true ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -92,7 +92,7 @@ const AllowanceAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Allowance Type?",
+                text: "You want to save this Deduction Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -109,17 +109,17 @@ const AllowanceAdd = ({ open, close }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
-        const amount = parseFloat(allowanceAmount.replace(/,/g, "")) || 0;
-        const percentage = parseFloat(allowancePercentage.replace(/,/g, "")) || 0;
+        const amount = parseFloat(deductionsAmount.replace(/,/g, "")) || 0;
+        const percentage = parseFloat(deductionsPercentage.replace(/,/g, "")) || 0;
 
         const data = {
-            name: allowanceName,
-            type: allowanceType,
+            deduction_id: deduction?.id,
+            name: deductionsName,
+            type: deductionsType,
             amount: amount,
             percentage: percentage,
         };
-        saveAllowance.mutate({data: data, onSuccessCallback: () => close(true)});
+        updateDeductions.mutate({data: data, onSuccessCallback: () => close(true)});
     };
 
     const formatCurrency = (value) => {
@@ -153,7 +153,7 @@ const AllowanceAdd = ({ open, close }) => {
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Allowance </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Incentives </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -165,74 +165,75 @@ const AllowanceAdd = ({ open, close }) => {
                             <FormControl sx={{ marginBottom: 3, width: '69%'}}>
                                 <TextField
                                     required
-                                    id="allowanceName"
-                                    label="Allowance Name"
+                                    id="deductionsName"
+                                    label="Deductions Name"
                                     variant="outlined"
-                                    value={allowanceName}
-                                    error={allowanceNameError}
-                                    onChange={(e) => setAllowanceName(e.target.value)}
+                                    value={deductionsName}
+                                    error={deductionsNameError}
+                                    onChange={(e) => setDeductionsName(e.target.value)}
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%' }}>
+                            <FormControl sx={{ marginBottom: 3, width: '29%'}}>
                                 <TextField
                                     required
                                     select
-                                    id="allowanceType"
+                                    id="deductionsType"
                                     label="Type"
-                                    value={allowanceType}
-                                    onChange={(event) => setAllowanceType(event.target.value)}
+                                    value={deductionsType}
+                                    onChange={(event) => setDeductionsType(event.target.value)}
                                 >
                                     <MenuItem key="Amount" value="Amount"> Amount </MenuItem>
                                     <MenuItem key="Percentage" value="Percentage"> Percentage </MenuItem>
-                                    {/* <MenuItem key="Bracket" value="Bracket"> Bracket </MenuItem> */}
                                 </TextField>
                             </FormControl>
                         </FormGroup>
 
-                        {allowanceType === "Amount" && (
+                        {deductionsType === "Amount" && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between" >
-                                    <FormControl sx={{ marginBottom: 3, width: '100%' }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{
+                                        marginBottom: 3, width: '100%'}}>
                                         <InputLabel>Amount</InputLabel>
                                         <OutlinedInput
                                             required
-                                            id="allowanceAmount"
+                                            id="deductionsAmount"
                                             label="Amount"
-                                            value={allowanceAmount}
-                                            error={allowanceAmountError}
+                                            value={deductionsAmount}
+                                            error={deductionsAmountError}
                                             startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                            onChange={(e) => handleInputChange(e, setAllowanceAmount)}
+                                            onChange={(e) => handleInputChange(e, setDeductionsAmount)}
                                         />
                                     </FormControl>
                                 </FormGroup>
                             </>
                         )}
 
-                        {allowanceType === "Percentage" && (
+                        {deductionsType === "Percentage" && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between" >
-                                    <FormControl sx={{ marginBottom: 3, width: '100%' }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{
+                                        marginBottom: 3, width: '100%'}}>
                                         <InputLabel>Percentage</InputLabel>
                                         <OutlinedInput
                                             required
-                                            id="allowancePercentage"
+                                            id="deductionsPercentage"
                                             label="Percentage"
-                                            value={allowancePercentage}
-                                            error={allowancePercentageError}
+                                            value={deductionsPercentage}
+                                            error={deductionsPercentageError}
                                             startAdornment={<InputAdornment position="start">%</InputAdornment>}
-                                            onChange={(e) => handleInputChange(e, setAllowancePercentage)}
+                                            onChange={(e) => handleInputChange(e, setDeductionsPercentage)}
                                         />
                                     </FormControl>
                                 </FormGroup>
                             </>
                         )}
 
-                        {allowanceType && (
+                        {deductionsType && (
                             <>
                                 <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                                     <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Allowance </p>
+                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Deduction </p>
                                     </Button>
                                 </Box>
                             </>
@@ -245,4 +246,4 @@ const AllowanceAdd = ({ open, close }) => {
     )
 }
 
-export default AllowanceAdd;
+export default DeductionsEdit;

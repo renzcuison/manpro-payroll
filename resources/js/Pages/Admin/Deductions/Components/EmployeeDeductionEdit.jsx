@@ -31,7 +31,7 @@ const EmployeeDeductionEdit = ({deductions, onClose}) => {
 
     const saveDeduction = (event) => {
         event.preventDefault();
-        const data = {emp_deduction_id: deductions.id, number: number}
+        const data = {emp_deduction_id: deductions.id, number: number, status: selectedStatus}
         updateEmployeeDeduction.mutate(data,
         {
             onSuccess: () => {
