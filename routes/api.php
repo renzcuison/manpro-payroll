@@ -397,12 +397,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             'saveAllowance',
         ]);
 
-<<<<<<< HEAD
-        Route::get('/getEmployeeAllowance', [CompensationManagementController::class, 'getEmployeeAllowance']);
-        Route::get('/getEmployeesAllowance', [CompensationManagementController::class, 'getEmployeesAllowance']);
-        Route::post('/saveEmployeeAllowance', [CompensationManagementController::class, 'saveEmployeeAllowance']);
-        Route::post('/updateEmployeeAllowance', [CompensationManagementController::class, 'updateEmployeeAllowance']);
-=======
         Route::get('/getEmployeeAllowance', [
             CompensationManagementController::class,
             'getEmployeeAllowance',
@@ -419,7 +413,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             CompensationManagementController::class,
             'updateEmployeeAllowance',
         ]);
->>>>>>> origin/main
 
         //incentives
         Route::get('/getIncentives', [
@@ -431,12 +424,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             'saveIncentives',
         ]);
 
-<<<<<<< HEAD
-        Route::get('/getEmployeesIncentives', [CompensationManagementController::class, 'getEmployeesIncentives']);
-        Route::get('/getEmployeeIncentives', [CompensationManagementController::class, 'getEmployeeIncentives']);
-        Route::post('/saveEmployeeIncentives', [CompensationManagementController::class, 'saveEmployeeIncentives']);
-        Route::post('/updateEmployeeIncentive', [CompensationManagementController::class, 'updateEmployeeIncentive']);
-=======
         Route::get('/getEmployeesIncentives', [
             CompensationManagementController::class,
             'getEmployeesIncentives',
@@ -453,7 +440,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             CompensationManagementController::class,
             'updateEmployeeIncentive',
         ]);
->>>>>>> origin/main
 
         //benefits
         Route::get('/getBenefits', [
@@ -1007,11 +993,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/milestones', [MilestoneController::class, 'index']);
         Route::post('/milestones', [MilestoneController::class, 'store']);
         Route::get('/milestones/{id}', [MilestoneController::class, 'show']);
-<<<<<<< HEAD
-        Route::post('/milestones/{id}', [MilestoneController::class, 'SendGreetings']);
-        Route::delete('/milestones/{id}', [MilestoneController::class, 'destroy']);
-        Route::delete('/milestones/{id}/comments/{comment_id}', [MilestoneController::class, 'deleteComment']);
-=======
         Route::post('/milestones/{id}', [
             MilestoneController::class,
             'SendGreetings',
@@ -1024,7 +1005,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             MilestoneController::class,
             'deleteComment',
         ]);
->>>>>>> origin/main
     });
 
     Route::prefix('trainings')->group(function () {
