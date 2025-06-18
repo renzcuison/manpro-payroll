@@ -108,14 +108,68 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
         }
     );
 
-    const saveEmployeeDeductions = useMutation(async (data) => {
-        const response = await axiosInstance.post('/compensation/saveEmployeeDeductions', data, { headers });
-        return response.data;
+    const saveEmployeeDeductions = useMutation(async ({data}) => {
+        return await axiosInstance.post('/compensation/saveEmployeeDeductions', data, { headers });
+    },
+    {
+        onSuccess: (response, variables) => {
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Deduction Saved successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    if (variables?.onSuccessCallback) {
+                        variables.onSuccessCallback();
+                    }
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Error:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error saving deduction!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
     });
 
-    const updateEmployeeDeduction = useMutation(async (data) => {
-        const response = await axiosInstance.post('/compensation/updateEmployeeDeduction', data, { headers });
-        return response.data;
+    const updateEmployeeDeduction = useMutation(async ({data}) => {
+        return await axiosInstance.post('/compensation/updateEmployeeDeduction', data, { headers });
+    },
+    {
+        onSuccess: (response, variables) => {
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Deduction updated successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    if (variables?.onSuccessCallback) {
+                        variables.onSuccessCallback();
+                    }
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Error:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error saving deduction!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
     });
 
     return{

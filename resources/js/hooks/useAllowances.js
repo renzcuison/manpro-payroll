@@ -108,14 +108,68 @@ export function useAllowances({userName = null, loadAllowances = false, loadEmpl
         }
     );
 
-    const saveEmployeeAllowances = useMutation(async (data) => {
-        const response = await axiosInstance.post('/compensation/saveEmployeeAllowance', data, { headers });
-        return response.data;
-    });
+    const saveEmployeeAllowances = useMutation(async ({data}) => {
+        return await axiosInstance.post('/compensation/saveEmployeeAllowance', data, { headers });
+    },
+    {
+        onSuccess: (response, variables) => {
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Allowance Saved successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    if (variables?.onSuccessCallback) {
+                        variables.onSuccessCallback();
+                    }
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Error:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error saving allowance!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
+    }); 
 
-    const updateEmployeeAllowance = useMutation(async (data) => {
-        const response = await axiosInstance.post('/compensation/updateEmployeeAllowance', data, { headers });
-        return response.data;
+    const updateEmployeeAllowance = useMutation(async ({data}) => {
+        return await axiosInstance.post('/compensation/updateEmployeeAllowance', data, { headers });
+    },
+    {
+        onSuccess: (response, variables) => {
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Allowance updated successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    if (variables?.onSuccessCallback) {
+                        variables.onSuccessCallback();
+                    }
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Error:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error saving allowance!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
     });
 
     return{

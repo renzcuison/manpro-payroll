@@ -100,7 +100,7 @@ export function useBenefits({userName = null, loadEmployeesBenefits = false, loa
                 console.error("Error:", error);
                 Swal.fire({
                     customClass: { container: 'my-swal' },
-                    text: "Error saving allowance!",
+                    text: "Error saving benefit!",
                     icon: "error",
                     showConfirmButton: true,
                     confirmButtonColor: '#177604',
@@ -109,15 +109,68 @@ export function useBenefits({userName = null, loadEmployeesBenefits = false, loa
         }
     );
 
-
-    const saveEmployeeBenefits = useMutation(async (data) => {
-        const response = await axiosInstance.post('/compensation/saveEmployeeBenefits', data, { headers });
-        return response.data;
+    const saveEmployeeBenefits = useMutation(async ({data}) => {
+        return await axiosInstance.post('/compensation/saveEmployeeBenefits', data, { headers });
+    },
+    {
+        onSuccess: (response, variables) => {
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Benefits Saved successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    if (variables?.onSuccessCallback) {
+                        variables.onSuccessCallback();
+                    }
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Error:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error saving benefit!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
     });
 
-    const updateEmployeeBenefit = useMutation(async (data) => {
-        const response = await axiosInstance.post('/compensation/updateEmployeeBenefit', data, { headers });
-        return response.data;
+    const updateEmployeeBenefit = useMutation(async ({data}) => {
+        return await axiosInstance.post('/compensation/updateEmployeeBenefit', data, { headers });
+    }, 
+    {
+        onSuccess: (response, variables) => {
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Benefit Updated successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    if (variables?.onSuccessCallback) {
+                        variables.onSuccessCallback();
+                    }
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Error:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error updating benefit!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
     });
 
     return{

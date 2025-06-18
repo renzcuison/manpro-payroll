@@ -29,24 +29,7 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
     const saveAllowance = (event) => {
         event.preventDefault();
         const data = {emp_allowance_id: allowances.id, status: selectedStatus}
-        updateEmployeeAllowance.mutate(data,
-        {
-            onSuccess: () => {
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Update Successful",
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                }).then(() =>{
-                    onClose(true);
-                })
-            }
-        },{
-            onError: (error) => {
-                console.log(error);
-            }
-        })
+        updateEmployeeAllowance.mutate({data: data, onSuccessCallback: () => onClose(true)})
     }
 
     return (

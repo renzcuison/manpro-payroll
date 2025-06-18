@@ -40,24 +40,7 @@ const EmployeeIncentiveEdit = ({incentives, onClose}) => {
     const saveBenefit = (event) => {
         event.preventDefault();
         const data = {emp_incentive_id: incentives.id, number: number, status: selectedStatus}
-        updateEmployeeIncentive.mutate(data,
-        {
-            onSuccess: () => {
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Update Successful",
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                }).then(() =>{
-                    onClose(true);
-                })
-            }
-        },{
-            onError: (error) => {
-                console.log(error);
-            }
-        })
+        updateEmployeeIncentive.mutate({data: data, onSuccessCallback: () => onClose(true)});
     }
 
     return (

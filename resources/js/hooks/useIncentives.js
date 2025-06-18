@@ -62,7 +62,7 @@ export function useIncentives({userName = null, loadIncentives = false, loadEmpl
                 console.error("Error:", error);
                 Swal.fire({
                     customClass: { container: 'my-swal' },
-                    text: "Error saving allowance!",
+                    text: "Error saving incentive!",
                     icon: "error",
                     showConfirmButton: true,
                     confirmButtonColor: '#177604',
@@ -96,7 +96,7 @@ export function useIncentives({userName = null, loadIncentives = false, loadEmpl
                 console.error("Error:", error);
                 Swal.fire({
                     customClass: { container: 'my-swal' },
-                    text: "Error saving allowance!",
+                    text: "Error updating incentive!",
                     icon: "error",
                     showConfirmButton: true,
                     confirmButtonColor: '#177604',
@@ -105,14 +105,68 @@ export function useIncentives({userName = null, loadIncentives = false, loadEmpl
         }
     );
 
-    const saveEmployeeIncentives = useMutation(async (data) => {
-        const response = await axiosInstance.post('/compensation/saveEmployeeIncentives', data, { headers });
-        return response.data;
+    const saveEmployeeIncentives = useMutation(async ({data}) => {
+        return await axiosInstance.post('/compensation/saveEmployeeIncentives', data, { headers });
+    },
+    {
+        onSuccess: (response, variables) => {
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Incentive Saved successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    if (variables?.onSuccessCallback) {
+                        variables.onSuccessCallback();
+                    }
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Error:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error saving incentive!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
     });
 
-    const updateEmployeeIncentive = useMutation(async (data) => {
-        const response = await axiosInstance.post('/compensation/updateEmployeeIncentive', data, { headers });
-        return response.data;
+    const updateEmployeeIncentive = useMutation(async ({data}) => {
+        return await axiosInstance.post('/compensation/updateEmployeeIncentive', data, { headers });  
+    },
+    {
+        onSuccess: (response, variables) => {
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Incentive Updated successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    if (variables?.onSuccessCallback) {
+                        variables.onSuccessCallback();
+                    }
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Error:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error updating incentives!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
     });
 
     return{

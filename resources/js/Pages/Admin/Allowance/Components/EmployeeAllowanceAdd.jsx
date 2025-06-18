@@ -58,23 +58,7 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
     const saveInput = (event) => {
         event.preventDefault();
         const data = { userName: userName, allowance: allowance};
-        saveEmployeeAllowances.mutate(data, {
-            onSuccess: () => {
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Allowance added successfully!",
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonText: 'Proceed',
-                    confirmButtonColor: '#177604',
-                }).then(() => {
-                    onClose(true);
-                });
-            },
-            onError: (error) =>{
-                console.error('Error:', error);
-            }
-        });
+        saveEmployeeAllowances.mutate({data: data, onSuccessCallback: () => onClose(true)});
     };
 
     return (

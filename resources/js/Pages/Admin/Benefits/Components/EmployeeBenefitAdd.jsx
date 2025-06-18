@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import axiosInstance from "../../../../utils/axiosConfig";
 import { useBenefits } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
@@ -59,38 +58,13 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
     const saveInput = (event) => {
         event.preventDefault();
         const data = { userName: userName, benefit: benefit, number: number };
-        saveEmployeeBenefits.mutate(data, {
-            onSuccess: () => {
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Benifit added successfully!",
-                    icon: "success",
-                    timer: 1000,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Proceed',
-                    confirmButtonColor: '#177604',
-                }).then(() => {
-                    onClose(true);
-                });
-            }
-        },
-        {
-            onError: (error) => {
-                console.error('Error:', error);
-            }
-        })
+        saveEmployeeBenefits.mutate({data: data, onSuccessCallback: () => onClose(true)})
     };
 
     return (
         <Box component="form" sx={{ mt: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
-            <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                '& label.Mui-focused': { color: '#97a5ba' },
-                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-            }}>
-                <FormControl sx={{
-                    marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                }}>
+            <FormGroup row={true} className="d-flex justify-content-between">
+                <FormControl sx={{ marginBottom: 3, width: '29%', }}>
                     <TextField
                         required
                         select
@@ -107,9 +81,7 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
                 </FormControl>
 
                 <FormControl sx={{
-                    marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
-                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                }}>
+                    marginBottom: 3, width: '69%'}}>
                     <TextField
                         required
                         id="number"
@@ -127,7 +99,7 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
                     <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                 </Button>
                 <Button type="submit" variant="contained" sx={{ backgroundColor: '#636c74', color: 'white', mx: 1 }} onClick={() => onClose(false)}>
-                    <p className='m-0'><i class Name="fa fa-times" aria-hidden="true"></i> Cancel </p>
+                    <p className='m-0'><i className="fa fa-times" aria-hidden="true"></i> Cancel </p>
                 </Button>
             </Box>
         </Box>
