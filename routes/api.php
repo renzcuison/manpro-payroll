@@ -402,7 +402,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeesAllowance', [CompensationManagementController::class, 'getEmployeesAllowance']);
         Route::post('/saveEmployeeAllowance', [CompensationManagementController::class, 'saveEmployeeAllowance']);
         Route::post('/updateEmployeeAllowance', [CompensationManagementController::class, 'updateEmployeeAllowance']);
-        
+
         //incentives
         Route::get('/getIncentives', [
             CompensationManagementController::class,
@@ -417,7 +417,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeIncentives', [CompensationManagementController::class, 'getEmployeeIncentives']);
         Route::post('/saveEmployeeIncentives', [CompensationManagementController::class, 'saveEmployeeIncentives']);
         Route::post('/updateEmployeeIncentive', [CompensationManagementController::class, 'updateEmployeeIncentive']);
-        
+
         //benefits
         Route::get('/getBenefits', [
             CompensationManagementController::class,
@@ -941,8 +941,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/milestones', [MilestoneController::class, 'store']);
         Route::get('/milestones/{id}', [MilestoneController::class, 'show']);
         Route::post('/milestones/{id}', [MilestoneController::class, 'SendGreetings']);
-        Route::delete('/milestones/{id}', [MilestoneController::class, 'destroy']);            
-        Route::delete('/milestones/{id}/comments/{comment_id}', [MilestoneController::class, 'deleteComment']);            
+        Route::delete('/milestones/{id}', [MilestoneController::class, 'destroy']);
+        Route::delete('/milestones/{id}/comments/{comment_id}', [MilestoneController::class, 'deleteComment']);
     });
 
     Route::prefix('trainings')->group(function () {
@@ -1070,7 +1070,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         // Route::post('/group-life-companies', [GroupLifeCompanyController::class, 'store']);
 
         // Group Life Plan - Old
-        
+
         // Route::get('/group-life-plans', [GroupLifePlanController::class, 'index']);
         // Route::post('/group-life-plans', [GroupLifePlanController::class, 'store']);
         // Route::get('/group-life-plans/{id}', [GroupLifePlanController::class, 'show']);
@@ -1099,8 +1099,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveGroupLifePlans', [InsurancesController::class, 'saveGroupLifePlans']);
         Route::get('/getGroupLifePlans', [InsurancesController::class, 'getGroupLifePlans']);
         Route::get('/getGroupLifeEmployees', [InsurancesController::class, 'getGroupLifeEmployees']);
-        Route::get('/getGroupLifeEmployeesByPlanId/{id}', [InsurancesController::class, 'getGroupLifeEmployeesByPlanId']);
+        Route::get('/getGroupLifeEmployeePlanById/{id}', [InsurancesController::class, 'getGroupLifeEmployeePlanById']);
         Route::post('/saveGroupLifeEmployees', [InsurancesController::class, 'saveGroupLifeEmployees']);
+        Route::put('' . '/editGroupLifeEmployeePlan/{id}', [InsurancesController::class, 'editGroupLifeEmployeePlan']);
 
     });
 
@@ -1965,7 +1966,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         PemeResponseController::class,
         'storeAll',
     ]);
-    
+
     Route::get('/peme-responses/filter', [
         PemeResponseController::class,
         'filter',
