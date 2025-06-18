@@ -552,13 +552,15 @@ class EvaluationResponseController extends Controller
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
                                                             $optionAnswer
-                                                                ->select('response_id', 'option_id')
+                                                                ->select('id', 'response_id', 'option_id')
                                                                 ->whereNull('deleted_at')
+                                                                ->where('response_id', $request->id)
                                                     ])
                                                     ->withCount([
                                                         'optionAnswer' => fn ($optionAnswer) =>
                                                             $optionAnswer
                                                                 ->whereNull('deleted_at')
+                                                                ->where('response_id', $request->id)
                                                     ])
                                                     ->orderBy('order')
                                             ,
