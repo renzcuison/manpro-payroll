@@ -79,46 +79,6 @@ const SalaryPlans = () => {
         setPage(0);
     };
 
-    const handleDeleteSalaryGrade = (salaryGrade) => {
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: `Delete Salary Grade?`,
-                text: `Are you sure you want to delete this salary grade?\This action can't be undone!`,
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: "Delete",
-                confirmButtonColor: "#E9AE20",
-                showCancelButton: true,
-                cancelButtonText: "Cancel",
-            }).then((res) => {
-                if (res.isConfirmed) {
-    
-                    const data = {
-                        salary_grade: salaryGrade.id,
-                    };
-
-                    axiosInstance.post('/deleteSalaryGrade', data, { headers })
-                        .then(response => {
-                            Swal.fire({
-                                customClass: { container: 'my-swal' },
-                                text: "Salary grade deleted successfully!",
-                                icon: "success",
-                                timer: 1000,
-                                showConfirmButton: true,
-                                confirmButtonText: 'Proceed',
-                                confirmButtonColor: '#177604',
-                            }).then(() => {
-                                fetchSalaryPlans();
-                            });
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                        });
-    
-                }
-            });
-        };
-
     return (
         <Layout title={"Salary Plans"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -145,20 +105,20 @@ const SalaryPlans = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "20%" }} align="center"> Salary Grade </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "60%" }} align="left"> Amount </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "20%" }} align="center"> Actions </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "80%" }} align="center"> Amount </TableCell>
+                                                {/* <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "20%" }} align="center"> Actions </TableCell> */}
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {salaryPlans.length > 0 ? (
                                                 salaryPlans.map((salaryPlan) => (
                                                     // onClick={() => setOpenEditSalaryType(salaryPlan)}
-                                                    <TableRow key={salaryPlan.id}>
+                                                    <TableRow key={salaryPlan.id} sx={{ p: 1, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}} onClick={() => handleOpenEditSalaryGrade(salaryPlan)}>
                                                         <TableCell sx={{fontSize: 14}} align="center">Grade {salaryPlan.salary_grade}</TableCell>
-                                                        <TableCell sx={{ fontSize: 14 }} align="left">
+                                                        <TableCell sx={{ fontSize: 14 }} align="center">
                                                             ₱ {Number(salaryPlan.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </TableCell>
-                                                        <TableCell sx={{fontSize: 14}} align="center">
+                                                        {/* <TableCell sx={{fontSize: 14}} align="center">
                                                             <IconButton
                                                                 color="primary"
                                                                 onClick={() => handleOpenEditSalaryGrade(salaryPlan)}
@@ -178,7 +138,7 @@ const SalaryPlans = () => {
                                                             >
                                                                 <DeleteIcon />
                                                             </IconButton>
-                                                        </TableCell>
+                                                        </TableCell> */}
                                                     </TableRow>
                                                 ))
                                             ) : (
@@ -209,7 +169,7 @@ const SalaryPlans = () => {
                     <SalaryGradeAdd open={openAddSalaryGrade} close={handleCloseAddSalaryGrade} existingSalaryGrades={salaryPlans.map(plan => plan.salary_grade)} />
                 }
                 {openEditSalaryGrade &&
-                    <SalaryGradeEdit open={openEditSalaryGrade} close={handleCloseEditSalaryGrade} salaryGradeInfo={loadSalaryGrade} />
+                    <SalaryGradeEdit open={openEditSalaryGrade} close={handleCloseEditSalaryGrade} salaryGradeInfo={loadSalaryGrade} onDeleted={fetchSalaryPlans}/>
                 }
             </Box>
         </Layout>
