@@ -28,6 +28,7 @@ import Swal from "sweetalert2";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import moment from "moment";
+import { Link } from "react-router-dom";
 
 const iconMap = {
     birthday: <CakeIcon color="secondary" />,
@@ -71,6 +72,9 @@ function MilestoneItem({ milestone, refetch, handleDelete }) {
             }
         });
     };
+
+    console.log(milestone);
+
     return (
         <>
             <Accordion>
@@ -84,6 +88,8 @@ function MilestoneItem({ milestone, refetch, handleDelete }) {
                         <Avatar
                             src={milestone.user.media?.[0]?.original_url}
                             alt={milestone.user.first_name}
+                            component={Link}
+                            to={`/admin/employee/${milestone.user.user_name}`}
                         />
                         <Box>
                             <Typography variant="h6">

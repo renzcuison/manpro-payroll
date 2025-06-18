@@ -10,6 +10,9 @@ use App\Models\PemeResponse;
 use App\Models\Peme;
 use Illuminate\Support\Facades\DB;
 use App\Models\PemeResponseDetails;
+use App\Models\PemeQItem;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Illuminate\Support\Facades\Validator;
 
 class PemeResponseController extends Controller
 {
@@ -87,6 +90,7 @@ class PemeResponseController extends Controller
                 "expiry_date" => $expiryDate,
                 "next_schedule" => $nextSchedule,
                 "status" => ucfirst($response->status),
+                "isDraft" => $response->isDraft,
                 "progress" => [
                     "completed" => $answeredQuestions,
                     "total" => $totalQuestions,
@@ -173,32 +177,61 @@ class PemeResponseController extends Controller
 
     public function storeAll(Request $request)
     {
+
         $validated = $request->validate([
             'peme_response_id' => 'required|string',
             'responses' => 'required|array',
             'responses.*.peme_q_item_id' => 'required|string',
             'responses.*.peme_q_type_id' => 'required|string',
             'responses.*.value' => 'nullable|string|max:512',
+            'responses.*.files' => 'nullable|array',
+            'responses.*.files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png',
+            'isDraft' => 'required|boolean',
         ]);
 
-        $pemeResponseId = Crypt::decrypt($validated['peme_response_id']);
+        foreach ($request->input('responses', []) as $index => $response) {
+            $files = data_get($request->allFiles(), "responses.$index.files", []);
+            $files = is_array($files) ? $files : [$files];
+        }
 
-        // new code block
+        $pemeResponseId = Crypt::decrypt($validated['peme_response_id']);
         $pemeResponse = PemeResponse::where('id', $pemeResponseId)
             ->where('user_id', Auth::id())
-            ->first();
+            ->firstOrFail();
 
-        if (!$pemeResponse) {
+        // if (!$pemeResponse->isDraft && !empty($validated['responses'])) {
+        //     return response()->json([
+        //         'message' => 'Cannot modify a completed response.',
+        //     ], 403);
+        // }
+
+        $questionIdsInRequest = collect($validated['responses'])
+            ->pluck('peme_q_item_id')
+            ->map(fn($id) => Crypt::decrypt($id))
+            ->toArray();
+
+        $requiredQuestionIds = PemeQItem::where('peme_id', $pemeResponse->peme_id)
+            ->where('isRequired', true)
+            ->pluck('id')
+            ->toArray();
+
+        $missing = array_diff($requiredQuestionIds, $questionIdsInRequest);
+
+        if (!empty($missing) && !$validated['isDraft']) {
             return response()->json([
-                'message' => 'Unauthorized: You do not own this PEME response.',
-            ], 403);
+                'message' => 'Some questions are missing responses.',
+                'missing_question_ids' => array_map(fn($id) => Crypt::encrypt($id), $missing),
+            ], 422);
         }
 
         $results = [];
         DB::beginTransaction();
 
         try {
-            foreach ($validated['responses'] as $response) {
+            $pemeResponse->isDraft = $validated['isDraft'];
+            $pemeResponse->save();
+
+            foreach ($validated['responses'] as $index => $response) {
                 $questionId = Crypt::decrypt($response['peme_q_item_id']);
                 $typeId = Crypt::decrypt($response['peme_q_type_id']);
 
@@ -209,6 +242,7 @@ class PemeResponseController extends Controller
                 ])->first();
 
                 if ($existing) {
+                    $existing->update(['value' => $response['value'] ?? null]);
                     continue;
                 }
 
@@ -218,6 +252,37 @@ class PemeResponseController extends Controller
                     'peme_q_type_id' => $typeId,
                     'value' => $response['value'] ?? null,
                 ]);
+
+                $files = data_get($request->allFiles(), "responses.$index.files", []);
+
+                if (!is_array($files)) {
+                    $files = [$files];
+                }
+
+                if (count($files)) {
+                    $maxFiles = $detail->question->max_files ?? 1;
+                    $existingCount = $detail->getMedia('attachments')->count();
+                    $newFilesCount = count($files);
+
+                    if ($existingCount + $newFilesCount > $maxFiles) {
+                        return response()->json([
+                            'message' => "You can only upload up to {$maxFiles} file(s) for this question. You currently have {$existingCount} uploaded."
+                        ], 422);
+                    }
+
+                    $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
+                    $maxKilobytes = $fileSizeLimitMb ? intval($fileSizeLimitMb * 1024) : null;
+
+                    foreach ($files as $file) {
+                        $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
+                        if ($maxKilobytes) {
+                            $rules['file'] .= "|max:$maxKilobytes";
+                        }
+                        Validator::make(['file' => $file], $rules)->validate();
+
+                        $media = $detail->addMedia($file)->toMediaCollection('attachments');
+                    }
+                }
 
                 $detail->load(['question', 'inputType', 'response.user']);
 
@@ -248,15 +313,17 @@ class PemeResponseController extends Controller
             DB::commit();
 
             return response()->json([
-                "message" => "Responses saved successfully.",
+                "message" => $validated['isDraft']
+                    ? "Response saved as draft."
+                    : "Response successful.",
+                "isDraft" => $pemeResponse->isDraft,
                 "saved_count" => count($results),
                 "data" => $results,
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
-
             return response()->json([
-                "message" => "Something went wrong while saving responses.",
+                "message" => "Error saving responses: " . $e->getMessage(),
                 "error" => $e->getMessage(),
             ], 500);
         }
@@ -274,12 +341,16 @@ class PemeResponseController extends Controller
             'status' => 'required|in:pending,clear,rejected',
             'expiry_date' => 'nullable|date',
             'next_schedule' => 'nullable|date',
+            'isDraft' => 'nullable|boolean',
         ]);
 
         $response = PemeResponse::findOrFail($id);
 
         $response->status = $validated['status'];
 
+        if (array_key_exists('isDraft', $validated)) {
+            $response->isDraft = $validated['isDraft'];
+        }
         if (isset($validated['expiry_date'])) {
             $response->expiry_date = $validated['expiry_date'];
         }
@@ -294,6 +365,7 @@ class PemeResponseController extends Controller
             'data' => [
                 'id' => Crypt::encrypt($response->id),
                 'status' => $response->status,
+                'isDraft' => $response->isDraft,
                 'expiry_date' => $response->expiry_date,
                 'next_schedule' => $response->next_schedule,
             ],
@@ -374,6 +446,7 @@ class PemeResponseController extends Controller
                 'branch' => $response->peme->user->branch->name ?? 'null',
                 'department' => $response->peme->user->department->name ?? 'null',
                 'status' => ucfirst($response->status),
+                'isDraft' => $response->isDraft,
                 'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),
                 'next_schedule' => optional($response->next_schedule)->format('Y-m-d H:i:s'),
                 'response_details_id' => $response->details->pluck('id'),
@@ -531,6 +604,7 @@ class PemeResponseController extends Controller
 
     public function getResponse($responseId)
     {
+
         $responseId = Crypt::decrypt($responseId);
 
         $pemeResponse = PemeResponse::with([
@@ -541,16 +615,17 @@ class PemeResponseController extends Controller
             ->where('user_id', Auth::id())
             ->first();
 
-        if (!$pemeResponse) {
-            return response()->json([
-                'message' => 'Unauthorized access or response not found.',
-            ], 403);
-        }
+        // if (!$pemeResponse) {
+        //     return response()->json([
+        //         'message' => 'Unauthorized access or response not found.',
+        //     ], 403);
+        // }
 
         $pemeResponse = PemeResponse::with([
             'peme.questions.types',
             'user',
         ])->findOrFail($responseId);
+
 
         $allDetails = PemeResponseDetails::where('peme_response_id', $pemeResponse->id)
             ->with(['media', 'response'])
@@ -624,6 +699,7 @@ class PemeResponseController extends Controller
             'user_id' => Crypt::encrypt($pemeResponse->user_id),
             'respondent' => $fullName,
             'status' => $pemeResponse->status,
+            'isDraft' => $pemeResponse->isDraft,
             'expiry_date' => $pemeResponse->expiry_date,
             'next_schedule' => $pemeResponse->next_schedule,
             'details' => $questions,

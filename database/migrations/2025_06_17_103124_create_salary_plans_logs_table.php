@@ -19,8 +19,8 @@ return new class extends Migration
             $table->unsignedBigInteger('client_id'); // Client to which the salary plan belongs
             $table->unsignedBigInteger('admin_id'); // Admin who made the change
             $table->unsignedBigInteger('employee_id'); // Employee whose salary plan is being logged
-            $table->integer('old_salary_grade');
-            $table->decimal('old_amount', 10, 2);
+            $table->integer('old_salary_grade')->nullable();
+            $table->decimal('old_amount', 10, 2)->default(0.00);
             $table->integer('new_salary_grade');
             $table->decimal('new_amount', 10, 2);
 
