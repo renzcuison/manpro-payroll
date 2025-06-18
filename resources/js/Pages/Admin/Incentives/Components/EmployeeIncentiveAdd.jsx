@@ -135,7 +135,7 @@ const EmployeeIncentiveAdd = ({ userName, headers, onClose }) => {
                     <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
                 </Button>
                 <Button type="submit" variant="contained" sx={{ backgroundColor: '#636c74', color: 'white', mx: 1 }} onClick={() => onClose(false)}>
-                    <p className='m-0'><i class="fa fa-times" aria-hidden="true"></i> Cancel </p>
+                    <p className='m-0'><i className="fa fa-times" aria-hidden="true"></i> Cancel </p>
                 </Button>
             </Box>
         </Box>

@@ -682,11 +682,16 @@ class EmployeesController extends Controller
 
         $user = Auth::user();
         $employee = UsersModel::where('user_name', $request->userName)->first();
-
+        if (!$employee) {
+            return response()->json(['status' => 404, 'message' => 'Employee not found'], 404);
+        }
         if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
 
             try {
                 DB::beginTransaction();
+
+                $old_salary_grade = $employee->salary_grade;
+                $old_salary = $employee->salary;
 
                 $employee->first_name = $request->firstName;
                 $employee->middle_name = $request->middleName;
@@ -709,11 +714,27 @@ class EmployeesController extends Controller
                 $employee->job_title_id = $request->selectedJobTitle;
                 $employee->department_id = $request->selectedDepartment;
                 $employee->work_group_id = $request->selectedWorkGroup;
+                $employee->salary_grade = $request->selectedSalaryGrade;
 
                 $employee->employment_type = $request->selectedType;
                 $employee->employment_status = $request->selectedStatus;
                 $employee->date_start = $request->startDate;
                 $employee->date_end = $request->endDate;
+
+                if ($old_salary_grade != $request->selectedSalaryGrade || $old_salary != $request->salary) {
+                    DB::table('salary_plans_logs')->insert([
+                        'client_id' => $employee->client_id,
+                        'admin_id' => $user->id,
+                        'employee_id' => $employee->id,
+                        'old_salary_grade' => $old_salary_grade,
+                        'old_amount' => $old_salary,
+                        'new_salary_grade' => $request->selectedSalaryGrade,
+                        'new_amount' => $request->salary,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
                 $employee->save();
 
                 $existingLoanLimit = LoanLimitHistoryModel::where('employee_id', $employee->id)->latest('created_at')->first();

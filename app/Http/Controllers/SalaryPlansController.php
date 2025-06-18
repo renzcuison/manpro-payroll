@@ -37,7 +37,7 @@ class SalaryPlansController extends Controller {
             $totalCount = $query->count();
 
             $salaryPlans = $query
-                ->orderByRaw('CAST(salary_grade AS UNSIGNED) ASC')
+                ->orderBy('salary_grade', 'asc')
                 ->skip(($page - 1) * $limit)
                 ->take($limit)
                 ->get();

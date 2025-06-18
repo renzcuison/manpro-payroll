@@ -339,10 +339,9 @@ const PerformanceEvaluationCommentorPage = () => {
               position: 'absolute',
               top: 5,
               right: 10,
-              color: '#bdbdbd',
               borderRadius: '50%',
               padding: '5px',
-              color: '#BEBEBE',
+              color: '#BEBEBE', // removed duplicate color
             }}
             aria-controls={settingsOpen ? 'settings-menu' : undefined}
             aria-haspopup="true"
@@ -460,11 +459,13 @@ const PerformanceEvaluationCommentorPage = () => {
                   <Box
                     key={subCategory.id}
                     sx={{
-                      mb: 3, border: '1px solid #ddd', borderRadius: 2, px: 2,
+                      border: '1px solid #ddd',
+                      borderRadius: 2,
+                      px: 2,
                       pt: 2,
                       pb: 2,
                       mt: 2,
-                      mb: 2,
+                      mb: 2, // removed duplicate mb
                       mx: 2,
                       bgcolor: '#f3f3f3',
                       boxShadow: 2

@@ -426,7 +426,7 @@ class AdminDashboardController extends Controller
 
                     $firstAttendance = $firstTimeIn ?: $secondTimeIn;
 
-                    if ($firstAttendance->timestamp > Carbon::parse("$date {$workHours->first_time_in}")) {
+                    if ($firstAttendance->timestamp > Carbon::parse("$date {$workHours->first_time_in}")->addMinute()) {
                         $isLate = true;
                     }
 

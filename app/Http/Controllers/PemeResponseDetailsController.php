@@ -268,6 +268,7 @@ class PemeResponseDetailsController extends Controller
         $detail->restore();
 
         return response()->json(["message" => "Response restored"]);
+        
     }
 
     public function update(Request $request, $id)

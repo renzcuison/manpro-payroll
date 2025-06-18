@@ -27,10 +27,10 @@ import EmploymentDetails from './Components/EmploymentDetails';
 
 const EmployeeView = () => {
     const { user } = useParams();
-    const {employeeBenefits} = useBenefits(user);
-    const {employeeDeductions} = useDeductions(user);
-    const {employeeIncentives} = useIncentives(user);
-    const {employeeAllowances} = useAllowances(user);
+    const {employeeBenefits} = useBenefits({userName: user});
+    const {employeeDeductions} = useDeductions({userName: user});
+    const {employeeIncentives} = useIncentives({userName: user});
+    const {employeeAllowances} = useAllowances({userName: user});
 
     const benefits = employeeBenefits.data?.benefits || [];
     const deductions = employeeDeductions.data?.deductions || [];
