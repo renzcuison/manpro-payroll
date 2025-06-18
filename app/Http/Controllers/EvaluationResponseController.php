@@ -861,6 +861,7 @@ class EvaluationResponseController extends Controller
                 ->having('evaluators_unsigned_count', 0)
                 ->having('commentor_order', '<=', DB::raw('commentors_signed_count + 1'))
             ;
+            
             $evaluationResponses = $evaluateeResponses
                 ->union($createdResponses)
                 ->union($evaluatorResponses)

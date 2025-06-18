@@ -120,10 +120,8 @@ const AdminRoutes = ({ user }) => {
     return (
         <Routes>
             <Route
-                path="performance-evaluation/result/:id"
-                element={
-                    <ProtectedRoute element={<PerformanceEvaluationResultPage />} user={user} />
-                }
+            path="performance-evaluation/results"
+            element={<ProtectedRoute element={<PerformanceEvaluationResultPage />} user={user} />}
             />
             <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview/>} user={user} />} />
             {/* <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} /> */}
