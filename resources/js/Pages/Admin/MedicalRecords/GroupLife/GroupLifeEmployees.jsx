@@ -9,7 +9,9 @@ import {
     FormControl,
     OutlinedInput,
     InputAdornment,
-    TablePagination
+    TablePagination,
+    TextField,
+    MenuItem
 } from "@mui/material";
 import Layout from "../../../../components/Layout/Layout";
 import GroupLifeEmployeeTable from "./GroupLifeEmployeeTable";
@@ -68,6 +70,9 @@ const GroupLifeEmployees = () => {
         employees.employee_name,
         employees.dependents_count,
         employees.enroll_date,
+        employees.branch,
+        employees.department,
+        employees.role
         ].some((field) =>
             (typeof field === "number"
                 ? field.toFixed(2)
@@ -90,55 +95,21 @@ const GroupLifeEmployees = () => {
     }, [filteredRecords, currentPage, rowsPerPage]);
 
     const refreshEmployees = () => {
-    console.log("🔄 Refreshing employee plans..."); // <--- Add this
 
-    setLoading(true);
+        setLoading(true);
 
-    axiosInstance
-        .get("/medicalRecords/getGroupLifeEmployees", {
-            headers: { Authorization: `Bearer ${user.token}` }
-        })
-    .then(res => {
-        const employees = res.data.employees || [];
-        setEmployees(
-            employees.map(emp => ({
-                employee_id: emp.employee_id,
-                employee_name: emp.employee_name,
-                enroll_date: emp.enroll_date,
-                dependents_count: emp.dependents_count,
-                dependents: emp.dependents
-            }))
-        );
-    })
-
-        .catch(console.error)
-        .finally(() => setLoading(false));
-};
-
-    // const refreshEmployees = () => {
-    
-    //         setLoading(true);
-    
-    //         axiosInstance
-    //             .get("/medicalRecords/getGroupLifeEmployees", {
-    //                 headers: { Authorization: `Bearer ${user.token}` }
-    //             })
-    //             .then(res => {
-    //                 const plans = res.data.plans || [];
-    //                 console.log("Processed plans:", plans);
-    //                 setRows(
-    //                     plans.map(row => ({
-    //                         id: row.plan_id,
-    //                         employee_id: row.employee_id,
-    //                         enroll_date: row.enroll_date,
-    //                         dependents_count: row.dependents_count,
-    //                         dependents: row.dependents
-    //                     }))
-    //                 );
-    //             })
-    //             .catch(console.error)
-    //             .finally(() => setLoading(false));
-    //     };
+        axiosInstance
+            .get("/medicalRecords/getGroupLifeEmployees", {
+                headers: { Authorization: `Bearer ${user.token}` },
+                params: { plan_id: id },
+            })
+            .then(res => {
+                const fetched = res.data.employees || [];
+                setEmployees(fetched);
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    };
 
     return (
         <Layout title="GroupLife Masterlist">
@@ -217,6 +188,7 @@ const GroupLifeEmployees = () => {
                     }}
                 >
                     <Grid item>
+                        <Grid item>
                         <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
                             <InputLabel htmlFor="custom-search">
                                 Search
@@ -237,6 +209,26 @@ const GroupLifeEmployees = () => {
                                 label="Search"
                             />
                         </FormControl>
+                        </Grid>
+                        <Grid item>
+                            <TextField
+                                select
+                                id="column-view-select"
+                                label="Filter by Branch"
+                                // onChange={(event) => {
+                                //     setFilterByBranch( event.target.value );
+                                // }}
+                                sx={{ width: "50%" }}
+                            >
+                                {/* {branches.map((branch) => ( */}
+                                    <MenuItem 
+                                    // key={branch.id} value={branch.name}
+                                     >
+                                        Test
+                                    </MenuItem>
+                                {/* ))} */}
+                            </TextField>
+                        </Grid>
                     </Grid>
 
                     <Grid>

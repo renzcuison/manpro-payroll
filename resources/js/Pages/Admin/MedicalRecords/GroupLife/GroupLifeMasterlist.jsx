@@ -85,6 +85,7 @@ const GroupLifeMasterlist = () => {
                 paymentType: row.type,
                 employerShare: row.employer_share,
                 employeeShare: row.employee_share,
+                employeesAssignedCount: row.employees_assigned_count
             }))
         );
 
@@ -131,6 +132,7 @@ const GroupLifeMasterlist = () => {
                         paymentType: row.type,
                         employerShare: row.employer_share,
                         employeeShare: row.employee_share,
+                        employeesAssignedCount: row.employees_assigned_count 
                     }))
                 );
             })

@@ -38,4 +38,9 @@ class GroupLifeCompanyPlan extends Model
         ->withPivot('enroll_date')
         ->withTimestamps();
     }
+
+    public function assignedEmployees()
+    {
+    return $this->hasMany(GroupLifeEmployeePlan::class, 'group_life_plan_id');
+    }
 }

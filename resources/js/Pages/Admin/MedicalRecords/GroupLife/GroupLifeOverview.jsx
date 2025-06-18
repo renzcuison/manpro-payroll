@@ -6,11 +6,8 @@ const GroupLifeOverview = ({ records }) => {
     const chartInstanceRef = useRef(null);
     const lastRecordHashRef = useRef(null);
 
-    // const generateDataHash = (records) =>
-    //     records.map(r => r.companyname).sort().join(",");
-
     const generateDataHash = (records) =>
-    records.map(r => `${r.groupLifeName}-${r.planType}`).sort().join(",");
+    records.map(r => `${r.groupLifeName}-${r.planType}-${r.employeesAssignedCount || 0}`).sort().join(",");
 
     useEffect(() => {
 
@@ -22,17 +19,11 @@ const GroupLifeOverview = ({ records }) => {
 
         lastRecordHashRef.current = currentHash;
 
-        // const counts = records.reduce((acc, rec) => {
-
-        //     acc[rec.companyname] = (acc[rec.companyname] || 0) + 1;
-        //     return acc;
-        //     }, {});
-
         const counts = records.reduce((acc, rec) => {
-    const label = `${rec.groupLifeName} - ${rec.planType}`; // Combine for distinct slices
-    acc[label] = (acc[label] || 0) + 1;
-    return acc;
-}, {});
+            const label = `${rec.groupLifeName} - ${rec.planType}`; // Combine for distinct slices
+            acc[label] = (acc[label] || 0) + (rec.employeesAssignedCount || 0);;
+            return acc;
+        }, {});
 
         const data = {
             labels: Object.keys(counts),

@@ -92,7 +92,7 @@ class InsurancesController extends Controller
         ]);
     }
 
-        public function getGroupLifePlans()
+    public function getGroupLifePlans()
 
         {
         log::info("InsurancesController::getGroupLifePlans");
@@ -103,6 +103,7 @@ class InsurancesController extends Controller
                 $query->where('client_id', $user->client_id);
             })
             ->with('company:id,name')
+            ->withCount('assignedEmployees')
             ->orderBy('plan_name')
             ->get();
 
@@ -116,6 +117,7 @@ class InsurancesController extends Controller
                     'type' => $plan->type,
                     'employer_share' => $plan->employer_share,
                     'employee_share' => $plan->employee_share,
+                    'employees_assigned_count' => $plan->assigned_employees_count
                 ];
             }
 
@@ -194,7 +196,11 @@ class InsurancesController extends Controller
                 'employee_name' => $record->employee ? $record->employee->employee_name : 'Unknown',
                 'enroll_date' => $record->enroll_date,
                 'dependents_count' => $record->dependents->count(),
-                'dependents' => $record->dependents
+                'dependents' => $record->dependents,
+
+                'branch' => $record->employee->branch ?? 'N/A',
+                'department' => $record->employee->department ?? 'N/A',
+                'role' => $record->employee->role ?? 'N/A',
             ];
         });
 

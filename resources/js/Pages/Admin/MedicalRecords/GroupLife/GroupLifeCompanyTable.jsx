@@ -117,7 +117,7 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search, loading }) => {
 
                                     
                                     <TableCell align="center">
-                                        0
+                                        {highlightMatch(row.employeesAssignedCount, search)}
                                     </TableCell>
                                 </TableRow>
                             );

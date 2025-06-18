@@ -20,6 +20,7 @@ import 'react-quill/dist/quill.snow.css';
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import Swal from 'sweetalert2';
 
 const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
     console.log("Received planId:", planId);
@@ -38,18 +39,6 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
     const relationshipOptions = ["Spouse", "Child", "Parent"];
 
     const [dependentWarning, setDependentWarning] = useState('');
-
-    useEffect(() => {
-        axiosInstance
-            .get("/employee/getEmployees", { headers })
-            .then((response) => {
-                setEmployees(response.data.employees);
-            })
-            .catch((error) => {
-                console.error("Error fetching clients:", error);
-            });
-    }, []);
-
 
     const isFilled = (dep) =>
         dep &&
@@ -89,9 +78,9 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
             }
 
             const payload = {
-                group_life_plan_id: planId, // TODO: define this or pass via props/context
+                group_life_plan_id: planId, 
                 employee_id: selectedEmployee.id,
-                enroll_date: enrollDate.format("YYYY-MM-DD"), // assuming dayjs
+                enroll_date: enrollDate.format("YYYY-MM-DD"), 
                 dependents: dependents.filter(dep => dep.name && dep.relationship)
             };
 
@@ -103,11 +92,19 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
                 close();
 
             console.log("Success:", res.data);
-            alert("Employee assigned successfully!");
+            Swal.fire({
+                icon: 'success',
+                text: 'Group Life Plan saved successfully!',
+                timer: 2000,
+                showConfirmButton: false
+            });
             close();
         } catch (err) {
             console.error("Error submitting:", err);
-            alert("Something went wrong while assigning the employee.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Error saving Group Life Plan!',
+            });
         }
     };
 

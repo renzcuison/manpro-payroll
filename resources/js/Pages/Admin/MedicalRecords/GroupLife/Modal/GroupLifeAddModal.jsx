@@ -153,7 +153,7 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
     setEmployerAmountShare("");
     setEmployeePercentageShare("");
     setEmployerPercentageShare("");
-};
+    };
 
     return (
         <>

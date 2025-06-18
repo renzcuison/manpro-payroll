@@ -113,24 +113,24 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search, loading, d
                                                 search)}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {/* {highlightMatch(
-                                            response.branch,
+                                        {highlightMatch(
+                                            response.branch?.name,
                                             search
-                                        )} */} N/A
+                                        )}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {/* {highlightMatch(
-                                            response.department,
+                                        {highlightMatch(
+                                            response.department?.name,
                                             search
-                                        )} */}
-                                        N/A
+                                        )}
+                                        
                                         </TableCell>      
                                         <TableCell align="center">
-                                        {/* {highlightMatch(
-                                            response.role,
+                                        {highlightMatch(
+                                            response.role?.name,
                                             search
-                                        )} */}
-                                        N/A
+                                        )}
+                                        
                                         </TableCell>                                    
                                 </TableRow>
                             );

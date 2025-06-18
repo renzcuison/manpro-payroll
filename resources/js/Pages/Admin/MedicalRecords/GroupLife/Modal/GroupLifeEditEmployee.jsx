@@ -23,8 +23,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 const GroupLifeEditEmployee = ({ open, close }) => {
 
-const storedUser = localStorage.getItem("nasya_user");
-const headers = getJWTHeader(JSON.parse(storedUser));
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
     const [employees, setEmployees] = useState([]);
 
     useEffect(() => {
@@ -32,37 +32,9 @@ const headers = getJWTHeader(JSON.parse(storedUser));
             .get("/employee/getEmployees", { headers })
             .then((response) => {
                 setEmployees(response.data.employees);
-                setIsLoading(false);
             })
             .catch((error) => {
                 console.error("Error fetching clients:", error);
-                setIsLoading(false);
-            });
-
-        axiosInstance
-            .get("/settings/getDepartments", { headers })
-            .then((response) => {
-                const fetchedDepartments = response.data.departments;
-                setDepartments(fetchedDepartments);
-                const allDepartmentIds = fetchedDepartments.map(
-                    (department) => department.id
-                );
-                setSelectedDepartments(allDepartmentIds);
-            })
-            .catch((error) => {
-                console.error("Error fetching departments:", error);
-            });
-
-        axiosInstance
-            .get("/settings/getBranches", { headers })
-            .then((response) => {
-                const fetchedBranches = response.data.branches;
-                setBranches(fetchedBranches);
-                const allBranchIds = fetchedBranches.map((branch) => branch.id);
-                setSelectedBranches(allBranchIds);
-            })
-            .catch((error) => {
-                console.error("Error fetching branches:", error);
             });
     }, []);
 
@@ -114,34 +86,27 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                         <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
 
+
                     <DialogContent sx={{ padding: 1, paddingBottom: 1 }}>
+
+                        
+                    <Box sx={{ mb: 2, textAlign: 'left' }}>
+                        <Typography variant="body1">
+                            <strong>Employee Name:</strong>
+                            {/* {employee.last_name}, {employee.first_name} {employee.middle_name || ''} {employee.suffix || ''} */}
+                        </Typography>
+                        <Typography variant="body1">
+                            <strong>Branch:</strong> 
+                            {/* {employee.branch || '-'} */}
+                        </Typography>
+                        <Typography variant="body1">
+                            <strong>Department:</strong> 
+                            {/* {employee.department || '-'} */}
+                        </Typography>
+                    </Box>
                             <Box component="form" sx={{ mt: 1, my: 5 }} 
                                     // onSubmit={checkInput}
                                     noValidate autoComplete="off" encType="multipart/form-data">
-                            
-                                        <FormGroup  row={true} className="d-flex justify-content-between" sx={{
-                                            '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                            }}>
-                                            <FormControl sx={{ marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                                            }}>
-
-                                                <Typography><strong><h5>Employee Name:</h5></strong> Samuel Christian D. Nacar</Typography>
-                                                    
-                                                {/* <Autocomplete sx={{width: 750}}
-                                                    options={employees}
-                                                    getOptionLabel={(employee) =>
-                                                        `${employee.first_name} ${employee.middle_name || ""} ${employee.last_name} ${employee.suffix || ""}`.trim()
-                                                    }
-                                                    noOptionsText="No Employee Found"
-                                                    renderInput={(params) => (
-                                                        <TextField {...params} label="Select Employee" variant="outlined" />
-                                                    )}
-                                                /> */}
-
-                                            </FormControl>   
-                                        </FormGroup>
 
                                         <Button
                                             onClick={() => {
@@ -273,11 +238,6 @@ const headers = getJWTHeader(JSON.parse(storedUser));
                                         </Button>
                                     </>
                                 )}
-                                <Box sx={{ height: 24 }} />
-                                        <Box>
-                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                <DatePicker label="Enroll Date" />
-                                            </LocalizationProvider></Box>
                                 <Box sx={{ height: 24 }} />
 
                                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
