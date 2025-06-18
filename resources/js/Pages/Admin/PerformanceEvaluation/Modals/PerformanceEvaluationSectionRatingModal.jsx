@@ -102,7 +102,7 @@ const PerformanceEvaluationSectionRatingModal = ({
                     </Typography>
                 </Box>
                 {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 1, justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', mt: 3, gap: 1, justifyContent: 'space-between' }}>
                     <Button onClick={onClose} variant="outlined" sx={{ bgcolor: '#727F91', color: 'white' }}>Cancel</Button>
                     <Button onClick={handleSave} variant="contained" sx={{ bgcolor: '#177604', color: 'white' }}>Save</Button>
                 </Box>
