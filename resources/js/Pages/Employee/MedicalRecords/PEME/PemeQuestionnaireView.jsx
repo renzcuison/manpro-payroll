@@ -225,6 +225,7 @@ const PemeQuestionnaireView = () => {
     const [nextSchedule, setNextSchedule] = useState(dayjs());
     const [status, setStatus] = useState("");
     const [pemeResponses, setPemeResponses] = useState("");
+    const [isDraftStatus, setIsDraftStatus] = useState(null);
 
     useEffect(() => {
         axiosInstance
@@ -233,7 +234,7 @@ const PemeQuestionnaireView = () => {
             })
             .then((response) => {
                 setEmployeeResponse(response.data);
-                // Map fetched values into answers state
+                setIsDraftStatus(response.data.isDraft);
                 const initialAnswers = {};
                 if (Array.isArray(response.data.details)) {
                     response.data.details.forEach((form) => {
@@ -257,6 +258,7 @@ const PemeQuestionnaireView = () => {
             });
     }, []);
 
+    //Set FE dates and status to values from DB
     useEffect(() => {
         if (pemeResponses && pemeResponses[0]) {
             const res = pemeResponses[0];
@@ -359,27 +361,63 @@ const PemeQuestionnaireView = () => {
         };
 
         const formData = new FormData();
-        attachedMedia.forEach((file) => {
-            formData.append("file[]", file.file);
-            console.log("File to attach", file);
-        });
-        // formData.append("file[]", attachedMedia);
 
-        console.log("ATTACHED MEDIA", attachedMedia);
+        formData.append("peme_response_id", PemeResponseID);
+        formData.append("isDraft", isDraftStatus);
+
+        responses.forEach((item, index) => {
+            formData.append(
+                `responses[${index}][peme_q_item_id]`,
+                item.peme_q_item_id
+            );
+            formData.append(
+                `responses[${index}][peme_q_type_id]`,
+                item.peme_q_type_id
+            );
+
+            if (item.value instanceof File) {
+                formData.append(`responses.${index}.files`, item.value);
+            } else {
+                formData.append(`responses[${index}][value]`, item.value ?? "");
+            }
+        });
 
         try {
-            console.log("pressed");
-            axiosInstance
-                .post(
-                    `peme-response-details/${PemeResponseID}/attach-media`,
-                    formData,
-                    { headers }
-                )
-                .then((response) => {
-                    console.log("response", response.data);
-                });
+            // PAYLOAD FOR DATES AND STATUS
+            const secondaryPayload = {
+                expiry_date: expirationDate,
+                next_schedule: nextSchedule,
+                status: status,
+            };
+            console.log(secondaryPayload);
+
+            await axiosInstance.patch(
+                `/peme-responses/${PemeResponseID}/status`,
+                secondaryPayload,
+                { headers }
+            );
+
+            console.log("ANSWERS", payload.responses);
+            await axiosInstance.post(`/peme-responses/storeAll`, formData, {
+                headers,
+            });
+            Swal.fire({
+                icon: "success",
+                text: "Draft saved successfully.",
+                showConfirmButton: false,
+                timer: 1500,
+            });
         } catch (error) {
-            console.log("error", error);
+            Swal.fire({
+                title: "Error",
+                text: "Failed to save draft. Please try again.",
+                icon: "error",
+                confirmButtonText: "Okay",
+                confirmButtonColor: "#177604",
+            });
+
+            console.log(error);
+
         }
     };
 

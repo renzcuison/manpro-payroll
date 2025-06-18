@@ -8,7 +8,7 @@ import { useIncentives } from '../../../hooks/useIncentives';
 import IncentivesAdd from './Modals/IncentivesAdd';
 
 const IncentivesTypes = () => {
-    const { incentives: incentivesQuery } = useIncentives();
+    const { incentives: incentivesQuery } = useIncentives({loadIncentives: true});
     const incentives = incentivesQuery.data?.incentives || [];
     const [openAddIncentiveseModal, setOpenAddIncentivesModal] = useState(false);
 
@@ -16,18 +16,20 @@ const IncentivesTypes = () => {
         setOpenAddIncentivesModal(true);
     }
 
-    const handleCloseAddIncentiveseModal = () => {
+    const handleCloseAddIncentiveseModal = (reload) => {
         setOpenAddIncentivesModal(false);
-        refetch();
+        if(reload){
+            incentivesQuery.refetch();
+        }
     }
-
+    
     return (
         <Layout title={"IncentivesList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                            <Link to="/admin/employees/incentives" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to="/admin/compensation/incentives" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
                             &nbsp; Incentives Types
@@ -39,7 +41,7 @@ const IncentivesTypes = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {isLoading ? (
+                        {incentivesQuery.isLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>

@@ -8,9 +8,6 @@ import {
   CircularProgress,
   IconButton,
   Divider,
-  ImageList,
-  ImageListItem,
-  ImageListItemBar,
   Tooltip,
   useTheme,
   useMediaQuery,
@@ -18,7 +15,7 @@ import {
   DialogTitle, 
   DialogContent
 } from "@mui/material";
-import { MoreVert, Download, CheckCircle } from "@mui/icons-material";
+import { CheckCircle } from "@mui/icons-material";
 import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
@@ -287,21 +284,32 @@ const AnnouncementView = () => {
   const handlePreviewFile = (filename, id, mimeType) => {
       axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
           .then(async (response) => {
-              const blob = new Blob([response.data], { type: mimeType });
+              // Force correct mime type for PDF
+              let type = mimeType;
+              if (
+                  mimeType?.toLowerCase().includes("pdf") ||
+                  filename?.toLowerCase().endsWith(".pdf")
+              ) {
+                  type = "application/pdf";
+              }
+              const blob = new Blob([response.data], { type });
               const url = URL.createObjectURL(blob);
 
               if (
-                  mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                  type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
                   filename.endsWith(".docx")
               ) {
                   const arrayBuffer = await blob.arrayBuffer();
-                  mammoth.convertToHtml({ arrayBuffer }).then(result => {
-                      setDocxHtml(result.value);
-                      setPreviewFile({ url, mimeType, filename });
-                      setPreviewOpen(true);
+                  mammoth.convertToHtml(
+                    { arrayBuffer },
+                    { docBaseUrl: window.location.origin + "/" }
+                  ).then(result => {
+                    setDocxHtml(result.value);
+                    setPreviewFile({ url, mimeType: type, filename });
+                    setPreviewOpen(true);
                   });
               } else {
-                  setPreviewFile({ url, mimeType, filename });
+                  setPreviewFile({ url, mimeType: type, filename });
                   setPreviewOpen(true);
               }
           })
@@ -381,22 +389,7 @@ const AnnouncementView = () => {
               <Grid container columnSpacing={4} rowSpacing={2}>
               {/* Thumbnail */}
               {imageLoading ? (
-                <Grid size={12} sx={{ height: {xs: 240, md: 360, lg: 480}, width: "100%" }}>
-                  <Box
-                    sx={{
-                      mb: 1,
-                      position: "relative",
-                      width: "100%",
-                      height: "100%",
-                      borderRadius: "4px",
-                      border: "2px solid #e0e0e0",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <Box sx={{ display: "flex", placeSelf: "center", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                      <CircularProgress />
-                    </Box>
-                  </Box>
+                <Grid size={12} sx={{width: "100%" }}>
                 </Grid>
               ) : (
                 thumbnail && (

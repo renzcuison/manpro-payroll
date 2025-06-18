@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, 
+import { Table, TableHead, TableBody, TableFooter, TableCell, TableContainer, TableRow, Box, 
     Typography, Grid, TextField, FormControl, CircularProgress, TablePagination, Button, MenuItem } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
@@ -10,20 +10,37 @@ import { useDepartments } from '../../../hooks/useDepartments';
 import { useBranches } from '../../../hooks/useBranches';
 
 const EmployeesIncentivesList = () => {
-    const { employeesIncentives } = useIncentives();
-    const { departments: departmentData } = useDepartments(); 
-    const { data: branchesData } = useBranches();
-
-    const employees = employeesIncentives.data?.employees || [];
-    const departments = departmentData.data?.departments || [];
-    const branches = branchesData?.branches || [];
-
     const [searchName, setSearchName] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState(0);
     const [selectedBranch, setSelectedBranch] = useState(0);
+    const [selectedIncentive, setSelectedIncentive] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    const { employeesIncentives, incentives: incentivesQuery } = useIncentives({
+        loadEmployeesIncentives: true,
+        loadIncentives: true,
+        filters: {
+            name: searchName,
+            branchId: selectedBranch,
+            departmentId: selectedDepartment,
+            incentiveId: selectedIncentive,
+        },
+        pagination: {
+            page: page,
+            perPage: rowsPerPage,
+        }
+    });
+    const { departments: departmentData } = useDepartments({loadDepartments: true}); 
+    const { data: branchesData } = useBranches();
+
+    const employees = employeesIncentives.data?.employees || [];
+    const incentives = incentivesQuery.data?.incentives || [];
+    const total = employeesIncentives.data?.total || 0;
+
+    const departments = departmentData.data?.departments || [];
+    const branches = branchesData?.branches || [];
 
     const handleRowClick = (employee) => {
         setSelectedEmployee(employee.user_name);
@@ -34,14 +51,6 @@ const EmployeesIncentivesList = () => {
         employeesIncentives.refetch();
     };
 
-    const filteredEmployees = employees.filter((employee) => {
-        const fullName = `${employee.name}`.toLowerCase();
-        const matchedName = fullName.includes(searchName.toLowerCase());
-        const filteredBranch = selectedBranch === 0 || employee.branch_id === selectedBranch;
-        const filteredDepartment= selectedDepartment === 0 || employee.department_id === selectedDepartment;
-        return matchedName && filteredBranch && filteredDepartment;
-    });
-
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -51,8 +60,6 @@ const EmployeesIncentivesList = () => {
         setPage(0);
     };
 
-    const paginatedEmployees = filteredEmployees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
     return(
         <Layout title={"IncentivesList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -61,7 +68,7 @@ const EmployeesIncentivesList = () => {
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Employee Incentives</Typography>
 
-                        <Button variant="contained" color="primary" component={Link} to="/admin/employees/incentives-types">
+                        <Button variant="contained" color="primary" component={Link} to="/admin/compensation/incentives-types">
                             <p className='m-0'><i className="fa fa-list" aria-hidden="true"></i> Types </p>
                         </Button>
                     </Box>
@@ -74,8 +81,28 @@ const EmployeesIncentivesList = () => {
                                         <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value)}/>
                                     </FormControl>
                                 </Grid>
+                                
+                                <Grid size={2}>
+                                    <TextField
+                                        select
+                                        id="incentive-view-select"
+                                        label="Filter Calculation by Type"
+                                        value={selectedIncentive}
+                                        onChange={(event) => {
+                                            setSelectedIncentive( event.target.value );
+                                        }}
+                                        sx={{ width: "100%" }}
+                                    >   
+                                        <MenuItem value={0}>All Incentives</MenuItem>
+                                        {incentives.map((incentive) => (
+                                            <MenuItem key={incentive.id} value={incentive.id}>
+                                                {" "}{incentive.name}{" "}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
 
-                                <Grid size={3}>
+                                <Grid size={2}>
                                     <TextField
                                         select
                                         id="branch-view-select"
@@ -95,7 +122,7 @@ const EmployeesIncentivesList = () => {
                                     </TextField>
                                 </Grid>
 
-                                <Grid size={3}>
+                                <Grid size={2}>
                                     <TextField
                                         select
                                         id="department-view-select"
@@ -107,7 +134,7 @@ const EmployeesIncentivesList = () => {
                                         sx={{ width: "100%" }}
                                     >   
                                         <MenuItem value={0}>All Departments</MenuItem>
-                                        {departments.map((department, index) => (
+                                        {departments.map((department) => (
                                             <MenuItem key={department.id} value={department.id}>
                                                 {" "}{department.name}{" "}
                                             </MenuItem>
@@ -135,17 +162,33 @@ const EmployeesIncentivesList = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {paginatedEmployees.length > 0 ? (
-                                                paginatedEmployees.map((employee, index) => {
+                                            {employees.length > 0 ? (
+                                                <>
+                                                {employees.map((employee, index) => {
                                                     return (
                                                         <TableRow key={employee.user_name} onClick={() => handleRowClick(employee)} sx={{ backgroundColor: (page * rowsPerPage + index) % 2 === 0 ? '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }} >
                                                             <TableCell align="left">{employee.name || '-'}</TableCell>
                                                             <TableCell align="center">{employee.branch || '-'}</TableCell>
                                                             <TableCell align="center">{employee.department || '-'}</TableCell>
-                                                            <TableCell align="center">₱ {Number(employee.total || 0).toFixed(2)}</TableCell>
+                                                            <TableCell align="center">
+                                                                ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(employee.amount)}
+                                                            </TableCell>
                                                         </TableRow>
                                                     );
-                                                })
+                                                })}
+                                                <TableRow sx={{ backgroundColor: (page * rowsPerPage + employees.length) % 2 === 0 ? 
+                                                '#f8f8f8' : '#ffffff', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
+                                                    <TableCell align='left'>
+                                                        <Typography sx={{fontWeight: 'bold'}}>TOTAL:</Typography>
+                                                    </TableCell>
+                                                    <TableCell colSpan={2}/>
+                                                    <TableCell align="center">
+                                                        <Typography sx={{fontWeight: 'bold'}}>
+                                                            ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total)}
+                                                        </Typography>
+                                                    </TableCell>
+                                                </TableRow>
+                                                </>
                                             ) : (
                                                 <TableRow>
                                                     <TableCell colSpan={6} align="center" sx={{ color: "text.secondary", p: 1 }}>
@@ -154,6 +197,7 @@ const EmployeesIncentivesList = () => {
                                                 </TableRow>
                                             )}
                                         </TableBody>
+                            
                                     </Table>
                                 </TableContainer>
 
@@ -162,7 +206,7 @@ const EmployeesIncentivesList = () => {
                                     <TablePagination
                                         rowsPerPageOptions={[5, 10, 25]}
                                         component="div"
-                                        count={filteredEmployees.length}
+                                        count={employees.length}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}
@@ -176,7 +220,7 @@ const EmployeesIncentivesList = () => {
                     </Box>
                 </Box>
                 {selectedEmployee && (
-                    <EmployeeIncentiveView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} />
+                    <EmployeeIncentiveView open={!!selectedEmployee} close={handleCloseModal} userName={selectedEmployee} incentive={selectedIncentive}/>
                 )}
             </Box>
         </Layout>

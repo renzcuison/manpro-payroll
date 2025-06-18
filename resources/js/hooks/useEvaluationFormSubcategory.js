@@ -167,11 +167,12 @@ export function useEvaluationFormSubcategory(subcategory) {
 
     }
 
-    function editOption(optionIndex, label, score) {
+    function editOption(optionIndex, label, score, description) {
 
         if(isNew) {
             options[ optionIndex ].label = label;
             options[ optionIndex ].score = score;
+            options[ optionIndex ].description = description;
             setOptions([ ...options ]);
         } else axiosInstance
             .post('/editEvaluationFormSubcategoryOption', {
@@ -226,12 +227,12 @@ export function useEvaluationFormSubcategory(subcategory) {
             })
     }
 
-    function saveOption(label, score) {
+    function saveOption(label, score, description) {
         if(isNew)
-            setOptions([ ...options, { label, score } ]);
+            setOptions([ ...options, { label, score, description } ]);
         else axiosInstance
             .post('/saveEvaluationFormSubcategoryOption', {
-                subcategory_id: subcategoryId, label, score
+                subcategory_id: subcategoryId, label, score, description
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {

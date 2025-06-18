@@ -3,7 +3,7 @@ import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, Tab
 import { useBenefits } from "../../../hooks/useBenefits";
 
 const UserBenefits = ({ userName }) => {
-    const {employeeBenefits} = useBenefits(userName);
+    const {employeeBenefits} = useBenefits({userName: userName});
     const benefits = employeeBenefits.data?.benefits || [];
 
     return (

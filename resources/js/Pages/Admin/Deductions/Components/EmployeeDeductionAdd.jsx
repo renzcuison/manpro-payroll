@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import { useDeductions } from "../../../../hooks/useDeductions";
 
 const EmployeeDeductionAdd = ({ userName, onClose }) => {
-    const {saveEmployeeDeductions, deductions} = useDeductions();
+    const {saveEmployeeDeductions, deductions} = useDeductions({loadDeductions: true});
     
 
     const [deductionError, setDeductionError] = useState(false);

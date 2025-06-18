@@ -11,6 +11,9 @@ use App\Models\PayslipEarningsModel;
 use App\Models\PayslipDeductionsModel;
 use App\Models\PayslipAllowancesModel;
 
+use App\Models\AttendanceSummary;
+
+use App\Models\WorkHoursModel;
 use App\Models\ApplicationsModel;
 use App\Models\AttendanceLogsModel;
 use App\Models\ApplicationTypesModel;
@@ -72,7 +75,6 @@ class PayrollController extends Controller
         $numberOfHolidayWeekday = 0;
 
         // Fetch Philippine holidays from Nager.Date API
-        // $holidays = $this->getNagerHolidaysWeekdays($startDate->year, $endDate->year);
         // $holidays = $this->getNagerHolidays($startDate->year, $endDate->year);
 
         $holidays = $this->getHolidaysWeekdays($startDate->year, $endDate->year);
@@ -222,7 +224,6 @@ class PayrollController extends Controller
         })->pluck('date')->toArray();
     }
 
-
     public function getNagerHolidays($startYear, $endYear)
     {
         // log::info("PayrollController::getNagerHolidays");
@@ -246,44 +247,6 @@ class PayrollController extends Controller
                 if (is_array($data)) {
                     foreach ($data as $holiday) {
                         $holidays[] = Carbon::parse($holiday['date'])->format('Y-m-d');
-                    }
-                } else {
-                    Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
-                }
-            } else {
-                Log::error("Failed to fetch holidays from Nager.Date API for year {$year}: " . $response->status());
-                Log::error($response->body());
-            }
-        }
-
-        return $holidays;
-    }
-
-    public function getNagerHolidaysWeekdays($startYear, $endYear)
-    {
-        // log::info("PayrollController::getNagerHolidaysWeekdays");
-
-        $holidays = [];
-        $countryCode = 'PH';
-
-        // Fetch holidays for each year in the range
-        for ($year = $startYear; $year <= $endYear; $year++) {
-            $url = "https://date.nager.at/api/v3/PublicHolidays/{$year}/{$countryCode}";
-
-            $response = Http::get($url);
-
-            if ($response->successful()) {
-                $data = $response->json();
-
-                // Ensure $data is an array before iterating
-                if (is_array($data)) {
-                    foreach ($data as $holiday) {
-                        $holidayDate = Carbon::parse($holiday['date']);
-
-                        // Check if the holiday falls on a weekday (Monday to Friday)
-                        if ($holidayDate->isWeekday()) {
-                            $holidays[] = $holidayDate->format('Y-m-d');
-                        }
                     }
                 } else {
                     Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
@@ -465,42 +428,17 @@ class PayrollController extends Controller
 
     public function calculateHolidayPay($logs, $perMin)
     {
-        // Log::info("PayrollController::calculateHolidayPay");
+        // Get weekday holidays
+        $holidayDates = $this->getHolidaysWeekdays();
 
         $holidayLogs = [];
-        $holidays = [
-            ['name' => 'New Year’s Day', 'date' => '2025-01-01'],
-            ['name' => 'Maundy Thursday', 'date' => '2025-04-17'],
-            ['name' => 'Good Friday', 'date' => '2025-04-18'],
-            ['name' => 'Araw ng Kagitingan', 'date' => '2025-04-09'],
-            ['name' => 'Labor Day', 'date' => '2025-05-01'],
-            ['name' => 'Eid al-Adha (Feast of the Sacrifice)', 'date' => '2025-06-06'],
-            ['name' => 'Independence Day', 'date' => '2025-06-12'],
-            ['name' => 'National Heroes Day', 'date' => '2025-08-25'],
-            ['name' => 'Bonifacio Day', 'date' => '2025-11-30'],
-            ['name' => 'Christmas Day', 'date' => '2025-12-25'],
-            ['name' => 'Rizal Day', 'date' => '2025-12-30'],
-            ['name' => 'Chinese New Year', 'date' => '2025-01-29'],
-            ['name' => 'EDSA People Power Revolution Anniversary', 'date' => '2025-02-25'],
-            ['name' => 'Black Saturday', 'date' => '2025-04-19'],
-            ['name' => 'Ninoy Aquino Day', 'date' => '2025-08-21'],
-            ['name' => 'All Saints’ Day', 'date' => '2025-11-01'],
-            ['name' => 'Feast of the Immaculate Conception of Mary', 'date' => '2025-12-08'],
-            ['name' => 'Christmas Eve', 'date' => '2025-12-24'],
-            ['name' => 'New Year’s Eve', 'date' => '2025-12-31'],
-            ['name' => 'Eid’l Fitr', 'date' => '2025-03-31'],
-            ['name' => 'Eid’l Adha', 'date' => '2025-06-06'],
-        ];
 
         foreach ($logs as $log) {
             $logDate = Carbon::parse($log['timestamp'])->format('Y-m-d');
 
-            foreach ($holidays as $holiday) {
-                if ($logDate === $holiday['date']) {
-                    $holidayLog = (object) $log;
-                    $holidayLogs[] = $holidayLog;
-                    break;
-                }
+            if (in_array($logDate, $holidayDates)) {
+                $holidayLog = (object) $log;
+                $holidayLogs[] = $holidayLog;
             }
         }
 
@@ -512,31 +450,23 @@ class PayrollController extends Controller
         $morning = 0;
         $afternoon = 0;
         $overtime = 0;
-        
+
         foreach ($holidayLogs as $log) {
             switch ($log->action) {
                 case 'Duty In':
                     $timeIn = $log->timestamp;
                     break;
-
                 case 'Duty Out':
                     $timeOut = $log->timestamp;
                     break;
-
                 case 'Overtime In':
                     $overTimeIn = $log->timestamp;
                     break;
-
                 case 'Overtime Out':
                     $overTimeOut = $log->timestamp;
                     break;
             }
         }
-
-        // Log::info("Time In: " . $timeIn);
-        // Log::info("Time Out: " . $timeOut);
-        // Log::info("Overtime In: " . $overTimeIn);
-        // Log::info("Overtime Out: " . $overTimeOut);
 
         if ($timeIn && $timeOut) {
             $timeInCarbon = Carbon::parse($timeIn);
@@ -578,27 +508,103 @@ class PayrollController extends Controller
 
         $totalMinutes = $morning + $afternoon;
 
-        
-        Log::info("Total rendered minutes: $totalMinutes");
-        Log::info("Per Minute: $perMin");
+        // Log::info("Total rendered minutes: $totalMinutes");
+        // Log::info("Overtime rendered minutes: $overtime");
+        // Log::info("Per Minute: $perMin");
 
         $holidayPay = $totalMinutes * $perMin;
         $holidayOTPay = $overtime * $perMin * 2 * 1.3;
 
-
-        Log::info("Overtime rendered minutes: $overtime");
-
-
-
-        // $distinctDays = collect($holidayLogs)->groupBy(function ($log) {
-        //     return Carbon::parse($log->timestamp)->toDateString();
-        // });
-
-        // foreach ($distinctDays as $log) {
-            // Log::info($log);
-        // }
-
         return [ 'holidayPay' => $holidayPay, 'holidayOTPay' => $holidayOTPay, 'holidayOTMins' => $overtime ];
+    }
+
+    public function calculateAttendance($start_date, $end_date, $employeeId)
+    {
+        Log::info("PayrollController::calculateAttendance");
+
+        // Fetch AttendanceSummary records for the given employee within the date range
+        $summaries = AttendanceSummary::where('user_id', $employeeId)
+            ->whereBetween('work_day_start', [$start_date, $end_date])
+            ->get();
+
+        foreach ($summaries as $summary) {
+            Log::info("Processing Summary ID: {$summary->id}");
+
+            // Get related attendance logs for the summary
+            $logs = AttendanceLogsModel::where('attendance_summary_id', $summary->id)
+                ->orderBy('timestamp')  // Ensure logs are ordered by timestamp
+                ->get();
+
+            // Retrieve the work hours for the summary
+            $workHours = WorkHoursModel::find($summary->work_hour_id);
+
+            // Initialize total counters for minutes
+            $late = 0;
+            $renderedMinutes = 0;
+
+            // Create variables to store the last Duty In time
+            $lastDutyIn = null;
+
+            // Iterate over the logs to calculate minutes_late and minutes_rendered
+            foreach ($logs as $log) {
+                // Parse the timestamp of the current log
+                $timestamp = Carbon::parse($log->timestamp);
+                $day = $timestamp->toDateString();
+
+                // Define work hours based on the summary's work hour data
+                $firstIn = Carbon::parse("$day {$workHours->first_time_in}");
+                $firstOut = Carbon::parse("$day {$workHours->first_time_out}");
+                $secondIn = Carbon::parse("$day {$workHours->second_time_in}");
+                $secondOut = Carbon::parse("$day {$workHours->second_time_out}");
+
+                // For Regular Shifts, exclude break time between break_start and break_end
+                $breakStart = Carbon::parse("$day {$workHours->break_start}");
+                $breakEnd = Carbon::parse("$day {$workHours->break_end}");
+                $breakDuration = $breakStart->diffInMinutes($breakEnd);
+
+                // Handle Duty In logs
+                if ($log->action === 'Duty In') {
+                    // Calculate late minutes if the Duty In time is later than first_in
+                    if ($timestamp > $firstIn) {
+                        $late += $timestamp->diffInMinutes($firstIn);
+                    }
+                    // Store the last Duty In time to pair it with the next Duty Out
+                    $lastDutyIn = $timestamp;
+                }
+
+                // Handle Duty Out logs
+                if ($log->action === 'Duty Out' && $lastDutyIn) {
+                    // Calculate minutes worked (rendered) between last Duty In and current Duty Out
+                    $workPeriod = $timestamp->diffInMinutes($lastDutyIn);
+
+                    // If the shift is regular, subtract break time from rendered minutes
+                    if ($workHours->shift_type === 'regular') {
+                        // If the work period overlaps with the break, subtract break duration
+                        if ($timestamp->between($breakStart, $breakEnd)) {
+                            $workPeriod -= $breakDuration;
+                        }
+                    }
+
+                    // Add to the rendered minutes
+                    $renderedMinutes += $workPeriod;
+
+                    // Reset last Duty In after pairing it with a Duty Out
+                    $lastDutyIn = null;
+                }
+            }
+
+            // Update the AttendanceSummary with calculated values
+            $summary->minutes_late = $late;
+            $summary->minutes_rendered = $renderedMinutes;
+
+            $summary->save();
+
+            Log::info("Updated Summary ID: {$summary->id} - Late: {$late} minutes, Rendered: {$renderedMinutes} minutes");
+        }
+
+        Log::info("Attendance calculations complete for employee ID: {$employeeId}");
+
+        return true;  // Or return any other desired result
     }
 
     public function payrollDetails(Request $request)
@@ -615,18 +621,22 @@ class PayrollController extends Controller
         $logs = AttendanceLogsModel::where('user_id', $employee->id)->whereBetween('timestamp', [$startDate, $endDate])->get();
         $client = ClientsModel::find($employee->client_id);
 
+        // $attendance = $this->calculateAttendance($startDate, $endDate, $employee->id);
+
+
+        // ============== BENEFITS ==============
         $employeeShare = 0;
         $employerShare = 0;
 
         $benefits = [];
 
-        // ============== BENEFITS ==============
         foreach ($employeeBenefits as $employeeBenefit) {
             $benefit = $employeeBenefit->benefit;
 
             $employeeAmount = 0;
             $employerAmount = 0;
 
+            // 1st Cut Off for not Dahlia
             if ( $cutOff == "First" && $client->id != 4 && $benefit->type == "Percentage") {
                 $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
                 $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
@@ -637,6 +647,7 @@ class PayrollController extends Controller
                 $employerAmount = $benefit->employer_amount * 1;
             }
 
+            // 2nd Cut Off for Dahlia
             if ( $cutOff == "Second" && $client->id == 4 && $benefit->type == "Percentage") {
                 $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
                 $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
@@ -661,12 +672,7 @@ class PayrollController extends Controller
             $benefits[] = ['benefit' => encrypt($benefit->id), 'name' => $benefit->name, 'employeeAmount' => $employeeAmount, 'employerAmount' => $employerAmount];
         }
 
-        $benefits[] = [
-            'benefit' => "",
-            'name' => "Total Benefits",
-            'employeeAmount' => $employeeShare,
-            'employerAmount' => $employerShare
-        ];
+        $benefits[] = [ 'benefit' => "", 'name' => "Total Benefits", 'employeeAmount' => $employeeShare, 'employerAmount' => $employerShare ];
 
         // ============== WORK DAYS ==============
         $distinctDays = $logs->groupBy(function ($log) {
@@ -1017,7 +1023,8 @@ class PayrollController extends Controller
                     'payrollEndDate' => $rawRecord->period_end ?? '-',
                     'payrollCutOff' => $rawRecord->cut_off ?? '-',
                     'payrollWorkingDays' => $rawRecord->working_days ?? '-',
-                    'payrollGrossPay' => $rawRecord->rate_monthly ?? '-',
+                    // 'payrollGrossPay' => $rawRecord->rate_monthly ?? '-',
+                    'payrollGrossPay' => $rawRecord->total_earnings ?? 0 - $rawRecord->total_deductions ?? 0,
                 ];
             }
 

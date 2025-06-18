@@ -26,6 +26,8 @@ use App\Http\Controllers\LoanApplicationsController;
 use App\Http\Controllers\SignatoryController;
 use App\Http\Controllers\RadiusPerimeterController;
 use App\Http\Controllers\BranchPositionController;
+use App\Http\Controllers\SalaryPlansController;
+
 use App\Http\Controllers\InsurancesController;
 
 
@@ -203,7 +205,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             SettingsController::class,
             'getAllDepartments',
         ]);
-        Route::get('/getDepartmentDetails/{id}', [
+        Route::get('/getDepartmentDetails', [
             SettingsController::class,
             'getDepartmentDetails',
         ]);
@@ -228,7 +230,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             SettingsController::class,
             'getDepartment',
         ]);
-        Route::post('/saveDepartment/{departmentId}', [
+        Route::post('/saveDepartment', [
             SettingsController::class,
             'saveDepartment',
         ]);
@@ -1319,6 +1321,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         EvaluationResponseController::class,
         'editEvaluationResponse',
     ]);
+    Route::get('/getEvaluateeResponses', [
+        EvaluationResponseController::class,
+        'getEvaluateeResponses',
+    ]);
     Route::get('/getEvaluationResponse', [
         EvaluationResponseController::class,
         'getEvaluationResponse',
@@ -2005,6 +2011,13 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/google/event', [GoogleController::class, 'addEvent']);
     Route::get('/google/events', [GoogleController::class, 'getEvents']);
     Route::put('/google/event/{id}', [GoogleController::class, 'updateEvent']);
+    Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent']);
+
+    //Salary Plans
+    Route::get('getSalaryPlans', [SalaryPlansController::class, 'getSalaryPlans']);
+    Route::post('/saveSalaryGrade', [SalaryPlansController::class, 'saveSalaryGrade']);
+    Route::post('/editSalaryGrade/{id}', [SalaryPlansController::class, 'editSalaryGrade']);
+    Route::post('/deleteSalaryGrade', [SalaryPlansController::class, 'deleteSalaryGrade']);
     Route::delete('/google/event/{id}', [
         GoogleController::class,
         'deleteEvent',

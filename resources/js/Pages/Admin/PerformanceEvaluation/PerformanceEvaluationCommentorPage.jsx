@@ -95,9 +95,11 @@ const Bar = ({ value, max = 100, sx = {} }) => {
 };
 // --- END Overall Rating Helper ---
 
-const PerformanceEvaluationCommentorPage = () => {
-  const { id } = useParams();
+const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   const navigate = useNavigate();
+
+  const params = useParams();
+  const id = propId || params.id;
 
   const {
     evaluationResponse,
@@ -126,7 +128,7 @@ const PerformanceEvaluationCommentorPage = () => {
         }
       }
     }
-  }, [evaluationResponse, loggedInUser]);
+  }, [evaluationResponse]);
 
   const handleSettingsClick = (event) => {
     setSettingsAnchorEl(event.currentTarget);
@@ -137,20 +139,16 @@ const PerformanceEvaluationCommentorPage = () => {
   const settingsOpen = Boolean(settingsAnchorEl);
 
   // Find this user as commentor, and their order
-  const allCommentors = Array.isArray(evaluationResponse?.commentors) ? evaluationResponse.commentors : [];
+  const allCommentors = evaluationResponse?.commentors ?? [];
   const thisCommentor = loggedInUser
     ? allCommentors.find(c => c.commentor_id === loggedInUser.id)
     : null;
 
   // Only show previous commentors (order < this one and have signed)
-  const previousCommentors = thisCommentor
-    ? allCommentors
-        .filter(c => c.order < thisCommentor.order && c.signature_filepath)
-        .sort((a, b) => a.order - b.order)
-    : [];
+  const previousCommentors = thisCommentor ? allCommentors.slice(0, thisCommentor.order - 1) : [];
 
   // --- Evaluators for preview ---
-  const allEvaluators = Array.isArray(evaluationResponse?.evaluators) ? evaluationResponse.evaluators : [];
+  const allEvaluators = evaluationResponse?.evaluators ?? [];
 
   // Save handler for this commentor
   const handleSaveComment = () => {
@@ -163,9 +161,8 @@ const PerformanceEvaluationCommentorPage = () => {
     try {
       await editEvaluationCommentor({
         response_id: evaluationResponse.id,
-        commentor_id: thisCommentor.commentor_id,
         comment: commentInput,
-        signature_filepath: signatureData // PNG dataURL
+        signature_filepath: signatureData
       });
       Swal.fire({
         icon: 'success',
@@ -305,6 +302,28 @@ const PerformanceEvaluationCommentorPage = () => {
                       {opt.label} - {opt.score ?? 1}{index !== subCategory.options.length - 1 && ','}
                     </Typography>
                   ))}
+                  
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                      Description:
+                    </Typography>
+                    <Box>
+                      {subCategory.options?.map((opt, index) =>
+                          opt.description ? (
+                            <Typography
+                              key={opt.id + "_desc"}
+                              variant="body2"
+                              sx={{fontSize: '0.8rem'}}
+                            >
+                              {opt.score} - {opt.description}
+                            </Typography>
+                          ) : null
+                        )}
+                    </Box>
+                    
+
                 </Box>
               </Box>
             )}

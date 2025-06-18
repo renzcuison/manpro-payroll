@@ -5,22 +5,11 @@ import { useAllowances } from "../../../../hooks/useAllowances";
 
 const EmployeeAllowanceEdit = ({allowances, onClose}) => {
     const {updateEmployeeAllowance} = useAllowances();
-    const [number, setNumber] = useState(allowances?.number)
+    // const [number, setNumber] = useState(allowances?.number)
     const [selectedStatus, setSelectedStatus] = useState(allowances?.status);
 
     const checkInput = (event) => {
         event.preventDefault();
-        if(!number || number === ''){
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "Number must not be empty!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            }).then(()=>{
-                return;
-            });
-        }
         Swal.fire({
             customClass: { container: 'my-swal' },
             title: "Are you sure?",
@@ -39,7 +28,7 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
 
     const saveAllowance = (event) => {
         event.preventDefault();
-        const data = {emp_allowance_id: allowances.id, number: number}
+        const data = {emp_allowance_id: allowances.id, status: selectedStatus}
         updateEmployeeAllowance.mutate(data,
         {
             onSuccess: () => {
@@ -65,7 +54,7 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
             <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
                 <FormGroup row={true} className="d-flex justify-content-between" sx={{mb:4}}>
                     <FormControl sx={{
-                     width: '35%', '& label.Mui-focused': { color: '#97a5ba' },
+                     width: '65%', '& label.Mui-focused': { color: '#97a5ba' },
                     '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                 }}>
                         <TextField
@@ -75,14 +64,15 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
                          />                    
                     </FormControl>
 
-                    <FormControl sx={{width:'30%'}}>
+                    {/* <FormControl sx={{width:'30%'}}>
                         <TextField
                             label={'Number'}
                             value={number}
                             onChange={(event) => setNumber(event.target.value)}
                          />                    
-                    </FormControl> 
-                    <FormControl sx={{width:'30%'}}>
+                    </FormControl>  */}
+
+                    <FormControl sx={{width:'32%'}}>
                         <TextField
                             select
                             id="status"

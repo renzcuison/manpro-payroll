@@ -7,7 +7,7 @@ import { useAllowances } from '../../../hooks/useAllowances';
 import AllowanceAdd from './Modals/AllowanceAdd';
 
 const AllowanceTypes = () => {
-    const {allowances: allowanceQuery} = useAllowances();
+    const {allowances: allowanceQuery} = useAllowances({loadAllowances: true});
     const allowances = allowanceQuery.data?.allowances || [];
 
     const [openAddAllowanceModal, setOpenAddAllowanceModal] = useState(false);
@@ -18,7 +18,7 @@ const AllowanceTypes = () => {
 
     const handleCloseAddAllowanceModal = () => {
         setOpenAddAllowanceModal(false);
-        refetch();
+        allowanceQuery.refetch();
     }
 
     return (
@@ -27,7 +27,7 @@ const AllowanceTypes = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                            <Link to="/admin/employees/allowance" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to="/admin/compensation/allowance" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
                             &nbsp; Allowance Types

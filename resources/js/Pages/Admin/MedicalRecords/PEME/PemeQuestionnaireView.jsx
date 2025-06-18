@@ -13,6 +13,7 @@ import {
     Select,
     MenuItem,
     InputLabel,
+    CircularProgress,
 } from "@mui/material";
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -68,14 +69,13 @@ const UploadForm = ({ fileSizeLimit, file, fileName, onFileClick }) => {
     );
 };
 
-
 const PassOrFail = ({ value }) => {
     const normalizedValue =
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-                ? "Fail"
-                : "";
+            ? "Fail"
+            : "";
 
     return (
         <Box
@@ -106,8 +106,8 @@ const PostiveOrNegative = ({ value }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-                ? "Negative"
-                : "";
+            ? "Negative"
+            : "";
 
     return (
         <Box
@@ -244,7 +244,7 @@ const PemeQuestionnaireView = () => {
     };
 
     const navigator = useNavigate();
-    const handleOnDeleteClick = () => { };
+    const handleOnDeleteClick = () => {};
     const handleOnCancelClick = () => {
         navigator(
             `/admin/medical-records/peme-records/peme-responses/${PemeResponseID}`
@@ -330,223 +330,284 @@ const PemeQuestionnaireView = () => {
 
     return (
         <Layout>
-            <Box
-                sx={{
-                    backgroundColor: "white",
-                    paddingY: 6,
-                    paddingX: 12,
-                    borderRadius: 1,
-                    boxShadow: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 4,
-                }}
-            >
-                {/* QUESTIONNAIRE */}
+            {isLoading ? (
                 <Box
                     sx={{
                         display: "flex",
-                        justifyContent: "space-between",
-                        padding: 2,
-                        borderBottom: "1px solid #ccc",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: 600,
                     }}
                 >
+                    <CircularProgress></CircularProgress>
+                </Box>
+            ) : (
+                <>
                     <Box
                         sx={{
+                            backgroundColor: "white",
+                            paddingY: 6,
+                            paddingX: 12,
+                            borderRadius: 1,
+                            boxShadow: 1,
                             display: "flex",
                             flexDirection: "column",
-                            gap: 2,
+                            gap: 4,
                         }}
                     >
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {employeeResponse.peme_name}
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                            {employeeResponse.respondent}
-                        </Typography>
-                    </Box>
-                </Box>
-                {/* QUESTION */}
-                {Array.isArray(employeeResponse.details) &&
-                    employeeResponse.details.map((form, index) => (
+                        {/* QUESTIONNAIRE */}
                         <Box
-                            key={index}
                             sx={{
-                                backgroundColor: "#fafafa",
-                                paddingX: 8,
-                                paddingY: 6,
-                                borderRadius: 1,
-                                boxShadow: 1,
                                 display: "flex",
-                                flexDirection: "column",
-                                gap: 2,
+                                justifyContent: "space-between",
+                                padding: 2,
+                                borderBottom: "1px solid #ccc",
                             }}
                         >
-                            {/* QUESTION NAME */}
-                            <Typography
-                                variant="h4"
-                                sx={{ fontWeight: "bold", marginBottom: 3 }}
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 2,
+                                }}
                             >
-                                {form.question_text}
-                            </Typography>
-                            {/* INPUT TYPES OF THAT QUESTION */}
-                            {Array.isArray(form.input_type) &&
-                                form.input_type.map((type, i) => {
-                                    const value = type.value || "";
-                                    let fileUrl, fileName;
+                                <Typography
+                                    variant="h4"
+                                    sx={{ fontWeight: "bold" }}
+                                >
+                                    {employeeResponse.peme_name}
+                                </Typography>
+                                <Typography
+                                    variant="h6"
+                                    sx={{ fontWeight: "bold" }}
+                                >
+                                    {employeeResponse.respondent}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        {/* QUESTION */}
+                        {Array.isArray(employeeResponse.details) &&
+                            employeeResponse.details.map((form, index) => (
+                                <Box
+                                    key={index}
+                                    sx={{
+                                        backgroundColor: "#fafafa",
+                                        paddingX: 8,
+                                        paddingY: 6,
+                                        borderRadius: 1,
+                                        boxShadow: 1,
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 2,
+                                    }}
+                                >
+                                    {/* QUESTION NAME */}
+                                    <Typography
+                                        variant="h4"
+                                        sx={{
+                                            fontWeight: "bold",
+                                            marginBottom: 3,
+                                        }}
+                                    >
+                                        {form.question_text}
+                                    </Typography>
+                                    {/* INPUT TYPES OF THAT QUESTION */}
+                                    {Array.isArray(form.input_type) &&
+                                        form.input_type.map((type, i) => {
+                                            const value = type.value || "";
+                                            let fileUrl, fileName;
 
-                                    {
-                                        Array.isArray(form.media) &&
-                                            form.media.length > 0 ? (
-                                            form.media.map((file, i) => (
-                                                <UploadForm
-                                                    key={i}
-                                                    fileSizeLimit={
-                                                        type.file_size_limit
-                                                    }
-                                                    file={file.url}
-                                                    fileName={file.file_name}
-                                                    onFileClick={handleFileClick}
-                                                />
-                                            ))
-                                        ) : (
-                                            <UploadForm
-                                                fileSizeLimit={type.file_size_limit}
-                                                onFileClick={handleFileClick}
-                                            />
-                                        );
-                                    }
+                                            {
+                                                Array.isArray(form.media) &&
+                                                form.media.length > 0 ? (
+                                                    form.media.map(
+                                                        (file, i) => (
+                                                            <UploadForm
+                                                                key={i}
+                                                                fileSizeLimit={
+                                                                    type.file_size_limit
+                                                                }
+                                                                file={file.url}
+                                                                fileName={
+                                                                    file.file_name
+                                                                }
+                                                                onFileClick={
+                                                                    handleFileClick
+                                                                }
+                                                            />
+                                                        )
+                                                    )
+                                                ) : (
+                                                    <UploadForm
+                                                        fileSizeLimit={
+                                                            type.file_size_limit
+                                                        }
+                                                        onFileClick={
+                                                            handleFileClick
+                                                        }
+                                                    />
+                                                );
+                                            }
 
-                                    switch (type.input_type) {
-                                        case "remarks":
-                                            return (
-                                                <Remarks
-                                                    key={i}
-                                                    value={value}
-                                                />
-                                            );
-                                        case "text":
-                                            return (
-                                                <TextBox
-                                                    key={i}
-                                                    value={value}
-                                                />
-                                            );
-                                        case "pass_fail":
-                                            return (
-                                                <PassOrFail
-                                                    key={i}
-                                                    value={value}
-                                                />
-                                            );
-                                        case "pos_neg":
-                                            return (
-                                                <PostiveOrNegative
-                                                    key={i}
-                                                    value={value}
-                                                />
-                                            );
-                                        case "attachment":
-                                            return (
-                                                <Box
-                                                    key={i}
-                                                    sx={{
-                                                        display: "flex",
-                                                        flexDirection: "column",
-                                                        gap: 1,
-                                                    }}
-                                                >
-                                                    {Array.isArray(
-                                                        form.media
-                                                    ) &&
-                                                        form.media.length > 0 ? (
-                                                        form.media.map(
-                                                            (file, j) => (
+                                            switch (type.input_type) {
+                                                case "remarks":
+                                                    return (
+                                                        <Remarks
+                                                            key={i}
+                                                            value={value}
+                                                        />
+                                                    );
+                                                case "text":
+                                                    return (
+                                                        <TextBox
+                                                            key={i}
+                                                            value={value}
+                                                        />
+                                                    );
+                                                case "pass_fail":
+                                                    return (
+                                                        <PassOrFail
+                                                            key={i}
+                                                            value={value}
+                                                        />
+                                                    );
+                                                case "pos_neg":
+                                                    return (
+                                                        <PostiveOrNegative
+                                                            key={i}
+                                                            value={value}
+                                                        />
+                                                    );
+                                                case "attachment":
+                                                    return (
+                                                        <Box
+                                                            key={i}
+                                                            sx={{
+                                                                display: "flex",
+                                                                flexDirection:
+                                                                    "column",
+                                                                gap: 1,
+                                                            }}
+                                                        >
+                                                            {Array.isArray(
+                                                                form.media
+                                                            ) &&
+                                                            form.media.length >
+                                                                0 ? (
+                                                                form.media.map(
+                                                                    (
+                                                                        file,
+                                                                        j
+                                                                    ) => (
+                                                                        <UploadForm
+                                                                            key={
+                                                                                j
+                                                                            }
+                                                                            fileSizeLimit={
+                                                                                type.file_size_limit
+                                                                            }
+                                                                            file={
+                                                                                file
+                                                                            }
+                                                                            fileName={
+                                                                                file.file_name
+                                                                            }
+                                                                            onFileClick={
+                                                                                handleFileClick
+                                                                            }
+                                                                        />
+                                                                    )
+                                                                )
+                                                            ) : (
                                                                 <UploadForm
-                                                                    key={j}
                                                                     fileSizeLimit={
                                                                         type.file_size_limit
                                                                     }
-                                                                    file={
-                                                                        file
+                                                                    onFileClick={
+                                                                        handleFileClick
                                                                     }
-                                                                    fileName={
-                                                                        file.file_name
-                                                                    }
-                                                                    onFileClick={handleFileClick}
                                                                 />
-                                                            )
-                                                        )
-                                                    ) : (
-                                                        <UploadForm
-                                                            fileSizeLimit={
-                                                                type.file_size_limit
-                                                            }
-                                                            onFileClick={handleFileClick}
-                                                        />
-                                                    )}
-                                                </Box>
-                                            );
-                                    }
-                                })}
-                        </Box>
-                    ))}
-                <Box
-                    sx={{
-                        display: "flex",
-                        gap: 2,
-                        alignItems: "center",
-                        marginTop: 2,
-                    }}
-                >
-                    <Button
-                        variant="contained"
-                        sx={{
-                            backgroundColor: "#7a7a7a",
-                        }}
-                        onClick={handleOnCancelClick}
-                    >
-                        Cancel
-                    </Button>
-
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker
-                            label="Expiration Date"
-                            value={expirationDate}
-                            onChange={setExpirationDate}
-                        />
-                    </LocalizationProvider>
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker
-                            label="Next Schedule"
-                            value={nextSchedule}
-                            onChange={setNextSchedule}
-                        />
-                    </LocalizationProvider>
-
-                    <FormControl sx={{ width: 200 }}>
-                        <InputLabel>Status</InputLabel>
-                        <Select
-                            value={status}
-                            label="Status"
-                            onChange={(e) => setStatus(e.target.value)}
+                                                            )}
+                                                        </Box>
+                                                    );
+                                            }
+                                        })}
+                                </Box>
+                            ))}
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 2,
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                marginTop: 2,
+                            }}
                         >
-                            <MenuItem value={"Pending"}>Pending</MenuItem>
-                            <MenuItem value={"Clear"}>Clear</MenuItem>
-                            <MenuItem value={"Rejected"}>Rejected</MenuItem>
-                        </Select>
-                    </FormControl>
+                            <Button
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: "#7a7a7a",
+                                }}
+                                onClick={handleOnCancelClick}
+                            >
+                                Cancel
+                            </Button>
+                            <Box sx={{ display: "flex", gap: 2 }}>
+                                <LocalizationProvider
+                                    dateAdapter={AdapterDayjs}
+                                >
+                                    <DatePicker
+                                        label="Expiration Date"
+                                        value={expirationDate}
+                                        onChange={setExpirationDate}
+                                    />
+                                </LocalizationProvider>
+                                <LocalizationProvider
+                                    dateAdapter={AdapterDayjs}
+                                >
+                                    <DatePicker
+                                        label="Next Schedule"
+                                        value={nextSchedule}
+                                        onChange={setNextSchedule}
+                                    />
+                                </LocalizationProvider>
+                                <FormControl sx={{ width: 200 }}>
+                                    <InputLabel>Status</InputLabel>
+                                    <Select
+                                        value={status}
+                                        label="Status"
+                                        onChange={(e) =>
+                                            setStatus(e.target.value)
+                                        }
+                                    >
+                                        <MenuItem value={"Pending"}>
+                                            Pending
+                                        </MenuItem>
+                                        <MenuItem value={"Clear"}>
+                                            Clear
+                                        </MenuItem>
+                                        <MenuItem value={"Rejected"}>
+                                            Rejected
+                                        </MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Box>
 
-                    <Button variant="contained" onClick={handleOnConfirmClick}>
-                        Confirm
-                    </Button>
-                </Box>
-            </Box>
-            <PemeRecordsFilePreview
-                open={filePreviewOpen}
-                close={() => setFilePreviewOpen(false)}
-                file={selectedFile}
-            />
+                            <Button
+                                variant="contained"
+                                onClick={handleOnConfirmClick}
+                            >
+                                Confirm
+                            </Button>
+                        </Box>
+                    </Box>
+                    <PemeRecordsFilePreview
+                        open={filePreviewOpen}
+                        close={() => setFilePreviewOpen(false)}
+                        file={selectedFile}
+                    />
+                </>
+            )}
         </Layout>
     );
 };

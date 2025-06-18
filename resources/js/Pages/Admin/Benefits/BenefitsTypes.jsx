@@ -8,7 +8,7 @@ import { useBenefits } from '../../../hooks/useBenefits';
 
 
 const BenefitsTypes = () => {
-    const {benefits} = useBenefits();
+    const {benefits} = useBenefits({loadBenefits:true});
     
     const benefitsData = benefits.data?.benefits || [];
     const [openAddBenefitsModal, setOpenAddBenefitsModal] = useState(false);
@@ -19,7 +19,7 @@ const BenefitsTypes = () => {
 
     const handleCloseAddBenefitsModal = () => {
         setOpenAddBenefitsModal(false);
-        refetch();
+        benefits.refetch();
     }
 
     return (
@@ -28,7 +28,7 @@ const BenefitsTypes = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                            <Link to="/admin/employees/benefits" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to="/admin/compensation/benefits" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
                             &nbsp; Benefits Types

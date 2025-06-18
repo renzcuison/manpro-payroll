@@ -21,7 +21,8 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const [jobTitles, setJobTitles] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [workGroups, setWorkGroups] = useState([]);
-    
+    const [salaryPlans, setSalaryPlans] = useState([]);
+
     const [firstNameError, setFirstNameError] = useState(false);
     const [lastNameError, setLastNameError] = useState(false);
     const [emailAddressError, setEmailAddressError] = useState(false);
@@ -49,6 +50,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const [selectedJobTitle, setSelectedJobTitle] = useState(employee.job_title_id);
     const [selectedDepartment, setSelectedDepartment] = useState(employee.department_id);
     const [selectedWorkGroup, setSelectedWorkGroup] = useState(employee.work_group_id);
+    const [selectedSalaryGrade, setSelectedSalaryGrade] = useState(employee.salary_grade);
 
     const [startDate, setStartDate] = React.useState(dayjs(employee.date_start));
     const [endDate, setEndDate] = React.useState(dayjs(employee.date_end));
@@ -160,6 +162,14 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             }).catch((error) => {
                 console.error('Error fetching branches:', error);
             });
+
+        axiosInstance.get('/getSalaryPlans', { headers, params: { limit: 1000 } })
+            .then((response) => {
+                setSalaryPlans(response.data.salaryPlans);
+                setSelectedSalaryGrade(employee.salary_grade);
+            }).catch((error) => {
+                console.error('Error fetching salary plans:', error);
+            });
     };
     const saveInput = (event) => {
         event.preventDefault();
@@ -191,6 +201,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             selectedJobTitle: selectedJobTitle,
             selectedDepartment: selectedDepartment,
             selectedWorkGroup: selectedWorkGroup,
+            selectedSalaryGrade: selectedSalaryGrade,
             selectedType: selectedType,
             selectedStatus: selectedStatus,
             startDate: formDateOnly(startDate),
@@ -243,6 +254,16 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
 
         
     };
+
+    // Find the selected salary plan
+    useEffect(() => {
+        const selectedPlan = salaryPlans.find(plan => String(plan.salary_grade) === String(selectedSalaryGrade));
+        if (selectedPlan) {
+            setSalary(selectedPlan.amount);
+        } else {
+            setSalary('');
+        }
+    }, [selectedSalaryGrade, salaryPlans]);
 
 
 
@@ -606,18 +627,48 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '34%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{ marginBottom: 3, width: '14%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
+                                <TextField
+                                    select
+                                    id="salaryGrade"
+                                    label="Salary Grade"
+                                    value={selectedSalaryGrade}
+                                    onChange={(event) => setSelectedSalaryGrade(event.target.value)}
+                                >
+                                    {salaryPlans.map((grade) => (
+                                        <MenuItem key={grade.id} value={grade.salary_grade}> Grade {grade.salary_grade} </MenuItem>
+                                    ))}
+                                </TextField>
+                            </FormControl>
+
+                            <FormControl
+                                sx={{
+                                    marginBottom: 3,
+                                    width: '27%',
+                                    '& label.Mui-focused': { color: '#50555c' },
+                                }}
+                            >
                                 <TextField
                                     label="Salary"
                                     variant="outlined"
-                                    value={salary}
-                                    onChange={(e) => setSalary(e.target.value)}
+                                    value={salary !== undefined && salary !== null ? Number(salary).toLocaleString('en-PH', { minimumFractionDigits: 2 }) : ''}
+                                    InputProps={{
+                                        readOnly: true,
+                                        style: { color: '#50555c' }, // text color for input
+                                    }}
+                                    sx={{
+                                        '& .MuiInputBase-input': { color: '#50555c' }, // text color for input
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#50555c' }, // border color
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#50555c' },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#50555c' },
+                                        '& label': { color: '#50555c' }, // label color
+                                    }}
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '34%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField

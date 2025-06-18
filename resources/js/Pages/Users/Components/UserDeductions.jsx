@@ -3,7 +3,7 @@ import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, Tab
 import { useDeductions } from "../../../hooks/useDeductions";
 
 const UserDeductions = ({ userName }) => {
-    const {employeeDeductions} = useDeductions(userName);
+    const {employeeDeductions} = useDeductions({userName: userName});
 
     const deductions = employeeDeductions.data?.deductions || [];
 
@@ -31,7 +31,7 @@ const UserDeductions = ({ userName }) => {
                                         <Typography>{deduction.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography>{deduction.number}</Typography>
+                                        <Typography>{deduction.number || '-'}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography>₱{(deduction.calcuated_amount).toFixed(2)}</Typography>

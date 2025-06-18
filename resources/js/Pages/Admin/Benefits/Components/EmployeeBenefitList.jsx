@@ -35,15 +35,17 @@ const EmployeeBenefitList = ({ benefits, isLoading, onAdd, onEdit }) => {
                                     </TableCell>
 
                                     <TableCell align="center">
-                                        <Typography>{benefit.number}</Typography>
+                                        <Typography>{benefit.number || '-'}</Typography>
+                                    </TableCell>    
+                                    <TableCell align="center">
+                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).
+                                        format(benefit.employer_contribution)}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).
+                                        format(benefit.employee_contribution)}
                                     </TableCell>
 
-                                    <TableCell align="center">
-                                        <Typography>₱{(benefit.employer_contribution).toFixed(2)}</Typography>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Typography>₱{(benefit.employee_contribution).toFixed(2)}</Typography>
-                                    </TableCell>
                                     <TableCell align="center">
                                         <Typography>{dayjs(benefit.created_at).format("MMMM DD, YYYY")}</Typography>
                                     </TableCell>

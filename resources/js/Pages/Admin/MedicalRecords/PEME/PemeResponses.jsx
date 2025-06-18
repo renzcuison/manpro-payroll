@@ -10,7 +10,7 @@ import Layout from "../../../../components/Layout/Layout";
 import PemeResponsesTable from "./PemeResponsesTable";
 import PemeDueDatePicker from "./PemeDueDatePicker";
 import DateRangePicker from "../../../../components/DateRangePicker";
-import PemeSettingsModal from "./Modals/PemeSettingsModal"
+import PemeSettingsModal from "./Modals/PemeSettingsModal";
 
 // MUI components
 import {
@@ -26,6 +26,7 @@ import {
     Divider,
     FormControlLabel,
     IconButton,
+    CircularProgress,
 } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
 import Swal from "sweetalert2";
@@ -141,7 +142,6 @@ const PemeResponses = () => {
     //     }
     // };
 
-
     const handleOnRowClick = (responseID) => {
         navigator(
             `/admin/medical-records/peme-records/peme-questionnaire-view/${responseID}`
@@ -255,6 +255,10 @@ const PemeResponses = () => {
         setToDate(end);
     };
 
+    const handleOnReturn = () => {
+        navigator("/admin/medical-records/peme-records");
+    };
+
     // Route::patch('/updatePemeSettings/{id}', [PemeController::class, 'updatePemeSettings']);
 
     return (
@@ -303,6 +307,13 @@ const PemeResponses = () => {
                             }}
                         >
                             <Button
+                                onClick={() => handleOnReturn()}
+                                variant="contained"
+                                sx={{ backgroundColor: "#8f8f8f" }}
+                            >
+                                Return
+                            </Button>
+                            <Button
                                 onClick={handleOnDeleteClick}
                                 variant="contained"
                                 sx={{ backgroundColor: "Red" }}
@@ -321,7 +332,10 @@ const PemeResponses = () => {
                             >
                                 Preview
                             </Button>
-                            <IconButton onClick={() => setSettingsOpen(true)} aria-label="Settings">
+                            <IconButton
+                                onClick={() => setSettingsOpen(true)}
+                                aria-label="Settings"
+                            >
                                 <SettingsIcon />
                             </IconButton>
                         </Box>
@@ -370,7 +384,7 @@ const PemeResponses = () => {
                                             >
                                                 {resultsCount}{" "}
                                                 {resultsCount === 1 ||
-                                                    resultsCount === 0
+                                                resultsCount === 0
                                                     ? "Match"
                                                     : "Matches"}
                                             </Typography>
@@ -383,11 +397,26 @@ const PemeResponses = () => {
 
                         <Box sx={{ height: 24 }} />
                         <Divider />
-                        <PemeResponsesTable
-                            onRowClick={handleOnRowClick}
-                            responses={filteredRecords}
-                            search={search}
-                        />
+
+                        {isLoading ? (
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    minHeight: 400,
+                                    maxHeight: 450,
+                                }}
+                            >
+                                <CircularProgress></CircularProgress>
+                            </Box>
+                        ) : (
+                            <PemeResponsesTable
+                                onRowClick={handleOnRowClick}
+                                responses={filteredRecords}
+                                search={search}
+                            />
+                        )}
                     </Box>
                 </Box>
             </Box>

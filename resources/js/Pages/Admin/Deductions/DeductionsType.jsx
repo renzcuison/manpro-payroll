@@ -6,7 +6,7 @@ import DeductionsAdd from './Modals/DeductionsAdd';
 import { useDeductions } from '../../../hooks/useDeductions';
 
 const DeductionsType = () => {
-    const {deductions} = useDeductions();
+    const {deductions} = useDeductions({loadDeductions: true});
 
     const deductionsData = deductions.data?.deductions || [];
     const [openAddDeductionsModal, setOpenAddDeductonsModal] = useState(false);
@@ -26,7 +26,7 @@ const DeductionsType = () => {
                 <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                            <Link to="/admin/employees/deductions" style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link to="/admin/compensation/deductions" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
                             &nbsp; Deductions Types
