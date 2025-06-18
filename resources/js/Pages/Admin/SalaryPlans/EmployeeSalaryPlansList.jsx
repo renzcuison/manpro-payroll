@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button, IconButton} from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, CircularProgress, Button} from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Swal from "sweetalert2";
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Tabs, Tab } from '@mui/material';
 
 import SalaryGradeAdd from './Modals/SalaryGradeAdd';
 import SalaryGradeEdit from './Modals/SalaryGradeEdit';
+import { useBenefits } from '../../../hooks/useBenefits';
 
 const SalaryPlans = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -23,6 +22,10 @@ const SalaryPlans = () => {
     const [page, setPage] = useState(0); // 0-based for TablePagination
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
+
+    const { benefits } = useBenefits({ loadBenefits: true });
+    const benefitsData = benefits.data?.benefits || [];
+    const [selectedBenefitIndex, setSelectedBenefitIndex] = useState(0);
 
     useEffect(() => {
         fetchSalaryPlans();
@@ -100,50 +103,75 @@ const SalaryPlans = () => {
                             </Box>
                         ) : (
                             <>
+                                {benefitsData.length > 0 &&
+                                    (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                            <Tabs
+                                                value={selectedBenefitIndex}
+                                                onChange={(e, newValue) => setSelectedBenefitIndex(newValue)}
+                                                sx={{ mb: 2 }}
+                                                variant="scrollable"
+                                                scrollButtons="auto"
+                                            >
+                                                {benefitsData.map((benefit, idx) => (
+                                                <Tab key={benefit.id} label={benefit.name} />
+                                                ))}
+                                            </Tabs>
+                                        </Box>
+                                    )
+                                }
                                 <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "20%" }} align="center"> Salary Grade </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "80%" }} align="center"> Amount </TableCell>
-                                                {/* <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "20%" }} align="center"> Actions </TableCell> */}
+                                                <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '20%' }} align="center">
+                                                Salary Grade
+                                                </TableCell>
+                                                <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '20%' }} align="center">
+                                                Amount
+                                                </TableCell>
+                                                
+                                            </TableRow>
+                                            <TableRow>
+                                                {benefitsData[selectedBenefitIndex] && (
+                                                    <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }} align="center">
+                                                        {benefitsData[selectedBenefitIndex].name} Employer's Share{benefitsData[selectedBenefitIndex].type === 'Amount' ? '(₱)' : '(%)'}
+                                                    </TableCell>
+                                                )}  
+                                                {benefitsData[selectedBenefitIndex] && (
+                                                    <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }} align="center">
+                                                        {benefitsData[selectedBenefitIndex].name} Employee's Share {benefitsData[selectedBenefitIndex].type === 'Amount' ? '(₱)' : '(%)'}
+                                                    </TableCell>
+                                                )}
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {salaryPlans.length > 0 ? (
                                                 salaryPlans.map((salaryPlan) => (
-                                                    // onClick={() => setOpenEditSalaryType(salaryPlan)}
                                                     <TableRow key={salaryPlan.id} sx={{ p: 1, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}} onClick={() => handleOpenEditSalaryGrade(salaryPlan)}>
                                                         <TableCell sx={{fontSize: 14}} align="center">Grade {salaryPlan.salary_grade}</TableCell>
                                                         <TableCell sx={{ fontSize: 14 }} align="center">
                                                             ₱ {Number(salaryPlan.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </TableCell>
-                                                        {/* <TableCell sx={{fontSize: 14}} align="center">
-                                                            <IconButton
-                                                                color="primary"
-                                                                onClick={() => handleOpenEditSalaryGrade(salaryPlan)}
-                                                                aria-label="edit"
-                                                                size="small"
-                                                            >
-                                                                <EditIcon />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                color="error"
-                                                                onClick={(event) => {
-                                                                    event.stopPropagation();
-                                                                    handleDeleteSalaryGrade(salaryPlan);
-                                                                }}
-                                                                aria-label="delete"
-                                                                size="small"
-                                                            >
-                                                                <DeleteIcon />
-                                                            </IconButton>
-                                                        </TableCell> */}
+                                                        {benefitsData[selectedBenefitIndex] && (
+                                                        <>
+                                                            <TableCell align="center" sx={{ fontSize: 14 }}>
+                                                            {benefitsData[selectedBenefitIndex].type === 'Amount'
+                                                                ? '₱ ' + Number(benefitsData[selectedBenefitIndex].employer_amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                                                : '₱ ' + Number((benefitsData[selectedBenefitIndex].employer_percentage ?? 0) * salaryPlan.amount * 0.01).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            </TableCell>
+                                                            <TableCell align="center" sx={{ fontSize: 14 }}>
+                                                            {benefitsData[selectedBenefitIndex].type === 'Amount'
+                                                                ? '₱ ' + Number(benefitsData[selectedBenefitIndex].employee_amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                                                : '₱ ' + Number((benefitsData[selectedBenefitIndex].employee_percentage ?? 0) * salaryPlan.amount * 0.01).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            </TableCell>
+                                                        </>
+                                                        )}
                                                     </TableRow>
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={3} align="center"> No Salary Plans </TableCell>
+                                                    <TableCell colSpan={2 + benefitsData.length * 2} align="center"> No Salary Plans </TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
