@@ -120,130 +120,244 @@ const PerformanceEvaluationEvaluateePage = () => {
     }
   };
 
-  const handleDownloadPDF = async () => {
-    const doc = new jsPDF("p", "pt", "a4");
-    const margin = 40;
-    let y = margin;
+const handleDownloadPDF = async () => {
+  const doc = new jsPDF("p", "pt", "a4");
+  const margin = 40;
+  let y = margin;
 
-    const form = evaluationResponse.form;
-    const responseMeta = evaluationResponse;
+  const form = evaluationResponse.form;
+  const responseMeta = evaluationResponse;
 
-    // Title
-    doc.setFontSize(22);
-    doc.text(form.name, margin, y);
-    y += 30;
+  // Centered Form Name
+  doc.setFontSize(22);
+  doc.setFont(undefined, "bold");
+  const pageWidth = doc.internal.pageSize.getWidth();
+  doc.text(form.name, pageWidth / 2, y, { align: "center" });
+  y += 36;
 
-    // Evaluatee & Evaluators
-    doc.setFontSize(12);
-    doc.text(`Evaluatee: ${responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}`, margin, y);
+  // Employee, Evaluator(s), Period
+  doc.setFontSize(13);
+  doc.setFont(undefined, "normal");
+  doc.text(`Employee Name:`, margin, y);
+  doc.setFont(undefined, "bold");
+  doc.text(`${getFullName(responseMeta?.evaluatee) || ''}`, margin + 120, y);
+  doc.setFont(undefined, "normal");
+  y += 18;
+  doc.text(`Evaluator(s):`, margin, y);
+  doc.setFont(undefined, "bold");
+  doc.text(`${responseMeta?.evaluators ? responseMeta.evaluators.map(getFullName).join(', ') : ''}`, margin + 120, y);
+  doc.setFont(undefined, "normal");
+  y += 18;
+  doc.text(`Period:`, margin, y);
+  doc.setFont(undefined, "bold");
+  doc.text(`${responseMeta.period_start_date} to ${responseMeta.period_end_date}`, margin + 120, y);
+  doc.setFont(undefined, "normal");
+  y += 28;
+
+  // Sections
+  for (const section of form.sections) {
+    doc.setFontSize(15);
+    doc.setFont(undefined, "bold");
+    doc.text(`${section.name}`, margin, y);
+    doc.setFont(undefined, "normal");
     y += 18;
-    doc.text(
-      `Evaluators: ${responseMeta?.evaluators ? responseMeta.evaluators.map(getFullName).join('—') : ''}`,
-      margin, y
-    );
-    y += 18;
-    doc.text(`Period: ${responseMeta.period_start_date} to ${responseMeta.period_end_date}`, margin, y);
-    y += 24;
 
-    // Sections and Scores
-    form.sections.forEach(section => {
-      const { sectionScore, subcatScores } = getSectionScore(section);
-      doc.setFontSize(15);
-      doc.text(`Section: ${section.name}`, margin, y);
-      y += 18;
-
-      subcatScores.forEach(({ name, score, description }) => {
-        doc.setFontSize(12);
-        doc.text(` - ${name}: ${score.toFixed(1)}`, margin + 10, y);
-        y += 16;
-        if (description) {
-          doc.setFontSize(10);
-          doc.text(`   Description: ${description}`, margin + 18, y);
-          y += 14;
-        }
-      });
-
+    if (section.category) {
       doc.setFontSize(12);
-      doc.text(`Total Rating: ${sectionScore.toFixed(1)}`, margin + 10, y);
-      y += 20;
-    });
-
-    // Comments
-    const allCommentors = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
-      ? responseMeta.commentors
-      : [];
-    if (allCommentors.length > 0) {
-      doc.setFontSize(13);
-      doc.text("Comments:", margin, y);
-      y += 18;
-      allCommentors.forEach((commentor, idx) => {
-        doc.setFontSize(12);
-        doc.text(`${getOrderLabel(idx)} Commentor: ${getFullName(commentor)}`, margin + 10, y);
-        y += 16;
-        doc.text(commentor.comment || "(No comment provided)", margin + 18, y);
-        y += 20;
-      });
+      doc.setFont(undefined, "italic");
+      doc.text(section.category, margin + 8, y);
+      doc.setFont(undefined, "normal");
+      y += 16;
     }
 
-    // Signatures
-    y += 16;
-    doc.setFontSize(14);
-    doc.text("Signatures:", margin, y);
-    y += 18;
+    for (const subcat of section.subcategories) {
+      doc.setFontSize(12);
+      doc.setFont(undefined, "bold");
+      doc.text(subcat.name, margin + 16, y);
+      doc.setFont(undefined, "normal");
+      y += 14;
 
-async function addSignatureImage(url, label, y) {
-  if (!url || url === "data:image/png;base64,") return y;
-  try {
-    // Try to "sanitize" the image by drawing it on a canvas and re-exporting as PNG
-    const img = new window.Image();
-    img.src = url;
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-    });
+      doc.setFontSize(11);
+      doc.text(`Response Type:`, margin + 32, y);
+      doc.text(
+        `${subcat.subcategory_type?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`,
+        margin + 120,
+        y
+      );
+      y += 13;
 
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    const pngDataUrl = canvas.toDataURL('image/png');
+      if (subcat.description) {
+        doc.text(`Description:`, margin + 32, y);
+        const descLines = doc.splitTextToSize(subcat.description, 350);
+        doc.text(descLines, margin + 120, y);
+        y += descLines.length * 12;
+      }
 
-    doc.setFontSize(12);
-    doc.text(label, margin + 10, y + 15);
-    doc.addImage(pngDataUrl, "PNG", margin + 120, y, 80, 40);
-    y += 50;
-  } catch (err) {
-    console.error("Error rendering signature", label, err, url);
-    doc.text(`${label} (signature not found)`, margin + 10, y + 15);
-    y += 20;
+      // Answers
+      let answerText = '';
+      if (subcat.subcategory_type === 'multiple_choice') {
+        const selected = subcat.options.find(opt => opt.option_answer);
+        answerText = selected ? selected.label : "(No answer)";
+      } else if (subcat.subcategory_type === 'checkbox') {
+        const selected = subcat.options.filter(opt => opt.option_answer).map(opt => opt.label);
+        answerText = selected.length > 0 ? selected.join(', ') : "(No answer)";
+      } else if (subcat.subcategory_type === 'linear_scale') {
+        answerText = typeof subcat.percentage_answer?.value === 'number'
+          ? String(subcat.percentage_answer.value)
+          : "(No answer)";
+      } else if (subcat.subcategory_type === 'short_answer' || subcat.subcategory_type === 'long_answer') {
+        answerText = subcat.text_answer?.answer || "(No answer)";
+      }
+      doc.text(`Answer/s:`, margin + 32, y);
+      const answerLines = doc.splitTextToSize(answerText, 350);
+      doc.text(answerLines, margin + 120, y);
+      y += answerLines.length * 13 + 8;
+
+      // page break if needed
+      if (y > 740) { doc.addPage(); y = margin; }
+    }
+    y += 10;
   }
-  return y;
-}
 
-    if (creatorSignatureFilePath) {
-      y = await addSignatureImage(creatorSignatureFilePath, "Creator Signature", y);
+  // Evaluator Comments
+  if (responseMeta.evaluators && responseMeta.evaluators.length > 0) {
+    for (const evaluator of responseMeta.evaluators) {
+      doc.setFontSize(13);
+      doc.setFont(undefined, "bold");
+      doc.text("Evaluator Comment:", margin, y);
+      doc.setFont(undefined, "normal");
+      y += 16;
+      const evalComment = evaluator.comment || "(No comment provided)";
+      const evalCommentLines = doc.splitTextToSize(evalComment, 450);
+      doc.text(evalCommentLines, margin + 20, y);
+      y += evalCommentLines.length * 13 + 8;
+      if (y > 740) { doc.addPage(); y = margin; }
     }
-    if (evaluateeSignatureFilePath) {
-      y = await addSignatureImage(evaluateeSignatureFilePath, "Evaluatee Signature", y);
-    }
-    if (responseMeta?.evaluators)
-      for (const evaluator of responseMeta.evaluators) {
-        const signatureFilePath = signatureFilePaths[evaluator.id];
-        if (signatureFilePath) {
-          y = await addSignatureImage(signatureFilePath, `${getFullName(evaluator)} (Evaluator)`, y);
-        }
-      }
-    if (responseMeta?.commentors)
-      for (const commentor of responseMeta.commentors) {
-        const signatureFilePath = signatureFilePaths[commentor.id];
-        if (signatureFilePath) {
-          y = await addSignatureImage(signatureFilePath, `${getFullName(commentor)} (Commentor)`, y);
-        }
-      }
-    doc.save(`evaluation_${form.name.replace(/\s+/g, '_')}.pdf`);
-  };
+  }
 
+  // Commentors
+  if (responseMeta.commentors && responseMeta.commentors.length > 0) {
+    let idx = 1;
+    for (const commentor of responseMeta.commentors) {
+      doc.setFontSize(12);
+      doc.setFont(undefined, "bold");
+      doc.text(`Commenter ${idx}: ${getFullName(commentor)}`, margin, y);
+      doc.setFont(undefined, "normal");
+      y += 15;
+      const comment = commentor.comment || "(No comment provided)";
+      const commentLines = doc.splitTextToSize(comment, 420);
+      doc.text(commentLines, margin + 20, y);
+      y += commentLines.length * 13 + 8;
+      idx++;
+      if (y > 740) { doc.addPage(); y = margin; }
+    }
+  }
+
+  // Signatures header
+  y += 20;
+  doc.setFontSize(14);
+  doc.setFont(undefined, "bold");
+  doc.text("Signatures:", margin, y);
+  doc.setFont(undefined, "normal");
+  y += 12;
+
+  // Gather all signatures
+  const signatureBlocks = [];
+
+  // Creator (if you have a creator name, otherwise fallback)
+  if (creatorSignatureFilePath) {
+    // Try to find the creator's name or fallback to "Creator"
+    let creatorName = "Creator";
+    if (form?.creator_user_name) creatorName = form.creator_user_name + " (Creator)";
+    signatureBlocks.push({
+      url: creatorSignatureFilePath,
+      name: creatorName,
+    });
+  }
+
+  // Evaluatee
+  if (evaluateeSignatureFilePath) {
+    signatureBlocks.push({
+      url: evaluateeSignatureFilePath,
+      name: responseMeta?.evaluatee
+        ? `${getFullName(responseMeta.evaluatee)} (Evaluatee)`
+        : "Evaluatee",
+    });
+  }
+
+  // Evaluators
+  if (responseMeta?.evaluators) {
+    for (const evaluator of responseMeta.evaluators) {
+      const signatureFilePath = signatureFilePaths[evaluator.id];
+      if (signatureFilePath) {
+        signatureBlocks.push({
+          url: signatureFilePath,
+          name: `${getFullName(evaluator)} (Evaluator)`,
+        });
+      }
+    }
+  }
+
+  // Commentors
+  if (responseMeta?.commentors) {
+    for (const commentor of responseMeta.commentors) {
+      const signatureFilePath = signatureFilePaths[commentor.id];
+      if (signatureFilePath) {
+        signatureBlocks.push({
+          url: signatureFilePath,
+          name: `${getFullName(commentor)} (Commentor)`,
+        });
+      }
+    }
+  }
+
+  // Helper to render a signature cell
+  async function drawSignatureCell(sig, x, y, cellWidth) {
+    const imgWidth = 120;
+    const imgHeight = 40;
+    if (!sig.url || sig.url === "data:image/png;base64,") {
+      doc.setFontSize(10);
+      doc.setFont(undefined, "italic");
+      doc.text(`${sig.name} (signature not found)`, x + cellWidth / 2, y + imgHeight / 2, { align: "center" });
+      return;
+    }
+    try {
+      const img = new window.Image();
+      img.src = sig.url;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      const imgX = x + (cellWidth - imgWidth) / 2;
+      doc.addImage(img, "PNG", imgX, y, imgWidth, imgHeight);
+      doc.setFontSize(11);
+      doc.setFont(undefined, "bold");
+      doc.text(sig.name, x + cellWidth / 2, y + imgHeight + 16, { align: "center" });
+    } catch {
+      doc.setFontSize(10);
+      doc.setFont(undefined, "italic");
+      doc.text(`${sig.name} (signature not found)`, x + cellWidth / 2, y + 15, { align: "center" });
+    }
+  }
+
+  // Draw signatures in 2-column rows
+  const cellWidth = 210; // adjust as needed
+  const startX = margin; // left margin
+  let sigY = y + 10; // starting y for signatures
+
+  for (let i = 0; i < signatureBlocks.length; i += 2) {
+    // First column
+    await drawSignatureCell(signatureBlocks[i], startX, sigY, cellWidth);
+    // Second column (if exists)
+    if (signatureBlocks[i + 1]) {
+      await drawSignatureCell(signatureBlocks[i + 1], startX + cellWidth + 40, sigY, cellWidth);
+    }
+    sigY += 70; // vertical space per row
+    if (sigY > 740) { doc.addPage(); sigY = margin; }
+  }
+
+  doc.save(`evaluation_${form.name.replace(/\s+/g, '_')}.pdf`);
+};
   const getOrderLabel = (idx) => {
     const n = idx + 1;
     if (n === 1) return "First";
@@ -693,15 +807,59 @@ async function addSignatureImage(url, label, y) {
                   <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(evaluator)}
                   </Typography>
-                  <TextField
-                    multiline
-                    minRows={3}
-                    fullWidth
-                    value={evaluator.comment || ''}
-                    sx={{ mt: 1 }}
-                    placeholder="No comment provided"
-                    InputProps={{ readOnly: true }}
-                  />
+                  <Box
+                    sx={{
+                      border: "1.5px solid #ccc",
+                      borderRadius: "8px",
+                      px: 2,
+                      pt: 2,
+                      pb: 0.5,
+                      background: "#fff",
+                      minHeight: 100,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      mt: 1,
+                    }}
+                  >
+                    <TextField
+                      variant="standard"
+                      InputProps={{
+                        disableUnderline: true,
+                        readOnly: true,
+                        style: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#222",
+                        }
+                      }}
+                      label="Evaluator Comment"
+                      multiline
+                      minRows={3}
+                      fullWidth
+                      value={evaluator.comment || ''}
+                      placeholder="No comment provided"
+                      sx={{
+                        pb: 2,
+                        '& .MuiInputBase-input': { padding: 0 },
+                        '& label': { color: '#999', fontWeight: 400 }
+                      }}
+                    />
+                    {evaluator.updated_at && evaluator.signature_filepath && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#888",
+                          fontStyle: "italic",
+                          mt: 1,
+                          mb: 1,
+                          ml: 0.5,
+                        }}
+                      >
+                        Signed - {evaluator.updated_at.slice(0, 10)}
+                      </Typography>
+                    )}
+                  </Box>
                 </Paper>
               ))}
             </Box>
@@ -742,17 +900,59 @@ async function addSignatureImage(url, label, y) {
                   <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(commentor)}
                   </Typography>
-                  <TextField
-                    multiline
-                    minRows={3}
-                    fullWidth
-                    value={commentor.comment || ''}
-                    sx={{ mt: 1 }}
-                    placeholder="No comment provided"
-                    InputProps={{
-                      readOnly: true,
-                    }}
-                  />
+                    <Box
+                      sx={{
+                        border: "1.5px solid #ccc",
+                        borderRadius: "8px",
+                        px: 2,
+                        pt: 2,
+                        pb: 0.5,
+                        background: "#fff",
+                        minHeight: 100,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        mt: 1,
+                      }}
+                    >
+                      <TextField
+                        variant="standard"
+                        InputProps={{
+                          disableUnderline: true,
+                          readOnly: true,
+                          style: {
+                            fontSize: "1rem",
+                            fontWeight: 400,
+                            color: "#222",
+                          }
+                        }}
+                        label="Commentor Comment"
+                        multiline
+                        minRows={3}
+                        fullWidth
+                        value={commentor.comment || ''}
+                        placeholder="No comment provided"
+                        sx={{
+                          pb: 2,
+                          '& .MuiInputBase-input': { padding: 0 },
+                          '& label': { color: '#999', fontWeight: 400 }
+                        }}
+                      />
+                      {commentor.updated_at && commentor.signature_filepath &&(
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "#888",
+                            fontStyle: "italic",
+                            mt: 1,
+                            mb: 1,
+                            ml: 0.5,
+                          }}
+                        >
+                          Signed - {commentor.updated_at.slice(0, 10)}
+                        </Typography>
+                      )}
+                    </Box>
                 </Paper>
               ))}
             </Box>

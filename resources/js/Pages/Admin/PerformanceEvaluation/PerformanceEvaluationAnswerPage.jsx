@@ -470,43 +470,83 @@ const PerformanceEvaluationAnswerPage = () => {
             {evaluators.length > 0 ? (
               <Box>
                 {evaluators.map((evaluator, index) => (
-                  <Paper
-                    key={evaluator.evaluator_id || index}
-                    elevation={2}
+                <Paper
+                  key={evaluator.evaluator_id || index}
+                  elevation={2}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: '#fffff',
+                    borderRadius: 2,
+                    borderLeft: '8px solid #eab31a',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    width: '100%',
+                    boxShadow: 2,
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                    {getFullName(evaluator)}
+                  </Typography>
+                  <Box
                     sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      bgcolor: '#fffff',
-                      borderRadius: 2,
-                      borderLeft: '8px solid #eab31a',
+                      border: "1.5px solid #ccc",
+                      borderRadius: "8px",
                       px: 2,
                       pt: 2,
-                      pb: 2,
-                      mt: 2,
-                      mb: 2,
-                      width: '100%',
-                      boxShadow: 2,
+                      pb: 0.5,
+                      background: "#fff",
+                      minHeight: 100,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between"
                     }}
                   >
-                    {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-                      {evaluator.evaluator_id}
-                    </Typography> */}
-                    <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                      {getFullName(evaluator)}
-                      {evaluator.evaluator_id}, {evaluatorId}
-                    </Typography>
                     <TextField
+                      variant="standard"
+                      InputProps={{
+                        disableUnderline: true,
+                        readOnly: evaluator.evaluator_id !== evaluatorId,
+                        style: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#222",
+                        }
+                      }}
                       label="Evaluator Comment"
                       multiline
                       minRows={3}
                       fullWidth
-                      inputProps={{readOnly: evaluator.evaluator_id !== evaluatorId}}
                       value={evaluator.comment}
-                      sx={{ mt: 1 }}
                       onChange={e => handleEvaluatorCommentInput(evaluator, e.target.value)}
                       placeholder="Enter your comment here"
+                      sx={{
+                        pb: 2,
+                        '& .MuiInputBase-input': {
+                          padding: 0,
+                        },
+                        '& label': { color: '#999', fontWeight: 400 }
+                      }}
                     />
-                  </Paper>
+                    {evaluator.updated_at && evaluator.signature_filepath && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#888",
+                          fontStyle: "italic",
+                          mt: 1,
+                          mb: 1,
+                          ml: 0.5,
+                        }}
+                      >
+                        Signed - {evaluator.updated_at.slice(0, 10)}
+                      </Typography>
+                    )}
+                  </Box>
+                </Paper>
                 ))}
               </Box>
             ) : (

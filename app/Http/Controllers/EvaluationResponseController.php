@@ -501,7 +501,8 @@ class EvaluationResponseController extends Controller
                             'users.last_name', 'users.first_name', 'users.middle_name', 'users.suffix',
                             'evaluation_evaluators.comment',
                             'evaluation_evaluators.order',
-                            'evaluation_evaluators.signature_filepath'
+                            'evaluation_evaluators.signature_filepath',
+                            'evaluation_evaluators.updated_at'
                         )
                         ->orderBy('order')
                 ])
@@ -514,7 +515,8 @@ class EvaluationResponseController extends Controller
                             'users.last_name', 'users.first_name', 'users.middle_name', 'users.suffix',
                             'evaluation_commentors.comment',
                             'evaluation_commentors.order',
-                            'evaluation_commentors.signature_filepath'
+                            'evaluation_commentors.signature_filepath',
+                            'evaluation_commentors.updated_at'
                         )
                         ->orderBy('order')
                 ])
