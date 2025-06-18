@@ -322,7 +322,10 @@ class AnnouncementsController extends Controller
                 }, 'user.role']) // Load user and role relationships
                 ->get();
 
-            $announcementData = $announcements->map(function ($announcement) use ($user) {                
+            $announcementData = $announcements->map(function ($announcement) use ($user) {           
+                
+                log::info($announcement);
+                
                 $branchMatched = $announcement->branches->pluck('branch_id')->contains($user->branch_id);
                 $departmentMatched = $announcement->departments->pluck('department_id')->contains($user->department_id);
                 $acknowledgedOn = $announcement->acknowledgements->firstWhere('user_id', $user->id)?->created_at;
