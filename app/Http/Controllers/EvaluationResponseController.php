@@ -425,7 +425,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationResponse: {
-                id, role, evaluatee_id, datetime,
+                id, role, evaluatee_id, creator_id, datetime,
                 period_start_date, period_end_date,
                 created_at, updated_at,
                 status,
@@ -478,7 +478,7 @@ class EvaluationResponseController extends Controller
             $evaluationResponse = EvaluationResponse
                 ::join('evaluation_forms', 'evaluation_forms.id', '=', 'evaluation_responses.form_id')
                 ->join('users', 'users.id', '=', 'evaluation_forms.creator_id')
-                ->select('evaluation_responses.id', 'evaluation_responses.evaluatee_id')
+                ->select('evaluation_responses.id', 'evaluation_responses.evaluatee_id', 'evaluation_responses.creator_id')
                 ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y - %h:%i %p') as datetime")
                 ->selectRaw("date_format(evaluation_responses.period_start_at, '%b %d, %Y') as period_start_date")
                 ->selectRaw("date_format(evaluation_responses.period_end_at, '%b %d, %Y') as period_end_date")
@@ -492,8 +492,8 @@ class EvaluationResponseController extends Controller
                 ->with(['evaluatee' => fn ($evaluatee) =>
                     $evaluatee->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
                 ])
-                ->with(['evaluators' => fn ($evaluatee) =>
-                    $evaluatee
+                ->with(['evaluators' => fn ($evaluator) =>
+                    $evaluator
                         ->join('users', 'evaluation_evaluators.evaluator_id', '=', 'users.id')
                         ->select(
                             'evaluation_evaluators.evaluator_id',
@@ -506,10 +506,11 @@ class EvaluationResponseController extends Controller
                         )
                         ->orderBy('order')
                 ])
-                ->with(['commentors' => fn ($evaluatee) =>
-                    $evaluatee
+                ->with(['commentors' => fn ($commentor) =>
+                    $commentor
                         ->join('users', 'evaluation_commentors.commentor_id', '=', 'users.id')
                         ->select(
+                            'evaluation_commentors.id',
                             'evaluation_commentors.commentor_id',
                             'evaluation_commentors.response_id',
                             'users.last_name', 'users.first_name', 'users.middle_name', 'users.suffix',
@@ -631,8 +632,14 @@ class EvaluationResponseController extends Controller
                 : null
             );
             if($evaluationResponse->creator_id == $userID) $role = 'Creator';
+           
             foreach ($evaluationResponse->evaluators as $index => $evaluator) {
-                $evaluatorSignature = $evaluator->getFirstMedia('signatures');
+                $evaluatorSignature = $evaluator
+                    ->where('evaluator_id', $evaluator->evaluator_id)
+                    ->where('response_id', $request->id)
+                    ->first()
+                    ->getFirstMedia('signatures')
+                ;
                 $evaluator->evaluator_signature = (
                     $evaluatorSignature ? base64_encode(file_get_contents($evaluatorSignature->getPath()))
                     : null
@@ -640,7 +647,12 @@ class EvaluationResponseController extends Controller
                 if($evaluator->evaluator_id === $userID) $role = 'Evaluator';
             }
             foreach ($evaluationResponse->commentors as $index => $commentor) {
-                $commentorSignature = $commentor->getFirstMedia('signatures');
+                $commentorSignature = $commentor
+                    ->where('commentor_id', $commentor->commentor_id)
+                    ->where('response_id', $request->id)
+                    ->first()
+                    ->getFirstMedia('signatures')
+                ;
                 $commentor->commentor_signature = (
                     $commentorSignature ? base64_encode(file_get_contents($commentorSignature->getPath()))
                     : null

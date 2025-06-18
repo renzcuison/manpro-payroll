@@ -8,7 +8,7 @@ import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
-import PerformanceEvaluationEvaluateeAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvaluationEvaluateeAcknowledge';
+import PerformanceEvaluationEvaluateeAcknowledge from './Modals/PerformanceEvaluationEvaluateeAcknowledge';
 import Swal from 'sweetalert2';
 import ScoreLinearBar from './Test/ScoreLinearBar';
 import jsPDF from "jspdf";
@@ -121,6 +121,7 @@ const PerformanceEvaluationEvaluateePage = () => {
   };
 
 const handleDownloadPDF = async () => {
+  console.log(evaluationResponse);
   const doc = new jsPDF("p", "pt", "a4");
   const margin = 40;
   let y = margin;
@@ -315,13 +316,9 @@ const handleDownloadPDF = async () => {
   async function drawSignatureCell(sig, x, y, cellWidth) {
     const imgWidth = 120;
     const imgHeight = 40;
-    if (!sig.url || sig.url === "data:image/png;base64,") {
-      doc.setFontSize(10);
-      doc.setFont(undefined, "italic");
-      doc.text(`${sig.name} (signature not found)`, x + cellWidth / 2, y + imgHeight / 2, { align: "center" });
-      return;
-    }
     try {
+      if(!sig.url || sig.url === "data:image/png;base64,")
+        throw new Error();
       const img = new window.Image();
       img.src = sig.url;
       await new Promise((resolve, reject) => {
@@ -333,7 +330,7 @@ const handleDownloadPDF = async () => {
       doc.setFontSize(11);
       doc.setFont(undefined, "bold");
       doc.text(sig.name, x + cellWidth / 2, y + imgHeight + 16, { align: "center" });
-    } catch {
+    } catch (e) {
       doc.setFontSize(10);
       doc.setFont(undefined, "italic");
       doc.text(`${sig.name} (signature not found)`, x + cellWidth / 2, y + 15, { align: "center" });
