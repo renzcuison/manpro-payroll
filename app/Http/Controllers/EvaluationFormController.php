@@ -1296,7 +1296,7 @@ class EvaluationFormController extends Controller
                 $subcategory->save();
 
                 // ---- BATCH REPLACE OPTIONS ----
-                if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox'])) {
+                if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear_scale'])) {
                     // Remove ALL existing options
                     \App\Models\EvaluationFormSubcategoryOption::where('subcategory_id', $subcategory->id)->delete();
                     // Add all new options
@@ -1724,10 +1724,10 @@ class EvaluationFormController extends Controller
             ]);
 
             // Only allow options for multiple_choice and checkbox types
-            if (!in_array($subcategory->subcategory_type, ['multiple_choice', 'checkbox'])) {
+            if (!in_array($subcategory->subcategory_type, ['multiple_choice', 'checkbox', 'linear_scale'])) {
                 return response()->json([
                     'status' => 400,
-                    'message' => 'Options can only be added to Multiple Choice or Checkbox subcategories.'
+                    'message' => 'Options can only be added to Multiple Choice, Checkbox, or Linear Scale subcategories.'
                 ]);
             }
 

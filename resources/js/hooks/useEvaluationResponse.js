@@ -8,9 +8,7 @@ export function useEvaluationResponse(responseId) {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [evaluationResponse, setEvaluationResponse] = useState({});
     const [evaluatorId, setEvaluatorId] = useState();
-    const [formId, setFormId] = useState();
-    const [periodStartAt, setPeriodStartAt] = useState('');
-    const [periodStartEnd, setPeriodStartEnd] = useState('');
+    const [commentorId, setCommentorId] = useState();
     const [signatureFilePaths, setSignatureFilePaths] = useState({});
     const subcategories = evaluationResponse.form?.sections.reduce((subcategories, section) => {
         for(let subcategory of section.subcategories) subcategories[subcategory.id] = subcategory;
@@ -69,17 +67,18 @@ export function useEvaluationResponse(responseId) {
                 headers, params: { id: responseId }
             })
             .then((response) => {
-                const { evaluationResponse } = response.data;
+                const { evaluationResponse, userID: userId } = response.data;
                 if(!evaluationResponse) return;
                 const {
                     evaluatee_id, creator_id, evaluatee_signature, creator_signature,
                     commentors, evaluators
                 } = evaluationResponse;
-                const userId = JSON.parse(storedUser).id;
                 if(evaluatee_signature) loadSignatureFilePath(evaluatee_id, evaluatee_signature);
                 if(creator_signature) loadSignatureFilePath(creator_id, creator_signature);
-                for(let { commentor_id, commentor_signature } of commentors)
+                for(let { commentor_id, commentor_signature } of commentors) {
                     if(commentor_signature) loadSignatureFilePath(commentor_id, commentor_signature);
+                    if(commentor_id === userId) setCommentorId(commentor_id);
+                }
                 for(let { evaluator_id, evaluator_signature } of evaluators) {
                     if(evaluator_signature) loadSignatureFilePath(evaluator_id, evaluator_signature);
                     if(evaluator_id === userId) setEvaluatorId(evaluator_id);
@@ -91,14 +90,14 @@ export function useEvaluationResponse(responseId) {
             });
     }
 
-    function loadSignatureFilePath(userId, filePath) {
-        const byteCharacters = window.atob(filePath);
+    function loadSignatureFilePath(userId, file) {
+        const byteCharacters = window.atob(file);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++)
             byteNumbers[i] = byteCharacters.charCodeAt(i);
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: 'image/png' });
-        if (filePath && filePath.startsWith('blob:')) URL.revokeObjectURL(filePath);
+        if (file && file.startsWith('blob:')) URL.revokeObjectURL(file);
         signatureFilePaths[userId] = URL.createObjectURL(blob);
         setSignatureFilePaths({ ...signatureFilePaths });
     }
@@ -562,8 +561,8 @@ export function useEvaluationResponse(responseId) {
 
     return {
         creatorSignatureFilePath, evaluateeSignatureFilePath,
-        evaluationResponse, evaluatorId, signatureFilePaths,
-        options, subcategories,
+        evaluationResponse, commentorId, evaluatorId,
+        signatureFilePaths, options, subcategories,
         deleteEvaluationResponse, editEvaluationResponse,
         setPercentageAnswer, setTextAnswer,
         deleteOptionAnswer, deleteOptionAnswers, findActiveOptionId, setOptionAnswer,

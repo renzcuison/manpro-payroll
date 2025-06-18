@@ -41,6 +41,7 @@ import PerformanceEvaluationFormAcknowledge from "../Pages/Employee/PerformanceE
 import PerformanceEvaluationFormAcknowledgeSign from "../Pages/Employee/PerformanceEvaluation/Modals/PerformanceEvaluationFormAcknowledgeSign";
 import PerformanceEvaluationList from "../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationList";
 import PerformanceEvaluationForm from "../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationForm";
+import PerformanceEvaluationResultPage from "../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationResultPage";
 
 
 const EmployeeRoutes = ({ user }) => {
@@ -54,6 +55,10 @@ const EmployeeRoutes = ({ user }) => {
 
     return (
         <Routes>
+            <Route
+                path="performance-evaluation/results"
+                element={<ProtectedRoute element={<PerformanceEvaluationResultPage />} user={user} />}
+            />
             <Route
                 path="dashboard"
                 element={<ProtectedRoute element={<Dashboard />} user={user} />}

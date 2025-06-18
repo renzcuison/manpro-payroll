@@ -562,7 +562,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                             expanded={expandedSubcategory === subcategory.id}
                                             onChange={handleSubcategoryToggle(subcategory.id, subcategory)}
                                             sx={{
-                                                mb: 2,
+                                                my: 2,
                                                 boxShadow: 2,
                                                 borderRadius: 2,
                                                 background: "#f3f3f3",
