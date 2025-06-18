@@ -321,7 +321,7 @@ const PemeQuestionnaireView = () => {
         const attachedMedia = [];
 
         if (Array.isArray(employeeResponse.details)) {
-            employeeResponse.details.forEach((form) => {    
+            employeeResponse.details.forEach((form) => {
                 if (Array.isArray(form.input_type)) {
                     form.input_type.forEach((type) => {
                         // Get the value from answers state
@@ -337,8 +337,6 @@ const PemeQuestionnaireView = () => {
                             peme_q_type_id: type.id,
                             value: answerValue,
                         });
-
-                     
 
                         // If value is an array of Files
                         if (Array.isArray(value) && value[0] instanceof File) {
@@ -375,10 +373,12 @@ const PemeQuestionnaireView = () => {
                 item.peme_q_type_id
             );
 
-            if (item.value instanceof File) {
-                formData.append(`responses.${index}.files`, item.value);
+            if (Array.isArray(item.value) && item.value[0] instanceof File) {
+                item.value.forEach((file) => {
+                    formData.append(`responses[${index}][files][]`, file);
+                });
             } else {
-                formData.append(`responses[${index}][value]`, item.value ?? "");
+                formData.append(`responses[${index}][value]`, item.value);
             }
         });
 

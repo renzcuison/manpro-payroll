@@ -188,6 +188,8 @@ class PemeResponseController extends Controller
             'responses.*.peme_q_item_id' => 'required|string',
             'responses.*.peme_q_type_id' => 'required|string',
             'responses.*.value' => 'nullable|string|max:512',
+            'responses.*.files' => 'nullable|array',
+            'responses.*.files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png',
             'isDraft' => 'required|boolean',
         ]);
 
@@ -625,7 +627,7 @@ class PemeResponseController extends Controller
             ->where('user_id', Auth::id())
             ->first();
 
-        // if (!$pemeResponse) {   
+        // if (!$pemeResponse) {
         //     return response()->json([
         //         'message' => 'Unauthorized access or response not found.',
         //     ], 403);
