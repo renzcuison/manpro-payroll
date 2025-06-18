@@ -282,6 +282,8 @@ class AnnouncementsController extends Controller
 
     public function getEmployeeAnnouncements()
     {
+        // Log::info("AnnouncementsController::getEmployeeAnnouncements");
+
         $user = Auth::user();
         if (!$user) {
             Log::warning('Unauthenticated user attempted to access getEmployeeAnnouncements');
@@ -289,7 +291,7 @@ class AnnouncementsController extends Controller
         }
 
         try {
-            $announcements = AnnouncementsModel::where('status', 'Published')
+            $announcements = AnnouncementsModel::whereNull('deleted_at')->where('status', 'Published')
                 ->where(function ($query) use ($user) {
                     $query->whereHas('branches', function ($q) use ($user) {
                         $q->where('branch_id', $user->branch_id);
@@ -318,9 +320,9 @@ class AnnouncementsController extends Controller
                 ->with(['acknowledgements' => function ($query) use ($user) {
                     $query->where('user_id', $user->id);
                 }, 'user.role']) // Load user and role relationships
-                ->whereNull('deleted_at')->get();
+                ->get();
 
-            $announcementData = $announcements->map(function ($announcement) use ($user) {
+            $announcementData = $announcements->map(function ($announcement) use ($user) {                
                 $branchMatched = $announcement->branches->pluck('branch_id')->contains($user->branch_id);
                 $departmentMatched = $announcement->departments->pluck('department_id')->contains($user->department_id);
                 $acknowledgedOn = $announcement->acknowledgements->firstWhere('user_id', $user->id)?->created_at;
