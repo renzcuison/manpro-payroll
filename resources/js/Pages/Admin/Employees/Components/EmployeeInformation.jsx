@@ -1,7 +1,14 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, Avatar, Button, Menu, MenuItem } from '@mui/material'
 
-const EmployeeInformation = ({employee, imagePath}) => {
+const EmployeeInformation = ({employee}) => {
+
+    useEffect(() => {
+        console.log(employee);
+    }, []);
+
+    const profilePic = employee?.media?.length ? employee.media[0]?.original_url : employee?.avatar || "../../../../../images/avatarpic.jpg";
+
     const formattedBirthDate = employee.birth_date ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(employee.birth_date)) : '';
     const calculateAge = (birthDate) => {
         const birth = new Date(birthDate);
@@ -20,7 +27,7 @@ const EmployeeInformation = ({employee, imagePath}) => {
             <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
 
                 <Grid container sx={{ pt: 1, pb: 4, justifyContent: 'center', alignItems: 'center' }}>
-                    <Avatar alt={`${employee.user_name} Profile Pic`} src={imagePath || null} sx={{ width: '50%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'cover', boxShadow: 3 }} />
+                    <Avatar alt={`${employee.user_name} Profile Pic`} src={profilePic} sx={{ width: '50%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'cover', boxShadow: 3 }} />
                 </Grid>
 
 

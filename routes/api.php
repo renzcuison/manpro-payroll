@@ -30,7 +30,6 @@ use App\Http\Controllers\SalaryPlansController;
 
 use App\Http\Controllers\InsurancesController;
 
-
 // Old Controllers
 use App\Http\Controllers\VoiceController;
 use App\Http\Controllers\HrApplicationsController;
@@ -398,10 +397,29 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             'saveAllowance',
         ]);
 
+<<<<<<< HEAD
         Route::get('/getEmployeeAllowance', [CompensationManagementController::class, 'getEmployeeAllowance']);
         Route::get('/getEmployeesAllowance', [CompensationManagementController::class, 'getEmployeesAllowance']);
         Route::post('/saveEmployeeAllowance', [CompensationManagementController::class, 'saveEmployeeAllowance']);
         Route::post('/updateEmployeeAllowance', [CompensationManagementController::class, 'updateEmployeeAllowance']);
+=======
+        Route::get('/getEmployeeAllowance', [
+            CompensationManagementController::class,
+            'getEmployeeAllowance',
+        ]);
+        Route::get('/getEmployeesAllowance', [
+            CompensationManagementController::class,
+            'getEmployeesAllowance',
+        ]);
+        Route::post('/saveEmployeeAllowance', [
+            CompensationManagementController::class,
+            'saveEmployeeAllowance',
+        ]);
+        Route::post('/updateEmployeeAllowance', [
+            CompensationManagementController::class,
+            'updateEmployeeAllowance',
+        ]);
+>>>>>>> origin/main
 
         //incentives
         Route::get('/getIncentives', [
@@ -413,10 +431,29 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             'saveIncentives',
         ]);
 
+<<<<<<< HEAD
         Route::get('/getEmployeesIncentives', [CompensationManagementController::class, 'getEmployeesIncentives']);
         Route::get('/getEmployeeIncentives', [CompensationManagementController::class, 'getEmployeeIncentives']);
         Route::post('/saveEmployeeIncentives', [CompensationManagementController::class, 'saveEmployeeIncentives']);
         Route::post('/updateEmployeeIncentive', [CompensationManagementController::class, 'updateEmployeeIncentive']);
+=======
+        Route::get('/getEmployeesIncentives', [
+            CompensationManagementController::class,
+            'getEmployeesIncentives',
+        ]);
+        Route::get('/getEmployeeIncentives', [
+            CompensationManagementController::class,
+            'getEmployeeIncentives',
+        ]);
+        Route::post('/saveEmployeeIncentives', [
+            CompensationManagementController::class,
+            'saveEmployeeIncentives',
+        ]);
+        Route::post('/updateEmployeeIncentive', [
+            CompensationManagementController::class,
+            'updateEmployeeIncentive',
+        ]);
+>>>>>>> origin/main
 
         //benefits
         Route::get('/getBenefits', [
@@ -428,19 +465,49 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             'saveBenefits',
         ]);
 
-        Route::get('/getEmployeesBenefits', [CompensationManagementController::class, 'getEmployeesBenefits']);
-        Route::get('/getEmployeeBenefits', [CompensationManagementController::class, 'getEmployeeBenefits']);
-        Route::post('/saveEmployeeBenefits', [CompensationManagementController::class, 'saveEmployeeBenefits']);
-        Route::post('/updateEmployeeBenefit', [CompensationManagementController::class, 'updateEmployeeBenefit']);
+        Route::get('/getEmployeesBenefits', [
+            CompensationManagementController::class,
+            'getEmployeesBenefits',
+        ]);
+        Route::get('/getEmployeeBenefits', [
+            CompensationManagementController::class,
+            'getEmployeeBenefits',
+        ]);
+        Route::post('/saveEmployeeBenefits', [
+            CompensationManagementController::class,
+            'saveEmployeeBenefits',
+        ]);
+        Route::post('/updateEmployeeBenefit', [
+            CompensationManagementController::class,
+            'updateEmployeeBenefit',
+        ]);
 
         //deductions
-        Route::get('/getDeductions', [CompensationManagementController::class, 'getDeductions']);
-        Route::post('/saveDeductions', [CompensationManagementController::class, 'saveDeductions']);
+        Route::get('/getDeductions', [
+            CompensationManagementController::class,
+            'getDeductions',
+        ]);
+        Route::post('/saveDeductions', [
+            CompensationManagementController::class,
+            'saveDeductions',
+        ]);
 
-        Route::get('/getEmployeesDeductions', [CompensationManagementController::class, 'getEmployeesDeductions']);
-        Route::get('/getEmployeeDeductions', [CompensationManagementController::class, 'getEmployeeDeductions']);
-        Route::post('/saveEmployeeDeductions', [CompensationManagementController::class, 'saveEmployeeDeductions']);
-        Route::post('/updateEmployeeDeduction', [CompensationManagementController::class, 'updateEmployeeDeduction']);
+        Route::get('/getEmployeesDeductions', [
+            CompensationManagementController::class,
+            'getEmployeesDeductions',
+        ]);
+        Route::get('/getEmployeeDeductions', [
+            CompensationManagementController::class,
+            'getEmployeeDeductions',
+        ]);
+        Route::post('/saveEmployeeDeductions', [
+            CompensationManagementController::class,
+            'saveEmployeeDeductions',
+        ]);
+        Route::post('/updateEmployeeDeduction', [
+            CompensationManagementController::class,
+            'updateEmployeeDeduction',
+        ]);
     });
 
     //note: use the compensation routes for future referencing
@@ -940,9 +1007,24 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/milestones', [MilestoneController::class, 'index']);
         Route::post('/milestones', [MilestoneController::class, 'store']);
         Route::get('/milestones/{id}', [MilestoneController::class, 'show']);
+<<<<<<< HEAD
         Route::post('/milestones/{id}', [MilestoneController::class, 'SendGreetings']);
         Route::delete('/milestones/{id}', [MilestoneController::class, 'destroy']);
         Route::delete('/milestones/{id}/comments/{comment_id}', [MilestoneController::class, 'deleteComment']);
+=======
+        Route::post('/milestones/{id}', [
+            MilestoneController::class,
+            'SendGreetings',
+        ]);
+        Route::delete('/milestones/{id}', [
+            MilestoneController::class,
+            'destroy',
+        ]);
+        Route::delete('/milestones/{id}/comments/{comment_id}', [
+            MilestoneController::class,
+            'deleteComment',
+        ]);
+>>>>>>> origin/main
     });
 
     Route::prefix('trainings')->group(function () {
@@ -1059,10 +1141,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             'getFormAnalytics',
         ]);
 
-        Route::get('/getEmployeeFormDetails/{id}', [TrainingFormsController::class, 'getEmployeeFormDetails']);
-        Route::get('/getEmployeeFormReviewer', [TrainingFormsController::class, 'getEmployeeFormReviewer']);
-        Route::post('/saveEmployeeFormSubmission', [TrainingFormsController::class, 'saveEmployeeFormSubmission']);
-
+        Route::get('/getEmployeeFormDetails/{id}', [
+            TrainingFormsController::class,
+            'getEmployeeFormDetails',
+        ]);
+        Route::get('/getEmployeeFormReviewer', [
+            TrainingFormsController::class,
+            'getEmployeeFormReviewer',
+        ]);
+        Route::post('/saveEmployeeFormSubmission', [
+            TrainingFormsController::class,
+            'saveEmployeeFormSubmission',
+        ]);
 
         // Group Life Company - Old
 
@@ -1074,22 +1164,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         // Route::get('/group-life-plans', [GroupLifePlanController::class, 'index']);
         // Route::post('/group-life-plans', [GroupLifePlanController::class, 'store']);
         // Route::get('/group-life-plans/{id}', [GroupLifePlanController::class, 'show']);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     });
 
     Route::prefix('medicalRecords')->group(function () {
@@ -1104,7 +1178,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::put('' . '/editGroupLifeEmployeePlan/{id}', [InsurancesController::class, 'editGroupLifeEmployeePlan']);
 
     });
-
 
     // Hr employees
     Route::get('/employeesHistory/{id}/{dates}', [
@@ -1342,9 +1415,18 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         'saveEvaluationResponse',
     ]);
 
-    Route::get('/getEvaluatees', [EvaluationResponseController::class, 'getEvaluatees']);
-    Route::get('/getEvaluators', [EvaluationResponseController::class, 'getEvaluators']);
-    Route::get('/getCommentors', [EvaluationResponseController::class, 'getCommentors']);
+    Route::get('/getEvaluatees', [
+        EvaluationResponseController::class,
+        'getEvaluatees',
+    ]);
+    Route::get('/getEvaluators', [
+        EvaluationResponseController::class,
+        'getEvaluators',
+    ]);
+    Route::get('/getCommentors', [
+        EvaluationResponseController::class,
+        'getCommentors',
+    ]);
     Route::post('/deleteEvaluationEvaluator', [
         EvaluationResponseController::class,
         'deleteEvaluationEvaluator',
@@ -1973,7 +2055,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     ]);
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
 
-
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
     Route::patch('/peme-responses/{id}/status', [
         PemeResponseController::class,
@@ -1994,34 +2075,58 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     ]);
 
     // Response Details
-    Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
-    Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
-    Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
+    Route::get('/peme-response-details', [
+        PemeResponseDetailsController::class,
+        'index',
+    ]);
+    Route::get('/peme-response-details/{id}', [
+        PemeResponseDetailsController::class,
+        'show',
+    ]);
+    Route::post('/peme-response-details', [
+        PemeResponseDetailsController::class,
+        'store',
+    ]);
     // Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
-    Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);
-    Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
-    Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
-    Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
+    Route::patch('/peme-response-details/{id}', [
+        PemeResponseDetailsController::class,
+        'update',
+    ]);
+    Route::delete('/peme-response-details/{id}', [
+        PemeResponseDetailsController::class,
+        'destroy',
+    ]);
+    Route::post('/peme-response-details/{id}/restore', [
+        PemeResponseDetailsController::class,
+        'restore',
+    ]);
+    Route::post('/peme-response-details/{id}/attach-media', [
+        PemeResponseDetailsController::class,
+        'attachMedia',
+    ]);
 
-
-
-
-
-
-
-
-
-
+    Route::put('/public-event/{id}', [
+        GoogleController::class,
+        'updatePublicEvent',
+    ]);
+    Route::delete('/public-event/{id}', [
+        GoogleController::class,
+        'deletePublicEvent',
+    ]);
     Route::post('/google/event', [GoogleController::class, 'addEvent']);
     Route::get('/google/events', [GoogleController::class, 'getEvents']);
     Route::put('/google/event/{id}', [GoogleController::class, 'updateEvent']);
-    Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent']);
+    Route::delete('/google/event/{id}', [
+        GoogleController::class,
+        'deleteEvent',
+    ]);
 
     //Salary Plans
     Route::get('getSalaryPlans', [SalaryPlansController::class, 'getSalaryPlans']);
     Route::post('/saveSalaryGrade', [SalaryPlansController::class, 'saveSalaryGrade']);
     Route::post('/editSalaryGrade/{id}', [SalaryPlansController::class, 'editSalaryGrade']);
     Route::post('/deleteSalaryGrade', [SalaryPlansController::class, 'deleteSalaryGrade']);
+    Route::get('/getSalaryLogs', [SalaryPlansController::class, 'getSalaryLogs']);
     Route::delete('/google/event/{id}', [
         GoogleController::class,
         'deleteEvent',
