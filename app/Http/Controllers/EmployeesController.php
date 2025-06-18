@@ -84,8 +84,7 @@ class EmployeesController extends Controller
         $employee->branch = "";
         $employee->department = "";
         $employee->work_group = "";
-        $employee->avatar = null;
-        $employee->avatar_mime = null;
+        $employee->profile_picture_url = $employee->getFirstMediaUrl('profile_pictures');
 
         // Enrich with actual data
         if ($employee->role_id) {
@@ -416,6 +415,8 @@ class EmployeesController extends Controller
             $latestLoanLimit = LoanLimitHistoryModel::where('employee_id', $employee->id)->latest('created_at')->first();
 
             $employee = $this->enrichEmployeeDetails($employee);
+
+            $employee->profile_picture_url = $employee->getFirstMediaUrl('profile_pictures');
 
             $employee->salary = (float) number_format((float) $employee->salary, 2, '.', '');
             $employee->credit_limit = $latestLoanLimit ? $latestLoanLimit->new_limit : 0;

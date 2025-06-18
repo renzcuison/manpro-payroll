@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GroupLifeCompany;
 use App\Models\GroupLifeCompanyPlan;
+use App\Models\GroupLifeEmployeePlan;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -52,7 +53,7 @@ class InsurancesController extends Controller
         }
 
         $user = Auth::user();
-        
+
         $request->validate([
             'name' => 'required|string|max:64'
         ]);
@@ -143,12 +144,114 @@ class InsurancesController extends Controller
 
         $plan = GroupLifeCompanyPlan::create($validated);
 
-        DB::table('number_of_plans')->updateOrInsert(
-        ['group_life_company_id' => $validated['group_life_company_id']],
-        ['count' => DB::raw('count + 1')]
-        );
-
         return response()->json($plan, 201);
+    }
+
+    public function getGroupLifeEmployeePlan()
+    {
+        log::info("InsurancesController::getGroupLifeCompanies");
+
+        $user = Auth::user();
+
+        $rawCompanies = GroupLifeCompany::withCount('plans')->where('client_id', $user->client_id)->get();
+
+        $companies = [];
+
+        foreach ($rawCompanies as $company) {
+            $companies[] = [
+                'id' => $company->id,
+                'name' => $company->name,
+                'plans' => $company->plans_count,
+            ];
+        }
+
+        return response()->json([
+            'status' => 200,
+            'companies' => $companies,
+        ]);
+    }
+
+    public function getGroupLifeEmployees(Request $request)
+    {
+        Log::info("InsurancesController::getAllGroupLifeEmployees");
+
+        $planId = $request->query('plan_id');
+
+        $query = GroupLifeEmployeePlan::with(['employee', 'dependents']);
+
+        if ($planId) {
+            $query->where('group_life_plan_id', $planId);
+        }
+
+        // $employees = GroupLifeEmployeePlan::with(['employee', 'dependents'])->get();
+
+        $employees = $query->get();
+
+        $formatted = $employees->map(function ($record) {
+            return [
+                'plan_id' => $record->group_life_plan_id,
+                'employee_id' => $record->employee_id,
+                'employee_name' => $record->employee ? $record->employee->employee_name : 'Unknown',
+                'enroll_date' => $record->enroll_date,
+                'dependents_count' => $record->dependents->count(),
+                'dependents' => $record->dependents
+            ];
+        });
+
+        return response()->json([
+            'status' => 200,
+            'employees' => $formatted
+        ]);
+        }
+
+    public function saveGroupLifeEmployees(Request $request)
+    {
+        Log::info("InsurancesController::saveGroupLifeEmployees");
+
+        $validated = $request->validate([
+            'group_life_plan_id' => 'required|exists:group_life_plans,id',
+            'employee_id' => 'required|exists:users,id', // or employees table if applicable
+            'enroll_date' => 'required|date',
+            'dependents' => 'nullable|array',
+            'dependents.*.name' => 'required_with:dependents|string|max:255',
+            'dependents.*.relationship' => 'required_with:dependents|string|max:100',
+        ]);
+
+        // Save the main employee plan record
+        $employeePlan = new GroupLifeEmployeePlan([
+        'group_life_plan_id' => $validated['group_life_plan_id'],
+        'employee_id' => $validated['employee_id'],
+        'enroll_date' => $validated['enroll_date'],
+        ]);
+        $employeePlan->save();
+        $employeePlan->refresh();
+
+        // Save dependents if any
+        if (!empty($validated['dependents'])) {
+            foreach ($validated['dependents'] as $dependent) {
+                $employeePlan->dependents()->create([
+                    'dependent_name' => $dependent['name'],
+                    'relationship' => $dependent['relationship'],
+                    'group_life_employee_id' => $employeePlan->id,
+                ]);
+            }
+        }
+
+        // Eager load employee and dependents for the response
+        $employeePlan->load('employee', 'dependents');
+
+        return response()->json([
+            'status' => 201,
+            'message' => 'Group life employee plan saved successfully.',
+            'data' => [
+                'plan_id' => $employeePlan->group_life_plan_id,
+                'employee_id' => $employeePlan->employee_id,
+                'employee_name' => $employeePlan->employee ? $employeePlan->employee->employee_name : 'Unknown',
+                'enroll_date' => $employeePlan->enroll_date,
+                'dependents_count' => $employeePlan->dependents->count(),
+                'dependents' => $employeePlan->dependents,
+            ]
+        ]);
     }
 
 }

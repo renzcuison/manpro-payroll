@@ -14,6 +14,7 @@ import {
     TextField,
     Select,
     MenuItem,
+    CircularProgress,
 } from "@mui/material";
 
 import { Navigate, useNavigate } from "react-router-dom";
@@ -183,52 +184,40 @@ const PemeQuestionnairePreview = () => {
 
     return (
         <Layout>
-            <Box
-                sx={{
-                    backgroundColor: "white",
-                    paddingY: 6,
-                    paddingX: 12,
-                    borderRadius: 1,
-                    boxShadow: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 4,
-                }}
-            >
+            {isLoading ? (
                 <Box
                     sx={{
                         display: "flex",
-                        justifyContent: "space-between",
-                        padding: 2,
-                        borderBottom: "1px solid #ccc",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: 400,
+                    }}
+                >
+                    <CircularProgress></CircularProgress>
+                </Box>
+            ) : (
+                <Box
+                    sx={{
+                        backgroundColor: "white",
+                        paddingY: 6,
+                        paddingX: 12,
+                        borderRadius: 1,
+                        boxShadow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
                     }}
                 >
                     <Box
                         sx={{
                             display: "flex",
-                            flexDirection: "column",
-                            gap: 2,
+                            justifyContent: "space-between",
+                            padding: 2,
+                            borderBottom: "1px solid #ccc",
                         }}
                     >
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {pemePreview.peme}
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                            Employee Name
-                        </Typography>
-                    </Box>
-                </Box>
-
-                {Array.isArray(pemePreview.questions) &&
-                    pemePreview.questions.map((form, index) => (
                         <Box
-                            key={index}
                             sx={{
-                                backgroundColor: "#fafafa",
-                                paddingX: 8,
-                                paddingY: 6,
-                                borderRadius: 1,
-                                boxShadow: 1,
                                 display: "flex",
                                 flexDirection: "column",
                                 gap: 2,
@@ -236,64 +225,103 @@ const PemeQuestionnairePreview = () => {
                         >
                             <Typography
                                 variant="h4"
-                                sx={{ fontWeight: "bold", marginBottom: 3 }}
+                                sx={{ fontWeight: "bold" }}
                             >
-                                {form.question}
+                                {pemePreview.peme}
                             </Typography>
-
-                            {Array.isArray(form.input_types) &&
-                                form.input_types.map((type, i) => {
-                                    switch (type.input_type) {
-                                        case "attachment":
-                                            return (
-                                                <Box
-                                                    key={i}
-                                                    sx={{
-                                                        display: "flex",
-                                                        flexDirection: "column",
-                                                        gap: 1,
-                                                    }}
-                                                >
-                                                    <UploadForm
-                                                        fileSizeLimit={
-                                                            type.file_size_limit
-                                                        }
-                                                    />
-                                                </Box>
-                                            );
-                                        case "remarks":
-                                            return <Remarks key={i} />;
-                                        case "text":
-                                            return <TextBox key={i} />;
-                                        case "pass_fail":
-                                            return <PassOrFail key={i} />;
-                                        case "pos_neg":
-                                            return (
-                                                <PostiveOrNegative key={i} />
-                                            );
-                                        default:
-                                            return null;
-                                    }
-                                })}
+                            <Typography
+                                variant="h6"
+                                sx={{ fontWeight: "bold" }}
+                            >
+                                Employee Name
+                            </Typography>
                         </Box>
-                    ))}
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                    <Button
-                        variant="contained"
-                        sx={{ backgroundColor: "#7a7a7a" }}
-                        onClick={handleOnCancelClick}
+                    </Box>
+
+                    {Array.isArray(pemePreview.questions) &&
+                        pemePreview.questions.map((form, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    backgroundColor: "#fafafa",
+                                    paddingX: 8,
+                                    paddingY: 6,
+                                    borderRadius: 1,
+                                    boxShadow: 1,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 2,
+                                }}
+                            >
+                                <Typography
+                                    variant="h4"
+                                    sx={{ fontWeight: "bold", marginBottom: 3 }}
+                                >
+                                    {form.question}
+                                </Typography>
+
+                                {Array.isArray(form.input_types) &&
+                                    form.input_types.map((type, i) => {
+                                        switch (type.input_type) {
+                                            case "attachment":
+                                                return (
+                                                    <Box
+                                                        key={i}
+                                                        sx={{
+                                                            display: "flex",
+                                                            flexDirection:
+                                                                "column",
+                                                            gap: 1,
+                                                        }}
+                                                    >
+                                                        <UploadForm
+                                                            fileSizeLimit={
+                                                                type.file_size_limit
+                                                            }
+                                                        />
+                                                    </Box>
+                                                );
+                                            case "remarks":
+                                                return <Remarks key={i} />;
+                                            case "text":
+                                                return <TextBox key={i} />;
+                                            case "pass_fail":
+                                                return <PassOrFail key={i} />;
+                                            case "pos_neg":
+                                                return (
+                                                    <PostiveOrNegative
+                                                        key={i}
+                                                    />
+                                                );
+                                            default:
+                                                return null;
+                                        }
+                                    })}
+                            </Box>
+                        ))}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                        }}
                     >
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="contained"
-                        sx={{ backgroundColor: "#c82e2e" }}
-                        onClick={handleOnDeleteClick}
-                    >
-                        Delete
-                    </Button>
+                        <Button
+                            variant="contained"
+                            sx={{ backgroundColor: "#7a7a7a" }}
+                            onClick={handleOnCancelClick}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            sx={{ backgroundColor: "#c82e2e" }}
+                            onClick={handleOnDeleteClick}
+                        >
+                            Delete
+                        </Button>
+                    </Box>
                 </Box>
-            </Box>
+            )}
         </Layout>
     );
 };

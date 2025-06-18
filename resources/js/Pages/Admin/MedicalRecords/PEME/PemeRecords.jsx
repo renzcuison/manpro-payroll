@@ -9,6 +9,7 @@ import {
     OutlinedInput,
     InputAdornment,
     TextField,
+    CircularProgress,
 } from "@mui/material";
 import dayjs from "dayjs";
 import Layout from "../../../../components/Layout/Layout";
@@ -155,7 +156,7 @@ const PemeRecords = () => {
                                 flexShrink: 0,
                             }}
                         >
-                            <PemeOverview records={pemeRecords} />
+                            <PemeOverview records={filteredRecords} />
                         </Box>
 
                         <Box
@@ -168,10 +169,24 @@ const PemeRecords = () => {
                                 overflow: "hidden",
                             }}
                         >
-                            <PemeExamTypeTable
-                                records={filteredRecords}
-                                onRowClick={handleOnRowClick}
-                            />
+                            {isLoading ? (
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        minHeight: 400,
+                                        maxHeight: 450,
+                                    }}
+                                >
+                                    <CircularProgress></CircularProgress>
+                                </Box>
+                            ) : (
+                                <PemeExamTypeTable
+                                    records={filteredRecords}
+                                    onRowClick={handleOnRowClick}
+                                />
+                            )}
                         </Box>
                     </Box>
                 </Box>

@@ -134,8 +134,8 @@ const PassOrFail = ({ value, onChange }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-            ? "Fail"
-            : "";
+                ? "Fail"
+                : "";
 
     return (
         <Box
@@ -164,8 +164,8 @@ const PostiveOrNegative = ({ value, onChange }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-            ? "Negative"
-            : "";
+                ? "Negative"
+                : "";
 
     return (
         <Box
@@ -225,6 +225,7 @@ const PemeQuestionnaireView = () => {
     const [nextSchedule, setNextSchedule] = useState(dayjs());
     const [status, setStatus] = useState("");
     const [pemeResponses, setPemeResponses] = useState("");
+    const [isDraftStatus, setIsDraftStatus] = useState(null);
 
     useEffect(() => {
         axiosInstance
@@ -233,7 +234,7 @@ const PemeQuestionnaireView = () => {
             })
             .then((response) => {
                 setEmployeeResponse(response.data);
-                // Map fetched values into answers state
+                setIsDraftStatus(response.data.isDraft);
                 const initialAnswers = {};
                 if (Array.isArray(response.data.details)) {
                     response.data.details.forEach((form) => {
@@ -257,6 +258,7 @@ const PemeQuestionnaireView = () => {
             });
     }, []);
 
+    //Set FE dates and status to values from DB
     useEffect(() => {
         if (pemeResponses && pemeResponses[0]) {
             const res = pemeResponses[0];
@@ -316,6 +318,7 @@ const PemeQuestionnaireView = () => {
 
     const handleSaveDraft = async () => {
         const responses = [];
+        const attachedMedia = [];
 
         if (Array.isArray(employeeResponse.details)) {
             employeeResponse.details.forEach((form) => {
@@ -329,11 +332,28 @@ const PemeQuestionnaireView = () => {
                         // Handle attachments as comma-separated file names
                         let answerValue = value;
 
-                        responses.push({
+                        const responseEntry = {
                             peme_q_item_id: form.question_id,
                             peme_q_type_id: type.id,
                             value: answerValue,
-                        });
+                        };
+
+                        if (Array.isArray(answerValue) && answerValue[0] instanceof File) {
+                            responseEntry.files = answerValue;
+                        }
+
+                        responses.push(responseEntry);
+
+                        // If value is an array of Files
+                        if (Array.isArray(value) && value[0] instanceof File) {
+                            value.forEach((file) => {
+                                attachedMedia.push({
+                                    // question_id: form.question_id,
+                                    // input_type: type.input_type,
+                                    file: file,
+                                });
+                            });
+                        }
                     });
                 }
             });
@@ -344,45 +364,143 @@ const PemeQuestionnaireView = () => {
             responses: responses,
         };
 
-        console.log("TEST PAYLOAD", payload);
+        const formData = new FormData();
 
-        // try {
-        //     // PAYLOAD FOR DATES AND STATUS
-        //     const secondaryPayload = {
-        //         expiry_date: expirationDate,
-        //         next_schedule: nextSchedule,
-        //         status: status,
-        //     };
-        //     console.log(secondaryPayload);
+        formData.append("peme_response_id", PemeResponseID);
+        formData.append("isDraft", isDraftStatus);
 
-        //     await axiosInstance.patch(
-        //         `/peme-responses/${PemeResponseID}/status`,
-        //         secondaryPayload,
-        //         { headers }
-        //     );
+        responses.forEach((item, index) => {
+            formData.append(
+                `responses[${index}][peme_q_item_id]`,
+                item.peme_q_item_id
+            );
+            formData.append(
+                `responses[${index}][peme_q_type_id]`,
+                item.peme_q_type_id
+            );
 
-        //     console.log("ANSWERS", payload.responses);
-        //     await axiosInstance.post(`/peme-responses/storeAll`, payload, {
-        //         headers,
-        //     });
-        //     Swal.fire({
-        //         icon: "success",
-        //         text: "Draft saved successfully.",
-        //         showConfirmButton: false,
-        //         timer: 1500,
-        //     });
-        // } catch (error) {
-        //     Swal.fire({
-        //         title: "Error",
-        //         text: "Failed to save draft. Please try again.",
-        //         icon: "error",
-        //         confirmButtonText: "Okay",
-        //         confirmButtonColor: "#177604",
-        //     });
+            if (Array.isArray(item.files) && item.files[0] instanceof File) {
+                item.files.forEach((file, fileIndex) => {
+                    formData.append(`responses[${index}][files][${fileIndex}]`, file);
+                });
+                formData.append(`responses[${index}][value]`, '');
+            } else {
+                formData.append(`responses[${index}][value]`, item.value ?? '');
+            }
+        });
 
-        //     console.log(error);
-        // }
+        for (const pair of formData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
+
+        try {
+            // PAYLOAD FOR DATES AND STATUS
+            const secondaryPayload = {
+                expiry_date: expirationDate,
+                next_schedule: nextSchedule,
+                status: status,
+            };
+            console.log(secondaryPayload);
+
+            await axiosInstance.patch(
+                `/peme-responses/${PemeResponseID}/status`,
+                secondaryPayload,
+                { headers }
+            );
+
+            console.log("ANSWERS", payload.responses);
+            await axiosInstance.post(`/peme-responses/storeAll`, formData, {
+                headers,
+            });
+            Swal.fire({
+                icon: "success",
+                text: "Draft saved successfully.",
+                showConfirmButton: false,
+                timer: 1500,
+            });
+        } catch (error) {
+            Swal.fire({
+                title: "Error",
+                text: "Failed to save draft. Please try again.",
+                icon: "error",
+                confirmButtonText: "Okay",
+                confirmButtonColor: "#177604",
+            });
+
+            console.log(error);
+
+        }
     };
+
+    // const handleSaveDraft = async () => {
+    //     const responses = [];
+
+    //     if (Array.isArray(employeeResponse.details)) {
+    //         employeeResponse.details.forEach((form) => {
+    //             if (Array.isArray(form.input_type)) {
+    //                 form.input_type.forEach((type) => {
+    //                     // Get the value from answers state
+    //                     const value =
+    //                         answers[form.question_id]?.[type.input_type] ??
+    //                         null;
+
+    //                     // Handle attachments as comma-separated file names
+    //                     let answerValue = value;
+
+    //                     responses.push({
+    //                         peme_q_item_id: form.question_id,
+    //                         peme_q_type_id: type.id,
+    //                         value: answerValue,
+    //                     });
+    //                 });
+    //             }
+    //         });
+    //     }
+
+    //     const payload = {
+    //         peme_response_id: PemeResponseID,
+    //         responses: responses,
+    //     };
+
+    //     console.log("TEST PAYLOAD", payload);
+
+    //     // try {
+    //     //     // PAYLOAD FOR DATES AND STATUS
+    //     //     const secondaryPayload = {
+    //     //         expiry_date: expirationDate,
+    //     //         next_schedule: nextSchedule,
+    //     //         status: status,
+    //     //     };
+    //     //     console.log(secondaryPayload);
+
+    //     //     await axiosInstance.patch(
+    //     //         `/peme-responses/${PemeResponseID}/status`,
+    //     //         secondaryPayload,
+    //     //         { headers }
+    //     //     );
+
+    //     //     console.log("ANSWERS", payload.responses);
+    //     //     await axiosInstance.post(`/peme-responses/storeAll`, payload, {
+    //     //         headers,
+    //     //     });
+    //     //     Swal.fire({
+    //     //         icon: "success",
+    //     //         text: "Draft saved successfully.",
+    //     //         showConfirmButton: false,
+    //     //         timer: 1500,
+    //     //     });
+    //     // } catch (error) {
+    //     //     Swal.fire({
+    //     //         title: "Error",
+    //     //         text: "Failed to save draft. Please try again.",
+    //     //         icon: "error",
+    //     //         confirmButtonText: "Okay",
+    //     //         confirmButtonColor: "#177604",
+    //     //     });
+
+    //     //     console.log(error);
+    //     // }
+    // };
 
     const navigator = useNavigate();
     const handleOnCancelClick = () => {
@@ -485,7 +603,7 @@ const PemeQuestionnaireView = () => {
                                     form.input_type.map((type, i) => {
                                         const value =
                                             answers[form.question_id]?.[
-                                                type.input_type
+                                            type.input_type
                                             ] || "";
 
                                         switch (type.input_type) {

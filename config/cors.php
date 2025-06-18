@@ -6,7 +6,7 @@ return [
     'allowed_origins' => [
         'http://localhost:8000',
         'https://team.manpromanagement.com',
-        'https://phplaravel-719501-5268927.cloudwaysapps.com'        
+        'https://phplaravel-719501-5268927.cloudwaysapps.com',    
     ],
     'allowed_headers' => ['Authorization', 'Content-Type', 'X-Requested-With'],
     // 'allowed_methods' => ['*'],  

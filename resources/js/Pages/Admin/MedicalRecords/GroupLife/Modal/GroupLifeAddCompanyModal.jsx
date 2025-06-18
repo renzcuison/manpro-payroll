@@ -79,7 +79,7 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
         } catch (error) {
             Swal.fire({
                 icon: 'error',
-                text: 'Error saving department!'
+                text: 'Error saving company!'
                 });
         }
         if (!companyName.trim() || !user) {
@@ -157,7 +157,7 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
                                                 <TableCell align="left" component="th" scope="row">
                                                     {company.name}
                                                 </TableCell>
-                                                <TableCell> 0</TableCell>
+                                                <TableCell>{company.plans ?? 0}</TableCell>
                                             </TableRow>
                                             
                                         )) : (
