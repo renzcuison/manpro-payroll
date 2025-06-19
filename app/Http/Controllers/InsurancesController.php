@@ -18,7 +18,6 @@ class InsurancesController extends Controller
     public function checkUserAdmin()
     {
         // log::info("PayrollController::checkUserAdmin");
-
         if (Auth::check()) {
             $user = Auth::user();
 
@@ -94,7 +93,6 @@ class InsurancesController extends Controller
     }
 
     public function getGroupLifePlans()
-
     {
         log::info("InsurancesController::getGroupLifePlans");
 
@@ -141,7 +139,7 @@ class InsurancesController extends Controller
             'type' => 'required|string|max:50',
             'employer_share' => 'required|numeric',
             'employee_share' => 'required|numeric',
-        ]);
+    ]);
 
         $plan = GroupLifeCompanyPlan::create($validated);
 
@@ -174,7 +172,6 @@ class InsurancesController extends Controller
 
     public function getGroupLifeEmployeePlanById(Request $request, $id)
     {
-
         $user = Auth::user();
 
         try {

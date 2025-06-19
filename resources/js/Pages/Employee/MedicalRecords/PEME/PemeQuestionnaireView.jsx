@@ -324,12 +324,10 @@ const PemeQuestionnaireView = () => {
             employeeResponse.details.forEach((form) => {
                 if (Array.isArray(form.input_type)) {
                     form.input_type.forEach((type) => {
-                        // Get the value from answers state
                         const value =
                             answers[form.question_id]?.[type.input_type] ??
                             null;
 
-                        // Handle attachments as comma-separated file names
                         let answerValue = value;
 
                         const responseEntry = {
@@ -337,6 +335,12 @@ const PemeQuestionnaireView = () => {
                             peme_q_type_id: type.id,
                             value: answerValue,
                         };
+
+                        console.log('question:', form.question_id);
+                        console.log('input_type:', type.input_type);
+                        console.log('value:', value);
+                        console.log('value[0] instanceof File:', value[0] instanceof File);
+                        console.log('typeof value[0]:', typeof value[0]);
 
                         if (Array.isArray(answerValue) && answerValue[0] instanceof File) {
                             responseEntry.files = answerValue;
@@ -394,7 +398,6 @@ const PemeQuestionnaireView = () => {
         }
 
         try {
-            // PAYLOAD FOR DATES AND STATUS
             const secondaryPayload = {
                 expiry_date: expirationDate,
                 next_schedule: nextSchedule,
