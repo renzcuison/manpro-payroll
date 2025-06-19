@@ -1253,45 +1253,45 @@ class EvaluationFormController extends Controller
                 $subcategory->allow_other_option = $request->allow_other_option ?? 0;
 
                 // // Only handle linear scale fields if type is linear_scale
-                // if ($request->subcategory_type === 'linear_scale') {
-                //     if ($request->linear_scale_start < 0 || $request->linear_scale_end < 0) {
-                //         return response()->json([
-                //             'status' => 400,
-                //             'message' => 'Linear Scale Value cannot be negative!'
-                //         ]);
-                //     }
-                //     if (
-                //         is_numeric($request->linear_scale_start)
-                //         && is_numeric($request->linear_scale_end)
-                //         && $request->linear_scale_start >= $request->linear_scale_end
-                //     ) {
-                //         return response()->json([
-                //             'status' => 400,
-                //             'message' => 'Linear Scale Start must be less than End!'
-                //         ]);
-                //     }
-                //     if (!$request->linear_scale_start_label) {
-                //         return response()->json([
-                //             'status' => 400,
-                //             'message' => 'Linear Scale Start Label is required!'
-                //         ]);
-                //     }
-                //     if (!$request->linear_scale_end_label) {
-                //         return response()->json([
-                //             'status' => 400,
-                //             'message' => 'Linear Scale End Label is required!'
-                //         ]);
-                //     }
-                //     $subcategory->linear_scale_start = $request->linear_scale_start;
-                //     $subcategory->linear_scale_end = $request->linear_scale_end;
-                //     $subcategory->linear_scale_start_label = $request->linear_scale_start_label;
-                //     $subcategory->linear_scale_end_label = $request->linear_scale_end_label;
-                // } else {
-                //     $subcategory->linear_scale_start = null;
-                //     $subcategory->linear_scale_end = null;
-                //     $subcategory->linear_scale_start_label = null;
-                //     $subcategory->linear_scale_end_label = null;
-                // }
+                // // if ($request->subcategory_type === 'linear_scale') {
+                // //     if ($request->linear_scale_start < 0 || $request->linear_scale_end < 0) {
+                // //         return response()->json([
+                // //             'status' => 400,
+                // //             'message' => 'Linear Scale Value cannot be negative!'
+                // //         ]);
+                // //     }
+                // //     if (
+                // //         is_numeric($request->linear_scale_start)
+                // //         && is_numeric($request->linear_scale_end)
+                // //         && $request->linear_scale_start >= $request->linear_scale_end
+                // //     ) {
+                // //         return response()->json([
+                // //             'status' => 400,
+                // //             'message' => 'Linear Scale Start must be less than End!'
+                // //         ]);
+                // //     }
+                // //     if (!$request->linear_scale_start_label) {
+                // //         return response()->json([
+                // //             'status' => 400,
+                // //             'message' => 'Linear Scale Start Label is required!'
+                // //         ]);
+                // //     }
+                // //     if (!$request->linear_scale_end_label) {
+                // //         return response()->json([
+                // //             'status' => 400,
+                // //             'message' => 'Linear Scale End Label is required!'
+                // //         ]);
+                // //     }
+                // //     $subcategory->linear_scale_start = $request->linear_scale_start;
+                // //     $subcategory->linear_scale_end = $request->linear_scale_end;
+                // //     $subcategory->linear_scale_start_label = $request->linear_scale_start_label;
+                // //     $subcategory->linear_scale_end_label = $request->linear_scale_end_label;
+                // // } else {
+                // //     $subcategory->linear_scale_start = null;
+                // //     $subcategory->linear_scale_end = null;
+                // //     $subcategory->linear_scale_start_label = null;
+                // //     $subcategory->linear_scale_end_label = null;
+                // // }
 
                 $subcategory->save();
 
@@ -1365,7 +1365,7 @@ if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear
         ];
 
         // Create new subcategory
-        $newEvaluationFormSubcategory = \App\Models\EvaluationFormSubcategory::create($data);
+        $newEvaluationFormSubcategory = EvaluationFormSubcategory::create($data);
 
         // ---- Handle Options for multiple choice, checkbox, and linear scale ----
         if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear_scale'])) {
@@ -1394,7 +1394,7 @@ if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear
                     // For linear scale options, we auto-assign a score based on order
                     $score = $request->subcategory_type === 'linear_scale' ? $optionOrder + 1 : (isset($option['score']) && is_numeric($option['score']) ? (double) $option['score'] : 1);
 
-                    \App\Models\EvaluationFormSubcategoryOption::create([
+                    EvaluationFormSubcategoryOption::create([
                         'subcategory_id' => $newEvaluationFormSubcategory->id,
                         'label' => $label,
                         'score' => $score,
