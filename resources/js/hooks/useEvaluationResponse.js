@@ -540,7 +540,6 @@ export function useEvaluationResponse(responseId) {
                 payload,
                 { headers }
             );
-
             if (
                 (response.data?.status && String(response.data.status).startsWith('2'))
             ) {

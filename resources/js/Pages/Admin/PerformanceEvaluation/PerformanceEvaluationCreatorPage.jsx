@@ -88,7 +88,7 @@ const PerformanceEvaluationCreatorPage = () => {
   async function handleCreatorSignature(signatureData) {
     setSaving(true);
     try {
-      const response = await editEvaluationSignature({
+      await editEvaluationSignature({
         response_id: evaluationResponse.id,
         creator_signature_filepath: signatureData
       });
