@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import { useIncentives, useEmployeeIncentives } from "../../../hooks/useIncentives";
+import { useEmployeeIncentives } from "../../../hooks/useIncentives";
 
 const UserIncentives = ({userName}) => {
     const {employeeIncentives} = useEmployeeIncentives(userName);
