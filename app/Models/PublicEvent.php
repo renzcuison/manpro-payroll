@@ -10,6 +10,11 @@ class PublicEvent extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'title', 'description', 'start_time', 'end_time',
+        'user_id',
+        'title',
+        'description',
+        'start_time',
+        'end_time',
+        'status',
     ];
 }

@@ -15,13 +15,14 @@ import {
     LinearProgress,
     Box,
     Typography,
+    CircularProgress
 } from "@mui/material";
 
 
 const highlightMatch = (text, keyword) => {
     if (!keyword) return text;
 
-    const strText = text?.toString?.() ?? ""; // ensures numbers (e.g. 300.00) are handled
+    const strText = text?.toString?.() ?? ""; 
     const regex = new RegExp(`(${keyword})`, "gi");
     const parts = strText.split(regex);
 
@@ -36,7 +37,7 @@ const highlightMatch = (text, keyword) => {
     );
 };
 
-const GroupLifeCompanyTable = ({ rows, onRowClick, search }) => {
+const GroupLifeCompanyTable = ({ rows, onRowClick, search, loading }) => {
     
     return (
         <TableContainer
@@ -60,7 +61,15 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search }) => {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows.length === 0 ? (
+                    {loading ? (
+                        <TableRow>
+                            <TableCell colSpan={6} align="center">
+                                <Box display="flex" justifyContent="center" alignItems="center" height={200}>
+                                    <CircularProgress />
+                                </Box>
+                            </TableCell>
+                        </TableRow>
+                    ) : rows.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={5} align="center">
                                 <Typography>No Result Found</Typography>

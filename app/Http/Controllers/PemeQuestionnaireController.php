@@ -10,7 +10,6 @@ use App\Models\PemeQItem;
 use App\Models\PemeQType;
 use App\Models\Peme;
 
-
 class PemeQuestionnaireController extends Controller
 {
     public function checkUser()
@@ -37,7 +36,10 @@ class PemeQuestionnaireController extends Controller
             "input_types" => "required|array|min:1",
             "input_types.*" => "in:attachment,pass_fail,pos_neg,remarks,text",
             "file_size_limit" => "nullable|numeric|min:0.1|max:500",
+            "isRequired" => "nullable|boolean",
         ]);
+
+        $validated["isRequired"] = $validated["isRequired"] ?? 0;
 
         if (
             in_array("attachment", $validated["input_types"]) &&
@@ -69,6 +71,7 @@ class PemeQuestionnaireController extends Controller
         $question = PemeQItem::create([
             "peme_id" => $validated["peme_id"],
             "question" => $validated["question"],
+            "isRequired" => $validated["isRequired"],
         ]);
 
         foreach ($validated["input_types"] as $inputType) {
@@ -98,10 +101,11 @@ class PemeQuestionnaireController extends Controller
                     "peme_id" => Crypt::encrypt($question->peme_id),
                     // "peme_id" => $question->peme_id,
                     "question" => $question->question,
+                    "isRequired" => $question->isRequired,
                     "types" => $question->types->map(function ($type) {
                         return [
                             // "id" => Crypt::encrypt($type->id),
-                            "id" => $type->id,
+                            "id" => Crypt::encrypt($type->id),
                             "input_type" => $type->input_type,
                             "file_size_limit" => $type->file_size_limit ?? null,
                         ];
@@ -122,6 +126,7 @@ class PemeQuestionnaireController extends Controller
             "input_types" => "required|array|min:1",
             "input_types.*" => "in:attachment,pass_fail,pos_neg,remarks,text",
             "file_size_limit" => "nullable|numeric|min:0.1|max:100",
+            "isRequired" => "sometimes|boolean",
         ]);
 
         if (
@@ -156,10 +161,12 @@ class PemeQuestionnaireController extends Controller
             );
         }
 
-        $question->update([
-            "question" => $validated["question"],
-        ]);
+        $question->question = $validated["question"];
+        if (array_key_exists("isRequired", $validated)) {
+            $question->isRequired = $validated["isRequired"];
+        }
 
+        $question->save();
         $question->types()->delete();
 
         foreach ($validated["input_types"] as $inputType) {
@@ -198,6 +205,7 @@ class PemeQuestionnaireController extends Controller
                                 "file_size_limit" => $type->file_size_limit ?? null,
                             ];
                         }),
+                        "isRequired" => $question->isRequired, 
                     ],
                 ],
             ],
@@ -233,6 +241,7 @@ class PemeQuestionnaireController extends Controller
                 "id" => Crypt::encrypt($question->id),
                 // "id" => $question->id,
                 "question" => $question->question,
+                "isRequired" => $question->isRequired,
                 "input_types" => $inputTypes,
             ];
         });
@@ -295,15 +304,16 @@ class PemeQuestionnaireController extends Controller
                 // "id" => $question->id,
                 "peme_id" => Crypt::encrypt($question->peme_id),
                 // "peme_id" => $question->peme_id,
+                "isRequired" => $question->isRequired,
                 "question" => $question->question,
                 "types" => $question->types->map(function ($type) {
-                    return [
-                        "id" => Crypt::encrypt($type->id),
-                        // "id" => $type->id,
-                        "input_type" => $type->input_type,
-                        "file_size_limit" => $type->file_size_limit ?? null,
-                    ];
-                }),
+                        return [
+                            "id" => Crypt::encrypt($type->id),
+                            // "id" => $type->id,
+                            "input_type" => $type->input_type,
+                            "file_size_limit" => $type->file_size_limit ?? null,
+                        ];
+                    }),
             ],
         ]);
     }

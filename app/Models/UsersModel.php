@@ -232,12 +232,14 @@ class UsersModel extends Authenticatable implements HasMedia
         );
     }
 
-    public function assignGroupLifePlan()
+    public function groupLifeEmployeePlan()
     {
-        return $this->belongsTo(
-            GroupLifeCompanyPlan::class,
-            'group_life_plan_id'
-        );
+        return $this->hasMany(GroupLifeEmployeePlan::class, 'employee_id');
+    }
+
+    public function getEmployeeNameAttribute()
+    {
+        return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
     }
   
 }

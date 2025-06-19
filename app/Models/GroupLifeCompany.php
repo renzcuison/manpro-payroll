@@ -16,7 +16,8 @@ class GroupLifeCompany extends Model
 
     protected $fillable = [
         'name', 
-        'client_id'
+        'client_id',
+        'plans_count'
     ];
 
     public function client() {

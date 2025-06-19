@@ -45,7 +45,6 @@ const EmployeeView = () => {
 
     const [employee, setEmployee] = useState('');
     const [educations, setEducations] = useState([]);
-    const [imagePath, setImagePath] = useState('');
 
     const [openEmployeeDetailsEditModal, setOpenEmployeeDetailsEditModal] = useState(false);
 
@@ -81,38 +80,15 @@ const EmployeeView = () => {
                 if (response.data.status === 200) {
                     const empDetails = response.data.employee;
                     setEmployee(empDetails);
-                    if (empDetails.avatar && empDetails.avatar_mime) {
-                        const byteCharacters = window.atob(empDetails.avatar);
-                        const byteNumbers = new Array(byteCharacters.length);
-                        for (let i = 0; i < byteCharacters.length; i++) {
-                            byteNumbers[i] = byteCharacters.charCodeAt(i);
-                        }
-                        const byteArray = new Uint8Array(byteNumbers);
-                        const blob = new Blob([byteArray], { type: empDetails.avatar_mime });
-
-                        const newBlob = URL.createObjectURL(blob);
-                        setImagePath(newBlob);
-                    } else {
-                        setImagePath(null);
-                    }
                 }
             }).catch((error) => {
                 console.error('Error fetching employee:', error);
             });
     };
-    // Image Cleanup
-    useEffect(() => {
-        return () => {
-            if (imagePath && imagePath.startsWith('blob:')) {
-                URL.revokeObjectURL(imagePath);
-            }
-        }
-    }, []);
 
     const handleOpenActions = (event) => {
         setAnchorEl(event.currentTarget);
     };
-
     const handleCloseActions = () => {
         setAnchorEl(null);
     };
@@ -156,7 +132,7 @@ const EmployeeView = () => {
 
                     <Grid container spacing={4} sx={{ mt: 2 }}>
                         <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> 
-                            <EmployeeInformation employee={employee} imagePath={imagePath}/>
+                            <EmployeeInformation employee={employee}/>
                             <EmployeeBenefits userName={user} benefits={benefits} onRefresh={employeeBenefits.refetch}/>
                             <EmployeeAllowances userName={user} allowances={allowances} onRefresh={employeeAllowances.refetch}/>
                             <EmployeeIncentives userName={user} incentives={incentives} onRefresh={employeeIncentives.refetch}/>
