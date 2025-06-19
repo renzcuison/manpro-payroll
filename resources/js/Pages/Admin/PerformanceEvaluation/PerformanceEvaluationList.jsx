@@ -37,7 +37,10 @@ const getEvaluationRoleRoute = (row) => {
 
 const STATUS_OPTIONS = [
     { value: '', label: "All" },
+    { value: 'Sent', label: "Sent" },
+    { value: 'New', label: "New" },
     { value: 'Pending', label: "Pending" },
+    { value: 'Submitted', label: "Submitted" },
     { value: 'Done', label: "Done" },
 ];
 
@@ -143,7 +146,6 @@ const PerformanceEvaluationList = () => {
     // Check if the evaluation/comment period is disabled
     const isRowDisabled = (row) => {
         const now = new Date();
-        // The backend should provide these as ISO strings; fallback to undefined if missing
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
         if (!periodStart || !periodEnd) return false;
@@ -155,12 +157,10 @@ const PerformanceEvaluationList = () => {
         const now = new Date();
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
-        // Allow navigation if dates are missing for some reason
         if (!periodStart || !periodEnd) {
             navigate(getEvaluationRoleRoute(row));
             return;
         }
-        // Disallow if now is not within the period
         if (now < periodStart || now > periodEnd) {
             Swal.fire({
                 icon: 'warning',
