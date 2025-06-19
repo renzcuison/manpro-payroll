@@ -1083,10 +1083,10 @@ class EvaluationResponseController extends Controller
                                 $valB = '';
                         }
 
-                        if ($valA == $valB) continue;
+                        if ($valA == $valB) return -1;
                         return ($valA < $valB ? -1 : 1) * ($sortOrder === 'asc' ? 1 : -1);
                     }
-                    return 0;
+                    return -1;
                 })->values();
             }
 
@@ -1364,10 +1364,10 @@ class EvaluationResponseController extends Controller
                                 $valB = '';
                         }
 
-                        if ($valA == $valB) continue;
+                        if ($valA == $valB) return -1;
                         return ($valA < $valB ? -1 : 1) * ($sortOrder === 'asc' ? 1 : -1);
                     }
-                    return 0;
+                    return -1;
                 })->values();
             }
 
