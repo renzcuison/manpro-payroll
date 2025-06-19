@@ -95,18 +95,13 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
     const smScreen = useMediaQuery(theme.breakpoints.up("sm"));
     const medScreen = useMediaQuery(theme.breakpoints.up("md"));
     const xlScreen = useMediaQuery(theme.breakpoints.up("xl"));
+
     return isLoading ? (
         <>
             <LoadingSpinner />
         </>
     ) : (
-        <Box
-            sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-            }}
-        >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {/* WELCOME CARD */}
             <Box
                 component={Stack}
@@ -118,19 +113,9 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                 }}
                 spacing={2}
             >
-                <Typography
-                    variant="h5"
-                    sx={{
-                        color: "primary.contrastText",
-                    }}
-                >
+                <Typography variant="h5" sx={{ color: "primary.contrastText" }}>
                     Welcome{", "}
-                    <Box
-                        component={"span"}
-                        sx={{
-                            fontWeight: "bold",
-                        }}
-                    >
+                    <Box component={"span"} sx={{ fontWeight: "bold" }}>
                         <Typewriter
                             text={user.first_name}
                             delay={300}
@@ -144,9 +129,7 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                         <>
                             <Typography
                                 variant="subtitle1"
-                                sx={{
-                                    color: "#fff",
-                                }}
+                                sx={{ color: "#fff" }}
                             >
                                 You have {dashboardData?.requests?.length}{" "}
                                 pending requests today! Let’s work on them and
@@ -167,10 +150,7 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                         <>
                             <Typography
                                 variant="subtitle1"
-                                sx={{
-                                    color: "#d1d1d1",
-                                    fontStyle: "italic",
-                                }}
+                                sx={{ color: "#d1d1d1", fontStyle: "italic" }}
                             >
                                 Qoute of the day:
                             </Typography>
@@ -213,10 +193,7 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                     >
                         <Typography
                             variant="subtitle1"
-                            sx={{
-                                color: "#8a8a8a",
-                                fontWeight: 600,
-                            }}
+                            sx={{ color: "#8a8a8a", fontWeight: 600 }}
                         >
                             {info.title}
                         </Typography>
@@ -229,19 +206,14 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                         >
                             <Typography
                                 variant="h3"
-                                sx={{
-                                    color: "#4d4d4d",
-                                    fontWeight: "bold",
-                                }}
+                                sx={{ color: "#4d4d4d", fontWeight: "bold" }}
                             >
                                 {info.value}
                             </Typography>
 
                             <Typography
                                 variant="h3"
-                                sx={{
-                                    color: "primary.light",
-                                }}
+                                sx={{ color: "primary.light" }}
                             >
                                 {info.icon}
                             </Typography>
@@ -274,10 +246,7 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                         >
                             <Typography
                                 variant="h6"
-                                sx={{
-                                    color: "#4d4d4d",
-                                    fontWeight: 600,
-                                }}
+                                sx={{ color: "#4d4d4d", fontWeight: 600 }}
                             >
                                 New Employees
                             </Typography>
@@ -285,11 +254,7 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                                 <MoreVertical />
                             </IconButton>
                         </Box>
-                        <List
-                            sx={{
-                                bgcolor: "background.paper",
-                            }}
-                        >
+                        <List sx={{ bgcolor: "background.paper" }}>
                             {latestEmployees?.map((emp, index) => (
                                 <React.Fragment key={index}>
                                     <ListItem
@@ -298,14 +263,16 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                                             xlScreen ? (
                                                 <>
                                                     <Typography variant="caption">
-                                                        Joined
+                                                        {" "}
+                                                        Joined{" "}
                                                     </Typography>
                                                     <Typography>
+                                                        {" "}
                                                         {moment(
                                                             emp.created_at
                                                         ).format(
                                                             "MMM. DD, YYYY"
-                                                        )}
+                                                        )}{" "}
                                                     </Typography>
                                                 </>
                                             ) : (
@@ -365,7 +332,8 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                                                             display: "inline",
                                                         }}
                                                     >
-                                                        {emp.job_title.name}
+                                                        {emp.job_title?.name ||
+                                                            ""}
                                                     </Typography>
                                                 </React.Fragment>
                                             }
@@ -400,10 +368,7 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                         >
                             <Typography
                                 variant="h6"
-                                sx={{
-                                    color: "#4d4d4d",
-                                    fontWeight: 600,
-                                }}
+                                sx={{ color: "#4d4d4d", fontWeight: 600 }}
                             >
                                 Departments
                             </Typography>
@@ -437,10 +402,7 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                         >
                             <Typography
                                 variant="h6"
-                                sx={{
-                                    color: "#4d4d4d",
-                                    fontWeight: 600,
-                                }}
+                                sx={{ color: "#4d4d4d", fontWeight: 600 }}
                             >
                                 Branches
                             </Typography>
