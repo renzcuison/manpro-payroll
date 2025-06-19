@@ -16,86 +16,11 @@ import {
   Tooltip,
   Grid,
   Checkbox,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Autocomplete
+  Button
 } from '@mui/material';
 import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
 import Swal from 'sweetalert2';
-
-const AssignUsersModal = ({ open, onClose, roleId, onAssignSuccess }) => {
-  const storedUser = localStorage.getItem('nasya_user');
-  const headers = getJWTHeader(JSON.parse(storedUser));
-
-  const [allEmployees, setAllEmployees] = useState([]);
-  const [selectedEmployees, setSelectedEmployees] = useState([]);
-
-  useEffect(() => {
-    if (open) {
-      axiosInstance.get('/settings/getEmployees', { headers }).then(res => {
-        const filtered = res.data.filter(emp => emp.role_id !== roleId);
-        setAllEmployees(filtered);
-        setSelectedEmployees([]);
-      });
-    }
-  }, [open, roleId]);
-
-  const handleAssign = async () => {
-    if (selectedEmployees.length === 0) {
-      Swal.fire('Warning', 'Please select at least one employee.', 'warning');
-      return;
-    }
-
-    try {
-      const user_ids = selectedEmployees.map(emp => emp.id);
-      await axiosInstance.put(
-        `/settings/assignEmployeesToRole/${roleId}`,
-        { user_ids },
-        { headers }
-      );
-      Swal.fire('Success', 'Users assigned to this role.', 'success');
-      onAssignSuccess();
-      onClose();
-    } catch (err) {
-      Swal.fire('Error', 'Failed to assign users.', 'error');
-    }
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Assign Employees to Role</DialogTitle>
-      <DialogContent>
-        <Autocomplete
-          multiple
-          options={allEmployees}
-          getOptionLabel={(option) => `${option.first_name} ${option.last_name}`}
-          isOptionEqualToValue={(option, value) => option.id === value.id}
-          disableCloseOnSelect
-          onChange={(e, newValue) => setSelectedEmployees(newValue)}
-          value={selectedEmployees}
-          renderInput={(params) => (
-            <TextField {...params} label="Search and select employees" />
-          )}
-          renderOption={(props, option, { selected }) => (
-            <li {...props}>
-              <Checkbox style={{ marginRight: 8 }} checked={selected} />
-              {`${option.first_name} ${option.last_name}`}
-            </li>
-          )}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" color="primary" onClick={handleAssign}>
-          Assign
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
+import AssignUsersModal from './modal/AssignUsersModal';
 
 const RolesDetails = () => {
   const { id } = useParams();
@@ -119,7 +44,12 @@ const RolesDetails = () => {
       setRole(res.data.role);
       setEmployees(res.data.employees || []);
     } catch (err) {
-      Swal.fire('Error', 'Failed to fetch role details.', 'error');
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to fetch role details.',
+        icon: 'error',
+        customClass: { popup: 'swal-popup-zfix' }
+      });
     } finally {
       setIsLoading(false);
     }
@@ -132,9 +62,19 @@ const RolesDetails = () => {
   const savePermissions = async () => {
     try {
       await axiosInstance.put(`/settings/updateEmployeeRole/${id}`, role, { headers });
-      Swal.fire('Success', 'Permissions updated!', 'success');
+      Swal.fire({
+        title: 'Success',
+        text: 'Permissions updated!',
+        icon: 'success',
+        customClass: { popup: 'swal-popup-zfix' }
+      });
     } catch (err) {
-      Swal.fire('Error', 'Failed to update permissions.', 'error');
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to update permissions.',
+        icon: 'error',
+        customClass: { popup: 'swal-popup-zfix' }
+      });
     }
   };
 
@@ -158,7 +98,6 @@ const RolesDetails = () => {
             {role?.name}
           </Typography>
 
-          {/* Permissions Box */}
           <Box
             sx={{
               bgcolor: '#ffffff',
@@ -171,16 +110,44 @@ const RolesDetails = () => {
               mb: 4
             }}
           >
-            <TextField label="Position" value={role?.name || ''} disabled sx={{ width: 200 }} />
-            <Box><Checkbox checked={role?.can_review_request || false} onChange={(e) => handlePermissionChange('can_review_request', e.target.checked)} />Review</Box>
-            <Box><Checkbox checked={role?.can_approve_request || false} onChange={(e) => handlePermissionChange('can_approve_request', e.target.checked)} />Approve</Box>
-            <Box><Checkbox checked={role?.can_note_request || false} onChange={(e) => handlePermissionChange('can_note_request', e.target.checked)} />Note</Box>
-            <Box><Checkbox checked={role?.can_accept_request || false} onChange={(e) => handlePermissionChange('can_accept_request', e.target.checked)} />Accept</Box>
-            <Button variant="contained" onClick={savePermissions} sx={{ backgroundColor: '#177604', '&:hover': { backgroundColor: '#126903' } }}>Save</Button>
-            <Button variant="outlined" onClick={() => setAssignModalOpen(true)} sx={{ ml: 'auto' }}>Assign Employees</Button>
+            <TextField
+              label="Role"
+              value={role?.name || ''}
+              onChange={(e) => handlePermissionChange('name', e.target.value)}
+              sx={{ width: 200 }}
+            />
+            <Box>
+              <Checkbox
+                checked={role?.can_review_request || false}
+                onChange={(e) => handlePermissionChange('can_review_request', e.target.checked)}
+              />Review
+            </Box>
+            <Box>
+              <Checkbox
+                checked={role?.can_approve_request || false}
+                onChange={(e) => handlePermissionChange('can_approve_request', e.target.checked)}
+              />Approve
+            </Box>
+            <Box>
+              <Checkbox
+                checked={role?.can_note_request || false}
+                onChange={(e) => handlePermissionChange('can_note_request', e.target.checked)}
+              />Note
+            </Box>
+            <Box>
+              <Checkbox
+                checked={role?.can_accept_request || false}
+                onChange={(e) => handlePermissionChange('can_accept_request', e.target.checked)}
+              />Accept
+            </Box>
+            <Button variant="contained" onClick={savePermissions} sx={{ backgroundColor: '#177604', '&:hover': { backgroundColor: '#126903' } }}>
+              Save
+            </Button>
+            <Button variant="outlined" onClick={() => setAssignModalOpen(true)} sx={{ ml: 'auto' }}>
+              Assign Employees
+            </Button>
           </Box>
 
-          {/* Employee List */}
           <Box sx={{ bgcolor: '#ffffff', p: 3, borderRadius: 2 }}>
             <Grid container spacing={2} sx={{ mb: 2 }}>
               <Grid item xs={12} md={6}>
@@ -236,7 +203,6 @@ const RolesDetails = () => {
             </Box>
           </Box>
 
-          {/* Assign Users Modal */}
           <AssignUsersModal
             open={assignModalOpen}
             onClose={() => setAssignModalOpen(false)}
@@ -250,3 +216,4 @@ const RolesDetails = () => {
 };
 
 export default RolesDetails;
+  
