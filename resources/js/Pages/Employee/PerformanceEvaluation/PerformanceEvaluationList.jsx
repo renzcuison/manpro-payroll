@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
-    TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
-    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel
+    TablePagination, Box, Typography, CircularProgress,
+    TextField, InputAdornment, IconButton, Select, FormControl, InputLabel, MenuItem
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { getFullName } from '../../../utils/user-utils';
-import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -62,14 +61,8 @@ const PerformanceEvaluationList = () => {
     // Status filter state
     const [statusFilter, setStatusFilter] = useState('');
 
-    // Menu Items (for completeness, not used in employee page, but pattern kept in case)
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
-    const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-    const handleMenuClose = () => setAnchorEl(null);
-
-    // Modal state for New Form (employee may not use, but pattern kept for design similarity)
-    const [modalOpen, setModalOpen] = useState(false);
+    // For white box logic
+    const [hasHadResponses, setHasHadResponses] = useState(false);
 
     useEffect(() => {
         axiosInstance.get('/getEvaluationForms', { headers })
@@ -104,8 +97,14 @@ const PerformanceEvaluationList = () => {
                             seen[row.id] = row;
                         }
                     }
-                    setEvaluationResponses(Object.values(seen));
+                    const uniqueResponses = Object.values(seen);
+                    setEvaluationResponses(uniqueResponses);
                     setTotalCount(response.data.totalResponseCount);
+
+                    // If on any filter/search there has been at least 1 response, set flag
+                    if (uniqueResponses.length > 0) {
+                        setHasHadResponses(true);
+                    }
                 } else {
                     setEvaluationResponses([]);
                     setTotalCount(0);
@@ -144,7 +143,6 @@ const PerformanceEvaluationList = () => {
     // Check if the evaluation/comment period is disabled
     const isRowDisabled = (row) => {
         const now = new Date();
-        // The backend should provide these as ISO strings; fallback to undefined if missing
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
         if (!periodStart || !periodEnd) return false;
@@ -156,12 +154,10 @@ const PerformanceEvaluationList = () => {
         const now = new Date();
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
-        // Allow navigation if dates are missing for some reason
         if (!periodStart || !periodEnd) {
             navigate(getEvaluationRoleRoute(row));
             return;
         }
-        // Disallow if now is not within the period
         if (now < periodStart || now > periodEnd) {
             alert('Evaluation or Comments for this form has been disabled');
             return;
@@ -171,134 +167,140 @@ const PerformanceEvaluationList = () => {
 
     return (
         <Layout title={"PerformanceEvaluation"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
+            <Box sx={{ width: '100%' }}>
                 <Box sx={{ mx: 'auto', width: '100%', maxWidth: '1200px' }}>
                     {/* Title */}
                     <Box sx={{ mt: 5 }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Performance Evaluation </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                            Performance Evaluation
+                        </Typography>
                     </Box>
-                    {/* White Box Containing the Table and Filters */}
-                    <Box sx={{ mt: 2, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {/* Table Filters and Search */}
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3, gap: 2 }}>
-                            {/* Search Field */}
-                            <Box
-                                component="form"
-                                onSubmit={handleSearchSubmit}
-                                sx={{ width: 220 }}
-                            >
-                                <TextField
-                                    placeholder="Search..."
-                                    value={searchInput}
-                                    onChange={handleSearchChange}
-                                    size="small"
-                                    fullWidth
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon />
-                                            </InputAdornment>
-                                        ),
-                                        endAdornment: (
-                                            searchInput && (
-                                                <InputAdornment position="end">
-                                                    <IconButton
-                                                        aria-label="clear search"
-                                                        onClick={handleClearSearch}
-                                                        edge="end"
-                                                        size="small"
-                                                    >
-                                                        <ClearIcon />
-                                                    </IconButton>
-                                                </InputAdornment>
-                                            )
-                                        )
-                                    }}
-                                />
-                            </Box>
-                            {/* Status Filter */}
-                            <FormControl size="small" sx={{ minWidth: 110 }}>
-                                <InputLabel>Status</InputLabel>
-                                <Select
-                                    value={statusFilter}
-                                    label="Status"
-                                    onChange={handleStatusChange}
-                                >
-                                    {STATUS_OPTIONS.map(opt => (
-                                        <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Box>
-                        {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
-                                <CircularProgress />
-                            </Box>
-                        ) : (
-                            <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
-                                    <Table aria-label="simple table" sx={{
-                                        '& .MuiTableCell-root': {
-                                            borderBottom: 'none',
-                                        },
-                                    }}>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align="center">DATE</TableCell>
-                                                <TableCell align="center">NAME</TableCell>
-                                                <TableCell align="center">DEPARTMENT</TableCell>
-                                                <TableCell align="center">BRANCH</TableCell>
-                                                <TableCell align="center">ROLE</TableCell>
-                                                <TableCell align="center">STATUS</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {evaluationResponses.length === 0 ? (
-                                                <TableRow>
-                                                    <TableCell colSpan={5} align="center">
-                                                        No evaluation responses found.
-                                                    </TableCell>
-                                                </TableRow>
-                                            ) : (
-                                                evaluationResponses.map((row, idx) => (
-                                                <TableRow
-                                                    key={row.id}
-                                                    hover
-                                                    style={{
-                                                        cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
-                                                        backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
-                                                        opacity: isRowDisabled(row) ? 0.5 : 1,
-                                                    }}
-                                                    onClick={() => handleRowClick(row)}
-                                                >
-                                                    <TableCell align="center">{row.date}</TableCell>
-                                                    <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
-                                                    <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
-                                                    <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
-                                                    <TableCell align="center">{row.role}</TableCell>
-                                                    <TableCell align="center">{row.status}</TableCell>
-                                                </TableRow>
-                                                ))
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
 
-                                {/* Pagination controls */}
-                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <TablePagination
-                                        rowsPerPageOptions={[10]}
-                                        component="div"
-                                        count={totalCount}
-                                        rowsPerPage={rowsPerPage}
-                                        page={page}
-                                        onPageChange={handleChangePage}
-                                        onRowsPerPageChange={() => { }}
+                    {isLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : hasHadResponses ? (
+                        <Box sx={{ mt: 2, p: 3, bgcolor: '#fff', borderRadius: '8px' }}>
+                            {/* Filters/Search always visible */}
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3, gap: 2 }}>
+                                {/* Search Field */}
+                                <Box
+                                    component="form"
+                                    onSubmit={handleSearchSubmit}
+                                    sx={{ width: 220 }}
+                                >
+                                    <TextField
+                                        placeholder="Search..."
+                                        value={searchInput}
+                                        onChange={handleSearchChange}
+                                        size="small"
+                                        fullWidth
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <SearchIcon />
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: (
+                                                searchInput && (
+                                                    <InputAdornment position="end">
+                                                        <IconButton
+                                                            aria-label="clear search"
+                                                            onClick={handleClearSearch}
+                                                            edge="end"
+                                                            size="small"
+                                                        >
+                                                            <ClearIcon />
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                )
+                                            )
+                                        }}
                                     />
                                 </Box>
-                            </>
-                        )}
-                    </Box>
+                                {/* Status Filter */}
+                                <FormControl size="small" sx={{ minWidth: 110 }}>
+                                    <InputLabel>Status</InputLabel>
+                                    <Select
+                                        value={statusFilter}
+                                        label="Status"
+                                        onChange={handleStatusChange}
+                                    >
+                                        {STATUS_OPTIONS.map(opt => (
+                                            <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                            {evaluationResponses.length === 0 ? (
+                                <Box sx={{ minHeight: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Typography variant="body1" color="text.secondary">
+                                        No evaluation responses found.
+                                    </Typography>
+                                </Box>
+                            ) : (
+                                <>
+                                    <TableContainer sx={{ minHeight: 400 }}>
+                                        <Table aria-label="simple table" sx={{
+                                            '& .MuiTableCell-root': {
+                                                borderBottom: 'none',
+                                            },
+                                        }}>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell align="center">DATE</TableCell>
+                                                    <TableCell align="center">NAME</TableCell>
+                                                    <TableCell align="center">DEPARTMENT</TableCell>
+                                                    <TableCell align="center">BRANCH</TableCell>
+                                                    <TableCell align="center">ROLE</TableCell>
+                                                    <TableCell align="center">STATUS</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {evaluationResponses.map((row, idx) => (
+                                                    <TableRow
+                                                        key={row.id}
+                                                        hover
+                                                        style={{
+                                                            cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
+                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
+                                                            opacity: isRowDisabled(row) ? 0.5 : 1,
+                                                        }}
+                                                        onClick={() => handleRowClick(row)}
+                                                    >
+                                                        <TableCell align="center">{row.date}</TableCell>
+                                                        <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
+                                                        <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
+                                                        <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
+                                                        <TableCell align="center">{row.role}</TableCell>
+                                                        <TableCell align="center">{row.status}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                                        <TablePagination
+                                            rowsPerPageOptions={[10]}
+                                            component="div"
+                                            count={totalCount}
+                                            rowsPerPage={rowsPerPage}
+                                            page={page}
+                                            onPageChange={handleChangePage}
+                                            onRowsPerPageChange={() => { }}
+                                        />
+                                    </Box>
+                                </>
+                            )}
+                        </Box>
+                    ) : (
+                        <Box sx={{ minHeight: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                            <Typography variant="body1" color="text.secondary">
+                                No evaluation responses found.
+                            </Typography>
+                        </Box>
+                    )}
                 </Box>
             </Box>
         </Layout>
