@@ -1342,6 +1342,7 @@ class EvaluationFormController extends Controller
             }
 
             // ---- CREATE LOGIC (your original code, unchanged) ----
+
             $order = (
                 \App\Models\EvaluationFormSubcategory::where('section_id', $request->section_id)->max('order') ?? 0
             ) + 1;
@@ -1381,7 +1382,7 @@ class EvaluationFormController extends Controller
                         EvaluationFormSubcategoryOption::create([
                             'subcategory_id' => $newEvaluationFormSubcategory->id,
                             'label' => $label,
-                            'score' => (isset($option['score']) && is_numeric($option['score']) ? (double) $option['score'] : 1),
+                            'score' => (isset($option['score']) && is_numeric($option['score']) ? (double) $option['score'] : ($request->subcategory_type === 'linear_scale' ? $optionOrder+1 : 1)),
                             'order' => $optionOrder + 1,
                             'description' => $option['description'] ?? null,
                         ]);
