@@ -364,11 +364,15 @@ class EvaluationResponseController extends Controller
                 ->where('period_end_at', '>', $request->period_start_at ?? $evaluationResponse->period_start_at)
                 ->first()
             ;
-            if($conflictingEvaluationResponse) return response()->json([ 
-                'status' => 400,
-                'message' => 'This Evaluation is in conflict with another!',
-                'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
-            ]);
+            if($conflictingEvaluationResponse) {
+                $conflictionPeriodStart = date_format($conflictingEvaluationResponse->period_start_at, '%b %d, %Y');
+                $conflictionPeriodEnd = date_format($conflictingEvaluationResponse->period_end_at, '%b %d, %Y');
+                return response()->json([ 
+                    'status' => 400,
+                    'message' => "This Evaluation is in conflict with another from $conflictionPeriodStart to $conflictionPeriodEnd!",
+                    'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
+                ]);
+            }
 
             if($request->evaluatee_id !== null)
                 $evaluationResponse->evaluatee_id = $request->evaluatee_id;
@@ -1169,11 +1173,15 @@ class EvaluationResponseController extends Controller
                 ->where('period_end_at', '>', $request->period_start_at)
                 ->first()
             ;
-            if($conflictingEvaluationResponse) return response()->json([ 
-                'status' => 400,
-                'message' => 'This Evaluation is in conflict with another!',
-                'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
-            ]);
+            if($conflictingEvaluationResponse) {
+                $conflictionPeriodStart = date_format($conflictingEvaluationResponse->period_start_at, '%b %d, %Y');
+                $conflictionPeriodEnd = date_format($conflictingEvaluationResponse->period_end_at, '%b %d, %Y');
+                return response()->json([ 
+                    'status' => 400,
+                    'message' => "This Evaluation is in conflict with another from $conflictionPeriodStart to $conflictionPeriodEnd!",
+                    'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
+                ]);
+            }
 
             $newEvaluationResponse = EvaluationResponse::create([
                 'evaluatee_id' => $request->evaluatee_id,
