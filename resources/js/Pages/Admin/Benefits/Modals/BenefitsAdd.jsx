@@ -5,11 +5,10 @@ import InputAdornment from '@mui/material/InputAdornment';
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import 'react-quill/dist/quill.snow.css';
-import { useBenefits } from '../../../../hooks/useBenefits';
+import { useSaveBenefits } from '../../../../hooks/useBenefits';
 
 const BenefitsAdd = ({ open, close }) => {
-    const {saveBenefits} = useBenefits();
-
+    const saveBenefits = useSaveBenefits();
     const [benefitNameError, setBenefitNameError] = useState(false);
     const [employeeAmountShareError, setEmployeeAmountShareError] = useState(false);
     const [employerAmountShareError, setEmployerAmountShareError] = useState(false);
@@ -23,6 +22,8 @@ const BenefitsAdd = ({ open, close }) => {
     const [employeePercentageShare, setEmployeePercentageShare] = useState('');
     const [employerPercentageShare, setEmployerPercentageShare] = useState('');
 
+    const [paymentScheduleError, setPaymentScheduleError] = useState(false);
+    const [paymentSchedule, setPaymentSchedule] = useState(1);
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -144,9 +145,9 @@ const BenefitsAdd = ({ open, close }) => {
             employerAmount: employerAmount,
             employeePercentage: employeePercentage,
             employerPercentage: employerPercentage,
+            payment_schedule: paymentSchedule,
         };
-
-        saveBenefits.mutate({data: data, onSuccesCallback: () => close(true)})
+        saveBenefits.mutate({data: data, onSuccessCallback: () => close(true)})
     };
 
     const formatCurrency = (value) => {
@@ -219,12 +220,27 @@ const BenefitsAdd = ({ open, close }) => {
                             </FormControl>
                         </FormGroup>
 
-                        {benefitType === "Amount" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between">
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%',
-                                    }}>
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            {benefitType && (
+                                    <FormControl sx={{ marginBottom: 3, width: '50%', }}>
+                                        <TextField
+                                            required
+                                            select
+                                            id="paymentSchedule"
+                                            label="Payment Schedule"
+                                            value={paymentSchedule}
+                                            error={paymentScheduleError}
+                                            onChange={(event) => setPaymentSchedule(event.target.value)}
+                                        >
+                                            <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>
+                                            <MenuItem key={2} value={2}> One Time - Second Cutoff</MenuItem>
+                                            <MenuItem key={3} value={3}> Split - First & Second Cutoff</MenuItem>
+                                        </TextField>
+                                    </FormControl>
+                                )}
+                            {benefitType === "Amount" && (
+                                <>
+                                    <FormControl sx={{ marginBottom: 3, width: '23%' }}>
                                         <InputLabel htmlFor="employeeAmountShare">Employee Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -237,9 +253,7 @@ const BenefitsAdd = ({ open, close }) => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%',
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '23%'}}>
                                         <InputLabel htmlFor="employerAmountShare">Employer Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -251,16 +265,12 @@ const BenefitsAdd = ({ open, close }) => {
                                             onChange={(e) => handleInputChange(e, setEmployerAmountShare)}
                                         />
                                     </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
+                                </>
+                            )}
 
-                        {benefitType === "Percentage" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between">
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%',
-                                    }}>
+                            {benefitType === "Percentage" && (
+                                <>
+                                    <FormControl sx={{ marginBottom: 3, width: '23%' }}>
                                         <InputLabel htmlFor="employeePercentageShare">Employee Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -273,9 +283,7 @@ const BenefitsAdd = ({ open, close }) => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%',
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '23%' }}>
                                         <InputLabel htmlFor="employerPercentageShare">Employer Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -286,10 +294,10 @@ const BenefitsAdd = ({ open, close }) => {
                                             startAdornment={<InputAdornment position="start">%</InputAdornment>}
                                             onChange={(e) => handleInputChange(e, setEmployerPercentageShare)}
                                         />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
+                                    </FormControl> 
+                                </>   
+                            )}
+                        </FormGroup>
 
                         {benefitType && (
                             <>

@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import { useBenefits } from "../../../../hooks/useBenefits";
+import { useBenefit, useSaveEmployeeBenefits } from "../../../../hooks/useBenefits";
 
-const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
-    const {saveEmployeeBenefits, benefits} = useBenefits({loadBenefits: true});
+const EmployeeBenefitAdd = ({ userName, onClose }) => {
+    const {benefitsData} = useBenefit();
+    const saveEmployeeBenefits = useSaveEmployeeBenefits();
 
     const [benefitError, setBenefitError] = useState(false);
     const [numberError, setNumberError] = useState(false);
 
-    const benefitsData = benefits.data?.benefits || []; 
+    const benefits = benefitsData?.benefits || []; 
     const [benefit, setBenefit] = useState('');
     const [number, setNumber] = useState('');
     
@@ -74,7 +75,7 @@ const EmployeeBenefitAdd = ({ userName, headers, onClose }) => {
                         error={benefitError}
                         onChange={(event) => setBenefit(event.target.value)}
                     >
-                        {benefitsData.map((benefit) => (
+                        {benefits.map((benefit) => (
                             <MenuItem key={benefit.id} value={benefit.id}> {benefit.name} </MenuItem>
                         ))}
                     </TextField>

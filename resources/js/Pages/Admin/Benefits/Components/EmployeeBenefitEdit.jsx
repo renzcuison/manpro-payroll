@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField,  FormControl, FormGroup, InputAdornment } from "@mui/material";
-import dayjs from "dayjs";
 import Swal from "sweetalert2";
-import { useBenefits } from "../../../../hooks/useBenefits";
-import { TRUE } from "sass";
+import { useUpdateEmployeeBenefit } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitEdit = ({benefits, onClose}) => {
-    const {updateEmployeeBenefit} = useBenefits();
-
+    const updateEmployeeBenefit = useUpdateEmployeeBenefit();
     const [number, setNumber] = useState(benefits?.number)
     const [selectedStatus, setSelectedStatus] = useState(benefits?.status);
 

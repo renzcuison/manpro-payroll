@@ -337,6 +337,7 @@ class CompensationManagementController extends Controller
             return response()->json([
                 'status' => 200,
                 'employees' => [],
+                'employee_count' => 0,
                 'employee_total' => 0,
                 'employer_total' => 0,
                 'total' => 0,
@@ -403,7 +404,7 @@ class CompensationManagementController extends Controller
             ]);
         }
 
-        $total_count = $resultEmployees->count();
+        $total_count = $filteredEmployees->count();
         $paginated = $resultEmployees->forPage($page, $perPage)->values();
 
         return response()->json([
@@ -411,7 +412,7 @@ class CompensationManagementController extends Controller
             'employees' => $paginated,
             'employee_total' => $paginated->sum('employee_amount'),
             'employer_total' => $paginated->sum('employer_amount'),
-            'total' => $total_count,
+            'employee_count' => $total_count,
             'current_page' => $page,
         ]);
     }
@@ -463,6 +464,7 @@ class CompensationManagementController extends Controller
                 'employee_percentage' => $benefit->benefit->employee_percentage,
                 'employer_contribution' => $employer_amount,
                 'employee_contribution' => $employee_amount,
+                'payment_schedule' => $benefit->benefit->payment_schedule,
                 'status' => $benefit->status,
                 'created_at' => $benefit->created_at,
             ];
@@ -488,6 +490,7 @@ class CompensationManagementController extends Controller
                 'employee_amount' => $benefit->employee_amount,
                 'employer_percentage' => $benefit->employer_percentage,
                 'employee_percentage' => $benefit->employee_percentage,
+                "payment_schedule" => $benefit->payment_schedule,
             ];
         }
         
@@ -503,10 +506,10 @@ class CompensationManagementController extends Controller
             'employerAmount' => 'required',
             'employeePercentage' => 'required',
             'employerPercentage' => 'required',
+            'payment_schedule' => 'required',
         ]);
 
         if ($this->checkUserAdmin() && $validated) {
-
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
@@ -520,6 +523,7 @@ class CompensationManagementController extends Controller
                     "employer_percentage" => $request->employerPercentage,
                     "employee_amount" => $request->employeeAmount,
                     "employer_amount" => $request->employerAmount,
+                    "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
                 DB::commit();
@@ -542,6 +546,7 @@ class CompensationManagementController extends Controller
             'employerAmount' => 'required',
             'employeePercentage' => 'required',
             'employerPercentage' => 'required',
+            'payment_schedule' => 'required',
         ]);
 
         if(!$this->checkUserAdmin() && !$validated){
@@ -565,6 +570,7 @@ class CompensationManagementController extends Controller
                 $benefit->employee_amount = $request->employeeAmount;
                 $benefit->employer_percentage = $request->employerPercentage;
                 $benefit->employee_percentage = $request->employeePercentage;
+                $benefit->payment_schedule = $request->payment_schedule;
                 $benefit->save();
                 DB::commit();
             } catch (\Exception $e) {

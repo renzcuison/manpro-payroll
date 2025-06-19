@@ -3,13 +3,13 @@ import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, 
 import Layout from '../../../components/Layout/Layout';
 import { Link } from 'react-router-dom';
 import BenefitsAdd from './Modals/BenefitsAdd';
-import { useBenefits } from '../../../hooks/useBenefits';
+import { useBenefit } from '../../../hooks/useBenefits';
 import BenefitsEdit from './Modals/BenefitsEdit';
 
 const BenefitsTypes = () => {
-    const {benefits: benefitQuery} = useBenefits({loadBenefits:true});
+    const {benefitsData, isBenefitsLoading, refetchBenefits} = useBenefit();
     
-    const benefits = benefitQuery.data?.benefits || [];
+    const benefits = benefitsData?.benefits || [];
     const [openAddBenefitsModal, setOpenAddBenefitsModal] = useState(false);
     const [openEditBenefitsModal, setOpenEditBenefitsModal] = useState(false);
     const [selectedBenefit, setSelectedBenefit] = useState(null);
@@ -21,7 +21,7 @@ const BenefitsTypes = () => {
     const handleCloseAddBenefitsModal = (reload) => {
         setOpenAddBenefitsModal(false);
         if(reload){
-            benefitQuery.refetch();
+            refetchBenefits();
         }
     }
 
@@ -34,7 +34,7 @@ const BenefitsTypes = () => {
         setOpenEditBenefitsModal(false);
         setSelectedBenefit(null);
         if(reload){
-            benefitQuery.refetch();
+            refetchBenefits();
         }
     }
 
@@ -56,7 +56,7 @@ const BenefitsTypes = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {benefits.isLoading? (
+                        {isBenefitsLoading? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
