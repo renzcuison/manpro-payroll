@@ -691,7 +691,6 @@ class EvaluationResponseController extends Controller
                                 if($option['option_answer'])
                                     $achievedSubcategoryScore += $option->score;
                             }
-                            break;
                     }
                     $subcategory->score = $maxSubcategoryScore;
                     $subcategory->achieved_score = $achievedSubcategoryScore;
@@ -991,7 +990,6 @@ class EvaluationResponseController extends Controller
                             : ($evaluationResponse->evaluatee_opened_at ? 'Pending'
                             : 'New'
                         );
-                        break;
                 }
 
             // 2. Searching
@@ -3102,7 +3100,6 @@ class EvaluationResponseController extends Controller
             ;
 
             switch($evaluationFormSubcategory->subcategory_type) {
-                case "linear_scale":
                 case "long_answer":
                 case "short_answer":
                     return response()->json([
@@ -3112,6 +3109,7 @@ class EvaluationResponseController extends Controller
                     ]);
                     break;
                 case "checkbox":
+                case "linear_scale":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::select('response_id', 'option_id')
@@ -3126,7 +3124,6 @@ class EvaluationResponseController extends Controller
                         'evaluationResponseID' => $request->response_id,
                         'evaluationFormSubcategoryOptionID' => $request->option_id
                     ]);
-                    break;
             }
 
             $evaluationOptionAnswer->option_id  = $request->new_option_id;
@@ -3384,7 +3381,6 @@ class EvaluationResponseController extends Controller
             ;
 
             switch($subcategory->subcategory_type) {
-                case "linear_scale":
                 case "long_answer":
                 case "short_answer":
                     return response()->json([
@@ -3411,6 +3407,7 @@ class EvaluationResponseController extends Controller
                         'evaluationOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
+                case "linear_scale":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
