@@ -104,6 +104,7 @@ import PerformanceEvaluationAnswerPage from '../Pages/Admin/PerformanceEvaluatio
 import PerformanceEvaluationCommentorPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCommentorPage'
 import PerformanceEvaluationEvaluateePage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationEvaluateePage';
 import PerformanceEvaluationCreatorPage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationCreatorPage'
+import PerformanceEvaluationResultPage from "../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationResultPage";
 
 import CommingSoon from "../Pages/Admin/Staffing/CommingSoon";
 
@@ -118,6 +119,10 @@ const AdminRoutes = ({ user }) => {
 
     return (
         <Routes>
+            <Route
+            path="performance-evaluation/results"
+            element={<ProtectedRoute element={<PerformanceEvaluationResultPage />} user={user} />}
+            />
             <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview/>} user={user} />} />
             {/* <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} /> */}
             <Route path="performance-evaluation/answer/:id" element={<ProtectedRoute element={<PerformanceEvaluationAnswerPage />} user={user} />} />

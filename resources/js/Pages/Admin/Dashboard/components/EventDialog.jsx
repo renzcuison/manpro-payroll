@@ -15,10 +15,11 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { PiCalendarHeart, PiCalendarStar } from "react-icons/pi";
 import dayjs from "dayjs";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
+import { useForm, Controller } from "react-hook-form";
 
 function EventDialog({
     modalOpen,
@@ -28,18 +29,32 @@ function EventDialog({
     isDeleting,
     fetchEvents,
 }) {
-    const [form, setForm] = useState({
-        title: "",
-        description: "",
-        start_time: "",
-        end_time: "",
-        visibility_type: "",
-    });
     const [isLoading, setIsLoading] = useState(false);
+    console.log("Selected Event:", selectedEvent);
+
+    const {
+        register,
+        handleSubmit,
+        control,
+        reset,
+        setValue,
+        watch,
+        formState: { errors },
+    } = useForm({
+        defaultValues: {
+            title: "",
+            description: "",
+            start_time: "",
+            end_time: "",
+            visibility_type: "private",
+            status: "waiting",
+        },
+    });
 
     useEffect(() => {
         if (selectedEvent) {
-            setForm({
+            reset({
+                id: selectedEvent.id,
                 title: selectedEvent.title || "",
                 description: selectedEvent.description || "",
                 start_time: dayjs(selectedEvent.start).format(
@@ -50,50 +65,36 @@ function EventDialog({
                     selectedEvent.visibility_type === "public"
                         ? "public"
                         : "private",
+                status: selectedEvent.status || "waiting",
             });
         }
-    }, [selectedEvent]);
+    }, [selectedEvent, reset]);
 
-    const handleChange = (e) => {
-        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleUpdate = async () => {
+    const onSubmit = async (data) => {
         try {
-            console.log(selectedEvent);
-
             if (selectedEvent.type === "holiday") {
                 alert("Regular holidays can't be edited.");
                 return;
             }
+
             setIsLoading(true);
             const storedUser = localStorage.getItem("nasya_user");
             const headers = storedUser
                 ? getJWTHeader(JSON.parse(storedUser))
                 : [];
 
-            const payload = {
-                title: form.title,
-                description: form.description,
-                start_time: form.start_time,
-                end_time: form.end_time,
-            };
+            const formData = new FormData();
+            formData.append("title", data.title);
+            formData.append("description", data.description);
+            formData.append("start_time", data.start_time);
+            formData.append("end_time", data.end_time);
+            formData.append("status", data.status);
+            formData.append("visibility", data.visibility_type);
+            formData.append("_method", "put");
 
-            if (form.visibility_type === "public") {
-                await axiosInstance.put(
-                    `/public-event/${selectedEvent.id.replace("db-", "")}`,
-                    payload,
-                    { headers }
-                );
-            } else {
-                await axiosInstance.put(
-                    `/google/event/${selectedEvent.id}`,
-                    payload,
-                    {
-                        headers,
-                    }
-                );
-            }
+            const requestUrl = `/google/event/${selectedEvent.id}`;
+
+            await axiosInstance.post(requestUrl, formData, { headers });
 
             alert("Event updated successfully.");
             setModalOpen(false);
@@ -105,6 +106,8 @@ function EventDialog({
             setIsLoading(false);
         }
     };
+
+    const visibility = watch("visibility_type");
 
     return (
         <Dialog
@@ -126,14 +129,14 @@ function EventDialog({
                     label={
                         selectedEvent?.type === "holiday"
                             ? "Holiday"
-                            : form.visibility === "public"
+                            : visibility === "public"
                             ? "Public"
                             : "Private"
                     }
                     color={
                         selectedEvent?.type === "holiday"
                             ? "error"
-                            : form.visibility === "public"
+                            : visibility === "public"
                             ? "success"
                             : "primary"
                     }
@@ -142,84 +145,116 @@ function EventDialog({
             </DialogTitle>
 
             <DialogContent dividers>
-                <Stack spacing={2}>
-                    <TextField
-                        label="Title"
-                        name="title"
-                        value={form.title}
-                        onChange={handleChange}
-                        fullWidth
-                    />
-                    <TextField
-                        label="Description"
-                        name="description"
-                        value={form.description}
-                        onChange={handleChange}
-                        fullWidth
-                        multiline
-                        rows={3}
-                    />
-                    <TextField
-                        label="Start Time"
-                        name="start_time"
-                        type="datetime-local"
-                        value={form.start_time}
-                        onChange={handleChange}
-                        fullWidth
-                        InputLabelProps={{ shrink: true }}
-                    />
-                    <TextField
-                        label="End Time"
-                        name="end_time"
-                        type="datetime-local"
-                        value={form.end_time}
-                        onChange={handleChange}
-                        fullWidth
-                        InputLabelProps={{ shrink: true }}
-                    />
-                    <FormControl fullWidth>
-                        <InputLabel>Visibility</InputLabel>
-                        <Select
-                            name="visibility"
-                            value={form.visibility_type}
-                            label="Visibility"
-                            onChange={handleChange}
-                            defaultValue={form.visibility_type}
-                            disabled={selectedEvent?.type === "holiday"} // prevent changing holiday type
-                        >
-                            <MenuItem value="private">Private</MenuItem>
-                            <MenuItem value="public">Public</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Stack>
-            </DialogContent>
-
-            <DialogActions>
-                {selectedEvent?.type !== "holiday" && (
-                    <>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <Stack spacing={2}>
+                        <TextField
+                            label="Title"
+                            fullWidth
+                            {...register("title", { required: true })}
+                        />
+                        <TextField
+                            label="Description"
+                            multiline
+                            rows={3}
+                            fullWidth
+                            {...register("description")}
+                        />
+                        <TextField
+                            label="Start Time"
+                            type="datetime-local"
+                            fullWidth
+                            InputLabelProps={{ shrink: true }}
+                            {...register("start_time", { required: true })}
+                        />
+                        <TextField
+                            label="End Time"
+                            type="datetime-local"
+                            fullWidth
+                            InputLabelProps={{ shrink: true }}
+                            {...register("end_time", { required: true })}
+                        />
+                        <FormControl fullWidth>
+                            <InputLabel>Visibility</InputLabel>
+                            <Controller
+                                name="visibility_type"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        label="Visibility"
+                                        {...field}
+                                        disabled={
+                                            selectedEvent?.type === "holiday"
+                                        }
+                                    >
+                                        <MenuItem value="private">
+                                            Private
+                                        </MenuItem>
+                                        <MenuItem value="public">
+                                            Public
+                                        </MenuItem>
+                                    </Select>
+                                )}
+                            />
+                        </FormControl>
+                        {visibility === "public" && (
+                            <FormControl fullWidth>
+                                <InputLabel>Status</InputLabel>
+                                <Controller
+                                    name="status"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            label="Status"
+                                            {...field}
+                                            disabled={
+                                                selectedEvent?.type ===
+                                                "holiday"
+                                            }
+                                        >
+                                            <MenuItem value="waiting">
+                                                Waiting
+                                            </MenuItem>
+                                            <MenuItem value="done">
+                                                Done
+                                            </MenuItem>
+                                            <MenuItem value="suspended">
+                                                Suspended
+                                            </MenuItem>
+                                        </Select>
+                                    )}
+                                />
+                            </FormControl>
+                        )}
+                    </Stack>
+                    <DialogActions sx={{ mt: 2 }}>
+                        {selectedEvent?.type !== "holiday" && (
+                            <>
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? "Saving..." : "Save Changes"}
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    onClick={() => onDelete(selectedEvent)}
+                                    disabled={isDeleting}
+                                >
+                                    Delete Event
+                                </Button>
+                            </>
+                        )}
                         <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleUpdate}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? "Saving..." : "Save Changes"}
-                        </Button>
-                        <Button
+                            onClick={() => setModalOpen(false)}
                             variant="outlined"
-                            color="error"
-                            onClick={() => onDelete(selectedEvent)}
-                            loading={isDeleting}
                         >
-                            Delete Event
+                            Close
                         </Button>
-                    </>
-                )}
-
-                <Button onClick={() => setModalOpen(false)} variant="outlined">
-                    Close
-                </Button>
-            </DialogActions>
+                    </DialogActions>
+                </form>
+            </DialogContent>
         </Dialog>
     );
 }

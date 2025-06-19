@@ -1,6 +1,17 @@
 import { useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
-
+import { Padding } from "@mui/icons-material";
+import {
+    Box,
+    Button,
+    Typography,
+    FormControl,
+    InputLabel,
+    OutlinedInput,
+    InputAdornment,
+    TextField,
+    CircularProgress,
+} from "@mui/material";
 const PemeOverview = ({ records }) => {
     const canvasRef = useRef(null);
 
@@ -29,7 +40,8 @@ const PemeOverview = ({ records }) => {
                 plugins: {
                     legend: {
                         display: true,
-                        position: "bottom",
+                        position: "left",
+                        align: "start",
                         labels: {
                             usePointStyle: true,
                             pointStyle: "circle",
@@ -51,10 +63,10 @@ const PemeOverview = ({ records }) => {
     }, [records]);
 
     return (
-        <div>
-            <h6>Employee Respondents per Exam</h6>
+        <Box>
+            <h6>Exam Respondents</h6>
             <canvas ref={canvasRef}></canvas>
-        </div>
+        </Box>
     );
 };
 

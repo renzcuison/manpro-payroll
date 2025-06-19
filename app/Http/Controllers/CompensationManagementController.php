@@ -27,7 +27,6 @@ class CompensationManagementController extends Controller
     public function checkUserAdmin()
     {
         // Log::info("AllowanceController::checkUserAdmin");
-
         if (Auth::check()) {
             $user = Auth::user();
 
@@ -42,12 +41,10 @@ class CompensationManagementController extends Controller
     {
         if (Auth::check()) {
             $user = Auth::user();
-
             if ($user->user_type == 'Employee') {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -56,22 +53,46 @@ class CompensationManagementController extends Controller
     
     // #---------------->[region INCENTIVES CONTROLLERS]
 
-    public function getEmployeesIncentives()
+    public function getEmployeesIncentives(Request $request)
     {
         if(!$this->checkUserAdmin()){
             return response()->json(['status' => 200, 'employees' => null]);
         }
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
-        $employees = [];
-        $total = 0;
+        $filterName = strtolower($request->input('name'));
+        $filterBranchId = $request->input('branch_id');
+        $filterDepartmentId = $request->input('department_id');
+        $filterIncentiveId = $request->filled('incentive_id') ? Crypt::decrypt($request->input('incentive_id')) : null;
+        $page = max(1, (int)$request->input('page', 1));
+        $perPage = max(1, (int)$request->input('per_page', 10));
 
-        foreach($client->employees as $employee){
+        $filteredEmployees = $client->employees->filter(function ($employee) use ($filterName, $filterBranchId, $filterDepartmentId) {
+            $fullName = strtolower($employee->last_name . ", " . $employee->first_name);
+            $matchesName = $filterName === '' || str_contains($fullName, $filterName);
+            $matchesBranch = !$filterBranchId || $employee->branch_id == $filterBranchId;
+            $matchesDepartment = !$filterDepartmentId || $employee->department_id == $filterDepartmentId;
+            return $matchesName && $matchesBranch && $matchesDepartment;
+        });
+
+        $resultEmployees = collect();
+
+        foreach($filteredEmployees as $employee){
+            $incentivesQuery = EmployeeIncentivesModel::with('incentive')->where('user_id', $employee->id)->whereNull('deleted_at');
+            if($filterIncentiveId){
+                $incentivesQuery->where('incentive_id', $filterIncentiveId);
+            }
+            $incentives = $incentivesQuery->get();
+
+            if($filterIncentiveId && $incentives->isEmpty()){
+                continue;
+            }
             $baseSalary = floatval($employee->salary);
-            $incentives = EmployeeIncentivesModel::where('user_id', $employee->id)->get();
             $amount = 0;
-
-            foreach($incentives as $incentive){
+            foreach($incentives as $incentive){  
+                if($filterIncentiveId && $incentive->incentive_id != $filterIncentiveId){
+                    continue;
+                }
                 $type = $incentive->incentive->type;
                 if($type == 'Amount'){
                     $amount += $incentive->incentive->amount;
@@ -80,20 +101,26 @@ class CompensationManagementController extends Controller
                     $amount += $baseSalary * ($incentive->incentive->percentage / 100);
                 }
             }
-            $total += $amount;
-
-            $employees[] = [
+            $resultEmployees->push([
                 'user_name' => $employee->user_name,
-                'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
+                'name' => "{$employee->last_name}, {$employee->first_name} {$employee->middle_name} {$employee->suffix}",
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
-                'branch_id' => $employee->branch->id, 
-                'department_id' => $employee->department->id,
+                'branch_id' => $employee->branch_id,
+                'department_id' => $employee->department_id,
                 'amount' => $amount,
-            ];
+            ]);   
         }
-        
-        return response()->json(['status' => 200, 'employees' => $employees, 'total' => $total]);
+        $total_count = $resultEmployees->count();
+        $paginated = $resultEmployees->forPage($page, $perPage)->values();
+
+        return response()->json([
+            'status' => 200,
+            'employee_count' => $total_count,
+            'employees' => $paginated,
+            'total' => $paginated->sum('amount'),
+            'current_page' => $page,
+        ]);
     }
 
     public function getEmployeeIncentives(Request $request)
@@ -104,10 +131,22 @@ class CompensationManagementController extends Controller
 
         $employee = UsersModel::where('user_name', $request->username)->first();
         $baseSalary = floatval($employee->salary);
-
         $incentives = [];
 
+        $filterIncentiveId = $request->input('incentive_id');
+        $decryptedIncentiveId = null;
+        if (!empty($filterIncentiveId)) {
+            try {
+                $decryptedIncentiveId = Crypt::decrypt($filterIncentiveId);
+            } catch (\Exception $e) {
+                $decryptedIncentiveId = null;
+            }
+        }
         foreach($employee->incentives as $incentive){
+            if ($decryptedIncentiveId && $incentive->incentive_id != $decryptedIncentiveId) {
+                continue; 
+            }
+            
             $amount = 0;
             $type = $incentive->incentive->type;
             if($type == 'Amount'){
@@ -326,7 +365,7 @@ class CompensationManagementController extends Controller
             ]);
         }
 
-        $total = $resultEmployees->count();
+        $total_count = $resultEmployees->count();
         $paginated = $resultEmployees->forPage($page, $perPage)->values();
 
         return response()->json([
@@ -334,7 +373,7 @@ class CompensationManagementController extends Controller
             'employees' => $paginated,
             'employee_total' => $paginated->sum('employee_amount'),
             'employer_total' => $paginated->sum('employer_amount'),
-            'total' => $total,
+            'total' => $total_count,
             'current_page' => $page,
         ]);
     }
@@ -584,11 +623,23 @@ class CompensationManagementController extends Controller
         }
         $employee = UsersModel::where('user_name', $request->username)->first();
         $baseSalary = floatval($employee->salary);
-
         $allowances = [];
-        
+
+        $filterAllowanceId = $request->input('allowance_id');
+        $decryptedAllowanceId = null;
+        if (!empty($filterAllowanceId)) {
+            try {
+                $decryptedAllowanceId = Crypt::decrypt($filterAllowanceId);
+            } catch (\Exception $e) {
+                $decryptedAllowanceId = null;
+            }
+        }
         
         foreach($employee->allowances as $allowance){
+            if ($decryptedAllowanceId && $allowance->allowance_id != $decryptedAllowanceId) {
+                continue; 
+            }
+
             $amount = 0;
             $type = $allowance->allowance->type;
             if($type == 'Amount'){
@@ -597,6 +648,7 @@ class CompensationManagementController extends Controller
             else{
                 $amount += ($baseSalary * ($allowance->allowance->percentage / 100));
             }
+            
             $allowances[] = [
                 'id' => Crypt::encrypt($allowance->id),
                 'name' => $allowance->allowance->name,
@@ -612,22 +664,52 @@ class CompensationManagementController extends Controller
         return response()->json(['status' => 200, 'allowances' => $allowances]);
     }
 
-    public function getEmployeesAllowance()
+    public function getEmployeesAllowance(Request $request)
     {
-        if(!$this->checkUserAdmin()){
-            return response()->json(['status' => 200, 'employees' => null]);
+        if (!$this->checkUserAdmin()) {
+            return response()->json([
+                'status' => 200,
+                'employees' => [],
+                'total' => 0,
+            ]);
         }
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
-        $employees = [];
-        $total = 0;
-        foreach($client->employees as $employee){  
+
+        $filterName = strtolower($request->input('name'));
+        $filterBranchId = $request->input('branch_id');
+        $filterDepartmentId = $request->input('department_id');
+        $filterAllowanceId = $request->filled('allowance_id') ? Crypt::decrypt($request->input('allowance_id')) : null;
+        $page = max(1, (int)$request->input('page', 1));
+        $perPage = max(1, (int)$request->input('per_page', 10));
+
+        $filteredEmployees = $client->employees->filter(function ($employee) use ($filterName, $filterBranchId, $filterDepartmentId) {
+            $fullName = strtolower($employee->last_name . ", " . $employee->first_name);
+            $matchesName = $filterName === '' || str_contains($fullName, $filterName);
+            $matchesBranch = !$filterBranchId || $employee->branch_id == $filterBranchId;
+            $matchesDepartment = !$filterDepartmentId || $employee->department_id == $filterDepartmentId;
+            return $matchesName && $matchesBranch && $matchesDepartment;
+        });
+
+        $resultEmployees = collect();
+
+        foreach($filteredEmployees as $employee){
+            $allowancesQuery = EmployeeAllowancesModel::with('allowance')->where('user_id', $employee->id)->whereNull('deleted_at');
+            if($filterAllowanceId){
+                $allowancesQuery->where('allowance_id', $filterAllowanceId);
+            }
+            $allowances = $allowancesQuery->get();
+
+            if($filterAllowanceId && $allowances->isEmpty()){
+                continue;
+            }
             $baseSalary = floatval($employee->salary);
-            $allowances = EmployeeAllowancesModel::where('user_id', $employee->id)->get();
             $amount = 0;
-            foreach($allowances as $allowance){
+            foreach($allowances as $allowance){  
+                if($filterAllowanceId && $allowance->allowance_id != $filterAllowanceId){
+                    continue;
+                }
                 $type = $allowance->allowance->type;
-                
                 if($type == 'Amount'){
                     $amount += $allowance->allowance->amount;
                 }
@@ -635,19 +717,26 @@ class CompensationManagementController extends Controller
                     $amount += $baseSalary * ($allowance->allowance->percentage / 100);
                 }
             }
-            $total += $amount;
-
-            $employees[] = [
+            $resultEmployees->push([
                 'user_name' => $employee->user_name,
-                'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
+                'name' => "{$employee->last_name}, {$employee->first_name} {$employee->middle_name} {$employee->suffix}",
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
-                'branch_id' => $employee->branch->id, 
-                'department_id' => $employee->department->id,
+                'branch_id' => $employee->branch_id,
+                'department_id' => $employee->department_id,
                 'amount' => $amount,
-            ];
+            ]);   
         }
-        return response()->json(['status' => 200, 'employees' => $employees, 'total' => $total]);
+        $total_count = $resultEmployees->count();
+        $paginated = $resultEmployees->forPage($page, $perPage)->values();
+
+        return response()->json([
+            'status' => 200,
+            'employee_count' => $total_count,
+            'employees' => $paginated,
+            'total' => $paginated->sum('amount'),
+            'current_page' => $page,
+        ]);
     }
 
     public function saveEmployeeAllowance(Request $request)
@@ -697,7 +786,7 @@ class CompensationManagementController extends Controller
         $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_deduction_id);
 
         if($emp_allowance){
-            $emp_allowance->number = $request->number;
+            $emp_allowance->status = $request->status;
             $emp_allowance->save();
         }
         return response()->json(['status' => 200]);
@@ -779,11 +868,23 @@ class CompensationManagementController extends Controller
         }
         $employee = UsersModel::where('user_name', $request->username)->first();
         $baseSalary = floatval($employee->salary);
-
         $deductions = [];
-        
-        
+
+        $filterDeductionId = $request->input('deduction_id');
+        $decryptedDeductionId = null;
+        if (!empty($filterDeductionId)) {
+            try {
+                $decryptedDeductionId = Crypt::decrypt($filterDeductionId);
+            } catch (\Exception $e) {
+                $decryptedDeductionId = null;
+            }
+        }
+    
         foreach($employee->deductions as $deduction){
+            if ($decryptedDeductionId && $deduction->deduction_id != $decryptedDeductionId) {
+                continue; 
+            }
+
             $amount = 0;
             $type = $deduction->deduction->type;
             if($type == 'Amount'){
@@ -807,22 +908,51 @@ class CompensationManagementController extends Controller
         return response()->json(['status' => 200, 'deductions' => $deductions]);
     }
 
-    public function getEmployeesDeductions()
+    public function getEmployeesDeductions(Request $request)
     {
-        if(!$this->checkUserAdmin()){
-            return response()->json(['status' => 200, 'employees' => null]);
+        if (!$this->checkUserAdmin()) {
+            return response()->json([
+                'status' => 200,
+                'employees' => [],
+                'total' => 0,
+            ]);
         }
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
-        $employees = [];
-        $total = 0;
-        foreach($client->employees as $employee){  
+
+        $filterName = strtolower($request->input('name'));
+        $filterBranchId = $request->input('branch_id');
+        $filterDepartmentId = $request->input('department_id');
+        $filterDeductionId = $request->filled('deduction_id') ? Crypt::decrypt($request->input('deduction_id')) : null;
+        $page = max(1, (int)$request->input('page', 1));
+        $perPage = max(1, (int)$request->input('per_page', 10));
+
+        $filteredEmployees = $client->employees->filter(function ($employee) use ($filterName, $filterBranchId, $filterDepartmentId) {
+            $fullName = strtolower($employee->last_name . ", " . $employee->first_name);
+            $matchesName = $filterName === '' || str_contains($fullName, $filterName);
+            $matchesBranch = !$filterBranchId || $employee->branch_id == $filterBranchId;
+            $matchesDepartment = !$filterDepartmentId || $employee->department_id == $filterDepartmentId;
+            return $matchesName && $matchesBranch && $matchesDepartment;
+        });
+        $resultEmployees = collect();
+
+        foreach($filteredEmployees as $employee){
+            $deductionsQuery = EmployeeDeductionsModel::with('deduction')->where('user_id', $employee->id)->whereNull('deleted_at');
+            if($filterDeductionId){
+                $deductionsQuery->where('deduction_id', $filterDeductionId);
+            }
+            $deductions = $deductionsQuery->get();
+
+            if($filterDeductionId && $deductions->isEmpty()){
+                continue;
+            }
             $baseSalary = floatval($employee->salary);
-            $deductions = EmployeeDeductionsModel::where('user_id', $employee->id)->get();
             $amount = 0;
-            foreach($deductions as $deduction){
+            foreach($deductions as $deduction){  
+                if($filterDeductionId && $deduction->deduction_id != $filterDeductionId){
+                    continue;
+                }
                 $type = $deduction->deduction->type;
-                
                 if($type == 'Amount'){
                     $amount += $deduction->deduction->amount;
                 }
@@ -830,18 +960,26 @@ class CompensationManagementController extends Controller
                     $amount += $baseSalary * ($deduction->deduction->percentage / 100);
                 }
             }
-            $total += $amount;
-            $employees[] = [
+            $resultEmployees->push([
                 'user_name' => $employee->user_name,
-                'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
+                'name' => "{$employee->last_name}, {$employee->first_name} {$employee->middle_name} {$employee->suffix}",
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
-                'branch_id' => $employee->branch->id, 
-                'department_id' => $employee->department->id,
+                'branch_id' => $employee->branch_id,
+                'department_id' => $employee->department_id,
                 'amount' => $amount,
-            ];
+            ]);      
         }
-        return response()->json(['status' => 200, 'employees' => $employees, 'total' => $total]);
+        $total_count = $resultEmployees->count();
+        $paginated = $resultEmployees->forPage($page, $perPage)->values();
+
+        return response()->json([
+            'status' => 200,
+            'employee_count' => $total_count,
+            'employees' => $paginated,
+            'total' => $paginated->sum('amount'),
+            'current_page' => $page,
+        ]);
     }
 
     public function saveEmployeeDeductions(Request $request)

@@ -446,7 +446,7 @@ const Sidebar = ({ children, closeMini }) => {
                                     </StyledNav>
                                     
                                     {/* === My Evaluation Result (NEW ITEM) === */}
-                                    <StyledNav to={`/member/evaluation/result`} >
+                                    <StyledNav to={`/admin/performance-evaluation/results`} >
                                         <i className="fa fa-bar-chart" style={{ color: '#2a800f' }}></i>
                                         <span id="navName" className="sidebar-mini-hide">My Evaluation Result</span>
                                     </StyledNav>

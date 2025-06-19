@@ -319,7 +319,6 @@ const PerformanceEvaluationCreatorPage = () => {
               position: 'absolute',
               top: 5,
               right: 10,
-              color: '#bdbdbd',
               borderRadius: '50%',
               padding: '5px',
               color: '#BEBEBE',
@@ -439,7 +438,9 @@ const PerformanceEvaluationCreatorPage = () => {
                   <Box
                     key={subCategory.id}
                     sx={{
-                      mb: 3, border: '1px solid #ddd', borderRadius: 2, px: 2,
+                      border: '1px solid #ddd', 
+                      borderRadius: 2, 
+                      px: 2,
                       pt: 2,
                       pb: 2,
                       mt: 2,
@@ -492,17 +493,59 @@ const PerformanceEvaluationCreatorPage = () => {
                   <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                     {getFullName(evaluator)}
                   </Typography>
-                  <TextField
-                    multiline
-                    minRows={3}
-                    fullWidth
-                    value={evaluator.comment || ''}
-                    sx={{ mt: 1 }}
-                    placeholder="No comment provided"
-                    InputProps={{
-                      readOnly: true,
+                  <Box
+                    sx={{
+                      border: "1.5px solid #ccc",
+                      borderRadius: "8px",
+                      px: 2,
+                      pt: 2,
+                      pb: 0.5,
+                      background: "#fff",
+                      minHeight: 100,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      mt: 1,
                     }}
-                  />
+                  >
+                    <TextField
+                      variant="standard"
+                      InputProps={{
+                        disableUnderline: true,
+                        readOnly: true,
+                        style: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#222",
+                        }
+                      }}
+                      label="Evaluator Comment"
+                      multiline
+                      minRows={3}
+                      fullWidth
+                      value={evaluator.comment || ''}
+                      placeholder="No comment provided"
+                      sx={{
+                        pb: 2,
+                        '& .MuiInputBase-input': { padding: 0 },
+                        '& label': { color: '#999', fontWeight: 400 }
+                      }}
+                    />
+                    {evaluator.updated_at && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#888",
+                          fontStyle: "italic",
+                          mt: 1,
+                          mb: 1,
+                          ml: 0.5,
+                        }}
+                      >
+                        Signed - {evaluator.updated_at.slice(0, 10)}
+                      </Typography>
+                    )}
+                  </Box>
                 </Paper>
               ))}
             </Box>
@@ -541,17 +584,59 @@ const PerformanceEvaluationCreatorPage = () => {
                   <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                     {getFullName(commentor)}
                   </Typography>
-                  <TextField
-                    multiline
-                    minRows={3}
-                    fullWidth
-                    value={commentor.comment || ''}
-                    sx={{ mt: 1 }}
-                    placeholder="No comment provided"
-                    InputProps={{
-                      readOnly: true,
+                  <Box
+                    sx={{
+                      border: "1.5px solid #ccc",
+                      borderRadius: "8px",
+                      px: 2,
+                      pt: 2,
+                      pb: 0.5,
+                      background: "#fff",
+                      minHeight: 100,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      mt: 1,
                     }}
-                  />
+                  >
+                    <TextField
+                      variant="standard"
+                      InputProps={{
+                        disableUnderline: true,
+                        readOnly: true,
+                        style: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#222",
+                        }
+                      }}
+                      label="Commentor Comment"
+                      multiline
+                      minRows={3}
+                      fullWidth
+                      value={commentor.comment || ''}
+                      placeholder="No comment provided"
+                      sx={{
+                        pb: 2,
+                        '& .MuiInputBase-input': { padding: 0 },
+                        '& label': { color: '#999', fontWeight: 400 }
+                      }}
+                    />
+                    {commentor.updated_at && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#888",
+                          fontStyle: "italic",
+                          mt: 1,
+                          mb: 1,
+                          ml: 0.5,
+                        }}
+                      >
+                        Signed - {commentor.updated_at.slice(0, 10)}
+                      </Typography>
+                    )}
+                  </Box>
                 </Paper>
               ))}
             </Box>

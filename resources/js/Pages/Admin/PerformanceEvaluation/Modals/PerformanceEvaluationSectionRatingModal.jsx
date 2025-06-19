@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Box, Typography, Button, TextField, Grid, Divider } from '@mui/material';
+import { Modal, Box, Typography, Button, TextField, Grid, Divider, InputAdornment, Alert } from '@mui/material';
 
 const isSectionScorable = (section) => {
     // Return true if there's at least 1 subcategory NOT a short/long answer
@@ -15,28 +15,48 @@ const PerformanceEvaluationSectionRatingModal = ({
     open, onClose, sections, onSave
 }) => {
     const [scores, setScores] = useState(
-        sections.reduce((acc, s) => ({ ...acc, [s.id]: s.score ?? 0 }), {})
+        sections.reduce((acc, s) => ({ ...acc, [s.id]: s.score !== undefined ? String(s.score) : "" }), {})
     );
+    const [error, setError] = useState('');
 
     React.useEffect(() => {
         setScores(sections.reduce((acc, s) => ({ ...acc, [s.id]: s.score ?? 0 }), {}));
+        setError('');
     }, [sections, open]);
 
     const handleScoreChange = (id, val) => {
-        setScores({ ...scores, [id]: Number(val) });
+        // Optional: Only allow numbers and empty string
+        if (/^\d*$/.test(val)) {
+            setScores({ ...scores, [id]: val });
+        }
     };
 
     const handleSave = () => {
         // Only send scores for scorable sections
         const filteredScores = {};
+        let total = 0;
         for (const section of sections) {
             if (isSectionScorable(section)) {
-                filteredScores[section.id] = scores[section.id];
+                filteredScores[section.id] = Number(scores[section.id] || 0);
+                total += Number(scores[section.id] || 0);
             }
         }
+        if (total > 100) {
+            setError('The total of all section scores cannot be more than 100.');
+            return;
+        } else if (total !==100){
+            setError('The total of all section scores cannot be less than 100.');
+            return;
+        }
+        setError('');
         onSave(filteredScores);
         onClose();
     };
+
+    const totalScore = sections.reduce(
+        (sum, section) => isSectionScorable(section) ? sum + Number(scores[section.id] || 0) : sum,
+        0
+    );
 
     return (
         <Modal open={open} onClose={onClose}>
@@ -62,6 +82,9 @@ const PerformanceEvaluationSectionRatingModal = ({
                                             onChange={e => handleScoreChange(section.id, e.target.value)}
                                             inputProps={{ min: 0 }}
                                             fullWidth
+                                            InputProps={{
+                                                endAdornment: <InputAdornment position="end">%</InputAdornment>
+                                            }}
                                         />
                                     ) : (
                                         <Typography sx={{ color: '#aaa', fontStyle: 'italic', fontSize: 14 }}>
@@ -73,8 +96,14 @@ const PerformanceEvaluationSectionRatingModal = ({
                         );
                     })}
                 </Grid>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 1 }}>
-                    <Button onClick={onClose} variant="outlined">Cancel</Button>
+                <Box sx={{ mt: 2 }}>
+                    <Typography sx={{ fontWeight: 700, textAlign: 'right' }}>
+                        Total: {totalScore}%
+                    </Typography>
+                </Box>
+                {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 1, justifyContent: 'space-between' }}>
+                    <Button onClick={onClose} variant="outlined" sx={{ bgcolor: '#727F91', color: 'white' }}>Cancel</Button>
                     <Button onClick={handleSave} variant="contained" sx={{ bgcolor: '#177604', color: 'white' }}>Save</Button>
                 </Box>
             </Box>
