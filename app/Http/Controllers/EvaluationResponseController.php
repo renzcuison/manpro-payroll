@@ -1065,8 +1065,18 @@ class EvaluationResponseController extends Controller
                                 $valB = strtolower($b->evaluatee->branch->name ?? '');
                                 break;
                             case 'status':
-                                $valA = strtolower($a->status ?? '');
-                                $valB = strtolower($b->status ?? '');
+                                function getVal($status) {
+                                    switch($status) {
+                                        case 'New': return 1;
+                                        case 'Pending': return 2;
+                                        case 'Sent': return 3;
+                                        case 'Submitted': return 4;
+                                        case 'Done': return 5;
+                                        default: return 6;
+                                    }
+                                }
+                                $valA = getVal($a->status ?? '');
+                                $valB = getVal($b->status ?? '');
                                 break;
                             default:
                                 $valA = '';
@@ -1336,8 +1346,18 @@ class EvaluationResponseController extends Controller
                                 $valB = strtolower($b->evaluatee->department->name ?? '');
                                 break;
                             case 'branch_name':
-                                $valA = strtolower($a->evaluatee->branch->name ?? '');
-                                $valB = strtolower($b->evaluatee->branch->name ?? '');
+                                function getVal($status) {
+                                    switch($status) {
+                                        case 'New': return 1;
+                                        case 'Pending': return 2;
+                                        case 'Sent': return 3;
+                                        case 'Submitted': return 4;
+                                        case 'Done': return 5;
+                                        default: return 6;
+                                    }
+                                }
+                                $valA = getVal($a->status ?? '');
+                                $valB = getVal($b->status ?? '');
                                 break;
                             default:
                                 $valA = '';
