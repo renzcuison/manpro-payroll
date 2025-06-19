@@ -7,10 +7,10 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 import 'react-quill/dist/quill.snow.css';
-import { useIncentives } from '../../../../hooks/useIncentives';
+import { useSaveIncentives } from '../../../../hooks/useIncentives';
 
 const IncentivesAdd = ({ open, close }) => {
-    const { saveIncentives } = useIncentives();
+    const saveIncentives = useSaveIncentives();
 
     const [incentivesNameError, setIncentivesNameError] = useState(false);
     const [incentivesAmountError, setIncentivesAmountError] = useState(false);
@@ -20,6 +20,9 @@ const IncentivesAdd = ({ open, close }) => {
     const [incentivesType, setIncentivesType] = useState('');
     const [incentivesAmount, setIncentivesAmount] = useState('');
     const [incentivesPercentage, setIncentivesPercentage] = useState('');
+
+    const [paymentScheduleError, setPaymentScheduleError] = useState(false);
+    const [paymentSchedule, setPaymentSchedule] = useState(1);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -118,6 +121,7 @@ const IncentivesAdd = ({ open, close }) => {
             type: incentivesType,
             amount: amount,
             percentage: percentage,
+            payment_schedule: paymentSchedule,
         };
         saveIncentives.mutate({data: data, onSuccessCallback: () => close(true)});
     };
@@ -190,45 +194,57 @@ const IncentivesAdd = ({ open, close }) => {
                             </FormControl>
                         </FormGroup>
 
-                        {incentivesType === "Amount" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between">
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '100%',
-                                    }}>
-                                        <InputLabel>Amount</InputLabel>
-                                        <OutlinedInput
-                                            required
-                                            id="incentivesAmount"
-                                            label="Amount"
-                                            value={incentivesAmount}
-                                            error={incentivesAmountError}
-                                            startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                            onChange={(e) => handleInputChange(e, setIncentivesAmount)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            {incentivesType && (
+                                <FormControl sx={{ marginBottom: 3, width: '69%', }}>
+                                    <TextField
+                                        required
+                                        select
+                                        id="paymentSchedule"
+                                        label="Payment Schedule"
+                                        value={paymentSchedule}
+                                        error={paymentScheduleError}
+                                        onChange={(event) => setPaymentSchedule(event.target.value)}
+                                    >
+                                        <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>
+                                        <MenuItem key={2} value={2}> One Time - Second Cutoff</MenuItem>
+                                        <MenuItem key={3} value={3}> Split - First & Second Cutoff</MenuItem>
+                                    </TextField>
+                                </FormControl>
+                            )}
 
-                        {incentivesType === "Percentage" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between">
-                                    <FormControl sx={{ marginBottom: 3, width: '100%', }}>
-                                        <InputLabel>Percentage</InputLabel>
-                                        <OutlinedInput
-                                            required
-                                            id="incentivesPercentage"
-                                            label="Percentage"
-                                            value={incentivesPercentage}
-                                            error={incentivesPercentageError}
-                                            startAdornment={<InputAdornment position="start">%</InputAdornment>}
-                                            onChange={(e) => handleInputChange(e, setIncentivesPercentage)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
+                            {incentivesType === "Amount" && (
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '29%',
+                                }}>
+                                    <InputLabel>Amount</InputLabel>
+                                    <OutlinedInput
+                                        required
+                                        id="incentivesAmount"
+                                        label="Amount"
+                                        value={incentivesAmount}
+                                        error={incentivesAmountError}
+                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
+                                        onChange={(e) => handleInputChange(e, setIncentivesAmount)}
+                                    />
+                                </FormControl>
+                            )}
+
+                            {incentivesType === "Percentage" && (
+                                <FormControl sx={{ marginBottom: 3, width: '29%', }}>
+                                    <InputLabel>Percentage</InputLabel>
+                                    <OutlinedInput
+                                        required
+                                        id="incentivesPercentage"
+                                        label="Percentage"
+                                        value={incentivesPercentage}
+                                        error={incentivesPercentageError}
+                                        startAdornment={<InputAdornment position="start">%</InputAdornment>}
+                                        onChange={(e) => handleInputChange(e, setIncentivesPercentage)}
+                                    />
+                                </FormControl>
+                            )}
+                        </FormGroup>
 
                         {incentivesType && (
                             <>

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import { useIncentives } from "../../../../hooks/useIncentives";
+import { useIncentive, useSaveEmployeeIncentives } from "../../../../hooks/useIncentives";
 
-const EmployeeIncentiveAdd = ({ userName, headers, onClose }) => {
-    const {incentives: incentiveQuery, saveEmployeeIncentives} = useIncentives({loadIncentives: true});
-    const incentives = incentiveQuery.data?.incentives || [];
+const EmployeeIncentiveAdd = ({ userName, onClose }) => {
+    const {incentivesData} = useIncentive();
+    const saveEmployeeIncentives = useSaveEmployeeIncentives();
+    const incentives = incentivesData?.incentives || [];
 
     const [incentiveEerror, setIncentiveError] = useState(false);
     const [numberError, setNumberError] = useState(false);

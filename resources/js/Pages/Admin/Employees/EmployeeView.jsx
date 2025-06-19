@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, Avatar, Button, Menu, MenuItem } from '@mui/material'
+import {  Box, Typography, Grid, Button, Menu, MenuItem } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
-import { getComparator, stableSort } from '../../../components/utils/tableUtils'
-
-import { useIncentives } from '../../../hooks/useIncentives';
+import { useEmployeeIncentives } from '../../../hooks/useIncentives';
 import { useEmployeeAllowances } from '../../../hooks/useAllowances';
 import { useEmployeeBenefits } from '../../../hooks/useBenefits';
 import { useDeductions } from '../../../hooks/useDeductions';
@@ -26,13 +24,13 @@ import EmploymentDetails from './Components/EmploymentDetails';
 const EmployeeView = () => {
     const { user } = useParams();
     const {employeeDeductions} = useDeductions({userName: user});
-    const {employeeIncentives} = useIncentives({userName: user});
+    const {employeeIncentives, refetchEmployeeIncentives} = useEmployeeIncentives(user);
     const {employeeAllowances, refetchEmployeeAllowances} = useEmployeeAllowances(user);
     const {employeeBenefits, refetchEmployeeBenefits} = useEmployeeBenefits(user);
 
     const benefits = employeeBenefits?.benefits || [];
     const deductions = employeeDeductions.data?.deductions || [];
-    const incentives = employeeIncentives.data?.incentives || [];
+    const incentives = employeeIncentives?.incentives || [];
     const allowances = employeeAllowances?.allowances || [];
 
     const [anchorEl, setAnchorEl] = useState(null);
@@ -125,7 +123,7 @@ const EmployeeView = () => {
             getEmployeeDetails();
             refetchEmployeeAllowances();
             refetchEmployeeBenefits();
-            employeeIncentives.refetch();
+            refetchEmployeeIncentives();
             employeeDeductions.refetch();
             getEducationalBackground();
         }
@@ -157,7 +155,7 @@ const EmployeeView = () => {
                             <EmployeeInformation employee={employee} imagePath={imagePath}/>
                             <EmployeeBenefits userName={user} benefits={benefits} onRefresh={refetchEmployeeBenefits}/>
                             <EmployeeAllowances userName={user} allowances={allowances} onRefresh={refetchEmployeeAllowances}/>
-                            <EmployeeIncentives userName={user} incentives={incentives} onRefresh={employeeIncentives.refetch}/>
+                            <EmployeeIncentives userName={user} incentives={incentives} onRefresh={refetchEmployeeIncentives}/>
                             <EmployeeDeductions userName={user} deductions={deductions} onRefresh={employeeDeductions.refetch} />
                         </Grid>
 

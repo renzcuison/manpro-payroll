@@ -162,6 +162,7 @@ class CompensationManagementController extends Controller
                 'type' => $incentive->incentive->type,
                 'amount' => $incentive->incentive->amount,
                 'percentage' => $incentive->incentive->percentage,
+                'payment_schedule' => $incentive->incentive->payment_schedule,
                 'calculated_amount' => $amount,
                 'status' =>$incentive->status,
                 'created_at' => $incentive->created_at,
@@ -186,6 +187,7 @@ class CompensationManagementController extends Controller
                 'type' => $incentive->type,
                 'amount' => $incentive->amount,
                 'percentage' => $incentive->percentage,
+                'payment_schedule' => $incentive->payment_schedule,
             ];
         }
         return response()->json(['status' => 200, 'incentives' => $incentives]);
@@ -198,10 +200,10 @@ class CompensationManagementController extends Controller
             'type' => 'required',
             'amount' => 'required',
             'percentage' => 'required',
+            'payment_schedule' => 'required',
         ]);
 
         if ($this->checkUserAdmin() && $validated) {
-
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
@@ -213,6 +215,7 @@ class CompensationManagementController extends Controller
                     "type" => $request->type,
                     "amount" => $request->amount,
                     "percentage" => $request->percentage,
+                    "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
 
@@ -235,6 +238,7 @@ class CompensationManagementController extends Controller
             'type' => 'required',
             'amount' => 'required',
             'percentage' => 'required',
+            'payment_schedule' => 'required',
         ]);
         if(!$this->checkUserAdmin() && !$validated){
             return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
@@ -255,6 +259,7 @@ class CompensationManagementController extends Controller
                 $incentive->type = $request->type;
                 $incentive->amount = $request->amount;
                 $incentive->percentage = $request->percentage;
+                $incentive->payment_schedule = $request->payment_schedule;
                 $incentive->save();
                 DB::commit();
             } catch (\Exception $e) {

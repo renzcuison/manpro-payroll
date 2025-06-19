@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField,  FormControl, FormGroup } from "@mui/material";
 import Swal from "sweetalert2";
-import { useIncentives } from "../../../../hooks/useIncentives";
+import { useUpdateEmployeeIncentive } from "../../../../hooks/useIncentives";
 
 const EmployeeIncentiveEdit = ({incentives, onClose}) => {
-    const {updateEmployeeIncentive} = useIncentives();
+    const updateEmployeeIncentive = useUpdateEmployeeIncentive();
     const [number, setNumber] = useState(incentives?.number)
     const [selectedStatus, setSelectedStatus] = useState(incentives?.status);
 

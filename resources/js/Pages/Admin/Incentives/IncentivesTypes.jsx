@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import { Link } from 'react-router-dom';
-import { useIncentives } from '../../../hooks/useIncentives';
+import { useIncentive } from '../../../hooks/useIncentives';
 
 import IncentivesAdd from './Modals/IncentivesAdd';
 import IncentivesEdit from './Modals/IncentivesEdit';
 
 const IncentivesTypes = () => {
-    const { incentives: incentivesQuery } = useIncentives({loadIncentives: true});
-    const incentives = incentivesQuery.data?.incentives || [];
+    const {incentivesData, isIncentivesLoading, refetchIncentives} = useIncentive();
+
+    const incentives = incentivesData?.incentives || [];
     const [openAddIncentiveseModal, setOpenAddIncentivesModal] = useState(false);
     const [openEditIncentivesModal, setOpenEditIncentivesModal] = useState(false);
     const [selectedIncentive, setSelectedIncentive] = useState(null);
@@ -20,7 +21,7 @@ const IncentivesTypes = () => {
     const handleCloseAddIncentiveseModal = (reload) => {
         setOpenAddIncentivesModal(false);
         if(reload){
-            incentivesQuery.refetch();
+            refetchIncentives();
         }
     }
 
@@ -33,8 +34,18 @@ const IncentivesTypes = () => {
         setOpenEditIncentivesModal(false);
         setSelectedIncentive(null);
         if(reload){
-            incentivesQuery.refetch();
+            refetchIncentives();
         }
+    }
+
+    const getPaymentScheduleName = (scheduleNum) => {
+        let scheduleName = '';
+        switch(scheduleNum){
+            case 1: scheduleName = 'One Time - First Cutoff'; break;
+            case 2: scheduleName = 'One Time - Second Cutoff'; break;
+            case 3: scheduleName = 'Split - First & Second Cutoff'; break;
+        }
+        return scheduleName;
     }
     
     return (
@@ -55,7 +66,7 @@ const IncentivesTypes = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {incentivesQuery.isLoading ? (
+                        {isIncentivesLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -67,6 +78,7 @@ const IncentivesTypes = () => {
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Name </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Type </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Payment Schedule </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Amount/Percentage </TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -78,7 +90,7 @@ const IncentivesTypes = () => {
                                                      '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{incentive.name}</TableCell>
                                                         <TableCell align="center">{incentive.type}</TableCell>
-
+                                                        <TableCell align="center">{getPaymentScheduleName(incentive.payment_schedule)}</TableCell>
                                                         {incentive.type === "Amount" && (
                                                             <TableCell align="center">
                                                                 ₱ {new Intl.NumberFormat('en-US', 

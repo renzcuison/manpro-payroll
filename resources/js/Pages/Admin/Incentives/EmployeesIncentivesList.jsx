@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableFooter, TableCell, TableContainer, TableRow, Box, 
     Typography, Grid, TextField, FormControl, CircularProgress, TablePagination, Button, MenuItem } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
 import EmployeeIncentiveView from './Modals/EmployeeIncentiveView';
-import { useIncentives } from '../../../hooks/useIncentives';
+import { useIncentive, useEmployeesIncentives } from '../../../hooks/useIncentives';
 import { useDepartments } from '../../../hooks/useDepartments';
 import { useBranches } from '../../../hooks/useBranches';
 
@@ -17,27 +16,26 @@ const EmployeesIncentivesList = () => {
     const [selectedIncentive, setSelectedIncentive] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    
+    const filters = {
+        name: searchName,
+        branchId: selectedBranch,
+        departmentId: selectedDepartment,
+        incentiveId: selectedIncentive,
+    }
+    const pagination = {
+        page: page,
+        perPage: rowsPerPage,
+    }
 
-    const { employeesIncentives, incentives: incentivesQuery } = useIncentives({
-        loadEmployeesIncentives: true,
-        loadIncentives: true,
-        filters: {
-            name: searchName,
-            branchId: selectedBranch,
-            departmentId: selectedDepartment,
-            incentiveId: selectedIncentive,
-        },
-        pagination: {
-            page: page,
-            perPage: rowsPerPage,
-        }
-    });
+    const {incentivesData} = useIncentive();
+    const {employeesIncentives, isEmployeesIncentivesLoading, refetchEmployeesIncentives} = useEmployeesIncentives(filters, pagination);
     const { departments: departmentData } = useDepartments({loadDepartments: true}); 
     const { data: branchesData } = useBranches();
 
-    const employees = employeesIncentives.data?.employees || [];
-    const incentives = incentivesQuery.data?.incentives || [];
-    const total = employeesIncentives.data?.total || 0;
+    const employees = employeesIncentives?.employees || [];
+    const incentives = incentivesData?.incentives || [];
+    const total = employeesIncentives?.total || 0;
 
     const departments = departmentData.data?.departments || [];
     const branches = branchesData?.branches || [];
@@ -48,7 +46,7 @@ const EmployeesIncentivesList = () => {
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
-        employeesIncentives.refetch();
+        refetchEmployeesIncentives();
     };
 
     const handleChangePage = (event, newPage) => {
@@ -145,7 +143,7 @@ const EmployeesIncentivesList = () => {
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
-                        {employeesIncentives.isLoading ? (
+                        {isEmployeesIncentivesLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
