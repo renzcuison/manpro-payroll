@@ -38,6 +38,16 @@ const BenefitsTypes = () => {
         }
     }
 
+    const getPaymentScheduleName = (scheduleNum) => {
+        let scheduleName = '';
+        switch(scheduleNum){
+            case 1: scheduleName = 'One Time - First Cutoff'; break;
+            case 2: scheduleName = 'One Time - Second Cutoff'; break;
+            case 3: scheduleName = 'Split - First & Second Cutoff'; break;
+        }
+        return scheduleName;
+    }
+
     return (
         <Layout title={"BenefitsList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -68,6 +78,7 @@ const BenefitsTypes = () => {
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Name </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Type </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Payment Schedule </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employer's Share </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employee's Share </TableCell>
                                             </TableRow>
@@ -80,6 +91,7 @@ const BenefitsTypes = () => {
                                                      '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{benefit.name}</TableCell>
                                                         <TableCell align="center">{benefit.type}</TableCell>
+                                                        <TableCell align="center">{getPaymentScheduleName(benefit.payment_schedule)}</TableCell>
                                                         {benefit.type === 'Amount' && 
                                                         <>
                                                             <TableCell align="center">
