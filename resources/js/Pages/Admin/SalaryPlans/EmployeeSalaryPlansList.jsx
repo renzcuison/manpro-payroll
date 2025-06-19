@@ -105,7 +105,7 @@ const SalaryPlans = () => {
                             <>
                                 {benefitsData.length > 0 &&
                                     (
-                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'flex-end' }}>
                                             <Tabs
                                                 value={selectedBenefitIndex}
                                                 onChange={(e, newValue) => setSelectedBenefitIndex(newValue)}
