@@ -818,33 +818,50 @@ class CompensationManagementController extends Controller
         $filterAllowanceId = $request->filled('allowance_id') ? Crypt::decrypt($request->input('allowance_id')) : null;
         $page = max(1, (int)$request->input('page', 1));
         $perPage = max(1, (int)$request->input('per_page', 10));
+        
+        $qualifyingEmployeeIds = EmployeeAllowancesModel::whereNull('deleted_at')
+        ->when($filterAllowanceId, fn($q) => $q->where('allowance_id', $filterAllowanceId))
+        ->pluck('user_id')
+        ->unique();
 
-        $filteredEmployees = $client->employees->filter(function ($employee) use ($filterName, $filterBranchId, $filterDepartmentId) {
-            $fullName = strtolower($employee->last_name . ", " . $employee->first_name);
-            $matchesName = $filterName === '' || str_contains($fullName, $filterName);
-            $matchesBranch = !$filterBranchId || $employee->branch_id == $filterBranchId;
-            $matchesDepartment = !$filterDepartmentId || $employee->department_id == $filterDepartmentId;
-            return $matchesName && $matchesBranch && $matchesDepartment;
-        });
+        $query = UsersModel::with(['branch', 'department'])
+        ->where('client_id', $client->id)
+        ->whereHas('branch')
+        ->whereHas('department')
+        ->whereIn('id', $qualifyingEmployeeIds);
 
-        $resultEmployees = collect();
+        if($filterName){
+            $query->whereRaw("LOWER(CONCAT(last_name, ', ', first_name)) LIKE ?", ["%$filterName%"]);
+        }
+        if($filterBranchId){
+            $query->where('branch_id', $filterBranchId);
+        }
 
-        foreach($filteredEmployees as $employee){
-            $allowancesQuery = EmployeeAllowancesModel::with('allowance')->where('user_id', $employee->id)->whereNull('deleted_at');
-            if($filterAllowanceId){
-                $allowancesQuery->where('allowance_id', $filterAllowanceId);
-            }
-            $allowances = $allowancesQuery->get();
+        if($filterDepartmentId){
+            $query->where('department_id', $filterDepartmentId);
+        }
+        //for employee counting purposes <pagination>
+        $countQuery = (clone $query);
+        $total_count = $countQuery->count();
 
-            if($filterAllowanceId && $allowances->isEmpty()){
-                continue;
-            }
+        $employees = $query
+        ->offset(($page - 1) * $perPage)
+        ->limit($perPage)
+        ->get();
+
+        $result = collect();
+        $total_amount = 0;
+
+        foreach($employees as $employee){
+            $allowances = EmployeeAllowancesModel::with('allowance')
+            ->where('user_id', $employee->id)
+            ->whereNull('deleted_at')
+            ->when($filterAllowanceId, fn($q) => $q->where('allowance_id', $filterAllowanceId))
+            ->get();
+
             $baseSalary = floatval($employee->salary);
             $amount = 0;
             foreach($allowances as $allowance){  
-                if($filterAllowanceId && $allowance->allowance_id != $filterAllowanceId){
-                    continue;
-                }
                 $type = $allowance->allowance->type;
                 if($type == 'Amount'){
                     $amount += $allowance->allowance->amount;
@@ -853,7 +870,8 @@ class CompensationManagementController extends Controller
                     $amount += $baseSalary * ($allowance->allowance->percentage / 100);
                 }
             }
-            $resultEmployees->push([
+
+            $result->push([
                 'user_name' => $employee->user_name,
                 'name' => "{$employee->last_name}, {$employee->first_name} {$employee->middle_name} {$employee->suffix}",
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
@@ -861,16 +879,14 @@ class CompensationManagementController extends Controller
                 'branch_id' => $employee->branch_id,
                 'department_id' => $employee->department_id,
                 'amount' => $amount,
-            ]);   
+            ]);  
+            $total_amount += $amount;
         }
-        $total_count = $filteredEmployees->count();
-        $paginated = $resultEmployees->forPage($page, $perPage)->values();
-
         return response()->json([
             'status' => 200,
             'employee_count' => $total_count,
-            'employees' => $paginated,
-            'total' => $paginated->sum('amount'),
+            'employees' => $result->values(),
+            'total' => $total_amount,
             'current_page' => $page,
         ]);
     }

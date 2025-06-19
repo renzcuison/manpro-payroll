@@ -26,7 +26,7 @@ const EmployeesAllowanceList = () => {
     };
     const pagination = {
         page: page,
-        perPage: rowsPerPage,
+        per_page: rowsPerPage,
     };
     
     const {allowancesData} = useAllowance();

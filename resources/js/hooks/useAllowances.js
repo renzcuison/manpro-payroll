@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 
 const buildParams = (filters = {}, pagination = {}) => {
     const {name, branchId, departmentId, allowanceId} = filters;
-    const {page = 1, perPage = 10} = pagination;
+    const {page = 1, per_page = 10} = pagination;
     const params = {};
     
     if (name) params.name = name;
@@ -14,7 +14,7 @@ const buildParams = (filters = {}, pagination = {}) => {
     if (departmentId) params.department_id = departmentId;
     if (allowanceId) params.allowance_id = allowanceId;
     if (page) params.page = page;
-    if (perPage) params.per_page = perPage;
+    if (per_page) params.per_page = per_page;
     return params;
 }
 
