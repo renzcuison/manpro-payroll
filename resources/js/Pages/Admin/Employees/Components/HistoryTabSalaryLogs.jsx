@@ -34,36 +34,37 @@ const HistoryTabSalaryLogs = ({ userName, headers }) => {
         <Box sx={{ p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
             {isLoading ? (
                 <LoadingSpinner />
+            ) : logs.length === 0 ? (
+                <Typography align="center" sx={{ my: 4, color: '#888' }}>
+                    No salary logs found
+                </Typography>
             ) : (
-                <>
-                    <TableContainer style={{ overflowX: 'auto' }}>
-                        <Table aria-label="simple table">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Changed by</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Changed on</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Old Salary Grade</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Old Amount</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>New Salary Grade</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>New Amount</TableCell>
+                <TableContainer style={{ overflowX: 'auto' }}>
+                    <Table aria-label="simple table">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Changed by</TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Changed on</TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Old Salary Grade</TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Old Amount</TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>New Salary Grade</TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold' }}>New Amount</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {(Array.isArray(logs) ? logs : []).map((log) => (
+                                <TableRow key={log.salaryLog} >
+                                    <TableCell align="center">{log.adminFirstName} {log.adminLastName}</TableCell>
+                                    <TableCell align="center">{dayjs(log.createdAt).format('MMM D, YYYY h:mm A')}</TableCell>
+                                    <TableCell align="center">{log.oldSalaryGrade}</TableCell>
+                                    <TableCell align="center">₱ {Number(log.oldAmount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                                    <TableCell align="center">{log.newSalaryGrade}</TableCell>
+                                    <TableCell align="center">₱ {Number(log.newAmount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                                 </TableRow>
-                            </TableHead>
-
-                            <TableBody>
-                                {(Array.isArray(logs) ? logs : []).map((log) => (
-                                    <TableRow key={log.salaryLog} >
-                                        <TableCell align="center">{log.adminFirstName} {log.adminLastName}</TableCell>
-                                        <TableCell align="center">{dayjs(log.createdAt).format('MMM D, YYYY h:mm A')}</TableCell>
-                                        <TableCell align="center">{log.oldSalaryGrade}</TableCell>
-                                        <TableCell align="center">₱ {Number(log.oldAmount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                                        <TableCell align="center">{log.newSalaryGrade}</TableCell>
-                                        <TableCell align="center">₱ {Number(log.newAmount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             )}
         </Box>
     );
