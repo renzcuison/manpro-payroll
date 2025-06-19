@@ -119,6 +119,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getRoles', [SettingsController::class, 'getRoles']);
         Route::post('/saveRole', [SettingsController::class, 'saveRole']);
         Route::post('/editRole', [SettingsController::class, 'editRole']);
+        Route::get('/roleDetails/{id}', [SettingsController::class, 'getRoleDetails']);
+
+
+        Route::get('/getEmployeeRoles', [SettingsController::class, 'getEmployeeRoles']);
+        Route::get('/getEmployeeRole/{id}', [SettingsController::class, 'getEmployeeRole']);
+
+        Route::post('/addEmployeeRole', [SettingsController::class, 'addEmployeeRole']);
+        Route::put('/updateEmployeeRole/{id}', [SettingsController::class, 'updateEmployeeRole']);
+        Route::delete('/deleteEmployeeRole/{id}', [SettingsController::class, 'deleteEmployeeRole']);
 
         Route::post('/saveApplicationType', [SettingsController::class, 'saveApplicationType']);
         Route::post('/editApplicationType', [SettingsController::class, 'editApplicationType']);
@@ -130,7 +139,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
 
   
-
+       
         Route::post('/updateEmployeeBranchPosition', [EmployeesController::class, 'updateBranchPosition']);
 
 
@@ -144,7 +153,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeShortDetails', [EmployeesController::class, 'getEmployeeShortDetails']);
 
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
-        Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
+        Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']); 
+
+       
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
         Route::get('/employee/getEmployeesByBranch/{id}', [EmployeeController::class, 'getEmployeesByBranch']);
 
@@ -169,6 +180,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getBenefits', [BenefitsController::class, 'getBenefits']);
         Route::post('/saveBenefit', [BenefitsController::class, 'saveBenefit']);
 
+        Route::post('/updateEmployeeBenefit', [SettingsController::class, 'updateEmployeeBenefit']);
         Route::post('/addEmployeeBenefit', [BenefitsController::class, 'addEmployeeBenefit']);
         Route::get('/getEmployeeBenefits', [BenefitsController::class, 'getEmployeeBenefits']);
     });

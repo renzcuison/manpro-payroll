@@ -16,7 +16,7 @@ class User extends Authenticatable implements HasMedia
 {
     use HasApiTokens, HasFactory, Notifiable, InteractsWithMedia;
 
-    protected $table = 'user';
+    protected $table = 'users';
 
     protected $primaryKey = 'user_id';
 
@@ -99,6 +99,10 @@ class User extends Authenticatable implements HasMedia
         return $this->belongsTo(Package::class, 'package_id');
     }
 
+    public function role()
+    {
+        return $this->belongsTo(EmployeeRolesModel::class, 'role_id');
+    }
 
 
     

@@ -137,6 +137,10 @@ class EmployeesController extends Controller
     }
 
 
+
+
+
+
     public function updateBranchPosition(Request $request)
 {
     $validated = $request->validate([
@@ -153,44 +157,47 @@ class EmployeesController extends Controller
 
 
     public function getEmployees()
-    {
-        // log::info("EmployeesController::getEmployees");
+{
+    if ($this->checkUserAdmin()) {
+        $user = Auth::user();
 
-        if ($this->checkUserAdmin()) {
-            $user = Auth::user();
-            // $employees = $user->company->users;
+        // Fetch client and employees with role relationship
+        $client = ClientsModel::find($user->client_id);
+        $employees = $client->employees()->with('role')->get();
 
-            $client = ClientsModel::find($user->client_id);
-            $employees = $client->employees;
-            // $employees = $user->company->users;
+        $employees->map(function ($employee) {
+            // Add role name as a plain field
+            $employee->role_name = $employee->role?->name ?? null;
 
-            $client = ClientsModel::find($user->client_id);
-            $employees = $client->employees;
+            // Enrich details if needed
+            $employee = $this->enrichEmployeeDetails($employee);
 
-           $employees->map(function ($employee) {
-                $employee = $this->enrichEmployeeDetails($employee);
+            // Remove unnecessary fields
+            unset(
+                $employee->verify_code,
+                $employee->code_expiration,
+                $employee->is_verified,
+                $employee->client_id,
+                $employee->branch_id,
+                $employee->role,       // remove relationship object
+                $employee->role_id     // optional, if you don't need the id
+            );
 
-                unset(
-                    // $employee->id,
-                    $employee->verify_code,
-                    $employee->code_expiration,
-                    $employee->is_verified,
-                    $employee->client_id,
-                    $employee->branch_id,
-                    // $employee->department_id,
-                    // $employee->role_id,
-                    // $employee->job_title_id,
-                    // $employee->work_group_id
-                );
+            return $employee;
+        });
 
-                return $employee;
-            });
-
-            return response()->json(['status' => 200, 'employees' => $employees]);
-        }
-
-        return response()->json(['status' => 200, 'employees' => null]);
+        return response()->json([
+            'status' => 200,
+            'employees' => $employees,
+        ]);
     }
+
+    return response()->json([
+        'status' => 200,
+        'employees' => null,
+    ]);
+}
+
 
 
 

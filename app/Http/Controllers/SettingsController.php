@@ -678,4 +678,129 @@ public function deleteBranchPosition($id)
             return response()->json(['status' => 200]);
         }
     }
+
+
+
+    // Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles Roles 
+    
+      
+public function getEmployeeRoles()
+{
+    $user = Auth::user();
+    $roles = EmployeeRolesModel::where('client_id', $user->client_id)
+        ->select(['id', 'name', 'can_approve_request', 'can_review_request', 'can_note_request', 'can_accept_request'])
+        ->get();
+
+    return response()->json([
+        'status' => 200,
+        'roles' => $roles
+    ]);
+}
+
+public function getEmployeeRole($id)
+{
+    $role = EmployeeRolesModel::with('employees')->find($id);
+
+    if (!$role) {
+        return response()->json(['message' => 'Role not found'], 404);
+    }
+
+    $employees = $role->employees->map(function ($emp) {
+        return [
+            'id' => $emp->id,
+            'first_name' => $emp->first_name,
+            'last_name' => $emp->last_name,
+            'middle_name' => $emp->middle_name,
+            'suffix' => $emp->suffix,
+            'employee_role_id' => $emp->employee_role_id,
+            'avatar' => $emp->avatar,
+            'avatar_mime' => $emp->avatar_mime,
+        ];
+    });
+
+    return response()->json([
+        'status' => 200,
+        'role' => [
+            'id' => $role->id,
+            'name' => $role->name,
+            'can_approve_request' => $role->can_approve_request,
+            'can_review_request' => $role->can_review_request,
+            'can_note_request' => $role->can_note_request,
+            'can_accept_request' => $role->can_accept_request,
+        ],
+        'employees' => $employees
+    ]);
+}
+
+
+public function addEmployeeRole(Request $request)
+{
+    $user = Auth::user();
+
+    try {
+        \Log::info('Incoming new role:', $request->all()); // For debugging
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'can_approve_request' => 'required|boolean',
+            'can_review_request' => 'required|boolean',
+            'can_note_request' => 'required|boolean',
+            'can_accept_request' => 'required|boolean',
+        ]);
+
+        $role = EmployeeRolesModel::create(array_merge($validated, ['client_id' => $user->client_id]));
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Role created successfully',
+            'role' => $role
+        ]);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'status' => 422,
+            'message' => 'Validation failed',
+            'errors' => $e->errors()
+        ], 422);
+    }
+}
+
+public function updateEmployeeRole(Request $request, $id)
+{
+    $user = Auth::user();
+
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'can_approve_request' => 'required|boolean',
+        'can_review_request' => 'required|boolean',
+        'can_note_request' => 'required|boolean',
+        'can_accept_request' => 'required|boolean',
+    ]);
+
+    $role = EmployeeRolesModel::where('client_id', $user->client_id)->findOrFail($id);
+    $role->update($validated);
+
+    return response()->json([
+        'status' => 200,
+        'message' => 'Role updated successfully',
+        'role' => $role
+    ]);
+}
+
+public function getRoleDetails($id)
+{
+    $role = EmployeeRolesModel::find($id);
+
+    if (!$role) {
+        return response()->json(['message' => 'Role not found'], 404);
+    }
+
+    $employees = Employee::where('employee_role_id', $id)->get();
+
+    return response()->json([
+        'role' => $role,
+        'employees' => $employees
+    ]);
+}
+
+
 }

@@ -10,6 +10,9 @@ import DepartmentDetails from "../Pages/Admin/Department/DepartmentDetails";
 import BranchList from "../Pages/Admin/Branches/BranchList";
 import BranchDetails from "../Pages/Admin/Branches/BranchDetails";
 
+import Roles from "../Pages/Admin/Roles/Roles";
+import RolesDetails from "../Pages/Admin/Roles/RolesDetails"; 
+
 
 
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
@@ -86,6 +89,8 @@ const AdminRoutes = ({ user }) => {
             <Route path="branches/branchlist" element={<ProtectedRoute element={<BranchList />} user={user} />} />
             <Route path="branches/:id" element={<ProtectedRoute element={<BranchDetails />} user={user} />} />
             
+            <Route path="roles" element={<ProtectedRoute element={<Roles />} user={user} />} />
+            <Route path="roles/:id" element={<ProtectedRoute element={<RolesDetails />} user={user} />}/>
 
             <Route path="dashboard" element={ <ProtectedRoute element={<Dashboard />} user={user} /> } />
 
