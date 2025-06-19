@@ -640,6 +640,7 @@ class EvaluationResponseController extends Controller
                     ->first()
                     ->getFirstMedia('signatures')
                 ;
+                $evaluator->media = $evaluatorSignature ? [$evaluatorSignature] : [];
                 $evaluator->evaluator_signature = (
                     $evaluatorSignature ? base64_encode(file_get_contents($evaluatorSignature->getPath()))
                     : null
@@ -653,6 +654,7 @@ class EvaluationResponseController extends Controller
                     ->first()
                     ->getFirstMedia('signatures')
                 ;
+                $commentor->media = $commentorSignature ? [$commentorSignature] : [];
                 $commentor->commentor_signature = (
                     $commentorSignature ? base64_encode(file_get_contents($commentorSignature->getPath()))
                     : null
