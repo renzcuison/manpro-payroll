@@ -709,61 +709,72 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                 </Typography>
                                                             </Box>
                                                         )}
-                                                        {subcategoryDraft.subcategory_type === 'linear_scale' && (
-                                                            <Box sx={{ mb: 2 }}>
-                                                                <Grid container spacing={2} sx={{ mt: 2 }}>
-                                                                    <Grid item xs={5}>
-                                                                        <FormControl fullWidth>
-                                                                            <Select
-                                                                                value={subcategoryDraft.linear_scale_start || ""}
-                                                                                onChange={e => setSubcategoryDraft(d => ({ ...d, linear_scale_start: +e.target.value }))}
-                                                                                label="Min Value"
-                                                                            >
-                                                                                <MenuItem value={0}>0</MenuItem>
-                                                                                <MenuItem value={1}>1</MenuItem>
-                                                                                <MenuItem value={2}>2</MenuItem>
-                                                                            </Select>
-                                                                        </FormControl>
-                                                                    </Grid>
-                                                                    <Grid item xs={2} sx={{ textAlign: 'center' }}>
-                                                                        <Typography variant="h6">to</Typography>
-                                                                    </Grid>
-                                                                    <Grid item xs={5}>
-                                                                        <FormControl fullWidth>
-                                                                            <Select
-                                                                                value={subcategoryDraft.linear_scale_end || ""}
-                                                                                onChange={e => setSubcategoryDraft(d => ({ ...d, linear_scale_end: +e.target.value }))}
-                                                                                label="Max Value"
-                                                                            >
-                                                                                <MenuItem value={3}>3</MenuItem>
-                                                                                <MenuItem value={4}>4</MenuItem>
-                                                                                <MenuItem value={5}>5</MenuItem>
-                                                                            </Select>
-                                                                        </FormControl>
-                                                                    </Grid>
-                                                                </Grid>
-                                                                <Grid container spacing={2} sx={{ mt: 2 }}>
-                                                                    <Grid item xs={5}>
-                                                                        <TextField
-                                                                            label="Label"
-                                                                            variant="outlined"
-                                                                            fullWidth
-                                                                            value={subcategoryDraft.linear_scale_start_label || ""}
-                                                                            onChange={e => setSubcategoryDraft(d => ({ ...d, linear_scale_start_label: e.target.value }))}
-                                                                        />
-                                                                    </Grid>
-                                                                    <Grid item xs={5}>
-                                                                        <TextField
-                                                                            label="Label"
-                                                                            variant="outlined"
-                                                                            fullWidth
-                                                                            value={subcategoryDraft.linear_scale_end_label || ""}
-                                                                            onChange={e => setSubcategoryDraft(d => ({ ...d, linear_scale_end_label: e.target.value }))}
-                                                                        />
-                                                                    </Grid>
-                                                                </Grid>
-                                                            </Box>
-                                                        )}
+{subcategoryDraft.subcategory_type === 'linear_scale' && (
+  <Box sx={{ mb: 2 }}>
+    {Array.isArray(subcategoryOptions) && subcategoryOptions.map((option, idx) => (
+      <Grid container spacing={2} key={idx} alignItems="center" sx={{ mb: 1 }}>
+        <Grid item xs={1}>
+          <Typography variant="body1">{idx + 1}.</Typography>
+        </Grid>
+        <Grid item xs={4}>
+          <TextField
+            variant="outlined"
+            label="Label"
+            value={option.label}
+            onChange={e => {
+              const newOptions = [...subcategoryOptions];
+              newOptions[idx].label = e.target.value;
+              setSubcategoryOptions(newOptions);
+            }}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField
+            variant="outlined"
+            label="Description (optional)"
+            value={option.description}
+            onChange={e => {
+              const newOptions = [...subcategoryOptions];
+              newOptions[idx].description = e.target.value;
+              setSubcategoryOptions(newOptions);
+            }}
+            fullWidth
+          />
+        </Grid>
+        <Grid item xs={1}>
+          {subcategoryOptions.length > 2 && (
+            <IconButton
+              onClick={() => {
+                const newOptions = subcategoryOptions.filter((_, i) => i !== idx);
+                setSubcategoryOptions(newOptions);
+              }}
+              sx={{ color: 'gray' }}
+            >
+              <CloseIcon />
+            </IconButton>
+          )}
+        </Grid>
+      </Grid>
+    ))}
+    {subcategoryOptions.length < 10 && (
+      <Typography
+        onClick={() => setSubcategoryOptions([
+          ...subcategoryOptions,
+          { label: '', description: '' }
+        ])}
+        sx={{
+          color: '#000000',
+          fontSize: '14px',
+          cursor: 'pointer',
+          marginTop: '8px',
+        }}
+      >
+        {subcategoryOptions.length + 1}. Add Option
+      </Typography>
+    )}
+  </Box>
+)}
                                                         <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                                                             <Box>
                                                                 <Button
