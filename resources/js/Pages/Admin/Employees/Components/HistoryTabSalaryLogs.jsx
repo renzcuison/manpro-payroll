@@ -56,9 +56,11 @@ const HistoryTabSalaryLogs = ({ userName, headers }) => {
                                 <TableRow key={log.salaryLog} >
                                     <TableCell align="center">{log.adminFirstName} {log.adminLastName}</TableCell>
                                     <TableCell align="center">{dayjs(log.createdAt).format('MMM D, YYYY h:mm A')}</TableCell>
-                                    <TableCell align="center">{log.oldSalaryGrade}</TableCell>
+                                    <TableCell align="center">
+                                        {log.oldSalaryGrade === '-' ? '-' : `Grade ${log.oldSalaryGrade}`}
+                                    </TableCell>
                                     <TableCell align="center">₱ {Number(log.oldAmount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                                    <TableCell align="center">{log.newSalaryGrade}</TableCell>
+                                    <TableCell align="center">Grade {log.newSalaryGrade}</TableCell>
                                     <TableCell align="center">₱ {Number(log.newAmount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                                 </TableRow>
                             ))}
