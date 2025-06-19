@@ -23,23 +23,16 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Swal from 'sweetalert2';
 
 const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
-    console.log("Received planId:", planId);
-
     const storedUser = localStorage.getItem("nasya_user");
     const user = storedUser ? JSON.parse(storedUser) : null;
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [employees, setEmployees] = useState([]);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [enrollDate, setEnrollDate] = useState(null);
-
     const [showDependents, setShowDependents] = useState(false);
-
     const [dependents, setDependents] = useState([]);
-
     const relationshipOptions = ["Spouse", "Child", "Parent"];
-
     const [dependentWarning, setDependentWarning] = useState('');
-
     const isFilled = (dep) =>
         dep &&
         typeof dep.name === "string" &&
@@ -107,9 +100,6 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
             });
         }
     };
-
-
-
 
     return (
         <>

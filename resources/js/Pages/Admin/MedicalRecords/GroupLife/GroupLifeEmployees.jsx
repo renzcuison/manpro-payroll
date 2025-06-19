@@ -25,8 +25,6 @@ const GroupLifeEmployees = () => {
 
     const storedPlanDetails = localStorage.getItem("selected_plan_details");
     const planDetails = storedPlanDetails ? JSON.parse(storedPlanDetails) : {};
-
-    console.log("Received planDetails:", planDetails);
     const navigator = useNavigate();
     const [search, setSearch] = useState("");
     const [openAssignEmployeeModal, setOpenAssignEmployeeModal] = useState(false);
@@ -39,7 +37,7 @@ const GroupLifeEmployees = () => {
     const [employeePlans, setEmployeePlans] = useState([]);
     const [rows, setRows] = useState([]);  
 
-    console.log("Loaded planDetails from localStorage:", planDetails);
+    const [selectedEmployeePlanId, setSelectedEmployeePlanId] = useState(null);
 
     useEffect(() => {
         if (!id) return;
@@ -51,11 +49,9 @@ const GroupLifeEmployees = () => {
             params: { plan_id: id }
         })
         .then(res => {
-            console.log("Filtered employees:", res.data);
             setEmployees(res.data.employees || []);
         })
         .catch(err => {
-            console.error("Error fetching filtered employees:", err);
             setEmployees([]);
         })
         .finally(() => setLoading(false));
@@ -236,7 +232,10 @@ const GroupLifeEmployees = () => {
                             <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', }}>Assigned Employees</Typography>
                             <GroupLifeEmployeeTable
                                 employees={filteredRecords}
-                                onRowClick={() => setOpenEditEmployeeModal(true)}
+                                onRowClick={(row) => {
+                                setSelectedEmployeePlanId(row.id);
+                                setOpenEditEmployeeModal(true);
+                                }}
                                 search={search}
                                 loading={loading}
                             />
@@ -266,15 +265,16 @@ const GroupLifeEmployees = () => {
                     </Grid>
                 </Grid>
 
-                {openEditEmployeeModal && (
+                {openEditEmployeeModal && selectedEmployeePlanId && (
                     <GroupLifeEditEmployee
                         open={openEditEmployeeModal}
                         close={setOpenEditEmployeeModal}
-                        
+                        employeePlanId={selectedEmployeePlanId}
                     />
                 )}
 
                 {openAssignEmployeeModal && (
+                    
                     <GroupLifeAssignEmployee
                         open={openAssignEmployeeModal}
                         close={setOpenAssignEmployeeModal}

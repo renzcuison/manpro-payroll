@@ -60,10 +60,6 @@ const GroupLifeMasterlist = () => {
             })
             .catch(console.error)
             .finally(() => setLoading(false));
-
-
-
-
         }, [user]);
         
         
@@ -77,7 +73,7 @@ const GroupLifeMasterlist = () => {
         axiosInstance
             .get("/medicalRecords/getGroupLifePlans", { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {const plans = res.data.plans || [];
-                setRows(
+            setRows(
                 plans.map(row => ({
                 id: row.id,
                 groupLifeName: row.group_life_company_name,
@@ -87,18 +83,14 @@ const GroupLifeMasterlist = () => {
                 employeeShare: row.employee_share,
                 employeesAssignedCount: row.employees_assigned_count
             }))
-        );
-
-                })
+            );
+            })
                 .catch(console.error);
-                
         }, [user]);
 
         const refreshCompanies = () => {
             if (!user) return;
-
             setLoading(true);
-
         axiosInstance.get('/group-life-companies', { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
                 console.log("Rows updated", rows);
@@ -111,12 +103,10 @@ const GroupLifeMasterlist = () => {
             })
             .catch(console.error)
             .finally(() => setLoading(false));
-    };
+        };
 
     const refreshPlans = () => {
-
         setLoading(true);
-
         axiosInstance
             .get("/medicalRecords/getGroupLifePlans", {
                 headers: { Authorization: `Bearer ${user.token}` }

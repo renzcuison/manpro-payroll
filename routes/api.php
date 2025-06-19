@@ -1153,8 +1153,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveGroupLifePlans', [InsurancesController::class, 'saveGroupLifePlans']);
         Route::get('/getGroupLifePlans', [InsurancesController::class, 'getGroupLifePlans']);
         Route::get('/getGroupLifeEmployees', [InsurancesController::class, 'getGroupLifeEmployees']);
-        Route::get('/getGroupLifeEmployeesByPlanId/{id}', [InsurancesController::class, 'getGroupLifeEmployeesByPlanId']);
+        Route::get('/getGroupLifeEmployeePlanById/{id}', [InsurancesController::class, 'getGroupLifeEmployeePlanById']);
         Route::post('/saveGroupLifeEmployees', [InsurancesController::class, 'saveGroupLifeEmployees']);
+        Route::put('' . '/editGroupLifeEmployeePlan/{id}', [InsurancesController::class, 'editGroupLifeEmployeePlan']);
 
     });
 
