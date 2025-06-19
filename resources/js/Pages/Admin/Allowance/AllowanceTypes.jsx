@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import { Link } from 'react-router-dom';
-import { useAllowances } from '../../../hooks/useAllowances';
+import { useAllowance } from '../../../hooks/useAllowances';
 
 import AllowanceAdd from './Modals/AllowanceAdd';
 import AllowanceEdit from './Modals/AllowanceEdit';
 
 const AllowanceTypes = () => {
-    const {allowances: allowanceQuery} = useAllowances({loadAllowances: true});
-    const allowances = allowanceQuery.data?.allowances || [];
+    const {allowancesData, isAllowancesLoading, refetchAllowances} = useAllowance();
+    const allowances = allowancesData?.allowances || [];
 
     const [openAddAllowanceModal, setOpenAddAllowanceModal] = useState(false);
     const [openEditAllowanceModal, setOpenEditAllowanceModal] = useState(false);
@@ -21,7 +21,7 @@ const AllowanceTypes = () => {
 
     const handleCloseAddAllowanceModal = () => {
         setOpenAddAllowanceModal(false);
-        allowanceQuery.refetch();
+        refetchAllowances();
     }
 
     const handleOpenEditAllowanceModal = (allowance) => {
@@ -32,8 +32,18 @@ const AllowanceTypes = () => {
         setOpenEditAllowanceModal(false);
         setSelectedAllowance(null);
         if(reload){
-            allowanceQuery.refetch();
+            refetchAllowances();
         }
+    }
+    
+    const getPaymentScheduleName = (scheduleNum) => {
+        let scheduleName = '';
+        switch(scheduleNum){
+            case 1: scheduleName = 'One Time - First Cutoff'; break;
+            case 2: scheduleName = 'One Time - Second Cutoff'; break;
+            case 3: scheduleName = 'Split - First & Second Cutoff'; break;
+        }
+        return scheduleName;
     }
     return (
         <Layout title={"LeaveCreditList"}>
@@ -53,7 +63,7 @@ const AllowanceTypes = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {allowanceQuery.isLoading ? (
+                        {isAllowancesLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -65,7 +75,9 @@ const AllowanceTypes = () => {
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Name </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Type </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Payment Schedule </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Amount/Percentage </TableCell>
+                                                
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -76,6 +88,7 @@ const AllowanceTypes = () => {
                                                      '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{allowance.name}</TableCell>
                                                         <TableCell align="center">{allowance.type}</TableCell>
+                                                        <TableCell align="center">{getPaymentScheduleName(allowance.payment_schedule)}</TableCell>
 
                                                         {allowance.type === "Amount" && (
                                                             <TableCell align="center">

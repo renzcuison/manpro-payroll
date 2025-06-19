@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField, FormControl, FormGroup, Dialog, DialogTitle, DialogContent, Typography, IconButton} from "@mui/material";
 import Swal from 'sweetalert2';
-import axiosInstance, {getJWTHeader} from "../../../../utils/axiosConfig";
-import { useAllowances, useSaveEmployeeAllowance } from "../../../../hooks/useAllowances";
-import { useAllowances } from "../../../../hooks/useAllowances";
+import { useAllowance, useSaveEmployeeAllowances } from "../../../../hooks/useAllowances";
 
 const EmployeeAddAllowance = ({userName, open, onClose }) => {
-    const {allowances: allowanceQuery, saveEmployeeAllowances} = useAllowances({loadAllowances: true});
-    const allowances = allowanceQuery.data?.allowances || [];
+    const saveEmployeeAllowances = useSaveEmployeeAllowances();
+    const {allowancesData} = useAllowance();
+    const allowances = allowancesData?.allowances || [];
     const [allowanceError, setAllowanceError] = useState(false);
     const [numberError, setNumberError] = useState(false);
 
@@ -59,26 +58,7 @@ const EmployeeAddAllowance = ({userName, open, onClose }) => {
     const saveInput = (event) => {
         event.preventDefault();
         const data = { userName: userName, allowance: allowance, number: number };
-        saveEmployeeAllowances.mutate(data, {
-            onSuccess: (response) => {
-                if(response.status === 200){
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Allowance added successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        onClose(true);
-                    });
-                }
-            },
-            onError: (error) =>{
-                console.error('Error:', error);
-            }
-        });
+        saveEmployeeAllowances.mutate({data: data, onSuccessCallback: () => close(true)})
     };
 
     return (

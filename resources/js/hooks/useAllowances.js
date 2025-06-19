@@ -4,8 +4,7 @@ const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 import Swal from "sweetalert2";
 
-export function useAllowances({userName = null, loadAllowances = false, loadEmployeesAllowances = false, filters = {}, pagination = {}} = {}){
-    const queryClient = useQueryClient();
+const buildParams = (filters = {}, pagination = {}) => {
     const {name, branchId, departmentId, allowanceId} = filters;
     const {page = 1, perPage = 10} = pagination;
     const params = {};
@@ -16,31 +15,60 @@ export function useAllowances({userName = null, loadAllowances = false, loadEmpl
     if (allowanceId) params.allowance_id = allowanceId;
     if (page) params.page = page;
     if (perPage) params.per_page = perPage;
+    return params;
+}
 
-    const allowances = useQuery(["allowances"], async () => {
+export function useAllowance(enabled = true){
+    const query = useQuery(["allowances"], async () => {
         const {data} = await axiosInstance.get('/compensation/getAllowances', { 
             headers,
         });
         return data;
-    }, {enabled: loadAllowances});
-    
-    const employeesAllowances = useQuery(["employeesAllowances", {filters, pagination}], async () => {
+    }, {enabled});
+
+    return{
+        allowancesData: query.data,
+        isAllowancesLoading: query.isLoading,
+        isAllowancesError: query.isError,
+        refetchAllowances: query.refetch,
+    }
+}
+
+export function useEmployeesAllowances(filters = {}, pagination = {}, enabled = true) {
+    const params = buildParams(filters, pagination);
+    const query =  useQuery(["employeesAllowances", {filters, pagination}], async () => {
         const { data } = await axiosInstance.get("compensation/getEmployeesAllowance", {
             headers, params,
         });
         return data;
-    }, {enabled: loadEmployeesAllowances});
+    }, {enabled});
 
-    const employeeAllowances = useQuery(["employeeAllowance", userName, filters.allowanceId], async () => {
+    return {
+        employeesAllowances: query.data,
+        isEmployeesAllowancesLoading: query.isLoading,
+        isEmployeesAllowancesError: query.isError,
+        refetchEmployeesAllowances: query.refetch,
+    }
+}
+
+export function useEmployeeAllowances(userName, allowanceId = null){
+    const query = useQuery(["employeeAllowance", userName, allowanceId], async () => {
         const {data} = await axiosInstance.get("compensation/getEmployeeAllowance", {
             headers, params: {username: userName, allowance_id: allowanceId},
         });
         return data;
-    }, {
-        enabled: !!userName,
-    });
+    }, {enabled: !!userName,});
 
-    const saveAllowance = useMutation(
+    return {
+        employeeAllowances: query.data,
+        isEmployeeAllowancesLoading: query.isLoading,
+        isEmployeeAllowancesError: query.isError,
+        refetchEmployeeAllowances: query.refetch,
+    }
+}
+
+export function useSaveAllowance(){
+    return useMutation(
         async ({ data }) => {
             return await axiosInstance.post('/compensation/saveAllowance', data, { headers });
         },
@@ -73,8 +101,11 @@ export function useAllowances({userName = null, loadAllowances = false, loadEmpl
             }
         }
     );
+}
 
-    const updateAllowance = useMutation(
+export function useUpdateAllowance() {
+    const queryClient = useQueryClient();
+    return useMutation(
         async ({ data }) => {
             return await axiosInstance.post('/compensation/updateAllowance', data, { headers });
         },
@@ -109,8 +140,10 @@ export function useAllowances({userName = null, loadAllowances = false, loadEmpl
             }
         }
     );
+}
 
-    const saveEmployeeAllowances = useMutation(async ({data}) => {
+export function useSaveEmployeeAllowances () {
+    return useMutation(async ({data}) => {
         return await axiosInstance.post('/compensation/saveEmployeeAllowance', data, { headers });
     },
     {
@@ -141,8 +174,10 @@ export function useAllowances({userName = null, loadAllowances = false, loadEmpl
             });
         }
     }); 
+}
 
-    const updateEmployeeAllowance = useMutation(async ({data}) => {
+export function useUpdateEmployeeAllowance () {
+    return useMutation(async ({data}) => {
         return await axiosInstance.post('/compensation/updateEmployeeAllowance', data, { headers });
     },
     {
@@ -173,14 +208,4 @@ export function useAllowances({userName = null, loadAllowances = false, loadEmpl
             });
         }
     });
-
-    return{
-        allowances,
-        employeesAllowances,
-        employeeAllowances,
-        saveAllowance,
-        updateAllowance,
-        saveEmployeeAllowances,
-        updateEmployeeAllowance,
-    }
 }

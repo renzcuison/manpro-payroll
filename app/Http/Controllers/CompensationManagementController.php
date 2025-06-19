@@ -629,7 +629,7 @@ class CompensationManagementController extends Controller
 
 
     //---------------->[#region ALLOWANCES CONTROLLERS]
-
+    
     public function getAllowances()
     {
         // log::info("AllowanceController::getAllowances");
@@ -647,6 +647,7 @@ class CompensationManagementController extends Controller
                     'type' => $allowance->type,
                     'amount' => $allowance->amount,
                     'percentage' => $allowance->percentage,
+                    "payment_schedule" => $allowance->payment_schedule,
                 ];
             }
 
@@ -665,20 +666,22 @@ class CompensationManagementController extends Controller
             'type' => 'required',
             'amount' => 'required',
             'percentage' => 'required',
+            'payment_schedule' => 'required',
         ]);
 
         if ($this->checkUserAdmin() && $validated) {
-
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
             try {
                 DB::beginTransaction();
+
                 AllowancesModel::create([
                     "name" => $request->name,
                     "type" => $request->type,
                     "amount" => $request->amount,
                     "percentage" => $request->percentage,
+                    "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
 
@@ -701,7 +704,9 @@ class CompensationManagementController extends Controller
             'type' => 'required',
             'amount' => 'required',
             'percentage' => 'required',
+            "payment_schedule" => 'required',
         ]);
+
         if(!$this->checkUserAdmin() && !$validated){
             return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
         }
@@ -721,6 +726,7 @@ class CompensationManagementController extends Controller
                 $allowance->type = $request->type;
                 $allowance->amount = $request->amount;
                 $allowance->percentage = $request->percentage;
+                $allowance->payment_schedule = $request->payment_schedule;
                 $allowance->save();
                 DB::commit();
             } catch (\Exception $e) {
@@ -773,6 +779,7 @@ class CompensationManagementController extends Controller
                 'type' => $type,
                 'amount' => $allowance->allowance->amount,
                 'percentage' => $allowance->allowance->percentage,
+                'payment_schedule' => $allowance->allowance->payment_schedule,
                 'calculated_amount' => $amount,
                 'status' =>$allowance->status,
                 'created_at' => $allowance->created_at,
@@ -786,6 +793,7 @@ class CompensationManagementController extends Controller
         if (!$this->checkUserAdmin()) {
             return response()->json([
                 'status' => 200,
+                'employee_count' => 0,
                 'employees' => [],
                 'total' => 0,
             ]);
@@ -844,7 +852,7 @@ class CompensationManagementController extends Controller
                 'amount' => $amount,
             ]);   
         }
-        $total_count = $resultEmployees->count();
+        $total_count = $filteredEmployees->count();
         $paginated = $resultEmployees->forPage($page, $perPage)->values();
 
         return response()->json([

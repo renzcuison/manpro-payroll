@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import { useAllowances } from "../../../../hooks/useAllowances";
+import {useAllowance, useSaveEmployeeAllowances } from "../../../../hooks/useAllowances";
 
 const EmployeeAllowanceAdd = ({ userName, onClose }) => {
-    const {allowances: allowancesQuery, saveEmployeeAllowances} = useAllowances({loadAllowances: true});
-    const allowances = allowancesQuery.data?.allowances || [];
+    const {allowancesData} = useAllowance();
+    const saveEmployeeAllowances = useSaveEmployeeAllowances();
+    const allowances = allowancesData?.allowances || [];
 
     const [allowanceError, setAllowanceError] = useState(false);
     // const [numberError, setNumberError] = useState(false);
