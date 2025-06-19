@@ -324,10 +324,10 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $evaluationResponse = EvaluationResponse
-            ::select(
-                'id', 'evaluatee_id', 'form_id', 'period_start_at', 'period_end_at',
-                'creator_signature_filepath', 'evaluatee_signature_filepath', 'created_at', 'updated_at'
-            )
+                ::select(
+                    'id', 'evaluatee_id', 'form_id', 'period_start_at', 'period_end_at',
+                    'creator_signature_filepath', 'evaluatee_signature_filepath', 'created_at', 'updated_at'
+                )
                 ->where('id', $request->id)
                 ->whereNull('deleted_at')
                 ->first()
@@ -340,9 +340,15 @@ class EvaluationResponseController extends Controller
 
             $periodStartAtSec = strtotime($request->period_start_at ?? $evaluationResponse->period_start_at);
             $periodEndAtSec = strtotime($request->period_end_at ?? $evaluationResponse->period_end_at);
-            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800);
-            $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800);
-
+            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 86400 - 28800);
+            $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec - $periodEndAtSec % 86400 + 57600);
+            // log::info($request->period_start_at);
+            // log::info($evaluationResponse->period_start_at);
+            // log::info($evaluationResponse->period_end_at);
+            // log::info($periodStartAtSec);
+            // log::info($periodEndAtSec);
+            // log::info($request->period_start_at);
+            // log::info($request->period_end_at);
             if ($periodStartAtSec > $periodEndAtSec) {
                 return response()->json([
                     'status' => 400,
@@ -368,10 +374,8 @@ class EvaluationResponseController extends Controller
                 $evaluationResponse->evaluatee_id = $request->evaluatee_id;
             if($request->form_id !== null)
                 $evaluationResponse->form_id = $request->form_id;
-            if($request->period_end_at !== null)
-                $evaluationResponse->period_end_at = $request->period_end_at;
-            if($request->period_start_at !== null)
-                $evaluationResponse->period_start_at = $request->period_start_at;
+            $evaluationResponse->period_end_at = $request->period_end_at;
+            $evaluationResponse->period_start_at = $request->period_start_at;
             
             if ($request->hasFile('evaluatee_signature_filepath')) {
                 $evaluationResponse->clearMediaCollection('evaluatee_signatures');
@@ -1147,8 +1151,8 @@ class EvaluationResponseController extends Controller
 
             $periodStartAtSec = strtotime($request->period_start_at);
             $periodEndAtSec = strtotime($request->period_end_at);
-            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800);
-            $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800);
+            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 86400 - 28800);
+            $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec - $periodEndAtSec % 86400 + 57600);
 
             if ($periodStartAtSec > $periodEndAtSec) {
                 return response()->json([
@@ -1159,23 +1163,12 @@ class EvaluationResponseController extends Controller
 
             DB::beginTransaction();
 
-            // $conflictingEvaluationResponse = EvaluationResponse::where('evaluatee_id', $request->evaluatee_id)
-            //     ->where('form_id', $request->form_id)
-            //     ->where('period_start_at', '<', $request->period_end_at)
-            //     ->where('period_end_at', '>', $request->period_start_at)
-            //     ->first()
-            // ;
-            // if($conflictingEvaluationResponse) return response()->json([ 
-            //     'status' => 400,
-            //     'message' => 'This Evaluation is in conflict with another!',
-            //     'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
-            // ]);
-
             $conflictingEvaluationResponse = EvaluationResponse::where('evaluatee_id', $request->evaluatee_id)
                 ->where('form_id', $request->form_id)
-                ->where('period_start_at', '=', $request->period_start_at)
-                ->where('period_end_at', '=', $request->period_end_at)
-                ->first();
+                ->where('period_start_at', '<', $request->period_end_at)
+                ->where('period_end_at', '>', $request->period_start_at)
+                ->first()
+            ;
             if($conflictingEvaluationResponse) return response()->json([ 
                 'status' => 400,
                 'message' => 'This Evaluation is in conflict with another!',
