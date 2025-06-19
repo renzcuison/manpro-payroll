@@ -1,5 +1,7 @@
 import Layout from "../../../../components/Layout/Layout";
 import React, { useState, useEffect, useRef } from "react";
+import PemeRecordsFilePreview from "./Modals/PemeRecordsFilePreview";
+
 import {
     Box,
     Button,
@@ -24,7 +26,7 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import dayjs from "dayjs";
 import Swal from "sweetalert2";
 
-const UploadForm = ({ files = [], onChange, file, fileName }) => {
+const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
     const fileInputRef = useRef();
 
     const handleFileChange = (e) => {
@@ -50,8 +52,35 @@ const UploadForm = ({ files = [], onChange, file, fileName }) => {
             >
                 {/* Show existing file from props */}
                 {file && (
-                    <a href={file} target="_blank" rel="noopener noreferrer">
+                    <Typography
+                        color="primary"
+                        onClick={() => {
+                            if (onFileClick && file?.url) {
+                                onFileClick(file.url, file.file_name);
+                            }
+                        }}
+                        sx={{
+                            boxShadow: 1,
+                            padding: 1,
+                            borderRadius: 1,
+                            display: "inline-block",
+                            backgroundColor: "#fafafa",
+                            cursor: "pointer",
+                            mr: 2,
+                        }}
+                    >
+                        <FileUploadIcon
+                            sx={{ mr: 1, verticalAlign: "middle" }}
+                        />
+                        {fileName}
+                    </Typography>
+                )}
+
+                {/* Show newly uploaded files */}
+                {Array.isArray(files) && files.length > 0 ? (
+                    files.map((file, index) => (
                         <Typography
+                            key={index}
                             color="primary"
                             sx={{
                                 boxShadow: 1,
@@ -62,45 +91,17 @@ const UploadForm = ({ files = [], onChange, file, fileName }) => {
                                 cursor: "pointer",
                                 mr: 2,
                             }}
+                            onClick={() => {
+                                if (onFileClick && file?.url) {
+                                    onFileClick(file.url, file.file_name);
+                                }
+                            }}
                         >
                             <FileUploadIcon
                                 sx={{ mr: 1, verticalAlign: "middle" }}
                             />
-                            {fileName}
+                            {file.name || file.fileName || "Unknown file"}
                         </Typography>
-                    </a>
-                )}
-                {/* Show newly uploaded files */}
-                {Array.isArray(files) && files.length > 0 ? (
-                    files.map((file, index) => (
-                        <a
-                            key={index}
-                            href={
-                                file instanceof File
-                                    ? URL.createObjectURL(file)
-                                    : "#"
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <Typography
-                                color="primary"
-                                sx={{
-                                    boxShadow: 1,
-                                    padding: 1,
-                                    borderRadius: 1,
-                                    display: "inline-block",
-                                    backgroundColor: "#fafafa",
-                                    cursor: "pointer",
-                                    mr: 2,
-                                }}
-                            >
-                                <FileUploadIcon
-                                    sx={{ mr: 1, verticalAlign: "middle" }}
-                                />
-                                {file.name || file.fileName || "Unknown file"}
-                            </Typography>
-                        </a>
                     ))
                 ) : !file ? (
                     <Typography sx={{ mr: 2 }}>No file uploaded</Typography>
@@ -122,7 +123,7 @@ const UploadForm = ({ files = [], onChange, file, fileName }) => {
                     }
                     startIcon={<FileUploadIcon />}
                 >
-                    {file ? "Replace" : "Upload"}
+                    Upload
                 </Button>
             </Box>
         </>
@@ -226,6 +227,8 @@ const PemeQuestionnaireView = () => {
     const [status, setStatus] = useState("");
     const [pemeResponses, setPemeResponses] = useState("");
     const [isDraftStatus, setIsDraftStatus] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [filePreviewOpen, setFilePreviewOpen] = useState(false);
 
     useEffect(() => {
         axiosInstance
@@ -233,6 +236,7 @@ const PemeQuestionnaireView = () => {
                 headers,
             })
             .then((response) => {
+                console.log("RESPONSE.DATA", response.data);
                 setEmployeeResponse(response.data);
                 setIsDraftStatus(response.data.isDraft);
                 const initialAnswers = {};
@@ -342,7 +346,10 @@ const PemeQuestionnaireView = () => {
                         console.log('value[0] instanceof File:', value[0] instanceof File);
                         console.log('typeof value[0]:', typeof value[0]);
 
-                        if (Array.isArray(answerValue) && answerValue[0] instanceof File) {
+                        if (
+                            Array.isArray(answerValue) &&
+                            answerValue[0] instanceof File
+                        ) {
                             responseEntry.files = answerValue;
                         }
 
@@ -352,8 +359,6 @@ const PemeQuestionnaireView = () => {
                         if (Array.isArray(value) && value[0] instanceof File) {
                             value.forEach((file) => {
                                 attachedMedia.push({
-                                    // question_id: form.question_id,
-                                    // input_type: type.input_type,
                                     file: file,
                                 });
                             });
@@ -369,9 +374,7 @@ const PemeQuestionnaireView = () => {
         };
 
         const formData = new FormData();
-
-        formData.append("peme_response_id", PemeResponseID);
-        formData.append("isDraft", isDraftStatus);
+        console.log("THING", responses);
 
         responses.forEach((item, index) => {
             formData.append(
@@ -385,11 +388,14 @@ const PemeQuestionnaireView = () => {
 
             if (Array.isArray(item.files) && item.files[0] instanceof File) {
                 item.files.forEach((file, fileIndex) => {
-                    formData.append(`responses[${index}][files][${fileIndex}]`, file);
+                    formData.append(
+                        `responses[${index}][files][${fileIndex}]`,
+                        file
+                    );
                 });
-                formData.append(`responses[${index}][value]`, '');
+                formData.append(`responses[${index}][value]`, "");
             } else {
-                formData.append(`responses[${index}][value]`, item.value ?? '');
+                formData.append(`responses[${index}][value]`, item.value ?? "");
             }
         });
 
@@ -431,79 +437,13 @@ const PemeQuestionnaireView = () => {
             });
 
             console.log(error);
-
         }
     };
 
-    // const handleSaveDraft = async () => {
-    //     const responses = [];
-
-    //     if (Array.isArray(employeeResponse.details)) {
-    //         employeeResponse.details.forEach((form) => {
-    //             if (Array.isArray(form.input_type)) {
-    //                 form.input_type.forEach((type) => {
-    //                     // Get the value from answers state
-    //                     const value =
-    //                         answers[form.question_id]?.[type.input_type] ??
-    //                         null;
-
-    //                     // Handle attachments as comma-separated file names
-    //                     let answerValue = value;
-
-    //                     responses.push({
-    //                         peme_q_item_id: form.question_id,
-    //                         peme_q_type_id: type.id,
-    //                         value: answerValue,
-    //                     });
-    //                 });
-    //             }
-    //         });
-    //     }
-
-    //     const payload = {
-    //         peme_response_id: PemeResponseID,
-    //         responses: responses,
-    //     };
-
-    //     console.log("TEST PAYLOAD", payload);
-
-    //     // try {
-    //     //     // PAYLOAD FOR DATES AND STATUS
-    //     //     const secondaryPayload = {
-    //     //         expiry_date: expirationDate,
-    //     //         next_schedule: nextSchedule,
-    //     //         status: status,
-    //     //     };
-    //     //     console.log(secondaryPayload);
-
-    //     //     await axiosInstance.patch(
-    //     //         `/peme-responses/${PemeResponseID}/status`,
-    //     //         secondaryPayload,
-    //     //         { headers }
-    //     //     );
-
-    //     //     console.log("ANSWERS", payload.responses);
-    //     //     await axiosInstance.post(`/peme-responses/storeAll`, payload, {
-    //     //         headers,
-    //     //     });
-    //     //     Swal.fire({
-    //     //         icon: "success",
-    //     //         text: "Draft saved successfully.",
-    //     //         showConfirmButton: false,
-    //     //         timer: 1500,
-    //     //     });
-    //     // } catch (error) {
-    //     //     Swal.fire({
-    //     //         title: "Error",
-    //     //         text: "Failed to save draft. Please try again.",
-    //     //         icon: "error",
-    //     //         confirmButtonText: "Okay",
-    //     //         confirmButtonColor: "#177604",
-    //     //     });
-
-    //     //     console.log(error);
-    //     // }
-    // };
+    const handleFileClick = (fileUrl, fileName = "File Preview") => {
+        setSelectedFile({ url: fileUrl, file_name: fileName });
+        setFilePreviewOpen(true);
+    };
 
     const navigator = useNavigate();
     const handleOnCancelClick = () => {
@@ -536,243 +476,339 @@ const PemeQuestionnaireView = () => {
                     <CircularProgress color="success" />
                 </Box>
             ) : (
-                <Box
-                    sx={{
-                        backgroundColor: "white",
-                        paddingY: 6,
-                        paddingX: 12,
-                        borderRadius: 1,
-                        boxShadow: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 4,
-                    }}
-                >
-                    {/* QUESTIONNAIRE */}
+                <>
                     <Box
                         sx={{
+                            backgroundColor: "white",
+                            paddingY: 6,
+                            paddingX: 12,
+                            borderRadius: 1,
+                            boxShadow: 1,
                             display: "flex",
-                            justifyContent: "space-between",
-                            padding: 2,
-                            borderBottom: "1px solid #ccc",
+                            flexDirection: "column",
+                            gap: 4,
                         }}
                     >
+                        {/* QUESTIONNAIRE */}
                         <Box
                             sx={{
                                 display: "flex",
-                                flexDirection: "column",
-                                gap: 2,
+                                justifyContent: "space-between",
+                                padding: 2,
+                                borderBottom: "1px solid #ccc",
                             }}
                         >
-                            <Typography
-                                variant="h4"
-                                sx={{ fontWeight: "bold" }}
-                            >
-                                {employeeResponse.peme_name}
-                            </Typography>
-                            <Typography
-                                variant="h6"
-                                sx={{ fontWeight: "bold" }}
-                            >
-                                {employeeResponse.respondent}
-                            </Typography>
-                        </Box>
-                    </Box>
-                    {/* QUESTION */}
-                    {Array.isArray(employeeResponse.details) &&
-                        employeeResponse.details.map((form, index) => (
                             <Box
-                                key={index}
                                 sx={{
-                                    backgroundColor: "#fafafa",
-                                    paddingX: 8,
-                                    paddingY: 6,
-                                    borderRadius: 1,
-                                    boxShadow: 1,
                                     display: "flex",
                                     flexDirection: "column",
                                     gap: 2,
                                 }}
                             >
-                                {/* QUESTION NAME */}
                                 <Typography
                                     variant="h4"
-                                    sx={{ fontWeight: "bold", marginBottom: 3 }}
+                                    sx={{ fontWeight: "bold" }}
                                 >
-                                    {form.question_text}
+                                    {employeeResponse.peme_name}
                                 </Typography>
-
-                                {Array.isArray(form.input_type) &&
-                                    form.input_type.map((type, i) => {
-                                        const value =
-                                            answers[form.question_id]?.[
-                                            type.input_type
-                                            ] || "";
-
-                                        switch (type.input_type) {
-                                            case "remarks":
-                                                return (
-                                                    <Remarks
-                                                        key={i}
-                                                        value={value}
-                                                        onChange={(e) =>
-                                                            handleInputChange(
-                                                                form.question_id,
-                                                                type.input_type,
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-                                                );
-                                            case "text":
-                                                return (
-                                                    <TextBox
-                                                        key={i}
-                                                        value={value}
-                                                        onChange={(e) =>
-                                                            handleInputChange(
-                                                                form.question_id,
-
-                                                                type.input_type,
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-                                                );
-                                            case "pass_fail":
-                                                return (
-                                                    <PassOrFail
-                                                        key={i}
-                                                        value={value}
-                                                        onChange={(e) =>
-                                                            handleInputChange(
-                                                                form.question_id,
-
-                                                                type.input_type,
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-                                                );
-                                            case "pos_neg":
-                                                return (
-                                                    <PostiveOrNegative
-                                                        key={i}
-                                                        value={value}
-                                                        onChange={(e) =>
-                                                            handleInputChange(
-                                                                form.question_id,
-
-                                                                type.input_type,
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-                                                );
-                                            case "attachment":
-                                                return (
-                                                    <UploadForm
-                                                        key={i}
-                                                        files={value}
-                                                        onChange={(newFiles) =>
-                                                            handleInputChange(
-                                                                form.question_id,
-
-                                                                "attachment",
-                                                                [
-                                                                    ...(answers[
-                                                                        form
-                                                                            .question_id
-                                                                    ]
-                                                                        ?.attachment ||
-                                                                        []),
-                                                                    ...newFiles,
-                                                                ]
-                                                            )
-                                                        }
-                                                    />
-                                                );
-                                            default:
-                                                return null;
-                                        }
-                                    })}
+                                <Typography
+                                    variant="h6"
+                                    sx={{ fontWeight: "bold" }}
+                                >
+                                    {employeeResponse.respondent}
+                                </Typography>
                             </Box>
-                        ))}
-                    <Box
-                        sx={{
-                            display: "flex",
-                            gap: 2,
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            marginTop: 2,
-                        }}
-                    >
+                        </Box>
+                        {/* QUESTION */}
+                        {Array.isArray(employeeResponse.details) &&
+                            employeeResponse.details.map((form, index) => (
+                                <Box
+                                    key={index}
+                                    sx={{
+                                        backgroundColor: "#fafafa",
+                                        paddingX: 8,
+                                        paddingY: 6,
+                                        borderRadius: 1,
+                                        boxShadow: 1,
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 2,
+                                    }}
+                                >
+                                    {/* QUESTION NAME */}
+                                    <Typography
+                                        variant="h4"
+                                        sx={{
+                                            fontWeight: "bold",
+                                            marginBottom: 3,
+                                        }}
+                                    >
+                                        {form.question_text}
+                                    </Typography>
+
+                                    {Array.isArray(form.input_type) &&
+                                        form.input_type.map((type, i) => {
+                                            const value =
+                                                answers[form.question_id]?.[
+                                                type.input_type
+                                                ] || "";
+
+                                            const attachmentValue =
+                                                answers[form.question_id]
+                                                    ?.attachment || [];
+
+                                            // Extract only File objects
+                                            const filesOnly = Array.isArray(
+                                                attachmentValue
+                                            )
+                                                ? attachmentValue.filter(
+                                                    (item) =>
+                                                        item instanceof File
+                                                )
+                                                : [];
+
+                                            switch (type.input_type) {
+                                                case "remarks":
+                                                    return (
+                                                        <Remarks
+                                                            key={i}
+                                                            value={value}
+                                                            onChange={(e) =>
+                                                                handleInputChange(
+                                                                    form.question_id,
+                                                                    type.input_type,
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            }
+                                                        />
+                                                    );
+                                                case "text":
+                                                    return (
+                                                        <TextBox
+                                                            key={i}
+                                                            value={value}
+                                                            onChange={(e) =>
+                                                                handleInputChange(
+                                                                    form.question_id,
+
+                                                                    type.input_type,
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            }
+                                                        />
+                                                    );
+                                                case "pass_fail":
+                                                    return (
+                                                        <PassOrFail
+                                                            key={i}
+                                                            value={value}
+                                                            onChange={(e) =>
+                                                                handleInputChange(
+                                                                    form.question_id,
+
+                                                                    type.input_type,
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            }
+                                                        />
+                                                    );
+                                                case "pos_neg":
+                                                    return (
+                                                        <PostiveOrNegative
+                                                            key={i}
+                                                            value={value}
+                                                            onChange={(e) =>
+                                                                handleInputChange(
+                                                                    form.question_id,
+
+                                                                    type.input_type,
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            }
+                                                        />
+                                                    );
+                                                case "attachment":
+                                                    return (
+                                                        <>
+                                                            {Array.isArray(
+                                                                form.media
+                                                            ) &&
+                                                                form.media.length >
+                                                                0 ? (
+                                                                form.media.map(
+                                                                    (
+                                                                        file,
+                                                                        j
+                                                                    ) => {
+                                                                        return (
+                                                                            <UploadForm
+                                                                                key={
+                                                                                    j
+                                                                                }
+                                                                                fileSizeLimit={
+                                                                                    type.file_size_limit
+                                                                                }
+                                                                                file={
+                                                                                    file
+                                                                                }
+                                                                                files={
+                                                                                    filesOnly
+                                                                                }
+                                                                                fileName={
+                                                                                    file.file_name
+                                                                                }
+                                                                                onFileClick={
+                                                                                    handleFileClick
+                                                                                }
+                                                                                onChange={(
+                                                                                    newFiles
+                                                                                ) => {
+                                                                                    handleInputChange(
+                                                                                        form.question_id,
+
+                                                                                        "attachment",
+                                                                                        [
+                                                                                            ...(answers[
+                                                                                                form
+                                                                                                    .question_id
+                                                                                            ]
+                                                                                                ?.attachment ||
+                                                                                                []),
+                                                                                            ...newFiles,
+                                                                                        ]
+                                                                                    );
+                                                                                }}
+                                                                            />
+                                                                        );
+                                                                    }
+                                                                )
+                                                            ) : (
+                                                                <UploadForm
+                                                                    key={i}
+                                                                    files={
+                                                                        value
+                                                                    }
+                                                                    onChange={(
+                                                                        newFiles
+                                                                    ) => {
+                                                                        handleInputChange(
+                                                                            form.question_id,
+
+                                                                            "attachment",
+                                                                            [
+                                                                                ...(answers[
+                                                                                    form
+                                                                                        .question_id
+                                                                                ]
+                                                                                    ?.attachment ||
+                                                                                    []),
+                                                                                ...newFiles,
+                                                                            ]
+                                                                        );
+                                                                    }}
+                                                                />
+                                                            )}
+                                                        </>
+                                                    );
+                                                default:
+                                                    return null;
+                                            }
+                                        })}
+                                </Box>
+                            ))}
                         <Box
                             sx={{
                                 display: "flex",
                                 gap: 2,
                                 alignItems: "center",
+                                justifyContent: "space-between",
+                                marginTop: 2,
                             }}
                         >
-                            <Button
-                                variant="contained"
+                            <Box
                                 sx={{
-                                    backgroundColor: "#7a7a7a",
+                                    display: "flex",
+                                    gap: 2,
+                                    alignItems: "center",
                                 }}
-                                onClick={handleOnCancelClick}
                             >
-                                Cancel
-                            </Button>
-
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DatePicker
-                                    label="Expiration Date"
-                                    value={expirationDate}
-                                    onChange={setExpirationDate}
-                                />
-                            </LocalizationProvider>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DatePicker
-                                    label="Next Schedule"
-                                    value={nextSchedule}
-                                    onChange={setNextSchedule}
-                                />
-                            </LocalizationProvider>
-
-                            <FormControl sx={{ width: 200 }}>
-                                <InputLabel>Status</InputLabel>
-                                <Select
-                                    value={status}
-                                    label="Status"
-                                    onChange={(e) => setStatus(e.target.value)}
+                                <Button
+                                    variant="contained"
+                                    sx={{
+                                        backgroundColor: "#7a7a7a",
+                                    }}
+                                    onClick={handleOnCancelClick}
                                 >
-                                    <MenuItem value={"Pending"}>
-                                        Pending
-                                    </MenuItem>
-                                    <MenuItem value={"Clear"}>Clear</MenuItem>
-                                    <MenuItem value={"Rejected"}>
-                                        Rejected
-                                    </MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Box>
+                                    Cancel
+                                </Button>
 
-                        <Box sx={{ display: "flex", gap: 2 }}>
-                            <Button
-                                variant="contained"
-                                onClick={handleSaveDraft}
-                            >
-                                Save Draft
-                            </Button>
-                            <Button
-                                variant="contained"
-                                onClick={handleOnConfirmClick}
-                            >
-                                Submit
-                            </Button>
+                                <LocalizationProvider
+                                    dateAdapter={AdapterDayjs}
+                                >
+                                    <DatePicker
+                                        label="Expiration Date"
+                                        value={expirationDate}
+                                        onChange={setExpirationDate}
+                                    />
+                                </LocalizationProvider>
+                                <LocalizationProvider
+                                    dateAdapter={AdapterDayjs}
+                                >
+                                    <DatePicker
+                                        label="Next Schedule"
+                                        value={nextSchedule}
+                                        onChange={setNextSchedule}
+                                    />
+                                </LocalizationProvider>
+
+                                <FormControl sx={{ width: 200 }}>
+                                    <InputLabel>Status</InputLabel>
+                                    <Select
+                                        value={status}
+                                        label="Status"
+                                        onChange={(e) =>
+                                            setStatus(e.target.value)
+                                        }
+                                    >
+                                        <MenuItem value={"Pending"}>
+                                            Pending
+                                        </MenuItem>
+                                        <MenuItem value={"Clear"}>
+                                            Clear
+                                        </MenuItem>
+                                        <MenuItem value={"Rejected"}>
+                                            Rejected
+                                        </MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Box>
+
+                            <Box sx={{ display: "flex", gap: 2 }}>
+                                <Button
+                                    variant="contained"
+                                    onClick={handleSaveDraft}
+                                >
+                                    Save Draft
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    onClick={handleOnConfirmClick}
+                                >
+                                    Submit
+                                </Button>
+                            </Box>
                         </Box>
                     </Box>
-                </Box>
+                    <PemeRecordsFilePreview
+                        open={filePreviewOpen}
+                        close={() => setFilePreviewOpen(false)}
+                        file={selectedFile}
+                    />
+                </>
             )}
         </Layout>
     );
