@@ -786,7 +786,9 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.id',
                     DB::raw("'Evaluatee' as role"),
                     DB::raw('null as commentor_order'),
-                    'evaluatee_opened_at as opened_at'
+                    'evaluatee_opened_at as opened_at',
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -823,6 +825,8 @@ class EvaluationResponseController extends Controller
                     DB::raw("'Creator' as role"),
                     DB::raw('null as commentor_order'),
                     DB::raw('null as opened_at'),
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -855,7 +859,9 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.id',
                     DB::raw("'Evaluator' as role"),
                     DB::raw('null as commentor_order'),
-                    'opened_at'
+                    'opened_at',
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -888,7 +894,9 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.id',
                     DB::raw("'Commentor' as role"),
                     'order as commentor_order',
-                    'opened_at'
+                    'opened_at',
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -949,24 +957,40 @@ class EvaluationResponseController extends Controller
             foreach($evaluationResponses as $index => $evaluationResponse)
                 switch($evaluationResponse->role) {
                     case 'Evaluator':
+                        $evaluationEvaluator = $evaluationResponse->evaluators->where('evaluator_id', $userID)->first();
                         $evaluationResponse->status =
                             $evaluationResponse->evaluatee_signature_filepath ? 'Done'
-                            : ( $evaluationResponse->evaluatee_opened_at ? 'Pending'
-                            : 'New' )
-                        ;
+                            : ($evaluationEvaluator->signature_filepath ? 'Submitted'
+                            : ($evaluationEvaluator->opened_at ? 'Pending'
+                            : 'New'
+                        ));
                         break;
                     case 'Commentor':
-                         $evaluationResponse->status =
+                        $evaluationCommentor = $evaluationResponse->commentors->where('commentor_id', $userID)->first();
+                        $evaluationResponse->status =
                             $evaluationResponse->evaluatee_signature_filepath ? 'Done'
-                            : ( $evaluationResponse->evaluatee_opened_at ? 'Pending'
-                            : 'New' )
-                        ;
+                            : ($evaluationCommentor->signature_filepath ? 'Submitted'
+                            : ($evaluationCommentor->opened_at ? 'Pending'
+                            : 'New'
+                        ));
                         break;
                     case 'Creator':
-                        $evaluationResponse->status = 'Editing rn';
+                        $evaluationResponse->status =
+                            $evaluationResponse->evaluatee_signature_filepath ? 'Done'
+                            : ($evaluationResponse->creator_signature_filepath ? 'Submitted'
+                            : ((
+                                $evaluationResponse->evaluators_unsigned_count === 0
+                                && $evaluationResponse->commentors_unsigned_count === 0
+                            ) ? 'Pending'
+                            : 'Sent'
+                        ));
                         break;
                     case 'Evaluatee':
-                        $evaluationResponse->status = 'Editing rn';
+                        $evaluationResponse->status =
+                            $evaluationResponse->evaluatee_signature_filepath ? 'Done'
+                            : ($evaluationResponse->evaluatee_opened_at ? 'Pending'
+                            : 'New'
+                        );
                         break;
                 }
 
