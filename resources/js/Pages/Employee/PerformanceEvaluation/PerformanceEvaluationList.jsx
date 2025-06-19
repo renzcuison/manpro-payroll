@@ -36,7 +36,10 @@ const getEvaluationRoleRoute = (row) => {
 
 const STATUS_OPTIONS = [
     { value: '', label: "All" },
+    { value: 'Sent', label: "Sent" },
+    { value: 'New', label: "New" },
     { value: 'Pending', label: "Pending" },
+    { value: 'Submitted', label: "Submitted" },
     { value: 'Done', label: "Done" },
 ];
 
