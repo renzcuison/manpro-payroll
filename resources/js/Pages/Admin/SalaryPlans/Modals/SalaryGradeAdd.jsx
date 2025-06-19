@@ -184,6 +184,10 @@ const SalaryGradeAdd = ({ open, close, existingSalaryGrades = [] }) => {
                             </FormControl>
                         </FormGroup>
 
+                        <Box display="flex" justifyContent="center">
+                                <p className='m-0'><i>Note: For new (but existing) salary grades, simply format as <strong>number-number</strong>, i.e. <strong>1-1, 1-2, 2-1</strong>, etc. </i></p>
+                        </Box>
+
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
                                 <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Salary Grade </p>

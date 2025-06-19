@@ -26,6 +26,26 @@ const SalaryPlans = () => {
     const { benefits } = useBenefits({ loadBenefits: true });
     const benefitsData = benefits.data?.benefits || [];
     const [selectedBenefitIndex, setSelectedBenefitIndex] = useState(0);
+    const [allSalaryGrades, setAllSalaryGrades] = useState([]);
+
+    const fetchAllSalaryGrades = () => {
+        axiosInstance
+            .get("/getSalaryPlans", {
+                headers,
+                params: {
+                    limit: 10000, // or a large number to get all
+                    page: 1,
+                    onlyGrades: true, // optional: you can handle this in your backend
+                }
+            })
+            .then((response) => {
+                // If your backend returns all plans, map to just the grades
+                setAllSalaryGrades((response.data.salaryPlans || []).map(plan => plan.salary_grade));
+            })
+            .catch((error) => {
+                console.error("Error fetching all salary grades:", error);
+            });
+    };
 
     useEffect(() => {
         fetchSalaryPlans();
@@ -61,8 +81,9 @@ const SalaryPlans = () => {
 
     //Add Salary Plan Functions
     const handleOpenAddSalaryGrade = () => {
+        fetchAllSalaryGrades();
         setOpenAddSalaryGrade(true);
-    }
+    };
 
     const handleCloseAddSalaryGrade = () => {
         setOpenAddSalaryGrade(false);
@@ -208,7 +229,11 @@ const SalaryPlans = () => {
                     </Box>
                 </Box>
                 {openAddSalaryGrade &&
-                    <SalaryGradeAdd open={openAddSalaryGrade} close={handleCloseAddSalaryGrade} existingSalaryGrades={salaryPlans.map(plan => plan.salary_grade)} />
+                    <SalaryGradeAdd
+                        open={openAddSalaryGrade}
+                        close={handleCloseAddSalaryGrade}
+                        existingSalaryGrades={allSalaryGrades}
+                    />
                 }
                 {openEditSalaryGrade &&
                     <SalaryGradeEdit
@@ -216,9 +241,7 @@ const SalaryPlans = () => {
                         close={handleCloseEditSalaryGrade}
                         salaryGradeInfo={loadSalaryGrade}
                         onDeleted={fetchSalaryPlans}
-                        existingSalaryGrades={salaryPlans
-                            .filter(plan => plan.id !== loadSalaryGrade?.id)
-                            .map(plan => plan.salary_grade)}
+                        existingSalaryGrades={allSalaryGrades.filter(grade => grade !== loadSalaryGrade?.salary_grade)}
                     />
                 }
             </Box>
