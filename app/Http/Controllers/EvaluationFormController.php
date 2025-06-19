@@ -1252,88 +1252,88 @@ class EvaluationFormController extends Controller
                 $subcategory->required = 1;
                 $subcategory->allow_other_option = $request->allow_other_option ?? 0;
 
-                // // Only handle linear scale fields if type is linear_scale
-                // // if ($request->subcategory_type === 'linear_scale') {
-                // //     if ($request->linear_scale_start < 0 || $request->linear_scale_end < 0) {
-                // //         return response()->json([
-                // //             'status' => 400,
-                // //             'message' => 'Linear Scale Value cannot be negative!'
-                // //         ]);
-                // //     }
-                // //     if (
-                // //         is_numeric($request->linear_scale_start)
-                // //         && is_numeric($request->linear_scale_end)
-                // //         && $request->linear_scale_start >= $request->linear_scale_end
-                // //     ) {
-                // //         return response()->json([
-                // //             'status' => 400,
-                // //             'message' => 'Linear Scale Start must be less than End!'
-                // //         ]);
-                // //     }
-                // //     if (!$request->linear_scale_start_label) {
-                // //         return response()->json([
-                // //             'status' => 400,
-                // //             'message' => 'Linear Scale Start Label is required!'
-                // //         ]);
-                // //     }
-                // //     if (!$request->linear_scale_end_label) {
-                // //         return response()->json([
-                // //             'status' => 400,
-                // //             'message' => 'Linear Scale End Label is required!'
-                // //         ]);
-                // //     }
-                // //     $subcategory->linear_scale_start = $request->linear_scale_start;
-                // //     $subcategory->linear_scale_end = $request->linear_scale_end;
-                // //     $subcategory->linear_scale_start_label = $request->linear_scale_start_label;
-                // //     $subcategory->linear_scale_end_label = $request->linear_scale_end_label;
-                // // } else {
-                // //     $subcategory->linear_scale_start = null;
-                // //     $subcategory->linear_scale_end = null;
-                // //     $subcategory->linear_scale_start_label = null;
-                // //     $subcategory->linear_scale_end_label = null;
-                // // }
+                // Only handle linear scale fields if type is linear_scale
+                // if ($request->subcategory_type === 'linear_scale') {
+                //     if ($request->linear_scale_start < 0 || $request->linear_scale_end < 0) {
+                //         return response()->json([
+                //             'status' => 400,
+                //             'message' => 'Linear Scale Value cannot be negative!'
+                //         ]);
+                //     }
+                //     if (
+                //         is_numeric($request->linear_scale_start)
+                //         && is_numeric($request->linear_scale_end)
+                //         && $request->linear_scale_start >= $request->linear_scale_end
+                //     ) {
+                //         return response()->json([
+                //             'status' => 400,
+                //             'message' => 'Linear Scale Start must be less than End!'
+                //         ]);
+                //     }
+                //     if (!$request->linear_scale_start_label) {
+                //         return response()->json([
+                //             'status' => 400,
+                //             'message' => 'Linear Scale Start Label is required!'
+                //         ]);
+                //     }
+                //     if (!$request->linear_scale_end_label) {
+                //         return response()->json([
+                //             'status' => 400,
+                //             'message' => 'Linear Scale End Label is required!'
+                //         ]);
+                //     }
+                //     $subcategory->linear_scale_start = $request->linear_scale_start;
+                //     $subcategory->linear_scale_end = $request->linear_scale_end;
+                //     $subcategory->linear_scale_start_label = $request->linear_scale_start_label;
+                //     $subcategory->linear_scale_end_label = $request->linear_scale_end_label;
+                // } else {
+                //     $subcategory->linear_scale_start = null;
+                //     $subcategory->linear_scale_end = null;
+                //     $subcategory->linear_scale_start_label = null;
+                //     $subcategory->linear_scale_end_label = null;
+                // }
 
                 $subcategory->save();
 
                 // ---- BATCH REPLACE OPTIONS ----
-if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear_scale'])) {
-    // Remove ALL existing options
-    \App\Models\EvaluationFormSubcategoryOption::where('subcategory_id', $subcategory->id)->delete();
-    // Add all new options
-    if ($request->options && is_array($request->options)) {
-        $labels = [];
-        foreach ($request->options as $optionOrder => $option) {
-            $label = $option["label"] ?? null;
-            if (!$label) {
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'Option Labels are required!'
-                ]);
-            }
-            if (in_array($label, $labels)) {
-                return response()->json([
-                    'status' => 409,
-                    'message' => 'Option Labels must be unique!'
-                ]);
-            }
-            $labels[] = $label;
-            $score = $request->subcategory_type === 'linear_scale'
-                ? $optionOrder + 1
-                : (isset($option['score']) && is_numeric($option['score']) ? (double) $option['score'] : 1);
-
-            \App\Models\EvaluationFormSubcategoryOption::create([
-                'subcategory_id' => $subcategory->id,
-                'label' => $label,
-                'score' => $score,
-                'order' => $optionOrder + 1,
-                'description' => $option['description'] ?? null,
-            ]);
-        }
-    }
-} else {
-    // For other types, ensure all options are removed
-    \App\Models\EvaluationFormSubcategoryOption::where('subcategory_id', $subcategory->id)->delete();
-}
+                if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear_scale'])) {
+                    // Remove ALL existing options
+                    \App\Models\EvaluationFormSubcategoryOption::where('subcategory_id', $subcategory->id)->delete();
+                    // Add all new options
+                    if ($request->options && is_array($request->options)) {
+                        $labels = [];
+                        foreach ($request->options as $optionOrder => $option) {
+                            $label = $option["label"] ?? null;
+                            if (!$label) {
+                                return response()->json([
+                                    'status' => 400,
+                                    'message' => 'Option Labels are required!'
+                                ]);
+                            }
+                            if (in_array($label, $labels)) {
+                                return response()->json([
+                                    'status' => 409,
+                                    'message' => 'Option Labels must be unique!'
+                                ]);
+                            }
+                            $labels[] = $label;
+                            \App\Models\EvaluationFormSubcategoryOption::create([
+                                'subcategory_id' => $subcategory->id,
+                                'label' => $label,
+                                'score' => (isset($option['score']) && is_numeric($option['score'])
+                                ? (double) $option['score']
+                                : ($request->subcategory_type === 'linear_scale' ? $optionOrder + 1 : 1)
+                            ),
+                                'order' => $optionOrder + 1,
+                                'description' => $option['description'] ?? null,
+                                
+                            ]);
+                        }
+                    }
+                } else {
+                    // For other types, ensure all options are removed
+                    \App\Models\EvaluationFormSubcategoryOption::where('subcategory_id', $subcategory->id)->delete();
+                }
 
                 DB::commit();
 
@@ -1344,81 +1344,69 @@ if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear
                 ]);
             }
 
-            // ---- CREATE LOGIC ----
-        $order = (
-            \App\Models\EvaluationFormSubcategory::where('section_id', $request->section_id)->max('order') ?? 0
-        ) + 1;
+            // ---- CREATE LOGIC (your original code, unchanged) ----
 
-        // Subcategory data
-        $data = [
-            'section_id' => $request->section_id,
-            'name' => $request->name,
-            'subcategory_type' => $request->subcategory_type,
-            'description' => $request->description,
-            'required' => 1,
-            'allow_other_option' => $request->allow_other_option ?? 0,
-            'order' => $order,
-            'linear_scale_start' => $request->subcategory_type === 'linear_scale' ? $request->linear_scale_start : null,
-            'linear_scale_end' => $request->subcategory_type === 'linear_scale' ? $request->linear_scale_end : null,
-            'linear_scale_start_label' => $request->subcategory_type === 'linear_scale' ? $request->linear_scale_start_label : null,
-            'linear_scale_end_label' => $request->subcategory_type === 'linear_scale' ? $request->linear_scale_end_label : null,
-        ];
+            $order = (
+                \App\Models\EvaluationFormSubcategory::where('section_id', $request->section_id)->max('order') ?? 0
+            ) + 1;
+            $data = [
+                'section_id' => $request->section_id,
+                'name' => $request->name,
+                'subcategory_type' => $request->subcategory_type,
+                'description' => $request->description,
+                'required' => 1,
+                'allow_other_option' => $request->allow_other_option ?? 0,
+                'order' => $order,
+                'linear_scale_start' => $request->subcategory_type === 'linear_scale' ? $request->linear_scale_start : null,
+                'linear_scale_end' => $request->subcategory_type === 'linear_scale' ? $request->linear_scale_end : null,
+                'linear_scale_start_label' => $request->subcategory_type === 'linear_scale' ? $request->linear_scale_start_label : null,
+                'linear_scale_end_label' => $request->subcategory_type === 'linear_scale' ? $request->linear_scale_end_label : null,
+            ];
+            $newEvaluationFormSubcategory = EvaluationFormSubcategory::create($data);
 
-        // Create new subcategory
-        $newEvaluationFormSubcategory = EvaluationFormSubcategory::create($data);
-
-        // ---- Handle Options for multiple choice, checkbox, and linear scale ----
-        if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear_scale'])) {
-            // Remove existing options before adding new ones
-            \App\Models\EvaluationFormSubcategoryOption::where('subcategory_id', $newEvaluationFormSubcategory->id)->delete();
-
-            // Add new options based on the request
-            if ($request->options && is_array($request->options)) {
-                $labels = [];
-                foreach ($request->options as $optionOrder => $option) {
-                    $label = $option["label"] ?? null;
-                    if (!$label) {
-                        return response()->json([
-                            'status' => 400,
-                            'message' => 'Option Labels are required!'
+            if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear_scale'])) {
+                if ($request->options && is_array($request->options)) {
+                    $labels = [];
+                    foreach ($request->options as $optionOrder => $option) {
+                        $label = $option["label"] ?? null;
+                        if (!$label) {
+                            return response()->json([
+                                'status' => 400,
+                                'message' => 'Option Labels are required!'
+                            ]);
+                        }
+                        if (in_array($label, $labels)) {
+                            return response()->json([
+                                'status' => 409,
+                                'message' => 'Option Labels must be unique!'
+                            ]);
+                        }
+                        $labels[] = $label;
+                        EvaluationFormSubcategoryOption::create([
+                            'subcategory_id' => $newEvaluationFormSubcategory->id,
+                            'label' => $label,
+                            'score' => (isset($option['score']) && is_numeric($option['score'])
+                                ? (double) $option['score']
+                                : ($request->subcategory_type === 'linear_scale' ? $optionOrder + 1 : 1)
+                            ),
+                            'order' => $optionOrder + 1,
+                            'description' => $option['description'] ?? null,
                         ]);
                     }
-                    if (in_array($label, $labels)) {
-                        return response()->json([
-                            'status' => 409,
-                            'message' => 'Option Labels must be unique!'
-                        ]);
-                    }
-                    $labels[] = $label;
-
-                    // For linear scale options, we auto-assign a score based on order
-                    $score = $request->subcategory_type === 'linear_scale' ? $optionOrder + 1 : (isset($option['score']) && is_numeric($option['score']) ? (double) $option['score'] : 1);
-
-                    EvaluationFormSubcategoryOption::create([
-                        'subcategory_id' => $newEvaluationFormSubcategory->id,
-                        'label' => $label,
-                        'score' => $score,
-                        'order' => $optionOrder + 1,
-                        'description' => $option['description'] ?? null,
-                    ]);
                 }
             }
-        }
 
-        DB::commit();
+            DB::commit();
 
-        return response()->json([
-            'status' => 201,
-            'evaluationFormSubcategoryID' => $newEvaluationFormSubcategory->id,
-            'message' => 'Evaluation Form Subcategory successfully created'
-        ]);
+            return response()->json([
+                'status' => 201,
+                'evaluationFormSubcategoryID' => $newEvaluationFormSubcategory->id,
+                'message' => 'Evaluation Form Subcategory successfully created'
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error saving evaluation form subcategory: ' . $e->getMessage());
-            return response()->json([
-                'status' => 500,
-                'message' => 'Failed to save subcategory'
-            ]);
+            throw $e;
         }
     }
 

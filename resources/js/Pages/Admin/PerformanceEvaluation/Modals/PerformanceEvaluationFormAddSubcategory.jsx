@@ -28,7 +28,16 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
     } = useEvaluationFormSubcategory();
 
     const handleSave = () => {
-        onSave(subcategory);
+        let patchedSubcategory = { ...subcategory };
+        if (responseType === 'linearScale') {
+            patchedSubcategory.options = linearScaleOptions.map((opt, idx) => ({
+                label: opt.label,
+                description: opt.description,
+                score: idx + 1,
+                order: idx + 1
+            }));
+        }
+        onSave(patchedSubcategory);
         onClose();
     };
 

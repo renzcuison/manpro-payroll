@@ -334,17 +334,26 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
 
         // If it's an existing subcategory (has an ID), update it
         if (subcategoryDraft.id) {
-            const updatedSubcategory = {
-                ...subcategoryDraft,
-                options: (subcategoryDraft.subcategory_type === "multiple_choice" || subcategoryDraft.subcategory_type === "checkbox")
-                    ? subcategoryOptions
-                    : undefined
-            };
-            saveSubcategory(updatedSubcategory, "update");  // Ensure the function distinguishes between create/update
-        } else {
-            // If no ID, treat it as a new subcategory
-            saveSubcategory(subcategoryDraft, "create");
+        let updatedSubcategory = { ...subcategoryDraft };
+
+        if (
+            subcategoryDraft.subcategory_type === "multiple_choice" ||
+            subcategoryDraft.subcategory_type === "checkbox"
+        ) {
+            updatedSubcategory.options = subcategoryOptions;
+        } else if (subcategoryDraft.subcategory_type === "linear_scale") {
+            updatedSubcategory.options = subcategoryOptions.map((opt, idx) => ({
+                label: opt.label,
+                description: opt.description,
+                score: idx + 1,
+                order: idx + 1
+            }));
         }
+
+        saveSubcategory(updatedSubcategory, "update");
+    } else {
+        saveSubcategory(subcategoryDraft, "create");
+    }
 
         // Clear the form after saving
         setEditingSubcategoryId(null);
