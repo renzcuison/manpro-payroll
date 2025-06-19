@@ -322,19 +322,37 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                                                 src={
                                                     emp.media?.[0]?.original_url
                                                 }
+                                                component={Link}
+                                                to={`/admin/employee/${emp.user_name}`}
                                             />
                                         </ListItemAvatar>
                                         <ListItemText
                                             primary={
-                                                <Typography
-                                                    variant="body1"
-                                                    sx={{
-                                                        fontWeight: 600,
-                                                    }}
+                                                <Link
+                                                    to={`/admin/employee/${emp.user_name}`}
                                                 >
-                                                    {emp.first_name}{" "}
-                                                    {emp.last_name}
-                                                </Typography>
+                                                    <Typography
+                                                        variant="body1"
+                                                        sx={{
+                                                            fontWeight: 600,
+                                                            color:
+                                                                "primary.main",
+                                                            textDecoration:
+                                                                "none",
+                                                            transition:
+                                                                "color 0.3s ease",
+                                                            "&:hover": {
+                                                                color:
+                                                                    "primary.dark",
+                                                                textDecoration:
+                                                                    "none",
+                                                            },
+                                                        }}
+                                                    >
+                                                        {emp.first_name}{" "}
+                                                        {emp.last_name}
+                                                    </Typography>
+                                                </Link>
                                             }
                                             secondary={
                                                 <React.Fragment>
