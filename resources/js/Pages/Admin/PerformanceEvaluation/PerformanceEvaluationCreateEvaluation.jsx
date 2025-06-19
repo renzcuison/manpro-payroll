@@ -109,13 +109,12 @@ const PerformanceEvaluationCreateEvaluation = () => {
             period_start_at: formValues.periodFrom + ' 00:00:00',
             period_end_at: formValues.periodTo + ' 23:59:59'
         };
-        console.log("Submitting evaluation payload:", payload); // <-- Add this
         try {
             await axiosInstance.post('/saveEvaluationResponse', payload, { headers });
             Swal.fire({
                 icon: 'success',
-                title: 'Evaluation Response Saved!',
-                text: 'The evaluation response has been successfully saved.',
+                title: 'Evaluation Response Sent!',
+                text: 'The evaluation response has been successfully sent.',
                 confirmButtonText: 'OK',
             }).then(() => {
                 navigate(-1);
@@ -573,7 +572,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
                             sx={{ padding: '10px 20px' }}
                             startIcon={<SaveIcon />}
                         >
-                            Save Evaluation
+                            Sent Evaluation
                         </Button>
                     </Box>
                 </form>

@@ -68,6 +68,7 @@ class AnnouncementsController extends Controller
         ])
         ->where('client_id', $user->client_id)
         ->whereIn('status', ['Published', 'Pending', 'Hidden'])
+        ->whereNull('deleted_at')
         ->orderBy('created_at', 'desc')
         ->get();
 
@@ -281,6 +282,8 @@ class AnnouncementsController extends Controller
 
     public function getEmployeeAnnouncements()
     {
+        // Log::info("AnnouncementsController::getEmployeeAnnouncements");
+
         $user = Auth::user();
         if (!$user) {
             Log::warning('Unauthenticated user attempted to access getEmployeeAnnouncements');
@@ -288,7 +291,7 @@ class AnnouncementsController extends Controller
         }
 
         try {
-            $announcements = AnnouncementsModel::where('status', 'Published')
+            $announcements = AnnouncementsModel::whereNull('deleted_at')->where('status', 'Published')
                 ->where(function ($query) use ($user) {
                     $query->whereHas('branches', function ($q) use ($user) {
                         $q->where('branch_id', $user->branch_id);
@@ -319,7 +322,10 @@ class AnnouncementsController extends Controller
                 }, 'user.role']) // Load user and role relationships
                 ->get();
 
-            $announcementData = $announcements->map(function ($announcement) use ($user) {
+            $announcementData = $announcements->map(function ($announcement) use ($user) {           
+                
+                log::info($announcement);
+                
                 $branchMatched = $announcement->branches->pluck('branch_id')->contains($user->branch_id);
                 $departmentMatched = $announcement->departments->pluck('department_id')->contains($user->department_id);
                 $acknowledgedOn = $announcement->acknowledgements->firstWhere('user_id', $user->id)?->created_at;
@@ -1099,7 +1105,7 @@ class AnnouncementsController extends Controller
 
             return response()->json(['status' => 200, 'type' => $type]);
         } catch (\Exception $e) {
-            \Log::error('addAnnouncementType: ' . $e->getMessage());
+            Log::error('addAnnouncementType: ' . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Server error'], 500);
         }
     }
@@ -1119,7 +1125,7 @@ class AnnouncementsController extends Controller
                 'types' => $types
             ]);
         } catch (\Exception $e) {
-            \Log::error('getAnnouncementType: ' . $e->getMessage());
+            Log::error('getAnnouncementType: ' . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Server error'], 500);
         }
     }
@@ -1132,7 +1138,7 @@ class AnnouncementsController extends Controller
             return response()->json(['status' => 401, 'message' => 'Unauthorized'], 401);
         }
 
-        $validator = \Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'id' => 'required|exists:announcement_types,id',
             'name' => 'required|string|max:255|unique:announcement_types,name,' . $request->id,
         ]);
@@ -1156,7 +1162,7 @@ class AnnouncementsController extends Controller
 
             return response()->json(['status' => 200, 'type' => $type]);
         } catch (\Exception $e) {
-            \Log::error('updateAnnouncementType: ' . $e->getMessage());
+            Log::error('updateAnnouncementType: ' . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Server error'], 500);
         }
     }
@@ -1297,13 +1303,13 @@ class AnnouncementsController extends Controller
             return response()->json(['status' => 200]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Error saving: " . $e->getMessage());
+            Log::error("Error saving: " . $e->getMessage());
             return response()->json(['status' => 500, 'message' => 'Internal Server Error'], 500);
         }
     }
     public function getRoles()
     {
-        $user = \Auth::user();
+        $user = Auth::user();
         if (!$user) {
             return response()->json(['status' => 401, 'message' => 'Unauthorized'], 401);
         }

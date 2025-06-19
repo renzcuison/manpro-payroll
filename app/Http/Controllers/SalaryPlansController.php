@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SalaryPlansModel;
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
+use App\Models\SalaryPlansLogsModel;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ class SalaryPlansController extends Controller {
             $totalCount = $query->count();
 
             $salaryPlans = $query
-                ->orderByRaw('CAST(salary_grade AS UNSIGNED) ASC')
+                ->orderBy('salary_grade', 'asc')
                 ->skip(($page - 1) * $limit)
                 ->take($limit)
                 ->get();
@@ -116,6 +117,53 @@ class SalaryPlansController extends Controller {
         } else {
             return response()->json(['message' => 'Salary grade not found.'], 404);
         }
+    }
+
+    
+    public function getSalaryLogs(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($this->checkUser()) {
+            $employee = UsersModel::where('client_id', $user->client_id)
+                ->where('user_name', $request->username)
+                ->first();
+            $rawSalaryLogs = SalaryPlansLogsModel::where('employee_id', $employee->id)
+                ->where('client_id', $user->client_id)
+                ->get();
+
+            $salaryLogs = [];
+
+            foreach ($rawSalaryLogs as $rawSalaryLog) {
+                $employee = UsersModel::find($rawSalaryLog->employee_id);
+
+                // Fetch the admin's name
+                $admin = UsersModel::find($rawSalaryLog->admin_id);
+                $adminFirstName = $admin ? ($admin->first_name ?? $admin->user_name ?? '-') : '-';
+                $adminLastName = $admin ? ($admin->last_name ?? $admin->user_name ?? '-') : '-';
+
+                $salaryLogs[] = [
+                    'salaryLog' => encrypt($rawSalaryLog->id),
+                    'adminFirstName' => $adminFirstName,
+                    'adminLastName' => $adminLastName,
+                    'oldSalaryGrade' => $rawSalaryLog->old_salary_grade ?? '-',
+                    'oldAmount' => $rawSalaryLog->old_amount ?? '-',
+                    'newSalaryGrade' => $rawSalaryLog->new_salary_grade ?? '-',
+                    'newAmount' => $rawSalaryLog->new_amount ?? '-',
+                    'createdAt' => $rawSalaryLog->created_at ?? '-',
+                ];
+            }
+            
+            return response()->json([
+                'status' => 200,
+                'salaryLogs' => $salaryLogs,
+            ]);
+        }
+
+        return response()->json(
+            ['status' => 403, 'message' => 'Unauthorized'],
+            403
+        );
     }
 }
 

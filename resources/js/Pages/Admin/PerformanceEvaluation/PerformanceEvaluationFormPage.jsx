@@ -1,4 +1,3 @@
-import { AccordionSummaryMouseSensor } from './Sensors/AccordionSummaryMouseSensor';
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import {
   Box,
@@ -13,7 +12,6 @@ import CheckUser from '../../Errors/Error404';
 import {
     DndContext, 
     closestCenter,
-    TouchSensor,
     useSensor,
     useSensors
 } from '@dnd-kit/core';
@@ -30,9 +28,12 @@ import {
 import Swal from 'sweetalert2';
 import { useEvaluationForm } from '../../../hooks/useEvaluationForm';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import PerformanceEvaluationEditModal from './Modals/PerformanceEvaluationEditModal';
 import PerformanceEvaluationDeleteModal from './Modals/PerformanceEvaluationDeleteModal';
+import PerformanceEvaluationSectionRatingModal from './Modals/PerformanceEvaluationSectionRatingModal.jsx';
+import { SectionDropdownMouseSensor } from './Sensors/SectionDropdownMouseSensor';
+import { SectionDropdownTouchSensor } from "./Sensors/SectionDropdownTouchSensor.jsx";
 
 const PerformanceEvaluationFormPage = () => {
     const { formName } = useParams();
@@ -87,6 +88,18 @@ const PerformanceEvaluationFormPage = () => {
         handleSettingsClose();
     };
 
+    const [ratingModalOpen, setRatingModalOpen] = useState(false);
+
+    const handleSetRatings = () => setRatingModalOpen(true);
+    const handleSaveRatings = async (scores) => {
+        // scores is { sectionId: score, ... }
+        for (const [id, score] of Object.entries(scores)) {
+            await axiosInstance.post('/editEvaluationFormSection', { id, score }, { headers });
+        }
+        // Optionally refresh page/sections here
+        window.location.reload(); // or better: refetch sections
+    };
+
     // Section modal
     const handleOpenAddSectionModal = () => setAddSectionOpen(true);
     const handleCloseAddSectionModal = () => setAddSectionOpen(false);
@@ -105,8 +118,8 @@ const PerformanceEvaluationFormPage = () => {
     // Section moving
 
     const sensors = useSensors(
-        useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
-        useSensor(AccordionSummaryMouseSensor, { activationConstraint: { distance: 10 } })
+        useSensor(SectionDropdownTouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+        useSensor(SectionDropdownMouseSensor, { activationConstraint: { distance: 10 } })
     );
     const handleDragStart = (event) => {
         setDraggedSectionId(event.active?.id ?? null);
@@ -162,8 +175,15 @@ const PerformanceEvaluationFormPage = () => {
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                     transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 >
+                    <MenuItem
+                        onClick={() => {
+                            handleSettingsClose();
+                            setTimeout(handleSetRatings, 100);
+                        }}
+                    >Set Ratings</MenuItem>
                     <MenuItem onClick={handleEditMenuClick}>Edit Form</MenuItem>
                     <MenuItem onClick={handleDeleteMenuClick}>Delete Form</MenuItem>
+                    
                     <MenuItem
                         onClick={() => {
                             handleSettingsClose();
@@ -171,6 +191,13 @@ const PerformanceEvaluationFormPage = () => {
                         }}
                     >Exit Form</MenuItem>
                 </Menu>
+
+                <PerformanceEvaluationSectionRatingModal
+                    open={ratingModalOpen}
+                    onClose={() => setRatingModalOpen(false)}
+                    sections={sections}
+                    onSave={handleSaveRatings}
+                />
 
                 {loading ? (
                     <Typography variant="h6">Loading...</Typography>

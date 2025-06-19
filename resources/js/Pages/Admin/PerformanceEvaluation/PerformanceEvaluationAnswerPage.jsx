@@ -17,10 +17,11 @@ const PerformanceEvaluationAnswerPage = () => {
   const navigate = useNavigate();
 
   const {
-    evaluationResponse, options, subcategories,
+    evaluationResponse, evaluatorId, options, signatureFilePaths, subcategories,
     editEvaluationResponse, setPercentageAnswer, setTextAnswer,
     setOptionAnswer, getMultipleChoiceOptionId,
-    editEvaluationEvaluator // You must implement this in your hook/backend, similar to editEvaluationCommentor
+    editEvaluationEvaluator,
+    reloadEvaluationResponse
   } = useEvaluationResponse(id);
 
   const { deleteEvaluationResponse } = useEvaluationResponse(id);
@@ -36,25 +37,12 @@ const PerformanceEvaluationAnswerPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [settingsAnchorEl, setSettingsAnchorEl] = useState(null);
 
-  // EVALUATOR COMMENTS STATE
-  const [evaluatorComments, setEvaluatorComments] = useState([]);
   // Modal state for evaluator signature
   const [openEvaluatorAcknowledge, setOpenEvaluatorAcknowledge] = useState(false);
-  const [signatureData, setSignatureData] = useState(null);
 
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
-      // Initialize evaluator comments state
-      if (Array.isArray(evaluationResponse.evaluators) && evaluationResponse.evaluators.length > 0) {
-        setEvaluatorComments(
-          evaluationResponse.evaluators.map(e => ({
-            evaluator_id: e.evaluator_id || e.id || e.user_id,
-            comment: e.comment || '',
-            name: getFullName(e)
-          }))
-        );
-      }
     }
   }, [evaluationResponse]);
 
@@ -86,12 +74,9 @@ const PerformanceEvaluationAnswerPage = () => {
   const handleLongAnswerChange = (subcategoryId, value) => setTextAnswer(subcategoryId, value);
 
   // EVALUATOR COMMENT HANDLING
-  const handleEvaluatorCommentInput = (evaluator_id, value) => {
-    setEvaluatorComments(prev =>
-      prev.map(e =>
-        e.evaluator_id === evaluator_id ? { ...e, comment: value } : e
-      )
-    );
+  const handleEvaluatorCommentInput = (evaluator, value) => {
+    evaluator.comment = value;
+    reloadEvaluationResponse();
   };
 
   // Submit Handler - open modal for signature
@@ -105,17 +90,16 @@ const PerformanceEvaluationAnswerPage = () => {
     setOpenEvaluatorAcknowledge(false);
     setSubmitting(true);
     try {
-      // Save all evaluator comments and signature
-      if (Array.isArray(evaluatorComments)) {
-        for (let evaluator of evaluatorComments) {
-          await editEvaluationEvaluator({
-            response_id: evaluationResponse.id,
-            evaluator_id: evaluator.evaluator_id,
-            comment: evaluator.comment,
-            signature_filepath: signatureData
-          });
-        }
-      }
+      // Save current evaluator comment and signature
+      await editEvaluationEvaluator({
+        response_id: evaluationResponse.id,
+        comment: evaluationResponse
+          .evaluators
+          .find(({evaluator_id}) => evaluator_id === evaluatorId)
+          ?.comment
+        ,
+        signature_filepath: signatureData
+      });
       // Save the rest of the evaluation form
       await editEvaluationResponse();
       Swal.fire({
@@ -152,7 +136,7 @@ const PerformanceEvaluationAnswerPage = () => {
     );
   }
 
-  const form = evaluationResponse.form;
+  const { evaluators, form } = evaluationResponse;
   const responseMeta = evaluationResponse;
 
   if (!form || !responseMeta) {
@@ -186,7 +170,6 @@ const PerformanceEvaluationAnswerPage = () => {
               position: 'absolute',
               top: 5,
               right: 10,
-              color: '#bdbdbd',
               borderRadius: '50%',
               padding: '5px',
               color: '#BEBEBE',
@@ -309,7 +292,9 @@ const PerformanceEvaluationAnswerPage = () => {
                     <Box
                       key={subCategory.id}
                       sx={{
-                        mb: 3, border: '1px solid #ddd', borderRadius: 2, px: 2,
+                        border: '1px solid #ddd', 
+                        borderRadius: 2, 
+                        px: 2,
                         pt: 2,
                         pb: 2,
                         mt: 2,
@@ -444,8 +429,30 @@ const PerformanceEvaluationAnswerPage = () => {
                                   {opt.label} - {opt.score ?? 1} {index !== subCategory.options.length - 1 && ','}
                                 </Typography>
                               ))}
+                              </Box>
+                              <Divider sx={{ my: 2 }} />
+                              <Box sx={{ mt: 2 }}>
+                                <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                                  Description:
+                                </Typography>
+                                <Box>
+                                  {subCategory.options?.map((opt, index) =>
+                                      opt.description ? (
+                                        <Typography
+                                          key={opt.id + "_desc"}
+                                          variant="body2"
+                                          sx={{fontSize: '0.8rem'}}
+                                        >
+                                          {opt.score} - {opt.description}
+                                        </Typography>
+                                      ) : null
+                                    )}
+                                </Box>
+                                
+
                             </Box>
                           </Box>
+                          
                         </>
                       )}
 
@@ -460,44 +467,86 @@ const PerformanceEvaluationAnswerPage = () => {
             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
               Evaluator Comments:
             </Typography>
-            {evaluatorComments.length > 0 ? (
+            {evaluators.length > 0 ? (
               <Box>
-                {evaluatorComments.map((evaluator, i) => (
-                  <Paper
-                    key={evaluator.evaluator_id || i}
-                    elevation={2}
+                {evaluators.map((evaluator, index) => (
+                <Paper
+                  key={evaluator.evaluator_id || index}
+                  elevation={2}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: '#fffff',
+                    borderRadius: 2,
+                    borderLeft: '8px solid #eab31a',
+                    px: 2,
+                    pt: 2,
+                    pb: 2,
+                    mt: 2,
+                    mb: 2,
+                    width: '100%',
+                    boxShadow: 2,
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                    {getFullName(evaluator)}
+                  </Typography>
+                  <Box
                     sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      bgcolor: '#fffff',
-                      borderRadius: 2,
-                      borderLeft: '8px solid #eab31a',
+                      border: "1.5px solid #ccc",
+                      borderRadius: "8px",
                       px: 2,
                       pt: 2,
-                      pb: 2,
-                      mt: 2,
-                      mb: 2,
-                      width: '100%',
-                      boxShadow: 2,
+                      pb: 0.5,
+                      background: "#fff",
+                      minHeight: 100,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between"
                     }}
                   >
-                    {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-                      {evaluator.evaluator_id}
-                    </Typography> */}
-                    <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                      {evaluator.name}
-                    </Typography>
                     <TextField
+                      variant="standard"
+                      InputProps={{
+                        disableUnderline: true,
+                        readOnly: evaluator.evaluator_id !== evaluatorId,
+                        style: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#222",
+                        }
+                      }}
                       label="Evaluator Comment"
                       multiline
                       minRows={3}
                       fullWidth
                       value={evaluator.comment}
-                      sx={{ mt: 1 }}
-                      onChange={e => handleEvaluatorCommentInput(evaluator.evaluator_id, e.target.value)}
+                      onChange={e => handleEvaluatorCommentInput(evaluator, e.target.value)}
                       placeholder="Enter your comment here"
+                      sx={{
+                        pb: 2,
+                        '& .MuiInputBase-input': {
+                          padding: 0,
+                        },
+                        '& label': { color: '#999', fontWeight: 400 }
+                      }}
                     />
-                  </Paper>
+                    {evaluator.updated_at && evaluator.signature_filepath && (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#888",
+                          fontStyle: "italic",
+                          mt: 1,
+                          mb: 1,
+                          ml: 0.5,
+                        }}
+                      >
+                        Signed - {evaluator.updated_at.slice(0, 10)}
+                      </Typography>
+                    )}
+                  </Box>
+                </Paper>
                 ))}
               </Box>
             ) : (

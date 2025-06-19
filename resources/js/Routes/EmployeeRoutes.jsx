@@ -31,6 +31,19 @@ import PemeResponses from "../Pages/Employee/MedicalRecords/PEME/PemeResponses";
 import PemeQuestionnaireView from "../Pages/Employee/MedicalRecords/PEME/PemeQuestionnaireView";
 import PemeOverview from "../Pages/Employee/MedicalRecords/PEME/PemeOverview";
 
+
+// 
+import PerformanceEvaluationAnswerPage from '../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationAnswerPage';
+import PerformanceEvaluationCommentorPage from '../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationCommentorPage'
+import PerformanceEvaluationEvaluateePage from '../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationEvaluateePage';
+import PerformanceEvaluationCreatorPage from '../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationCreatorPage'
+import PerformanceEvaluationFormAcknowledge from "../Pages/Employee/PerformanceEvaluation/Modals/PerformanceEvaluationFormAcknowledge";
+import PerformanceEvaluationFormAcknowledgeSign from "../Pages/Employee/PerformanceEvaluation/Modals/PerformanceEvaluationFormAcknowledgeSign";
+import PerformanceEvaluationList from "../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationList";
+import PerformanceEvaluationForm from "../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationForm";
+import PerformanceEvaluationResultPage from "../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationResultPage";
+
+
 const EmployeeRoutes = ({ user }) => {
     const navigate = useNavigate();
 
@@ -43,10 +56,48 @@ const EmployeeRoutes = ({ user }) => {
     return (
         <Routes>
             <Route
+                path="performance-evaluation/results"
+                element={<ProtectedRoute element={<PerformanceEvaluationResultPage />} user={user} />}
+            />
+            <Route
                 path="dashboard"
                 element={<ProtectedRoute element={<Dashboard />} user={user} />}
             />
 
+            {/* Performance Evaluation Routes -------------------------------- */}
+            <Route
+                path="performance-evaluation"
+                element={<ProtectedRoute element={<PerformanceEvaluationList />} user={user} />}
+            />
+            <Route
+                path="performance-evaluation/answer/:id"
+                element={<ProtectedRoute element={<PerformanceEvaluationAnswerPage />} user={user} />}
+            />
+            <Route
+                path="performance-evaluation/commentor/:id"
+                element={<ProtectedRoute element={<PerformanceEvaluationCommentorPage />} user={user} />}
+            />
+            <Route
+                path="performance-evaluation/evaluatee/:id"
+                element={<ProtectedRoute element={<PerformanceEvaluationEvaluateePage />} user={user} />}
+            />
+            <Route
+                path="performance-evaluation/creator/:id"
+                element={<ProtectedRoute element={<PerformanceEvaluationCreatorPage />} user={user} />}
+            />
+            <Route
+                path="performance-evaluation/form"
+                element={<ProtectedRoute element={<PerformanceEvaluationForm />} user={user} />}
+            />
+            <Route
+                path="performance-evaluation/acknowledgment"
+                element={<ProtectedRoute element={<PerformanceEvaluationFormAcknowledge />} user={user} />}
+            />
+            <Route
+                path="performance-evaluation/acknowledgment-sign"
+                element={<ProtectedRoute element={<PerformanceEvaluationFormAcknowledgeSign />} user={user} />}
+            />
+            
             {/* Attendance Routes ------------------------------------------ */}
             <Route
                 path="attendance-logs"
