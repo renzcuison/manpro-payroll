@@ -43,9 +43,19 @@ class SalaryPlansController extends Controller {
                 ->take($limit)
                 ->get();
 
+            // For each salary plan, count employees with matching salary_grade
+            $salaryPlansWithEmployeeCount = $salaryPlans->map(function($plan) use ($user) {
+                $employeeCount = UsersModel::where('client_id', $user->client_id)
+                    ->where('salary_grade', $plan->salary_grade)
+                    ->whereNull('deleted_at')
+                    ->count();
+                $plan->employee_count = $employeeCount;
+                return $plan;
+            });
+
             return response()->json([
                 'status' => 200,
-                'salaryPlans' => $salaryPlans,
+                'salaryPlans' => $salaryPlansWithEmployeeCount,
                 'totalCount' => $totalCount,
             ]);
         } 

@@ -127,8 +127,11 @@ const SalaryPlans = () => {
                                                 <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '20%' }} align="center">
                                                 Salary Grade
                                                 </TableCell>
-                                                <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '20%' }} align="center">
+                                                <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '15%' }} align="center">
                                                 Amount
+                                                </TableCell>
+                                                <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '15%' }} align="center">
+                                                Employees
                                                 </TableCell>
                                                 
                                             </TableRow>
@@ -152,6 +155,9 @@ const SalaryPlans = () => {
                                                         <TableCell sx={{fontSize: 14}} align="center">Grade {salaryPlan.salary_grade}</TableCell>
                                                         <TableCell sx={{ fontSize: 14 }} align="center">
                                                             ₱ {Number(salaryPlan.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontSize: 14 }} align="center">
+                                                            {salaryPlan.employee_count}
                                                         </TableCell>
                                                         {benefitsData[selectedBenefitIndex] && (
                                                         <>
