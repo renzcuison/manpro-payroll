@@ -31,6 +31,14 @@ const SalaryPlans = () => {
         fetchSalaryPlans();
     }, [page, rowsPerPage]);    
 
+    function formatPercentage(value) {
+        // Remove trailing zeros after decimal
+        return Number(value).toLocaleString('en-PH', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+        });
+    }
+
     const fetchSalaryPlans = () => {
         axiosInstance
             .get("/getSalaryPlans", {
@@ -138,12 +146,12 @@ const SalaryPlans = () => {
                                             <TableRow>
                                                 {benefitsData[selectedBenefitIndex] && (
                                                     <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }} align="center">
-                                                        {benefitsData[selectedBenefitIndex].name} Employer's Share{benefitsData[selectedBenefitIndex].type === 'Amount' ? '(₱)' : '(%)'}
+                                                        {benefitsData[selectedBenefitIndex].name} Employer's Share{benefitsData[selectedBenefitIndex].type === 'Amount' ? ' (₱)':  ' (' + formatPercentage(benefitsData[selectedBenefitIndex].employer_percentage ?? 0) + '%)'}
                                                     </TableCell>
                                                 )}  
                                                 {benefitsData[selectedBenefitIndex] && (
                                                     <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }} align="center">
-                                                        {benefitsData[selectedBenefitIndex].name} Employee's Share {benefitsData[selectedBenefitIndex].type === 'Amount' ? '(₱)' : '(%)'}
+                                                        {benefitsData[selectedBenefitIndex].name} Employee's Share{benefitsData[selectedBenefitIndex].type === 'Amount' ? ' (₱)': ' (' + formatPercentage(benefitsData[selectedBenefitIndex].employee_percentage ?? 0) + '%)'}
                                                     </TableCell>
                                                 )}
                                             </TableRow>
