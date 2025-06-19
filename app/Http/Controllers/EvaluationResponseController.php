@@ -373,9 +373,6 @@ class EvaluationResponseController extends Controller
             if($request->period_start_at !== null)
                 $evaluationResponse->period_start_at = $request->period_start_at;
             
-            if ($request->has('creator_signature_filepath')) {
-                $evaluationResponse->creator_signature_filepath = $request->creator_signature_filepath;
-            }
             if ($request->hasFile('evaluatee_signature_filepath')) {
                 $evaluationResponse->clearMediaCollection('evaluatee_signatures');
                 $evaluationResponse
@@ -625,20 +622,21 @@ class EvaluationResponseController extends Controller
                 ]);
             }
             // 2. Fetching signatures and role
-            $role = null;
+            $role = (
+                $evaluationResponse->evaluatee_id == $userID ? 'Evaluatee'
+                : ( $evaluationResponse->creator_id == $userID ? 'Creator'
+                : null
+            ));
             $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
             $evaluationResponse->evaluatee_signature = (
                 $evaluateeSignature ? base64_encode(file_get_contents($evaluateeSignature->getPath()))
                 : null
             );
-            if($evaluationResponse->evaluatee_id == $userID) $role = 'Evaluatee';
             $creatorSignature = $evaluationResponse->getFirstMedia('creator_signatures');
             $evaluationResponse->creator_signature = (
                 $creatorSignature ? base64_encode(file_get_contents($creatorSignature->getPath()))
                 : null
             );
-            if($evaluationResponse->creator_id == $userID) $role = 'Creator';
-           
             foreach ($evaluationResponse->evaluators as $index => $evaluator) {
                 $evaluatorSignature = $evaluator
                     ->where('evaluator_id', $evaluator->evaluator_id)
@@ -667,6 +665,10 @@ class EvaluationResponseController extends Controller
                 );
                 if($commentor->commentor_id === $userID) $role = 'Commentor';
             }
+            if(!$role) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
             $evaluationResponse->role = $role;
             // 3. Calculating scores
             foreach($evaluationResponse->form->sections as $index => $section) {
@@ -714,9 +716,7 @@ class EvaluationResponseController extends Controller
                     ;
                     $evaluationEvaluator->opened_at = $now;
                     $evaluationEvaluator->save();
-                    $evaluationResponse
-                        ->evaluators->where('evaluator_id', $userID)->first()->opened_at = $now
-                    ;
+                    $evaluationResponse->evaluators->where('evaluator_id', $userID)->first()->opened_at = $now;
                     break;
                 case 'Commentor':
                     $evaluationCommentor = EvaluationCommentor
@@ -726,25 +726,14 @@ class EvaluationResponseController extends Controller
                     ;
                     $evaluationCommentor->opened_at = $now;
                     $evaluationCommentor->save();
-                    $evaluationResponse
-                        ->commentors->where('commentor_id', $userID)->first()->opened_at = $now
-                    ;
+                    $evaluationResponse->commentors->where('commentor_id', $userID)->first()->opened_at = $now;
                     break;
                 case 'Creator': break;
                 case 'Evaluatee':
-                    $evaluationResponseEdit = EvaluationResponse
-                        ::where('id', $request->id)
-                        ->first()
-                    ;
+                    $evaluationResponseEdit = EvaluationResponse::where('id', $request->id)->first();
                     $evaluationResponseEdit->evaluatee_opened_at = $now;
                     $evaluationResponseEdit->save();
                     $evaluationResponse->evaluatee_opened_at = $now;
-                    break;
-                default:
-                    return response()->json([ 
-                        'status' => 403,
-                        'message' => 'Unauthorized access!'
-                    ]);
             }
             DB::commit();
 
