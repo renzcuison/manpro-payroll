@@ -1019,7 +1019,7 @@ class EvaluationResponseController extends Controller
             }
 
             // 3. Status filter
-            if ($request->status && in_array($request->status, ['Pending', 'Done'])) {
+            if ($request->status && in_array($request->status, ['Sent', 'New', 'Pending', 'Submitted', 'Done'])) {
                 $evaluationResponses = $evaluationResponses->filter(function ($row) use ($request) {
                     return $row->status === $request->status;
                 })->values();
