@@ -23,6 +23,7 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
         linearScaleEndLabel, setLinearScaleEndLabel,
         order,
         options, deleteOption, editOption, saveOption,
+        linearScaleOptions, addLinearScaleOption, removeLinearScaleOption, editLinearScaleOption,
         saveSubcategory//, editOptionScore
     } = useEvaluationFormSubcategory();
 
@@ -200,62 +201,58 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                     </Box>
                 )}
 
-                {responseType === 'linearScale' && (
-                    <Box sx={{ mb: 2 }}>
-                        <Grid container spacing={2} sx={{ mt: 2 }}>
-                            <Grid item xs={5}>
-                                <FormControl fullWidth>
-                                    <Select
-                                        value={linearScaleStart}
-                                        onChange={(e) => setLinearScaleStart(+e.target.value)}
-                                        label="Min Value"
-                                    >
-                                        <MenuItem value={0}>0</MenuItem>
-                                        <MenuItem value={1}>1</MenuItem>
-                                        <MenuItem value={2}>2</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={2} sx={{ textAlign: 'center' }}>
-                                <Typography variant="h6">to</Typography>
-                            </Grid>
-                            <Grid item xs={5}>
-                                <FormControl fullWidth>
-                                    <Select
-                                        value={linearScaleEnd}
-                                        onChange={(e) => setLinearScaleEnd(+e.target.value)}
-                                        label="Max Value"
-                                    >
-                                        <MenuItem value={3}>3</MenuItem>
-                                        <MenuItem value={4}>4</MenuItem>
-                                        <MenuItem value={5}>5</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                        </Grid>
-                        <Grid container spacing={2} sx={{ mt: 2 }}>
-                            <Grid item xs={5}>
-                                <TextField
-                                    label="Label"
-                                    variant="outlined"
-                                    fullWidth
-                                    value={linearScaleStartLabel}
-                                    onChange={(e) => setLinearScaleStartLabel(e.target.value)}
-                                />
-                            </Grid>
-                            <Grid item xs={5}>
-                                <TextField
-                                    label="Label"
-                                    variant="outlined"
-                                    fullWidth
-                                    value={linearScaleEndLabel}
-                                    onChange={(e) => setLinearScaleEndLabel(e.target.value)}
-                                />
-                            </Grid>
-                        </Grid>
-                    </Box>
-                )}
-
+{responseType === 'linearScale' && (
+    <Box sx={{ mb: 2 }}>
+        {linearScaleOptions.map((option, idx) => (
+            <Grid container spacing={2} key={idx} alignItems="center" sx={{ mb: 1 }}>
+                <Grid item xs={1}>
+                    <Typography variant="body1">{idx + 1}.</Typography>
+                </Grid>
+                <Grid item xs={4}>
+                    <TextField
+                        variant="outlined"
+                        label="Label"
+                        value={option.label}
+                        onChange={e => editLinearScaleOption(idx, 'label', e.target.value)}
+                        fullWidth
+                    />
+                </Grid>
+                <Grid item xs={6}>
+                    <TextField
+                        variant="outlined"
+                        label="Description (optional)"
+                        value={option.description}
+                        onChange={e => editLinearScaleOption(idx, 'description', e.target.value)}
+                        fullWidth
+                    />
+                </Grid>
+                <Grid item xs={1}>
+                    {linearScaleOptions.length > 2 && (
+                        <IconButton
+                            onClick={() => removeLinearScaleOption(idx)}
+                            sx={{ color: 'gray' }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    )}
+                </Grid>
+            </Grid>
+        ))}
+        {linearScaleOptions.length < 10 && (
+            <Typography
+                onClick={addLinearScaleOption}
+                sx={{
+                    color: '#000000',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    marginTop: '8px',
+                }}
+            >
+                {linearScaleOptions.length + 1}. Add Option
+            </Typography>
+        )}
+    </Box>
+)}
                 <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                     <Button
                         onClick={onClose}
