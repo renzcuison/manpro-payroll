@@ -384,8 +384,9 @@ const WorkshiftView = () => {
     };
 
     useEffect(() => {
+        // const data = { client, selectedShift };
         const data = { client, selectedShift };
-
+        
         axiosInstance.get(`/workshedule/getWorkShiftDetails`, { params: data, headers })
             .then((response) => {
 
