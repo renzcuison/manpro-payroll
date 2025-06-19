@@ -440,14 +440,13 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span className="sidebar-mini-hidden text-dark"> Performance Management </span>
                                     </li>
 
-                                    <StyledNav to={`/admin/performance-evaluation`} >
-                                        <i className="fa fa-check" style={{ color: '#2a800f' }}></i>
+                                    <StyledNav to={`/admin/performance-evaluation`} end>
+                                        <i className="fa fa-check" style={{ color: "#2a800f" }}></i>
                                         <span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
                                     </StyledNav>
-                                    
-                                    {/* === My Evaluation Result (NEW ITEM) === */}
-                                    <StyledNav to={`/admin/performance-evaluation/results`} >
-                                        <i className="fa fa-bar-chart" style={{ color: '#2a800f' }}></i>
+
+                                    <StyledNav to={`/admin/performance-evaluation/results`}>
+                                        <i className="fa fa-bar-chart" style={{ color: "#2a800f" }}></i>
                                         <span id="navName" className="sidebar-mini-hide">My Evaluation Result</span>
                                     </StyledNav>
 
