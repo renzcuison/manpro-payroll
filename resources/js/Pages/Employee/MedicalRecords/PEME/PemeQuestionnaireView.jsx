@@ -36,9 +36,6 @@ const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
 
     return (
         <>
-            <Typography variant="h7">
-                Max File Size: <strong>3 MB</strong>
-            </Typography>
             <Box
                 sx={{
                     border: 1,
@@ -126,6 +123,9 @@ const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
                     Upload
                 </Button>
             </Box>
+            <Typography variant="h7">
+                Max File Size: <strong>5 MB</strong>
+            </Typography>
         </>
     );
 };
@@ -374,7 +374,9 @@ const PemeQuestionnaireView = () => {
         };
 
         const formData = new FormData();
-        console.log("THING", responses);
+
+        formData.append("peme_response_id", PemeResponseID);
+        formData.append("isDraft", isDraftStatus);
 
         responses.forEach((item, index) => {
             formData.append(
