@@ -205,7 +205,7 @@ class AttendanceController extends Controller
     // Recorders
     public function saveEmployeeAttendance(Request $request)
     {
-        log::info("AttendanceController::saveEmployeeAttendance");
+        // log::info("AttendanceController::saveEmployeeAttendance");
 
         $validated = $request->validate(['action' => 'required']);
 
@@ -215,89 +215,79 @@ class AttendanceController extends Controller
             try {
                 DB::beginTransaction();
 
-                log::info($request);
-                log::info($request->action);
-
                 $workHour = WorkHoursModel::find($user->workShift->work_hour_id);
-                $attendanceLog = AttendanceLogsModel::create([ "user_id" => $user->id, "work_hour_id" => $workHour->id, "action" => $request->action, "method" => 1 ]);
-                
-                $day = \Carbon\Carbon::parse($attendanceLog->timestamp)->toDateString();
 
-                $dayStart = Carbon::parse("$day {$workHour->first_time_in}");
+                $attendanceLog = AttendanceLogsModel::create([
+                    "user_id" => $user->id,
+                    "work_hour_id" => $workHour->id,
+                    "action" => $request->action,
+                    "method" => 1
+                ]);
 
-                if ($workHour->shift_type === 'Regular') {
-                    $dayEnd = Carbon::parse("$day {$workHour->first_time_out}");
-                } elseif ($workHour->shift_type === 'Split') {
-                    $dayEnd = Carbon::parse("$day {$workHour->second_time_out}");
-                }
-
-                // log::info("Day Start: " . $dayStart);
-                // log::info("Day End: " . $dayEnd);
-
-                // $action = $attendanceLog->action;
-                // $summary = AttendanceSummary::where('user_id', $user->id)->where('work_day_start', $dayStart)->where('work_day_end', $dayEnd)->first();
-
-                // log::info($summary);
-
-                // if ( $summary ) {
-                //     log::info("Has Summary");
-
-                //     if ( $action === "Time In" ) {
-
-                //     }
-
-                // } else {
-                //     log::info("Has No Summary");
-
-                //     log::info("Creating New Summary");
-
-                //     log::info($attendanceLog->id);
-
-                //     if ( $action === "Duty In" ) {
-                //         $summary = AttendanceSummary::create([
-                //             "user_id" => $user->id,
-                //             "client_id" => $user->client_id,
-                //             "work_hour_id" => $workHour->id,
-                            
-                //             "work_day_start" => $dayStart,
-                //             "work_day_end" => $dayEnd,
-
-                //             "work_day_end" => "Regular Day",
-                            
-                //             "latest_log_id" => $attendanceLog->id,
-                //         ]);
-                //     }
-
-                //     log::info("New Summary");
-                //     log::info($summary);
-                // }
+                $summary = $this->saveAttendanceSummary($user, $workHour, $attendanceLog);
 
                 // $attendanceLog->attendance_summary_id = $summary->id;
                 // $attendanceLog->save();
-
-
-                // log::info("Stopper");
-                // dd("Stopper");
-                
 
                 DB::commit();
 
                 return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
-
-                //Log::error("Error saving: " . $e->getMessage());
-
                 throw $e;
             }
         }
     }
 
-    public function saveAttendanceSummary()
+    public function saveAttendanceSummary($user, $workHour, $attendanceLog)
     {
-        log::info("AttendanceController::saveAttendanceSummary");
+        // Log::info("AttendanceController::saveAttendanceSummary");
+
+        $timestamp = $attendanceLog->timestamp;
+        $day = Carbon::parse($timestamp)->toDateString();
+        $dayStart = Carbon::parse("$day {$workHour->first_time_in}");
+
+        if ($workHour->shift_type === 'Regular') {
+            $dayEnd = Carbon::parse("$day {$workHour->first_time_out}");
+        } else {
+            $dayEnd = Carbon::parse("$day {$workHour->second_time_out}");
+        }
+
+        // Fetch the AttendanceSummary
+        $summary = AttendanceSummary::where('user_id', $user->id)
+            ->where('work_day_start', $dayStart)
+            ->where('work_day_end', $dayEnd)
+            ->first();
+
+        if (!$summary) {
+            // If not found, create a new summary and set the latest_log_id
+            $summary = AttendanceSummary::create([
+                "user_id" => $user->id,
+                "client_id" => $user->client_id,
+                "work_hour_id" => $workHour->id,
+                "work_day_start" => $dayStart,
+                "work_day_end" => $dayEnd,
+                "day_type" => ($timestamp >= Carbon::parse($timestamp)->startOfWeek()->addDays(6)->toDateString()) ? 'Rest Day' : 'Regular Day',
+                "minutes_late" => 0,
+                "latest_log_id" => $attendanceLog->id,
+            ]);
+        } else {
+            // If found, update the latest_log_id
+            $summary->latest_log_id = $attendanceLog->id;
+            $summary->save();  // Don't forget to save the changes!
+        }
+
+        // Now update the AttendanceLog with the correct summary_id
+        $attendanceLog->attendance_summary_id = $summary->id;
+        $attendanceLog->save();
+
+        return $summary;
     }
 
+    public function calculateAttendanceSummary()
+    {
+        Log::info("AttendanceController::calculateAttendanceSummary");
+    }
 
 /*
     public function saveMobileEmployeeAttendance(Request $request)

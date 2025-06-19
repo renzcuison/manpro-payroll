@@ -252,7 +252,6 @@ class TrainingsController extends Controller
             try {
                 DB::beginTransaction();
 
-
                 $training->status = $request->input('status');
                 $training->save();
 

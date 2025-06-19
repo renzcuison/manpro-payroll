@@ -15,6 +15,7 @@ use App\Models\DepartmentsModel;
 use App\Models\ApplicationsModel;
 use App\Models\EmployeeRolesModel;
 use App\Models\AttendanceLogsModel;
+use App\Models\LeaveCreditsModel;
 use App\Models\LoanLimitHistoryModel;
 use App\Models\EmployeeEducation;
 
@@ -83,8 +84,7 @@ class EmployeesController extends Controller
         $employee->branch = "";
         $employee->department = "";
         $employee->work_group = "";
-        $employee->avatar = null;
-        $employee->avatar_mime = null;
+        $employee->profile_picture_url = $employee->getFirstMediaUrl('profile_pictures');
 
         // Enrich with actual data
         if ($employee->role_id) {
@@ -142,87 +142,122 @@ class EmployeesController extends Controller
 
 
     public function updateBranchPosition(Request $request)
-{
-    $validated = $request->validate([
-        'employee_id' => 'required|exists:users,id',
-        'branch_position_id' => 'nullable|exists:branch_positions,id',
-    ]);
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:users,id',
+            'branch_position_id' => 'nullable|exists:branch_positions,id',
+        ]);
 
-    $employee = UsersModel::find($validated['employee_id']);
-    $employee->branch_position_id = $validated['branch_position_id'];
-    $employee->save();
+        $employee = UsersModel::find($validated['employee_id']);
+        $employee->branch_position_id = $validated['branch_position_id'];
+        $employee->save();
 
-    return response()->json(['message' => 'Branch position updated successfully']);
-}
+        return response()->json(['message' => 'Branch position updated successfully']);
+    }
 
 
     public function getEmployees()
-{
-    if ($this->checkUserAdmin()) {
-        $user = Auth::user();
+    {
+        // log::info("EmployeesController::getEmployees");
 
-        // Fetch client and employees with role relationship
-        $client = ClientsModel::find($user->client_id);
-        $employees = $client->employees()->with('role')->get();
+        if ($this->checkUserAdmin()) {
+            $user = Auth::user();
+            // $employees = $user->company->users;
 
-        $employees->map(function ($employee) {
-            // Add role name as a plain field
-            $employee->role_name = $employee->role?->name ?? null;
+            $client = ClientsModel::find($user->client_id);
+            // $employees = $client->employees;
+            // $employees = $user->company->users;
 
-            // Enrich details if needed
-            $employee = $this->enrichEmployeeDetails($employee);
+            $employees = UsersModel::where('client_id', $client->id)->orderBy('last_name', 'desc')->get();
 
-            // Remove unnecessary fields
-            unset(
-                $employee->verify_code,
-                $employee->code_expiration,
-                $employee->is_verified,
-                $employee->client_id,
-                $employee->branch_id,
-                $employee->role,       // remove relationship object
-             // optional, if you don't need the id
-            );
+            $client = ClientsModel::find($user->client_id);
+            $employees = $client->employees;
 
-            return $employee;
-        });
+           $employees->map(function ($employee) {
+                $employee = $this->enrichEmployeeDetails($employee);
 
-        return response()->json([
-            'status' => 200,
-            'employees' => $employees,
-        ]);
+                unset(
+                    // $employee->id,
+                    $employee->verify_code,
+                    $employee->code_expiration,
+                    $employee->is_verified,
+                    $employee->client_id,
+                    $employee->branch_id,
+                    // $employee->department_id,
+                    // $employee->role_id,
+                    // $employee->job_title_id,
+                    // $employee->work_group_id
+                );
+
+                return $employee;
+            });
+
+            return response()->json(['status' => 200, 'employees' => $employees]);
+        }
+
+        return response()->json(['status' => 200, 'employees' => null]);
     }
 
-    return response()->json([
-        'status' => 200,
-        'employees' => null,
-    ]);
-}
+    //for the employee assignment process (only returns employees that are either unassigned or those whose department id matches the id being updated)
+    public function getAssignableEmployees(Request $request)
+    {
+        // log::info("EmployeesController::getEmployees");
 
+        if ($this->checkUserAdmin()) {
+            $user = Auth::user();
+            // $employees = $user->company->users;
+
+            $client = ClientsModel::find($user->client_id);
+            $departmentId = $request->query('department_id');
+
+            //responsible for filtering employees that are not assigned to any dept or those who belong to the specific dept id
+            $employees = $client->employees->filter(function ($employee) use ($departmentId){
+                
+                if(is_null($departmentId)){
+                    //executed when no department_id is provided (will be used when adding new department)
+                    return is_null($employee->department_id);
+                }
+                //otherwise execute this (will be used when updating a specific department)
+                return is_null($employee->department_id) || $employee->department_id == $departmentId;
+            });
+
+           $employees = $employees->map(function ($employee) {
+                $employee = $this->enrichEmployeeDetails($employee);
+
+                unset(
+                    $employee->verify_code,
+                    $employee->code_expiration,
+                    $employee->is_verified,
+                    $employee->client_id,
+                    $employee->branch_id,
+                );
+                return $employee;
+            });
+
+            $employees = $employees->values()->all();
+
+            return response()->json(['status' => 200, 'employees' => $employees]);
+        }
+
+        return response()->json(['status' => 200, 'employees' => null]);
+    }
 
 
 
     public function getEmployeesByBranch($id)
-{
-    try {
-        $employees = Employee::where('branch_id', $id)
-            ->select('id', 'first_name', 'last_name', 'avatar')
-            ->get();
-            
-        return response()->json([
-            'status' => 200,
-            'employees' => $employees
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 500,
-            'message' => 'Error fetching employees by branch'
-        ]);
+    {
+        try {
+            $employees = UsersModel::where('branch_id', $id)->select('id', 'first_name', 'last_name', 'avatar')->get();
+                
+            return response()->json([ 'status' => 200, 'employees' => $employees ]);
+        } catch (\Exception $e) {
+            return response()->json([ 'status' => 500, 'message' => 'Error fetching employees by branch' ]);
+        }
     }
-}
 
     public function getEmployeeLeaveCredits()
     {
-        // log::info("EmployeesController::getEmployeeLeaveCredits");
+        // log::info("EmployeesController::getEmployeesLeaveCredits");
 
         if ($this->checkUserAdmin()) {
             $user = Auth::user();
@@ -232,9 +267,9 @@ class EmployeesController extends Controller
             foreach ($client->employees as $employee) {
                 $employees[] = [
                     'user_name' => $employee->user_name,
-                    'name' => $employee->first_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
-                    'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
-                    'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
+                    'name' => $employee->first_name . ", " . $employee->last_name . " " . $employee->middle_name . " " . $employee->suffix,
+                    'branch' => optional($employee->branch)->name . " (" . optional($employee->branch)->acronym . ")", 'N/A',
+                    'department' => optional($employee->department)->name . " (" . optional($employee->department)->acronym . ")", 'N/A',
                     'total' => $employee->leaveCredits->sum('number'),
                     'used' => $employee->leaveCredits->sum('used'),
                     'remaining' => $employee->leaveCredits->sum('number') - $employee->leaveCredits->sum('used'),
@@ -385,6 +420,8 @@ class EmployeesController extends Controller
 
             $employee = $this->enrichEmployeeDetails($employee);
 
+            $employee->profile_picture_url = $employee->getFirstMediaUrl('profile_pictures');
+
             $employee->salary = (float) number_format((float) $employee->salary, 2, '.', '');
             $employee->credit_limit = $latestLoanLimit ? $latestLoanLimit->new_limit : 0;
             $employee->total_payroll = PayslipsModel::where('employee_id', $employee->id)->count();
@@ -496,9 +533,12 @@ class EmployeesController extends Controller
 
         if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated) {
             $user = Auth::user();
-            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)
+            ->first();
             log::info($employee);
-            $educations = EmployeeEducation::where('employee_id', $employee->id)->get();
+            $educations = EmployeeEducation::where('employee_id', $employee->id)
+            ->select('id', 'employee_id', 'school_name', 'education_level', 'program_name', 'year_graduated')
+            ->get();
             return response()->json(['educations' => $educations, 'status' => 200]);
         }
     }
@@ -509,7 +549,9 @@ class EmployeesController extends Controller
 
         $user = Auth::user();
 
-        $educations = EmployeeEducation::where('employee_id', $user->id)->get();
+        $educations = EmployeeEducation::where('employee_id', $user->id)
+        ->select('id', 'employee_id', 'school_name', 'education_level', 'program_name', 'year_graduated')
+        ->get();
 
         return response()->json([ 'educations' => $educations, 'status' => 200 ]);
     }
@@ -534,16 +576,6 @@ class EmployeesController extends Controller
             $user->contact_number = $request->input('contact_number');
             $user->address = $request->input('address');
 
-            // Save profile pic using spatie media library
-            if ($request->hasFile('profile_pic')) {
-                
-			    $user->clearMediaCollection('profile_pic');
-                $user->addMediaFromRequest('profile_pic')->toMediaCollection('profile_pic');
-            }
-
-            // log::info("Stopper");
-            // dd("Stopper");
-            
             if ($request->has('add_educations')){
                 $educations = json_decode($request->input('add_educations'), true);
 
@@ -551,8 +583,8 @@ class EmployeesController extends Controller
                     EmployeeEducation::create([
                         'employee_id' => $user->id,
                         'school_name' => $education['school_name'],
-                        'degree_name' => $education['degree_name'],
-                        'degree_type' => $education['degree_type'],
+                        'program_name' => $education['program_name'],
+                        'education_level' => $education['education_level'],
                         'year_graduated' => $education['year_graduated'],
                     ]);
                 }
@@ -563,8 +595,8 @@ class EmployeesController extends Controller
                 foreach($educations as $education){
                     EmployeeEducation::where('id', $education['id'])->update([
                         'school_name' => $education['school_name'],
-                        'degree_name' => $education['degree_name'],
-                        'degree_type' => $education['degree_type'],
+                        'program_name' => $education['program_name'],
+                        'education_level' => $education['education_level'],
                         'year_graduated' => $education['year_graduated'],
                     ]);
                 }
@@ -583,10 +615,69 @@ class EmployeesController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-
             Log::error("Error saving: " . $e->getMessage());
-
             throw $e;
+        }
+    }
+
+    public function editMyProfileAvatar(Request $request){
+        $user = UsersModel::findOrFail($request->input('id'));
+        try {
+            // Save profile pic using spatie media library
+            if ($request->hasFile('profile_pic')) {             
+			    $user->clearMediaCollection('profile_pic');
+                $user->addMediaFromRequest('profile_pic')->toMediaCollection('profile_pic');   
+            }
+            $user->save();
+            return response()->json([
+                'user' => $user->load('media'),
+                'status' => 200
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error saving: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function editMyProfilePicture(Request $request)
+    {
+        Log::info("EmployeesController::editMyProfilePicture");
+        Log::info($request);
+
+        // $request->validate([
+        //     'profile_picture' => 'required|image|max:5120'
+        // ]);
+
+        $user = UsersModel::findOrFail($request->input('id'));
+
+        try {
+            if ($request->hasFile('profile_picture')) {
+                // Optional: clear existing media first
+                // $user->clearMediaCollection('profile_pic');  //if using the old media collection. enable this line
+                $user->clearMediaCollection('profile_pictures');
+
+                // Save new profile picture
+                $user->addMediaFromRequest('profile_picture')->toMediaCollection('profile_pictures');
+            } else {
+                Log::warning("No profile picture file found in request.");
+                return response()->json([
+                    'message' => 'No profile picture provided',
+                    'status' => 422
+                ]);
+            }
+
+            return response()->json([
+                'user' => $user->load('media'),
+                'message' => 'Profile updated successfully',
+                'status' => 200
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error saving profile picture: " . $e->getMessage());
+            return response()->json([
+                'message' => 'An error occurred while updating the profile picture',
+                'status' => 500
+            ]);
         }
     }
 
@@ -596,11 +687,16 @@ class EmployeesController extends Controller
 
         $user = Auth::user();
         $employee = UsersModel::where('user_name', $request->userName)->first();
-
+        if (!$employee) {
+            return response()->json(['status' => 404, 'message' => 'Employee not found'], 404);
+        }
         if ($this->checkUserAdmin() && $user->client_id == $employee->client_id) {
 
             try {
                 DB::beginTransaction();
+
+                $old_salary_grade = $employee->salary_grade;
+                $old_salary = $employee->salary;
 
                 $employee->first_name = $request->firstName;
                 $employee->middle_name = $request->middleName;
@@ -612,6 +708,7 @@ class EmployeesController extends Controller
                 $employee->address = $request->address;
 
                 $employee->salary = $request->salary;
+                $employee->is_fixed_salary = $request->fixedSalary;
                 $employee->salary_type = $request->salaryType;
 
                 $employee->tin_number = $request->tinNumber;
@@ -622,11 +719,27 @@ class EmployeesController extends Controller
                 $employee->job_title_id = $request->selectedJobTitle;
                 $employee->department_id = $request->selectedDepartment;
                 $employee->work_group_id = $request->selectedWorkGroup;
+                $employee->salary_grade = $request->selectedSalaryGrade;
 
                 $employee->employment_type = $request->selectedType;
                 $employee->employment_status = $request->selectedStatus;
                 $employee->date_start = $request->startDate;
                 $employee->date_end = $request->endDate;
+
+                if ($old_salary_grade != $request->selectedSalaryGrade || $old_salary != $request->salary) {
+                    DB::table('salary_plans_logs')->insert([
+                        'client_id' => $employee->client_id,
+                        'admin_id' => $user->id,
+                        'employee_id' => $employee->id,
+                        'old_salary_grade' => $old_salary_grade,
+                        'old_amount' => $old_salary,
+                        'new_salary_grade' => $request->selectedSalaryGrade,
+                        'new_amount' => $request->salary,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
                 $employee->save();
 
                 $existingLoanLimit = LoanLimitHistoryModel::where('employee_id', $employee->id)->latest('created_at')->first();
@@ -659,8 +772,8 @@ class EmployeesController extends Controller
                         EmployeeEducation::create([
                             'employee_id' => $employee->id,
                             'school_name' => $education['school_name'],
-                            'degree_name' => $education['degree_name'],
-                            'degree_type' => $education['degree_type'],
+                            'program_name' => $education['program_name'],
+                            'education_level' => $education['education_level'],
                             'year_graduated' => $education['year_graduated'],
                         ]);
                     }
@@ -669,8 +782,8 @@ class EmployeesController extends Controller
                     foreach($updateEducations as $education){
                         EmployeeEducation::where('id', $education['id'])->update([
                             'school_name' => $education['school_name'],
-                            'degree_name' => $education['degree_name'],
-                            'degree_type' => $education['degree_type'],
+                            'program_name' => $education['program_name'],
+                            'education_level' => $education['education_level'],
                             'year_graduated' => $education['year_graduated'],
                         ]);
                     }
@@ -680,15 +793,11 @@ class EmployeesController extends Controller
                 }
 
                 // Taxes
-
                 DB::commit();
-
                 return response()->json(['status' => 200]);
             } catch (\Exception $e) {
                 DB::rollBack();
-
                 Log::error("Error saving: " . $e->getMessage());
-
                 throw $e;
             }
         }
@@ -810,13 +919,19 @@ class EmployeesController extends Controller
 
         if ($formLink->used >= $formLink->limit) {
             $formLink->status = "Used";
-            $formLink->save();
+        } elseif ($formLink->used > 0 && $formLink->used < $formLink->limit) {
+            $formLink->status = "Partially Used";
+        } else {
+            $formLink->status = "Unused";
         }
 
         if (now()->greaterThan($formLink->expiration)) {
             $formLink->status = "Expired";
-            $formLink->save();
+        } else {
+            $formLink->status = "Unused";
         }
+
+        $formLink->save();
 
         return response()->json(['status' => 200, 'form_status' => $formLink->status]);
     }
@@ -838,4 +953,40 @@ class EmployeesController extends Controller
 
         return $result;
     }
+//TEST VVVV
+ public function getLeaveCreditByUser($username)
+{
+    // Check if the user is authorized
+    if (! $this->checkUserAdmin() && !(Auth::check() && Auth::user()->user_name === $username)) {
+        return response()->json(['message' => 'Unauthorized to view these leave credits.'], 403);
+    }
+
+    // Retrieve the user by username
+    $user = UsersModel::where('user_name', $username)->first();
+    if (! $user) {
+        return response()->json(['leaveCredits' => []], 404);
+    }
+
+    // Fetch leave credits with associated leave type
+    $leaveCredits = LeaveCreditsModel::where('user_id', $user->id)
+        ->with('type')
+        ->get();
+
+    // Format the leave credits data
+    $formattedLeaveCredits = $leaveCredits->map(function ($credit) {
+        return [
+            'leaveType'   => $credit->type ? $credit->type->name : 'Unknown Leave Type',
+            'leaveTypeId' => $credit->type ? $credit->type->id : null,
+            'limit'       => (float) $credit->number,
+            'used'        => (float) $credit->used,
+            'remaining'   => max (0, (float) ($credit->number - $credit->used)),
+        ];
+    })->toArray();
+
+    // Return the formatted credits
+    return response()->json([
+        'leaveCredits' => $formattedLeaveCredits
+    ]);
+}
+
 }

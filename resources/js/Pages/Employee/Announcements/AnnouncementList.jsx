@@ -46,8 +46,12 @@ const AnnouncementList = () => {
     const fetchAnnouncements = () => {
         axiosInstance.get('/announcements/getEmployeeAnnouncements', { headers })
             .then((response) => {
-                setAnnouncements(response.data.announcements);
-                setTotalAnnouncements(response.data.announcements.length);
+                // Sort by updated_at descending (newest first)
+                const sorted = response.data.announcements.sort(
+                    (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
+                );
+                setAnnouncements(sorted);
+                setTotalAnnouncements(sorted.length);
                 setAnnouncementReload(false);
                 setIsLoading(false);
             })
@@ -55,7 +59,6 @@ const AnnouncementList = () => {
                 console.error('Error fetching announcements:', error);
                 setIsLoading(false);
             });
-
     }
 
     useEffect(() => {
@@ -160,105 +163,253 @@ const AnnouncementList = () => {
                                             (announcement, index) => (
                                                 <Grid item key={index} size={{ xs: 12, sm: 6, lg: 4 }}>
                                                     <CardActionArea component={Link} to={`/employee/announcement/${announcement.unique_code}`}>
-                                                        <Card sx={{
-                                                            position: "relative",
-                                                            borderRadius: 2,
-                                                            boxShadow: 2,
-                                                            display: "flex",
-                                                            flexDirection: "column"
-                                                        }}>
                                                             {/* Card Thumbnail */}
                                                             {imageLoading ? (
-                                                                <Box
-                                                                    sx={{
-                                                                        display: 'flex',
-                                                                        justifyContent: 'center',
-                                                                        alignItems: 'center',
-                                                                        height: '210px'
-                                                                    }}
-                                                                >
-                                                                    <CircularProgress />
-                                                                </Box>
-                                                            ) : (
-                                                                <CardMedia
-                                                                    sx={{ height: '210px' }}
-                                                                    image={announcement.thumbnail ? announcement.thumbnail : "../../../images/ManProTab.png"}
-                                                                    title={`${announcement.title}_Thumbnail`}
-                                                                />
-                                                            )}
-                                                            {/* Card Content */}
-                                                            <CardContent>
-                                                                {/* Announcement Title */}
-                                                                <Box sx={{ height: "32px" }}>
-                                                                    <Typography
-                                                                        variant="h6"
-                                                                        component="div"
+                                                                <Card sx={{
+                                                                    position: "relative",
+                                                                    borderRadius: 2,
+                                                                    boxShadow: 2,
+                                                                    display: "flex",
+                                                                    flexDirection: "column"
+                                                                }}>
+                                                                    <Box
                                                                         sx={{
-                                                                            display: '-webkit-box',
-                                                                            WebkitBoxOrient: 'vertical',
-                                                                            WebkitLineClamp: 1,
-                                                                            overflow: 'hidden',
-                                                                            textOverflow: 'ellipsis',
-                                                                            whiteSpace: 'normal',
+                                                                            display: 'flex',
+                                                                            justifyContent: 'center',
+                                                                            alignItems: 'center',
+                                                                            height: '210px'
                                                                         }}
                                                                     >
-                                                                        {announcement.title}
-                                                                    </Typography>
-                                                                </Box>
-                                                                {/* Announcement Details */}
-                                                                {/* Details */}
-                                                                <Grid container item key={index} sx={{ my: 1 }}>
-                                                                    <Grid size={{ xs: 3 }}>
-                                                                        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
-                                                                            Posted
-                                                                        </Typography>
-                                                                    </Grid>
-                                                                    <Grid size={{ xs: 9 }}>
-                                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                                                            {dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
-                                                                        </Typography>
-                                                                    </Grid>
-                                                                </Grid>
-                                                            </CardContent>
-                                                            {/* Announcement Branch/Department Indicators */}
-                                                            <CardActions sx={{ ml: "8px" }}>
-                                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                                    {/* Media Icons */}
-                                                                    {announcement.branch_matched && <Apartment sx={{ color: 'text.secondary', mr: announcement.department_matched ? 0.5 : 0 }} />}
-                                                                    {announcement.department_matched && <Groups sx={{ color: 'text.secondary' }} />}
-                                                                    {/* Media Text */}
-                                                                    <Box sx={{ ml: (announcement.branch_matched || announcement.department_matched) ? 1 : 0, mt: { xs: 1.5, md: 0 } }}>
+                                                                        <CircularProgress />
+                                                                    </Box>
+                                                                    {/* Card Content */}
+                                                                    <CardContent>
+                                                                        {/* Announcement Title */}
+                                                                        <Box sx={{ height: "32px" }}>
+                                                                            <Typography
+                                                                                variant="h6"
+                                                                                component="div"
+                                                                                sx={{
+                                                                                    display: '-webkit-box',
+                                                                                    WebkitBoxOrient: 'vertical',
+                                                                                    WebkitLineClamp: 1,
+                                                                                    overflow: 'hidden',
+                                                                                    textOverflow: 'ellipsis',
+                                                                                    whiteSpace: 'normal',
+                                                                                    fontWeight: 'bold',
+                                                                                }}
+                                                                            >
+                                                                                {announcement.title}
+                                                                            </Typography>
+                                                                        </Box>
+                                                                        {/* Announcement Details */}
+                                                                        {/* Details */}
+                                                                        <Grid container item key={index} sx={{ my: 1 }}>
+                                                                            <Grid size={{ xs: 3 }}>
+                                                                                <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+                                                                                    Posted
+                                                                                </Typography>
+                                                                            </Grid>
+                                                                            <Grid size={{ xs: 9 }}>
+                                                                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                                    {dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
+                                                                                </Typography>
+                                                                            </Grid>
+                                                                        </Grid>
+                                                                    </CardContent>
+                                                                    {/* Announcement Branch/Department Indicators */}
+                                                                    <CardActions sx={{ ml: "8px" }}>
+                                                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                            {/* Media Icons */}
+                                                                            {announcement.branch_matched && <Apartment sx={{ color: 'text.secondary', mr: announcement.department_matched ? 0.5 : 0 }} />}
+                                                                            {announcement.department_matched && <Groups sx={{ color: 'text.secondary' }} />}
+                                                                            {/* Media Text */}
+                                                                            <Box sx={{ ml: (announcement.branch_matched || announcement.department_matched) ? 1 : 0, mt: { xs: 1.5, md: 0 } }}>
+                                                                                <Typography
+                                                                                    variant="body2"
+                                                                                    sx={{
+                                                                                        color: "text.secondary",
+                                                                                        whiteSpace: "normal",
+                                                                                        wordBreak: "break-word",
+                                                                                        overflowWrap: "break-word",
+                                                                                        lineHeight: 1.5,
+                                                                                    }}
+                                                                                >
+                                                                                    {(() => {
+                                                                                        const available = [
+                                                                                            announcement.branch_matched && 'Branch',
+                                                                                            announcement.department_matched && 'Department',
+                                                                                        ].filter(Boolean);
+                                                                                        return available.length > 0
+                                                                                            ? `Posted for your ${available.join(', ').replace(/, ([^,]+)$/, ' and $1')}`
+                                                                                            : '';
+                                                                                    })()}
+                                                                                </Typography>
+                                                                            </Box>
+                                                                        </Box>
+                                                                    </CardActions>
+                                                                </Card>
+                                                            ) : announcement.thumbnail ? (
+                                                                <Card sx={{
+                                                                    position: "relative",
+                                                                    borderRadius: 2,
+                                                                    boxShadow: 2,
+                                                                    display: "flex",
+                                                                    flexDirection: "column"
+                                                                }}>
+                                                                    <CardMedia
+                                                                        sx={{ height: '210px' }}
+                                                                        image={announcement.thumbnail}
+                                                                        title={`${announcement.title}_Thumbnail`}
+                                                                    />
+                                                                    {/* Card Content */}
+                                                                    <CardContent>
+                                                                        {/* Announcement Title */}
+                                                                        <Box sx={{ height: "32px" }}>
+                                                                            <Typography
+                                                                                variant="h6"
+                                                                                component="div"
+                                                                                sx={{
+                                                                                    display: '-webkit-box',
+                                                                                    WebkitBoxOrient: 'vertical',
+                                                                                    WebkitLineClamp: 1,
+                                                                                    overflow: 'hidden',
+                                                                                    textOverflow: 'ellipsis',
+                                                                                    whiteSpace: 'normal',
+                                                                                    fontWeight: 'bold',
+                                                                                }}
+                                                                            >
+                                                                                {announcement.title}
+                                                                            </Typography>
+                                                                        </Box>
+                                                                        {/* Announcement Details */}
+                                                                        {/* Details */}
+                                                                        <Grid container item key={index} sx={{ my: 1 }}>
+                                                                            <Grid size={{ xs: 3 }}>
+                                                                                <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+                                                                                    Posted
+                                                                                </Typography>
+                                                                            </Grid>
+                                                                            <Grid size={{ xs: 9 }}>
+                                                                                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                                    {dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
+                                                                                </Typography>
+                                                                            </Grid>
+                                                                        </Grid>
+                                                                    </CardContent>
+                                                                    {/* Announcement Branch/Department Indicators */}
+                                                                    <CardActions sx={{ ml: "8px" }}>
+                                                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                            {/* Media Icons */}
+                                                                            {announcement.branch_matched && <Apartment sx={{ color: 'text.secondary', mr: announcement.department_matched ? 0.5 : 0 }} />}
+                                                                            {announcement.department_matched && <Groups sx={{ color: 'text.secondary' }} />}
+                                                                            {/* Media Text */}
+                                                                            <Box sx={{ ml: (announcement.branch_matched || announcement.department_matched) ? 1 : 0, mt: { xs: 1.5, md: 0 } }}>
+                                                                                <Typography
+                                                                                    variant="body2"
+                                                                                    sx={{
+                                                                                        color: "text.secondary",
+                                                                                        whiteSpace: "normal",
+                                                                                        wordBreak: "break-word",
+                                                                                        overflowWrap: "break-word",
+                                                                                        lineHeight: 1.5,
+                                                                                    }}
+                                                                                >
+                                                                                    {(() => {
+                                                                                        const available = [
+                                                                                            announcement.branch_matched && 'Branch',
+                                                                                            announcement.department_matched && 'Department',
+                                                                                        ].filter(Boolean);
+                                                                                        return available.length > 0
+                                                                                            ? `Posted for your ${available.join(', ').replace(/, ([^,]+)$/, ' and $1')}`
+                                                                                            : '';
+                                                                                    })()}
+                                                                                </Typography>
+                                                                            </Box>
+                                                                        </Box>
+                                                                    </CardActions>
+                                                                </Card>
+                                                            ) : (
+                                                                <Card sx={{
+                                                                    position: "relative",
+                                                                    borderRadius: 2,
+                                                                    boxShadow: 2,
+                                                                    display: "flex",
+                                                                    flexDirection: "column"
+                                                                }}>
+                                                                    <Box sx={{ height: "210px", py: 6, px: 4, background: "linear-gradient(190deg, rgb(42, 128, 15, 0.85), rgb(233, 171, 19, 0.9))" }}>
+                                                                        {/* Announcement Title */}
                                                                         <Typography
-                                                                            variant="body2"
+                                                                            component="div"
                                                                             sx={{
-                                                                                color: "text.secondary",
-                                                                                whiteSpace: "normal",
-                                                                                wordBreak: "break-word",
-                                                                                overflowWrap: "break-word",
-                                                                                lineHeight: 1.5,
+                                                                                wordBreak: 'break-word',
+                                                                                whiteSpace: 'normal',
+                                                                                fontWeight: 'bold',
+                                                                                mb: 2,
+                                                                                fontSize: { xs: "4.5vw", sm: "2.5vw", md: "1.6vw", lg: "1.1vw" }
                                                                             }}
                                                                         >
-                                                                            {(() => {
-                                                                                const available = [
-                                                                                    announcement.branch_matched && 'Branch',
-                                                                                    announcement.department_matched && 'Department',
-                                                                                ].filter(Boolean);
-                                                                                return available.length > 0
-                                                                                    ? `Posted for your ${available.join(', ').replace(/, ([^,]+)$/, ' and $1')}`
-                                                                                    : '';
-                                                                            })()}
+                                                                            {announcement.title}
                                                                         </Typography>
                                                                     </Box>
-                                                                </Box>
-                                                            </CardActions>
+                                                                    {/* Announcement Details */}
+                                                                   <Box sx={{ height: "135px", px: 2, py: 2}}>
+                                                                        <CardContent>
+                                                                            {/* Details */}
+                                                                            <Grid container item key={index}>
+                                                                                <Grid size={{ xs: 3 }}>
+                                                                                    <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>
+                                                                                        Posted
+                                                                                    </Typography>
+                                                                                </Grid>
+                                                                                <Grid size={{ xs: 9 }}>
+                                                                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                                                        {dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A")}
+                                                                                    </Typography>
+                                                                                </Grid>
+                                                                            </Grid>
+                                                                        </CardContent>
+                                                                        <CardActions sx={{ ml: "8px" }}>
+                                                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                                {/* Media Icons */}
+                                                                                {announcement.branch_matched && <Apartment sx={{ color: 'text.secondary', mr: announcement.department_matched ? 0.5 : 0 }} />}
+                                                                                {announcement.department_matched && <Groups sx={{ color: 'text.secondary' }} />}
+                                                                                {/* Media Text */}
+                                                                                <Box sx={{ ml: (announcement.branch_matched || announcement.department_matched) ? 1 : 0, mt: { xs: 1.5, md: 0 } }}>
+                                                                                    <Typography
+                                                                                        variant="body2"
+                                                                                        sx={{
+                                                                                            color: "text.secondary",
+                                                                                            whiteSpace: "normal",
+                                                                                            wordBreak: "break-word",
+                                                                                            overflowWrap: "break-word",
+                                                                                            lineHeight: 1.5,
+                                                                                        }}
+                                                                                    >
+                                                                                        {(() => {
+                                                                                            const available = [
+                                                                                                announcement.branch_matched && 'Branch',
+                                                                                                announcement.department_matched && 'Department',
+                                                                                            ].filter(Boolean);
+                                                                                            return available.length > 0
+                                                                                                ? `Posted for your ${available.join(', ').replace(/, ([^,]+)$/, ' and $1')}`
+                                                                                                : '';
+                                                                                        })()}
+                                                                                    </Typography>
+                                                                                </Box>
+                                                                            </Box>
+                                                                        </CardActions>
+                                                                   </Box>
+                                                                </Card>
+                                                            )}
                                                             {announcement.acknowledged_on && (
                                                                 <Chip
                                                                     icon={<CheckCircleOutline sx={{ color: 'white !important', fontSize: '18px' }} />}
                                                                     label="ACKNOWLEDGED"
                                                                     sx={{
                                                                         position: "absolute",
-                                                                        top: 8,
-                                                                        left: 8,
+                                                                        top: 16,
+                                                                        left: 16,
                                                                         backgroundColor: "#177604",
                                                                         color: "white",
                                                                         fontWeight: "bold",
@@ -266,7 +417,6 @@ const AnnouncementList = () => {
                                                                     }}
                                                                 />
                                                             )}
-                                                        </Card>
                                                     </CardActionArea>
                                                 </Grid>
                                             )

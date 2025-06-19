@@ -28,6 +28,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import PositionAddMiniModal from './PositionAddMiniModal';
+import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 
 const theme = createTheme({
   components: {
@@ -106,6 +108,7 @@ const AssignPositionsModal = ({
   open,
   onClose,
   branchPositions,
+  setBranchPositions,
   allEmployees,
   positionAssignments,
   handlePositionAssignmentChange,
@@ -127,6 +130,16 @@ const AssignPositionsModal = ({
   const [activeTab, setActiveTab] = useState(0);
   const [assignedEmployees, setAssignedEmployees] = useState([]);
   const [assignedSearchQuery, setAssignedSearchQuery] = useState('');
+
+  const [newPosition, setNewPosition] = useState({
+    name: "",
+    can_review_request: false,
+    can_approve_request: false,
+    can_note_request: false,
+    can_accept_request: false
+  });
+  const [openAddModal, setOpenAddModal] = useState(false);
+
 
   useEffect(() => {
     if (open) {
@@ -171,7 +184,14 @@ const AssignPositionsModal = ({
   }, [selectedPosition, searchQueries, allEmployees, currentlyAssigned, activeTab]);
 
   const handlePositionChange = (event) => {
-    setSelectedPosition(event.target.value);
+    const value = event.target.value
+    if(value === 'add_new'){
+      setOpenAddModal(true)
+      setSelectedPosition('')
+    }
+    else{
+      setSelectedPosition(value);
+    }
     setNewlySelectedEmployees([]);
     setSelectedForRemoval([]);
   };
@@ -207,6 +227,51 @@ const AssignPositionsModal = ({
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
     setSelectedForRemoval([]);
+  };
+
+  const addNewPosition = async () => {
+    if (!newPosition.name) {
+        Swal.fire({
+            customClass: { container: 'my-swal' },
+            text: "Position name is required!",
+            icon: "error",
+            showConfirmButton: true,
+            confirmButtonColor: '#177604',
+        });
+        return;
+    }
+    try {
+        const response = await axiosInstance.post('/settings/saveBranchPosition', newPosition, { headers });
+
+        if (response.data.status === 200) {
+            setBranchPositions(prev => [...prev, response.data.position]);
+            setNewPosition({
+                name: "",
+                can_review_request: false,
+                can_approve_request: false,
+                can_note_request: false,
+                can_accept_request: false
+            });
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Position added successfully!",
+                icon: "success",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            }).then(() => {
+              setOpenAddModal(false);
+            });
+        }
+    } catch (error) {
+        console.error("Error adding position:", error);
+        Swal.fire({
+            customClass: { container: 'my-swal' },
+            text: "Error adding position!",
+            icon: "error",
+            showConfirmButton: true,
+            confirmButtonColor: '#177604',
+        });
+    }
   };
 
   const handleSave = async () => {
@@ -393,8 +458,8 @@ const AssignPositionsModal = ({
     (!selectedPosition || emp.branch_position_id === selectedPosition)
   );
 
-  console.log('All Employees:', allEmployees);
-console.log('Assigned Employees:', assignedEmployees);
+  // console.log('All Employees:', allEmployees);
+  // console.log('Assigned Employees:', assignedEmployees);
 
   return (
     <ThemeProvider theme={theme}>
@@ -419,7 +484,46 @@ console.log('Assigned Employees:', assignedEmployees);
         
         <DialogContent dividers>
           <Box sx={{ mb: 3 }}>
-            <FormControl fullWidth>
+            {openAddModal ? (
+              <Box
+              display="flex" flexDirection='column' alignItems="center" justifyContent="space-between" minHeight={80}
+              sx={{ border: '1px solid #ccc',  borderRadius: 2, p: 2, width: '100%' }}
+                >
+                    <Box width='100%'
+                    sx={{
+                        flexGrow: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                    }}
+                    >
+                        <PositionAddMiniModal
+                            newPosition={newPosition}
+                            setNewPosition={setNewPosition}
+                            addNewPosition={addNewPosition}
+                            disableSaveButton={true}
+                        />
+                    </Box>
+                
+                    <Box display='flex' justifyContent='center' gap={2} sx={{mt:2}}>
+                        <Button
+                            variant="contained"
+                            onClick={addNewPosition}
+                            sx={{ backgroundColor: "#177604", color: "white" }}
+                        >
+                            <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i>Add</p>    
+                        </Button>
+
+                        <Button
+                            variant="contained"
+                            onClick={() => setOpenAddModal(false)}
+                            sx={{ backgroundColor: "#A6A6A6", color: "white" }}
+                        >   
+                            <p className='m-0'><i className="si si-close"></i> Cancel </p>
+                        </Button>
+                    </Box>
+              </Box>
+            ):
+            (<FormControl fullWidth>
               <InputLabel sx={{ color: '#177604' }}>Select Position</InputLabel>
               <Select
                 value={selectedPosition}
@@ -432,8 +536,14 @@ console.log('Assigned Employees:', assignedEmployees);
                     {position.name}
                   </MenuItem>
                 ))}
+
+                <MenuItem value= 'add_new' sx={{color:'green', my: 2}}>
+                    <AddCircleOutlineOutlinedIcon sx={{mr:2}}/>
+                    <Typography>Add a New Position</Typography>
+                </MenuItem>
+
               </Select>
-            </FormControl>
+            </FormControl>)}
           </Box>
 
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

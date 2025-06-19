@@ -46,11 +46,14 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
     const [title, setTitle] = useState(announceInfo.title);
     const [description, setDescription] = useState(announceInfo.description);
     const [attachment, setAttachment] = useState([]);
-    const [image, setImage] = useState([]);
-    const [thumbnailIndex, setThumbnailIndex] = useState(null);
 
     const [fileNames, setFileNames] = useState([]);
-    const [currentImages, setCurrentImages] = useState([]);
+    const [thumbnail, setThumbnail] = useState(null); // new thumbnail file
+    const [currentThumbnail, setCurrentThumbnail] = useState(null);
+    const [removeThumbnail, setRemoveThumbnail] = useState(false);
+    const [thumbnailBlobUrl, setThumbnailBlobUrl] = useState(null);
+    const [imageLoading, setImageLoading] = useState(true);    const [images, setImages] = useState([]); // new image files
+    const [currentImages, setCurrentImages] = useState([]); // existing images
     const [currentAttachments, setCurrentAttachments] = useState([]);
 
     const [deleteAttachments, setDeleteAttachments] = useState([]);
@@ -61,6 +64,49 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
     const [descriptionError, setDescriptionError] = useState(false);
     const [attachmentError, setAttachmentError] = useState(false);
     const [imageError, setImageError] = useState(false);
+
+    useEffect(() => {
+        if (!announceInfo?.unique_code) return;
+        setImageLoading(true);
+        axiosInstance.get(`/announcements/getThumbnail/${announceInfo.unique_code}`, { headers })
+            .then((response) => {
+                if (response.data.thumbnail) {
+                    const byteCharacters = window.atob(response.data.thumbnail);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'image/png' });
+                    setThumbnailBlobUrl(URL.createObjectURL(blob));
+                } else {
+                    setThumbnailBlobUrl("../../../../images/defaultThumbnail.jpg");
+                }
+                setImageLoading(false);
+            })
+            .catch(() => {
+                setThumbnailBlobUrl("../../../../images/defaultThumbnail.jpg");
+                setImageLoading(false);
+            });
+        return () => {
+            if (thumbnailBlobUrl && thumbnailBlobUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(thumbnailBlobUrl);
+            }
+        };
+    }, [announceInfo?.unique_code]);
+
+    // Fetch current files and thumbnail
+    useEffect(() => {
+        axiosInstance.get(`/announcements/getAnnouncementFiles/${announceInfo.unique_code}`, { headers })
+            .then((response) => {
+                setCurrentImages(response.data.images || []);
+                setCurrentAttachments(response.data.attachments || []);
+                // Set current thumbnail if available
+            })
+            .catch((error) => {
+                console.error('Error fetching files:', error);
+            });
+    }, []);
 
     // Get Existing Files
     useEffect(() => {
@@ -91,26 +137,25 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
 
     };
 
+    // Thumbnail upload handler
+    const handleThumbnailUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) setThumbnail(file);
+    };
+
     // Image Handlers
     const handleImageUpload = (input) => {
         const oldFileCount = currentImages.length - deleteImages.length;
         const files = Array.from(input.target.files);
-        let validFiles = validateFiles(files, image.length, oldFileCount, 10, 5242880, "image");
+        let validFiles = validateFiles(files, images.length, oldFileCount, 10, 5242880, "image");
         if (validFiles) {
-            setImage(prev => [...prev, ...files]);
+            setImages(prev => [...prev, ...files]);
         }
     };
 
     const handleDeleteImage = (index) => {
-        if (thumbnailIndex !== null) {
-            if (index === thumbnailIndex) {
-                setThumbnailIndex(null);
-            } else if (index < thumbnailIndex) {
-                setThumbnailIndex(thumbnailIndex - 1);
-            }
-        }
-        setImage(prevAttachments =>
-            prevAttachments.filter((_, i) => i !== index)
+        setImages(prevImages =>
+            prevImages.filter((_, i) => i !== index)
         );
     };
 
@@ -223,15 +268,11 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
         formData.append("unique_code", announceInfo.unique_code);
         formData.append("title", title);
         formData.append("description", description);
-        formData.append("thumbnail", thumbnailIndex);
+        if (thumbnail) formData.append("thumbnail", thumbnail);
+        images.forEach(img => formData.append("images[]", img));
         if (attachment.length > 0) {
             attachment.forEach(file => {
                 formData.append('attachment[]', file);
-            });
-        }
-        if (image.length > 0) {
-            image.forEach(file => {
-                formData.append('image[]', file);
             });
         }
         if (deleteAttachments.length > 0) {
@@ -248,11 +289,12 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
         } else {
             formData.append('deleteImages[]', null);
         }
+        if (removeThumbnail && !thumbnail) {
+            formData.append("removeThumbnail", true);
+        }
 
         axiosInstance
-            .post("/announcements/editAnnouncement", formData, {
-                headers,
-            })
+            .post("/announcements/editAnnouncement", formData, { headers })
             .then((response) => {
                 document.activeElement.blur();
                 document.body.removeAttribute("aria-hidden");
@@ -266,6 +308,9 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                     confirmButtonColor: "#177604",
                 }).then((res) => {
                     if (res.isConfirmed) {
+                        // Refetch the thumbnail so the new one appears
+                        setThumbnail(null);
+                        // This will trigger the useEffect to refetch the thumbnail
                         close(true);
                         document.body.setAttribute("aria-hidden", "true");
                     } else {
@@ -308,6 +353,96 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, mt: 2, mb: 3 }}>
+                    {/* Thumbnail Section */}
+                    <Box
+                        sx={{
+                            border: "1.5px solid #E0E0E0",
+                            borderRadius: 2,
+                            height: 140,
+                            background: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexDirection: "column",
+                            mb: 1,
+                            width: "100%",
+                            position: "relative",
+                            cursor: "pointer"
+                        }}
+                        onClick={() => document.getElementById('thumbnail-upload').click()}
+                    >
+                        <input
+                            accept=".png, .jpg, .jpeg"
+                            id="thumbnail-upload"
+                            type="file"
+                            style={{ display: "none" }}
+                            onChange={handleThumbnailUpload}
+                        />
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative", width: "100%", height: "100%", padding: 1 }}>
+                        {thumbnail ? (
+                            <>
+                                <img
+                                    src={URL.createObjectURL(thumbnail)}
+                                    alt="Thumbnail Preview"
+                                    style={{ maxHeight: "100%", maxWidth: "100%", borderRadius: 4, border: "1px solid #e0e0e0" }}
+                                />
+                                <IconButton
+                                    size="small"
+                                    sx={{
+                                        position: "absolute",
+                                        top: 8,
+                                        right: 8,
+                                        background: "#fff",
+                                        "&:hover": { background: "#f5f5f5" }
+                                    }}
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setThumbnail(null);
+                                        setRemoveThumbnail(true);
+                                        setThumbnailBlobUrl(null);
+                                    }}
+                                >
+                                    <Cancel />
+                                </IconButton>
+                            </>
+                        ) : (thumbnailBlobUrl && !thumbnailBlobUrl.includes("defaultThumbnail")) ? (
+                            <>
+                                <img
+                                    src={thumbnailBlobUrl}
+                                    alt="Current Thumbnail"
+                                    style={{ maxHeight: "100%", maxWidth: "100%", borderRadius: 4, border: "1px solid #e0e0e0" }}
+                                />
+                                <IconButton
+                                    size="small"
+                                    sx={{
+                                        position: "absolute",
+                                        top: 8,
+                                        right: 8,
+                                        background: "#fff",
+                                        "&:hover": { background: "#f5f5f5" }
+                                    }}
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        setThumbnail(null);
+                                        setRemoveThumbnail(true);
+                                        setThumbnailBlobUrl(null);
+                                    }}
+                                >
+                                    <Cancel />
+                                </IconButton>
+                            </>
+                        ) : (
+                            <Button
+                                variant="outlined"
+                                component="span"
+                                sx={{ mt: 2 }}
+                            >
+                                Upload Thumbnail (OPTIONAL)
+                            </Button>
+                        )}
+                    </Box>
+                        {imageLoading && <CircularProgress sx={{ position: "absolute" }} />}
+                    </Box>
                     <Box
                         component="form"
                         onSubmit={checkInput}
@@ -389,10 +524,10 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                                 width: "100%",
                                             }}
                                         >
+                                            <Typography noWrap>
+                                                Documents (Optional)
+                                            </Typography>
                                             <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
-                                                <Typography noWrap>
-                                                    Documents
-                                                </Typography>
                                                 <input
                                                     accept=".doc, .docx, .pdf, .xls, .xlsx"
                                                     id="attachment-upload"
@@ -536,10 +671,10 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                                 width: "100%",
                                             }}
                                         >
+                                            <Typography noWrap>
+                                                Images (Optional)
+                                            </Typography>
                                             <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: '150px' }}>
-                                                <Typography noWrap>
-                                                    Images
-                                                </Typography>
                                                 <input
                                                     accept=".png, .jpg, .jpeg"
                                                     id="image-upload"
@@ -572,11 +707,8 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                                 Max Limit: 10 Files, 5 MB Each
                                             </Typography>
-                                            {image.length > 0 && (
+                                            {images.length > 0 && (
                                                 <Stack direction="row" spacing={1}>
-                                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                                        Set Thumbnail
-                                                    </Typography>
                                                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                                         Remove
                                                     </Typography>
@@ -584,9 +716,9 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                             )}
                                         </Stack>
                                         {/* Added Images */}
-                                        {image.length > 0 && (
+                                        {images.length > 0 && (
                                             <Stack direction="column" spacing={1} sx={{ mt: 1, width: '100%' }}>
-                                                {image.map((file, index) => (
+                                                {images.map((file, index) => (
                                                     <Box
                                                         key={index}
                                                         sx={{
@@ -600,12 +732,6 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                                     >
                                                         <Typography noWrap>{`${file.name}, ${getFileSize(file.size)}`}</Typography>
                                                         <Stack direction="row" spacing={3}>
-                                                            <Radio
-                                                                checked={thumbnailIndex === index}
-                                                                onChange={() => setThumbnailIndex(index)}
-                                                                name="thumbnail"
-                                                                inputProps={{ 'aria-label': `Choose ${file.name} as thumbnail` }}
-                                                            />
                                                             <IconButton onClick={() => handleDeleteImage(index)} size="small">
                                                                 <Cancel />
                                                             </IconButton>
@@ -659,7 +785,7 @@ const AnnouncementEdit = ({ open, close, announceInfo }) => {
                                                                     const oldFileCount = currentImages.length - deleteImages.length;
                                                                     setDeleteImages(prevImages => {
                                                                         if (prevImages.includes(img.id)) {
-                                                                            if (image.length + oldFileCount == 10) {
+                                                                            if (images.length + oldFileCount == 10) {
                                                                                 fileCountError("You can only have up to 10 images at a time.");
                                                                                 return prevImages;
                                                                             } else {

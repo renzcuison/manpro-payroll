@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import Layout from "../../../components/Layout/Layout";
 import {
     Avatar,
@@ -13,21 +13,83 @@ import {
     Stack,
     Typography,
 } from "@mui/material";
-import { useMilestones } from "./hook/useMilestones";
-import { Plus } from "lucide-react";
-import CakeIcon from "@mui/icons-material/Cake";
-import WorkIcon from "@mui/icons-material/Work";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-
-const iconMap = {
-    birthday: <CakeIcon color="secondary" />,
-    anniversary: <WorkIcon color="primary" />,
-    achievement: <EmojiEventsIcon color="warning" />,
-};
+import { Plus, Trash, Trash2 } from "lucide-react";
+import { useDashboard } from "../Dashboard/useDashboard";
+import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
+import SendGreetingsForm from "./SendGreetingsForm";
+import Swal from "sweetalert2";
+import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
+import AddMilestoneDialog from "./modals/AddMilestoneDialog";
+import MilestoneItem from "./MilestoneItem";
+import moment from "moment";
 
 function Milestones() {
-    const { data, isFetching, refetch, isLoading } = useMilestones();
-    console.log(data);
+    // const { data, isFetching, refetch, isLoading } = useMilestones();
+    const [openAddDialog, setOpendDialog] = useState(false);
+
+    const {
+        data: dashboard,
+        isFetched: isFetchedDashboard,
+        isLoading,
+        refetch,
+    } = useDashboard();
+
+    if (isLoading) {
+        return <LoadingSpinner />;
+    }
+
+    const { milestones, employees } = dashboard;
+
+    const milestonesToday = useMemo(() => {
+        return milestones.filter((milestone) => {
+            const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");
+            const today = moment().format("YYYY-MM-DD");
+            return milestoneDate === today;
+        });
+    }, [milestones]);
+
+    const milestonesUpcoming = useMemo(() => {
+        return milestones.filter((milestone) => {
+            const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");
+            const today = moment().format("YYYY-MM-DD");
+            return milestoneDate > today;
+        });
+    }, [milestones]);
+    console.log("Milestones today: ", milestonesToday);
+
+    const handleDeleteMilestone = (id) => {
+        console.log(id);
+
+        Swal.fire({
+            title: "Are you sure you want to delete greeting?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes",
+            denyButtonText: "No",
+            showLoaderOnConfirm: true,
+            preConfirm: async (login) => {
+                try {
+                    const storedUser = localStorage.getItem("nasya_user");
+                    const headers = storedUser
+                        ? getJWTHeader(JSON.parse(storedUser))
+                        : {};
+                    await axiosInstance.delete(`/admin/milestones/${id}`, {
+                        headers,
+                    });
+                    refetch();
+                } catch (error) {
+                    Swal.showValidationMessage(`Request failed: ${error}`);
+                }
+            },
+            allowOutsideClick: () => !Swal.isLoading(),
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire("Deleted!", "", "success");
+            } else if (result.isDismissed) {
+                // Swal.fire("Changes are not saved", "", "info");
+            }
+        });
+    };
 
     return (
         <Layout>
@@ -36,9 +98,7 @@ function Milestones() {
                     <Typography variant="h3">
                         Employee Milestones & Celebrations
                     </Typography>
-                    <Typography variant="body1">
-                        This is a list of documents
-                    </Typography>
+                    <Typography variant="body1">Manage</Typography>
                 </Stack>
                 <Box>
                     <Button
@@ -46,64 +106,59 @@ function Milestones() {
                         color="success"
                         size="small"
                         startIcon={<Plus />}
-                        onClick={() => {}}
+                        onClick={() => setOpendDialog(true)}
                     >
                         Add New Milestone
                     </Button>
                 </Box>
                 <Divider sx={{ borderStyle: "dashed" }} />
-                <Paper sx={{ p: 3, borderRadius: 5 }}>
-                    <Grid container spacing={2}>
-                        {data?.map((milestone) => (
-                            <Grid item xs={12} md={6} key={milestone.id}>
-                                <Card
-                                    elevation={3}
-                                    sx={{ borderRadius: 3, width: "100%" }}
-                                >
-                                    <CardContent>
-                                        <Box
-                                            display="flex"
-                                            alignItems="center"
-                                            gap={2}
-                                        >
-                                            <Avatar
-                                                src={
-                                                    milestone.user.media?.[0]
-                                                        ?.original_url
-                                                }
-                                                alt={milestone.user.first_name}
-                                            />
-                                            <Box>
-                                                <Typography variant="h6">
-                                                    {milestone.user.first_name}{" "}
-                                                    {milestone.user.last_name}
-                                                </Typography>
-                                                <Typography
-                                                    variant="body2"
-                                                    color="text.secondary"
-                                                >
-                                                    {milestone.description ||
-                                                        milestone.type}
-                                                </Typography>
-                                            </Box>
-                                            <Chip
-                                                label={milestone.type.toUpperCase()}
-                                                icon={iconMap[milestone.type]}
-                                                color="primary"
-                                            />
-                                        </Box>
-                                        <Typography variant="caption" mt={2}>
-                                            {new Date(
-                                                milestone.date
-                                            ).toDateString()}
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                            </Grid>
-                        ))}
-                    </Grid>
-                </Paper>
+
+                <Stack spacing={2}>
+                    <Typography variant="h5">Today's Milestones</Typography>
+                    {milestonesToday?.length === 0 && (
+                        <Typography variant="body2">
+                            No milestones today.
+                        </Typography>
+                    )}
+                    {milestonesToday?.map((milestone) => (
+                        <MilestoneItem
+                            milestone={milestone}
+                            refetch={refetch}
+                            handleDelete={() =>
+                                handleDeleteMilestone(milestone.id)
+                            }
+                        />
+                    ))}
+                    <Divider sx={{ borderStyle: "dashed" }} />
+                    <Typography variant="h5">Upcoming Milestones</Typography>
+                    {milestonesUpcoming?.length === 0 && (
+                        <Typography variant="body2">
+                            No upcoming milestones.
+                        </Typography>
+                    )}
+                    {milestonesUpcoming?.map((milestone) => (
+                        <MilestoneItem
+                            milestone={milestone}
+                            refetch={refetch}
+                            handleDelete={() =>
+                                handleDeleteMilestone(milestone.id)
+                            }
+                        />
+                    ))}
+                </Stack>
             </Stack>
+
+            {/* Add Milestone Modal */}
+            {openAddDialog && (
+                <AddMilestoneDialog
+                    open={openAddDialog}
+                    close={() => {
+                        setOpendDialog(false);
+                    }}
+                    employees={employees}
+                    refetch={refetch}
+                />
+            )}
         </Layout>
     );
 }

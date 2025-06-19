@@ -33,7 +33,7 @@ const ProfileBenefits = ({ userName, headers }) => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {benefits.length > 0 ? (
+                        {benefits?.length > 0 ? (
                             benefits.map((benefit, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
@@ -43,10 +43,10 @@ const ProfileBenefits = ({ userName, headers }) => {
                                         <Typography>{benefit.number}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography> </Typography>
+                                        <Typography>{(benefit.employer_contribution).toFixed(2)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography> </Typography>
+                                        <Typography>{(benefit.employee_contribution).toFixed(2)}</Typography>  
                                     </TableCell>
                                 </TableRow>
                             ))) :

@@ -1,0 +1,778 @@
+import Layout from "../../../../components/Layout/Layout";
+import React, { useState, useEffect, useRef } from "react";
+import {
+    Box,
+    Button,
+    Typography,
+    FormControl,
+    FormControlLabel,
+    RadioGroup,
+    Radio,
+    TextField,
+    Select,
+    MenuItem,
+    InputLabel,
+    CircularProgress,
+} from "@mui/material";
+
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { useNavigate, useParams } from "react-router-dom";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
+import dayjs from "dayjs";
+import Swal from "sweetalert2";
+
+const UploadForm = ({ files = [], onChange, file, fileName }) => {
+    const fileInputRef = useRef();
+
+    const handleFileChange = (e) => {
+        const filesArray = Array.from(e.target.files);
+        if (onChange) onChange(filesArray);
+    };
+
+    return (
+        <>
+            <Typography variant="h7">
+                Max File Size: <strong>3 MB</strong>
+            </Typography>
+            <Box
+                sx={{
+                    border: 1,
+                    padding: 2,
+                    borderRadius: 1,
+                    backgroundColor: "#e6e6e6",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                }}
+            >
+                {/* Show existing file from props */}
+                {file && (
+                    <a href={file} target="_blank" rel="noopener noreferrer">
+                        <Typography
+                            color="primary"
+                            sx={{
+                                boxShadow: 1,
+                                padding: 1,
+                                borderRadius: 1,
+                                display: "inline-block",
+                                backgroundColor: "#fafafa",
+                                cursor: "pointer",
+                                mr: 2,
+                            }}
+                        >
+                            <FileUploadIcon
+                                sx={{ mr: 1, verticalAlign: "middle" }}
+                            />
+                            {fileName}
+                        </Typography>
+                    </a>
+                )}
+                {/* Show newly uploaded files */}
+                {Array.isArray(files) && files.length > 0 ? (
+                    files.map((file, index) => (
+                        <a
+                            key={index}
+                            href={
+                                file instanceof File
+                                    ? URL.createObjectURL(file)
+                                    : "#"
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <Typography
+                                color="primary"
+                                sx={{
+                                    boxShadow: 1,
+                                    padding: 1,
+                                    borderRadius: 1,
+                                    display: "inline-block",
+                                    backgroundColor: "#fafafa",
+                                    cursor: "pointer",
+                                    mr: 2,
+                                }}
+                            >
+                                <FileUploadIcon
+                                    sx={{ mr: 1, verticalAlign: "middle" }}
+                                />
+                                {file.name || file.fileName || "Unknown file"}
+                            </Typography>
+                        </a>
+                    ))
+                ) : !file ? (
+                    <Typography sx={{ mr: 2 }}>No file uploaded</Typography>
+                ) : null}
+
+                {/* Upload button */}
+                <input
+                    type="file"
+                    multiple
+                    style={{ display: "none" }}
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                />
+                <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() =>
+                        fileInputRef.current && fileInputRef.current.click()
+                    }
+                    startIcon={<FileUploadIcon />}
+                >
+                    {file ? "Replace" : "Upload"}
+                </Button>
+            </Box>
+        </>
+    );
+};
+
+const PassOrFail = ({ value, onChange }) => {
+    const normalizedValue =
+        value?.toLowerCase() === "pass"
+            ? "Pass"
+            : value?.toLowerCase() === "fail"
+                ? "Fail"
+                : "";
+
+    return (
+        <Box
+            sx={{ borderBottom: "solid", borderWidth: 1, borderColor: "#ccc" }}
+        >
+            <FormControl>
+                <RadioGroup value={normalizedValue} onChange={onChange}>
+                    <FormControlLabel
+                        value="Pass"
+                        control={<Radio />}
+                        label="Pass"
+                    />
+                    <FormControlLabel
+                        value="Fail"
+                        control={<Radio />}
+                        label="Fail"
+                    />
+                </RadioGroup>
+            </FormControl>
+        </Box>
+    );
+};
+
+const PostiveOrNegative = ({ value, onChange }) => {
+    const normalizedValue =
+        value?.toLowerCase() === "positive"
+            ? "Positive"
+            : value?.toLowerCase() === "negative"
+                ? "Negative"
+                : "";
+
+    return (
+        <Box
+            sx={{ borderBottom: "solid", borderWidth: 1, borderColor: "#ccc" }}
+        >
+            <FormControl>
+                <RadioGroup value={normalizedValue} onChange={onChange}>
+                    <FormControlLabel
+                        value="Positive"
+                        control={<Radio />}
+                        label="Positive"
+                    />
+                    <FormControlLabel
+                        value="Negative"
+                        control={<Radio />}
+                        label="Negative"
+                    />
+                </RadioGroup>
+            </FormControl>
+        </Box>
+    );
+};
+
+const Remarks = ({ value, onChange }) => {
+    return (
+        <>
+            <TextField
+                onChange={onChange}
+                label="Remarks"
+                disabled={false}
+                multiline
+                rows={4}
+                value={value}
+            ></TextField>
+        </>
+    );
+};
+
+const TextBox = ({ value, onChange }) => {
+    return (
+        <TextField
+            label="Description"
+            value={value || ""}
+            onChange={onChange}
+        />
+    );
+};
+
+const PemeQuestionnaireView = () => {
+    const [answers, setAnswers] = useState({});
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+    const { PemeResponseID } = useParams();
+    const [isLoading, setIsLoading] = useState(true);
+    const [employeeResponse, setEmployeeResponse] = useState([]);
+    const [expirationDate, setExpirationDate] = useState(dayjs());
+    const [nextSchedule, setNextSchedule] = useState(dayjs());
+    const [status, setStatus] = useState("");
+    const [pemeResponses, setPemeResponses] = useState("");
+    const [isDraftStatus, setIsDraftStatus] = useState(null);
+
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme-response/${PemeResponseID}/details`, {
+                headers,
+            })
+            .then((response) => {
+                setEmployeeResponse(response.data);
+                setIsDraftStatus(response.data.isDraft);
+                const initialAnswers = {};
+                if (Array.isArray(response.data.details)) {
+                    response.data.details.forEach((form) => {
+                        initialAnswers[form.question_id] = {};
+                        if (Array.isArray(form.input_type)) {
+                            form.input_type.forEach((type) => {
+                                initialAnswers[form.question_id][
+                                    type.input_type
+                                ] = type.value ?? "";
+                            });
+                        }
+                    });
+                }
+                setAnswers(initialAnswers);
+
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching PEME records:", error);
+                setIsLoading(false);
+            });
+    }, []);
+
+    //Set FE dates and status to values from DB
+    useEffect(() => {
+        if (pemeResponses && pemeResponses[0]) {
+            const res = pemeResponses[0];
+            if (res.expiry_date) setExpirationDate(dayjs(res.expiry_date));
+            if (res.next_schedule) setNextSchedule(dayjs(res.next_schedule));
+            if (res.status) setStatus(res.status);
+        }
+    }, [pemeResponses]);
+
+    const handleOnConfirmClick = () => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: `You want to save changes?`,
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Save",
+            confirmButtonColor: "#2b8a3e",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then(async (res) => {
+            if (res.isConfirmed) {
+                try {
+                    const payload = {
+                        expiry_date: expirationDate,
+                        next_schedule: nextSchedule,
+                        status: status,
+                    };
+                    console.log(payload);
+
+                    await axiosInstance.patch(
+                        `/peme-responses/${PemeResponseID}/status`,
+                        payload,
+                        { headers }
+                    );
+
+                    console.log("payload", payload);
+
+                    Swal.fire({
+                        icon: "success",
+                        text: "Changes updated successfully.",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+                } catch (error) {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Failed to save changes. Please try again.",
+                        icon: "error",
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    });
+                }
+            }
+        });
+    };
+
+    const handleSaveDraft = async () => {
+        const responses = [];
+        const attachedMedia = [];
+
+        if (Array.isArray(employeeResponse.details)) {
+            employeeResponse.details.forEach((form) => {
+                if (Array.isArray(form.input_type)) {
+                    form.input_type.forEach((type) => {
+                        // Get the value from answers state
+                        const value =
+                            answers[form.question_id]?.[type.input_type] ??
+                            null;
+
+                        // Handle attachments as comma-separated file names
+                        let answerValue = value;
+
+                        const responseEntry = {
+                            peme_q_item_id: form.question_id,
+                            peme_q_type_id: type.id,
+                            value: answerValue,
+                        };
+
+                        if (Array.isArray(answerValue) && answerValue[0] instanceof File) {
+                            responseEntry.files = answerValue;
+                        }
+
+                        responses.push(responseEntry);
+
+                        // If value is an array of Files
+                        if (Array.isArray(value) && value[0] instanceof File) {
+                            value.forEach((file) => {
+                                attachedMedia.push({
+                                    // question_id: form.question_id,
+                                    // input_type: type.input_type,
+                                    file: file,
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        const payload = {
+            peme_response_id: PemeResponseID,
+            responses: responses,
+        };
+
+        const formData = new FormData();
+
+        formData.append("peme_response_id", PemeResponseID);
+        formData.append("isDraft", isDraftStatus);
+
+        responses.forEach((item, index) => {
+            formData.append(
+                `responses[${index}][peme_q_item_id]`,
+                item.peme_q_item_id
+            );
+            formData.append(
+                `responses[${index}][peme_q_type_id]`,
+                item.peme_q_type_id
+            );
+
+            if (Array.isArray(item.files) && item.files[0] instanceof File) {
+                item.files.forEach((file, fileIndex) => {
+                    formData.append(`responses[${index}][files][${fileIndex}]`, file);
+                });
+                formData.append(`responses[${index}][value]`, '');
+            } else {
+                formData.append(`responses[${index}][value]`, item.value ?? '');
+            }
+        });
+
+        for (const pair of formData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
+
+        try {
+            // PAYLOAD FOR DATES AND STATUS
+            const secondaryPayload = {
+                expiry_date: expirationDate,
+                next_schedule: nextSchedule,
+                status: status,
+            };
+            console.log(secondaryPayload);
+
+            await axiosInstance.patch(
+                `/peme-responses/${PemeResponseID}/status`,
+                secondaryPayload,
+                { headers }
+            );
+
+            console.log("ANSWERS", payload.responses);
+            await axiosInstance.post(`/peme-responses/storeAll`, formData, {
+                headers,
+            });
+            Swal.fire({
+                icon: "success",
+                text: "Draft saved successfully.",
+                showConfirmButton: false,
+                timer: 1500,
+            });
+        } catch (error) {
+            Swal.fire({
+                title: "Error",
+                text: "Failed to save draft. Please try again.",
+                icon: "error",
+                confirmButtonText: "Okay",
+                confirmButtonColor: "#177604",
+            });
+
+            console.log(error);
+
+        }
+    };
+
+    // const handleSaveDraft = async () => {
+    //     const responses = [];
+
+    //     if (Array.isArray(employeeResponse.details)) {
+    //         employeeResponse.details.forEach((form) => {
+    //             if (Array.isArray(form.input_type)) {
+    //                 form.input_type.forEach((type) => {
+    //                     // Get the value from answers state
+    //                     const value =
+    //                         answers[form.question_id]?.[type.input_type] ??
+    //                         null;
+
+    //                     // Handle attachments as comma-separated file names
+    //                     let answerValue = value;
+
+    //                     responses.push({
+    //                         peme_q_item_id: form.question_id,
+    //                         peme_q_type_id: type.id,
+    //                         value: answerValue,
+    //                     });
+    //                 });
+    //             }
+    //         });
+    //     }
+
+    //     const payload = {
+    //         peme_response_id: PemeResponseID,
+    //         responses: responses,
+    //     };
+
+    //     console.log("TEST PAYLOAD", payload);
+
+    //     // try {
+    //     //     // PAYLOAD FOR DATES AND STATUS
+    //     //     const secondaryPayload = {
+    //     //         expiry_date: expirationDate,
+    //     //         next_schedule: nextSchedule,
+    //     //         status: status,
+    //     //     };
+    //     //     console.log(secondaryPayload);
+
+    //     //     await axiosInstance.patch(
+    //     //         `/peme-responses/${PemeResponseID}/status`,
+    //     //         secondaryPayload,
+    //     //         { headers }
+    //     //     );
+
+    //     //     console.log("ANSWERS", payload.responses);
+    //     //     await axiosInstance.post(`/peme-responses/storeAll`, payload, {
+    //     //         headers,
+    //     //     });
+    //     //     Swal.fire({
+    //     //         icon: "success",
+    //     //         text: "Draft saved successfully.",
+    //     //         showConfirmButton: false,
+    //     //         timer: 1500,
+    //     //     });
+    //     // } catch (error) {
+    //     //     Swal.fire({
+    //     //         title: "Error",
+    //     //         text: "Failed to save draft. Please try again.",
+    //     //         icon: "error",
+    //     //         confirmButtonText: "Okay",
+    //     //         confirmButtonColor: "#177604",
+    //     //     });
+
+    //     //     console.log(error);
+    //     // }
+    // };
+
+    const navigator = useNavigate();
+    const handleOnCancelClick = () => {
+        navigator(
+            `/admin/medical-records/peme-records/peme-responses/${PemeResponseID}`
+        );
+    };
+
+    const handleInputChange = (questionId, inputType, value) => {
+        setAnswers((prev) => ({
+            ...prev,
+            [questionId]: {
+                ...prev[questionId],
+                [inputType]: value,
+            },
+        }));
+    };
+
+    return (
+        <Layout>
+            {isLoading ? (
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        minHeight: "50vh",
+                    }}
+                >
+                    <CircularProgress color="success" />
+                </Box>
+            ) : (
+                <Box
+                    sx={{
+                        backgroundColor: "white",
+                        paddingY: 6,
+                        paddingX: 12,
+                        borderRadius: 1,
+                        boxShadow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
+                    }}
+                >
+                    {/* QUESTIONNAIRE */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            padding: 2,
+                            borderBottom: "1px solid #ccc",
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 2,
+                            }}
+                        >
+                            <Typography
+                                variant="h4"
+                                sx={{ fontWeight: "bold" }}
+                            >
+                                {employeeResponse.peme_name}
+                            </Typography>
+                            <Typography
+                                variant="h6"
+                                sx={{ fontWeight: "bold" }}
+                            >
+                                {employeeResponse.respondent}
+                            </Typography>
+                        </Box>
+                    </Box>
+                    {/* QUESTION */}
+                    {Array.isArray(employeeResponse.details) &&
+                        employeeResponse.details.map((form, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    backgroundColor: "#fafafa",
+                                    paddingX: 8,
+                                    paddingY: 6,
+                                    borderRadius: 1,
+                                    boxShadow: 1,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 2,
+                                }}
+                            >
+                                {/* QUESTION NAME */}
+                                <Typography
+                                    variant="h4"
+                                    sx={{ fontWeight: "bold", marginBottom: 3 }}
+                                >
+                                    {form.question_text}
+                                </Typography>
+
+                                {Array.isArray(form.input_type) &&
+                                    form.input_type.map((type, i) => {
+                                        const value =
+                                            answers[form.question_id]?.[
+                                            type.input_type
+                                            ] || "";
+
+                                        switch (type.input_type) {
+                                            case "remarks":
+                                                return (
+                                                    <Remarks
+                                                        key={i}
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                form.question_id,
+                                                                type.input_type,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            case "text":
+                                                return (
+                                                    <TextBox
+                                                        key={i}
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                form.question_id,
+
+                                                                type.input_type,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            case "pass_fail":
+                                                return (
+                                                    <PassOrFail
+                                                        key={i}
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                form.question_id,
+
+                                                                type.input_type,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            case "pos_neg":
+                                                return (
+                                                    <PostiveOrNegative
+                                                        key={i}
+                                                        value={value}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                form.question_id,
+
+                                                                type.input_type,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            case "attachment":
+                                                return (
+                                                    <UploadForm
+                                                        key={i}
+                                                        files={value}
+                                                        onChange={(newFiles) =>
+                                                            handleInputChange(
+                                                                form.question_id,
+
+                                                                "attachment",
+                                                                [
+                                                                    ...(answers[
+                                                                        form
+                                                                            .question_id
+                                                                    ]
+                                                                        ?.attachment ||
+                                                                        []),
+                                                                    ...newFiles,
+                                                                ]
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            default:
+                                                return null;
+                                        }
+                                    })}
+                            </Box>
+                        ))}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            gap: 2,
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            marginTop: 2,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 2,
+                                alignItems: "center",
+                            }}
+                        >
+                            <Button
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: "#7a7a7a",
+                                }}
+                                onClick={handleOnCancelClick}
+                            >
+                                Cancel
+                            </Button>
+
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    label="Expiration Date"
+                                    value={expirationDate}
+                                    onChange={setExpirationDate}
+                                />
+                            </LocalizationProvider>
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    label="Next Schedule"
+                                    value={nextSchedule}
+                                    onChange={setNextSchedule}
+                                />
+                            </LocalizationProvider>
+
+                            <FormControl sx={{ width: 200 }}>
+                                <InputLabel>Status</InputLabel>
+                                <Select
+                                    value={status}
+                                    label="Status"
+                                    onChange={(e) => setStatus(e.target.value)}
+                                >
+                                    <MenuItem value={"Pending"}>
+                                        Pending
+                                    </MenuItem>
+                                    <MenuItem value={"Clear"}>Clear</MenuItem>
+                                    <MenuItem value={"Rejected"}>
+                                        Rejected
+                                    </MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Box>
+
+                        <Box sx={{ display: "flex", gap: 2 }}>
+                            <Button
+                                variant="contained"
+                                onClick={handleSaveDraft}
+                            >
+                                Save Draft
+                            </Button>
+                            <Button
+                                variant="contained"
+                                onClick={handleOnConfirmClick}
+                            >
+                                Submit
+                            </Button>
+                        </Box>
+                    </Box>
+                </Box>
+            )}
+        </Layout>
+    );
+};
+
+export default PemeQuestionnaireView;

@@ -56,6 +56,7 @@ class UsersModel extends Authenticatable implements HasMedia
         'client_id',
         'branch_id',
         'department_id',
+        'department_position_id',
         'role_id',
         'job_title_id',
         'work_group_id',
@@ -68,7 +69,7 @@ class UsersModel extends Authenticatable implements HasMedia
     ];
 
 
-    public function branchPosition(): BelongsTo
+    public function branchPosition()
     {
         return $this->belongsTo(BranchPosition::class, 'branch_position_id');
     }
@@ -91,6 +92,16 @@ class UsersModel extends Authenticatable implements HasMedia
     public function department()
     {
         return $this->belongsTo(DepartmentsModel::class, 'department_id');
+    }
+
+    public function departmentPosition()
+    {
+        return $this->belongsTo(DepartmentPosition::class, 'department_position_id');
+    }
+
+   //pivot model connecting department positions and users
+    public function employeeDepartmentPositions(){
+        return $this->hasMany(EmployeeDepartmentPosition::class, 'employee_id');
     }
 
     public function workGroup()
@@ -141,15 +152,94 @@ class UsersModel extends Authenticatable implements HasMedia
         return $this->hasMany(EmployeeAllowancesModel::class, 'user_id');
     }
 
+    public function incentives()
+    {
+        return $this->hasMany(EmployeeIncentivesModel::class, 'user_id');
+    }
+
+    public function benefits()
+    {
+        return $this->hasMany(EmployeeBenefitsModel::class, 'user_id');
+    }
+
+    public function deductions()
+    {
+        return $this->hasMany(EmployeeDeductionsModel::class, 'user_id');
+    }
+
     public function leaveCredits()
     {
         return $this->hasMany(LeaveCreditsModel::class, 'user_id');
     }
 
-    public function company(): BelongsTo
+    public function company()
     {
-        return $this->BelongsTo(Company::class, 'company_id');
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
+    public function commentorResponses()
+    {
+        return $this->hasManyThrough(
+            EvaluationResponse::class,
+            EvaluationCommentor::class,
+            'commentor_id',
+            'id',
+            'id',
+            'response_id'
+        );
+    }
+
+    public function createdResponses()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'creator_id');
+    }
+
+    public function evaluateeResponses()
+    {
+        return $this->hasMany(EvaluationResponse::class, 'evaluatee_id');
+    }
+
+    public function evaluatorResponses()
+    {
+        return $this->hasManyThrough(
+            EvaluationResponse::class,
+            EvaluationEvaluator::class,
+            'evaluator_id',
+            'id',
+            'id',
+            'response_id'
+        );
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('profile_pictures')->singleFile();
+    }
+
+    public function comments(): hasMany
+    {
+        return $this->hasMany(MilestoneComment::class, 'user_id');
+    }
+    
+      //employees assigned to department positiosns
+    public function assignedDepartmentPositions()
+    {
+        return $this->belongsToMany(
+            DepartmentPositionAssignment::class,
+            'employee_department_positions',
+            'employee_id',
+            'assignment_id'
+        );
+    }
+
+    public function groupLifeEmployeePlan()
+    {
+        return $this->hasMany(GroupLifeEmployeePlan::class, 'employee_id');
+    }
+
+    public function getEmployeeNameAttribute()
+    {
+        return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
+    }
   
 }

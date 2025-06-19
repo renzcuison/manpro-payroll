@@ -171,13 +171,19 @@ class BenefitsController extends Controller
         if ($this->checkUser() && $user->client_id == $employee->client_id) {
 
             $benefits = [];
-            $rawBenefits = EmployeeBenefitsModel::where('user_id', $employee->id)->where('deleted_at', null)->get();
-
+            $baseSalary = floatval($employee->salary);
+            $rawBenefits = EmployeeBenefitsModel::with('benefit')->where('user_id', $employee->id)->where('deleted_at', null)->get();
+            
             foreach ($rawBenefits as $rawBenefit) {
+                $benefit = $rawBenefit->benefit;
+                $employeeContribution = ($baseSalary * ($benefit->employee_percentage / 100)) + $benefit->employee_amount;
+                $employerContribution = ($baseSalary * ($benefit->employer_percentage / 100)) + $benefit->employer_amount;
                 $benefits[] = [
                     'id' => $rawBenefit->id,
                     'benefit' => $rawBenefit->benefit->name,
                     'number' => $rawBenefit->number,
+                    'employee_contribution' => $employeeContribution,
+                    'employer_contribution' => $employerContribution,
                     'created_at' => $rawBenefit->created_at
                 ];
             }

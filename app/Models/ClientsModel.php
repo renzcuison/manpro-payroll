@@ -29,4 +29,17 @@ class ClientsModel extends Model
     {
         return $this->hasMany(AllowancesModel::class, 'client_id');
     }
+
+    public function incentives()
+    {
+        return $this->hasMany(IncentivesModel::class, 'client_id');
+    }
+    public function benefits()
+    {
+        return $this->hasMany(BenefitsModel::class, 'client_id');
+    }
+    public function deductions()
+    {
+        return $this->hasMany(DeductionsModel::class, 'client_id');
+    }
 }

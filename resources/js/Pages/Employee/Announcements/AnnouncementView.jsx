@@ -2,31 +2,34 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
-  Menu,
-  MenuItem,
+  Button,
   Stack,
   Grid,
   CircularProgress,
   IconButton,
   Divider,
-  ImageList,
-  ImageListItem,
-  ImageListItemBar,
   Tooltip,
   useTheme,
   useMediaQuery,
+  Dialog,
+  DialogTitle, 
+  DialogContent
 } from "@mui/material";
-import { MoreVert, Download, CheckCircle } from "@mui/icons-material";
+import { CheckCircle } from "@mui/icons-material";
 import dayjs from "dayjs";
 import Layout from "../../../components/Layout/Layout";
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import Swal from "sweetalert2";
 import InfoBox from "../../../components/General/InfoBox";
 import { useNavigate, useParams } from "react-router-dom";
+import CloseIcon from '@mui/icons-material/Close';
+import mammoth from "mammoth";
 
 import PdfImage from "../../../../../public/media/assets/PDF_file_icon.png";
 import DocImage from "../../../../../public/media/assets/Docx_file_icon.png";
 import XlsImage from "../../../../../public/media/assets/Excel_file_icon.png";
+
+import AnnouncementAttachments from "../../Employee/Announcements/Modals/AnnouncementAttachments";
 
 const AnnouncementView = () => {
   const { code } = useParams();
@@ -48,6 +51,29 @@ const AnnouncementView = () => {
   const [imageLoading, setImageLoading] = useState(true);
   const [images, setImages] = useState([]);
   const [attachments, setAttachments] = useState([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
+  const [docxHtml, setDocxHtml] = useState("");
+
+  const [attachmentsModal, setAttachmentsModal] = useState({ open: false, type: null });
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+  const [imagePreviewSrc, setImagePreviewSrc] = useState("");
+  const [imagePreviewName, setImagePreviewName] = useState("");
+
+  const handleCloseAttachmentsModal = () => {
+    setAttachmentsModal((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleExitedAttachmentsModal = () => {
+    setAttachmentsModal({ open: false, type: null });
+  };
+
+  const handlePreviewImage = (img) => {
+    let src = img.url || (img.id && renderImage ? renderImage(img.id, img.data, img.mime) : "");
+    setImagePreviewSrc(src);
+    setImagePreviewName(img.filename || "");
+    setImagePreviewOpen(true);
+  };
 
   useEffect(() => {
     getAnnouncementDetails();
@@ -109,24 +135,32 @@ const AnnouncementView = () => {
           const blob = new Blob([byteArray], { type: "image/png" });
           setImagePath(URL.createObjectURL(blob));
         } else {
-          setImagePath("../../../../images/ManProTab.png");
+          setImagePath(null);
         }
         setImageLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching thumbnail:", error);
-        setImagePath("../../../../images/ManProTab.png");
+        setImagePath(null);
         setImageLoading(false);
       });
   };
 
   // Announcement Files
+  const [thumbnail, setThumbnail] = useState(null); // <-- Add this
+
   const getAnnouncementFiles = () => {
     axiosInstance
       .get(`/announcements/getEmployeeAnnouncementFiles/${code}`, { headers })
       .then((response) => {
         setImages(response.data.images || []);
         setAttachments(response.data.attachments || []);
+        // Use the first thumbnail if available
+        if (response.data.thumbnails && response.data.thumbnails.length > 0) {
+          setThumbnail(response.data.thumbnails[0]);
+        } else {
+          setThumbnail(null);
+        }
       })
       .catch((error) => {
         console.error("Error fetching files:", error);
@@ -242,6 +276,48 @@ const AnnouncementView = () => {
     }
   };
 
+  // ---------------- File Preview
+  useEffect(() => {
+    if (!previewOpen) setDocxHtml("");
+  }, [previewOpen]);
+
+  const handlePreviewFile = (filename, id, mimeType) => {
+      axiosInstance.get(`/announcements/downloadFile/${id}`, { responseType: "blob", headers })
+          .then(async (response) => {
+              // Force correct mime type for PDF
+              let type = mimeType;
+              if (
+                  mimeType?.toLowerCase().includes("pdf") ||
+                  filename?.toLowerCase().endsWith(".pdf")
+              ) {
+                  type = "application/pdf";
+              }
+              const blob = new Blob([response.data], { type });
+              const url = URL.createObjectURL(blob);
+
+              if (
+                  type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                  filename.endsWith(".docx")
+              ) {
+                  const arrayBuffer = await blob.arrayBuffer();
+                  mammoth.convertToHtml(
+                    { arrayBuffer },
+                    { docBaseUrl: window.location.origin + "/" }
+                  ).then(result => {
+                    setDocxHtml(result.value);
+                    setPreviewFile({ url, mimeType: type, filename });
+                    setPreviewOpen(true);
+                  });
+              } else {
+                  setPreviewFile({ url, mimeType: type, filename });
+                  setPreviewOpen(true);
+              }
+          })
+          .catch((error) => {
+              console.error("Error previewing file:", error);
+          });
+  };
+
   // Image Cleanup
   useEffect(() => {
     return () => {
@@ -260,35 +336,47 @@ const AnnouncementView = () => {
   return (
     <Layout title={"AnnouncementView"}>
       <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
-        <Box sx={{ mx: "auto", width: { xs: "100%", md: "95%" } }}>
+        <Box sx={{ mx: "auto", mb: 5, width: { xs: "100%", md: "95%" } }}>
           <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }}>
-            <Box display="flex" sx={{ alignItems: "center" }}>
-              <Typography
-                variant={capSize}
-                sx={{
-                  fontWeight: "bold",
-                  whiteSpace: "normal",
-                  wordBreak: "break-word",
-                  overflowWrap: "break-word",
-                  lineHeight: 1.5,
-                  paddingRight: { xs: 0, md: 2 },
-                }}
-              >
-                {announcement.title || "Announcement"}
-              </Typography>
-              {announcement.acknowledged && (
-                <Tooltip title="You have acknowledged this announcement">
-                  <CheckCircle
-                    sx={{
-                      ml: 1,
-                      fontSize: 36,
-                      color: "#177604",
-                      transition: "color 0.2s ease-in-out",
-                      "&:hover": { color: "#1A8F07" },
-                    }}
-                  />
-                </Tooltip>
-              )}
+            <Box sx={{
+              mt: 5,
+              display: "flex",
+              justifyContent: "space-between",
+              px: 1,
+              alignItems: "center",
+              width: "100%"
+            }}>
+              <Box display="flex" sx={{ alignItems: "center" }}>
+                <Typography
+                  variant={capSize}
+                  sx={{
+                    fontWeight: "bold",
+                    whiteSpace: "normal",
+                    wordBreak: "break-word",
+                    overflowWrap: "break-word",
+                    lineHeight: 1.5,
+                    paddingRight: { xs: 0, md: 2 },
+                  }}
+                >
+                  {announcement.title || "Announcement"}
+                </Typography>
+                {announcement.acknowledged && (
+                  <Tooltip title="You have acknowledged this announcement">
+                    <CheckCircle
+                      sx={{
+                        ml: 1,
+                        fontSize: 36,
+                        color: "#177604",
+                        transition: "color 0.2s ease-in-out",
+                        "&:hover": { color: "#1A8F07" },
+                      }}
+                    />
+                  </Tooltip>
+                )}
+              </Box>
+              <IconButton onClick={() => navigate("/employee/announcements")}>
+                    <i className="si si-close"></i>
+              </IconButton>
             </Box>
           </Box>
 
@@ -299,25 +387,26 @@ const AnnouncementView = () => {
               </Box>
             ) : (
               <Grid container columnSpacing={4} rowSpacing={2}>
-                {/* Thumbnail */}
-                <Grid size={12}>
-                  <Box
-                    sx={{
-                      mb: 1,
-                      position: "relative",
-                      width: "100%",
-                      aspectRatio: "2 / 1",
-                      borderRadius: "4px",
-                      border: "2px solid #e0e0e0",
-                    }}
-                  >
-                    {imageLoading ? (
-                      <Box sx={{ display: "flex", placeSelf: "center", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                        <CircularProgress />
-                      </Box>
-                    ) : (
+              {/* Thumbnail */}
+              {imageLoading ? (
+                <Grid size={12} sx={{width: "100%" }}>
+                </Grid>
+              ) : (
+                thumbnail && (
+                  <Grid size={12} sx={{ height: {xs: 240, md: 360, lg: 480}, width: "100%" }}>
+                    <Box
+                      sx={{
+                        mb: 1,
+                        position: "relative",
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: "4px",
+                        border: "2px solid #e0e0e0",
+                        overflow: "hidden",
+                      }}
+                    >
                       <img
-                        src={imagePath}
+                        src={renderImage(thumbnail.id, thumbnail.data, thumbnail.mime)}
                         alt={`${announcement.title} thumbnail`}
                         style={{
                           width: "100%",
@@ -326,52 +415,20 @@ const AnnouncementView = () => {
                           borderRadius: "4px",
                         }}
                       />
-                    )}
-                  </Box>
-                </Grid>
+                    </Box>
+                  </Grid>
+                )
+              )}
                 {/* Core Information */}
                 <Grid container size={12} spacing={1} sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}>
                   {/* Header and Action Menu */}
                   <Grid size={12}>
-                    <Stack direction="row" sx={{ pb: 2, justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography variant={headSize} sx={{ fontWeight: "bold", color: "text.primary" }}>
-                        About This Announcement:
-                      </Typography>
-                      {!announcement.acknowledged && (
-                        <>
-                          <IconButton
-                            id="basic-button"
-                            size="small"
-                            aria-controls={menuOpen ? "basic-menu" : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={menuOpen ? "true" : undefined}
-                            onClick={handleMenuClick}
-                          >
-                            <MoreVert />
-                          </IconButton>
-                          <Menu
-                            id="basic-menu"
-                            anchorEl={anchorEl}
-                            open={menuOpen}
-                            onClose={handleMenuClose}
-                            MenuListProps={{ "aria-labelledby": "basic-button" }}
-                          >
-                            <MenuItem
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleAcknowledgeAnnouncement();
-                                handleMenuClose();
-                              }}
-                            >
-                              Acknowledge Announcement
-                            </MenuItem>
-                          </Menu>
-                        </>
-                      )}
-                    </Stack>
+                    <Typography variant={headSize} sx={{ fontWeight: "bold", color: "text.primary", mb: 1}}>
+                      About This Announcement:
+                    </Typography>  
                   </Grid>
                   {/* Posting Date */}
-                  <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid size={{ xs: 12, md: 4}}>
                     <InfoBox
                       title="Date Posted"
                       info={announcement.updated_at ? dayjs(announcement.updated_at).format("MMM D, YYYY    h:mm A") : "-"}
@@ -379,8 +436,31 @@ const AnnouncementView = () => {
                       clean
                     />
                   </Grid>
+                  {/* Acknowledgement Status */}
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    {announcement.acknowledged ? (
+                        <InfoBox
+                          title="Acknowledged On"
+                          info={announcement.ack_timestamp ? dayjs(announcement.ack_timestamp).format("MMM D, YYYY    h:mm A") : "-"}
+                          compact
+                          clean
+                        />
+                    ) : (
+                        <Typography
+                          sx={{
+                            whiteSpace: "normal",
+                            wordBreak: "break-word",
+                            overflowWrap: "break-word",
+                            lineHeight: 1.5,
+                            paddingRight: { xs: 0, md: 2 },
+                          }}
+                        >
+                          You have not acknowledged this announcement yet.
+                        </Typography>
+                    )}
+                  </Grid>
                   {/* Author Information */}
-                  <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid size={{ xs: 12, md: 4}}>
                     <Box sx={{ display: "flex", width: "100%", alignItems: "flex-start" }}>
                       <Typography
                         sx={{
@@ -399,58 +479,10 @@ const AnnouncementView = () => {
                           {announcement.author_name || "-"}
                         </Typography>
                         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                          {announcement.author_title || "-"}
+                          {announcement.author_title || null}
                         </Typography>
                       </Stack>
                     </Box>
-                  </Grid>
-                  <Grid size={{ xs: 12 }} sx={{ my: 0, mb: 1 }}>
-                    <Divider />
-                  </Grid>
-                  {/* Acknowledgement Status */}
-                  {announcement.acknowledged ? (
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <InfoBox
-                        title="Acknowledged On"
-                        info={announcement.ack_timestamp ? dayjs(announcement.ack_timestamp).format("MMM D, YYYY    h:mm A") : "-"}
-                        compact
-                        clean
-                      />
-                    </Grid>
-                  ) : (
-                    <Grid size={{ xs: 12, md: 6 }} align="left">
-                      <Typography
-                        sx={{
-                          whiteSpace: "normal",
-                          wordBreak: "break-word",
-                          overflowWrap: "break-word",
-                          lineHeight: 1.5,
-                          paddingRight: { xs: 0, md: 2 },
-                        }}
-                      >
-                        You have not acknowledged this announcement yet
-                      </Typography>
-                    </Grid>
-                  )}
-                  {/* Recipient Branch/Department */}
-                  <Grid size={{ xs: 12, md: 6 }} align="left">
-                    <Typography
-                      sx={{
-                        whiteSpace: "normal",
-                        wordBreak: "break-word",
-                        overflowWrap: "break-word",
-                        lineHeight: 1.5,
-                        paddingRight: { xs: 0, md: 2 },
-                      }}
-                    >
-                      {`This announcement is posted for your ${
-                        announcement.department_matched && announcement.branch_matched
-                          ? "branch and department"
-                          : announcement.department_matched
-                          ? "department"
-                          : "branch"
-                      }`}
-                    </Typography>
                   </Grid>
                 </Grid>
                 <Grid size={{ xs: 12 }} sx={{ my: 0 }}>
@@ -478,96 +510,138 @@ const AnnouncementView = () => {
                     <Divider />
                   </Grid>
                 )}
-                {/* Images */}
-                {images.length > 0 && (
-                  <Grid container spacing={2} size={{ xs: 12 }}>
-                    <Grid size={{ xs: 12 }} align="left">
-                      <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
-                        Images
-                      </Typography>
-                    </Grid>
-                    <Grid size={{ md: 12 }} align="left">
-                      <ImageList cols={colCount} gap={4} sx={{ width: "100%" }}>
-                        {images.map((image) => (
-                          <ImageListItem key={image.id} sx={{ aspectRatio: "1/1", width: "100%" }}>
-                            <img
-                              src={renderImage(image.id, image.data, image.mime)}
-                              alt={image.filename}
-                              loading="lazy"
-                              style={{
-                                height: "100%",
-                                width: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
-                            <ImageListItemBar
-                              subtitle={image.filename}
-                              actionIcon={
-                                <Tooltip title={"Download"}>
-                                  <IconButton
-                                    sx={{ color: "rgba(255, 255, 255, 0.47)" }}
-                                    onClick={() => handleFileDownload(image.filename, image.id)}
-                                  >
-                                    <Download />
-                                  </IconButton>
-                                </Tooltip>
-                              }
-                            />
-                          </ImageListItem>
-                        ))}
-                      </ImageList>
-                    </Grid>
+                {(images.length > 0 || attachments.length > 0) && (
+                  <Grid size={12} sx={{ my: 2 }}>
+                    <Box sx={{ display: "flex", gap: 2 }}>
+                      {images.length > 0 && (
+                        <Box
+                          sx={{
+                            width: attachments.length > 0 ? "48%" : "48%",
+                            bgcolor: "#f5f5f5",
+                            borderRadius: 2,
+                            boxShadow: 2,
+                            cursor: "pointer",
+                            textAlign: "center",
+                            p: 3,
+                            "&:hover": { boxShadow: 4, bgcolor: "#e0e0e0"}
+                          }}
+                          onClick={() => setAttachmentsModal({ open: true, type: "images" })}
+                        >
+                          <i className="fa fa-file-image-o" aria-hidden="true" style={{ fontSize: 32, color: "#333", marginBottom: 8 }}></i>
+                          <Typography variant="h6" fontWeight="bold">IMAGES</Typography>
+                          <Typography variant="body2" color="text.secondary">{images.length} attached</Typography>
+                        </Box>
+                      )}
+                      {attachments.length > 0 && (
+                        <Box
+                          sx={{
+                            width: images.length > 0 ? "48%" : "48%",
+                            bgcolor: "#f5f5f5",
+                            borderRadius: 2,
+                            boxShadow: 2,
+                            cursor: "pointer",
+                            textAlign: "center",
+                            p: 3,
+                            "&:hover": { boxShadow: 4, bgcolor: "#e0e0e0"}
+                          }}
+                          onClick={() => setAttachmentsModal({ open: true, type: "documents" })}
+                        >
+                          <i className="fa fa-file-text" aria-hidden="true" style={{ fontSize: 32, color: "#333", marginBottom: 8 }}></i>
+                          <Typography variant="h6" fontWeight="bold">DOCUMENTS</Typography>
+                          <Typography variant="body2" color="text.secondary">{attachments.length} attached</Typography>
+                        </Box>
+                      )}
+                    </Box>
                   </Grid>
                 )}
-                {/* Documents */}
-                {attachments.length > 0 && (
-                  <Grid container size={{ xs: 12 }} spacing={2}>
-                    <Grid size={{ xs: 12 }} align="left">
-                      <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "text.primary", mb: 1 }}>
-                        Documents
-                      </Typography>
-                    </Grid>
-                    <Grid size={{ md: 12 }} align="left">
-                      <ImageList cols={colCount} gap={4} sx={{ width: "100%" }}>
-                        {attachments.map((attachment) => {
-                          const fileIcon = getFileIcon(attachment.filename);
-                          return (
-                            <ImageListItem key={attachment.id} sx={{ aspectRatio: "1/1", width: "100%" }}>
-                              <img
-                                src={fileIcon}
-                                alt={attachment.filename}
-                                loading="lazy"
-                                style={{
-                                  height: "100%",
-                                  width: "100%",
-                                  objectFit: "cover",
-                                }}
-                              />
-                              <ImageListItemBar
-                                subtitle={attachment.filename}
-                                actionIcon={
-                                  <Tooltip title={"Download"}>
-                                    <IconButton
-                                      sx={{ color: "rgba(255, 255, 255, 0.47)" }}
-                                      onClick={() => handleFileDownload(attachment.filename, attachment.id)}
-                                    >
-                                      <Download />
-                                    </IconButton>
-                                  </Tooltip>
-                                }
-                              />
-                            </ImageListItem>
-                          );
-                        })}
-                      </ImageList>
-                    </Grid>
-                  </Grid>
+                {/* Acknowledge Button */}
+                {!announcement.acknowledged && (
+                  <Box sx={{ display: "flex", justifyContent: "flex-end", width: "100%", mt: 2 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleAcknowledgeAnnouncement();
+                        handleMenuClose();
+                      }}
+                    >
+                      <p className="m-0">
+                        <i className="fa fa-check"></i> Acknowledge{" "}
+                      </p>
+                    </Button>
+                  </Box>
                 )}
               </Grid>
             )}
           </Box>
         </Box>
       </Box>
+      <AnnouncementAttachments
+          open={attachmentsModal.open}
+          onClose={handleCloseAttachmentsModal}
+          onExited={handleExitedAttachmentsModal}
+          type={attachmentsModal.type}
+          items={attachmentsModal.type === "images" ? images : attachments}
+          handleFileDownload={handleFileDownload}
+          handlePreviewFile={handlePreviewFile}
+          handlePreviewImage={handlePreviewImage}
+          renderImage={renderImage}
+        />
+        <Dialog open={imagePreviewOpen} onClose={() => setImagePreviewOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            {imagePreviewName}
+            <IconButton
+              aria-label="close"
+              onClick={() => setImagePreviewOpen(false)}
+              sx={{ position: 'absolute', right: 8, top: 8 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
+            <img src={imagePreviewSrc} alt={imagePreviewName} style={{ maxWidth: "100%", maxHeight: 500, borderRadius: 8 }} />
+          </DialogContent>
+        </Dialog>
+        <Dialog open={previewOpen} onClose={() => {
+              if (previewFile?.url) URL.revokeObjectURL(previewFile.url);
+              setPreviewOpen(false);
+              setPreviewFile(null);
+          }} maxWidth="md" fullWidth>
+          <DialogTitle>
+              {previewFile?.filename}
+              <IconButton
+                  aria-label="close"
+                  onClick={() => {
+                      if (previewFile?.url) URL.revokeObjectURL(previewFile.url);
+                      setPreviewOpen(false);
+                      setPreviewFile(null);
+                  }}
+                  sx={{ position: 'absolute', right: 8, top: 8 }}
+              >
+                  <CloseIcon />
+              </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ minHeight: 600 }}>
+            {previewFile?.mimeType?.includes("pdf") && previewFile?.filename?.toLowerCase().endsWith(".pdf") ? (
+              <iframe
+                  src={previewFile.url}
+                  title="PDF Preview"
+                  width="100%"
+                  height="500px"
+                  style={{ border: "none" }}
+              />
+          ) : previewFile?.mimeType?.includes("word") || previewFile?.filename?.toLowerCase().endsWith(".docx") ? (
+              <Box sx={{ width: "100%", minHeight: 400, bgcolor: "#fafafa", p: 2, overflow: "auto" }}>
+                  <div dangerouslySetInnerHTML={{ __html: docxHtml }} />
+              </Box>
+          ) : (
+              <Typography>
+                  Preview not supported for this file type. Please download to view.
+              </Typography>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };

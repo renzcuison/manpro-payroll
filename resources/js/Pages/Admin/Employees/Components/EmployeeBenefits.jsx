@@ -1,33 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import dayjs from "dayjs";
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
+import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, IconButton, Tooltip} from "@mui/material";
+import EmployeeBenefitView from "../../Benefits/Modals/EmployeeBenefitView";
 
-import EmployeeAddBenefit from '../Modals/EmployeeAddBenefit';
-
-const EmployeeBenefits = ({ userName, headers }) => {
-
-    const [openEmployeeAddBenefit, setOpenEmployeeAddBenefit] = useState(false);
+const EmployeeBenefits = ({ userName, benefits, onRefresh }) => {
+    const [openEmployeeViewBenefit, setOpenEmployeeViewBenefit] = useState(false);
     
-    const [benefits, setBenefits] = useState([]);
-
-    useEffect(() => {
-        axiosInstance.get(`/benefits/getEmployeeBenefits`, { headers, params: { username: userName } })
-            .then((response) => {
-                setBenefits(response.data.benefits);
-            })
-            .catch((error) => {
-                console.error('Error fetching benefits:', error);
-            });
-    }, []);
-
-    const handleOpenAddEmployeeBenefit = () => {
-        console.log("handleOpenAddEmployeeBenefit()");
-        setOpenEmployeeAddBenefit(true);
+    
+    const handleCloseViewEmployeeBenefits = () => {
+        setOpenEmployeeViewBenefit(true);
     }
-    const handleCloseAddEmployeeBenefit = () => {
-        console.log("handleCloseAddEmployeeBenefit()");
-        setOpenEmployeeAddBenefit(false);
+
+    const handleCloseAddEmployeeBenefit = (reload) => {
+        setOpenEmployeeViewBenefit(false);
+        if(reload){
+            onRefresh();    
+        }
     }
 
     return (
@@ -36,27 +23,16 @@ const EmployeeBenefits = ({ userName, headers }) => {
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}> Statutory Benefits </Typography>
 
-                <Button variant="contained" color="primary" onClick={() => handleOpenAddEmployeeBenefit()}>
-                    <p className='m-0'><i className="fa fa-plus"></i> Add </p>
+                <Button variant="text" sx={{fontSize: 15, textAlign:'right'}} onClick={() => handleCloseViewEmployeeBenefits()}>
+                    View
                 </Button>
             </Box>
 
             <TableContainer>
                 <Table size="small">
-                    {/* <TableHead>
-                        <TableRow>
-                            <TableCell align="center" rowSpan={2}>Benefit</TableCell>
-                            <TableCell align="center" rowSpan={2}>Number</TableCell>
-                            <TableCell align="center" colSpan={2}>Contribution</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell align="center">Employer</TableCell>
-                            <TableCell align="center">Employee</TableCell>
-                        </TableRow>
-                    </TableHead> */}
                     <TableHead>
                         <TableRow>
-                            <TableCell align="center">Benefit</TableCell>
+                            <TableCell align="left">Benefit</TableCell>
                             <TableCell align="center">Number</TableCell>
                             <TableCell align="center">Employer</TableCell>
                             <TableCell align="center">Employee</TableCell>
@@ -67,16 +43,16 @@ const EmployeeBenefits = ({ userName, headers }) => {
                             benefits.map((benefit, index) => (
                                 <TableRow key={index}>
                                     <TableCell>
-                                        <Typography>{benefit.benefit}</Typography>
+                                        <Typography>{benefit.name}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography>{benefit.number}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography> </Typography>
+                                        <Typography>₱{(benefit.employer_contribution).toFixed(2)}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <Typography> </Typography>
+                                        <Typography>₱{(benefit.employee_contribution).toFixed(2)}</Typography>                               
                                     </TableCell>
                                 </TableRow>
                             ))) :
@@ -91,8 +67,8 @@ const EmployeeBenefits = ({ userName, headers }) => {
             </TableContainer>
 
             
-            {openEmployeeAddBenefit &&
-                <EmployeeAddBenefit open={openEmployeeAddBenefit} close={handleCloseAddEmployeeBenefit} userName={userName} />
+            {openEmployeeViewBenefit &&
+                <EmployeeBenefitView open={openEmployeeViewBenefit} close={handleCloseAddEmployeeBenefit} userName={userName} />
             }
         </Box>
     );

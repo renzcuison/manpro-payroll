@@ -3,18 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnnouncementAcknowledgementsModel;
-use App\Models\AnnouncementsModel;
 use App\Models\AnnouncementViewsModel;
-use App\Models\AnnouncementBranchesModel;
-use App\Models\AnnouncementDepartmentsModel;
 use App\Models\UsersModel;
+
+use App\Models\AnnouncementsModel;
+use App\Models\AnnouncementDepartmentsModel;
+use App\Models\AnnouncementBranchesModel;
+use App\Models\AnnouncementEmployeeRoleModel;
+use App\Models\AnnouncementEmployeeTypeModel; 
+use App\Models\AnnouncementEmployeeStatusModel;
+use App\Models\AnnouncementTypesModel;
+use App\Models\EmployeeTypeModel;
+use App\Models\AnnouncementRecipientModel;
+use App\Mail\NewAnnouncementMail;
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+
 
 class AnnouncementsController extends Controller
 {
@@ -46,32 +57,64 @@ class AnnouncementsController extends Controller
         }
 
         try {
-            $announcements = AnnouncementsModel::with(['views.user', 'branches', 'departments'])
-                ->where('client_id', $user->client_id)
-                ->whereIn('status', ['Published', 'Pending', 'Hidden']) // Include Hidden
-                ->orderBy('created_at', 'desc')
-                ->get();
+        $announcements = AnnouncementsModel::with([
+            'views.user',
+            'branches',
+            'departments',
+            'employeeRoles',
+            'employeeStatuses',
+            'employeeTypes',
+            'acknowledgements.user' // <-- Add this line!
+        ])
+        ->where('client_id', $user->client_id)
+        ->whereIn('status', ['Published', 'Pending', 'Hidden'])
+        ->whereNull('deleted_at')
+        ->orderBy('created_at', 'desc')
+        ->get();
 
-            $formattedAnnouncements = $announcements->map(function ($announcement) {
-                $viewCount = $announcement->views->count();
-                // Count unique employees in assigned branches and departments
-                $branchIds = $announcement->branches->pluck('branch_id')->toArray();
-                $departmentIds = $announcement->departments->pluck('department_id')->toArray();
-                $recipientCount = UsersModel::where('user_type', 'Employee')
-                    ->where(function ($query) use ($branchIds, $departmentIds) {
-                        if (!empty($branchIds)) {
-                            $query->whereIn('branch_id', $branchIds);
-                        }
-                        if (!empty($departmentIds)) {
-                            $query->orWhereIn('department_id', $departmentIds);
-                        }
-                    })
-                    ->distinct('id')
-                    ->count();
-                // Count acknowledgments
-                $acknowledgedCount = AnnouncementAcknowledgementsModel::where('announcement_id', $announcement->id)->count();
-                
-                $views = $announcement->views->map(function ($view) {
+        $formattedAnnouncements = $announcements->map(function ($announcement) {
+            $viewCount = $announcement->views->count();
+            $branchIds = $announcement->branches->pluck('branch_id')->toArray();
+            $departmentIds = $announcement->departments->pluck('department_id')->toArray();
+
+            // Get allowed roles, types, statuses
+            $allowedRoleIds = $announcement->employeeRoles ? $announcement->employeeRoles->pluck('role_id')->toArray() : [];
+            $allowedEmploymentTypes = $announcement->employeeTypes ? $announcement->employeeTypes->pluck('employment_type')->toArray() : [];
+            $allowedEmploymentStatuses = $announcement->employeeStatuses ? $announcement->employeeStatuses->pluck('employment_status')->toArray() : [];
+
+            $recipientCount = UsersModel::where('user_type', 'Employee')
+                ->where(function ($query) use ($branchIds, $departmentIds) {
+                    if (!empty($branchIds)) {
+                        $query->whereIn('branch_id', $branchIds);
+                    }
+                    if (!empty($departmentIds)) {
+                        $query->orWhereIn('department_id', $departmentIds);
+                    }
+                })
+                ->when(!empty($allowedRoleIds), function ($query) use ($allowedRoleIds) {
+                    $query->whereIn('role_id', $allowedRoleIds);
+                })
+                ->when(!empty($allowedEmploymentTypes), function ($query) use ($allowedEmploymentTypes) {
+                    $query->whereIn('employment_type', $allowedEmploymentTypes);
+                })
+                ->when(!empty($allowedEmploymentStatuses), function ($query) use ($allowedEmploymentStatuses) {
+                    $query->whereIn('employment_status', $allowedEmploymentStatuses);
+                })
+                ->distinct('id')
+                ->count();
+
+            $acknowledgedCount = AnnouncementAcknowledgementsModel::where('announcement_id', $announcement->id)->count();
+
+            $views = $announcement->views
+                ->filter(function ($view) use ($allowedRoleIds, $allowedEmploymentTypes, $allowedEmploymentStatuses) {
+                    $user = $view->user;
+                    if (!$user) return false;
+                    $roleMatch = empty($allowedRoleIds) || in_array($user->role_id, $allowedRoleIds);
+                    $typeMatch = empty($allowedEmploymentTypes) || in_array($user->employment_type, $allowedEmploymentTypes);
+                    $statusMatch = empty($allowedEmploymentStatuses) || in_array($user->employment_status, $allowedEmploymentStatuses);
+                    return $roleMatch && $typeMatch && $statusMatch;
+                })
+                ->map(function ($view) {
                     $profilePic = $view->user && $view->user->profile_pic
                         ? asset('storage/' . $view->user->profile_pic)
                         : asset('images/default-avatar.png');
@@ -86,20 +129,43 @@ class AnnouncementsController extends Controller
                     ];
                 });
 
-                return [
-                    'id' => $announcement->id,
-                    'unique_code' => $announcement->unique_code,
-                    'title' => $announcement->title,
-                    'description' => $announcement->description,
-                    'status' => $announcement->status,
-                    'created_at' => $announcement->created_at,
-                    'updated_at' => $announcement->updated_at,
-                    'viewed' => $viewCount,
-                    'recipients' => $recipientCount,
-                    'acknowledged' => $acknowledgedCount,
-                    'views' => $views,
-                ];
-            });
+            $acknowledgements = $announcement->acknowledgements
+                ->filter(function ($ack) use ($allowedRoleIds, $allowedEmploymentTypes, $allowedEmploymentStatuses) {
+                    $user = $ack->user;
+                    if (!$user) return false;
+                    $roleMatch = empty($allowedRoleIds) || in_array($user->role_id, $allowedRoleIds);
+                    $typeMatch = empty($allowedEmploymentTypes) || in_array($user->employment_type, $allowedEmploymentTypes);
+                    $statusMatch = empty($allowedEmploymentStatuses) || in_array($user->employment_status, $allowedEmploymentStatuses);
+                    return $roleMatch && $typeMatch && $statusMatch;
+                })
+                ->map(function ($acknowledgement) {
+                    $profilePic = $acknowledgement->user && $acknowledgement->user->profile_pic
+                        ? asset('storage/' . $acknowledgement->user->profile_pic)
+                        : asset('images/default-avatar.png');
+                    return [
+                        'user_id' => $acknowledgement->user ? $acknowledgement->user->id : null,
+                        'first_name' => $acknowledgement->user ? $acknowledgement->user->first_name : 'Unknown',
+                        'last_name' => $acknowledgement->user ? $acknowledgement->user->last_name : 'User',
+                        'profile_pic' => $profilePic,
+                    ];
+                });
+
+            return [
+                'id' => $announcement->id,
+                'unique_code' => $announcement->unique_code,
+                'title' => $announcement->title,
+                'description' => $announcement->description,
+                'status' => $announcement->status,
+                'created_at' => $announcement->created_at,
+                'updated_at' => $announcement->updated_at,
+                'viewed' => $viewCount,
+                'recipients' => $recipientCount,
+                'acknowledged' => $acknowledgedCount,
+                'views' => $views ? $views->values()->all() : [],
+                'acknowledgements' => $acknowledgements,
+                'scheduled_send_datetime' => $announcement->scheduled_send_datetime
+            ];
+        });
 
             //Log::info('getAnnouncements: Successfully fetched announcements', ['count' => $formattedAnnouncements->count()]);
 
@@ -121,11 +187,27 @@ class AnnouncementsController extends Controller
         }
 
         try {
-            $announcement = AnnouncementsModel::where('unique_code', $code)->firstOrFail();
+            $announcement = AnnouncementsModel::where('unique_code', $code)
+                ->with(['employeeRoles', 'employeeTypes', 'employeeStatuses'])
+                ->firstOrFail();
+
+            $allowedRoleIds = $announcement->employeeRoles->pluck('role_id')->toArray();
+            $allowedEmploymentTypes = $announcement->employeeTypes->pluck('employment_type')->toArray();
+            $allowedEmploymentStatuses = $announcement->employeeStatuses->pluck('employment_status')->toArray();
+
             $views = AnnouncementViewsModel::where('announcement_id', $announcement->id)
                 ->join('users', 'announcement_views.user_id', '=', 'users.id')
                 ->leftJoin('branches', 'users.branch_id', '=', 'branches.id')
                 ->leftJoin('departments', 'users.department_id', '=', 'departments.id')
+                ->when(!empty($allowedRoleIds), function ($query) use ($allowedRoleIds) {
+                    $query->whereIn('users.role_id', $allowedRoleIds);
+                })
+                ->when(!empty($allowedEmploymentTypes), function ($query) use ($allowedEmploymentTypes) {
+                    $query->whereIn('users.employment_type', $allowedEmploymentTypes);
+                })
+                ->when(!empty($allowedEmploymentStatuses), function ($query) use ($allowedEmploymentStatuses) {
+                    $query->whereIn('users.employment_status', $allowedEmploymentStatuses);
+                })
                 ->select(
                     'users.id as user_id',
                     'users.first_name',
@@ -200,7 +282,8 @@ class AnnouncementsController extends Controller
 
     public function getEmployeeAnnouncements()
     {
-        //Log::info("AnnouncementsController::getEmployeeAnnouncements");
+        // Log::info("AnnouncementsController::getEmployeeAnnouncements");
+
         $user = Auth::user();
         if (!$user) {
             Log::warning('Unauthenticated user attempted to access getEmployeeAnnouncements');
@@ -208,7 +291,7 @@ class AnnouncementsController extends Controller
         }
 
         try {
-            $announcements = AnnouncementsModel::where('status', 'Published')
+            $announcements = AnnouncementsModel::whereNull('deleted_at')->where('status', 'Published')
                 ->where(function ($query) use ($user) {
                     $query->whereHas('branches', function ($q) use ($user) {
                         $q->where('branch_id', $user->branch_id);
@@ -216,20 +299,58 @@ class AnnouncementsController extends Controller
                         $q->where('department_id', $user->department_id);
                     });
                 })
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeRoles')
+                        ->orWhereHas('employeeRoles', function ($q) use ($user) {
+                            $q->where('role_id', $user->role_id);
+                        });
+                })
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeTypes')
+                        ->orWhereHas('employeeTypes', function ($q) use ($user) {
+                            $q->where('employment_type', $user->employment_type);
+                        });
+                })
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeStatuses')
+                        ->orWhereHas('employeeStatuses', function ($q) use ($user) {
+                            $q->where('employment_status', $user->employment_status);
+                        });
+                })
                 ->with(['acknowledgements' => function ($query) use ($user) {
                     $query->where('user_id', $user->id);
-                }])
+                }, 'user.role']) // Load user and role relationships
                 ->get();
 
-            $announcementData = $announcements->map(function ($announcement) use ($user) {
+            $announcementData = $announcements->map(function ($announcement) use ($user) {           
+                
+                log::info($announcement);
+                
                 $branchMatched = $announcement->branches->pluck('branch_id')->contains($user->branch_id);
                 $departmentMatched = $announcement->departments->pluck('department_id')->contains($user->department_id);
                 $acknowledgedOn = $announcement->acknowledgements->firstWhere('user_id', $user->id)?->created_at;
+
+                // Construct author name
+                $authorName = 'Unknown Author';
+                if ($announcement->user && ($announcement->user->first_name || $announcement->user->last_name)) {
+                    $authorName = implode(' ', array_filter([
+                        $announcement->user->first_name,
+                        $announcement->user->middle_name,
+                        $announcement->user->last_name,
+                        $announcement->user->suffix,
+                    ]));
+                }
+
+                // Get role name
+                $roleName = $announcement->user && $announcement->user->role ? $announcement->user->role->name : 'Unknown';
 
                 return [
                     'id' => $announcement->id,
                     'unique_code' => $announcement->unique_code,
                     'title' => $announcement->title,
+                    'user_id' => $announcement->user_id,
+                    'author_name' => $authorName,
+                    'role_name' => $roleName,
                     'updated_at' => $announcement->updated_at,
                     'branch_matched' => $branchMatched,
                     'department_matched' => $departmentMatched,
@@ -281,14 +402,19 @@ class AnnouncementsController extends Controller
                     }
                 }
 
-                // Adding Files - Images
-                if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $index => $file) {
-                        $isThumbnail = $index == $request->input('thumbnail');
-                        $collection = $isThumbnail ? 'thumbnails' : 'images';
+                // Thumbnail (single file)
+                if ($request->hasFile('thumbnail')) {
+                    $announcement->addMedia($request->file('thumbnail'))
+                        ->withCustomProperties(['type' => 'Thumbnail'])
+                        ->toMediaCollection('thumbnails');
+                }
+
+                // Images (multiple files)
+                if ($request->hasFile('images')) {
+                    foreach ($request->file('images') as $file) {
                         $announcement->addMedia($file)
-                            ->withCustomProperties(['type' => $isThumbnail ? 'Thumbnail' : 'Image'])
-                            ->toMediaCollection($collection);
+                            ->withCustomProperties(['type' => 'Image'])
+                            ->toMediaCollection('images');
                     }
                 }
 
@@ -345,18 +471,26 @@ class AnnouncementsController extends Controller
                     }
                 }
 
-                // Adding Files - Images
-                if ($request->hasFile('image')) {
-                    foreach ($request->file('image') as $index => $file) {
-                        $isThumbnail = $index == $request->input('thumbnail');
-                        if ($isThumbnail) {
-                            $announcement->clearMediaCollection('thumbnails');
-                        }
-                        $collection = $isThumbnail ? 'thumbnails' : 'images';
+                // ADD THIS: Handle Thumbnail (like in saveAnnouncement)
+                if ($request->hasFile('thumbnail')) {
+                    // Remove old thumbnail if exists
+                    $announcement->clearMediaCollection('thumbnails');
+                    $announcement->addMedia($request->file('thumbnail'))
+                        ->withCustomProperties(['type' => 'Thumbnail'])
+                        ->toMediaCollection('thumbnails');
+                }
+
+                // ADD THIS: Handle Images (like in saveAnnouncement)
+                if ($request->hasFile('images')) {
+                    foreach ($request->file('images') as $file) {
                         $announcement->addMedia($file)
-                            ->withCustomProperties(['type' => $isThumbnail ? 'Thumbnail' : 'Image'])
-                            ->toMediaCollection($collection);
+                            ->withCustomProperties(['type' => 'Image'])
+                            ->toMediaCollection('images');
                     }
+                }
+
+                if ($request->input('removeThumbnail')) {
+                    $announcement->clearMediaCollection('thumbnails');
                 }
 
                 DB::commit();
@@ -388,51 +522,51 @@ class AnnouncementsController extends Controller
         }
     }
 
-    public function publishAnnouncement(Request $request)
-    {
-        //Log::info("AnnouncementsController::publishAnnouncement");
-        //Log::info($request);
+    // public function publishAnnouncement(Request $request)
+    // {
+    //     //Log::info("AnnouncementsController::publishAnnouncement");
+    //     //Log::info($request);
 
-        $user = Auth::user();
+    //     $user = Auth::user();
 
-        if ($this->checkUser()) {
-            try {
-                DB::beginTransaction();
+    //     if ($this->checkUser()) {
+    //         try {
+    //             DB::beginTransaction();
 
-                $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
-                $announcement->status = "Published";
-                $announcement->save();
+    //             $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
+    //             $announcement->status = "Published";
+    //             $announcement->save();
 
-                foreach ($request->input('departments') as $key => $departmentId) {
-                    Log::info($announcement->id . " " . $departmentId);
-                    AnnouncementDepartmentsModel::create([
-                        'announcement_id' => $announcement->id,
-                        'department_id' => $departmentId
-                    ]);
-                }
+    //             foreach ($request->input('departments') as $key => $departmentId) {
+    //                 Log::info($announcement->id . " " . $departmentId);
+    //                 AnnouncementDepartmentsModel::create([
+    //                     'announcement_id' => $announcement->id,
+    //                     'department_id' => $departmentId
+    //                 ]);
+    //             }
 
-                foreach ($request->input('branches') as $key => $branchId) {
-                    Log::info($announcement->id . " " . $branchId);
-                    AnnouncementBranchesModel::create([
-                        'announcement_id' => $announcement->id,
-                        'branch_id' => $branchId
-                    ]);
-                }
+    //             foreach ($request->input('branches') as $key => $branchId) {
+    //                 Log::info($announcement->id . " " . $branchId);
+    //                 AnnouncementBranchesModel::create([
+    //                     'announcement_id' => $announcement->id,
+    //                     'branch_id' => $branchId
+    //                 ]);
+    //             }
 
-                DB::commit();
+    //             DB::commit();
 
-                return response()->json(['status' => 200]);
-            } catch (\Exception $e) {
-                DB::rollBack();
+    //             return response()->json(['status' => 200]);
+    //         } catch (\Exception $e) {
+    //             DB::rollBack();
 
-                Log::error("Error saving: " . $e->getMessage());
+    //             Log::error("Error saving: " . $e->getMessage());
 
-                throw $e;
-            }
-        } else {
-            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
-        }
-    }
+    //             throw $e;
+    //         }
+    //     } else {
+    //         return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    //     }
+    // }
 
     public function toggleHide(Request $request, $code)
     {
@@ -511,8 +645,6 @@ class AnnouncementsController extends Controller
 
     public function getEmployeeAnnouncementDetails($code)
     {
-        //Log::info("AnnouncementsController::getEmployeeAnnouncementDetails");
-
         $user = Auth::user();
         if (!$user) {
             Log::warning('Unauthenticated user attempted to access getEmployeeAnnouncementDetails');
@@ -528,6 +660,25 @@ class AnnouncementsController extends Controller
                     })->orWhereHas('departments', function ($q) use ($user) {
                         $q->where('department_id', $user->department_id);
                     });
+                })
+                // Filter by allowed roles, types, statuses
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeRoles')
+                        ->orWhereHas('employeeRoles', function ($q) use ($user) {
+                            $q->where('role_id', $user->role_id);
+                        });
+                })
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeTypes')
+                        ->orWhereHas('employeeTypes', function ($q) use ($user) {
+                            $q->where('employment_type', $user->employment_type);
+                        });
+                })
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('employeeStatuses')
+                        ->orWhereHas('employeeStatuses', function ($q) use ($user) {
+                            $q->where('employment_status', $user->employment_status);
+                        });
                 })
                 ->with(['acknowledgements' => function ($query) use ($user) {
                     $query->where('user_id', $user->id);
@@ -561,15 +712,15 @@ class AnnouncementsController extends Controller
         }
     }
     
-    public function getAnnouncementBranchDepts($code)
+    public function getAnnouncementPublishmentDetails($code)
     {
-        //Log::info("AnnouncementsController::getAnnouncementBranchDepts");
+        // Log::info("AnnouncementsController::getAnnouncementPublishmentDetails");
 
         $user = Auth::user();
 
         if ($this->checkUser()) {
             $announcement = AnnouncementsModel::where('unique_code', $code)
-                ->select('id')
+                ->select('id', 'announcement_types_id', 'scheduled_send_datetime')
                 ->first();
 
             $branches = AnnouncementBranchesModel::where('announcement_id', $announcement->id)
@@ -588,7 +739,47 @@ class AnnouncementsController extends Controller
                 ->unique()
                 ->toArray();
 
-            return response()->json(['status' => 200, 'branches' => $branches, 'departments' => $departments]);
+            // Fetch Roles
+            $roles = AnnouncementEmployeeRoleModel::where('announcement_id', $announcement->id)
+                ->join('employee_roles', 'announcement_employee_role.role_id', '=', 'employee_roles.id')
+                ->select('employee_roles.name')
+                ->pluck('name')
+                ->unique()
+                ->toArray();
+
+            // Fetch Employment Types
+            $employmentTypes = AnnouncementEmployeeTypeModel::where('announcement_id', $announcement->id)
+                ->select('employment_type')
+                ->pluck('employment_type')
+                ->unique()
+                ->toArray();
+
+            // Fetch Employment Statuses
+            $employmentStatuses = AnnouncementEmployeeStatusModel::where('announcement_id', $announcement->id)
+                ->select('employment_status')
+                ->pluck('employment_status')
+                ->unique()
+                ->toArray();
+
+            $announcementTypeId = $announcement->announcement_types_id;
+            $announcementTypeName = null;
+            if ($announcementTypeId) {
+                $type = AnnouncementTypesModel::find($announcementTypeId);
+                $announcementTypeName = $type ? $type->name : null;
+            }
+
+            $scheduledSendDatetime = $announcement->scheduled_send_datetime;
+
+            return response()->json([
+                'status' => 200,
+                'branches' => $branches,
+                'departments' => $departments,
+                'roles' => $roles,
+                'employment_types' => $employmentTypes,
+                'employment_statuses' => $employmentStatuses,
+                'announcement_type' => $announcementTypeName,
+                'scheduled_send_datetime' => $scheduledSendDatetime,
+            ]);
         } else {
             return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
         }
@@ -597,7 +788,6 @@ class AnnouncementsController extends Controller
     // Files
     public function downloadFile($id)
     {
-        //Log::info('AnnouncementsController::downloadFile');
         $media  = Media::find($id);
 
         if (!$media) {
@@ -609,7 +799,11 @@ class AnnouncementsController extends Controller
             return response()->json(['status' => 404, 'message' => 'File not found'], 404);
         }
 
-        return response()->download($filePath, $media->file_name);
+        $mimeType = $media->mime_type ?? 'application/octet-stream';
+
+        return response()->download($filePath, $media->file_name, [
+            'Content-Type' => $mimeType
+        ]);
     }
 
     public function getThumbnail($code)
@@ -634,7 +828,7 @@ class AnnouncementsController extends Controller
 
     public function getPageThumbnails(Request $request)
     {
-        //Log::info("AnnouncementsController::getPageThumbnails");
+        // Log::info("AnnouncementsController::getPageThumbnails");
         $announcementIds = $request->input('announcement_ids', []);
         $announcements = AnnouncementsModel::whereIn('id', $announcementIds)->get();
 
@@ -642,7 +836,13 @@ class AnnouncementsController extends Controller
         foreach ($announcements as $announcement) {
             $thumbnailMedia = $announcement->getMedia('thumbnails')->first();
             if ($thumbnailMedia) {
-                $thumbnails[$announcement->id] = base64_encode(file_get_contents($thumbnailMedia->getPath()));
+                $path = $thumbnailMedia->getPath();
+                if (file_exists($path)) {
+                    $thumbnails[$announcement->id] = base64_encode(file_get_contents($path));
+                } else {
+                    Log::warning("Thumbnail file missing for announcement {$announcement->id}: $path");
+                    $thumbnails[$announcement->id] = null;
+                }
             }
         }
 
@@ -669,6 +869,7 @@ class AnnouncementsController extends Controller
                 ];
             })->all();
 
+            // Thumbnails
             $thumbnails = $announcement->getMedia('thumbnails')->map(function ($media) {
                 return [
                     'id' => $media->id,
@@ -679,20 +880,20 @@ class AnnouncementsController extends Controller
                 ];
             })->all();
 
-            $imageData = array_merge($images, $thumbnails);
-
             // Documents
             $attachmentData = $announcement->getMedia('documents')->map(function ($media) {
                 return [
                     'id' => $media->id,
                     'filename' => $media->file_name,
                     'type' => $media->getCustomProperty('type'),
+                    'mime_type' => $media->mime_type 
                 ];
             })->all();
 
             return response()->json([
                 'status' => 200,
-                'images' => $imageData,
+                'images' => $images, // <-- Only images here
+                'thumbnails' => $thumbnails, // <-- Thumbnails separate
                 'attachments' => $attachmentData,
             ]);
         } else {
@@ -729,8 +930,6 @@ class AnnouncementsController extends Controller
             ];
         })->all();
 
-        $imageData = array_merge($images, $thumbnails);
-
         // Documents
         $attachmentData = $announcement->getMedia('documents')->map(function ($media) {
             return [
@@ -742,7 +941,8 @@ class AnnouncementsController extends Controller
 
         return response()->json([
             'status' => 200,
-            'images' => $imageData,
+            'images' => $images, // Only images, no thumbnails
+            'thumbnails' => $thumbnails, // Thumbnails separate
             'attachments' => $attachmentData,
         ]);
     }
@@ -777,38 +977,53 @@ class AnnouncementsController extends Controller
 
     public function getAcknowledgements($code)
     {
-        //Log::info("AnnouncementsController::getAnnouncementAcknowledgements");
         $user = Auth::user();
         if ($this->checkUser()) {
             $clientId = $user->client_id;
             $announcement = AnnouncementsModel::where('unique_code', $code)
-                ->with(['acknowledgements', 'branches', 'departments'])
+                ->with(['acknowledgements.user', 'branches', 'departments', 'employeeRoles', 'employeeTypes', 'employeeStatuses'])
                 ->firstOrFail();
 
-            // Acknowledged Users
-            $acknowledgements = $announcement->acknowledgements->map(function ($ack) {
-                $emp = $ack->user;
+            // Allowed filters
+            $allowedRoleIds = $announcement->employeeRoles->pluck('role_id')->toArray();
+            $allowedEmploymentTypes = $announcement->employeeTypes->pluck('employment_type')->toArray();
+            $allowedEmploymentStatuses = $announcement->employeeStatuses->pluck('employment_status')->toArray();
 
-                return [
-                    'emp_id' => $emp->id,
-                    'emp_first_name' => $emp->first_name,
-                    'emp_middle_name' => $emp->middle_name ?? '',
-                    'emp_last_name' => $emp->last_name,
-                    'emp_suffix' => $emp->suffix ?? '',
-                    'emp_profile_pic' => $emp->profile_pic ?? null,
-                    'timestamp' => $ack->created_at,
-                ];
-            })->all();
+            // Acknowledged Users (filtered)
+            $acknowledgements = $announcement->acknowledgements
+                ->filter(function ($ack) use ($allowedRoleIds, $allowedEmploymentTypes, $allowedEmploymentStatuses) {
+                    $emp = $ack->user;
+                    if (!$emp) return false;
+                    $roleMatch = empty($allowedRoleIds) || in_array($emp->role_id, $allowedRoleIds);
+                    $typeMatch = empty($allowedEmploymentTypes) || in_array($emp->employment_type, $allowedEmploymentTypes);
+                    $statusMatch = empty($allowedEmploymentStatuses) || in_array($emp->employment_status, $allowedEmploymentStatuses);
+                    return $roleMatch && $typeMatch && $statusMatch;
+                })
+                ->map(function ($ack) {
+                    $emp = $ack->user;
+                    return [
+                        'emp_id' => $emp->id,
+                        'emp_first_name' => $emp->first_name,
+                        'emp_middle_name' => $emp->middle_name ?? '',
+                        'emp_last_name' => $emp->last_name,
+                        'emp_suffix' => $emp->suffix ?? '',
+                        'emp_profile_pic' => $emp->profile_pic ?? null,
+                        'timestamp' => $ack->created_at,
+                        'branch' => $emp->branch ? $emp->branch->name : null,
+                        'department' => $emp->department ? $emp->department->name : null,
+                        'emp_type' => $emp->employment_type ?? null,
+                        'emp_status' => $emp->employment_status ?? null,
+                        'emp_role' => $emp->role ? $emp->role->name : null,
+                    ];
+                })->all();
 
-            // Unacknowledged Users
+            // Unacknowledged Users (filtered)
             $branches = $announcement->branches->pluck('branch_id')->unique()->toArray();
             $departments = $announcement->departments->pluck('department_id')->unique()->toArray();
-
             $acknowledgedUsers = $announcement->acknowledgements->pluck('user_id')->unique()->toArray();
 
-            //Log::info($acknowledgedUsers);
-
-            $unacknowledged = UsersModel::where('client_id', $clientId)
+            $unacknowledged = UsersModel::with(['branch', 'department', 'role'])
+                ->where('client_id', $clientId)
                 ->where(function ($query) use ($branches, $departments) {
                     if (!empty($branches)) {
                         $query->whereIn('branch_id', $branches);
@@ -817,9 +1032,17 @@ class AnnouncementsController extends Controller
                         $query->orWhereIn('department_id', $departments);
                     }
                 })
-                ->where('user_type', "Employee")
+                ->when(!empty($allowedRoleIds), function ($query) use ($allowedRoleIds) {
+                    $query->whereIn('role_id', $allowedRoleIds);
+                })
+                ->when(!empty($allowedEmploymentTypes), function ($query) use ($allowedEmploymentTypes) {
+                    $query->whereIn('employment_type', $allowedEmploymentTypes);
+                })
+                ->when(!empty($allowedEmploymentStatuses), function ($query) use ($allowedEmploymentStatuses) {
+                    $query->whereIn('employment_status', $allowedEmploymentStatuses);
+                })
                 ->whereNotIn('id', $acknowledgedUsers)
-                ->select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'profile_pic')
+                ->select('id', 'first_name', 'middle_name', 'last_name', 'suffix', 'profile_pic', 'branch_id', 'department_id', 'employment_type', 'employment_status', 'role_id')
                 ->get()
                 ->map(function ($employee) {
                     return [
@@ -829,11 +1052,14 @@ class AnnouncementsController extends Controller
                         'emp_last_name' => $employee->last_name,
                         'emp_suffix' => $employee->suffix ?? '',
                         'emp_profile_pic' => $employee->profile_pic ?? null,
+                        'branch' => $employee->branch ? $employee->branch->name : null,
+                        'department' => $employee->department ? $employee->department->name : null,
+                        'emp_type' => $employee->employment_type ?? null,
+                        'emp_status' => $employee->employment_status ?? null,
+                        'emp_role' => $employee->role ? $employee->role->name : null,
                     ];
                 })
                 ->all();
-
-            //Log::info($unacknowledged);
 
             return response()->json(['status' => 200, 'acknowledgements' => $acknowledgements, 'unacknowledged' => $unacknowledged]);
         } else {
@@ -854,5 +1080,243 @@ class AnnouncementsController extends Controller
         }
 
         return $result;
+    }
+
+    // Add Announcement Type
+    function addAnnouncementType(Request $request)
+    {
+        $user = Auth::user();
+
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:announcement_types,name',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 422, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            // For testing, you may want to set client_id to a default value or null
+            $type = \App\Models\AnnouncementTypesModel::create([
+                'name' => $request->input('name'),
+                'client_id' => $user->client_id,// Set a default client_id for testing
+            ]);
+
+            return response()->json(['status' => 200, 'type' => $type]);
+        } catch (\Exception $e) {
+            Log::error('addAnnouncementType: ' . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Server error'], 500);
+        }
+    }
+
+    //Get Announcement Types
+    public function getAnnouncementType()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['status' => 401, 'message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $types = \App\Models\AnnouncementTypesModel::where('client_id', $user->client_id)->get();
+            return response()->json([
+                'status' => 200,
+                'types' => $types
+            ]);
+        } catch (\Exception $e) {
+            Log::error('getAnnouncementType: ' . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Server error'], 500);
+        }
+    }
+
+    // Update Announcement Type
+    public function updateAnnouncementType(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['status' => 401, 'message' => 'Unauthorized'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:announcement_types,id',
+            'name' => 'required|string|max:255|unique:announcement_types,name,' . $request->id,
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 422, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            // Only get the type if it belongs to the user's client_id
+            $type = \App\Models\AnnouncementTypesModel::where('id', $request->id)
+                ->where('client_id', $user->client_id)
+                ->first();
+
+            if (!$type) {
+                return response()->json(['status' => 404, 'message' => 'Type not found or not allowed'], 404);
+            }
+
+            $type->name = $request->name;
+            $type->save();
+
+            return response()->json(['status' => 200, 'type' => $type]);
+        } catch (\Exception $e) {
+            Log::error('updateAnnouncementType: ' . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Server error'], 500);
+        }
+    }
+
+    public function publishAnnouncement(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$this->checkUser()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'unique_code' => 'required|string|exists:announcements,unique_code',
+            'departments' => 'required|array|min:1',
+            'branches' => 'required|array|min:1',
+            'announcement_type_id' => 'required|integer|exists:announcement_types,id',
+            'role_ids' => 'array',
+            'employment_types' => 'array',
+            'employment_statuses' => 'array',
+            'scheduled_send_datetime' => 'nullable|date',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $announcement = AnnouncementsModel::where('unique_code', $request->input('unique_code'))->first();
+            if (!$announcement) {
+                return response()->json(['status' => 404, 'message' => 'Announcement not found'], 404);
+            }
+
+            // Scheduled publish logic
+            $scheduled = $request->input('scheduled_send_datetime');
+            $now = now();
+
+            if ($scheduled && $now->lt($scheduled)) {
+                // If scheduled date is in the future, set to Pending
+                $announcement->status = "Pending";
+                $announcement->scheduled_send_datetime = $scheduled;
+            } else {
+                // Immediate publish
+                $announcement->status = "Published";
+                $announcement->scheduled_send_datetime = null;
+            }
+
+            $announcement->announcement_types_id = $request->input('announcement_type_id');
+            $announcement->save();
+
+            // Clean up old relations
+            AnnouncementDepartmentsModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementBranchesModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementEmployeeTypeModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementEmployeeRoleModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementEmployeeStatusModel::where('announcement_id', $announcement->id)->delete();
+            AnnouncementRecipientModel::where('announcement_id', $announcement->id)->delete();
+
+            // Departments
+            foreach ($request->input('departments', []) as $departmentId) {
+                AnnouncementDepartmentsModel::create([
+                    'announcement_id' => $announcement->id,
+                    'department_id' => (int)$departmentId
+                ]);
+            }
+
+            // Branches
+            foreach ($request->input('branches', []) as $branchId) {
+                AnnouncementBranchesModel::create([
+                    'announcement_id' => $announcement->id,
+                    'branch_id' => (int)$branchId
+                ]);
+            }
+
+            // Employee Types
+            foreach ($request->input('employment_types', []) as $employment_type) {
+                AnnouncementEmployeeTypeModel::create([
+                    'announcement_id' => $announcement->id,
+                    'employment_type' => $employment_type
+                ]);
+            }
+
+            // Employee Roles
+            foreach ($request->input('role_ids', []) as $roleId) {
+                AnnouncementEmployeeRoleModel::create([
+                    'announcement_id' => $announcement->id,
+                    'role_id' => (int)$roleId
+                ]);
+            }
+
+            // Employee Statuses
+            foreach ($request->input('employment_statuses', []) as $employment_status) {
+                AnnouncementEmployeeStatusModel::create([
+                    'announcement_id' => $announcement->id,
+                    'employment_status' => $employment_status
+                ]);
+            }
+
+            // Recipients query logic
+            $roleIds = $request->input('role_ids', []);
+            $employmentTypes = $request->input('employment_types', []);
+            $employmentStatuses = $request->input('employment_statuses', []);
+            $branchIds = $request->input('branches', []);
+            $departmentIds = $request->input('departments', []);
+
+            $recipientsQuery = UsersModel::with('company');
+
+            if (!empty($roleIds)) {
+                $recipientsQuery->whereIn('role_id', $roleIds);
+            }
+            if (!empty($employmentTypes)) {
+                $recipientsQuery->whereIn('employment_type', $employmentTypes);
+            }
+            if (!empty($employmentStatuses)) {
+                $recipientsQuery->whereIn('employment_status', $employmentStatuses);
+            }
+            if (!empty($branchIds)) {
+                $recipientsQuery->whereIn('branch_id', $branchIds);
+            }
+            if (!empty($departmentIds)) {
+                $recipientsQuery->whereIn('department_id', $departmentIds);
+            }
+
+            $recipientUsers = $recipientsQuery->get();
+
+            foreach ($recipientUsers as $targetUser) {
+                AnnouncementRecipientModel::create([
+                    'announcement_id' => $announcement->id,
+                    'branch_id' => $targetUser->branch_id,
+                    'department_id' => $targetUser->department_id,
+                    'role_id' => $targetUser->role_id,
+                    'employment_type' => $targetUser->employment_type,
+                    'employment_status' => $targetUser->employment_status,
+                    'user_id' => $targetUser->id,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error saving: " . $e->getMessage());
+            return response()->json(['status' => 500, 'message' => 'Internal Server Error'], 500);
+        }
+    }
+    public function getRoles()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['status' => 401, 'message' => 'Unauthorized'], 401);
+        }
+
+        // Only fetch roles for the user's client_id
+        $roles = \App\Models\EmployeeRolesModel::where('client_id', $user->client_id)->get();
+
+        return response()->json(['status' => 200, 'roles' => $roles]);
     }
 }

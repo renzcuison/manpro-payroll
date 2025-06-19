@@ -20,6 +20,7 @@ class AttendanceLogsModel extends Model
         'action',
         'method',
         'timestamp',
+        'attendance_summary_id',
 
         // 'machine_number',
         // 'enroll_number',

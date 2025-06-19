@@ -1235,7 +1235,7 @@ class HrPayrollController extends Controller
 
             $fromDate = date($start_date . ' ' . '00:00:00');
             $toDate = date($to_date . ' ' . '00:00:00');
-            $verifyBenefitsData = DB::table("hr_employee_benefits")->select("*")->where("emp_id", $user_id)->where("isupdate", 1)->where('is_deleted', 0)->get();
+            $verifyBenefitsData = DB::table("hr_employee_benefits")->select()->where("emp_id", $user_id)->where("isupdate", 1)->where('is_deleted', 0)->get();
 
             $benefits_data_manual = DB::table('hr_employee_benefits_list')->select(
                 'hr_employee_benefits_list.benefitlist_id',

@@ -1,14 +1,15 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Divider } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, TextField, Typography, FormGroup, FormControl, MenuItem, Divider } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import axiosInstance, { getJWTHeader } from '../../utils/axiosConfig';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { CgAdd, CgTrash } from "react-icons/cg";  
+import EmployeeEducationFields from './EmployeeEducationFields';
 import Swal from 'sweetalert2';
 import moment from 'moment';
 import dayjs from 'dayjs';
+import LoadingSpinner from '../../components/LoadingStates/LoadingSpinner';
 
 const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const navigate = useNavigate();
@@ -20,7 +21,8 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const [jobTitles, setJobTitles] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [workGroups, setWorkGroups] = useState([]);
-    
+    const [salaryPlans, setSalaryPlans] = useState([]);
+
     const [firstNameError, setFirstNameError] = useState(false);
     const [lastNameError, setLastNameError] = useState(false);
     const [emailAddressError, setEmailAddressError] = useState(false);
@@ -48,6 +50,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const [selectedJobTitle, setSelectedJobTitle] = useState(employee.job_title_id);
     const [selectedDepartment, setSelectedDepartment] = useState(employee.department_id);
     const [selectedWorkGroup, setSelectedWorkGroup] = useState(employee.work_group_id);
+    const [selectedSalaryGrade, setSelectedSalaryGrade] = useState(employee.salary_grade);
 
     const [startDate, setStartDate] = React.useState(dayjs(employee.date_start));
     const [endDate, setEndDate] = React.useState(dayjs(employee.date_end));
@@ -56,8 +59,9 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const [selectedStatus, setSelectedStatus] = useState(employee.employment_status);
 
     //Education Form Field Values and Handlers
+    const [isLoading, setIsLoading] = useState(true);
     const [educations, setEducations] = useState([]);
-    const educationFields = {school_name: "", degree_name: "", degree_type: "", year_graduated: ""}
+    const educationFields = {school_name: "", education_level: "", program_name: "", year_graduated: ""};
     const [updateIds, setUpdateIds] = useState([]); //ids to update
     const [deleteIds, setDeleteIds] = useState([]); //ids to delete 
 
@@ -67,12 +71,14 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             .then((response) => {
                 if (response.data.status === 200) {
                     const educationBackgrounds = response.data.educations
-                    setEducations(educationBackgrounds);             
+                    setEducations(educationBackgrounds);
+                    setIsLoading(false);           
                 }
             })
             .catch((error) => {
                 console.error("Error fetching education background:", error);
                 setEducations(null);
+                setIsLoading(false);
         })
     }
 
@@ -93,16 +99,29 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
     const handleAddFields = () => {
         setEducations([...educations, educationFields]); 
     }
-    const handleRemoveFields = (removalIndx) => {
-        const updatedFields = educations.filter((_, index) => index != removalIndx)
-        setEducations(educations.length > 0 ? updatedFields : [educationFields]);
-        if("id" in educations[removalIndx]){
-            setDeleteIds(prevIds => [...prevIds, educations[removalIndx].id]);
-        }
-        setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
-        
+    const handleRemoveFields = (indxToRemove) => {
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Are you sure?",
+            text: "Do you want to delete this field?",
+            icon: "warning",
+            showConfirmButton: true,
+            confirmButtonText: "Confirm",
+            confirmButtonColor: "#177604",
+            showCancelButton: true,
+            cancelButtonText: "Cancel",
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const updatedFields = educations.filter((_, index) => index != indxToRemove)
+                setEducations(educations.length > 0 ? updatedFields : [educationFields]);
+                if("id" in educations[indxToRemove]){
+                    setDeleteIds(prevIds => [...prevIds, educations[indxToRemove].id]);
+                }
+                setUpdateIds(prev => prev.filter((id) => !deleteIds.includes(id))); //remove ids existing in the updateIds (if existing)
+            }
+        });
     }
-
+ 
     const populateDropdown = () => {
         axiosInstance.get('/settings/getRoles', { headers })
             .then((response) => {
@@ -143,11 +162,21 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             }).catch((error) => {
                 console.error('Error fetching branches:', error);
             });
+
+        axiosInstance.get('/getSalaryPlans', { headers, params: { limit: 1000 } })
+            .then((response) => {
+                setSalaryPlans(response.data.salaryPlans);
+                setSelectedSalaryGrade(employee.salary_grade);
+            }).catch((error) => {
+                console.error('Error fetching salary plans:', error);
+            });
     };
     const saveInput = (event) => {
         event.preventDefault();
         const addEducations = educations.filter(e => !e.id);
         const updateEducations = educations.filter(e=> updateIds.includes(e.id));
+        const formDateOnly = (date) => date ? dayjs(date).format('YYYY-MM-DD'): null;
+        const isSomeFieldsEmpty = educations.some(edu => Object.values(edu).some(val => val === '' || val === null || val === undefined));
         const data = {
             userName: employee.user_name,
 
@@ -161,6 +190,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             birthdate: birthdate,
 
             salary: salary,
+            fixedSalary: fixedSalary === '1' ? true: false,
             salaryType: salaryType,
             creditLimit: creditLimit,
             tinNumber: tinNumber,
@@ -171,16 +201,28 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
             selectedJobTitle: selectedJobTitle,
             selectedDepartment: selectedDepartment,
             selectedWorkGroup: selectedWorkGroup,
+            selectedSalaryGrade: selectedSalaryGrade,
             selectedType: selectedType,
             selectedStatus: selectedStatus,
-            startDate: startDate,
-            endDate: endDate,
+            startDate: formDateOnly(startDate),
+            endDate: formDateOnly(endDate),
             addEducations: addEducations, 
             updateEducations: updateEducations,
             deleteEducationIds: deleteIds,
         }; 
 
-        axiosInstance.post('/employee/editEmployeeDetails', data, { headers })
+        if(isSomeFieldsEmpty){
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: `The education fields must be filled.`,
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: "#177604",
+            });
+            return;
+        }
+        else{
+            axiosInstance.post('/employee/editEmployeeDetails', data, { headers })
             .then(response => {
                 if (response.data.status === 200) {
                     Swal.fire({
@@ -208,7 +250,22 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                     confirmButtonColor: '#177604',
                 });
             });
+        }
+
+        
     };
+
+    // Find the selected salary plan
+    useEffect(() => {
+        const selectedPlan = salaryPlans.find(plan => String(plan.salary_grade) === String(selectedSalaryGrade));
+        if (selectedPlan) {
+            setSalary(selectedPlan.amount);
+        } else {
+            setSalary('');
+        }
+    }, [selectedSalaryGrade, salaryPlans]);
+
+
 
     return (
         <>
@@ -221,8 +278,10 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
-                    <Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={saveInput} noValidate autoComplete="off" encType="multipart/form-data" >
-
+                    { isLoading ? 
+                    (<LoadingSpinner></LoadingSpinner>)
+                    :
+                    (<Box component="form" sx={{ mt: 3, my: 3 }} onSubmit={saveInput} noValidate autoComplete="off" encType="multipart/form-data" >
                         <FormGroup row={true} className="d-flex justify-content-between" sx={{ '& label.Mui-focused': {color: '#97a5ba'}, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}}, }}>
                             <FormControl sx={{ marginBottom: 3, width: '28%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
@@ -343,56 +402,15 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
 
                         <Divider sx={{ my: 4 }} />
                         {/*<--Educational Forms Field-->*/}
+                        
 
                         <FormGroup row={true} className="d-flex" sx={{ '& label.Mui-focused': {color: '#97a5ba'}, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}}, }}> 
-                            <Typography variant="h4" sx={{marginBottom:{xs: 0, md: 2}, marginRight:{xs: 0, md: 2}, fontWeight: 'bold' }}> Education </Typography>
-                            <Button onClick={handleAddFields} variant="text" startIcon={<CgAdd/>}>Add Field</Button>
+                            <FormControl fullWidth>
+                                <EmployeeEducationFields educations={educations} handleChange={handleChange}
+                                 handleAddFields={handleAddFields} handleRemoveFields={handleRemoveFields}>
 
-                            <Grid container rowSpacing={{ xs: 3, md: 2 }} size={12}>
-                                {educations.map((item, index) => (
-                                <Grid container spacing={2} size ={12} key={index} alignItems="center">
-                                    <Grid size={3}>
-                                        <FormControl fullWidth>
-                                            <TextField label="School Name" value={item.school_name} onChange={(e)=>handleChange(index, "school_name", e.target.value)} />
-                                        </FormControl>
-                                    </Grid>
-
-                                    <Grid size={3}>
-                                        <FormControl fullWidth>
-                                            <TextField label="Degree Name" value={item.degree_name} onChange={(e)=>handleChange(index, "degree_name", e.target.value)} />
-                                        </FormControl>
-                                    </Grid>
-
-                                    <Grid size={3}>
-                                        <FormControl fullWidth>
-                                            <TextField
-                                                select
-                                                id="gender"
-                                                label="Degree"
-                                                value={item.degree_type}
-                                                variant="outlined"
-                                                onChange={(e) => {handleChange(index, "degree_type", e.target.value) }}
-                                            >
-                                                <MenuItem value={"College/Bachelors"}>{"College/Bachelors"}</MenuItem>
-                                                <MenuItem value={"Masters"}>{"Masters"}</MenuItem>
-                                                <MenuItem value={"Doctoral"}>{"Doctoral"}</MenuItem>
-                                            </TextField>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid size={2}>
-                                        <FormControl fullWidth>
-                                            <TextField label="Year Graduated" value={item.year_graduated} onChange={(e)=>handleChange(index, "year_graduated", e.target.value)} />
-                                        </FormControl>
-                                    </Grid>
-
-                                    <Grid size={1}>
-                                        <Box display="flex" justifyContent="space-between" gap={1}>
-                                            <Button onClick={() => handleRemoveFields(index)} variant="text" startIcon={<CgTrash style={{ color: 'red' }} />}> </Button>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                                ))}    
-                            </Grid>
+                                </EmployeeEducationFields>
+                            </FormControl>
                         </FormGroup>
 
                         <Divider sx={{ my: 4 }} />
@@ -508,6 +526,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                                         slotProps={{ textField: { variant: 'outlined' } }}
                                     />
                                 </LocalizationProvider>
+                                
                             </FormControl>
                         </FormGroup>
 
@@ -608,18 +627,48 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                                 </TextField>
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '34%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{ marginBottom: 3, width: '14%', '& label.Mui-focused': { color: '#97a5ba' },
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
                             }}>
+                                <TextField
+                                    select
+                                    id="salaryGrade"
+                                    label="Salary Grade"
+                                    value={selectedSalaryGrade}
+                                    onChange={(event) => setSelectedSalaryGrade(event.target.value)}
+                                >
+                                    {salaryPlans.map((grade) => (
+                                        <MenuItem key={grade.id} value={grade.salary_grade}> {grade.salary_grade} </MenuItem>
+                                    ))}
+                                </TextField>
+                            </FormControl>
+
+                            <FormControl
+                                sx={{
+                                    marginBottom: 3,
+                                    width: '27%',
+                                    '& label.Mui-focused': { color: '#50555c' },
+                                }}
+                            >
                                 <TextField
                                     label="Salary"
                                     variant="outlined"
-                                    value={salary}
-                                    onChange={(e) => setSalary(e.target.value)}
+                                    value={salary !== undefined && salary !== null ? Number(salary).toLocaleString('en-PH', { minimumFractionDigits: 2 }) : ''}
+                                    InputProps={{
+                                        readOnly: true,
+                                        style: { color: '#50555c' }, // text color for input
+                                    }}
+                                    sx={{
+                                        '& .MuiInputBase-input': { color: '#50555c' }, // text color for input
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#50555c' }, // border color
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#50555c' },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#50555c' },
+                                        '& label': { color: '#50555c' }, // label color
+                                    }}
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '34%', '& label.Mui-focused': { color: '#97a5ba' },
+                            <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                             }}>
                                 <TextField
@@ -670,7 +719,7 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                             </Button>
                         </Box>
 
-                    </Box>
+                    </Box>)}
                 </DialogContent>
             </Dialog >
         </>

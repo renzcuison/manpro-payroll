@@ -13,29 +13,18 @@ import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill';
 import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
+import { useBenefits, useSaveEmployeeBenefits } from '../../../../hooks/useBenefits';
+import { useBenefits } from '../../../../hooks/useBenefits';
 
-const EmployeeAddBenefit = ({ open, close, userName }) => {
+const EmployeeAddBenefit = ({ open, onClose, userName }) => {
     const navigate = useNavigate();
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-
+    const {benefits: benefitsQuery, saveEmployeeBenefits} = useBenefits({loadBenefits: true})
+    const benefits = benefitsQuery.data?.benefits || [];
     const [benefitError, setBenefitError] = useState(false);
     const [numberError, setNumberError] = useState(false);
 
-    const [benefits, setBenefits] = useState([]);
     const [benefit, setBenefit] = useState('');
     const [number, setNumber] = useState('');
-
-    useEffect(() => {
-        axiosInstance.get(`/benefits/getBenefits`, { headers })
-            .then((response) => {
-                if (response.data.status === 200) {
-                    setBenefits(response.data.benefits);
-                }
-            }).catch((error) => {
-                console.error('Error fetching benefits:', error);
-            });
-    }, []);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -81,12 +70,10 @@ const EmployeeAddBenefit = ({ open, close, userName }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
         const data = { userName: userName, benefit: benefit, number: number };
-
-        axiosInstance.post('/benefits/addEmployeeBenefit', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
+        saveEmployeeBenefits.mutate(data, {
+            onSuccess: (response) => {
+                if(response.status === 200){
                     Swal.fire({
                         customClass: { container: 'my-swal' },
                         text: "Benefit added successfully!",
@@ -96,14 +83,14 @@ const EmployeeAddBenefit = ({ open, close, userName }) => {
                         confirmButtonText: 'Proceed',
                         confirmButtonColor: '#177604',
                     }).then(() => {
-                        close(true);
+                        onClose(true);
                     });
-
                 }
-            })
-            .catch(error => {
+            },
+            onError: (error) =>{
                 console.error('Error:', error);
-            });
+            }
+        });
     };
 
     return (
@@ -112,7 +99,7 @@ const EmployeeAddBenefit = ({ open, close, userName }) => {
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}> Add Benefit </Typography>
-                        <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
+                        <IconButton onClick={() => onClose(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 

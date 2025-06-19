@@ -10,16 +10,21 @@ dayjs.extend(localizedFormat);
 
 import EmployeeAllowanceAdd from "../Components/EmployeeAllowanceAdd";
 import EmployeeAllowanceList from "../Components/EmployeeAllowanceList";
+import EmployeeAllowanceEdit from "../Components/EmployeeAllowanceEdit";
+import { useAllowances } from "../../../../hooks/useAllowances";
 
-const EmployeeAllowanceView = ({ open, close, userName }) => {
-
+const EmployeeAllowanceView = ({ open, close, userName, allowance }) => {
+    const {employeeAllowances} = useAllowances({userName: userName, filters: {allowanceId: allowance}});
+    
+    const allowances = employeeAllowances.data?.allowances || [];
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
     const [allowanceAddOpen, setAllowanceAddOpen] = useState(false);
+    const [allowanceEditOpen, setAllowanceEditOpen] = useState(false);
     const [allowanceListOpen, setAllowanceListOpen] = useState(false);
-
     const [employee, setEmployee] = useState([]);
+    const [selectedAllowance, setSelectedAllowance] = useState(null);
 
     useEffect(() => {
         getEmployeeDetails();
@@ -42,9 +47,26 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
         setAllowanceAddOpen(true);
     }
 
-    const handleCloseAddEmployeeAllowance = () => {
+    const handleCloseAddEmployeeAllowance = (reload) => {
         setAllowanceAddOpen(false);
         setAllowanceListOpen(true);
+        if(reload){
+            employeeAllowances.refetch();
+        }
+    }
+
+    const handleOpenEditEmployeeAllowance = (index) => {
+        setSelectedAllowance(index);
+        setAllowanceListOpen(false);
+        setAllowanceEditOpen(true);
+    }
+
+    const handleCloseEditEmployeeAllowance = (reload) => {
+        setAllowanceListOpen(true);
+        setAllowanceEditOpen(false);
+        if(reload){
+            employeeAllowances.refetch();
+        }
     }
 
     return (
@@ -64,7 +86,7 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
                     <Box sx={{ mb: 2, textAlign: 'left' }}>
                         <Typography variant="body1">
                             <strong>Employee Name:</strong> {employee.last_name}, {employee.first_name} {employee.middle_name || ''} {employee.suffix || ''}
-                        </Typography>
+                        </Typography>   
                         <Typography variant="body1">
                             <strong>Branch:</strong> {employee.branch || '-'}
                         </Typography>
@@ -74,11 +96,16 @@ const EmployeeAllowanceView = ({ open, close, userName }) => {
                     </Box>
                     
                     {allowanceListOpen && (
-                        <EmployeeAllowanceList userName={userName} headers={headers} onAdd={() => handleOpenAddEmployeeAllowance()} />
+                        <EmployeeAllowanceList allowances={allowances} isLoading={employeeAllowances.isLoading} onAdd={() => handleOpenAddEmployeeAllowance()} 
+                        onEdit={(index) => handleOpenEditEmployeeAllowance(index)}/>
+                    )}
+
+                    {allowanceEditOpen && (
+                        <EmployeeAllowanceEdit allowances={allowances[selectedAllowance]} onClose={handleCloseEditEmployeeAllowance}/>
                     )}
 
                     {allowanceAddOpen && (
-                        <EmployeeAllowanceAdd userName={userName} headers={headers} onClose={() => handleCloseAddEmployeeAllowance()} />
+                        <EmployeeAllowanceAdd userName={userName} onClose={handleCloseAddEmployeeAllowance} />
                     )}
 
                 </DialogContent>
