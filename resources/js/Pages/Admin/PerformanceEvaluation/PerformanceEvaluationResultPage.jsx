@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, CircularProgress, Paper, Table, TableHead, TableBody, TableRow, TableCell, Divider, Select, MenuItem, FormControl, InputLabel
+  Box, Typography, CircularProgress, Paper, Table, TableHead, TableBody, TableRow, TableCell, Divider, Select, MenuItem, FormControl, InputLabel, IconButton
 } from '@mui/material';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import Layout from '../../../components/Layout/Layout';
+import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { getFullName } from '../../../utils/user-utils';
+import { useNavigate } from 'react-router-dom';
+import CloseIcon from '@mui/icons-material/Close';
 
 const PerformanceEvaluationResultPage = () => {
   const storedUser = localStorage.getItem("nasya_user");
   const user = JSON.parse(storedUser);
   const headers = getJWTHeader(user);
+  const navigate = useNavigate();
 
   const [results, setResults] = useState([]);
   const [selectedResultId, setSelectedResultId] = useState('');
@@ -31,7 +34,7 @@ const PerformanceEvaluationResultPage = () => {
         if (filtered.length === 1) {
           setSelectedResultId(filtered[0].id);
         } else if (filtered.length > 0 && !selectedResultId) {
-          setSelectedResultId(filtered[0].id); // You may comment this if you want to force user selection
+          setSelectedResultId(filtered[0].id);
         }
       })
       .catch(() => setResults([]))
@@ -56,7 +59,7 @@ const PerformanceEvaluationResultPage = () => {
     // eslint-disable-next-line
   }, [selectedResultId]);
 
-  // Util: Subcategory scoring logic (copied from EvaluateePage)
+  // Util: Subcategory scoring logic
   function getSubcategoryScore(subcat) {
     let subScore = 0;
     if (subcat.subcategory_type === 'multiple_choice') {
@@ -135,14 +138,37 @@ const PerformanceEvaluationResultPage = () => {
 
   return (
     <Layout title="Performance Evaluation Results">
-      <Box sx={{ mt: 4, p: 4, bgcolor: 'white', borderRadius: 2, maxWidth: '900px', mx: 'auto', boxShadow: 3 }}>
+      <Box sx={{
+        mt: 4, p: 4, bgcolor: 'white', borderRadius: 2,
+        maxWidth: '900px', mx: 'auto', boxShadow: 3, position: 'relative'
+      }}>
+        {/* X (Close) Button */}
+        <IconButton
+          onClick={() => navigate(-1)}
+          sx={{
+            position: 'absolute',
+            top: 25,
+            right: 30,
+            border: '1px solid #BEBEBE',
+            borderRadius: '50%',
+            padding: '5px',
+            color: '#BEBEBE',
+          }}
+        >
+          <CloseIcon sx={{ fontSize: '1.2rem' }} />
+        </IconButton>
         <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>Performance Evaluation Result</Typography>
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
             <CircularProgress />
           </Box>
         )}
-        {!loading && selectedResult && (
+        {!loading && results.length === 0 && (
+          <Typography variant="body1" color="gray" sx={{ mt: 4 }}>
+            You have no completed evaluation results.
+          </Typography>
+        )}
+        {!loading && results.length > 0 && selectedResult && (
           <>
             <FormControl sx={{ minWidth: 300, mb: 3 }}>
               <InputLabel>Select Evaluation</InputLabel>
@@ -243,7 +269,8 @@ const PerformanceEvaluationResultPage = () => {
             </Paper>
           </>
         )}
-        {!loading && !selectedResultId && (
+        {/* Only show this if there are results but no selection */}
+        {!loading && results.length > 0 && !selectedResultId && (
           <Typography variant="body1" color="gray" sx={{ mt: 4 }}>
             Select a result above to view your evaluation.
           </Typography>
