@@ -379,14 +379,22 @@ class EvaluationResponseController extends Controller
                     ->addMedia($request->file('evaluatee_signature_filepath'))
                     ->toMediaCollection('evaluatee_signatures')
                 ;
-            }
+            } else if($request->has('evaluatee_signature_filepath')) return response()->json([ 
+                'status' => 400,
+                'message' => 'Invalid evaluatee signature data!',
+                'evaluationResponseID' => $request->id
+            ]);
             if ($request->hasFile('creator_signature_filepath')) {
                 $evaluationResponse->clearMediaCollection('creator_signatures');
                 $evaluationResponse
                     ->addMedia($request->file('creator_signature_filepath'))
                     ->toMediaCollection('creator_signatures')
                 ;
-            }
+            } else if($request->has('creator_signature_filepath')) return response()->json([ 
+                'status' => 400,
+                'message' => 'Invalid creator signature data!',
+                'evaluationResponseID' => $request->id
+            ]);
             $evaluationResponse->save();
 
             $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
@@ -395,7 +403,6 @@ class EvaluationResponseController extends Controller
             $creatorSignature = $evaluationResponse->getFirstMedia('creator_signatures');
             if($creatorSignature)
                 $evaluationResponse->creator_signature_filepath = $creatorSignature->getPath();
-
             if($evaluateeSignature || $creatorSignature) $evaluationResponse->save();
 
             DB::commit();
