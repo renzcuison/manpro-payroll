@@ -6,6 +6,7 @@ import {
   TableCell, TableRow, TableContainer, Avatar, Tooltip, Dialog, DialogTitle,
   DialogContent, DialogActions, Checkbox
 } from "@mui/material";
+
 import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
 import Layout from "../../../components/Layout/Layout";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
@@ -25,7 +26,6 @@ const Roles = () => {
   const [openAddModal, setOpenAddModal] = useState(false);
   const [newRole, setNewRole] = useState({
     name: "",
-
     can_approve_request: false,
     can_review_request: false,
     can_note_request: false,
@@ -60,23 +60,40 @@ const Roles = () => {
   );
 
   const getEmployeesByRole = (roleId) => {
-    return employees.filter(emp => Number(emp.employee_role_id) === Number(roleId));
+    return employees.filter(emp => Number(emp.role_id) === Number(roleId));
   };
 
   const renderEmployeeAvatars = (roleId) => {
     const emps = getEmployeesByRole(roleId);
-    if (emps.length === 0) return <Typography variant="caption">-</Typography>;
+
+    if (emps.length === 0) {
+      return (
+        <Box display="flex" justifyContent="center">
+          <Typography variant="caption" color="textSecondary">-</Typography>
+        </Box>
+      );
+    }
+
+
 
     return (
-      <Box display="flex" flexWrap="wrap" gap={1} justifyContent="center">
+      <Box display="flex" justifyContent="center" flexWrap="wrap" gap={1}>
         {emps.map(emp => (
-          <Tooltip key={emp.id} title={`${emp.first_name} ${emp.last_name}`}>
-            <Avatar
-              src={emp.avatar ? `data:${emp.avatar_mime};base64,${emp.avatar}` : undefined}
-              sx={{ width: 32, height: 32 }}
-            >
-              {!emp.avatar && `${emp.first_name?.[0]}${emp.last_name?.[0]}`}
-            </Avatar>
+          <Tooltip 
+            key={emp.id} 
+            title={`${emp.first_name} ${emp.last_name}`} 
+            arrow
+          >
+            {emp.avatar ? (
+              <Avatar 
+                src={`data:${emp.avatar_mime};base64,${emp.avatar}`}
+                sx={{ width: 32, height: 32 }}
+              />
+            ) : (
+              <Avatar sx={{ width: 32, height: 32 }}>
+                {emp.first_name?.charAt(0)}{emp.last_name?.charAt(0)}
+              </Avatar>
+            )}
           </Tooltip>
         ))}
       </Box>
@@ -157,7 +174,7 @@ const Roles = () => {
               <TableContainer sx={{ maxHeight: 500 }}>
                 <Table stickyHeader>
                   <TableHead>
-                    <TableRow >
+                    <TableRow>
                       <TableCell align="center" sx={{ fontWeight: "bold" }}>Role</TableCell>
                       <TableCell align="center" sx={{ fontWeight: "bold" }}>Employees</TableCell>
                       <TableCell align="center" sx={{ fontWeight: "bold" }}>Count</TableCell>
@@ -165,15 +182,21 @@ const Roles = () => {
                   </TableHead>
                   <TableBody>
                     {filteredRoles.map(role => (
-                      <TableRow key={role.id} hover onClick={() => navigate(`/admin/roles/${role.id}`)} sx={{ cursor: "pointer" }}>
+                      <TableRow
+                        key={role.id}
+                        hover
+                        onClick={() => navigate(`/admin/roles/${role.id}`)}
+                        sx={{ cursor: "pointer" }}
+                      >
                         <TableCell align="center">
                           <Typography fontWeight="medium">{role.name}</Typography>
-                          
                         </TableCell>
                         <TableCell align="center">
                           {renderEmployeeAvatars(role.id)}
                         </TableCell>
-                        <TableCell align="center">{getEmployeesByRole(role.id).length}</TableCell>
+                        <TableCell align="center">
+                          {getEmployeesByRole(role.id).length}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -195,7 +218,6 @@ const Roles = () => {
             onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
             sx={{ mt: 2 }}
           />
-         
           <Box sx={{ mt: 2 }}>
             {["approve", "review", "note", "accept"].map((perm) => (
               <Box key={perm} display="flex" alignItems="center" gap={1} sx={{ mt: 1 }}>

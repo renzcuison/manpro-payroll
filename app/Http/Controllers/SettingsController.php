@@ -705,16 +705,17 @@ public function getEmployeeRole($id)
         return response()->json(['message' => 'Role not found'], 404);
     }
 
-    $employees = $role->employees->map(function ($emp) {
+    $employees = $role->employees->map(function ($emp) use ($role) {
         return [
             'id' => $emp->id,
             'first_name' => $emp->first_name,
             'last_name' => $emp->last_name,
             'middle_name' => $emp->middle_name,
             'suffix' => $emp->suffix,
-            'employee_role_id' => $emp->employee_role_id,
+            'role_id' => $emp->role_id,
             'avatar' => $emp->avatar,
             'avatar_mime' => $emp->avatar_mime,
+            'role_name' => $role->name
         ];
     });
 
@@ -731,6 +732,7 @@ public function getEmployeeRole($id)
         'employees' => $employees
     ]);
 }
+
 
 
 public function addEmployeeRole(Request $request)
@@ -794,12 +796,40 @@ public function getRoleDetails($id)
         return response()->json(['message' => 'Role not found'], 404);
     }
 
-    $employees = Employee::where('employee_role_id', $id)->get();
+    $employees = Employee::where('role_id', $id)->get();
 
     return response()->json([
         'role' => $role,
         'employees' => $employees
     ]);
+}
+
+public function assignEmployeesToRole($roleId, Request $request)
+{
+    $userIds = $request->user_ids;
+
+    foreach ($userIds as $id) {
+        $user = UsersModel::find($id);
+        if ($user) {
+            $user->role_id = $roleId;
+            $user->save();
+        }
+    }
+
+    return response()->json(['message' => 'Employees assigned successfully.']);
+}
+
+public function getEmployees()
+{
+    $user = Auth::user();
+
+   
+    $client = ClientsModel::find($user->client_id);
+
+    $employees = $client->employees()->with('role')->get();
+
+
+    return response()->json($employees);
 }
 
 

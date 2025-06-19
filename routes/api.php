@@ -124,6 +124,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::get('/getEmployeeRoles', [SettingsController::class, 'getEmployeeRoles']);
         Route::get('/getEmployeeRole/{id}', [SettingsController::class, 'getEmployeeRole']);
+        Route::put('/assignEmployeesToRole/{roleId}', [SettingsController::class, 'assignEmployeesToRole']);
+        Route::get('/getEmployees', [SettingsController::class, 'getEmployees']);
+
 
         Route::post('/addEmployeeRole', [SettingsController::class, 'addEmployeeRole']);
         Route::put('/updateEmployeeRole/{id}', [SettingsController::class, 'updateEmployeeRole']);

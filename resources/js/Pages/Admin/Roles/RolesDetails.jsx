@@ -14,10 +14,88 @@ import {
   TextField,
   Avatar,
   Tooltip,
-  Grid
+  Grid,
+  Checkbox,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Autocomplete
 } from '@mui/material';
 import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
 import Swal from 'sweetalert2';
+
+const AssignUsersModal = ({ open, onClose, roleId, onAssignSuccess }) => {
+  const storedUser = localStorage.getItem('nasya_user');
+  const headers = getJWTHeader(JSON.parse(storedUser));
+
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [selectedEmployees, setSelectedEmployees] = useState([]);
+
+  useEffect(() => {
+    if (open) {
+      axiosInstance.get('/settings/getEmployees', { headers }).then(res => {
+        const filtered = res.data.filter(emp => emp.role_id !== roleId);
+        setAllEmployees(filtered);
+        setSelectedEmployees([]);
+      });
+    }
+  }, [open, roleId]);
+
+  const handleAssign = async () => {
+    if (selectedEmployees.length === 0) {
+      Swal.fire('Warning', 'Please select at least one employee.', 'warning');
+      return;
+    }
+
+    try {
+      const user_ids = selectedEmployees.map(emp => emp.id);
+      await axiosInstance.put(
+        `/settings/assignEmployeesToRole/${roleId}`,
+        { user_ids },
+        { headers }
+      );
+      Swal.fire('Success', 'Users assigned to this role.', 'success');
+      onAssignSuccess();
+      onClose();
+    } catch (err) {
+      Swal.fire('Error', 'Failed to assign users.', 'error');
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Assign Employees to Role</DialogTitle>
+      <DialogContent>
+        <Autocomplete
+          multiple
+          options={allEmployees}
+          getOptionLabel={(option) => `${option.first_name} ${option.last_name}`}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          disableCloseOnSelect
+          onChange={(e, newValue) => setSelectedEmployees(newValue)}
+          value={selectedEmployees}
+          renderInput={(params) => (
+            <TextField {...params} label="Search and select employees" />
+          )}
+          renderOption={(props, option, { selected }) => (
+            <li {...props}>
+              <Checkbox style={{ marginRight: 8 }} checked={selected} />
+              {`${option.first_name} ${option.last_name}`}
+            </li>
+          )}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button variant="contained" color="primary" onClick={handleAssign}>
+          Assign
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const RolesDetails = () => {
   const { id } = useParams();
@@ -29,24 +107,36 @@ const RolesDetails = () => {
   const [employees, setEmployees] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        const roleRes = await axiosInstance.get(`/settings/getEmployeeRole/${id}`, { headers });
-        console.log(roleRes.data);
-
-        setRole(roleRes.data.role);
-        setEmployees(roleRes.data.employees); // ✅ FIXED: get employees directly from response
-      } catch (err) {
-        Swal.fire('Error', 'Failed to fetch role details.', 'error');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchDetails();
   }, [id]);
+
+  const fetchDetails = async () => {
+    try {
+      const res = await axiosInstance.get(`/settings/getEmployeeRole/${id}`, { headers });
+      setRole(res.data.role);
+      setEmployees(res.data.employees || []);
+    } catch (err) {
+      Swal.fire('Error', 'Failed to fetch role details.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePermissionChange = (key, value) => {
+    setRole(prev => ({ ...prev, [key]: value }));
+  };
+
+  const savePermissions = async () => {
+    try {
+      await axiosInstance.put(`/settings/updateEmployeeRole/${id}`, role, { headers });
+      Swal.fire('Success', 'Permissions updated!', 'success');
+    } catch (err) {
+      Swal.fire('Error', 'Failed to update permissions.', 'error');
+    }
+  };
 
   const filteredEmployees = employees.filter(emp =>
     `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchKeyword.toLowerCase())
@@ -58,7 +148,6 @@ const RolesDetails = () => {
         <LoadingSpinner />
       ) : (
         <Box sx={{ mx: 'auto', mt: 5, width: { xs: '100%', md: '1400px' } }}>
-          {/* Role Name Header */}
           <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
             <i
               className="fa fa-chevron-left"
@@ -66,10 +155,32 @@ const RolesDetails = () => {
               style={{ fontSize: '80%', cursor: 'pointer', marginRight: 8 }}
               onClick={() => navigate('/admin/roles')}
             ></i>
-            Role: {role?.name}
+            {role?.name}
           </Typography>
 
-          {/* Search and Table */}
+          {/* Permissions Box */}
+          <Box
+            sx={{
+              bgcolor: '#ffffff',
+              p: 3,
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              flexWrap: 'wrap',
+              mb: 4
+            }}
+          >
+            <TextField label="Position" value={role?.name || ''} disabled sx={{ width: 200 }} />
+            <Box><Checkbox checked={role?.can_review_request || false} onChange={(e) => handlePermissionChange('can_review_request', e.target.checked)} />Review</Box>
+            <Box><Checkbox checked={role?.can_approve_request || false} onChange={(e) => handlePermissionChange('can_approve_request', e.target.checked)} />Approve</Box>
+            <Box><Checkbox checked={role?.can_note_request || false} onChange={(e) => handlePermissionChange('can_note_request', e.target.checked)} />Note</Box>
+            <Box><Checkbox checked={role?.can_accept_request || false} onChange={(e) => handlePermissionChange('can_accept_request', e.target.checked)} />Accept</Box>
+            <Button variant="contained" onClick={savePermissions} sx={{ backgroundColor: '#177604', '&:hover': { backgroundColor: '#126903' } }}>Save</Button>
+            <Button variant="outlined" onClick={() => setAssignModalOpen(true)} sx={{ ml: 'auto' }}>Assign Employees</Button>
+          </Box>
+
+          {/* Employee List */}
           <Box sx={{ bgcolor: '#ffffff', p: 3, borderRadius: 2 }}>
             <Grid container spacing={2} sx={{ mb: 2 }}>
               <Grid item xs={12} md={6}>
@@ -124,6 +235,14 @@ const RolesDetails = () => {
               </Typography>
             </Box>
           </Box>
+
+          {/* Assign Users Modal */}
+          <AssignUsersModal
+            open={assignModalOpen}
+            onClose={() => setAssignModalOpen(false)}
+            roleId={role?.id}
+            onAssignSuccess={fetchDetails}
+          />
         </Box>
       )}
     </Layout>

@@ -180,7 +180,7 @@ class EmployeesController extends Controller
                 $employee->client_id,
                 $employee->branch_id,
                 $employee->role,       // remove relationship object
-                $employee->role_id     // optional, if you don't need the id
+             // optional, if you don't need the id
             );
 
             return $employee;
