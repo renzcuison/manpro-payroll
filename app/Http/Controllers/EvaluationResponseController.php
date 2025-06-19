@@ -379,7 +379,7 @@ class EvaluationResponseController extends Controller
                     ->addMedia($request->file('evaluatee_signature_filepath'))
                     ->toMediaCollection('evaluatee_signatures')
                 ;
-            } else if($request->has('evaluatee_signature_filepath')) return response()->json([ 
+            } else if($request->evaluatee_signature_filepath != null) return response()->json([ 
                 'status' => 400,
                 'message' => 'Invalid evaluatee signature data!',
                 'evaluationResponseID' => $request->id
@@ -390,7 +390,7 @@ class EvaluationResponseController extends Controller
                     ->addMedia($request->file('creator_signature_filepath'))
                     ->toMediaCollection('creator_signatures')
                 ;
-            } else if($request->has('creator_signature_filepath')) return response()->json([ 
+            } else if($request->creator_signature_filepath != null) return response()->json([ 
                 'status' => 400,
                 'message' => 'Invalid creator signature data!',
                 'evaluationResponseID' => $request->id
@@ -1523,7 +1523,10 @@ class EvaluationResponseController extends Controller
                     ->addMedia($request->file('signature_filepath'))
                     ->toMediaCollection('signatures')
                 ;
-            }
+            } else if($request->signature_filepath != null) return response()->json([ 
+                'status' => 400,
+                'message' => 'Invalid evaluator signature data!'
+            ]);
             $evaluationEvaluator->save();
 
             $evaluatorSignature = $evaluationEvaluator->getFirstMedia('signatures');
@@ -1917,7 +1920,10 @@ class EvaluationResponseController extends Controller
                     ->addMedia($request->file('signature_filepath'))
                     ->toMediaCollection('signatures')
                 ;
-            }
+            } else if($request->signature_filepath != null) return response()->json([ 
+                'status' => 400,
+                'message' => 'Invalid commentor signature data!'
+            ]);
             $evaluationCommentor->save();
 
             $commentorSignature = $evaluationCommentor->getFirstMedia('signatures');

@@ -1,23 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
-    TablePagination, Box, Typography, CircularProgress,
-    TextField, InputAdornment, IconButton, Select, FormControl, InputLabel, MenuItem
+    TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
+    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { getFullName } from '../../../utils/user-utils';
+import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import Swal from 'sweetalert2';
-
-const rolePriority = {
-    "Creator": 1,
-    "Evaluatee": 2,
-    "Evaluator": 3,
-    "Commentor": 4
-};
 
 const getEvaluationRoleRoute = (row) => {
     switch (row.role) {
@@ -65,8 +59,14 @@ const PerformanceEvaluationList = () => {
     // Status filter state
     const [statusFilter, setStatusFilter] = useState('');
 
-    // For white box logic
-    const [hasHadResponses, setHasHadResponses] = useState(false);
+    // Menu Items
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+    const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+    const handleMenuClose = () => setAnchorEl(null);
+
+    // Modal state for New Form
+    const [modalOpen, setModalOpen] = useState(false);
 
     useEffect(() => {
         axiosInstance.get('/getEvaluationForms', { headers })
@@ -74,7 +74,7 @@ const PerformanceEvaluationList = () => {
             .catch(() => setPerformanceEvaluation([]));
     }, []);
 
-    // Fetch evaluation responses for the current user
+    // Fetch evaluation responses for the current user (as evaluatee or evaluator or commentor)
     useEffect(() => {
         setIsLoading(true);
         axiosInstance.get('/getEvaluationResponses', {
@@ -83,32 +83,21 @@ const PerformanceEvaluationList = () => {
                 page: page + 1, // backend is 1-based
                 limit: rowsPerPage,
                 search: searchValue,
-                status: statusFilter || undefined,
+                status: statusFilter || undefined, // only send if set
                 order_by: [
-                    { key: "updated_at", sort_order: "desc" }
+                    {key: "status", sort_order: "asc"},
+                    {key: "created_at", sort_order: "asc"},
+                    {key: "last_name", sort_order: "asc"},
+                    {key: "first_name", sort_order: "asc"},
+                    {key: "middle_name", sort_order: "asc"},
+                    {key: "suffix", sort_order: "asc"}
                 ]
             }
         })
             .then((response) => {
                 if (response.data.status === 200) {
-                    // Deduplicate by id, keep highest priority role
-                    const seen = {};
-                    for (const row of response.data.evaluationResponses) {
-                        if (
-                            !seen[row.id] ||
-                            (rolePriority[row.role] < rolePriority[seen[row.id].role])
-                        ) {
-                            seen[row.id] = row;
-                        }
-                    }
-                    const uniqueResponses = Object.values(seen);
-                    setEvaluationResponses(uniqueResponses);
+                    setEvaluationResponses(response.data.evaluationResponses);
                     setTotalCount(response.data.totalResponseCount);
-
-                    // If on any filter/search there has been at least 1 response, set flag
-                    if (uniqueResponses.length > 0) {
-                        setHasHadResponses(true);
-                    }
                 } else {
                     setEvaluationResponses([]);
                     setTotalCount(0);
@@ -176,23 +165,26 @@ const PerformanceEvaluationList = () => {
 
     return (
         <Layout title={"PerformanceEvaluation"}>
-            <Box sx={{ width: '100%' }}>
+            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: '100%', maxWidth: '1200px' }}>
                     {/* Title */}
                     <Box sx={{ mt: 5 }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                            Performance Evaluation
-                        </Typography>
+                        <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Performance Evaluation </Typography>
                     </Box>
-
-                    {isLoading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
-                            <CircularProgress />
-                        </Box>
-                    ) : hasHadResponses ? (
-                        <Box sx={{ mt: 2, p: 3, bgcolor: '#fff', borderRadius: '8px' }}>
-                            {/* Filters/Search always visible */}
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3, gap: 2 }}>
+                    {/* White Box Containing the Buttons and Table */}
+                    <Box sx={{ mt: 2, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                        {/* Buttons and Search */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            {/* Left: Create Evaluation */}
+                            <Button
+                                variant="contained"
+                                color="success"
+                                onClick={() => navigate('/employee/performance-evaluation/create-evaluation')}
+                            >
+                                <i className="fa"></i> Create Evaluation
+                            </Button>
+                            {/* Right group: Search, Status Filter, Forms */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                 {/* Search Field */}
                                 <Box
                                     component="form"
@@ -241,75 +233,122 @@ const PerformanceEvaluationList = () => {
                                         ))}
                                     </Select>
                                 </FormControl>
-                            </Box>
-                            {evaluationResponses.length === 0 ? (
-                                <Box sx={{ minHeight: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Typography variant="body1" color="text.secondary">
-                                        No evaluation responses found.
-                                    </Typography>
-                                </Box>
-                            ) : (
-                                <>
-                                    <TableContainer sx={{ minHeight: 400 }}>
-                                        <Table aria-label="simple table" sx={{
-                                            '& .MuiTableCell-root': {
-                                                borderBottom: 'none',
-                                            },
+                                {/* Forms Dropdown Button */}
+                                <Button
+                                    id="performance-evaluation-menu"
+                                    variant="contained"
+                                    color="success"
+                                    aria-controls={open ? 'perf-eval-menu' : undefined}
+                                    aria-haspopup="true"
+                                    aria-expanded={open ? 'true' : undefined}
+                                    onClick={handleMenuOpen}
+                                >
+                                    Forms <i className="fa fa-caret-down ml-2"></i>
+                                </Button>
+                                <Menu
+                                    id="perf-eval-menu"
+                                    anchorEl={anchorEl}
+                                    open={open}
+                                    onClose={handleMenuClose}
+                                    MenuListProps={{
+                                        'aria-labelledby': 'performance-evaluation-menu',
+                                    }}
+                                >
+                                    {performanceEvaluations.map(({ name }) => (
+                                        <MenuItem key={name} onClick={() => {
+                                            handleMenuClose();
+                                            navigate(`/employee/performance-evaluation/form/${name}`);
                                         }}>
-                                            <TableHead>
+                                            {name}
+                                        </MenuItem>
+                                    ))}
+                                    <Divider sx={{ my: 1 }} />
+                                    <MenuItem
+                                        onClick={() => { setModalOpen(true); handleMenuClose(); }}
+                                        sx={{ display: 'flex', alignItems: 'center' }}
+                                    >
+                                        <Typography variant="body1" sx={{ mr: 1, fontWeight: 'bold' }}>+</Typography> New Form
+                                    </MenuItem>
+                                </Menu>
+                            </Box>
+                        </Box>
+                        {/* Modal for New Form */}
+                        <PerformanceEvaluationAdd
+                            open={modalOpen}
+                            onClose={() => setModalOpen(false)}
+                            onOpen={() => setModalOpen(true)}
+                            onSuccess={formName => navigate(`form/${formName}`)}
+                        />
+
+                        {isLoading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                                <CircularProgress />
+                            </Box>
+                        ) : (
+                            <>
+                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                    <Table aria-label="simple table" sx={{
+                                        '& .MuiTableCell-root': {
+                                            borderBottom: 'none',
+                                        },
+                                    }}>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell align="center">DATE</TableCell>
+                                            <TableCell align="center">NAME</TableCell>
+                                            <TableCell align="center">DEPARTMENT</TableCell>
+                                            <TableCell align="center">BRANCH</TableCell>
+                                            <TableCell align="center">ROLE</TableCell>
+                                            <TableCell align="center">STATUS</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                        <TableBody>
+                                            {evaluationResponses.length === 0 ? (
                                                 <TableRow>
-                                                    <TableCell align="center">DATE</TableCell>
-                                                    <TableCell align="center">NAME</TableCell>
-                                                    <TableCell align="center">DEPARTMENT</TableCell>
-                                                    <TableCell align="center">BRANCH</TableCell>
-                                                    <TableCell align="center">ROLE</TableCell>
-                                                    <TableCell align="center">STATUS</TableCell>
+                                                    <TableCell colSpan={6} align="center">
+                                                        No evaluation responses found.
+                                                    </TableCell>
                                                 </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {evaluationResponses.map((row, idx) => (
-                                                    <TableRow
-                                                        key={row.id}
-                                                        hover
-                                                        style={{
-                                                            cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
-                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
-                                                            opacity: isRowDisabled(row) ? 0.5 : 1,
-                                                        }}
-                                                        onClick={() => handleRowClick(row)}
-                                                    >
-                                                        <TableCell align="center">{row.date}</TableCell>
-                                                        <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.role}</TableCell>
-                                                        <TableCell align="center">{row.status}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                                        <TablePagination
-                                            rowsPerPageOptions={[10]}
-                                            component="div"
-                                            count={totalCount}
-                                            rowsPerPage={rowsPerPage}
-                                            page={page}
-                                            onPageChange={handleChangePage}
-                                            onRowsPerPageChange={() => { }}
-                                        />
-                                    </Box>
-                                </>
-                            )}
-                        </Box>
-                    ) : (
-                        <Box sx={{ minHeight: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                            <Typography variant="body1" color="text.secondary">
-                                No evaluation responses found.
-                            </Typography>
-                        </Box>
-                    )}
+                                            ) : (
+                                                evaluationResponses.map((row, idx) => (
+                                                <TableRow
+                                                    key={row.id}
+                                                    hover
+                                                    style={{
+                                                        cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
+                                                        backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
+                                                        opacity: isRowDisabled(row) ? 0.5 : 1,
+                                                    }}
+                                                    onClick={() => handleRowClick(row)}
+                                                >
+                                                    <TableCell align="center">{row.date}</TableCell>
+                                                    <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
+                                                    <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
+                                                    <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
+                                                    <TableCell align="center">{row.role}</TableCell>
+                                                    <TableCell align="center">{row.status}</TableCell>
+                                                </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+
+                                {/* Pagination controls */}
+                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                                    <TablePagination
+                                        rowsPerPageOptions={[10]}
+                                        component="div"
+                                        count={totalCount}
+                                        rowsPerPage={rowsPerPage}
+                                        page={page}
+                                        onPageChange={handleChangePage}
+                                        onRowsPerPageChange={() => { }}
+                                    />
+                                </Box>
+                            </>
+                        )}
+                    </Box>
                 </Box>
             </Box>
         </Layout>

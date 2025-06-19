@@ -13,13 +13,6 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import Swal from 'sweetalert2';
 
-const rolePriority = {
-    "Creator": 1,
-    "Evaluatee": 2,
-    "Evaluator": 3,
-    "Commentor": 4
-};
-
 const getEvaluationRoleRoute = (row) => {
     switch (row.role) {
         case "Creator":
@@ -84,7 +77,6 @@ const PerformanceEvaluationList = () => {
     // Fetch evaluation responses for the current user (as evaluatee or evaluator or commentor)
     useEffect(() => {
         setIsLoading(true);
-
         axiosInstance.get('/getEvaluationResponses', {
             headers,
             params: {
@@ -92,21 +84,19 @@ const PerformanceEvaluationList = () => {
                 limit: rowsPerPage,
                 search: searchValue,
                 status: statusFilter || undefined, // only send if set
+                order_by: [
+                    {key: "status", sort_order: "asc"},
+                    {key: "created_at", sort_order: "asc"},
+                    {key: "last_name", sort_order: "asc"},
+                    {key: "first_name", sort_order: "asc"},
+                    {key: "middle_name", sort_order: "asc"},
+                    {key: "suffix", sort_order: "asc"}
+                ]
             }
         })
             .then((response) => {
                 if (response.data.status === 200) {
-                    // Deduplicate by id, keep highest priority role
-                    const seen = {};
-                    for (const row of response.data.evaluationResponses) {
-                        if (
-                            !seen[row.id] ||
-                            (rolePriority[row.role] < rolePriority[seen[row.id].role])
-                        ) {
-                            seen[row.id] = row;
-                        }
-                    }
-                    setEvaluationResponses(Object.values(seen));
+                    setEvaluationResponses(response.data.evaluationResponses);
                     setTotalCount(response.data.totalResponseCount);
                 } else {
                     setEvaluationResponses([]);
