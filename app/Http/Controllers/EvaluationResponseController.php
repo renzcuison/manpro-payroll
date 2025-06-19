@@ -732,8 +732,13 @@ class EvaluationResponseController extends Controller
                     break;
                 case 'Creator': break;
                 case 'Evaluatee':
-                    $evaluationEvaluator->evaluatee_opened_at = $now;
-                    $evaluationEvaluator->save();
+                    $evaluationResponseEdit = EvaluationResponse
+                        ::where('id', $request->id)
+                        ->first()
+                    ;
+                    $evaluationResponseEdit->evaluatee_opened_at = $now;
+                    $evaluationResponseEdit->save();
+                    $evaluationResponse->evaluatee_opened_at = $now;
                     break;
                 default:
                     return response()->json([ 
