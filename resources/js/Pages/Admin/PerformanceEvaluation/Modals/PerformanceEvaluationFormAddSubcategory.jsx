@@ -54,6 +54,25 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
     const handleRemoveOption = (index) => {
         deleteOption(index);
     };
+    
+    const handleAddLinearScaleOption = () => {
+        if (linearScaleOptions.length < 10) {
+            setLinearScaleOptions([
+                ...linearScaleOptions,
+                { label: '', description: '', score: linearScaleOptions.length + 1 }
+            ]);
+        } else {
+            // Optionally show a message when the limit of 10 options is reached.
+            alert("You can only add up to 10 options for the linear scale.");
+        }
+    };
+
+    const handleRemoveLinearScaleOption = (idx) => {
+        if (linearScaleOptions.length > 2) { // Keep at least 2 options
+            const newOptions = linearScaleOptions.filter((_, index) => index !== idx);
+            setLinearScaleOptions(newOptions);
+        }
+    };
 
     
 
