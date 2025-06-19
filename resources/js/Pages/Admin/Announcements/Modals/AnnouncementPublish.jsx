@@ -366,7 +366,7 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                         : "Announcement published.",
                     icon: "success",
                     confirmButtonColor: '#177604'
-                }).then(() => handleClose());
+                }).then(() => handleClose()); window.location.reload();
             })
             .catch(() => {
                 setSaving(false); // Stop loading
