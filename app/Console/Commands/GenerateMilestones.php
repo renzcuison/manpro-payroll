@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\Milestone;
 use App\Models\UsersModel;
+use App\Notifications\MilestoneReminder;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class GenerateMilestones extends Command
 {
@@ -27,31 +29,93 @@ class GenerateMilestones extends Command
      */
     public function handle(): void
     {
-        $today = now()->toDateString();
-        
-        $users = UsersModel::all();
-        foreach ($users as $user) {
-            // Birthday
-            if ($user->birth_date && $user->birth_date->format('m-d') == now()->format('m-d')) {
-                Milestone::firstOrCreate([
-                    'user_id' => $user->id,
-                    'type' => 'birthday',
-                    'date' => $today,
-                    'client_id' =>$user->client_id,
-                ]);
-            }
+        try {
+            $today = now();
+            $targetDate = now()->addMonth(); // Check 1 month in advance
+            $targetMonthDay = $targetDate->format('m-d');
 
-            // Work Anniversary
-            if ($user->date_start && $user->date_start->format('m-d') == now()->format('m-d')) {
-                $years = now()->year - $user->date_start->year;
-                Milestone::firstOrCreate([
-                    'user_id' => $user->id,
-                    'type' => 'anniversary',
-                    'date' => $today,
-                    'description' => "$years Year Work Anniversary",
-                    'client_id' =>$user->client_id,
-                ]);
+            $users = UsersModel::all();
+
+            foreach ($users as $user) {
+                $todayDateString = $today->toDateString();
+                // Birthday check 1 month ahead
+                if (
+                    $user->birth_date &&
+                    $user->birth_date->format('m-d') === $targetMonthDay
+                ) {
+                    $milestoneDate = now()
+                        ->addMonth()
+                        ->toDateString();
+
+                    $milestone = Milestone::firstOrCreate([
+                        'user_id' => $user->id,
+                        'type' => 'birthday',
+                        'date' => $milestoneDate,
+                        'description' => "Happy Birthday! {$user->name} 1 month ahead of your birthday",
+                        'client_id' => $user->client_id,
+                    ]);
+
+                    // $user->notify(
+                    //     new MilestoneReminder('Birthday', $milestoneDate)
+                    // );
+                    Log::info($milestone);
+                }
+
+                // Anniversary check 1 month ahead
+                if (
+                    $user->date_start &&
+                    $user->date_start->format('m-d') === $targetMonthDay
+                ) {
+                    $years = $targetDate->year - $user->date_start->year;
+                    $milestoneDate = now()
+                        ->addMonth()
+                        ->toDateString();
+
+                    $milestone = Milestone::firstOrCreate([
+                        'user_id' => $user->id,
+                        'type' => 'anniversary',
+                        'date' => $milestoneDate,
+                        'description' => "$years Year Work Anniversary",
+                        'client_id' => $user->client_id,
+                    ]);
+
+                    // $user->notify(
+                    //     new MilestoneReminder(
+                    //         'Work Anniversary',
+                    //         $milestoneDate
+                    //     )
+                    // );
+                    Log::info($milestone);
+                }
+
+                // 🗓️ Work Monthsary (triggered today)
+                if (
+                    $user->date_start &&
+                    $user->date_start->format('d') === $today->format('d')
+                ) {
+                    $monthsSinceStart = $user->date_start->diffInMonths($today);
+
+                    if ($monthsSinceStart > 0) {
+                        Milestone::firstOrCreate([
+                            'user_id' => $user->id,
+                            'type' => 'monthsary',
+                            'date' => $todayDateString,
+                            'description' => "$monthsSinceStart Month Work",
+                            'client_id' => $user->client_id,
+                        ]);
+
+                        // $user->notify(
+                        //     new MilestoneReminder(
+                        //         'Work Monthsary',
+                        //         $todayDateString
+                        //     )
+                        // );
+                    }
+                }
             }
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            Log::error($th->getTraceAsString());
         }
     }
 }
