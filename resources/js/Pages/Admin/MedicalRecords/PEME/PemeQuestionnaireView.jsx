@@ -59,7 +59,7 @@ const UploadForm = ({ fileSizeLimit, file, fileName, onFileClick }) => {
                             cursor: "pointer",
                         }}
                     >
-                        {fileName}
+                        {file.file_name}
                     </Typography>
                 ) : (
                     <Typography>No file uploaded</Typography>
@@ -166,17 +166,13 @@ const PemeQuestionnaireView = () => {
     const [selectedFile, setSelectedFile] = useState(null);
 
     useEffect(() => {
-
-        console.log("storedUser", storedUser);
-        console.log("headers", headers);
-
         axiosInstance
             .get(`/peme-response/${PemeResponseID}/details`, {
                 headers,
             })
             .then((response) => {
                 setEmployeeResponse(response.data);
-                console.log(response.data);
+                console.log("RESPONSE.DATA", response.data);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -498,25 +494,27 @@ const PemeQuestionnaireView = () => {
                                                                     (
                                                                         file,
                                                                         j
-                                                                    ) => (
-                                                                        <UploadForm
-                                                                            key={
-                                                                                j
-                                                                            }
-                                                                            fileSizeLimit={
-                                                                                type.file_size_limit
-                                                                            }
-                                                                            file={
-                                                                                file
-                                                                            }
-                                                                            fileName={
-                                                                                file.file_name
-                                                                            }
-                                                                            onFileClick={
-                                                                                handleFileClick
-                                                                            }
-                                                                        />
-                                                                    )
+                                                                    ) => {
+                                                                        return (
+                                                                            <UploadForm
+                                                                                key={
+                                                                                    j
+                                                                                }
+                                                                                fileSizeLimit={
+                                                                                    type.file_size_limit
+                                                                                }
+                                                                                file={
+                                                                                    file
+                                                                                }
+                                                                                fileName={
+                                                                                    file.file_name
+                                                                                }
+                                                                                onFileClick={
+                                                                                    handleFileClick
+                                                                                }
+                                                                            />
+                                                                        );
+                                                                    }
                                                                 )
                                                             ) : (
                                                                 <UploadForm
