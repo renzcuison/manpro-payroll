@@ -22,6 +22,17 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSala
     const checkInput = (event) => {
         event.preventDefault();
 
+        if (salaryGradeInfo.employee_count > 0) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "You cannot edit this salary grade. There are existing employees with this salary grade.",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+
         const duplicate = existingSalaryGrades.some((grade) => String(grade) === String(salary_grade));
 
         setSalaryGradeError(!salary_grade);
@@ -125,6 +136,17 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSala
         
         
     const handleDeleteSalaryGrade = (salaryGrade) => {
+        if (salaryGradeInfo.employee_count > 0) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "You cannot delete this salary grade. There are existing employees with this salary grade.",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+
         Swal.fire({
             customClass: { container: "my-swal" },
             title: `Delete Salary Grade?`,
