@@ -118,55 +118,45 @@ export function useEvaluationFormSubcategory(subcategory) {
         ;
     }
 
-    function saveSubcategory() {
-        axiosInstance
-            .post('/saveEvaluationFormSubcategory', {
-                section_id: sectionId,
-                name: subcategoryName,
-                subcategory_type: getSubcategoryDbValue(subcategoryType),
-                description: subcategoryDescription,
-                required,
-                allow_other_option: allowOtherOption,
-                linear_scale_start: linearScaleStart,
-                linear_scale_end: linearScaleEnd,
-                linear_scale_start_label: linearScaleStartLabel,
-                linear_scale_end_label: linearScaleEndLabel,
-                options:
-                    getSubcategoryDbValue(subcategoryType) === 'linear_scale'
-                        ? linearScaleOptions.map((opt, idx) => ({
-                            label: opt.label,
-                            description: opt.description,
-                            score: idx + 1
-                        }))
-                        : options
-            }, { headers })
-            .then((response) => {
-                if (response.data.status.toString().startsWith(2)) {
-                    const { evaluationFormSubcategoryID } = response.data;
-                    if(!evaluationFormSubcategoryID) return;
-                    setIsNew(false);
-                    setSubcategoryId(evaluationFormSubcategoryID);
-                } else if (response.data.status.toString().startsWith(4)) {
-                    Swal.fire({
-                        text: response.data.message,
-                        icon: "error",
-                        confirmButtonColor: '#177604',
-                        customClass: {
-                            popup: 'swal-popup-overlay'
-                        }
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error saving subcategory:', error);
-                Swal.fire({
-                    text: "Error saving subcategory",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                });
-            })
-        ;
-    }
+const saveSubcategory = () => {
+    // Prepare linear scale options with automatically assigned scores
+    const transformedLinearScaleOptions = linearScaleOptions.map((opt, idx) => ({
+        label: opt.label,
+        description: opt.description,
+        score: idx + 1, // Automatically assign score based on index
+        order: idx + 1 // Ensure the order is correct
+    }));
+
+    // Now send the data, including the transformed options
+    axiosInstance
+        .post('/saveEvaluationFormSubcategory', {
+            section_id: sectionId,
+            name: subcategoryName,
+            subcategory_type: 'linear_scale',
+            description: subcategoryDescription,
+            required,
+            allow_other_option: allowOtherOption,
+            linear_scale_start: linearScaleStart,
+            linear_scale_end: linearScaleEnd,
+            linear_scale_start_label: linearScaleStartLabel,
+            linear_scale_end_label: linearScaleEndLabel,
+            options: transformedLinearScaleOptions, // Use the transformed options
+        }, { headers })
+        .then((response) => {
+            if (response.data.status.toString().startsWith(2)) {
+                // Optionally update UI or trigger another action
+                alert("Subcategory saved successfully!");
+            } else {
+                alert("Error saving subcategory");
+            }
+        })
+        .catch((error) => {
+            console.error('Error saving subcategory:', error);
+            alert("Error saving subcategory");
+        });
+};
+
+
 
     function switchResponseType(responseType) {
         const subcategoryDbValue = getSubcategoryDbValue(responseType);
