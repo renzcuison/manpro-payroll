@@ -88,10 +88,11 @@ const PerformanceEvaluationCreatorPage = () => {
   async function handleCreatorSignature(signatureData) {
     setSaving(true);
     try {
-      await editEvaluationSignature({
+      const response = await editEvaluationSignature({
         response_id: evaluationResponse.id,
         creator_signature_filepath: signatureData
       });
+      if(response.data.status.toString().startsWith(2)) throw response.data.message;
       Swal.fire({
         icon: 'success',
         title: 'Approved!',
@@ -102,6 +103,7 @@ const PerformanceEvaluationCreatorPage = () => {
         position: 'center'
       });
     } catch (err) {
+      console.error(err);
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
