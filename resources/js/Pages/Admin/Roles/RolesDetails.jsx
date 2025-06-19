@@ -96,6 +96,19 @@ const RolesDetails = () => {
               onClick={() => navigate('/admin/roles')}
             ></i>
             {role?.name}
+            <Button
+            variant="contained"
+            sx={{
+              ml:163,
+              backgroundColor: '#177604',
+              '&:hover': { backgroundColor: '#126903' }
+            }}
+            onClick={() => setAssignModalOpen(true)}
+          >
+            <i className="fa fa-plus" style={{ marginRight: 8 }}></i>
+            Assign
+          </Button>
+
           </Typography>
 
           <Box
@@ -142,9 +155,6 @@ const RolesDetails = () => {
             </Box>
             <Button variant="contained" onClick={savePermissions} sx={{ backgroundColor: '#177604', '&:hover': { backgroundColor: '#126903' } }}>
               Save
-            </Button>
-            <Button variant="outlined" onClick={() => setAssignModalOpen(true)} sx={{ ml: 'auto' }}>
-              Assign Employees
             </Button>
           </Box>
 
