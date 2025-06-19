@@ -8,12 +8,11 @@ import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 
 import 'react-quill/dist/quill.snow.css';
-import { useDeductions } from '../../../../hooks/useDeductions';
+import { useSaveDeductions } from '../../../../hooks/useDeductions';
 
 const DeductionsAdd = ({ open, close }) => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-    const {saveDeductions} = useDeductions();
+    
+    const saveDeductions = useSaveDeductions();
 
     const [deductionsNameError, setDeductionsNameError] = useState(false);
     const [deductionsAmountError, setDeductionsAmountError] = useState(false);
@@ -23,6 +22,9 @@ const DeductionsAdd = ({ open, close }) => {
     const [deductionsType, setDeductionsType] = useState('');
     const [deductionsAmount, setDeductionsAmount] = useState('');
     const [deductionsPercentage, setDeductionsPercentage] = useState('');
+
+    const [paymentScheduleError, setPaymentScheduleError] = useState(false);
+    const [paymentSchedule, setPaymentSchedule] = useState(1);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -113,7 +115,6 @@ const DeductionsAdd = ({ open, close }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
         const amount = parseFloat(deductionsAmount.replace(/,/g, "")) || 0;
         const percentage = parseFloat(deductionsPercentage.replace(/,/g, "")) || 0;
 
@@ -122,6 +123,7 @@ const DeductionsAdd = ({ open, close }) => {
             type: deductionsType,
             amount: amount,
             percentage: percentage,
+            payment_schedule: paymentSchedule,
         };
         saveDeductions.mutate({data: data, onSuccessCallback: () => close(true)});
     };
@@ -193,46 +195,56 @@ const DeductionsAdd = ({ open, close }) => {
                             </FormControl>
                         </FormGroup>
 
-                        {deductionsType === "Amount" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between">
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '100%'}}>
-                                        <InputLabel>Amount</InputLabel>
-                                        <OutlinedInput
-                                            required
-                                            id="deductionsAmount"
-                                            label="Amount"
-                                            value={deductionsAmount}
-                                            error={deductionsAmountError}
-                                            startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                            onChange={(e) => handleInputChange(e, setDeductionsAmount)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
-
-                        {deductionsType === "Percentage" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between">
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '100%'}}>
-                                        <InputLabel>Percentage</InputLabel>
-                                        <OutlinedInput
-                                            required
-                                            id="deductionsPercentage"
-                                            label="Percentage"
-                                            value={deductionsPercentage}
-                                            error={deductionsPercentageError}
-                                            startAdornment={<InputAdornment position="start">%</InputAdornment>}
-                                            onChange={(e) => handleInputChange(e, setDeductionsPercentage)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
-
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            {deductionsType && (
+                                <FormControl sx={{ marginBottom: 3, width: '69%', }}>
+                                    <TextField
+                                        required
+                                        select
+                                        id="paymentSchedule"
+                                        label="Payment Schedule"
+                                        value={paymentSchedule}
+                                        error={paymentScheduleError}
+                                        onChange={(event) => setPaymentSchedule(event.target.value)}
+                                    >
+                                        <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>
+                                        <MenuItem key={2} value={2}> One Time - Second Cutoff</MenuItem>
+                                        <MenuItem key={3} value={3}> Split - First & Second Cutoff</MenuItem>
+                                    </TextField>
+                                </FormControl>
+                            )}
+                            {deductionsType === "Amount" && (
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '29%'}}>
+                                    <InputLabel>Amount</InputLabel>
+                                    <OutlinedInput
+                                        required
+                                        id="deductionsAmount"
+                                        label="Amount"
+                                        value={deductionsAmount}
+                                        error={deductionsAmountError}
+                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
+                                        onChange={(e) => handleInputChange(e, setDeductionsAmount)}
+                                    />
+                                </FormControl>
+                            )}
+                            
+                            {deductionsType === "Percentage" && (
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '29%'}}>
+                                    <InputLabel>Percentage</InputLabel>
+                                    <OutlinedInput
+                                        required
+                                        id="deductionsPercentage"
+                                        label="Percentage"
+                                        value={deductionsPercentage}
+                                        error={deductionsPercentageError}
+                                        startAdornment={<InputAdornment position="start">%</InputAdornment>}
+                                        onChange={(e) => handleInputChange(e, setDeductionsPercentage)}
+                                    />
+                                </FormControl>
+                            )}
+                        </FormGroup>
                         {deductionsType && (
                             <>
                                 <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>

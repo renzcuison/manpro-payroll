@@ -4,35 +4,54 @@ const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 import Swal from "sweetalert2";
 
-export function useDeductions({userName = null, loadDeductions = false, loadEmployeesDeductions = false, filters = {}, pagination = {}} = {}){
-    const queryClient = useQueryClient();
-
-    const {name, branchId, departmentId, deductionId} = filters;
+const buildParams = (filters = {}, pagination = {}) => {
+    const {name, branchId, departmentId, allowanceId} = filters;
     const {page = 1, perPage = 10} = pagination;
     const params = {};
     
     if (name) params.name = name;
     if (branchId) params.branch_id = branchId;
     if (departmentId) params.department_id = departmentId;
-    if (deductionId) params.deduction_id = deductionId;
+    if (allowanceId) params.allowance_id = allowanceId;
     if (page) params.page = page;
     if (perPage) params.per_page = perPage;
+    return params;
+}
 
-    const deductions = useQuery(["deductions"], async () => {
+export function useDeduction(enabled = true){
+    const query = useQuery(["deductions"], async () => {
         const { data } = await axiosInstance.get("compensation/getDeductions", {
             headers,
         });
         return data;
-    }, {enabled: loadDeductions});
+    }, {enabled});
+    return {
+        deductionsData: query.data,
+        isDeductionsLoading: query.isLoading,
+        isDeductionsError: query.isError,
+        refetchDeductions: query.refetch,
+    }
+}
 
-    const employeesDeductions = useQuery(["employeesDeductions", {filters, pagination}], async () => {
+export function useEmployeesDeductions(filters = {}, pagination = {}, enabled = true){
+    const params = buildParams(filters, pagination);
+    const query = useQuery(["employeesDeductions", {filters, pagination}], async () => {
         const { data } = await axiosInstance.get("compensation/getEmployeesDeductions", {
             headers, params,
         });
         return data;
-    }, {enabled: loadEmployeesDeductions});
+    }, {enabled});
 
-    const employeeDeductions = useQuery(["employeeDeductions", userName, filters.deductionId], async () => {
+    return {
+        employeesDeductions: query.data,
+        isEmployeesDeductionsLoading: query.isLoading,
+        isEmployeesDeductionsError: query.isError,
+        refetchEmployeesDeductions: query.refetch,
+    }
+}
+
+export function useEmployeeDeductions(userName, deductionId = null){
+    const query = useQuery(["employeeDeductions", userName, deductionId], async () => {
         const {data} = await axiosInstance.get("compensation/getEmployeeDeductions", {
             headers, params: {username: userName, deduction_id: deductionId},
         });
@@ -40,8 +59,16 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
     },{
         enabled: !!userName,
     });
+    return{
+        employeeDeductions: query.data,
+        isEmployeeDeductionsLoading: query.isLoading,
+        isEmployeDeductionsError: query.isError,
+        refetchEmployeeDeductions: query.refetch,
+    }
+}
 
-    const saveDeductions = useMutation(
+export function useSaveDeductions() {
+    return useMutation(
         async ({ data }) => {
             return await axiosInstance.post('/compensation/saveDeductions', data, { headers });
         },
@@ -74,8 +101,11 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
             }
         }
     );
+}
 
-    const updateDeductions = useMutation(
+export function useUpdateDeduction(){
+    const queryClient = useQueryClient();
+    return useMutation(
         async ({ data }) => {
             return await axiosInstance.post('/compensation/updateDeductions', data, { headers });
         },
@@ -110,8 +140,10 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
             }
         }
     );
+}
 
-    const saveEmployeeDeductions = useMutation(async ({data}) => {
+export function useSaveEmployeeDeductions(){
+    return useMutation(async ({data}) => {
         return await axiosInstance.post('/compensation/saveEmployeeDeductions', data, { headers });
     },
     {
@@ -142,8 +174,10 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
             });
         }
     });
+}
 
-    const updateEmployeeDeduction = useMutation(async ({data}) => {
+export function useUpdateEmployeeDeduction(){
+    return useMutation(async ({data}) => {
         return await axiosInstance.post('/compensation/updateEmployeeDeduction', data, { headers });
     },
     {
@@ -174,14 +208,5 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
             });
         }
     });
-
-    return{
-        employeesDeductions,
-        deductions,
-        employeeDeductions,
-        saveDeductions,
-        updateDeductions,
-        saveEmployeeDeductions,
-        updateEmployeeDeduction,
-    }
 }
+

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
+import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import { useDeductions } from "../../../../hooks/useDeductions";
+import { useDeduction, useSaveEmployeeDeductions } from "../../../../hooks/useDeductions";
 
 const EmployeeDeductionAdd = ({ userName, onClose }) => {
-    const {saveEmployeeDeductions, deductions} = useDeductions({loadDeductions: true});
+    const {deductionsData} = useDeduction();
+    const saveEmployeeDeductions = useSaveEmployeeDeductions();
     const [deductionError, setDeductionError] = useState(false);
 
-    const deductionsData = deductions.data?.deductions || []; 
+    const deductions = deductionsData?.deductions || []; 
     const [deduction, setDeduction] = useState('');
     const [number, setNumber] = useState('');
     
@@ -66,7 +67,7 @@ const EmployeeDeductionAdd = ({ userName, onClose }) => {
                         error={deductionError}
                         onChange={(event) => setDeduction(event.target.value)}
                     >
-                        {deductionsData.map((deduction) => (
+                        {deductions.map((deduction) => (
                             <MenuItem key={deduction.id} value={deduction.id}> {deduction.name} </MenuItem>
                         ))}
                     </TextField>

@@ -951,12 +951,12 @@ class CompensationManagementController extends Controller
                     'type' => $deduction->type,
                     'amount' => $deduction->amount,
                     'percentage' => $deduction->percentage,
+                    'payment_schedule' => $deduction->payment_schedule,
                 ];
             }
 
             return response()->json(['status' => 200, 'deductions' => $deductions]);
         }
-
         return response()->json(['status' => 200, 'deductions' => null]);
     }
 
@@ -967,6 +967,7 @@ class CompensationManagementController extends Controller
             'type' => 'required',
             'amount' => 'required',
             'percentage' => 'required',
+            'payment_schedule' => 'required'
         ]);
 
         if ($this->checkUserAdmin() && $validated) {
@@ -982,6 +983,7 @@ class CompensationManagementController extends Controller
                     "type" => $request->type,
                     "amount" => $request->amount,
                     "percentage" => $request->percentage,
+                    "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
 
@@ -1003,6 +1005,7 @@ class CompensationManagementController extends Controller
             'type' => 'required',
             'amount' => 'required',
             'percentage' => 'required',
+            'payment_schedule' => 'required'
         ]);
         if(!$this->checkUserAdmin() && !$validated){
             return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
@@ -1023,6 +1026,7 @@ class CompensationManagementController extends Controller
                 $deduction->type = $request->type;
                 $deduction->amount = $request->amount;
                 $deduction->percentage = $request->percentage;
+                $deduction->payment_schedule = $request->payment_schedule;
                 $deduction->save();
                 DB::commit();
             } catch (\Exception $e) {
@@ -1073,7 +1077,8 @@ class CompensationManagementController extends Controller
                 'type' => $type,
                 'amount' => $deduction->deduction->amount,
                 'percentage' => $deduction->deduction->percentage,
-                'calculated_amount' => $amount,
+                'payment_schedule' => $deduction->deduction->payment_schedule,
+                'calculated_amount' => $amount,     
                 'status' =>$deduction->status,
                 'created_at' => $deduction->created_at,
             ];

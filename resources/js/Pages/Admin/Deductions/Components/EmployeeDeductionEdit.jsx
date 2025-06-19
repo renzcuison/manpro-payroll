@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField,  FormControl, FormGroup, InputAdornment } from "@mui/material";
 import Swal from "sweetalert2";
-import { useDeductions } from "../../../../hooks/useDeductions";
+import { useUpdateEmployeeDeduction } from "../../../../hooks/useDeductions";
 
 const EmployeeDeductionEdit = ({deductions, onClose}) => {
-    const {updateEmployeeDeduction} = useDeductions();
+    const updateEmployeeDeduction = useUpdateEmployeeDeduction();
 
-    const [number, setNumber] = useState(deductions?.number)
+    const [number, setNumber] = useState(deductions?.number);
     const [selectedStatus, setSelectedStatus] = useState(deductions?.status);
 
     const checkInput = (event) => {

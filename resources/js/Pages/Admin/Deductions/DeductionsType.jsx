@@ -4,11 +4,11 @@ import Layout from '../../../components/Layout/Layout';
 import { Link } from 'react-router-dom';
 import DeductionsAdd from './Modals/DeductionsAdd';
 import DeductionsEdit from './Modals/DeductionsEdit';
-import { useDeductions } from '../../../hooks/useDeductions';
+import { useDeduction } from '../../../hooks/useDeductions';
 
 const DeductionsType = () => {
-    const {deductions: deductionQuery} = useDeductions({loadDeductions: true});
-    const deductions = deductionQuery.data?.deductions || [];
+    const {deductionsData, isDeductionsLoading, refetchDeductions} = useDeduction();
+    const deductions = deductionsData?.deductions || [];
 
     const [openAddDeductionsModal, setOpenAddDeductonsModal] = useState(false);
     const [openEditDeductionsModal, setOpenEditDeductionsModal] = useState(false);
@@ -20,7 +20,7 @@ const DeductionsType = () => {
 
     const handleCloseAddDeductionsModal = () => {
         setOpenAddDeductonsModal(false);
-        deductionQuery.refetch();
+        refetchDeductions();
     }
 
     const handleOpenEditAllowanceModal = (deduction) => {
@@ -31,8 +31,18 @@ const DeductionsType = () => {
         setOpenEditDeductionsModal(false);
         setSelectedDeduction(null);
         if(reload){
-            deductionQuery.refetch();
+            refetchDeductions();
         }
+    }
+
+    const getPaymentScheduleName = (scheduleNum) => {
+        let scheduleName = '';
+        switch(scheduleNum){
+            case 1: scheduleName = 'One Time - First Cutoff'; break;
+            case 2: scheduleName = 'One Time - Second Cutoff'; break;
+            case 3: scheduleName = 'Split - First & Second Cutoff'; break;
+        }
+        return scheduleName;
     }
 
     return (
@@ -53,7 +63,7 @@ const DeductionsType = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {deductions.isLoading ? (
+                        {isDeductionsLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -65,6 +75,7 @@ const DeductionsType = () => {
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Name </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Type </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Payment Schedule </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Amount/Percentage </TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -76,6 +87,7 @@ const DeductionsType = () => {
                                                      '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{deduction.name}</TableCell>
                                                         <TableCell align="center">{deduction.type}</TableCell>
+                                                        <TableCell align="center">{getPaymentScheduleName(deduction.payment_schedule)}</TableCell>
                                                         {deduction.type === 'Amount' && 
                                                         <TableCell align="center">
                                                             ₱ {new Intl.NumberFormat('en-US', 

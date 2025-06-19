@@ -7,7 +7,7 @@ import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { useEmployeeIncentives } from '../../../hooks/useIncentives';
 import { useEmployeeAllowances } from '../../../hooks/useAllowances';
 import { useEmployeeBenefits } from '../../../hooks/useBenefits';
-import { useDeductions } from '../../../hooks/useDeductions';
+import { useEmployeeDeductions } from '../../../hooks/useDeductions';
 
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 import EmployeeEducationBackground from './Components/EmployeeEducationBackground';
@@ -23,13 +23,13 @@ import EmploymentDetails from './Components/EmploymentDetails';
 
 const EmployeeView = () => {
     const { user } = useParams();
-    const {employeeDeductions} = useDeductions({userName: user});
+    const {employeeDeductions, refetchEmployeeDeductions} = useEmployeeDeductions(user);
     const {employeeIncentives, refetchEmployeeIncentives} = useEmployeeIncentives(user);
     const {employeeAllowances, refetchEmployeeAllowances} = useEmployeeAllowances(user);
     const {employeeBenefits, refetchEmployeeBenefits} = useEmployeeBenefits(user);
 
     const benefits = employeeBenefits?.benefits || [];
-    const deductions = employeeDeductions.data?.deductions || [];
+    const deductions = employeeDeductions?.deductions || [];
     const incentives = employeeIncentives?.incentives || [];
     const allowances = employeeAllowances?.allowances || [];
 
@@ -124,7 +124,7 @@ const EmployeeView = () => {
             refetchEmployeeAllowances();
             refetchEmployeeBenefits();
             refetchEmployeeIncentives();
-            employeeDeductions.refetch();
+            refetchEmployeeDeductions();
             getEducationalBackground();
         }
     }
@@ -156,7 +156,7 @@ const EmployeeView = () => {
                             <EmployeeBenefits userName={user} benefits={benefits} onRefresh={refetchEmployeeBenefits}/>
                             <EmployeeAllowances userName={user} allowances={allowances} onRefresh={refetchEmployeeAllowances}/>
                             <EmployeeIncentives userName={user} incentives={incentives} onRefresh={refetchEmployeeIncentives}/>
-                            <EmployeeDeductions userName={user} deductions={deductions} onRefresh={employeeDeductions.refetch} />
+                            <EmployeeDeductions userName={user} deductions={deductions} onRefresh={refetchEmployeeDeductions} />
                         </Grid>
 
                         <Grid size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
