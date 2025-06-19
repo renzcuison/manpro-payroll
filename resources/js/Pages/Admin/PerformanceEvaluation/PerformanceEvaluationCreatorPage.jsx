@@ -92,7 +92,6 @@ const PerformanceEvaluationCreatorPage = () => {
         response_id: evaluationResponse.id,
         creator_signature_filepath: signatureData
       });
-      if(!response.data.status.toString().startsWith(2)) throw response.data.message;
       Swal.fire({
         icon: 'success',
         title: 'Approved!',
