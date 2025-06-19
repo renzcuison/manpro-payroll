@@ -437,7 +437,7 @@ const handleDownloadPDF = async () => {
             <MenuItem
               onClick={() => {
                 handleSettingsClose();
-                setTimeout(() => navigate('/admin/performance-evaluation'), 100);
+                setTimeout(() => navigate('/employee/performance-evaluation'), 100);
               }}
             >Exit Form</MenuItem>
             <MenuItem
