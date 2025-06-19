@@ -11,6 +11,7 @@ import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import Swal from 'sweetalert2';
 
 const rolePriority = {
     "Creator": 1,
@@ -161,7 +162,12 @@ const PerformanceEvaluationList = () => {
         }
         // Disallow if now is not within the period
         if (now < periodStart || now > periodEnd) {
-            alert('Evaluation or Comments for this form has been disabled');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Action not allowed',
+                text: 'Evaluation or Comments for this form has been disabled',
+                confirmButtonColor: '#f5c242'
+            });
             return;
         }
         navigate(getEvaluationRoleRoute(row));
@@ -309,7 +315,7 @@ const PerformanceEvaluationList = () => {
                                         <TableBody>
                                             {evaluationResponses.length === 0 ? (
                                                 <TableRow>
-                                                    <TableCell colSpan={5} align="center">
+                                                    <TableCell colSpan={6} align="center">
                                                         No evaluation responses found.
                                                     </TableCell>
                                                 </TableRow>

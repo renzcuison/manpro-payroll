@@ -691,7 +691,6 @@ class EvaluationResponseController extends Controller
                                 if($option['option_answer'])
                                     $achievedSubcategoryScore += $option->score;
                             }
-                            break;
                     }
                     $subcategory->score = $maxSubcategoryScore;
                     $subcategory->achieved_score = $achievedSubcategoryScore;
@@ -786,7 +785,9 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.id',
                     DB::raw("'Evaluatee' as role"),
                     DB::raw('null as commentor_order'),
-                    'evaluatee_opened_at as opened_at'
+                    'evaluatee_opened_at as opened_at',
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -823,6 +824,8 @@ class EvaluationResponseController extends Controller
                     DB::raw("'Creator' as role"),
                     DB::raw('null as commentor_order'),
                     DB::raw('null as opened_at'),
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -855,7 +858,9 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.id',
                     DB::raw("'Evaluator' as role"),
                     DB::raw('null as commentor_order'),
-                    'opened_at'
+                    'opened_at',
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -888,7 +893,9 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.id',
                     DB::raw("'Commentor' as role"),
                     'order as commentor_order',
-                    'opened_at'
+                    'opened_at',
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -949,25 +956,40 @@ class EvaluationResponseController extends Controller
             foreach($evaluationResponses as $index => $evaluationResponse)
                 switch($evaluationResponse->role) {
                     case 'Evaluator':
+                        $evaluationEvaluator = $evaluationResponse->evaluators->where('evaluator_id', $userID)->first();
                         $evaluationResponse->status =
                             $evaluationResponse->evaluatee_signature_filepath ? 'Done'
-                            : ( $evaluationResponse->evaluatee_opened_at ? 'Pending'
-                            : 'New' )
-                        ;
+                            : ($evaluationEvaluator->signature_filepath ? 'Submitted'
+                            : ($evaluationEvaluator->opened_at ? 'Pending'
+                            : 'New'
+                        ));
                         break;
                     case 'Commentor':
-                         $evaluationResponse->status =
+                        $evaluationCommentor = $evaluationResponse->commentors->where('commentor_id', $userID)->first();
+                        $evaluationResponse->status =
                             $evaluationResponse->evaluatee_signature_filepath ? 'Done'
-                            : ( $evaluationResponse->evaluatee_opened_at ? 'Pending'
-                            : 'New' )
-                        ;
+                            : ($evaluationCommentor->signature_filepath ? 'Submitted'
+                            : ($evaluationCommentor->opened_at ? 'Pending'
+                            : 'New'
+                        ));
                         break;
                     case 'Creator':
-                        $evaluationResponse->status = 'Editing rn';
+                        $evaluationResponse->status =
+                            $evaluationResponse->evaluatee_signature_filepath ? 'Done'
+                            : ($evaluationResponse->creator_signature_filepath ? 'Submitted'
+                            : ((
+                                $evaluationResponse->evaluators_unsigned_count === 0
+                                && $evaluationResponse->commentors_unsigned_count === 0
+                            ) ? 'Pending'
+                            : 'Sent'
+                        ));
                         break;
                     case 'Evaluatee':
-                        $evaluationResponse->status = 'Editing rn';
-                        break;
+                        $evaluationResponse->status =
+                            $evaluationResponse->evaluatee_signature_filepath ? 'Done'
+                            : ($evaluationResponse->evaluatee_opened_at ? 'Pending'
+                            : 'New'
+                        );
                 }
 
             // 2. Searching
@@ -997,7 +1019,7 @@ class EvaluationResponseController extends Controller
             }
 
             // 3. Status filter
-            if ($request->status && in_array($request->status, ['Pending', 'Done'])) {
+            if ($request->status && in_array($request->status, ['Sent', 'New', 'Pending', 'Submitted', 'Done'])) {
                 $evaluationResponses = $evaluationResponses->filter(function ($row) use ($request) {
                     return $row->status === $request->status;
                 })->values();
@@ -3078,7 +3100,6 @@ class EvaluationResponseController extends Controller
             ;
 
             switch($evaluationFormSubcategory->subcategory_type) {
-                case "linear_scale":
                 case "long_answer":
                 case "short_answer":
                     return response()->json([
@@ -3088,6 +3109,7 @@ class EvaluationResponseController extends Controller
                     ]);
                     break;
                 case "checkbox":
+                case "linear_scale":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::select('response_id', 'option_id')
@@ -3102,7 +3124,6 @@ class EvaluationResponseController extends Controller
                         'evaluationResponseID' => $request->response_id,
                         'evaluationFormSubcategoryOptionID' => $request->option_id
                     ]);
-                    break;
             }
 
             $evaluationOptionAnswer->option_id  = $request->new_option_id;
@@ -3360,7 +3381,6 @@ class EvaluationResponseController extends Controller
             ;
 
             switch($subcategory->subcategory_type) {
-                case "linear_scale":
                 case "long_answer":
                 case "short_answer":
                     return response()->json([
@@ -3387,6 +3407,7 @@ class EvaluationResponseController extends Controller
                         'evaluationOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
+                case "linear_scale":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
