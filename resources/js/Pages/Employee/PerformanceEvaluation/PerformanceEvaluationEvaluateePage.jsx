@@ -103,8 +103,10 @@ const PerformanceEvaluationEvaluateePage = () => {
         timerProgressBar: true,
         showConfirmButton: false,
         position: 'center'
+      }).then(() => {
+        setAckModalOpen(false);
+        navigate('/employee/performance-evaluation');
       });
-      setAckModalOpen(false);
     } catch (e) {
       Swal.fire({
         icon: 'error',
@@ -437,7 +439,7 @@ const handleDownloadPDF = async () => {
             <MenuItem
               onClick={() => {
                 handleSettingsClose();
-                setTimeout(() => navigate('/admin/performance-evaluation'), 100);
+                setTimeout(() => navigate('/employee/performance-evaluation'), 100);
               }}
             >Exit Form</MenuItem>
             <MenuItem

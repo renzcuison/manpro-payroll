@@ -22,6 +22,7 @@ const EmployeeDeductionList = ({ deductions, isLoading, onAdd, onEdit }) => {
                             <TableCell align="center">Number</TableCell>
                             <TableCell align="center">Amount</TableCell>
                             <TableCell align="center">Date</TableCell>
+                            <TableCell align="center">Status</TableCell>
                             <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
@@ -43,6 +44,9 @@ const EmployeeDeductionList = ({ deductions, isLoading, onAdd, onEdit }) => {
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography>{dayjs(deduction.created_at).format("MMMM DD, YYYY")}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Typography>{deduction.status}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Tooltip title="Edit">

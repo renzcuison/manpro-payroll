@@ -1,37 +1,57 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
-
 const storedUser = localStorage.getItem("nasya_user");
 const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
+import Swal from "sweetalert2";
 
-export function useDeductions({userName = null, loadDeductions = false, loadEmployeesDeductions = false, filters = {}, pagination = {}} = {}){
-    
-    const {name, branchId, departmentId, deductionId} = filters;
-    const {page = 1, perPage = 10} = pagination;
+const buildParams = (filters = {}, pagination = {}) => {
+    const {name, branch_id, department_id, deduction_id} = filters;
+    const {page = 1, per_page = 10} = pagination;
     const params = {};
     
     if (name) params.name = name;
-    if (branchId) params.branch_id = branchId;
-    if (departmentId) params.department_id = departmentId;
-    if (deductionId) params.deduction_id = deductionId;
+    if (branch_id) params.branch_id = branch_id;
+    if (department_id) params.department_id = department_id;
+    if (deduction_id) params.deduction_id = deduction_id;
     if (page) params.page = page;
-    if (perPage) params.per_page = perPage;
+    if (per_page) params.per_page = per_page;
+    return params;
+}
 
-    const deductions = useQuery(["deductions"], async () => {
+export function useDeduction(enabled = true){
+    const query = useQuery(["deductions"], async () => {
         const { data } = await axiosInstance.get("compensation/getDeductions", {
             headers,
         });
         return data;
-    }, {enabled: loadDeductions});
+    }, {enabled});
+    return {
+        deductionsData: query.data,
+        isDeductionsLoading: query.isLoading,
+        isDeductionsError: query.isError,
+        refetchDeductions: query.refetch,
+    }
+}
 
-    const employeesDeductions = useQuery(["employeesDeductions", {filters, pagination}], async () => {
+export function useEmployeesDeductions(filters = {}, pagination = {}, enabled = true){
+    const params = buildParams(filters, pagination);
+    const query = useQuery(["employeesDeductions", {filters, pagination}], async () => {
         const { data } = await axiosInstance.get("compensation/getEmployeesDeductions", {
             headers, params,
         });
         return data;
-    }, {enabled: loadEmployeesDeductions});
+    }, {enabled});
 
-    const employeeDeductions = useQuery(["employeeDeductions", userName, filters.deductionId], async () => {
+    return {
+        employeesDeductions: query.data,
+        isEmployeesDeductionsLoading: query.isLoading,
+        isEmployeesDeductionsError: query.isError,
+        refetchEmployeesDeductions: query.refetch,
+    }
+}
+
+export function useEmployeeDeductions(userName, deductionId = null){
+    const query = useQuery(["employeeDeductions", userName, deductionId], async () => {
         const {data} = await axiosInstance.get("compensation/getEmployeeDeductions", {
             headers, params: {username: userName, deduction_id: deductionId},
         });
@@ -39,22 +59,154 @@ export function useDeductions({userName = null, loadDeductions = false, loadEmpl
     },{
         enabled: !!userName,
     });
-
-    const saveEmployeeDeductions = useMutation(async (data) => {
-        const response = await axiosInstance.post('/compensation/saveEmployeeDeductions', data, { headers });
-        return response.data;
-    });
-
-    const updateEmployeeDeduction = useMutation(async (data) => {
-        const response = await axiosInstance.post('/compensation/updateEmployeeDeduction', data, { headers });
-        return response.data;
-    });
-
     return{
-        employeesDeductions,
-        deductions,
-        employeeDeductions,
-        saveEmployeeDeductions,
-        updateEmployeeDeduction,
+        employeeDeductions: query.data,
+        isEmployeeDeductionsLoading: query.isLoading,
+        isEmployeDeductionsError: query.isError,
+        refetchEmployeeDeductions: query.refetch,
     }
 }
+
+export function useSaveDeductions() {
+    return useMutation(
+        async ({ data }) => {
+            return await axiosInstance.post('/compensation/saveDeductions', data, { headers });
+        },
+        {
+            onSuccess: (response, variables) => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Deduction Saved successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        if (variables?.onSuccessCallback) {
+                            variables.onSuccessCallback();
+                        }
+                    });
+                }
+            },
+            onError: (error) => {
+                console.error("Error:", error);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Error saving deduction!",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+            }
+        }
+    );
+}
+
+export function useUpdateDeduction(){
+    const queryClient = useQueryClient();
+    return useMutation(
+        async ({ data }) => {
+            return await axiosInstance.post('/compensation/updateDeductions', data, { headers });
+        },
+        {
+            onSuccess: (response, variables) => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Deduction updated successfully!",
+                        icon: "success",
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        if (variables?.onSuccessCallback) {
+                            queryClient.invalidateQueries({queryKey: ['employeesDeductions']});
+                            queryClient.invalidateQueries({queryKey: ['employeeDeductions']});
+                            variables.onSuccessCallback();
+                        }
+                    });
+                }
+            },
+            onError: (error) => {
+                console.error("Error:", error);
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Error saving deduction!",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+            }
+        }
+    );
+}
+
+export function useSaveEmployeeDeductions(){
+    return useMutation(async ({data}) => {
+        return await axiosInstance.post('/compensation/saveEmployeeDeductions', data, { headers });
+    },
+    {
+        onSuccess: (response, variables) => {
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Deduction Saved successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    if (variables?.onSuccessCallback) {
+                        variables.onSuccessCallback();
+                    }
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Error:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error saving deduction!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
+    });
+}
+
+export function useUpdateEmployeeDeduction(){
+    return useMutation(async ({data}) => {
+        return await axiosInstance.post('/compensation/updateEmployeeDeduction', data, { headers });
+    },
+    {
+        onSuccess: (response, variables) => {
+            if (response.data.status === 200) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "Deduction updated successfully!",
+                    icon: "success",
+                    showConfirmButton: true,
+                    confirmButtonText: 'Proceed',
+                    confirmButtonColor: '#177604',
+                }).then(() => {
+                    if (variables?.onSuccessCallback) {
+                        variables.onSuccessCallback();
+                    }
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Error:", error);
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Error saving deduction!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        }
+    });
+}
+

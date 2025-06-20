@@ -478,7 +478,7 @@ export function useEvaluationResponse(responseId) {
 
             if (
                 (response.status && String(response.status).startsWith('2')) ||
-                (response.data && response.data.status && String(response.data.status).startsWith('2'))
+                (response.data?.status && String(response.data.status).startsWith('2'))
             ) {
                 return response.data.evaluationCommentor;
             } else {
@@ -540,10 +540,8 @@ export function useEvaluationResponse(responseId) {
                 payload,
                 { headers }
             );
-
             if (
-                (response.status && String(response.status).startsWith('2')) ||
-                (response.data && response.data.status && String(response.data.status).startsWith('2'))
+                (response.data?.status && String(response.data.status).startsWith('2'))
             ) {
                 getEvaluationResponse();
                 return response.data.evaluationResponse;

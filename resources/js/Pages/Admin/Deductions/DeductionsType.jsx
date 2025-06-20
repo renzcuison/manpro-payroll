@@ -3,13 +3,16 @@ import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, 
 import Layout from '../../../components/Layout/Layout';
 import { Link } from 'react-router-dom';
 import DeductionsAdd from './Modals/DeductionsAdd';
-import { useDeductions } from '../../../hooks/useDeductions';
+import DeductionsEdit from './Modals/DeductionsEdit';
+import { useDeduction } from '../../../hooks/useDeductions';
 
 const DeductionsType = () => {
-    const {deductions} = useDeductions({loadDeductions: true});
+    const {deductionsData, isDeductionsLoading, refetchDeductions} = useDeduction();
+    const deductions = deductionsData?.deductions || [];
 
-    const deductionsData = deductions.data?.deductions || [];
     const [openAddDeductionsModal, setOpenAddDeductonsModal] = useState(false);
+    const [openEditDeductionsModal, setOpenEditDeductionsModal] = useState(false);
+    const [selectedDeduction, setSelectedDeduction] = useState(null);
 
     const handleOpenAddDeductionsModal = () => {
         setOpenAddDeductonsModal(true);
@@ -17,7 +20,29 @@ const DeductionsType = () => {
 
     const handleCloseAddDeductionsModal = () => {
         setOpenAddDeductonsModal(false);
-        deductions.refetch();
+        refetchDeductions();
+    }
+
+    const handleOpenEditAllowanceModal = (deduction) => {
+        setOpenEditDeductionsModal(true);
+        setSelectedDeduction(deduction);
+    }
+    const handleCloseEditDeductionsModal = (reload) => {
+        setOpenEditDeductionsModal(false);
+        setSelectedDeduction(null);
+        if(reload){
+            refetchDeductions();
+        }
+    }
+
+    const getPaymentScheduleName = (scheduleNum) => {
+        let scheduleName = '';
+        switch(scheduleNum){
+            case 1: scheduleName = 'One Time - First Cutoff'; break;
+            case 2: scheduleName = 'One Time - Second Cutoff'; break;
+            case 3: scheduleName = 'Split - First & Second Cutoff'; break;
+        }
+        return scheduleName;
     }
 
     return (
@@ -38,7 +63,7 @@ const DeductionsType = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {deductions.isLoading ? (
+                        {isDeductionsLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -50,19 +75,24 @@ const DeductionsType = () => {
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Name </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Type </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Payment Schedule </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Amount/Percentage </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {deductionsData.length > 0 ? (
-                                                deductionsData.map((deduction) => (
-                                                    <TableRow key={deduction.id}>
+                                            {deductions.length > 0 ? (
+                                                deductions.map((deduction, index) => (
+                                                    <TableRow key={deduction.id} onClick={() => handleOpenEditAllowanceModal(deduction)}
+                                                    sx={{ backgroundColor: index % 2 === 0 ? '#f8f8f8' : '#ffffff',
+                                                     '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{deduction.name}</TableCell>
                                                         <TableCell align="center">{deduction.type}</TableCell>
+                                                        <TableCell align="center">{getPaymentScheduleName(deduction.payment_schedule)}</TableCell>
                                                         {deduction.type === 'Amount' && 
-                                                        <>
-                                                            <TableCell align="center">₱{deduction.amount}</TableCell>
-                                                        </>
+                                                        <TableCell align="center">
+                                                            ₱ {new Intl.NumberFormat('en-US', 
+                                                            { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(deduction.amount)}
+                                                         </TableCell>
                                                         }
                                                         {deduction.type === 'Percentage' && 
                                                         <>
@@ -87,7 +117,9 @@ const DeductionsType = () => {
                 {openAddDeductionsModal &&
                     <DeductionsAdd open={openAddDeductionsModal} close={handleCloseAddDeductionsModal}/>
                 }
-
+                {openEditDeductionsModal &&
+                    <DeductionsEdit open={openEditDeductionsModal} close={handleCloseEditDeductionsModal} deduction={selectedDeduction}/>
+                }
             </Box>
         </Layout>
     );

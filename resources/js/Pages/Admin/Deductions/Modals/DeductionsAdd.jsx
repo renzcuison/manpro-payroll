@@ -8,10 +8,11 @@ import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 
 import 'react-quill/dist/quill.snow.css';
+import { useSaveDeductions } from '../../../../hooks/useDeductions';
 
 const DeductionsAdd = ({ open, close }) => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+    
+    const saveDeductions = useSaveDeductions();
 
     const [deductionsNameError, setDeductionsNameError] = useState(false);
     const [deductionsAmountError, setDeductionsAmountError] = useState(false);
@@ -21,6 +22,9 @@ const DeductionsAdd = ({ open, close }) => {
     const [deductionsType, setDeductionsType] = useState('');
     const [deductionsAmount, setDeductionsAmount] = useState('');
     const [deductionsPercentage, setDeductionsPercentage] = useState('');
+
+    const [paymentScheduleError, setPaymentScheduleError] = useState(false);
+    const [paymentSchedule, setPaymentSchedule] = useState(1);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -60,7 +64,7 @@ const DeductionsAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Incentives Type?",
+                text: "You want to save this Deductions Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -94,7 +98,7 @@ const DeductionsAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Incentives Type?",
+                text: "You want to save this Deductions Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -111,7 +115,6 @@ const DeductionsAdd = ({ open, close }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
         const amount = parseFloat(deductionsAmount.replace(/,/g, "")) || 0;
         const percentage = parseFloat(deductionsPercentage.replace(/,/g, "")) || 0;
 
@@ -120,27 +123,9 @@ const DeductionsAdd = ({ open, close }) => {
             type: deductionsType,
             amount: amount,
             percentage: percentage,
+            payment_schedule: paymentSchedule,
         };
-
-        axiosInstance.post('/compensation/saveDeductions', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Deduction saved successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        close();
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        saveDeductions.mutate({data: data, onSuccessCallback: () => close(true)});
     };
 
     const formatCurrency = (value) => {
@@ -174,7 +159,7 @@ const DeductionsAdd = ({ open, close }) => {
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Incentives </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Deductions </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -182,13 +167,8 @@ const DeductionsAdd = ({ open, close }) => {
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{ marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            <FormControl sx={{ marginBottom: 3, width: '69%' }}>
                                 <TextField
                                     required
                                     id="deductionsName"
@@ -200,9 +180,7 @@ const DeductionsAdd = ({ open, close }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
+                            <FormControl sx={{ marginBottom: 3, width: '29%'}}>
                                 <TextField
                                     required
                                     select
@@ -217,56 +195,56 @@ const DeductionsAdd = ({ open, close }) => {
                             </FormControl>
                         </FormGroup>
 
-                        {deductionsType === "Amount" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <InputLabel>Amount</InputLabel>
-                                        <OutlinedInput
-                                            required
-                                            id="deductionsAmount"
-                                            label="Amount"
-                                            value={deductionsAmount}
-                                            error={deductionsAmountError}
-                                            startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                            onChange={(e) => handleInputChange(e, setDeductionsAmount)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
-
-                        {deductionsType === "Percentage" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <InputLabel>Percentage</InputLabel>
-                                        <OutlinedInput
-                                            required
-                                            id="deductionsPercentage"
-                                            label="Percentage"
-                                            value={deductionsPercentage}
-                                            error={deductionsPercentageError}
-                                            startAdornment={<InputAdornment position="start">%</InputAdornment>}
-                                            onChange={(e) => handleInputChange(e, setDeductionsPercentage)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
-
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            {deductionsType && (
+                                <FormControl sx={{ marginBottom: 3, width: '69%', }}>
+                                    <TextField
+                                        required
+                                        select
+                                        id="paymentSchedule"
+                                        label="Payment Schedule"
+                                        value={paymentSchedule}
+                                        error={paymentScheduleError}
+                                        onChange={(event) => setPaymentSchedule(event.target.value)}
+                                    >
+                                        <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>
+                                        <MenuItem key={2} value={2}> One Time - Second Cutoff</MenuItem>
+                                        <MenuItem key={3} value={3}> Split - First & Second Cutoff</MenuItem>
+                                    </TextField>
+                                </FormControl>
+                            )}
+                            {deductionsType === "Amount" && (
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '29%'}}>
+                                    <InputLabel>Amount</InputLabel>
+                                    <OutlinedInput
+                                        required
+                                        id="deductionsAmount"
+                                        label="Amount"
+                                        value={deductionsAmount}
+                                        error={deductionsAmountError}
+                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
+                                        onChange={(e) => handleInputChange(e, setDeductionsAmount)}
+                                    />
+                                </FormControl>
+                            )}
+                            
+                            {deductionsType === "Percentage" && (
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '29%'}}>
+                                    <InputLabel>Percentage</InputLabel>
+                                    <OutlinedInput
+                                        required
+                                        id="deductionsPercentage"
+                                        label="Percentage"
+                                        value={deductionsPercentage}
+                                        error={deductionsPercentageError}
+                                        startAdornment={<InputAdornment position="start">%</InputAdornment>}
+                                        onChange={(e) => handleInputChange(e, setDeductionsPercentage)}
+                                    />
+                                </FormControl>
+                            )}
+                        </FormGroup>
                         {deductionsType && (
                             <>
                                 <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>

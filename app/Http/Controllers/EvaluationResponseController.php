@@ -16,10 +16,13 @@ use App\Models\EvaluationPercentageAnswer;
 use App\Models\EvaluationTextAnswer;
 
 use Illuminate\Http\Request;
+
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+
 class EvaluationResponseController extends Controller
 {
 
@@ -324,10 +327,10 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $evaluationResponse = EvaluationResponse
-            ::select(
-                'id', 'evaluatee_id', 'form_id', 'period_start_at', 'period_end_at',
-                'creator_signature_filepath', 'evaluatee_signature_filepath', 'created_at', 'updated_at'
-            )
+                ::select(
+                    'id', 'evaluatee_id', 'form_id', 'period_start_at', 'period_end_at',
+                    'creator_signature_filepath', 'evaluatee_signature_filepath', 'created_at', 'updated_at'
+                )
                 ->where('id', $request->id)
                 ->whereNull('deleted_at')
                 ->first()
@@ -340,9 +343,8 @@ class EvaluationResponseController extends Controller
 
             $periodStartAtSec = strtotime($request->period_start_at ?? $evaluationResponse->period_start_at);
             $periodEndAtSec = strtotime($request->period_end_at ?? $evaluationResponse->period_end_at);
-            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800);
-            $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800);
-
+            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 86400 - 28800);
+            $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec - $periodEndAtSec % 86400 + 57600);
             if ($periodStartAtSec > $periodEndAtSec) {
                 return response()->json([
                     'status' => 400,
@@ -350,46 +352,53 @@ class EvaluationResponseController extends Controller
                 ]);
             }
 
-            $conflictingEvaluationResponse = EvaluationResponse
-                ::where('evaluatee_id', $request->evaluatee_id ?? $evaluationResponse->evaluatee_id)
-                ->where('form_id', $request->form_id ?? $evaluationResponse->form_id)
-                ->where('id', '!=', $request->id)
-                ->where('period_start_at', '<', $request->period_end_at ?? $evaluationResponse->period_end_at)
-                ->where('period_end_at', '>', $request->period_start_at ?? $evaluationResponse->period_start_at)
-                ->first()
-            ;
-            if($conflictingEvaluationResponse) return response()->json([ 
-                'status' => 400,
-                'message' => 'This Evaluation is in conflict with another!',
-                'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
-            ]);
+            // $conflictingEvaluationResponse = EvaluationResponse
+            //     ::where('evaluatee_id', $request->evaluatee_id ?? $evaluationResponse->evaluatee_id)
+            //     ->where('form_id', $request->form_id ?? $evaluationResponse->form_id)
+            //     ->where('id', '!=', $request->id)
+            //     ->where('period_start_at', '<', $request->period_end_at ?? $evaluationResponse->period_end_at)
+            //     ->where('period_end_at', '>', $request->period_start_at ?? $evaluationResponse->period_start_at)
+            //     ->first()
+            // ;
+            // if($conflictingEvaluationResponse) {
+            //     $conflictionPeriodStart = date_format($conflictingEvaluationResponse->period_start_at, '%b %d, %Y');
+            //     $conflictionPeriodEnd = date_format($conflictingEvaluationResponse->period_end_at, '%b %d, %Y');
+            //     return response()->json([ 
+            //         'status' => 400,
+            //         'message' => "This Evaluation is in conflict with another from $conflictionPeriodStart to $conflictionPeriodEnd!",
+            //         'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
+            //     ]);
+            // }
 
             if($request->evaluatee_id !== null)
                 $evaluationResponse->evaluatee_id = $request->evaluatee_id;
             if($request->form_id !== null)
                 $evaluationResponse->form_id = $request->form_id;
-            if($request->period_end_at !== null)
-                $evaluationResponse->period_end_at = $request->period_end_at;
-            if($request->period_start_at !== null)
-                $evaluationResponse->period_start_at = $request->period_start_at;
+            $evaluationResponse->period_end_at = $request->period_end_at;
+            $evaluationResponse->period_start_at = $request->period_start_at;
             
-            if ($request->has('creator_signature_filepath')) {
-                $evaluationResponse->creator_signature_filepath = $request->creator_signature_filepath;
-            }
             if ($request->hasFile('evaluatee_signature_filepath')) {
                 $evaluationResponse->clearMediaCollection('evaluatee_signatures');
                 $evaluationResponse
                     ->addMedia($request->file('evaluatee_signature_filepath'))
                     ->toMediaCollection('evaluatee_signatures')
                 ;
-            }
+            } else if($request->evaluatee_signature_filepath != null) return response()->json([ 
+                'status' => 400,
+                'message' => 'Invalid evaluatee signature data!',
+                'evaluationResponseID' => $request->id
+            ]);
             if ($request->hasFile('creator_signature_filepath')) {
                 $evaluationResponse->clearMediaCollection('creator_signatures');
                 $evaluationResponse
                     ->addMedia($request->file('creator_signature_filepath'))
                     ->toMediaCollection('creator_signatures')
                 ;
-            }
+            } else if($request->creator_signature_filepath != null) return response()->json([ 
+                'status' => 400,
+                'message' => 'Invalid creator signature data!',
+                'evaluationResponseID' => $request->id
+            ]);
             $evaluationResponse->save();
 
             $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
@@ -398,7 +407,6 @@ class EvaluationResponseController extends Controller
             $creatorSignature = $evaluationResponse->getFirstMedia('creator_signatures');
             if($creatorSignature)
                 $evaluationResponse->creator_signature_filepath = $creatorSignature->getPath();
-
             if($evaluateeSignature || $creatorSignature) $evaluationResponse->save();
 
             DB::commit();
@@ -425,10 +433,9 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationResponse: {
-                id, role, evaluatee_id, creator_id, datetime,
-                period_start_date, period_end_date,
+                id, role, evaluatee_id, creator_id,
+                period_start_date, period_end_date, evaluatee_opened_at,
                 created_at, updated_at,
-                status,
                 evaluatee: { id, response_id, last_name, first_name, middle_name, suffix },
                 evaluatee_signature, evaluatee_signature_filepath
                 creator_signature, creator_signature_filepath,
@@ -472,6 +479,11 @@ class EvaluationResponseController extends Controller
     
         $user = DB::table('users')->where('id', $userID)->first();
 
+        if($user === null) return response()->json([ 
+            'status' => 403,
+            'message' => 'Unauthorized access!'
+        ]);
+
         try {
 
             // 1. Fetching response raw details
@@ -479,15 +491,14 @@ class EvaluationResponseController extends Controller
                 ::join('evaluation_forms', 'evaluation_forms.id', '=', 'evaluation_responses.form_id')
                 ->join('users', 'users.id', '=', 'evaluation_forms.creator_id')
                 ->select('evaluation_responses.id', 'evaluation_responses.evaluatee_id', 'evaluation_responses.creator_id')
-                ->selectRaw("date_format(evaluation_responses.updated_at, '%b %d, %Y - %h:%i %p') as datetime")
                 ->selectRaw("date_format(evaluation_responses.period_start_at, '%b %d, %Y') as period_start_date")
                 ->selectRaw("date_format(evaluation_responses.period_end_at, '%b %d, %Y') as period_end_date")
                 ->addSelect(
                     'evaluation_responses.creator_signature_filepath',
                     'evaluation_responses.evaluatee_signature_filepath',
+                    'evaluation_responses.evaluatee_opened_at',
                     'evaluation_responses.created_at',
-                    'evaluation_responses.updated_at',
-                    DB::raw("'Pending' as status")
+                    'evaluation_responses.updated_at'
                 )
                 ->with(['evaluatee' => fn ($evaluatee) =>
                     $evaluatee->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
@@ -501,6 +512,7 @@ class EvaluationResponseController extends Controller
                             'users.last_name', 'users.first_name', 'users.middle_name', 'users.suffix',
                             'evaluation_evaluators.comment',
                             'evaluation_evaluators.order',
+                            'evaluation_evaluators.opened_at',
                             'evaluation_evaluators.signature_filepath',
                             'evaluation_evaluators.updated_at'
                         )
@@ -516,6 +528,7 @@ class EvaluationResponseController extends Controller
                             'users.last_name', 'users.first_name', 'users.middle_name', 'users.suffix',
                             'evaluation_commentors.comment',
                             'evaluation_commentors.order',
+                            'evaluation_commentors.opened_at',
                             'evaluation_commentors.signature_filepath',
                             'evaluation_commentors.updated_at'
                         )
@@ -619,20 +632,21 @@ class EvaluationResponseController extends Controller
                 ]);
             }
             // 2. Fetching signatures and role
-            $role = null;
+            $role = (
+                $evaluationResponse->evaluatee_id == $userID ? 'Evaluatee'
+                : ( $evaluationResponse->creator_id == $userID ? 'Creator'
+                : null
+            ));
             $evaluateeSignature = $evaluationResponse->getFirstMedia('evaluatee_signatures');
             $evaluationResponse->evaluatee_signature = (
                 $evaluateeSignature ? base64_encode(file_get_contents($evaluateeSignature->getPath()))
                 : null
             );
-            if($evaluationResponse->evaluatee_id == $userID) $role = 'Evaluatee';
             $creatorSignature = $evaluationResponse->getFirstMedia('creator_signatures');
             $evaluationResponse->creator_signature = (
                 $creatorSignature ? base64_encode(file_get_contents($creatorSignature->getPath()))
                 : null
             );
-            if($evaluationResponse->creator_id == $userID) $role = 'Creator';
-           
             foreach ($evaluationResponse->evaluators as $index => $evaluator) {
                 $evaluatorSignature = $evaluator
                     ->where('evaluator_id', $evaluator->evaluator_id)
@@ -640,6 +654,7 @@ class EvaluationResponseController extends Controller
                     ->first()
                     ->getFirstMedia('signatures')
                 ;
+                $evaluator->media = $evaluatorSignature ? [$evaluatorSignature] : [];
                 $evaluator->evaluator_signature = (
                     $evaluatorSignature ? base64_encode(file_get_contents($evaluatorSignature->getPath()))
                     : null
@@ -653,12 +668,17 @@ class EvaluationResponseController extends Controller
                     ->first()
                     ->getFirstMedia('signatures')
                 ;
+                $commentor->media = $commentorSignature ? [$commentorSignature] : [];
                 $commentor->commentor_signature = (
                     $commentorSignature ? base64_encode(file_get_contents($commentorSignature->getPath()))
                     : null
                 );
                 if($commentor->commentor_id === $userID) $role = 'Commentor';
             }
+            if(!$role) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
             $evaluationResponse->role = $role;
             // 3. Calculating scores
             foreach($evaluationResponse->form->sections as $index => $section) {
@@ -683,7 +703,6 @@ class EvaluationResponseController extends Controller
                                 if($option['option_answer'])
                                     $achievedSubcategoryScore += $option->score;
                             }
-                            break;
                     }
                     $subcategory->score = $maxSubcategoryScore;
                     $subcategory->achieved_score = $achievedSubcategoryScore;
@@ -695,6 +714,41 @@ class EvaluationResponseController extends Controller
                     : 0
                 );
             }
+            // 4. Updating opened at timestamp
+            DB::beginTransaction();
+            $now = date('Y-m-d H:i');
+            switch($role) {
+                case 'Evaluator':
+                    $evaluationEvaluator = EvaluationEvaluator
+                        ::where('response_id', $request->id)
+                        ->where('evaluator_id', $userID)
+                        ->first()
+                    ;
+                    $evaluationEvaluator->opened_at = $now;
+                    $evaluationEvaluator->save();
+                    $evaluationResponse->evaluators->where('evaluator_id', $userID)->first()->opened_at = $now;
+                    break;
+                case 'Commentor':
+                    $evaluationCommentor = EvaluationCommentor
+                        ::where('response_id', $request->id)
+                        ->where('commentor_id', $userID)
+                        ->first()
+                    ;
+                    $evaluationCommentor->opened_at = $now;
+                    $evaluationCommentor->save();
+                    $evaluationResponse->commentors->where('commentor_id', $userID)->first()->opened_at = $now;
+                    break;
+                case 'Creator': break;
+                case 'Evaluatee':
+                    $evaluationResponseEdit = EvaluationResponse::where('id', $request->id)->first();
+                    $evaluationResponseEdit->evaluatee_opened_at = $now;
+                    $evaluationResponseEdit->save();
+                    $evaluationResponse->evaluatee_opened_at = $now;
+            }
+            DB::commit();
+            // 5. ID encryption
+            // $evaluationResponseClone = clone $evaluationResponse;
+            // $evaluationResponseClone->id = Crypt::encrypt($evaluationResponse->id);
 
             return response()->json([
                 'status' => 200,
@@ -734,14 +788,13 @@ class EvaluationResponseController extends Controller
             
             $evaluateeResponses = $user
                 ->evaluateeResponses()
-                ->whereHas('form', function ($query) {
-                    $query->whereNull('deleted_at');
-                })
                 ->select(
                     'evaluation_responses.id',
                     DB::raw("'Evaluatee' as role"),
-                    DB::raw("IF(ISNULL(evaluatee_signature_filepath), 'Pending', 'Done') as status"),
-                    DB::raw('null as commentor_order')
+                    DB::raw('null as commentor_order'),
+                    'evaluatee_opened_at as opened_at',
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -759,7 +812,7 @@ class EvaluationResponseController extends Controller
                     }
                 ])
                 ->addSelect(
-                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    DB::raw("date_format(evaluation_responses.period_start_at, '%b %d, %Y') as date"),
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
@@ -773,14 +826,13 @@ class EvaluationResponseController extends Controller
             ;
             $createdResponses = $user
                 ->createdResponses()
-                ->whereHas('form', function ($q) {
-                    $q->whereNull('deleted_at');
-                })
                 ->select(
                     'evaluation_responses.id',
                     DB::raw("'Creator' as role"),
-                    DB::raw("IF(ISNULL(creator_signature_filepath), 'Pending', 'Done') as status"),
-                    DB::raw('null as commentor_order')
+                    DB::raw('null as commentor_order'),
+                    DB::raw('null as opened_at'),
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -798,7 +850,7 @@ class EvaluationResponseController extends Controller
                     }
                 ])
                 ->addSelect(
-                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    DB::raw("date_format(evaluation_responses.period_start_at, '%b %d, %Y') as date"),
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
@@ -806,19 +858,16 @@ class EvaluationResponseController extends Controller
                     'evaluation_responses.period_start_at',
                     'evaluation_responses.period_end_at'
                 )
-                ->having('evaluators_unsigned_count', 0)
-                ->having('commentors_unsigned_count', 0)
             ;
             $evaluatorResponses = $user
                 ->evaluatorResponses()
-                ->whereHas('form', function ($q) {
-                    $q->whereNull('deleted_at');
-                })
                 ->select(
                     'evaluation_responses.id',
                     DB::raw("'Evaluator' as role"),
-                    DB::raw("IF(ISNULL(signature_filepath), 'Pending', 'Done') as status"),
-                    DB::raw('null as commentor_order')
+                    DB::raw('null as commentor_order'),
+                    'opened_at',
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -836,7 +885,7 @@ class EvaluationResponseController extends Controller
                     }
                 ])
                 ->addSelect(
-                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    DB::raw("date_format(evaluation_responses.period_start_at, '%b %d, %Y') as date"),
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
@@ -847,14 +896,13 @@ class EvaluationResponseController extends Controller
             ;
             $commentorResponses = $user
                 ->commentorResponses()
-                ->whereHas('form', function ($q) {
-                    $q->whereNull('deleted_at');
-                })
                 ->select(
                     'evaluation_responses.id',
                     DB::raw("'Commentor' as role"),
-                    DB::raw("IF(ISNULL(signature_filepath), 'Pending', 'Done') as status"),
-                    'order as commentor_order'
+                    'order as commentor_order',
+                    'opened_at',
+                    'evaluatee_signature_filepath',
+                    'creator_signature_filepath'
                 )
                 ->withCount([
                     'evaluators as evaluators_unsigned_count' => function ($query) {
@@ -872,7 +920,7 @@ class EvaluationResponseController extends Controller
                     }
                 ])
                 ->addSelect(
-                    DB::raw("date_format(evaluation_responses.created_at, '%b %d, %Y') as date"),
+                    DB::raw("date_format(evaluation_responses.period_start_at, '%b %d, %Y') as date"),
                     'form_id',
                     'evaluatee_id',
                     'evaluation_responses.created_at',
@@ -885,6 +933,9 @@ class EvaluationResponseController extends Controller
             ;
             
             $evaluationResponses = $evaluateeResponses
+                ->whereHas('form', function ($query) {
+                    $query->whereNull('deleted_at');
+                })
                 ->union($createdResponses)
                 ->union($evaluatorResponses)
                 ->union($commentorResponses)
@@ -902,18 +953,56 @@ class EvaluationResponseController extends Controller
                         ->with(['department' => function ($form) {
                             $form->select('id', 'name');
                         }]);
-                }]);
-
+                }])
+            ;
             if ($request->form_id !== null)
                 $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
+            $evaluationResponses = $evaluationResponses->get();
 
-            $evaluationResponsesCollection = $evaluationResponses->get();
+            // 1. Assign status
+            foreach($evaluationResponses as $index => $evaluationResponse)
+                switch($evaluationResponse->role) {
+                    case 'Evaluator':
+                        $evaluationEvaluator = $evaluationResponse->evaluators->where('evaluator_id', $userID)->first();
+                        $evaluationResponse->status =
+                            $evaluationResponse->evaluatee_signature_filepath ? 'Done'
+                            : ($evaluationEvaluator->signature_filepath ? 'Submitted'
+                            : ($evaluationEvaluator->opened_at ? 'Pending'
+                            : 'New'
+                        ));
+                        break;
+                    case 'Commentor':
+                        $evaluationCommentor = $evaluationResponse->commentors->where('commentor_id', $userID)->first();
+                        $evaluationResponse->status =
+                            $evaluationResponse->evaluatee_signature_filepath ? 'Done'
+                            : ($evaluationCommentor->signature_filepath ? 'Submitted'
+                            : ($evaluationCommentor->opened_at ? 'Pending'
+                            : 'New'
+                        ));
+                        break;
+                    case 'Creator':
+                        $evaluationResponse->status =
+                            $evaluationResponse->evaluatee_signature_filepath ? 'Done'
+                            : ($evaluationResponse->creator_signature_filepath ? 'Submitted'
+                            : ((
+                                $evaluationResponse->evaluators_unsigned_count === 0
+                                && $evaluationResponse->commentors_unsigned_count === 0
+                            ) ? 'Pending'
+                            : 'Sent'
+                        ));
+                        break;
+                    case 'Evaluatee':
+                        $evaluationResponse->status =
+                            $evaluationResponse->evaluatee_signature_filepath ? 'Done'
+                            : ($evaluationResponse->evaluatee_opened_at ? 'Pending'
+                            : 'New'
+                        );
+                }
 
-            // --- PHP-level filtering and sorting ---
-            // 1. Searching
+            // 2. Searching
             if ($request->search) {
                 $searchTerm = strtolower(trim($request->search));
-                $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
+                $evaluationResponses = $evaluationResponses->filter(function ($row) use ($searchTerm) {
                     $formName = strtolower($row->form->name ?? '');
                     $date = strtolower($row->date ?? '');
                     $fullName = strtolower(trim(
@@ -936,17 +1025,17 @@ class EvaluationResponseController extends Controller
                 })->values();
             }
 
-            // 2. Status filter
-            if ($request->status && in_array($request->status, ['Pending', 'Done'])) {
-                $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($request) {
+            // 3. Status filter
+            if ($request->status && in_array($request->status, ['Sent', 'New', 'Pending', 'Submitted', 'Done'])) {
+                $evaluationResponses = $evaluationResponses->filter(function ($row) use ($request) {
                     return $row->status === $request->status;
                 })->values();
             }
 
-            // 3. Sorting (multi-column, supports front-end's order_by array)
+            // 4. Sorting (multi-column, supports front-end's order_by array)
             if ($request->order_by && is_array($request->order_by)) {
                 $orderByArray = $request->order_by;
-                $evaluationResponsesCollection = $evaluationResponsesCollection->sort(function ($a, $b) use ($orderByArray) {
+                $evaluationResponses = $evaluationResponses->sort(function ($a, $b) use ($orderByArray) {
                     foreach ($orderByArray as $order) {
                         $key = $order['key'] ?? null;
                         $sortOrder = strtolower($order['sort_order'] ?? 'asc');
@@ -978,8 +1067,9 @@ class EvaluationResponseController extends Controller
                                 $valB = strtolower($b->evaluatee->branch->name ?? '');
                                 break;
                             case 'status':
-                                $valA = strtolower($a->status ?? '');
-                                $valB = strtolower($b->status ?? '');
+                                $statusList = ['New', 'Pending', 'Sent', 'Submitted', 'Done', ''];
+                                $valA = array_search($a->status ?? '', $statusList);
+                                $valB = array_search($b->status ?? '', $statusList);
                                 break;
                             default:
                                 $valA = '';
@@ -989,20 +1079,20 @@ class EvaluationResponseController extends Controller
                         if ($valA == $valB) continue;
                         return ($valA < $valB ? -1 : 1) * ($sortOrder === 'asc' ? 1 : -1);
                     }
-                    return 0;
+                    return -1;
                 })->values();
             }
 
-            // 4. Pagination
+            // 5. Pagination
             $page = $request->page ?? 1;
             $limit = $request->limit ?? 10;
             $skip = ($page - 1) * $limit;
 
-            $totalResponseCount = $evaluationResponsesCollection->count();
+            $totalResponseCount = $evaluationResponses->count();
             $maxPageCount = ceil($totalResponseCount / $limit);
             $pageResponseCount = min($limit, max(0, $totalResponseCount - $skip));
 
-            $evaluationResponses = $evaluationResponsesCollection
+            $evaluationResponses = $evaluationResponses
                 ->slice($skip, $limit)
                 ->values();
 
@@ -1063,8 +1153,8 @@ class EvaluationResponseController extends Controller
 
             $periodStartAtSec = strtotime($request->period_start_at);
             $periodEndAtSec = strtotime($request->period_end_at);
-            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 82800);
-            $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec + 86400 - $periodEndAtSec % 82800);
+            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 86400 - 28800);
+            $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec - $periodEndAtSec % 86400 + 57600);
 
             if ($periodStartAtSec > $periodEndAtSec) {
                 return response()->json([
@@ -1081,22 +1171,15 @@ class EvaluationResponseController extends Controller
             //     ->where('period_end_at', '>', $request->period_start_at)
             //     ->first()
             // ;
-            // if($conflictingEvaluationResponse) return response()->json([ 
-            //     'status' => 400,
-            //     'message' => 'This Evaluation is in conflict with another!',
-            //     'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
-            // ]);
-
-            $conflictingEvaluationResponse = EvaluationResponse::where('evaluatee_id', $request->evaluatee_id)
-                ->where('form_id', $request->form_id)
-                ->where('period_start_at', '=', $request->period_start_at)
-                ->where('period_end_at', '=', $request->period_end_at)
-                ->first();
-            if($conflictingEvaluationResponse) return response()->json([ 
-                'status' => 400,
-                'message' => 'This Evaluation is in conflict with another!',
-                'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
-            ]);
+            // if($conflictingEvaluationResponse) {
+            //     $conflictionPeriodStart = date_format($conflictingEvaluationResponse->period_start_at, '%b %d, %Y');
+            //     $conflictionPeriodEnd = date_format($conflictingEvaluationResponse->period_end_at, '%b %d, %Y');
+            //     return response()->json([ 
+            //         'status' => 400,
+            //         'message' => "This Evaluation is in conflict with another from $conflictionPeriodStart to $conflictionPeriodEnd!",
+            //         'conflictingEvaluationResponseID' => $conflictingEvaluationResponse->id
+            //     ]);
+            // }
 
             $newEvaluationResponse = EvaluationResponse::create([
                 'evaluatee_id' => $request->evaluatee_id,
@@ -1204,13 +1287,13 @@ class EvaluationResponseController extends Controller
             if ($request->form_id !== null)
                 $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
 
-            $evaluationResponsesCollection = $evaluationResponses->get();
+            $evaluationResponses = $evaluationResponses->get();
 
             // --- PHP-level filtering and sorting ---
             // 1. Searching
             if ($request->search) {
                 $searchTerm = strtolower(trim($request->search));
-                $evaluationResponsesCollection = $evaluationResponsesCollection->filter(function ($row) use ($searchTerm) {
+                $evaluationResponses = $evaluationResponses->filter(function ($row) use ($searchTerm) {
                     $formName = strtolower($row->form->name ?? '');
                     $date = strtolower($row->date ?? '');
                     $department = strtolower($row->evaluatee->department->name ?? '');
@@ -1228,7 +1311,7 @@ class EvaluationResponseController extends Controller
             // 2. Sorting (multi-column, supports front-end's order_by array)
             if ($request->order_by && is_array($request->order_by)) {
                 $orderByArray = $request->order_by;
-                $evaluationResponsesCollection = $evaluationResponsesCollection->sort(function ($a, $b) use ($orderByArray) {
+                $evaluationResponses = $evaluationResponses->sort(function ($a, $b) use ($orderByArray) {
                     foreach ($orderByArray as $order) {
                         $key = $order['key'] ?? null;
                         $sortOrder = strtolower($order['sort_order'] ?? 'asc');
@@ -1252,6 +1335,11 @@ class EvaluationResponseController extends Controller
                                 $valA = strtolower($a->evaluatee->branch->name ?? '');
                                 $valB = strtolower($b->evaluatee->branch->name ?? '');
                                 break;
+                            case 'status':
+                                $statusList = ['New', 'Pending', 'Sent', 'Submitted', 'Done', ''];
+                                $valA = array_search($a->status ?? '', $statusList);
+                                $valB = array_search($b->status ?? '', $statusList);
+                                break;
                             default:
                                 $valA = '';
                                 $valB = '';
@@ -1260,7 +1348,7 @@ class EvaluationResponseController extends Controller
                         if ($valA == $valB) continue;
                         return ($valA < $valB ? -1 : 1) * ($sortOrder === 'asc' ? 1 : -1);
                     }
-                    return 0;
+                    return -1;
                 })->values();
             }
 
@@ -1269,11 +1357,11 @@ class EvaluationResponseController extends Controller
             $limit = $request->limit ?? 10;
             $skip = ($page - 1) * $limit;
 
-            $totalResponseCount = $evaluationResponsesCollection->count();
+            $totalResponseCount = $evaluationResponses->count();
             $maxPageCount = ceil($totalResponseCount / $limit);
             $pageResponseCount = min($limit, max(0, $totalResponseCount - $skip));
 
-            $evaluationResponses = $evaluationResponsesCollection
+            $evaluationResponses = $evaluationResponses
                 ->slice($skip, $limit)
                 ->values()
             ;
@@ -1434,7 +1522,10 @@ class EvaluationResponseController extends Controller
                     ->addMedia($request->file('signature_filepath'))
                     ->toMediaCollection('signatures')
                 ;
-            }
+            } else if($request->signature_filepath != null) return response()->json([ 
+                'status' => 400,
+                'message' => 'Invalid evaluator signature data!'
+            ]);
             $evaluationEvaluator->save();
 
             $evaluatorSignature = $evaluationEvaluator->getFirstMedia('signatures');
@@ -1828,7 +1919,10 @@ class EvaluationResponseController extends Controller
                     ->addMedia($request->file('signature_filepath'))
                     ->toMediaCollection('signatures')
                 ;
-            }
+            } else if($request->signature_filepath != null) return response()->json([ 
+                'status' => 400,
+                'message' => 'Invalid commentor signature data!'
+            ]);
             $evaluationCommentor->save();
 
             $commentorSignature = $evaluationCommentor->getFirstMedia('signatures');
@@ -3018,7 +3112,6 @@ class EvaluationResponseController extends Controller
             ;
 
             switch($evaluationFormSubcategory->subcategory_type) {
-                case "linear_scale":
                 case "long_answer":
                 case "short_answer":
                     return response()->json([
@@ -3028,6 +3121,7 @@ class EvaluationResponseController extends Controller
                     ]);
                     break;
                 case "checkbox":
+                case "linear_scale":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::select('response_id', 'option_id')
@@ -3042,7 +3136,6 @@ class EvaluationResponseController extends Controller
                         'evaluationResponseID' => $request->response_id,
                         'evaluationFormSubcategoryOptionID' => $request->option_id
                     ]);
-                    break;
             }
 
             $evaluationOptionAnswer->option_id  = $request->new_option_id;
@@ -3300,7 +3393,6 @@ class EvaluationResponseController extends Controller
             ;
 
             switch($subcategory->subcategory_type) {
-                case "linear_scale":
                 case "long_answer":
                 case "short_answer":
                     return response()->json([
@@ -3327,6 +3419,7 @@ class EvaluationResponseController extends Controller
                         'evaluationOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
+                case "linear_scale":
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
