@@ -193,6 +193,9 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
             });
             return;
         }
+
+
+
         editSection({ category: categoryValue });
     };
 
@@ -740,6 +743,11 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                         )}
                                                         {subcategoryDraft.subcategory_type === 'linear_scale' && (
                                                         <Box sx={{ mb: 2 }}>
+                                                            <Box sx={{my: 3}}>
+                                                                <Typography sx={{ fontWeight: '400', fontStyle: 'italic' }}>
+                                                                    Note: Scoring is 1 as the lowest and {subcategoryOptions.length} as the highest
+                                                                </Typography>
+                                                            </Box>
                                                             {Array.isArray(subcategoryOptions) && subcategoryOptions.map((option, idx) => (
                                                             <Grid container spacing={2} key={idx} alignItems="center" sx={{ mb: 1 }}>
                                                                 <Grid item xs={1}>
