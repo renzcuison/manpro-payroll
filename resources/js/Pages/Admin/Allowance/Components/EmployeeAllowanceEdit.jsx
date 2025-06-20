@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField,  FormControl, FormGroup, InputAdornment } from "@mui/material";
 import Swal from "sweetalert2";
-import { useAllowances } from "../../../../hooks/useAllowances";
+import { useUpdateEmployeeAllowance } from "../../../../hooks/useAllowances";
 
 const EmployeeAllowanceEdit = ({allowances, onClose}) => {
-    const {updateEmployeeAllowance} = useAllowances();
+    const updateEmployeeAllowance = useUpdateEmployeeAllowance();
     // const [number, setNumber] = useState(allowances?.number)
     const [selectedStatus, setSelectedStatus] = useState(allowances?.status);
 
@@ -29,24 +29,7 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
     const saveAllowance = (event) => {
         event.preventDefault();
         const data = {emp_allowance_id: allowances.id, status: selectedStatus}
-        updateEmployeeAllowance.mutate(data,
-        {
-            onSuccess: () => {
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Update Successful",
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                }).then(() =>{
-                    onClose(true);
-                })
-            }
-        },{
-            onError: (error) => {
-                console.log(error);
-            }
-        })
+        updateEmployeeAllowance.mutate({data: data, onSuccessCallback: () => onClose(true)})
     }
 
     return (

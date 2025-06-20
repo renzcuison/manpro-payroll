@@ -11,16 +11,15 @@ dayjs.extend(localizedFormat);
 import EmployeeBenefitAdd from "../Components/EmployeeBenefitAdd";
 import EmployeeBenefitList from "../Components/EmployeeBenefitList";
 import EmployeeBenefitEdit from "../Components/EmployeeBenefitEdit";
-import { useBenefits } from "../../../../hooks/useBenefits";
+import { useEmployeeBenefits } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitView = ({ open, close, userName, benefit}) => {
-    const {employeeBenefits} = useBenefits({userName: userName,
-    filters: {benefitId: benefit},
-    });
+    const {employeeBenefits, isEmployeeBenefitsLoading, refetchEmployeeBenefits} = useEmployeeBenefits(userName, benefit);
+
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const benefits = employeeBenefits.data?.benefits || [];
+    const benefits = employeeBenefits?.benefits || [];
     
     const [benefitsAddOpen, setBenefitsAddOpen] = useState(false);
     const [benefitEditOpen, setBenefitEditOpen] = useState(false);
@@ -53,7 +52,7 @@ const EmployeeBenefitView = ({ open, close, userName, benefit}) => {
         setBenefitsAddOpen(false);
         setBenefitsListOpen(true);
         if(reload){
-            employeeBenefits.refetch();
+            refetchEmployeeBenefits();
         }
     }
 
@@ -67,13 +66,13 @@ const EmployeeBenefitView = ({ open, close, userName, benefit}) => {
         setBenefitsListOpen(true);
         setBenefitEditOpen(false);
         if(reload){
-            employeeBenefits.refetch();
+            refetchEmployeeBenefits();
         }
     }
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: "16px", backgroundColor: "#f8f9fa", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "20px", maxHeight: "600px", minWidth: { xs: "100%", sm: "750px" }, maxWidth: "1000px" }}}>
+            <Dialog open={open} fullWidth maxWidth="md" PaperProps={{ style: { padding: "16px", backgroundColor: "#f8f9fa", boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px", borderRadius: "20px", maxHeight: "600px", minWidth: { xs: "100%", sm: "750px" }, maxWidth: "1050px" }}}>
                 <DialogTitle sx={{ padding: 2, paddingBottom: 3 }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: "bold" }}> Employee Benefits </Typography>
@@ -97,7 +96,7 @@ const EmployeeBenefitView = ({ open, close, userName, benefit}) => {
                     </Box>
                     
                     {benefitsListOpen && (
-                        <EmployeeBenefitList benefits={benefits} isLoading={employeeBenefits.isLoading} onAdd={() => handleOpenAddEmployeeBenefits()} 
+                        <EmployeeBenefitList benefits={benefits} isLoading={isEmployeeBenefitsLoading} onAdd={() => handleOpenAddEmployeeBenefits()} 
                         onEdit={(index) => handleOpenEditEmployeeBenefits(index)} />
                     )}
                     {benefitEditOpen && (

@@ -572,7 +572,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
                             sx={{ padding: '10px 20px' }}
                             startIcon={<SaveIcon />}
                         >
-                            Sent Evaluation
+                            Send Evaluation
                         </Button>
                     </Box>
                 </form>

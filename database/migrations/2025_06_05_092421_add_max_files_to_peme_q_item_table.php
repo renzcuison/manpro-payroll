@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('peme_q_item', function (Blueprint $table) {
-            $table->unsignedTinyInteger('max_files')->default(1)->after('question');
+            $table->unsignedTinyInteger('max_files')->default(3)->after('question');
         });
     }
 

@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableFooter, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, 
     FormControl, CircularProgress, TablePagination, Button, MenuItem} from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link, useNavigate } from 'react-router-dom';
 
 
 import EmployeeBenefitView from './Modals/EmployeeBenefitView';
-import { useBenefits } from '../../../hooks/useBenefits';
+import { useBenefit, useEmployeesBenefits } from '../../../hooks/useBenefits';
 import { useDepartments } from '../../../hooks/useDepartments';
 import { useBranches } from '../../../hooks/useBranches';
 
@@ -20,31 +19,30 @@ const EmployeesBenefitsList = () => {
     const [selectedBranch, setSelectedBranch] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const filters = {
+        name: searchName,
+        branch_id: selectedBranch,
+        department_id: selectedDepartment,
+        benefit_id: selectedBenefit,
+    }
+    const pagination = {
+        page: page + 1,
+        per_page: rowsPerPage,
+    }
 
-    const { employeesBenefits, benefits: benefitsData } = useBenefits({
-        loadBenefits: true,
-        loadEmployeesBenefits: true,
-        filters: {
-            name: searchName,
-            branchId: selectedBranch,
-            departmentId: selectedDepartment,
-            benefitId: selectedBenefit,
-        },
-        pagination: {
-            page: page,
-            perPage: rowsPerPage,
-        }
-    });
+    const {benefitsData} = useBenefit();
+    const {employeesBenefits, isEmployeesBenefitsLoading, refetchEmployeesBenefits} = useEmployeesBenefits(filters, pagination);
 
     const { departments: departmentData } = useDepartments({loadDepartments: true});
     const { data: branchesData } = useBranches();
     
-    const employees = employeesBenefits.data?.employees || [];
-    const employer_total = employeesBenefits.data?.employer_total || 0;
-    const employee_total = employeesBenefits.data?.employee_total || 0;
-    const departments = departmentData.data?.departments || [];
+    const employees = employeesBenefits?.employees || [];
+    const employer_total = employeesBenefits?.employer_total || 0;
+    const employee_total = employeesBenefits?.employee_total || 0;
+    const count = employeesBenefits?.employee_count || 0;
+    const departments = departmentData?.departments || [];
     const branches = branchesData?.branches || [];
-    const benefits = benefitsData.data?.benefits || [];
+    const benefits = benefitsData?.benefits || [];
 
     const handleRowClick = (employee) => {
         setSelectedEmployee(employee.user_name);
@@ -52,7 +50,7 @@ const EmployeesBenefitsList = () => {
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
-        employeesBenefits.refetch();
+        refetchEmployeesBenefits();
     };
     const handleChangePage = (_, newPage) => {
         setPage(newPage);
@@ -148,7 +146,7 @@ const EmployeesBenefitsList = () => {
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
-                        {employeesBenefits.isLoading ? (
+                        {isEmployeesBenefitsLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -218,7 +216,7 @@ const EmployeesBenefitsList = () => {
                                     <TablePagination
                                         rowsPerPageOptions={[5, 10, 25]}
                                         component="div"
-                                        count={employees.length}
+                                        count={count}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}

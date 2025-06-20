@@ -1,24 +1,14 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
-import FilledInput from '@mui/material/FilledInput';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import React, { useState, useEffect } from 'react';
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import Swal from 'sweetalert2';
-import ReactQuill from 'react-quill';
-import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
+import { useSaveBenefits } from '../../../../hooks/useBenefits';
 
 const BenefitsAdd = ({ open, close }) => {
-    const navigate = useNavigate();
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-
+    const saveBenefits = useSaveBenefits();
     const [benefitNameError, setBenefitNameError] = useState(false);
     const [employeeAmountShareError, setEmployeeAmountShareError] = useState(false);
     const [employerAmountShareError, setEmployerAmountShareError] = useState(false);
@@ -32,6 +22,8 @@ const BenefitsAdd = ({ open, close }) => {
     const [employeePercentageShare, setEmployeePercentageShare] = useState('');
     const [employerPercentageShare, setEmployerPercentageShare] = useState('');
 
+    const [paymentScheduleError, setPaymentScheduleError] = useState(false);
+    const [paymentSchedule, setPaymentSchedule] = useState(1);
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -153,27 +145,9 @@ const BenefitsAdd = ({ open, close }) => {
             employerAmount: employerAmount,
             employeePercentage: employeePercentage,
             employerPercentage: employerPercentage,
+            payment_schedule: paymentSchedule,
         };
-
-        axiosInstance.post('compensation/saveBenefits', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Benefit saved successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        close();
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        saveBenefits.mutate({data: data, onSuccessCallback: () => close(true)})
     };
 
     const formatCurrency = (value) => {
@@ -215,12 +189,8 @@ const BenefitsAdd = ({ open, close }) => {
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{ marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            <FormControl sx={{ marginBottom: 3, width: '69%',
                             }}>
                                 <TextField
                                     required
@@ -233,8 +203,7 @@ const BenefitsAdd = ({ open, close }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                            <FormControl sx={{ marginBottom: 3, width: '29%',
                             }}>
                                 <TextField
                                     required
@@ -251,16 +220,27 @@ const BenefitsAdd = ({ open, close }) => {
                             </FormControl>
                         </FormGroup>
 
-                        {benefitType === "Amount" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            {benefitType && (
+                                    <FormControl sx={{ marginBottom: 3, width: '50%', }}>
+                                        <TextField
+                                            required
+                                            select
+                                            id="paymentSchedule"
+                                            label="Payment Schedule"
+                                            value={paymentSchedule}
+                                            error={paymentScheduleError}
+                                            onChange={(event) => setPaymentSchedule(event.target.value)}
+                                        >
+                                            <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>
+                                            <MenuItem key={2} value={2}> One Time - Second Cutoff</MenuItem>
+                                            <MenuItem key={3} value={3}> Split - First & Second Cutoff</MenuItem>
+                                        </TextField>
+                                    </FormControl>
+                                )}
+                            {benefitType === "Amount" && (
+                                <>
+                                    <FormControl sx={{ marginBottom: 3, width: '23%' }}>
                                         <InputLabel htmlFor="employeeAmountShare">Employee Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -273,10 +253,7 @@ const BenefitsAdd = ({ open, close }) => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '23%'}}>
                                         <InputLabel htmlFor="employerAmountShare">Employer Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -288,20 +265,12 @@ const BenefitsAdd = ({ open, close }) => {
                                             onChange={(e) => handleInputChange(e, setEmployerAmountShare)}
                                         />
                                     </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
+                                </>
+                            )}
 
-                        {benefitType === "Percentage" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
+                            {benefitType === "Percentage" && (
+                                <>
+                                    <FormControl sx={{ marginBottom: 3, width: '23%' }}>
                                         <InputLabel htmlFor="employeePercentageShare">Employee Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -314,10 +283,7 @@ const BenefitsAdd = ({ open, close }) => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '49%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '23%' }}>
                                         <InputLabel htmlFor="employerPercentageShare">Employer Share</InputLabel>
                                         <OutlinedInput
                                             required
@@ -328,10 +294,10 @@ const BenefitsAdd = ({ open, close }) => {
                                             startAdornment={<InputAdornment position="start">%</InputAdornment>}
                                             onChange={(e) => handleInputChange(e, setEmployerPercentageShare)}
                                         />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
+                                    </FormControl> 
+                                </>   
+                            )}
+                        </FormGroup>
 
                         {benefitType && (
                             <>

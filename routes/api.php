@@ -75,39 +75,21 @@ Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
 
-Route::post('/saveRegistration', [
-    EmployeesController::class,
-    'saveRegistration',
-]);
+Route::post('/saveRegistration', [EmployeesController::class, 'saveRegistration']);
 
 Route::get('/sendVerifyCode/{id}', [MailController::class, 'verifyCode']);
-Route::post('/sendForgotPasswordMail/{id}', [
-    MailController::class,
-    'forgotPasswordMail',
-]);
-Route::post('/reset_password', [
-    MemberSettingsController::class,
-    'resetPassword',
-]);
+Route::post('/sendForgotPasswordMail/{id}', [MailController::class, 'forgotPasswordMail']);
+Route::post('/reset_password', [MemberSettingsController::class, 'resetPassword']);
 
-Route::post('/saveEvaluation', [
-    EvaluationFormController::class,
-    'saveEvaluation',
-]);
+Route::post('/saveEvaluation', [EvaluationFormController::class, 'saveEvaluation']);
 
 Route::get('/employeeList', [EmployeesController::class, 'employeeList']);
 
-Route::get('/getFormLinkStatus', [
-    EmployeesController::class,
-    'getFormLinkStatus',
-]);
+Route::get('/getFormLinkStatus', [EmployeesController::class, 'getFormLinkStatus']);
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::post('/advanceEvaluationWorkflow/{id}', [
-        EvaluationResponseController::class,
-        'advanceWorkflow',
-    ]);
+    Route::post('/advanceEvaluationWorkflow/{id}', [EvaluationResponseController::class, 'advanceWorkflow']);
 
     // ---------------------------------------------------------------- Client routes ----------------------------------------------------------------
     Route::get('/auth', [UserAuthController::class, 'index']);
@@ -124,10 +106,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('departments')->group(function () {
-        Route::get('/getDepartments', [
-            DepartmentController::class,
-            'getDepartments',
-        ]);
+        Route::get('/getDepartments', [DepartmentController::class, 'getDepartments' ]);
     });
 
     Route::prefix('admin/documents')->group(function () {
@@ -321,6 +300,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             'getEmployeeShortDetails',
         ]);
 
+        Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
+        Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']); 
+
+       
+        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
+        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
         Route::post('/editMyProfile', [
             EmployeesController::class,
             'editMyProfile',
@@ -388,95 +373,39 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('compensation')->group(function () {
         //allowances
-        Route::get('/getAllowances', [
-            CompensationManagementController::class,
-            'getAllowances',
-        ]);
-        Route::post('/saveAllowance', [
-            CompensationManagementController::class,
-            'saveAllowance',
-        ]);
+        Route::get('/getAllowances', [ CompensationManagementController::class, 'getAllowances', ]);
+        Route::post('/saveAllowance', [ CompensationManagementController::class, 'saveAllowance', ]);
+        Route::post('/updateAllowance', [ CompensationManagementController::class, 'updateAllowance', ]);
 
-        Route::get('/getEmployeeAllowance', [
-            CompensationManagementController::class,
-            'getEmployeeAllowance',
-        ]);
-        Route::get('/getEmployeesAllowance', [
-            CompensationManagementController::class,
-            'getEmployeesAllowance',
-        ]);
-        Route::post('/saveEmployeeAllowance', [
-            CompensationManagementController::class,
-            'saveEmployeeAllowance',
-        ]);
-        Route::post('/updateEmployeeAllowance', [
-            CompensationManagementController::class,
-            'updateEmployeeAllowance',
-        ]);
-
+        Route::get('/getEmployeeAllowance', [CompensationManagementController::class, 'getEmployeeAllowance']);
+        Route::get('/getEmployeesAllowance', [CompensationManagementController::class, 'getEmployeesAllowance']);
+        Route::post('/saveEmployeeAllowance', [CompensationManagementController::class, 'saveEmployeeAllowance']);
+        Route::post('/updateEmployeeAllowance', [CompensationManagementController::class, 'updateEmployeeAllowance']);
+        
         //incentives
-        Route::get('/getIncentives', [
-            CompensationManagementController::class,
-            'getIncentives',
-        ]);
-        Route::post('saveIncentives', [
-            CompensationManagementController::class,
-            'saveIncentives',
-        ]);
+        Route::get('/getIncentives', [ CompensationManagementController::class, 'getIncentives', ]);
+        Route::post('saveIncentives', [ CompensationManagementController::class, 'saveIncentives', ]);
+        Route::post('/updateIncentives', [CompensationManagementController::class, 'updateIncentives']);
 
-        Route::get('/getEmployeesIncentives', [
-            CompensationManagementController::class,
-            'getEmployeesIncentives',
-        ]);
-        Route::get('/getEmployeeIncentives', [
-            CompensationManagementController::class,
-            'getEmployeeIncentives',
-        ]);
-        Route::post('/saveEmployeeIncentives', [
-            CompensationManagementController::class,
-            'saveEmployeeIncentives',
-        ]);
-        Route::post('/updateEmployeeIncentive', [
-            CompensationManagementController::class,
-            'updateEmployeeIncentive',
-        ]);
-
+        Route::get('/getEmployeesIncentives', [CompensationManagementController::class, 'getEmployeesIncentives']);
+        Route::get('/getEmployeeIncentives', [CompensationManagementController::class, 'getEmployeeIncentives']);
+        Route::post('/saveEmployeeIncentives', [CompensationManagementController::class, 'saveEmployeeIncentives']);
+        Route::post('/updateEmployeeIncentive', [CompensationManagementController::class, 'updateEmployeeIncentive']);
+        
         //benefits
-        Route::get('/getBenefits', [
-            CompensationManagementController::class,
-            'getBenefits',
-        ]);
-        Route::post('/saveBenefits', [
-            CompensationManagementController::class,
-            'saveBenefits',
-        ]);
+        Route::get('/getBenefits', [ CompensationManagementController::class, 'getBenefits', ]);
+        Route::post('/saveBenefits', [ CompensationManagementController::class, 'saveBenefits', ]);
+        Route::post('/updateBenefits', [CompensationManagementController::class, 'updateBenefits']);
 
-        Route::get('/getEmployeesBenefits', [
-            CompensationManagementController::class,
-            'getEmployeesBenefits',
-        ]);
-        Route::get('/getEmployeeBenefits', [
-            CompensationManagementController::class,
-            'getEmployeeBenefits',
-        ]);
-        Route::post('/saveEmployeeBenefits', [
-            CompensationManagementController::class,
-            'saveEmployeeBenefits',
-        ]);
-        Route::post('/updateEmployeeBenefit', [
-            CompensationManagementController::class,
-            'updateEmployeeBenefit',
-        ]);
+        Route::get('/getEmployeesBenefits', [CompensationManagementController::class, 'getEmployeesBenefits']);
+        Route::get('/getEmployeeBenefits', [CompensationManagementController::class, 'getEmployeeBenefits']);
+        Route::post('/saveEmployeeBenefits', [CompensationManagementController::class, 'saveEmployeeBenefits']);
+        Route::post('/updateEmployeeBenefit', [CompensationManagementController::class, 'updateEmployeeBenefit']);
 
         //deductions
-        Route::get('/getDeductions', [
-            CompensationManagementController::class,
-            'getDeductions',
-        ]);
-        Route::post('/saveDeductions', [
-            CompensationManagementController::class,
-            'saveDeductions',
-        ]);
+        Route::get('/getDeductions', [CompensationManagementController::class, 'getDeductions']);
+        Route::post('/saveDeductions', [CompensationManagementController::class, 'saveDeductions']);
+        Route::post('/updateDeductions', [CompensationManagementController::class, 'updateDeductions']);
 
         Route::get('/getEmployeesDeductions', [
             CompensationManagementController::class,
@@ -502,6 +431,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getBenefits', [BenefitsController::class, 'getBenefits']);
         Route::post('/saveBenefit', [BenefitsController::class, 'saveBenefit']);
 
+        Route::post('/updateEmployeeBenefit', [SettingsController::class, 'updateEmployeeBenefit']);
+        Route::post('/addEmployeeBenefit', [BenefitsController::class, 'addEmployeeBenefit']);
+        Route::get('/getEmployeeBenefits', [BenefitsController::class, 'getEmployeeBenefits']);
         Route::post('/addEmployeeBenefit', [
             BenefitsController::class,
             'addEmployeeBenefit',
@@ -2028,7 +1960,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         PemeResponseController::class,
         'storeAll',
     ]);
-    
+
     Route::get('/peme-responses/filter', [
         PemeResponseController::class,
         'filter',

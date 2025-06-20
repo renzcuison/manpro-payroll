@@ -211,7 +211,7 @@ class PemeResponseController extends Controller
             ->toArray();
 
         $requiredQuestionIds = PemeQItem::where('peme_id', $pemeResponse->peme_id)
-            ->where('isRequired', true)
+            ->where('isRequired', 1) // changed true -> 1
             ->pluck('id')
             ->toArray();
 
@@ -260,7 +260,7 @@ class PemeResponseController extends Controller
                 }
 
                 if (count($files)) {
-                    $maxFiles = $detail->question->max_files ?? 1;
+                    $maxFiles = $detail->question->max_files;
                     $existingCount = $detail->getMedia('attachments')->count();
                     $newFilesCount = count($files);
 
@@ -681,6 +681,7 @@ class PemeResponseController extends Controller
             return [
                 'question_id' => Crypt::encrypt($question->id),
                 'question_text' => $question->question,
+                'isRequired' => $question->isRequired,
                 'input_type' => $inputTypesWithValues,
                 'media' => $media,
             ];

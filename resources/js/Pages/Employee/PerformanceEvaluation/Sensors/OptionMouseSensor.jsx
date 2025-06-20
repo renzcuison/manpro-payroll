@@ -1,6 +1,6 @@
 import { MouseSensor } from "@dnd-kit/core";
 
-export class SectionDropdownMouseSensor extends MouseSensor {
+export class OptionMouseSensor extends MouseSensor {
     static activators = [
         {
             eventName: "onMouseDown",
@@ -9,7 +9,7 @@ export class SectionDropdownMouseSensor extends MouseSensor {
                 const element = event.target;
                 if(!element) return false;
                 if(element.tagName.toLowerCase() === 'input') return false;
-                if(!element.closest('.MuiAccordion-heading')) return false;
+                if(!element.closest('.option-dragger')) return false;
                 return true;
             },
         },

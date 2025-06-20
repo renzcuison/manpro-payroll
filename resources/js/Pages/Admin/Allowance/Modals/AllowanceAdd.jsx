@@ -1,30 +1,24 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
-import FilledInput from '@mui/material/FilledInput';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import React, { useState, useEffect } from 'react';
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import Swal from 'sweetalert2';
-import ReactQuill from 'react-quill';
-import moment from 'moment';
 import 'react-quill/dist/quill.snow.css';
+import { useSaveAllowance } from '../../../../hooks/useAllowances';
 
 const AllowanceAdd = ({ open, close }) => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
-
+    const saveAllowance = useSaveAllowance();
     const [allowanceNameError, setAllowanceNameError] = useState(false);
     const [allowanceAmountError, setAllowanceAmountError] = useState(false);
     const [allowancePercentageError, setAllowancePercentageError] = useState(false);
+    const [paymentScheduleError, setPaymentScheduleError] = useState(false);
 
     const [allowanceName, setAllowanceName] = useState('');
     const [allowanceType, setAllowanceType] = useState('');
     const [allowanceAmount, setAllowanceAmount] = useState('');
     const [allowancePercentage, setAllowancePercentage] = useState('');
+    const [paymentSchedule, setPaymentSchedule] = useState(1);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -80,7 +74,6 @@ const AllowanceAdd = ({ open, close }) => {
     }
 
     const checkInputPercentage = () => {
-
         if (!allowancePercentage) {
             setAllowancePercentageError(true);
         } else {
@@ -125,27 +118,9 @@ const AllowanceAdd = ({ open, close }) => {
             type: allowanceType,
             amount: amount,
             percentage: percentage,
+            payment_schedule: paymentSchedule,
         };
-
-        axiosInstance.post('/allowance/saveAllowance', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Role saved successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        close();
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        saveAllowance.mutate({data: data, onSuccessCallback: () => close(true)});
     };
 
     const formatCurrency = (value) => {
@@ -187,13 +162,8 @@ const AllowanceAdd = ({ open, close }) => {
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': { color: '#97a5ba' },
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                        }}>
-                            <FormControl sx={{ marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            <FormControl sx={{ marginBottom: 3, width: '69%'}}>
                                 <TextField
                                     required
                                     id="allowanceName"
@@ -205,9 +175,7 @@ const AllowanceAdd = ({ open, close }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                            }}>
+                            <FormControl sx={{ marginBottom: 3, width: '29%' }}>
                                 <TextField
                                     required
                                     select
@@ -223,55 +191,56 @@ const AllowanceAdd = ({ open, close }) => {
                             </FormControl>
                         </FormGroup>
 
-                        {allowanceType === "Amount" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <InputLabel>Amount</InputLabel>
-                                        <OutlinedInput
-                                            required
-                                            id="allowanceAmount"
-                                            label="Amount"
-                                            value={allowanceAmount}
-                                            error={allowanceAmountError}
-                                            startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                            onChange={(e) => handleInputChange(e, setAllowanceAmount)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
+                        <FormGroup row={true} className="d-flex justify-content-between" >
+                            {allowanceType && (
+                                <FormControl sx={{ marginBottom: 3, width: '69%', }}>
+                                    <TextField
+                                        required
+                                        select
+                                        id="paymentSchedule"
+                                        label="Payment Schedule"
+                                        value={paymentSchedule}
+                                        error={paymentScheduleError}
+                                        onChange={(event) => setPaymentSchedule(event.target.value)}
+                                    >
+                                        <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>
+                                        <MenuItem key={2} value={2}> One Time - Second Cutoff</MenuItem>
+                                        <MenuItem key={3} value={3}> Split - First & Second Cutoff</MenuItem>
+                                    </TextField>
+                                </FormControl>
+                            )}
+                            {allowanceType === "Amount" && (
+                                <FormControl sx={{ marginBottom: 3, width: '29%' }}>
+                                    <InputLabel>Amount</InputLabel>
+                                    <OutlinedInput
+                                        required
+                                        id="allowanceAmount"
+                                        label="Amount"
+                                        value={allowanceAmount}
+                                        error={allowanceAmountError}
+                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
+                                        onChange={(e) => handleInputChange(e, setAllowanceAmount)}
+                                    />
+                                </FormControl>       
+                            )}
+                            {allowanceType === "Percentage" && (
+                                <FormControl sx={{ marginBottom: 3, width: '29%' }}>
+                                    <InputLabel>Percentage</InputLabel>
+                                    <OutlinedInput
+                                        required
+                                        id="allowancePercentage"
+                                        label="Percentage"
+                                        value={allowancePercentage}
+                                        error={allowancePercentageError}
+                                        startAdornment={<InputAdornment position="start">%</InputAdornment>}
+                                        onChange={(e) => handleInputChange(e, setAllowancePercentage)}
+                                    />
+                                </FormControl>
+                            )}
+                            
 
-                        {allowanceType === "Percentage" && (
-                            <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
-                                    <FormControl sx={{
-                                        marginBottom: 3, width: '100%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                    }}>
-                                        <InputLabel>Percentage</InputLabel>
-                                        <OutlinedInput
-                                            required
-                                            id="allowancePercentage"
-                                            label="Percentage"
-                                            value={allowancePercentage}
-                                            error={allowancePercentageError}
-                                            startAdornment={<InputAdornment position="start">%</InputAdornment>}
-                                            onChange={(e) => handleInputChange(e, setAllowancePercentage)}
-                                        />
-                                    </FormControl>
-                                </FormGroup>
-                            </>
-                        )}
+                        </FormGroup>
+                        
 
                         {allowanceType && (
                             <>

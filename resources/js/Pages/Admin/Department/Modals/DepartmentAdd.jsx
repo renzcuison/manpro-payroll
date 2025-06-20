@@ -60,9 +60,7 @@ const DepartmentAdd = ({open, close}) =>{
             acronym: acronym,
             description: description,
         };
-
         saveDepartment.mutate({data: data, onSuccessCallback: () => close(true)})
-        
     };
 
     return(
