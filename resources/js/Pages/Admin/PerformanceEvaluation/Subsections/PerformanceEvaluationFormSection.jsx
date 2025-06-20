@@ -31,6 +31,7 @@ import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import { OptionMouseSensor } from '../Sensors/OptionMouseSensor';
 import { OptionTouchSensor } from '../Sensors/OptionTouchSensor';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
+import PerformanceEvaluationFormSubcategory from './PerformanceEvaluationSubcategory';
 import PerformanceEvaluationRating from './PerformanceEvaluationRating';
 import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvaluationFormAddSubcategory';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
@@ -562,6 +563,11 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                         id={'subcategory_'+subcategory.id}
                                         order={subcategory.order}
                                     >
+                                        {/* <PerformanceEvaluationFormSubcategory
+                                            subcategory={ subcategory }
+                                            expandedSubcategoryId={ expandedSubcategory }
+                                            setExpandedSubcategoryId={ setExpandedSubcategory }
+                                        /> */}
                                         <Accordion
                                             expanded={expandedSubcategory === subcategory.id}
                                             onChange={handleSubcategoryToggle(subcategory.id, subcategory)}
