@@ -23,7 +23,6 @@ export function useEvaluationFormSubcategory(subcategory) {
     const [linearScaleEndLabel, setLinearScaleEndLabel] = useState('Extremely');
     const [order, setOrder] = useState();
     const [options, setOptions] = useState([]);
-    // --- Linear scale options state ---
     const [linearScaleOptions, setLinearScaleOptions] = useState([
         { label: '', description: '' },
         { label: '', description: '' }
@@ -118,45 +117,43 @@ export function useEvaluationFormSubcategory(subcategory) {
         ;
     }
 
-const saveSubcategory = () => {
-    // Prepare linear scale options with automatically assigned scores
-    const transformedLinearScaleOptions = linearScaleOptions.map((opt, idx) => ({
-        label: opt.label,
-        description: opt.description,
-        score: idx + 1, // Automatically assign score based on index
-        order: idx + 1 // Ensure the order is correct
-    }));
+    const saveSubcategory = () => {
+        // Prepare linear scale options with automatically assigned scores
+        const transformedLinearScaleOptions = linearScaleOptions.map((opt, idx) => ({
+            label: opt.label,
+            description: opt.description,
+            score: idx + 1, // Automatically assign score based on index
+            order: idx + 1 // Ensure the order is correct
+        }));
 
-    // Now send the data, including the transformed options
-    axiosInstance
-        .post('/saveEvaluationFormSubcategory', {
-            section_id: sectionId,
-            name: subcategoryName,
-            subcategory_type: 'linear_scale',
-            description: subcategoryDescription,
-            required,
-            allow_other_option: allowOtherOption,
-            linear_scale_start: linearScaleStart,
-            linear_scale_end: linearScaleEnd,
-            linear_scale_start_label: linearScaleStartLabel,
-            linear_scale_end_label: linearScaleEndLabel,
-            options: transformedLinearScaleOptions, // Use the transformed options
-        }, { headers })
-        .then((response) => {
-            if (response.data.status.toString().startsWith(2)) {
-                // Optionally update UI or trigger another action
-                alert("Subcategory saved successfully!");
-            } else {
+        // Now send the data, including the transformed options
+        axiosInstance
+            .post('/saveEvaluationFormSubcategory', {
+                section_id: sectionId,
+                name: subcategoryName,
+                subcategory_type: 'linear_scale',
+                description: subcategoryDescription,
+                required,
+                allow_other_option: allowOtherOption,
+                linear_scale_start: linearScaleStart,
+                linear_scale_end: linearScaleEnd,
+                linear_scale_start_label: linearScaleStartLabel,
+                linear_scale_end_label: linearScaleEndLabel,
+                options: transformedLinearScaleOptions, // Use the transformed options
+            }, { headers })
+            .then((response) => {
+                if (response.data.status.toString().startsWith(2)) {
+                    // Optionally update UI or trigger another action
+                    alert("Subcategory saved successfully!");
+                } else {
+                    alert("Error saving subcategory");
+                }
+            })
+            .catch((error) => {
+                console.error('Error saving subcategory:', error);
                 alert("Error saving subcategory");
-            }
-        })
-        .catch((error) => {
-            console.error('Error saving subcategory:', error);
-            alert("Error saving subcategory");
-        });
-};
-
-
+            });
+    };
 
     function switchResponseType(responseType) {
         const subcategoryDbValue = getSubcategoryDbValue(responseType);
@@ -189,6 +186,7 @@ const saveSubcategory = () => {
             /* edit on server if needed */
         }
     }
+
     function editOption(optionIndex, label, score, description) {
         if(isNew) {
             options[ optionIndex ].label = label;
@@ -297,7 +295,6 @@ const saveSubcategory = () => {
         linearScaleEndLabel, setLinearScaleEndLabel,
         order,
         options, deleteOption, editOption, saveOption,
-        // --- Linear scale handlers exposed! ---
         linearScaleOptions, addLinearScaleOption, removeLinearScaleOption, editLinearScaleOption
     };
 
