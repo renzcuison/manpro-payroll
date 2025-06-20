@@ -649,6 +649,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             AttendanceController::class,
             'deleteEmployeeAttendance',
         ]);
+        Route::get('/getEarliestUserLog', [
+            AttendanceController::class,
+            'getEarliestUserLog',
+        ]);
     });
 
     Route::prefix('payroll')->group(function () {
