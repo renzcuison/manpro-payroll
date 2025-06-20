@@ -199,35 +199,67 @@ const ModalReviewForm = ({ open, onClose, id }) => {
             <Typography variant="body2" sx={{ fontWeight: 700 }}>
               Answer:
             </Typography>
-            <Grid container alignItems="center" spacing={2} justifyContent='center'>
-              <Grid item>
-                <Typography variant="body1">{subCategory.linear_scale_start_label}</Typography>
-              </Grid>
-              <Grid item xs>
-                <Grid container justifyContent="center" spacing={1}>
-                  {[...Array(subCategory.linear_scale_end - subCategory.linear_scale_start + 1)].map((_, index) => {
-                    const value = subCategory.linear_scale_start + index;
-                    return (
-                      <Grid item key={value}>
-                        <FormControlLabel
-                          control={
-                            <Radio
-                              checked={subCategory.percentage_answer?.value === value}
-                              disabled
-                            />
-                          }
-                          label={value}
-                          labelPlacement="top"
-                        />
+            {Array.isArray(subCategory.options) && subCategory.options.length > 0 ? (
+              <>
+                <Box sx={{ mt: 1 }}>
+                  <Grid container justifyContent="center" spacing={6}>
+                    {subCategory.options.map((opt, idx) => (
+                      <Grid item key={opt.id ?? idx} sx={{ textAlign: "center" }}>
+                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                          <Typography variant="body1" sx={{ mb: 0.5 }}>
+                            {opt.label}
+                          </Typography>
+                          <Radio
+                            checked={subCategory.percentage_answer?.value === opt.score}
+                            value={opt.score}
+                            sx={{ mx: "auto" }}
+                            disabled // read-only
+                          />
+                        </Box>
                       </Grid>
-                    );
-                  })}
-                </Grid>
-              </Grid>
-              <Grid item>
-                <Typography variant="body1">{subCategory.linear_scale_end_label}</Typography>
-              </Grid>
-            </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                <Box sx={{ mb: 1, mt: 1 }}>
+                  <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                    Legend:
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                    {subCategory.options.map((opt, index) => (
+                      <Typography
+                        key={opt.id}
+                        variant="body2"
+                        sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}
+                      >
+                        {opt.label} - {opt.score ?? 1}{index !== subCategory.options.length - 1 && ','}
+                      </Typography>
+                    ))}
+                  </Box>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                      Description:
+                    </Typography>
+                    <Box>
+                      {subCategory.options.map((opt, index) =>
+                        opt.description ? (
+                          <Typography
+                            key={opt.id + "_desc"}
+                            variant="body2"
+                            sx={{fontSize: '0.8rem'}}
+                          >
+                            {opt.score} - {opt.description}
+                          </Typography>
+                        ) : null
+                      )}
+                    </Box>
+                  </Box>
+                </Box>
+              </>
+            ) : (
+              <span style={{ color: '#ccc', fontStyle: 'italic' }}>No options</span>
+            )}
           </Box>
         );
       case 'short_answer':

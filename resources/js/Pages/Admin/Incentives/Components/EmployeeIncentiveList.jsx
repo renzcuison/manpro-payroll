@@ -21,6 +21,7 @@ const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
                             <TableCell align="center">Number</TableCell>
                             <TableCell align="center">Amount</TableCell>
                             <TableCell align="center">Date</TableCell>
+                            <TableCell align="center">Status</TableCell>
                             <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
@@ -41,6 +42,9 @@ const EmployeeIncentivesList = ({incentives, isLoading, onAdd, onEdit }) => {
                                     
                                     <TableCell align="center">
                                         <Typography>{dayjs(incentive.created_at).format("MMM DD, YYYY")}</Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Typography>{incentive.status}</Typography>
                                     </TableCell>
                                     <TableCell align="center">
                                         <Tooltip title="Edit">

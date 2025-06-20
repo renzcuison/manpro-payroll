@@ -23,6 +23,10 @@ export function useEvaluationFormSubcategory(subcategory) {
     const [linearScaleEndLabel, setLinearScaleEndLabel] = useState('Extremely');
     const [order, setOrder] = useState();
     const [options, setOptions] = useState([]);
+    const [linearScaleOptions, setLinearScaleOptions] = useState([
+        { label: '', description: '' },
+        { label: '', description: '' }
+    ]);
 
     useEffect(() => {
         if(!subcategory) return;
@@ -40,10 +44,39 @@ export function useEvaluationFormSubcategory(subcategory) {
         setLinearScaleEndLabel(subcategory.linear_scale_end_label);
         setOrder(subcategory.order);
         setOptions(subcategory.options);
+        // --- Set linear scale options if type is linearScale ---
+        if (getSubcategorySelectValue(subcategory.subcategory_type) === 'linearScale') {
+            setLinearScaleOptions(
+                Array.isArray(subcategory.options) && subcategory.options.length
+                    ? subcategory.options.map(opt => ({
+                        label: opt.label || '',
+                        description: opt.description || ''
+                    }))
+                    : [{ label: '', description: '' }, { label: '', description: '' }]
+            );
+        }
     }, [subcategory?.id]);
 
-    // subcategory operations
+    // --- Linear Scale Option Handlers ---
+    function addLinearScaleOption() {
+        if (linearScaleOptions.length < 10) {
+            setLinearScaleOptions([...linearScaleOptions, { label: '', description: '' }]);
+        }
+    }
+    function removeLinearScaleOption(idx) {
+        if (linearScaleOptions.length > 2) { // keep at least 2
+            setLinearScaleOptions(linearScaleOptions.filter((_, i) => i !== idx));
+        }
+    }
+    function editLinearScaleOption(idx, field, value) {
+        setLinearScaleOptions(
+            linearScaleOptions.map((opt, i) =>
+                i === idx ? { ...opt, [field]: value } : opt
+            )
+        );
+    }
 
+    // --- Subcategory CRUD ---
     function editSubcategory(subcategory) {
         axiosInstance
             .post('/editEvaluationFormSubcategory', {
@@ -68,7 +101,7 @@ export function useEvaluationFormSubcategory(subcategory) {
                         icon: "error",
                         confirmButtonColor: '#177604',
                         customClass: {
-                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                            popup: 'swal-popup-overlay'
                         }
                     });
                 }
@@ -84,12 +117,21 @@ export function useEvaluationFormSubcategory(subcategory) {
         ;
     }
 
-    function saveSubcategory() {
+    const saveSubcategory = () => {
+        // Prepare linear scale options with automatically assigned scores
+        const transformedLinearScaleOptions = linearScaleOptions.map((opt, idx) => ({
+            label: opt.label,
+            description: opt.description,
+            score: idx + 1, // Automatically assign score based on index
+            order: idx + 1 // Ensure the order is correct
+        }));
+
+        // Now send the data, including the transformed options
         axiosInstance
             .post('/saveEvaluationFormSubcategory', {
                 section_id: sectionId,
                 name: subcategoryName,
-                subcategory_type: getSubcategoryDbValue(subcategoryType),
+                subcategory_type: 'linear_scale',
                 description: subcategoryDescription,
                 required,
                 allow_other_option: allowOtherOption,
@@ -97,78 +139,55 @@ export function useEvaluationFormSubcategory(subcategory) {
                 linear_scale_end: linearScaleEnd,
                 linear_scale_start_label: linearScaleStartLabel,
                 linear_scale_end_label: linearScaleEndLabel,
-                options
+                options: transformedLinearScaleOptions, // Use the transformed options
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
-                    const { evaluationFormSubcategoryID } = response.data;
-                    if(!evaluationFormSubcategoryID) return;
-                    setIsNew(false);
-                    setSubcategoryId(evaluationFormSubcategoryID);
-                } else if (response.data.status.toString().startsWith(4)) {
-                    Swal.fire({
-                        text: response.data.message,
-                        icon: "error",
-                        confirmButtonColor: '#177604',
-                        customClass: {
-                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
-                        }
-                    });
+                    // Optionally update UI or trigger another action
+                    alert("Subcategory saved successfully!");
+                } else {
+                    alert("Error saving subcategory");
                 }
             })
-            .catch(error => {
+            .catch((error) => {
                 console.error('Error saving subcategory:', error);
-                Swal.fire({
-                    text: "Error saving subcategory",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                });
-            })
-        ;
-    }
+                alert("Error saving subcategory");
+            });
+    };
 
     function switchResponseType(responseType) {
-
         const subcategoryDbValue = getSubcategoryDbValue(responseType);
         if(isNew)
             setSubcategoryType(subcategoryDbValue);
         else
             editSubcategory({ subcategory_type: subcategoryDbValue });
-
     }
 
     function toggleAllowOtherOption() {
-
         if(isNew)
             setAllowOtherOption(!allowOtherOption);
         else
             editSubcategory({ allow_other_option: !allowOtherOption });
-
     }
 
     function toggleRequired() {
-
         if(isNew)
             setRequired(!required);
         else
             editSubcategory({ required: !required });
-
     }
 
-    // option operations
-
+    // --- Option operations for multipleChoice/checkbox ---
     function deleteOption(optionIndex) {
-
         if(isNew) {
             options.splice(optionIndex, 1);
             setOptions([ ...options ]);
-        } else
-            undefined; // edit later
-
+        } else {
+            /* edit on server if needed */
+        }
     }
 
     function editOption(optionIndex, label, score, description) {
-
         if(isNew) {
             options[ optionIndex ].label = label;
             options[ optionIndex ].score = score;
@@ -186,7 +205,7 @@ export function useEvaluationFormSubcategory(subcategory) {
                         icon: "error",
                         confirmButtonColor: '#177604',
                         customClass: {
-                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                            popup: 'swal-popup-overlay'
                         }
                     });
                 }
@@ -198,19 +217,8 @@ export function useEvaluationFormSubcategory(subcategory) {
                     icon: "error",
                     confirmButtonColor: '#177604',
                 });
-            })
-        ;
-
+            });
     }
-
-    // function editOptionExtra(optionIndex, extra) {
-    //     if (isNew) {
-    //         options[optionIndex].extra = extra;
-    //         setOptions([ ...options ]);
-    //     } else {
-    //         // TODO: If you want to support editing option extra on the backend, implement here.
-    //     }
-    // }
 
     function getOption(optionId) {
         axiosInstance
@@ -245,7 +253,7 @@ export function useEvaluationFormSubcategory(subcategory) {
                         icon: "error",
                         confirmButtonColor: '#177604',
                         customClass: {
-                            popup: 'swal-popup-overlay' // Custom class to ensure overlay
+                            popup: 'swal-popup-overlay'
                         }
                     });
                 }
@@ -257,8 +265,7 @@ export function useEvaluationFormSubcategory(subcategory) {
                     icon: "error",
                     confirmButtonColor: '#177604',
                 });
-            })
-        ;
+            });
     }
 
     return {
@@ -287,7 +294,8 @@ export function useEvaluationFormSubcategory(subcategory) {
         linearScaleStartLabel, setLinearScaleStartLabel,
         linearScaleEndLabel, setLinearScaleEndLabel,
         order,
-        options, deleteOption, editOption, saveOption//, editOptionExtra
+        options, deleteOption, editOption, saveOption,
+        linearScaleOptions, addLinearScaleOption, removeLinearScaleOption, editLinearScaleOption
     };
 
 }

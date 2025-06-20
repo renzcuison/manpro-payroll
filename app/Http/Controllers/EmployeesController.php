@@ -137,6 +137,10 @@ class EmployeesController extends Controller
     }
 
 
+
+
+
+
     public function updateBranchPosition(Request $request)
     {
         $validated = $request->validate([
@@ -394,12 +398,6 @@ class EmployeesController extends Controller
         }
     }
 
-  
-
-
-
-
-
     public function getEmployeeDetails(Request $request)
     {
         // log::info("EmployeesController::getEmployeeDetails");
@@ -505,20 +503,70 @@ class EmployeesController extends Controller
 
     public function getMyAvatar()
     {
-        //log::info("EmployeesController::getMyAvatar");
-        $user = Auth::user();
+        $authUser = Auth::user();
+        Log::info("Getting avatar for user", ['id' => $authUser->id]);
 
         $avatar = [
             'image' => null,
-            'mime' => null
+            'mime' => null,
+            'url' => null,
         ];
 
-        if ($user->profile_pic && Storage::disk('public')->exists($user->profile_pic)) {
-            $avatar['image'] = base64_encode(Storage::disk('public')->get($user->profile_pic));
-            $avatar['mime'] = mime_content_type(storage_path('app/public/' . $user->profile_pic));
+        try {
+            $user = UsersModel::findOrFail($authUser->id)->fresh();
+            $media = $user->getMedia('profile_pictures')->first();
+            
+            if ($media) {
+                $relativePath = $media->getPathRelativeToRoot();
+                Log::info("Checking file existence", [
+                    'relative_path' => $relativePath,
+                    'exists' => Storage::disk('public')->exists($relativePath)
+                ]);
+                if (Storage::disk('public')->exists($relativePath)) {
+                    $avatar['image'] = base64_encode(Storage::disk('public')->get($relativePath));
+                    $avatar['mime'] = $media->mime_type;
+
+                    // Generate the URL and replace localhost with LAN IP if needed
+                    $mediaUrl = url($media->getUrl());
+                    $host = parse_url($mediaUrl, PHP_URL_HOST);
+                    $lanIp = env('LAN_IP');
+                    if ($host === 'localhost' && $lanIp) {
+                        $mediaUrl = str_replace('localhost', $lanIp, $mediaUrl);
+                    }
+                    $avatar['url'] = $mediaUrl;
+                } else {
+                    Log::warning("Media record exists but file not found", [
+                        'path' => $media->getPath(),
+                        'disk' => $media->disk
+                    ]);
+                    
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Avatar file not found'
+                    ], 404);
+                }
+            } else {
+                Log::info("No media found in profile_pictures collection");
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'No avatar found'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            Log::error("Avatar fetch error", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'status' => 500,
+                'message' => 'Server error fetching avatar'
+            ], 500);
         }
 
-        return response()->json(['status' => 200, 'avatar' => $avatar]);
+        return response()->json([
+            'status' => 200, 
+            'avatar' => $avatar
+        ]);
     }
 
     public function getEmployeeEducationBackground(Request $request){
@@ -529,12 +577,11 @@ class EmployeesController extends Controller
 
         if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated) {
             $user = Auth::user();
-            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)
-            ->first();
-            log::info($employee);
-            $educations = EmployeeEducation::where('employee_id', $employee->id)
-            ->select('id', 'employee_id', 'school_name', 'education_level', 'program_name', 'year_graduated')
-            ->get();
+
+            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+
+            $educations = EmployeeEducation::where('employee_id', $employee->id)->select('id', 'employee_id', 'school_name', 'education_level', 'program_name', 'year_graduated')->get();
+            
             return response()->json(['educations' => $educations, 'status' => 200]);
         }
     }
@@ -638,40 +685,46 @@ class EmployeesController extends Controller
 
     public function editMyProfilePicture(Request $request)
     {
-        Log::info("EmployeesController::editMyProfilePicture");
-        Log::info($request);
-
-        // $request->validate([
-        //     'profile_picture' => 'required|image|max:5120'
-        // ]);
+        Log::info("EmployeesController::editMyProfilePicture", $request->all());
 
         $user = UsersModel::findOrFail($request->input('id'));
 
         try {
             if ($request->hasFile('profile_picture')) {
-                // Optional: clear existing media first
-                // $user->clearMediaCollection('profile_pic');  //if using the old media collection. enable this line
+                // Clear existing media
                 $user->clearMediaCollection('profile_pictures');
 
-                // Save new profile picture
-                $user->addMediaFromRequest('profile_picture')->toMediaCollection('profile_pictures');
-            } else {
-                Log::warning("No profile picture file found in request.");
+                // Add new media without conversion references
+                $media = $user->addMedia($request->file('profile_picture'))
+                    ->usingName($request->file('profile_picture')->getClientOriginalName())
+                    ->toMediaCollection('profile_pictures', 'public');
+                
+                $mediaDetails = [
+                    'id' => $media->id,
+                    'name' => $media->name,
+                    'file_name' => $media->file_name,
+                    'mime_type' => $media->mime_type,
+                    'size' => $media->size,
+                    'url' => $media->getUrl()
+                ];
+
                 return response()->json([
-                    'message' => 'No profile picture provided',
-                    'status' => 422
+                    'status' => 200,
+                    'message' => 'Profile picture updated successfully',
+                    'media' => $mediaDetails,
+                    'user' => $user->load('media')
                 ]);
             }
 
             return response()->json([
-                'user' => $user->load('media'),
-                'message' => 'Profile updated successfully',
-                'status' => 200
+                'message' => 'No profile picture provided',
+                'status' => 422
             ]);
+
         } catch (\Exception $e) {
             Log::error("Error saving profile picture: " . $e->getMessage());
             return response()->json([
-                'message' => 'An error occurred while updating the profile picture',
+                'message' => 'Error saving profile picture: ' . $e->getMessage(),
                 'status' => 500
             ]);
         }

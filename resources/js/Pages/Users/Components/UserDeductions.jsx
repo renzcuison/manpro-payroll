@@ -1,11 +1,11 @@
 import React from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import { useDeductions } from "../../../hooks/useDeductions";
+import { useEmployeeDeductions } from "../../../hooks/useDeductions";
 
 const UserDeductions = ({ userName }) => {
-    const {employeeDeductions} = useDeductions({userName: userName});
+    const {employeeDeductions} = useEmployeeDeductions(userName);
 
-    const deductions = employeeDeductions.data?.deductions || [];
+    const deductions = employeeDeductions?.deductions || [];
 
     return (
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>

@@ -11,14 +11,15 @@ import EmployeeDeductionAdd from "../Components/EmployeeDeductionAdd";
 import EmployeeDeductionList from "../Components/EmployeeDeductionList";
 import EmployeeDeductionEdit from "../Components/EmployeeDeductionEdit";
 
-import { useDeductions } from "../../../../hooks/useDeductions";
+import { useEmployeeDeductions } from "../../../../hooks/useDeductions";
 
 const EmployeeDeductionView = ({ open, close, userName, deduction }) => {
-    const { employeeDeductions } = useDeductions({userName: userName, filters: {deductionId: deduction}});
+    const { employeeDeductions, isEmployeeDeductionsLoading, refetchEmployeeDeductions } = useEmployeeDeductions(userName, deduction);
+    
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const deductions = employeeDeductions.data?.deductions || [];
+    const deductions = employeeDeductions?.deductions || [];
     
     const [deductionsAddOpen, setDeductionsAddOpen] = useState(false);
     const [deductionEditOpen, setDeductionEditOpen] = useState(false);
@@ -51,7 +52,7 @@ const EmployeeDeductionView = ({ open, close, userName, deduction }) => {
         setDeductionsAddOpen(false);
         setDeductionsListOpen(true);
         if(reload){
-            employeeDeductions.refetch();
+            refetchEmployeeDeductions();
         }
     }
 
@@ -65,7 +66,7 @@ const EmployeeDeductionView = ({ open, close, userName, deduction }) => {
         setDeductionsListOpen(true);
         setDeductionEditOpen(false);
         if(reload){
-            employeeDeductions.refetch();
+            refetchEmployeeDeductions();
         }
     }
 
@@ -95,7 +96,7 @@ const EmployeeDeductionView = ({ open, close, userName, deduction }) => {
                     </Box>
                     
                     {deductionsListOpen && (
-                        <EmployeeDeductionList deductions={deductions} isLoading={employeeDeductions.isLoading} onAdd={() => handleOpenAddEmployeeDeductions()} 
+                        <EmployeeDeductionList deductions={deductions} isLoading={isEmployeeDeductionsLoading} onAdd={() => handleOpenAddEmployeeDeductions()} 
                         onEdit={(index) => handleOpenEditEmployeeDeductions(index)} />
                     )}
                     {deductionEditOpen && (

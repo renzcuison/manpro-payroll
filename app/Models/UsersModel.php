@@ -213,7 +213,8 @@ class UsersModel extends Authenticatable implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('profile_pictures')->singleFile();
+        $this->addMediaCollection('profile_pictures')->singleFile()
+            ->useDisk('public');
     }
 
     public function comments(): hasMany

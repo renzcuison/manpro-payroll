@@ -1,10 +1,10 @@
 import React from "react";
 import { Box, Button, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import { useBenefits } from "../../../hooks/useBenefits";
+import { useEmployeeBenefits } from "../../../hooks/useBenefits";
 
 const UserBenefits = ({ userName }) => {
-    const {employeeBenefits} = useBenefits({userName: userName});
-    const benefits = employeeBenefits.data?.benefits || [];
+    const {employeeBenefits} = useEmployeeBenefits(userName);
+    const benefits = employeeBenefits?.benefits || [];
 
     return (
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>

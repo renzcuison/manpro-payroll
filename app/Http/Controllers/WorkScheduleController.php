@@ -588,4 +588,35 @@ class WorkScheduleController extends Controller
 
         return response()->json(['status' => 200, 'workDays' => null]);
     }
+
+    // public function getWorkSchedByUser(Request $request)
+    // {
+    //     $validated = $request->validate(['userName' => 'required']);
+
+    //     if (!$this->checkUser() || !$validated) {
+    //         return response()->json(['status' => 403, 'message' => 'Unauthorized or invalid request']);
+    //     }
+
+    //     $user = UsersModel::with([
+    //         'workGroup.workShift.workHour'
+    //     ])->where('user_name', $request->userName)->first();
+
+    //     if (!$user || !$user->workGroup || !$user->workGroup->workShift || !$user->workGroup->workShift->workHour) {
+    //         return response()->json(['status' => 404, 'message' => 'Work schedule not found']);
+    //     }
+
+    //     $workShift = $user->workGroup->workShift;
+
+    //     // Ensure work shift belongs to the same client as the user
+    //     if ($workShift->client_id != $user->client_id) {
+    //         return response()->json(['status' => 404, 'message' => 'Work shift does not belong to user\'s client']);
+    //     }
+
+    //     return response()->json([
+    //         'status' => 200,
+    //         'workGroup' => $user->workGroup,
+    //         'workShift' => $workShift,
+    //         'workHours' => $workShift->workHour
+    //     ]);
+    // }
 }

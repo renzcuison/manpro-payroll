@@ -38,7 +38,6 @@ const Sidebar = ({ children, closeMini }) => {
 
     const [workshifts, setWorkshifts] = useState([]);
     const [workgroups, setWorkgroups] = useState([]);
-    const [imagePath, setImagePath] = useState("");
 
     useEffect(() => {
         axiosInstance
@@ -58,43 +57,7 @@ const Sidebar = ({ children, closeMini }) => {
             .catch((error) => {
                 console.error("Error fetching work groups:", error);
             });
-
-        axiosInstance
-            .get(`/employee/getMyAvatar`, { headers })
-            .then((response) => {
-                if (response.data.status === 200) {
-                    const avatarData = response.data.avatar;
-                    if (avatarData.image && avatarData.mime) {
-                        const byteCharacters = window.atob(avatarData.image);
-                        const byteNumbers = new Array(byteCharacters.length);
-                        for (let i = 0; i < byteCharacters.length; i++) {
-                            byteNumbers[i] = byteCharacters.charCodeAt(i);
-                        }
-                        const byteArray = new Uint8Array(byteNumbers);
-                        const blob = new Blob([byteArray], {
-                            type: avatarData.mime,
-                        });
-
-                        const newBlob = URL.createObjectURL(blob);
-                        setImagePath(newBlob);
-                    } else {
-                        setImagePath(null);
-                    }
-                }
-            })
-            .catch((error) => {
-                console.error("Error fetching avatar:", error);
-                setImagePath(null);
-            });
     }, []);
-
-    useEffect(() => {
-        return () => {
-            if (imagePath && imagePath.startsWith("blob:")) {
-                URL.revokeObjectURL(imagePath);
-            }
-        };
-    }, [imagePath]);
 
     const workShifts = [
         {
@@ -284,7 +247,7 @@ const Sidebar = ({ children, closeMini }) => {
                         </div>
                         <div className="sidebar-mini-hidden-b text-center">
                             <Box display="flex" flexDirection="column" alignItems="center" >
-                                <Avatar src={ user?.media?.[0]?.original_url || imagePath }
+                                <Avatar src={ user?.media?.[0]?.original_url }
                                     alt={`${user?.first_name || ""} ${ user?.last_name || "" }`}
                                     sx={{ width: 64, height: 64, objectFit: "contain", bgcolor: "grey.300", "& .MuiAvatar-img": { objectFit: "cover" }, }}
                                 />
@@ -440,14 +403,13 @@ const Sidebar = ({ children, closeMini }) => {
                                         <span className="sidebar-mini-hidden text-dark"> Performance Management </span>
                                     </li>
 
-                                    <StyledNav to={`/admin/performance-evaluation`} >
-                                        <i className="fa fa-check" style={{ color: '#2a800f' }}></i>
+                                    <StyledNav to={`/admin/performance-evaluation`} end>
+                                        <i className="fa fa-check" style={{ color: "#2a800f" }}></i>
                                         <span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
                                     </StyledNav>
-                                    
-                                    {/* === My Evaluation Result (NEW ITEM) === */}
-                                    <StyledNav to={`/admin/performance-evaluation/results`} >
-                                        <i className="fa fa-bar-chart" style={{ color: '#2a800f' }}></i>
+
+                                    <StyledNav to={`/admin/performance-evaluation/results`}>
+                                        <i className="fa fa-bar-chart" style={{ color: "#2a800f" }}></i>
                                         <span id="navName" className="sidebar-mini-hide">My Evaluation Result</span>
                                     </StyledNav>
 

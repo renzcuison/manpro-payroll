@@ -20,6 +20,7 @@ class BenefitsModel extends Model
         'employee_amount',
         'employer_percentage',
         'employer_amount',
+        'payment_schedule',
         'client_id',
     ];
 }

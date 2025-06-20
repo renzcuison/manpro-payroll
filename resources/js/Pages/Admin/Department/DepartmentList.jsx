@@ -16,7 +16,7 @@ const DepartmentList = () => {
     const deptPositions = departmentPositions.data?.positions || [];
 
     // Add Department Modal
-    const [openModal, setOpenModal] = useState(false);
+    const [openAddModal, setOpenAddModal] = useState(false);
     
     // Department Positions Settings Modal
     const [openSettingsModal, setOpenSettingsModal] = useState(false);
@@ -38,15 +38,26 @@ const DepartmentList = () => {
         setAnchorEl(null);
     };
 
-    const handleAddNew = () => {
+    const handleOpenDepartmentAddModal = () => {
         handleAddClose();
-        setOpenModal(true);
+        setOpenAddModal(true);
     };
+    const handleCloseDepartmentAddModal = (reload) =>{
+        setOpenAddModal(false);
+        if(reload){
+            departmentsWithPositions.refetch();
+        }
+    }
 
-    const handleSettings = () => {
+    const handleOpenDepartmentSettingsModal = () => {
         handleAddClose();
         setOpenSettingsModal(true);
     };
+    
+    const handleCloseDepartmentSettingsModal = () => {
+        setOpenSettingsModal(false);
+        departmentPositions.refetch();
+    }
 
     // console.log(departments)
     return (
@@ -86,10 +97,10 @@ const DepartmentList = () => {
                                     'aria-labelledby': 'basic-button',
                                 }}
                             >
-                                <MenuItem onClick={handleAddNew}>
+                                <MenuItem onClick={handleOpenDepartmentAddModal}>
                                     <ListItemText>Add New Department</ListItemText>
                                 </MenuItem>
-                                <MenuItem onClick={handleSettings}>
+                                <MenuItem onClick={handleOpenDepartmentSettingsModal}>
                                     <ListItemText>Department Positions Settings</ListItemText>
                                 </MenuItem>
                             </Menu>
@@ -269,10 +280,10 @@ const DepartmentList = () => {
             </Box>
 
             {/* Add New Department Modal */}
-            {openModal && <DepartmentAdd open={openModal} close={setOpenModal}></DepartmentAdd>}
+            {openAddModal && <DepartmentAdd open={openAddModal} close={handleCloseDepartmentAddModal}></DepartmentAdd>}
 
             {/* Department Positions Settings Modal */}
-            {openSettingsModal && <DepartmentPositionSettings open={openSettingsModal} close={(e) => setOpenSettingsModal(e)}></DepartmentPositionSettings>}
+            {openSettingsModal && <DepartmentPositionSettings open={openSettingsModal} close={handleCloseDepartmentSettingsModal}></DepartmentPositionSettings>}
         </Layout>
     );
 };
