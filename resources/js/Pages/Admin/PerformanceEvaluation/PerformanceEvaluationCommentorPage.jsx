@@ -164,6 +164,9 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
         timerProgressBar: true,
         showConfirmButton: false,
         position: 'center'
+      }).then(() => {
+        // Redirect after toast closes
+        navigate('/admin/performance-evaluation');
       });
     } catch (e) {
       Swal.fire({
