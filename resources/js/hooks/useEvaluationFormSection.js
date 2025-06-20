@@ -16,6 +16,7 @@ export function useEvaluationFormSection(section) {
     const [order, setOrder] = useState();
     const [draggedSubcategoryId, setDraggedSubcategoryId] = useState(null);
     const [subcategories, setSubcategories] = useState([]);
+    const [expandedSubcategoryId, setExpandedSubcategoryId] = useState();
 
     useEffect(() => {
         if(!section) return;
@@ -223,6 +224,7 @@ export function useEvaluationFormSection(section) {
         expanded, toggleExpand,
         order,
         subcategories, saveSubcategory, moveSubcategory, deleteSubcategory,
+        expandedSubcategoryId, setExpandedSubcategoryId,
         draggedSubcategoryId, setDraggedSubcategoryId,
     };
 }

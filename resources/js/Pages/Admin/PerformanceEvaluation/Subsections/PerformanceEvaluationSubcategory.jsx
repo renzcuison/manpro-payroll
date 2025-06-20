@@ -51,15 +51,17 @@ import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSec
 import { useEvaluationFormSubcategory } from '../../../../hooks/useEvaluationFormSubcategory';
 import { useRef, useState } from 'react';
 
-export default function PerformanceEvaluationFormSubcategory({ subcategory, draggedId }) {
+export default function PerformanceEvaluationFormSubcategory({
+    subcategory, draggedId, expandedSubcategoryId, setExpandedSubcategoryId
+}) {
     const {
-        expanded, subcategory, options, subcategoryTypeDisplay,
+        subcategory, subcategoryId, options, subcategoryTypeDisplay,
         toggleExpand
     } = useEvaluationFormSubcategory(subcategory);
 
     return <>
         <Accordion
-            expanded={ expanded }
+            expanded={ expandedSubcategoryId === subcategoryId }
             onChange={ toggleExpand }
             sx={{
                 my: 2,
@@ -94,7 +96,7 @@ export default function PerformanceEvaluationFormSubcategory({ subcategory, drag
                 </Box>
             </AccordionSummary>
             <AccordionDetails sx={{ px: 3, pb: 2 }}>
-                {expandedSubcategory === subcategory.id ? (
+                {(expandedSubcategoryId === subcategoryId) ? (
                     <Box sx={{ width: "100%" }}>
                         <Grid container spacing={3} sx={{ mb: 3 }}>
                             <Grid item xs={6} sx={{ width: '100%', maxWidth: '528px' }}>
