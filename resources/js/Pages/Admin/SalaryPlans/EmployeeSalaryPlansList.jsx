@@ -183,7 +183,12 @@ const SalaryPlans = () => {
                                             {salaryPlans.length > 0 ? (
                                                 salaryPlans.map((salaryPlan) => (
                                                     <TableRow key={salaryPlan.id} sx={{ p: 1, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}} onClick={() => handleOpenEditSalaryGrade(salaryPlan)}>
-                                                        <TableCell sx={{fontSize: 14}} align="center">Grade {salaryPlan.salary_grade}</TableCell>
+                                                        <TableCell sx={{fontSize: 14}} align="center">
+                                                        Grade {salaryPlan.salary_grade}
+                                                        {salaryPlan.salary_grade_version
+                                                            ? `-${salaryPlan.salary_grade_version}`
+                                                            : ''}
+                                                        </TableCell>
                                                         <TableCell sx={{ fontSize: 14 }} align="center">
                                                             ₱ {Number(salaryPlan.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </TableCell>
