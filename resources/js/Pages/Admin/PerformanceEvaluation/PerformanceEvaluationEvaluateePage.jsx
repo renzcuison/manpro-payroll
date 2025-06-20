@@ -121,8 +121,7 @@ const PerformanceEvaluationEvaluateePage = () => {
     }
   };
 
-  // PDF Export that matches Section 4 style for text answers AND includes signatures with smaller fonts
-  const handleDownloadPDFClick = async () => {
+ const handleDownloadPDFClick = async () => {
     const doc = new jsPDF("p", "pt", "a4");
     const margin = 40;
     const cardWidth = 520;
@@ -158,7 +157,7 @@ const PerformanceEvaluationEvaluateePage = () => {
 
     // --- SECTIONS ---
     form.sections.forEach((section, idx) => {
-      // Compact Gold Bar Header (matches Image 6)
+      // Compact Gold Bar Header
       const barHeight = 28;
       const barRadius = 5;
       doc.setFillColor(...gold);
@@ -171,7 +170,7 @@ const PerformanceEvaluationEvaluateePage = () => {
       y += barHeight; 
       y += 18;
 
-      // Section Content: start right below!
+      // Section Content
       doc.setFontSize(12);
       doc.setFont(undefined, "normal");
       doc.setTextColor(51, 51, 51);
@@ -207,7 +206,6 @@ const PerformanceEvaluationEvaluateePage = () => {
 
     y += weightedBarHeight;
     y += 18;
-
 
     // Table Header (aligned columns)
     doc.setFontSize(12);
@@ -251,40 +249,51 @@ const PerformanceEvaluationEvaluateePage = () => {
     y += 28;
 
     // --- Comments Section ---
-    doc.setFontSize(13);
+    const commentsBarHeight = 28;
+    doc.setFillColor(...gold);
+    doc.roundedRect(margin, y, cardWidth, weightedBarHeight, 5, 5, "F");
+    doc.setFontSize(15);
     doc.setFont(undefined, "bold");
-    doc.setTextColor(51, 51, 51);
-    doc.text("Comments:", margin, y);
-    y += 18;
+    doc.setTextColor(255, 255, 255);
+    doc.text("Comments", margin + 20, y + weightedBarHeight / 3 + 4, { baseline: "middle" });
+
+    y += commentsBarHeight;
+    y += 20;
 
     // Evaluator
     if (Array.isArray(responseMeta.evaluators) && responseMeta.evaluators.length > 0) {
       doc.setFontSize(12);
       doc.setFont(undefined, "bold");
       doc.setTextColor(51, 51, 51);
-      doc.text("Evaluator:", margin, y);
-      y += 15;
+      doc.text("Evaluator:", margin + 20, y);
+      y += 20; // LESS space here
       responseMeta.evaluators.forEach((evaluator) => {
         if (y > 700) { doc.addPage(); y = margin; }
         doc.setFont(undefined, "bold");
         doc.setFontSize(11);
         doc.setTextColor(34,34,34);
-        doc.text(getFullName(evaluator), margin+8, y);
-        y += 14;
+        doc.text(getFullName(evaluator), margin + 20, y);
+        y += 18;
         doc.setFont(undefined, "normal");
         doc.setFontSize(11);
         doc.setTextColor(80,80,80);
         let comment = evaluator.comment || "";
         if (comment) {
           const commentLines = doc.splitTextToSize(comment, 490);
-          doc.text(commentLines, margin+16, y);
+          doc.text(commentLines, margin + 20, y);
           y += commentLines.length * 13 + 3;
         } else {
           doc.text("(No comment provided)", margin+16, y);
-          y += 14;
+          y += 20;
         }
-        y += 12;
+        y += 6;
       });
+
+      // Divider and extra space before next section
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(1.2);
+      doc.line(margin, y, margin + cardWidth, y);
+      y += 30; // <<-- Add more space here (try 30 or more)
     }
 
     // Commentors
@@ -294,37 +303,46 @@ const PerformanceEvaluationEvaluateePage = () => {
         doc.setFont(undefined, "bold");
         doc.setFontSize(12);
         doc.setTextColor(51, 51, 51);
-        doc.text(`Commentor ${idx + 1}:`, margin, y);
-        y += 15;
+        doc.text(`Commentor ${idx + 1}:`, margin + 20, y);
+        y += 20;
         doc.setFont(undefined, "bold");
         doc.setFontSize(11);
         doc.setTextColor(34,34,34);
-        doc.text(getFullName(commentor), margin+8, y);
-        y += 14;
+        doc.text(getFullName(commentor), margin + 20, y);
+        y += 18;
         doc.setFont(undefined, "normal");
         doc.setFontSize(11);
         doc.setTextColor(80,80,80);
         let comment = commentor.comment || "";
         if (comment) {
           const commentLines = doc.splitTextToSize(comment, 490);
-          doc.text(commentLines, margin+16, y);
+          doc.text(commentLines, margin + 20, y);
           y += commentLines.length * 13 + 3;
         } else {
           doc.text("(No comment provided)", margin+16, y);
-          y += 14;
+          y += 20;
         }
-        y += 12;
+        y += 6; 
+        // Draw a horizontal divider after each commentor's comment
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(1);
+        doc.line(margin, y, margin + cardWidth, y);
+        y += 20; 
       });
     }
-
-    y += 6;
+    y += 18;
 
     // --- Signatures grid (3 per row, white rounded cards) ---
-    doc.setFontSize(12);
-    doc.setTextColor(51, 51, 51);
+    const signatureBarHeight = 28;
+    doc.setFillColor(...gold);
+    doc.roundedRect(margin, y, cardWidth, weightedBarHeight, 5, 5, "F");
+    doc.setFontSize(15);
     doc.setFont(undefined, "bold");
-    doc.text("Signatures:", margin, y);
-    y += 16;
+    doc.setTextColor(255, 255, 255);
+    doc.text("Signatures", margin + 20, y + weightedBarHeight / 3 + 4, { baseline: "middle" });
+
+    y += signatureBarHeight;
+    y += 18;
 
     const signatureBlocks = [];
     if (creatorSignatureFilePath) {
@@ -405,7 +423,7 @@ const PerformanceEvaluationEvaluateePage = () => {
         doc.setFontSize(9);
         doc.setFont(undefined, "normal");
         doc.setTextColor(120,120,120);
-        doc.text(sig.date, x + colWidth/2, y0 + 62, { align: "center" });
+        doc.text(sig.date, x + colWidth/2, y0 + 66, { align: "center" });
       }
 
       col++;
@@ -414,7 +432,6 @@ const PerformanceEvaluationEvaluateePage = () => {
 
     doc.save(`evaluation_${form.name.replace(/\s+/g, '_')}.pdf`);
   };
-
 
   const form = evaluationResponse.form;
   const responseMeta = evaluationResponse;
