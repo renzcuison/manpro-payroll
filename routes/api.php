@@ -75,39 +75,21 @@ Route::post('/login', [UserAuthController::class, 'login']);
 Route::post('/signup', [UserAuthController::class, 'signup']);
 Route::post('/checkUser', [UserAuthController::class, 'checkUser']);
 
-Route::post('/saveRegistration', [
-    EmployeesController::class,
-    'saveRegistration',
-]);
+Route::post('/saveRegistration', [EmployeesController::class, 'saveRegistration']);
 
 Route::get('/sendVerifyCode/{id}', [MailController::class, 'verifyCode']);
-Route::post('/sendForgotPasswordMail/{id}', [
-    MailController::class,
-    'forgotPasswordMail',
-]);
-Route::post('/reset_password', [
-    MemberSettingsController::class,
-    'resetPassword',
-]);
+Route::post('/sendForgotPasswordMail/{id}', [MailController::class, 'forgotPasswordMail']);
+Route::post('/reset_password', [MemberSettingsController::class, 'resetPassword']);
 
-Route::post('/saveEvaluation', [
-    EvaluationFormController::class,
-    'saveEvaluation',
-]);
+Route::post('/saveEvaluation', [EvaluationFormController::class, 'saveEvaluation']);
 
 Route::get('/employeeList', [EmployeesController::class, 'employeeList']);
 
-Route::get('/getFormLinkStatus', [
-    EmployeesController::class,
-    'getFormLinkStatus',
-]);
+Route::get('/getFormLinkStatus', [EmployeesController::class, 'getFormLinkStatus']);
 
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::post('/advanceEvaluationWorkflow/{id}', [
-        EvaluationResponseController::class,
-        'advanceWorkflow',
-    ]);
+    Route::post('/advanceEvaluationWorkflow/{id}', [EvaluationResponseController::class, 'advanceWorkflow']);
 
     // ---------------------------------------------------------------- Client routes ----------------------------------------------------------------
     Route::get('/auth', [UserAuthController::class, 'index']);
@@ -124,10 +106,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('departments')->group(function () {
-        Route::get('/getDepartments', [
-            DepartmentController::class,
-            'getDepartments',
-        ]);
+        Route::get('/getDepartments', [DepartmentController::class, 'getDepartments' ]);
     });
 
     Route::prefix('admin/documents')->group(function () {
@@ -326,7 +305,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
        
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
-        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeeController::class, 'getEmployeesByBranch']);
+        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
         Route::post('/editMyProfile', [
             EmployeesController::class,
             'editMyProfile',
