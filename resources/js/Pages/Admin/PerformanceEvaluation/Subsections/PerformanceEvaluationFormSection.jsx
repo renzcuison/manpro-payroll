@@ -1,4 +1,5 @@
 import AddIcon from '@mui/icons-material/Add';
+import { AddRounded } from '@mui/icons-material';
 import {
     Box,
     Typography,
@@ -13,10 +14,12 @@ import {
     FormControl,
     InputLabel,
     Grid,
-    IconButton
+    IconButton,
+    ButtonBase
 } from '@mui/material';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CloseIcon from '@mui/icons-material/Close';
+import { DragHandleRounded } from '@mui/icons-material';
 import {
     DndContext, 
     closestCenter,
@@ -654,7 +657,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                             <Sortable key={option.id} id={'option_'+option.id} order={option.order}>
                                                                                 <Grid container spacing={2} key={option.order} sx={{ mb: 2 }} alignItems="center">
                                                                                     <Grid className='option-dragger' item xs={1} sx={{ display: 'flex', alignItems: 'center', cursor: 'move' }}>
-                                                                                        <Typography variant="body1" sx={{ color: 'gray' }}>═</Typography>
+                                                                                        <Typography variant="body1"><DragHandleRounded/></Typography>
                                                                                     </Grid>
                                                                                     <Grid item xs={7}>
                                                                                         <TextField
@@ -682,7 +685,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                                     <Grid item xs={4}>
                                                                                         <TextField
                                                                                             variant="outlined"
-                                                                                            multiline
                                                                                             label="Description"
                                                                                             placeholder="Why this score?"
                                                                                             value={option.description || ""}
@@ -692,6 +694,19 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                                                 setSubcategoryOptions(newOptions);
                                                                                             }}
                                                                                             fullWidth
+                                                                                            inputProps={{
+                                                                                            maxLength: 250,
+                                                                                            style: {
+                                                                                                whiteSpace: 'nowrap',
+                                                                                                overflow: 'hidden',
+                                                                                                textOverflow: 'ellipsis'
+                                                                                            }
+                                                                                            }}
+                                                                                            sx={{
+                                                                                            // Ensures description field takes the rest of the row and does not grow vertically
+                                                                                            minWidth: 400,
+                                                                                            maxWidth: "100%",
+                                                                                            }}
                                                                                         />
                                                                                     </Grid>
                                                                                     <Grid item xs={2}>
@@ -705,7 +720,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                         ))}
                                                                     </Box>
                                                                 </SortableContext></DndContext>
-                                                                <Typography
+                                                                <ButtonBase
                                                                     onClick={handleAddOption}
                                                                     sx={{
                                                                         color: '#000000',
@@ -714,76 +729,89 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                         marginTop: '8px',
                                                                     }}
                                                                 >
-                                                                    + Add Option
-                                                                </Typography>
+                                                                    <AddRounded/>Add Option
+                                                                </ButtonBase>
                                                             </Box>
                                                         )}
-{subcategoryDraft.subcategory_type === 'linear_scale' && (
-  <Box sx={{ mb: 2 }}>
-    {Array.isArray(subcategoryOptions) && subcategoryOptions.map((option, idx) => (
-      <Grid container spacing={2} key={idx} alignItems="center" sx={{ mb: 1 }}>
-        <Grid item xs={1}>
-          <Typography variant="body1">{idx + 1}.</Typography>
-        </Grid>
-        <Grid item xs={4}>
-          <TextField
-            variant="outlined"
-            label="Label"
-            value={option.label}
-            onChange={e => {
-              const newOptions = [...subcategoryOptions];
-              newOptions[idx].label = e.target.value;
-              setSubcategoryOptions(newOptions);
-            }}
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField
-            variant="outlined"
-            label="Description (optional)"
-            value={option.description}
-            onChange={e => {
-              const newOptions = [...subcategoryOptions];
-              newOptions[idx].description = e.target.value;
-              setSubcategoryOptions(newOptions);
-            }}
-            fullWidth
-          />
-        </Grid>
-        <Grid item xs={1}>
-          {subcategoryOptions.length > 2 && (
-            <IconButton
-              onClick={() => {
-                const newOptions = subcategoryOptions.filter((_, i) => i !== idx);
-                setSubcategoryOptions(newOptions);
-              }}
-              sx={{ color: 'gray' }}
-            >
-              <CloseIcon />
-            </IconButton>
-          )}
-        </Grid>
-      </Grid>
-    ))}
-    {subcategoryOptions.length < 10 && (
-      <Typography
-        onClick={() => setSubcategoryOptions([
-          ...subcategoryOptions,
-          { label: '', description: '' }
-        ])}
-        sx={{
-          color: '#000000',
-          fontSize: '14px',
-          cursor: 'pointer',
-          marginTop: '8px',
-        }}
-      >
-        {subcategoryOptions.length + 1}. Add Option
-      </Typography>
-    )}
-  </Box>
-)}
+                                                        {subcategoryDraft.subcategory_type === 'linear_scale' && (
+                                                        <Box sx={{ mb: 2 }}>
+                                                            {Array.isArray(subcategoryOptions) && subcategoryOptions.map((option, idx) => (
+                                                            <Grid container spacing={2} key={idx} alignItems="center" sx={{ mb: 1 }}>
+                                                                <Grid item xs={1}>
+                                                                <Typography variant="body1">{idx + 1}.</Typography>
+                                                                </Grid>
+                                                                <Grid item xs={4}>
+                                                                <TextField
+                                                                    variant="outlined"
+                                                                    label="Label"
+                                                                    value={option.label}
+                                                                    onChange={e => {
+                                                                    const newOptions = [...subcategoryOptions];
+                                                                    newOptions[idx].label = e.target.value;
+                                                                    setSubcategoryOptions(newOptions);
+                                                                    }}
+                                                                    fullWidth
+                                                                />
+                                                                </Grid>
+                                                                <Grid item xs={6}>
+                                                                <TextField
+                                                                    variant="outlined"
+                                                                    label="Description (optional)"
+                                                                    value={option.description}
+                                                                    onChange={e => {
+                                                                    const newOptions = [...subcategoryOptions];
+                                                                    newOptions[idx].description = e.target.value;
+                                                                    setSubcategoryOptions(newOptions);
+                                                                    }}
+                                                                    fullWidth
+                                                                    inputProps={{
+                                                                    maxLength: 250,
+                                                                    style: {
+                                                                        whiteSpace: 'nowrap',
+                                                                        overflow: 'hidden',
+                                                                        textOverflow: 'ellipsis'
+                                                                    }
+                                                                    }}
+                                                                    sx={{
+                                                                    // Ensures description field takes the rest of the row and does not grow vertically
+                                                                    minWidth: 562,
+                                                                    maxWidth: "100%",
+                                                                    }}
+                                                                />
+                                                                </Grid>
+                                                                <Grid item xs={1}>
+                                                                {subcategoryOptions.length > 2 && (
+                                                                    <IconButton
+                                                                    onClick={() => {
+                                                                        const newOptions = subcategoryOptions.filter((_, i) => i !== idx);
+                                                                        setSubcategoryOptions(newOptions);
+                                                                    }}
+                                                                    sx={{ color: 'gray' }}
+                                                                    >
+                                                                    <CloseIcon />
+                                                                    </IconButton>
+                                                                )}
+                                                                </Grid>
+                                                            </Grid>
+                                                            ))}
+                                                            {subcategoryOptions.length < 10 && (
+                                                            <Typography
+                                                                onClick={() => setSubcategoryOptions([
+                                                                ...subcategoryOptions,
+                                                                { label: '', description: '' }
+                                                                ])}
+                                                                sx={{
+                                                                color: '#000000',
+                                                                fontSize: '14px',
+                                                                cursor: 'pointer',
+                                                                marginTop: '8px',
+                                                                }}
+                                                            >
+                                                                {subcategoryOptions.length + 1}. Add Option
+                                                            </Typography>
+                                                            )}
+                                                        </Box>
+                                                        )}
                                                         <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                                                             <Box>
                                                                 <Button
