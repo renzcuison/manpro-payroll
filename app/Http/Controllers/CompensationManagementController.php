@@ -834,13 +834,9 @@ class CompensationManagementController extends Controller
     public function getEmployeesAllowance(Request $request)
     {
         if (!$this->checkUserAdmin()) {
-            return response()->json([
-                'status' => 200,
-                'employee_count' => 0,
-                'employees' => [],
-                'total' => 0,
-            ]);
+            return response()->json([ 'status' => 200, 'employee_count' => 0, 'employees' => [], 'total' => 0 ]);
         }
+
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
 
@@ -880,33 +876,14 @@ class CompensationManagementController extends Controller
         //for employee counting purposes <pagination>
         $countQuery = (clone $query);
         $total_count = $countQuery->count();
-        $employees = $query
-        ->offset(($page - 1) * $perPage)
-        ->limit($perPage)
-        ->get();
+        $employees = $query->offset(($page - 1) * $perPage)->limit($perPage)->get();
 
         $result = collect();
         $total_amount = 0;
 
         //allowance calculation purposes
         foreach($employees as $employee){
-            $allowances = EmployeeAllowancesModel::with('allowance')
-            ->where('user_id', $employee->id)
-            ->whereNull('deleted_at')
-            ->when($filterAllowanceId, fn($q) => $q->where('allowance_id', $filterAllowanceId))
-            ->get();
-
-            $baseSalary = floatval($employee->salary);
-            $amount = 0;
-            foreach($allowances as $allowance){  
-                $type = $allowance->allowance->type;
-                if($type == 'Amount'){
-                    $amount += $allowance->allowance->amount;
-                }
-                else if($type == 'Percentage'){
-                    $amount += $baseSalary * ($allowance->allowance->percentage / 100);
-                }
-            }
+            $amount = EmployeeAllowancesModel::where('user_id', $employee->id)->sum('amount');
 
             $result->push([
                 'user_name' => $employee->user_name,
