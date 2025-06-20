@@ -503,7 +503,15 @@ class EvaluationFormController extends Controller
                 'evaluationFormSection' => $evaluationFormSection
             ]);
 
+            $newOrder = (
+                EvaluationFormSection
+                    ::where('form_id', $evaluationFormSection->form_id)
+                    ->min('order')
+                ?? 0
+            ) - 1;
+
             $now = date('Y-m-d H:i');
+            $evaluationFormSection->order = $newOrder;
             $evaluationFormSection->deleted_at = $now;
             $evaluationFormSection->save();
 
@@ -752,7 +760,6 @@ class EvaluationFormController extends Controller
             $evaluationFormSectionsToMove = EvaluationFormSection
                 ::select( 'id', 'form_id', 'name', 'order', 'created_at', 'updated_at' )
                 ->where('form_id', $evaluationFormSection->form_id)
-                ->whereNull('deleted_at')
                 ->where('order', $moveUp ? '>' : '<', $oldOrder)
                 ->where('order', $moveUp ? '<=' : '>=', $newOrder)
                 ->orderBy('order', $moveUp ? 'asc' : 'desc')
@@ -899,7 +906,15 @@ class EvaluationFormController extends Controller
                 'evaluationFormSubcategory' => $evaluationFormSubcategory
             ]);
 
+            $newOrder = (
+                EvaluationFormSubcategory
+                    ::where('section_id', $evaluationFormSubcategory->section_id)
+                    ->min('order')
+                ?? 0
+            ) - 1;
+
             $now = date('Y-m-d H:i');
+            $evaluationFormSubcategory->order = $newOrder;
             $evaluationFormSubcategory->deleted_at = $now;
             $evaluationFormSubcategory->save();
 
@@ -1160,7 +1175,6 @@ class EvaluationFormController extends Controller
             $evaluationFormSubcategoriesToMove = EvaluationFormSubcategory
                 ::select('id', 'section_id', 'order')
                 ->where('section_id', $evaluationFormSubcategory->section_id)
-                ->whereNull('deleted_at')
                 ->where('order', $moveUp ? '>' : '<', $oldOrder)
                 ->where('order', $moveUp ? '<=' : '>=', $newOrder)
                 ->orderBy('order', $moveUp ? 'asc' : 'desc')
@@ -1450,7 +1464,15 @@ class EvaluationFormController extends Controller
                 'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption
             ]);
 
+            $newOrder = (
+                EvaluationFormSubcategoryOption
+                    ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
+                    ->min('order')
+                ?? 0
+            ) - 1;
+
             $now = date('Y-m-d H:i');
+            $evaluationFormSubcategoryOption->order = $newOrder;
             $evaluationFormSubcategoryOption->deleted_at = $now;
             $evaluationFormSubcategoryOption->save();
 

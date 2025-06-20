@@ -12,7 +12,6 @@ export function useEvaluationFormSection(section) {
     const [sectionName, setSectionName] = useState('');
     const [editableSectionName, setEditableSectionName] = useState(false);
     const [sectionCategory, setSectionCategory] = useState('');
-    const [editableCategory, setEditableCategory] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [order, setOrder] = useState();
     const [draggedSubcategoryId, setDraggedSubcategoryId] = useState(null);
@@ -68,10 +67,6 @@ export function useEvaluationFormSection(section) {
                 });
             })
         ;
-    }
-
-    function toggleEditableCategory() {
-        setEditableCategory(!editableCategory);
     }
 
     function toggleEditableSection() {
@@ -225,7 +220,6 @@ export function useEvaluationFormSection(section) {
         sectionName, setSectionName,
         editableSectionName, toggleEditableSection,
         sectionCategory, setSectionCategory,
-        editableCategory, toggleEditableCategory,
         expanded, toggleExpand,
         order,
         subcategories, saveSubcategory, moveSubcategory, deleteSubcategory,
