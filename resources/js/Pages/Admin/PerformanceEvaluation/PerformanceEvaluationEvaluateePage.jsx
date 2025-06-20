@@ -329,10 +329,6 @@ const PerformanceEvaluationEvaluateePage = () => {
     const signatureBlocks = [];
     if (creatorSignatureFilePath) {
       let creatorName = form?.creator_user_name ? `${ form.creator_user_name } (Creator)` : "Creator";
-      if (form?.creator_updated_at) creatorDate = form.creator_updated_at.slice(0, 10);
-      else if (form?.creator_sign_date) creatorDate = form.creator_sign_date.slice(0, 10);
-      signatureBlocks.push({ url: creatorSignatureFilePath, name: creatorName, date: creatorDate });
-
       let creatorDate = responseMeta?.media[0]?.created_at.split('T')[0] ?? '';
       signatureBlocks.push({
         url: creatorSignatureFilePath,
