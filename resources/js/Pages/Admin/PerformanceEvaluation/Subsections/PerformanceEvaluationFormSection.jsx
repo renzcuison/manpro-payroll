@@ -657,7 +657,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                             <Sortable key={option.id} id={'option_'+option.id} order={option.order}>
                                                                                 <Grid container spacing={2} key={option.order} sx={{ mb: 2 }} alignItems="center">
                                                                                     <Grid className='option-dragger' item xs={1} sx={{ display: 'flex', alignItems: 'center', cursor: 'move' }}>
-                                                                                        <Typography variant="body1"><DragHandleRounded/></Typography>
+                                                                                        <Typography variant="body1"><DragHandleRounded sx={{color: 'gray'}}/></Typography>
                                                                                     </Grid>
                                                                                     <Grid item xs={7}>
                                                                                         <TextField
@@ -704,7 +704,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                                             }}
                                                                                             sx={{
                                                                                             // Ensures description field takes the rest of the row and does not grow vertically
-                                                                                            minWidth: 400,
+                                                                                            minWidth: 390,
                                                                                             maxWidth: "100%",
                                                                                             }}
                                                                                         />
@@ -774,7 +774,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                     }}
                                                                     sx={{
                                                                     // Ensures description field takes the rest of the row and does not grow vertically
-                                                                    minWidth: 562,
+                                                                    minWidth: 500,
                                                                     maxWidth: "100%",
                                                                     }}
                                                                 />

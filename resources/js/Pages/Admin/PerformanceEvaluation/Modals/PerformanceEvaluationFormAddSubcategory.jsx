@@ -275,7 +275,7 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                                         }}
                                         sx={{
                                         // Ensures description field takes the rest of the row and does not grow vertically
-                                        minWidth: 560,
+                                        minWidth: 500,
                                         maxWidth: "100%",
                                         }}
                                     />
