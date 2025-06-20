@@ -6,7 +6,8 @@ import {
   Box,
   Button,
   TextField,
-  Typography
+  Typography,
+  IconButton,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import SaveIcon from '@mui/icons-material/Save';
@@ -14,23 +15,13 @@ import Swal from "sweetalert2";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useUser } from "../../../../hooks/useUser";
 
-/**
- * Generic modal for editing (or creating) an evaluation form.
- * @param {object} props
- * @param {boolean} props.open - Whether the dialog is open.
- * @param {function} props.onClose - Function to close the modal.
- * @param {string} [props.initialName] - Initial form name for editing.
- * @param {number} [props.formId] - Optional form ID for editing.
- * @param {function} [props.onSuccess] - Callback after successful save.
- * @param {string} [props.mode] - 'edit' or 'create'
- */
 const PerformanceEvaluationEditModal = ({
   open,
   onClose,
   initialName = '',
   formId = null,
   onSuccess,
-  mode = 'edit'
+  mode = 'edit',
 }) => {
   const { user } = useUser();
   const storedUser = localStorage.getItem("nasya_user");
@@ -38,11 +29,41 @@ const PerformanceEvaluationEditModal = ({
 
   const [formName, setFormName] = useState(initialName);
   const [formNameError, setFormNameError] = useState(false);
+  const [sections, setSections] = useState([]);
+
+  // Fetch sections
+  const fetchSections = async () => {
+    if (!formId) return;
+    try {
+      const response = await axiosInstance.get('/getEvaluationForm', {
+        params: { id: formId },
+        headers,
+      });
+      if (
+        response.data.status === 200 &&
+        response.data.evaluationForm &&
+        Array.isArray(response.data.evaluationForm.sections)
+      ) {
+        setSections(response.data.evaluationForm.sections);
+      } else {
+        setSections([]);
+      }
+    } catch (err) {
+      setSections([]);
+      console.error("Failed to fetch sections", err);
+    }
+  };
 
   useEffect(() => {
     setFormName(initialName || '');
     setFormNameError(false);
   }, [initialName, open]);
+
+  useEffect(() => {
+    if (open && formId) {
+      fetchSections();
+    }
+  }, [open, formId]);
 
   const handleCancel = () => {
     setFormName(initialName || '');
@@ -78,7 +99,6 @@ const PerformanceEvaluationEditModal = ({
     }).then(async (res) => {
       if (res.isConfirmed) {
         try {
-          // Prepare data
           let data, endpoint;
           if (mode === 'edit' && formId) {
             data = new FormData();
@@ -90,7 +110,7 @@ const PerformanceEvaluationEditModal = ({
             endpoint = '/saveEvaluationForm';
           }
           const response = await axiosInstance.post(endpoint, data, { headers });
-          if (response.data.status.toString().startsWith('2')) {
+          if (response.data.status && response.data.status.toString().startsWith('2')) {
             await Swal.fire({
               text: response.data.message || "Evaluation form saved successfully!",
               icon: "success",
@@ -102,6 +122,7 @@ const PerformanceEvaluationEditModal = ({
             });
             setFormName('');
             if (onSuccess) onSuccess(formName);
+            fetchSections(); // Refresh sections in case name changed
           } else {
             Swal.fire({
               text: response.data.message || "Something went wrong.",
@@ -123,6 +144,36 @@ const PerformanceEvaluationEditModal = ({
     });
   };
 
+  const handleDeleteSection = async (sectionId, sectionName) => {
+    const result = await Swal.fire({
+      title: "Delete Section?",
+      text: `Are you sure you want to delete "${sectionName}"? This action cannot be undone.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#aaa",
+      confirmButtonText: "Delete"
+    });
+    if (!result.isConfirmed) return;
+    try {
+      const response = await axiosInstance.post(
+        '/deleteEvaluationFormSection',
+        { id: sectionId },
+        { headers }
+      );
+      if (response.data.status && response.data.status.toString().startsWith('2')) {
+        Swal.fire("Deleted!", "Section deleted!", "success");
+        fetchSections(); // Refresh after delete!
+        if (onSuccess) onSuccess(formName);
+      } else {
+        Swal.fire("Error", response.data.message || "Failed to delete section", "error");
+      }
+    } catch (e) {
+      Swal.fire("Error", "Failed to delete section", "error");
+      console.error(e);
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -141,7 +192,7 @@ const PerformanceEvaluationEditModal = ({
       sx={{
         '& .MuiPaper-root': {
           width: '1000px',
-          height: '340px',
+          height: 'auto',
           px: 3,
         },
       }}
@@ -171,6 +222,37 @@ const PerformanceEvaluationEditModal = ({
             sx={{ mb: 4 }}
             autoFocus
           />
+          {sections && !!sections.length && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+                Sections
+              </Typography>
+              {sections.map(section => (
+                <Box
+                  key={section.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    mb: 1,
+                    pl: 1,
+                    pr: 1,
+                    background: '#fff',
+                    borderRadius: 1,
+                    boxShadow: '0px 1px 4px #eee'
+                  }}
+                >
+                  <Typography sx={{ flex: 1 }}>{section.name}</Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleDeleteSection(section.id, section.name)}
+                    sx={{ color: '#D32F2F' }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
+              ))}
+            </Box>
+          )}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
             <Button
               variant="contained"
