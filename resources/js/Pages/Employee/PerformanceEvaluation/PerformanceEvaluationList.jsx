@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
-    TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
-    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel
+    TablePagination, Box, Typography, CircularProgress,
+    TextField, InputAdornment, IconButton, Select, FormControl, InputLabel, MenuItem
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { getFullName } from '../../../utils/user-utils';
-import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -45,12 +44,11 @@ const PerformanceEvaluationList = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [evaluationResponses, setEvaluationResponses] = useState([]);
-    const [performanceEvaluations, setPerformanceEvaluation] = useState([]);
+    const [totalCount, setTotalCount] = useState(0);
 
     // Pagination state
     const [page, setPage] = useState(0); // 0-based for TablePagination
     const [rowsPerPage] = useState(10);
-    const [totalCount, setTotalCount] = useState(0);
 
     // Search state
     const [searchValue, setSearchValue] = useState('');
@@ -59,22 +57,6 @@ const PerformanceEvaluationList = () => {
     // Status filter state
     const [statusFilter, setStatusFilter] = useState('');
 
-    // Menu Items
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
-    const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-    const handleMenuClose = () => setAnchorEl(null);
-
-    // Modal state for New Form
-    const [modalOpen, setModalOpen] = useState(false);
-
-    useEffect(() => {
-        axiosInstance.get('/getEvaluationForms', { headers })
-            .then((response) => setPerformanceEvaluation(response.data.evaluationForms || []))
-            .catch(() => setPerformanceEvaluation([]));
-    }, []);
-
-    // Fetch evaluation responses for the current user (as evaluatee or evaluator or commentor)
     useEffect(() => {
         setIsLoading(true);
         axiosInstance.get('/getEvaluationResponses', {
@@ -165,143 +147,87 @@ const PerformanceEvaluationList = () => {
 
     return (
         <Layout title={"PerformanceEvaluation"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
+            <Box sx={{ width: '100%' }}>
                 <Box sx={{ mx: 'auto', width: '100%', maxWidth: '1200px' }}>
                     {/* Title */}
                     <Box sx={{ mt: 5 }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Performance Evaluation </Typography>
                     </Box>
-                    {/* White Box Containing the Buttons and Table */}
+                    {/* White box and controls always visible */}
                     <Box sx={{ mt: 2, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {/* Buttons and Search */}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                            {/* Left: Create Evaluation */}
-                            <Button
-                                variant="contained"
-                                color="success"
-                                onClick={() => navigate('/employee/performance-evaluation/create-evaluation')}
+                        {/* Search and Status Filter */}
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
+                            {/* Search Field */}
+                            <Box
+                                component="form"
+                                onSubmit={handleSearchSubmit}
+                                sx={{ width: 220 }}
                             >
-                                <i className="fa"></i> Create Evaluation
-                            </Button>
-                            {/* Right group: Search, Status Filter, Forms */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                {/* Search Field */}
-                                <Box
-                                    component="form"
-                                    onSubmit={handleSearchSubmit}
-                                    sx={{ width: 220 }}
-                                >
-                                    <TextField
-                                        placeholder="Search..."
-                                        value={searchInput}
-                                        onChange={handleSearchChange}
-                                        size="small"
-                                        fullWidth
-                                        InputProps={{
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <SearchIcon />
+                                <TextField
+                                    placeholder="Search..."
+                                    value={searchInput}
+                                    onChange={handleSearchChange}
+                                    size="small"
+                                    fullWidth
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <SearchIcon />
+                                            </InputAdornment>
+                                        ),
+                                        endAdornment: (
+                                            searchInput && (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        aria-label="clear search"
+                                                        onClick={handleClearSearch}
+                                                        edge="end"
+                                                        size="small"
+                                                    >
+                                                        <ClearIcon />
+                                                    </IconButton>
                                                 </InputAdornment>
-                                            ),
-                                            endAdornment: (
-                                                searchInput && (
-                                                    <InputAdornment position="end">
-                                                        <IconButton
-                                                            aria-label="clear search"
-                                                            onClick={handleClearSearch}
-                                                            edge="end"
-                                                            size="small"
-                                                        >
-                                                            <ClearIcon />
-                                                        </IconButton>
-                                                    </InputAdornment>
-                                                )
                                             )
-                                        }}
-                                    />
-                                </Box>
-                                {/* Status Filter */}
-                                <FormControl size="small" sx={{ minWidth: 110 }}>
-                                    <InputLabel>Status</InputLabel>
-                                    <Select
-                                        value={statusFilter}
-                                        label="Status"
-                                        onChange={handleStatusChange}
-                                    >
-                                        {STATUS_OPTIONS.map(opt => (
-                                            <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                                {/* Forms Dropdown Button */}
-                                <Button
-                                    id="performance-evaluation-menu"
-                                    variant="contained"
-                                    color="success"
-                                    aria-controls={open ? 'perf-eval-menu' : undefined}
-                                    aria-haspopup="true"
-                                    aria-expanded={open ? 'true' : undefined}
-                                    onClick={handleMenuOpen}
-                                >
-                                    Forms <i className="fa fa-caret-down ml-2"></i>
-                                </Button>
-                                <Menu
-                                    id="perf-eval-menu"
-                                    anchorEl={anchorEl}
-                                    open={open}
-                                    onClose={handleMenuClose}
-                                    MenuListProps={{
-                                        'aria-labelledby': 'performance-evaluation-menu',
+                                        )
                                     }}
-                                >
-                                    {performanceEvaluations.map(({ name }) => (
-                                        <MenuItem key={name} onClick={() => {
-                                            handleMenuClose();
-                                            navigate(`/employee/performance-evaluation/form/${name}`);
-                                        }}>
-                                            {name}
-                                        </MenuItem>
-                                    ))}
-                                    <Divider sx={{ my: 1 }} />
-                                    <MenuItem
-                                        onClick={() => { setModalOpen(true); handleMenuClose(); }}
-                                        sx={{ display: 'flex', alignItems: 'center' }}
-                                    >
-                                        <Typography variant="body1" sx={{ mr: 1, fontWeight: 'bold' }}>+</Typography> New Form
-                                    </MenuItem>
-                                </Menu>
+                                />
                             </Box>
+                            {/* Status Filter */}
+                            <FormControl size="small" sx={{ minWidth: 110, ml: 2 }}>
+                                <InputLabel>Status</InputLabel>
+                                <Select
+                                    value={statusFilter}
+                                    label="Status"
+                                    onChange={handleStatusChange}
+                                >
+                                    {STATUS_OPTIONS.map(opt => (
+                                        <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         </Box>
-                        {/* Modal for New Form */}
-                        <PerformanceEvaluationAdd
-                            open={modalOpen}
-                            onClose={() => setModalOpen(false)}
-                            onOpen={() => setModalOpen(true)}
-                            onSuccess={formName => navigate(`form/${formName}`)}
-                        />
-
                         {isLoading ? (
                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
                                 <CircularProgress />
                             </Box>
                         ) : (
                             <>
-                                <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
+                                <TableContainer sx={{ minHeight: 400 }}>
                                     <Table aria-label="simple table" sx={{
                                         '& .MuiTableCell-root': {
                                             borderBottom: 'none',
                                         },
                                     }}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell align="center">DATE</TableCell>
-                                            <TableCell align="center">NAME</TableCell>
-                                            <TableCell align="center">DEPARTMENT</TableCell>
-                                            <TableCell align="center">BRANCH</TableCell>
-                                            <TableCell align="center">ROLE</TableCell>
-                                            <TableCell align="center">STATUS</TableCell>
-                                        </TableRow>
-                                    </TableHead>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell align="center">DATE</TableCell>
+                                                <TableCell align="center">NAME</TableCell>
+                                                <TableCell align="center">DEPARTMENT</TableCell>
+                                                <TableCell align="center">BRANCH</TableCell>
+                                                <TableCell align="center">ROLE</TableCell>
+                                                <TableCell align="center">STATUS</TableCell>
+                                            </TableRow>
+                                        </TableHead>
                                         <TableBody>
                                             {evaluationResponses.length === 0 ? (
                                                 <TableRow>
@@ -311,29 +237,28 @@ const PerformanceEvaluationList = () => {
                                                 </TableRow>
                                             ) : (
                                                 evaluationResponses.map((row, idx) => (
-                                                <TableRow
-                                                    key={row.id}
-                                                    hover
-                                                    style={{
-                                                        cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
-                                                        backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
-                                                        opacity: isRowDisabled(row) ? 0.5 : 1,
-                                                    }}
-                                                    onClick={() => handleRowClick(row)}
-                                                >
-                                                    <TableCell align="center">{row.date}</TableCell>
-                                                    <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
-                                                    <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
-                                                    <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
-                                                    <TableCell align="center">{row.role}</TableCell>
-                                                    <TableCell align="center">{row.status}</TableCell>
-                                                </TableRow>
+                                                    <TableRow
+                                                        key={row.id}
+                                                        hover
+                                                        style={{
+                                                            cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
+                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
+                                                            opacity: isRowDisabled(row) ? 0.5 : 1,
+                                                        }}
+                                                        onClick={() => handleRowClick(row)}
+                                                    >
+                                                        <TableCell align="center">{row.date}</TableCell>
+                                                        <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
+                                                        <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
+                                                        <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
+                                                        <TableCell align="center">{row.role}</TableCell>
+                                                        <TableCell align="center">{row.status}</TableCell>
+                                                    </TableRow>
                                                 ))
                                             )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
-
                                 {/* Pagination controls */}
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                                     <TablePagination
