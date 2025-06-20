@@ -1,4 +1,5 @@
 import AddIcon from '@mui/icons-material/Add';
+import { AddRounded } from '@mui/icons-material';
 import {
     Box,
     Typography,
@@ -13,10 +14,12 @@ import {
     FormControl,
     InputLabel,
     Grid,
-    IconButton
+    IconButton,
+    ButtonBase
 } from '@mui/material';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CloseIcon from '@mui/icons-material/Close';
+import { DragHandleRounded } from '@mui/icons-material';
 import {
     DndContext, 
     closestCenter,
@@ -42,7 +45,7 @@ import { SubcategoryDropdownMouseSensor } from '../Sensors/SubcategoryDropdownMo
 import { SubcategoryDropdownTouchSensor } from '../Sensors/SubcategoryDropdownTouchSensor';
 import Swal from 'sweetalert2';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
-import { useClickAway } from '../Test/useClickAway';
+import { useClickAway } from '../../../../hooks/useClickAway';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
 
@@ -654,7 +657,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                             <Sortable key={option.id} id={'option_'+option.id} order={option.order}>
                                                                                 <Grid container spacing={2} key={option.order} sx={{ mb: 2 }} alignItems="center">
                                                                                     <Grid className='option-dragger' item xs={1} sx={{ display: 'flex', alignItems: 'center', cursor: 'move' }}>
-                                                                                        <Typography variant="body1" sx={{ color: 'gray' }}>═</Typography>
+                                                                                        <Typography variant="body1"><DragHandleRounded/></Typography>
                                                                                     </Grid>
                                                                                     <Grid item xs={7}>
                                                                                         <TextField
@@ -717,7 +720,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                         ))}
                                                                     </Box>
                                                                 </SortableContext></DndContext>
-                                                                <Typography
+                                                                <ButtonBase
                                                                     onClick={handleAddOption}
                                                                     sx={{
                                                                         color: '#000000',
@@ -726,8 +729,8 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                         marginTop: '8px',
                                                                     }}
                                                                 >
-                                                                    + Add Option
-                                                                </Typography>
+                                                                    <AddRounded/>Add Option
+                                                                </ButtonBase>
                                                             </Box>
                                                         )}
                                                         {subcategoryDraft.subcategory_type === 'linear_scale' && (

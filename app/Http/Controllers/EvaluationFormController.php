@@ -1661,7 +1661,6 @@ class EvaluationFormController extends Controller
             $evaluationFormSubcategoriesToMove = EvaluationFormSubcategoryOption
                 ::select('id', 'subcategory_id', 'order')
                 ->where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
-                ->whereNull('deleted_at')
                 ->where('order', $moveUp ? '>' : '<', $oldOrder)
                 ->where('order', $moveUp ? '<=' : '>=', $newOrder)
                 ->orderBy('order', $moveUp ? 'asc' : 'desc')
@@ -1761,8 +1760,6 @@ class EvaluationFormController extends Controller
             ) + 1;
 
             $newEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::create([
-
-                
                 'subcategory_id' => $request->subcategory_id,
                 'label' => $request->label,
                 'score' => (is_numeric($request->score) ? (double) $request->score : 1),
