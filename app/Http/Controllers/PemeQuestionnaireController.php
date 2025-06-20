@@ -127,6 +127,7 @@ class PemeQuestionnaireController extends Controller
             "input_types.*" => "in:attachment,pass_fail,pos_neg,remarks,text",
             "file_size_limit" => "nullable|numeric|min:0.1|max:100",
             "isRequired" => "sometimes|boolean",
+            // "max_files" => "nullable|integer|min:1|max:10",
         ]);
 
         if (
@@ -205,7 +206,7 @@ class PemeQuestionnaireController extends Controller
                                 "file_size_limit" => $type->file_size_limit ?? null,
                             ];
                         }),
-                        "isRequired" => $question->isRequired, 
+                        "isRequired" => $question->isRequired,
                     ],
                 ],
             ],

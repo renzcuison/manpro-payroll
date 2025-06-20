@@ -193,4 +193,58 @@ class BenefitsController extends Controller
 
         return response()->json(['status' => 200, 'benefits' => null]);
     }
+
+
+
+    
+public function updateEmployeeBenefit(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'id' => 'required|integer|exists:employee_benefits,id',
+        'username' => 'required|string|max:255',
+        'benefit_id' => 'required|integer|exists:benefits,id',
+        'number' => 'required|string|max:255'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Validation failed',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    try {
+       
+        $employeeBenefit = EmployeeBenefit::where('id', $request->id)
+            ->where('username', $request->username)
+            ->firstOrFail();
+
+        $employeeBenefit->update([
+            'benefit_id' => $request->benefit_id,
+            'number' => $request->number
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Employee benefit updated successfully',
+            'data' => $employeeBenefit
+        ]);
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Employee benefit not found'
+        ], 404);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Failed to update employee benefit',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
 }

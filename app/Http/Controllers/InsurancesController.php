@@ -19,7 +19,6 @@ class InsurancesController extends Controller
     public function checkUserAdmin()
     {
         // log::info("PayrollController::checkUserAdmin");
-
         if (Auth::check()) {
             $user = Auth::user();
 
@@ -102,8 +101,8 @@ class InsurancesController extends Controller
         $user = Auth::user();
 
         $plans = GroupLifeCompanyPlan::whereHas('company', function ($query) use ($user) {
-                $query->where('client_id', $user->client_id);
-            })
+            $query->where('client_id', $user->client_id);
+        })
             ->with('company:id,name')
             ->withCount('assignedEmployees')
             ->orderBy('plan_name')
@@ -123,11 +122,11 @@ class InsurancesController extends Controller
                 ];
             }
 
-            return response()->json([
-                'status' => 200,
-                'plans' => $formattedPlans,
-            ]);
-        }
+        return response()->json([
+            'status' => 200,
+            'plans' => $formattedPlans,
+        ]);
+    }
 
     public function saveGroupLifePlans(Request $request)
     {
@@ -144,7 +143,7 @@ class InsurancesController extends Controller
             'type' => 'required|string|max:50',
             'employer_share' => 'required|numeric',
             'employee_share' => 'required|numeric',
-        ]);
+    ]);
 
         $plan = GroupLifeCompanyPlan::create($validated);
 
@@ -379,7 +378,7 @@ class InsurancesController extends Controller
             'status' => 200,
             'employees' => $formatted
         ]);
-        }
+    }
 
     public function saveGroupLifeEmployees(Request $request)
     {
@@ -427,5 +426,4 @@ class InsurancesController extends Controller
             ]
         ]);
     }
-
 }

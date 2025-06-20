@@ -8,9 +8,9 @@ import { getFullName } from '../../../utils/user-utils';
 import Layout from '../../../components/Layout/Layout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
-import PerformanceEvaluationEvaluateeAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvaluationEvaluateeAcknowledge';
+import PerformanceEvaluationEvaluateeAcknowledge from './Modals/PerformanceEvaluationEvaluateeAcknowledge';
 import Swal from 'sweetalert2';
-import ScoreLinearBar from './Test/ScoreLinearBar';
+import ScoreLinearBar from './Subsections/ScoreLinearBar';
 import jsPDF from "jspdf";
 import ModalReviewForm from './Modals/ModalReviewForm';
 
@@ -103,8 +103,10 @@ const PerformanceEvaluationEvaluateePage = () => {
         timerProgressBar: true,
         showConfirmButton: false,
         position: 'center'
+      }).then(() => {
+        setAckModalOpen(false);
+        navigate('/admin/performance-evaluation');
       });
-      setAckModalOpen(false);
     } catch (e) {
       Swal.fire({
         icon: 'error',
@@ -288,7 +290,7 @@ const handleDownloadPDF = async () => {
   // Evaluators
   if (responseMeta?.evaluators) {
     for (const evaluator of responseMeta.evaluators) {
-      const signatureFilePath = signatureFilePaths[evaluator.id];
+      const signatureFilePath = signatureFilePaths[evaluator.evaluator_id];
       if (signatureFilePath) {
         signatureBlocks.push({
           url: signatureFilePath,
@@ -301,7 +303,7 @@ const handleDownloadPDF = async () => {
   // Commentors
   if (responseMeta?.commentors) {
     for (const commentor of responseMeta.commentors) {
-      const signatureFilePath = signatureFilePaths[commentor.id];
+      const signatureFilePath = signatureFilePaths[commentor.commentor_id];
       if (signatureFilePath) {
         signatureBlocks.push({
           url: signatureFilePath,
@@ -315,13 +317,9 @@ const handleDownloadPDF = async () => {
   async function drawSignatureCell(sig, x, y, cellWidth) {
     const imgWidth = 120;
     const imgHeight = 40;
-    if (!sig.url || sig.url === "data:image/png;base64,") {
-      doc.setFontSize(10);
-      doc.setFont(undefined, "italic");
-      doc.text(`${sig.name} (signature not found)`, x + cellWidth / 2, y + imgHeight / 2, { align: "center" });
-      return;
-    }
     try {
+      if(!sig.url || sig.url === "data:image/png;base64,")
+        throw new Error();
       const img = new window.Image();
       img.src = sig.url;
       await new Promise((resolve, reject) => {
@@ -333,7 +331,7 @@ const handleDownloadPDF = async () => {
       doc.setFontSize(11);
       doc.setFont(undefined, "bold");
       doc.text(sig.name, x + cellWidth / 2, y + imgHeight + 16, { align: "center" });
-    } catch {
+    } catch (e) {
       doc.setFontSize(10);
       doc.setFont(undefined, "italic");
       doc.text(`${sig.name} (signature not found)`, x + cellWidth / 2, y + 15, { align: "center" });
@@ -344,7 +342,6 @@ const handleDownloadPDF = async () => {
   const cellWidth = 210; // adjust as needed
   const startX = margin; // left margin
   let sigY = y + 10; // starting y for signatures
-
   for (let i = 0; i < signatureBlocks.length; i += 2) {
     // First column
     await drawSignatureCell(signatureBlocks[i], startX, sigY, cellWidth);

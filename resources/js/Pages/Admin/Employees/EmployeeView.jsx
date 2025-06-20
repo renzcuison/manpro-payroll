@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, Avatar, Button, Menu, MenuItem } from '@mui/material'
+import {  Box, Typography, Grid, Button, Menu, MenuItem } from '@mui/material'
 import Layout from '../../../components/Layout/Layout'
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import PropTypes from 'prop-types';
-import PageHead from '../../../components/Table/PageHead'
-import PageToolbar from '../../../components/Table/PageToolbar'
-import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
-import { getComparator, stableSort } from '../../../components/utils/tableUtils'
 
-import { useIncentives } from '../../../hooks/useIncentives';
-import { useAllowances } from '../../../hooks/useAllowances';
-import { useBenefits } from '../../../hooks/useBenefits';
-import { useDeductions } from '../../../hooks/useDeductions';
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
+import { useEmployeeIncentives } from '../../../hooks/useIncentives';
+import { useEmployeeAllowances } from '../../../hooks/useAllowances';
+import { useEmployeeBenefits } from '../../../hooks/useBenefits';
+import { useEmployeeDeductions } from '../../../hooks/useDeductions';
 
 import EmployeeDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
 import EmployeeEducationBackground from './Components/EmployeeEducationBackground';
@@ -27,15 +23,15 @@ import EmploymentDetails from './Components/EmploymentDetails';
 
 const EmployeeView = () => {
     const { user } = useParams();
-    const {employeeBenefits} = useBenefits({userName: user});
-    const {employeeDeductions} = useDeductions({userName: user});
-    const {employeeIncentives} = useIncentives({userName: user});
-    const {employeeAllowances} = useAllowances({userName: user});
+    const {employeeDeductions, refetchEmployeeDeductions} = useEmployeeDeductions(user);
+    const {employeeIncentives, refetchEmployeeIncentives} = useEmployeeIncentives(user);
+    const {employeeAllowances, refetchEmployeeAllowances} = useEmployeeAllowances(user);
+    const {employeeBenefits, refetchEmployeeBenefits} = useEmployeeBenefits(user);
 
-    const benefits = employeeBenefits.data?.benefits || [];
-    const deductions = employeeDeductions.data?.deductions || [];
-    const incentives = employeeIncentives.data?.incentives || [];
-    const allowances = employeeAllowances.data?.allowances || [];
+    const benefits = employeeBenefits?.benefits || [];
+    const deductions = employeeDeductions?.deductions || [];
+    const incentives = employeeIncentives?.incentives || [];
+    const allowances = employeeAllowances?.allowances || [];
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -101,10 +97,10 @@ const EmployeeView = () => {
         setOpenEmployeeDetailsEditModal(false);
         if (reload) {
             getEmployeeDetails();
-            employeeAllowances.refetch();
-            employeeBenefits.refetch();
-            employeeIncentives.refetch();
-            employeeDeductions.refetch();
+            refetchEmployeeAllowances();
+            refetchEmployeeBenefits();
+            refetchEmployeeIncentives();
+            refetchEmployeeDeductions();
             getEducationalBackground();
         }
     }

@@ -11,13 +11,7 @@ import PerformanceEvaluationAdd from './Modals/PerformanceEvaluationAdd';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
-
-const rolePriority = {
-    "Creator": 1,
-    "Evaluatee": 2,
-    "Evaluator": 3,
-    "Commentor": 4
-};
+import Swal from 'sweetalert2';
 
 const getEvaluationRoleRoute = (row) => {
     switch (row.role) {
@@ -36,7 +30,10 @@ const getEvaluationRoleRoute = (row) => {
 
 const STATUS_OPTIONS = [
     { value: '', label: "All" },
+    { value: 'Sent', label: "Sent" },
+    { value: 'New', label: "New" },
     { value: 'Pending', label: "Pending" },
+    { value: 'Submitted', label: "Submitted" },
     { value: 'Done', label: "Done" },
 ];
 
@@ -80,7 +77,6 @@ const PerformanceEvaluationList = () => {
     // Fetch evaluation responses for the current user (as evaluatee or evaluator or commentor)
     useEffect(() => {
         setIsLoading(true);
-
         axiosInstance.get('/getEvaluationResponses', {
             headers,
             params: {
@@ -88,21 +84,19 @@ const PerformanceEvaluationList = () => {
                 limit: rowsPerPage,
                 search: searchValue,
                 status: statusFilter || undefined, // only send if set
+                order_by: [
+                    {key: "status", sort_order: "asc"},
+                    {key: "created_at", sort_order: "asc"},
+                    {key: "last_name", sort_order: "asc"},
+                    {key: "first_name", sort_order: "asc"},
+                    {key: "middle_name", sort_order: "asc"},
+                    {key: "suffix", sort_order: "asc"}
+                ]
             }
         })
             .then((response) => {
                 if (response.data.status === 200) {
-                    // Deduplicate by id, keep highest priority role
-                    const seen = {};
-                    for (const row of response.data.evaluationResponses) {
-                        if (
-                            !seen[row.id] ||
-                            (rolePriority[row.role] < rolePriority[seen[row.id].role])
-                        ) {
-                            seen[row.id] = row;
-                        }
-                    }
-                    setEvaluationResponses(Object.values(seen));
+                    setEvaluationResponses(response.data.evaluationResponses);
                     setTotalCount(response.data.totalResponseCount);
                 } else {
                     setEvaluationResponses([]);
@@ -142,7 +136,6 @@ const PerformanceEvaluationList = () => {
     // Check if the evaluation/comment period is disabled
     const isRowDisabled = (row) => {
         const now = new Date();
-        // The backend should provide these as ISO strings; fallback to undefined if missing
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
         if (!periodStart || !periodEnd) return false;
@@ -154,14 +147,17 @@ const PerformanceEvaluationList = () => {
         const now = new Date();
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
-        // Allow navigation if dates are missing for some reason
         if (!periodStart || !periodEnd) {
             navigate(getEvaluationRoleRoute(row));
             return;
         }
-        // Disallow if now is not within the period
         if (now < periodStart || now > periodEnd) {
-            alert('Evaluation or Comments for this form has been disabled');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Action not allowed',
+                text: 'Evaluation or Comments for this form has been disabled',
+                confirmButtonColor: '#f5c242'
+            });
             return;
         }
         navigate(getEvaluationRoleRoute(row));
@@ -309,7 +305,7 @@ const PerformanceEvaluationList = () => {
                                         <TableBody>
                                             {evaluationResponses.length === 0 ? (
                                                 <TableRow>
-                                                    <TableCell colSpan={5} align="center">
+                                                    <TableCell colSpan={6} align="center">
                                                         No evaluation responses found.
                                                     </TableCell>
                                                 </TableRow>

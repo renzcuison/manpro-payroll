@@ -196,17 +196,15 @@ const Sidebar = ({ children, closeMini }) => {
                                 <i> <Iconify icon="healthicons:i-training-class-outline" style={{ color: "#2a800f" }} /> </i> <span id="navName" className="sidebar-mini-hide" > Trainings </span>
                             </StyledNav>
 
-                            {/* Performance Evaluation Sidebar Item */}
-                            <StyledNav to={`/employee/performance-evaluation`}>
+                            <StyledNav to={`/employee/performance-evaluation`} end>
                                 <i className="fa fa-check" style={{ color: "#2a800f" }}></i>
                                 <span id="navName" className="sidebar-mini-hide">Performance Evaluation</span>
                             </StyledNav>
 
-                            {/* My Evaluation Result Sidebar Item */}
                             <StyledNav to={`/employee/performance-evaluation/results`}>
                                 <i className="fa fa-bar-chart" style={{ color: "#2a800f" }}></i>
                                 <span id="navName" className="sidebar-mini-hide">My Evaluation Result</span>
-                            </StyledNav>
+                            </StyledNav>`
                         </ul>
                     </div>
                 </div>

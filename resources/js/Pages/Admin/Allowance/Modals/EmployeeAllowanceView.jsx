@@ -11,12 +11,11 @@ dayjs.extend(localizedFormat);
 import EmployeeAllowanceAdd from "../Components/EmployeeAllowanceAdd";
 import EmployeeAllowanceList from "../Components/EmployeeAllowanceList";
 import EmployeeAllowanceEdit from "../Components/EmployeeAllowanceEdit";
-import { useAllowances } from "../../../../hooks/useAllowances";
+import { useEmployeeAllowances } from "../../../../hooks/useAllowances";
 
 const EmployeeAllowanceView = ({ open, close, userName, allowance }) => {
-    const {employeeAllowances} = useAllowances({userName: userName, filters: {allowanceId: allowance}});
-    
-    const allowances = employeeAllowances.data?.allowances || [];
+    const {employeeAllowances, isEmployeeAllowancesLoading, refetchEmployeeAllowances} = useEmployeeAllowances(userName, allowance);
+    const allowances = employeeAllowances?.allowances || [];
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
@@ -51,7 +50,7 @@ const EmployeeAllowanceView = ({ open, close, userName, allowance }) => {
         setAllowanceAddOpen(false);
         setAllowanceListOpen(true);
         if(reload){
-            employeeAllowances.refetch();
+            refetchEmployeeAllowances();
         }
     }
 
@@ -65,7 +64,7 @@ const EmployeeAllowanceView = ({ open, close, userName, allowance }) => {
         setAllowanceListOpen(true);
         setAllowanceEditOpen(false);
         if(reload){
-            employeeAllowances.refetch();
+            refetchEmployeeAllowances();
         }
     }
 
@@ -96,7 +95,7 @@ const EmployeeAllowanceView = ({ open, close, userName, allowance }) => {
                     </Box>
                     
                     {allowanceListOpen && (
-                        <EmployeeAllowanceList allowances={allowances} isLoading={employeeAllowances.isLoading} onAdd={() => handleOpenAddEmployeeAllowance()} 
+                        <EmployeeAllowanceList allowances={allowances} isLoading={isEmployeeAllowancesLoading} onAdd={() => handleOpenAddEmployeeAllowance()} 
                         onEdit={(index) => handleOpenEditEmployeeAllowance(index)}/>
                     )}
 

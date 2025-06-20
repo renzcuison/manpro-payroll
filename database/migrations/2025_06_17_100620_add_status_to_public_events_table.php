@@ -23,7 +23,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('public_events', function (Blueprint $table) {
-            //
+            $table->dropColumn('status');
         });
     }
 };

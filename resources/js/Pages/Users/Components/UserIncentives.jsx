@@ -1,10 +1,10 @@
 import React from "react";
 import { Box, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography } from "@mui/material";
-import { useIncentives } from "../../../hooks/useIncentives";
+import { useEmployeeIncentives } from "../../../hooks/useIncentives";
 
 const UserIncentives = ({userName}) => {
-    const {employeeIncentives} = useIncentives({userName: userName});
-    const incentives = employeeIncentives.data?.incentives || [];
+    const {employeeIncentives} = useEmployeeIncentives(userName);
+    const incentives = employeeIncentives?.incentives || [];
     return(
         <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

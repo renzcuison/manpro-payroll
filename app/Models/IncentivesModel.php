@@ -18,6 +18,7 @@ class IncentivesModel extends Model
         'type',
         'amount',
         'percentage',
+        'payment_schedule',
         'client_id',
     ];
 }

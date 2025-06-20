@@ -25,7 +25,9 @@ const PemeSettingsModal = ({
     PemeID,
     pemeRecords,
     headers,
+    hasRespondents,
 }) => {
+    console.log("Modal received - hasRespondents:", hasRespondents);
     const handleMultipleToggle = async () => {
         const newValue = multiple ? 0 : 1;
 
@@ -150,7 +152,7 @@ const PemeSettingsModal = ({
                                 onClick={handleVisibilityToggle}
                             />
                         }
-                        label={`Exam Visibility: ${visible ? "Public" : "Hidden"}`}
+                        label={`Visibility: ${visible ? "Public" : "Hidden"}`}
                     />
                 </Box>
 
@@ -162,7 +164,7 @@ const PemeSettingsModal = ({
                                 onClick={handleMultipleToggle}
                             />
                         }
-                        label={`Allow Multiple: ${multiple ? "Yes" : "No"}`}
+                        label={`Response: ${multiple ? "Multiple" : "Single"}`}
                     />
                 </Box>
 
@@ -172,11 +174,10 @@ const PemeSettingsModal = ({
                             <Switch
                                 checked={editable}
                                 onClick={handleEditableToggle}
-                                disabled={!editable}
+                                disabled={hasRespondents}
                             />
                         }
                         label={`Editable: ${editable ? "Yes" : "No"}`}
-                        sx={{ opacity: editable ? 1 : 0.5 }}
                     />
                 </Box>
             </DialogContent>

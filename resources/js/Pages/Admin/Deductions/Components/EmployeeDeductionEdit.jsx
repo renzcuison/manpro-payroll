@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField,  FormControl, FormGroup, InputAdornment } from "@mui/material";
-import dayjs from "dayjs";
 import Swal from "sweetalert2";
-import { useDeductions } from "../../../../hooks/useDeductions";
+import { useUpdateEmployeeDeduction } from "../../../../hooks/useDeductions";
 
 const EmployeeDeductionEdit = ({deductions, onClose}) => {
-    const {updateEmployeeDeduction} = useDeductions();
+    const updateEmployeeDeduction = useUpdateEmployeeDeduction();
 
-    const [number, setNumber] = useState(deductions?.number)
+    const [number, setNumber] = useState(deductions?.number);
     const [selectedStatus, setSelectedStatus] = useState(deductions?.status);
 
     const checkInput = (event) => {
@@ -31,25 +30,8 @@ const EmployeeDeductionEdit = ({deductions, onClose}) => {
 
     const saveDeduction = (event) => {
         event.preventDefault();
-        const data = {emp_deduction_id: deductions.id, number: number}
-        updateEmployeeDeduction.mutate(data,
-        {
-            onSuccess: () => {
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Update Successful",
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                }).then(() =>{
-                    onClose(true);
-                })
-            }
-        },{
-            onError: (error) => {
-                console.log(error);
-            }
-        })
+        const data = {emp_deduction_id: deductions.id, number: number, status: selectedStatus}
+        updateEmployeeDeduction.mutate({data: data, onSuccessCallback: () => onClose(true)});
     }
 
     return (
@@ -70,7 +52,7 @@ const EmployeeDeductionEdit = ({deductions, onClose}) => {
 
                     <FormControl sx={{width:'30%'}}>
                         <TextField
-                            label={'Number'}
+                            label={'Number (Optional)'}
                             value={number}
                             onChange={(event) => setNumber(event.target.value)}
                          />                    

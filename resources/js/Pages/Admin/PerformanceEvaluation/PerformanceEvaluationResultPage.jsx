@@ -1,22 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, CircularProgress, Paper, Table, TableHead, TableBody, TableRow, TableCell, Divider, Select, MenuItem, FormControl, InputLabel
+  Box, Typography, CircularProgress, Paper, Table, TableHead, TableBody, TableRow, TableCell, Divider, Select, MenuItem, FormControl, InputLabel, IconButton
 } from '@mui/material';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import Layout from '../../../components/Layout/Layout';
 import { getFullName } from '../../../utils/user-utils';
+import { useNavigate } from 'react-router-dom';
+import CloseIcon from '@mui/icons-material/Close';
 
 const PerformanceEvaluationResultPage = () => {
   const storedUser = localStorage.getItem("nasya_user");
   const user = JSON.parse(storedUser);
   const headers = getJWTHeader(user);
+  const navigate = useNavigate();
 
   const [results, setResults] = useState([]);
   const [selectedResultId, setSelectedResultId] = useState('');
   const [selectedResult, setSelectedResult] = useState(null);
+
+  // For compare dropdown
+  const [compareResultId, setCompareResultId] = useState('');
+  const [compareResult, setCompareResult] = useState(null);
+
   const [loading, setLoading] = useState(true);
 
-  // Fetch completed evaluations where user is Evaluatee
   useEffect(() => {
     setLoading(true);
     axiosInstance.get('/getEvaluationResponses', { headers })
@@ -31,7 +38,7 @@ const PerformanceEvaluationResultPage = () => {
         if (filtered.length === 1) {
           setSelectedResultId(filtered[0].id);
         } else if (filtered.length > 0 && !selectedResultId) {
-          setSelectedResultId(filtered[0].id); // You may comment this if you want to force user selection
+          setSelectedResultId(filtered[0].id);
         }
       })
       .catch(() => setResults([]))
@@ -39,7 +46,6 @@ const PerformanceEvaluationResultPage = () => {
     // eslint-disable-next-line
   }, []);
 
-  // Fetch detail of selected evaluation
   useEffect(() => {
     if (!selectedResultId) {
       setSelectedResult(null);
@@ -56,7 +62,24 @@ const PerformanceEvaluationResultPage = () => {
     // eslint-disable-next-line
   }, [selectedResultId]);
 
-  // Util: Subcategory scoring logic (copied from EvaluateePage)
+  // Fetch compare result
+  useEffect(() => {
+    if (!compareResultId) {
+      setCompareResult(null);
+      return;
+    }
+    setLoading(true);
+    axiosInstance.get('/getEvaluationResponse', {
+      headers,
+      params: { id: compareResultId },
+    })
+      .then(res => setCompareResult(res.data.evaluationResponse))
+      .catch(() => setCompareResult(null))
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line
+  }, [compareResultId]);
+
+  // Scoring utils (same as before)
   function getSubcategoryScore(subcat) {
     let subScore = 0;
     if (subcat.subcategory_type === 'multiple_choice') {
@@ -86,7 +109,6 @@ const PerformanceEvaluationResultPage = () => {
     return 0;
   }
 
-  // Compute section average as mean of scorable subcategory percentages
   function computeSectionAverage(section) {
     const scorableSubcats = section.subcategories.filter(
       sub => ['multiple_choice', 'checkbox', 'linear_scale'].includes(sub.subcategory_type)
@@ -99,7 +121,6 @@ const PerformanceEvaluationResultPage = () => {
     return avg;
   }
 
-  // Utility: Compute section weights from section.score
   function getSectionWeights(sections) {
     const totalScore = sections.reduce((sum, sec) => sum + (Number(sec.score) || 0), 0);
     return sections.reduce((acc, sec) => {
@@ -108,7 +129,6 @@ const PerformanceEvaluationResultPage = () => {
     }, {});
   }
 
-  // Weighted scores table calculation
   function computeWeightedScores(sections) {
     const sectionWeights = getSectionWeights(sections);
     let weightedRows = [];
@@ -133,124 +153,194 @@ const PerformanceEvaluationResultPage = () => {
     };
   }
 
-  return (
-    <Layout title="Performance Evaluation Results">
-      <Box sx={{ mt: 4, p: 4, bgcolor: 'white', borderRadius: 2, maxWidth: '900px', mx: 'auto', boxShadow: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>Performance Evaluation Result</Typography>
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-            <CircularProgress />
-          </Box>
-        )}
-        {!loading && selectedResult && (
-          <>
-            <FormControl sx={{ minWidth: 300, mb: 3 }}>
-              <InputLabel>Select Evaluation</InputLabel>
-              <Select
-                value={selectedResultId}
-                label="Select Evaluation"
-                onChange={e => setSelectedResultId(e.target.value)}
-              >
-                <MenuItem value="" disabled>Select Evaluation Result</MenuItem>
-                {results.map(r => (
-                  <MenuItem value={r.id} key={r.id}>
-                    {r.form?.name} — {r.date}
-                  </MenuItem>
+  // Helper to render a single result panel (for original or comparison)
+  function renderResultPanel(result, title = "Evaluation Result") {
+    if (!result) return null;
+    return (
+      <Paper sx={{ p: 3, mt: 2, minWidth: 0, flex: 1 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          {title}: <b>{result.form?.name}</b>
+        </Typography>
+        <Typography>Evaluatee: {getFullName(result.evaluatee)}</Typography>
+        <Typography>Evaluator: {result.evaluators?.[0] ? getFullName(result.evaluators[0]) : ''}</Typography>
+        <Typography>Period: {result.period_start_date} - {result.period_end_date}</Typography>
+        <Divider sx={{ my: 2 }} />
+
+        {/* Per-section breakdown */}
+        {result.form.sections.map((section, idx) => (
+          <Box key={section.id || idx} sx={{ mb: 3 }}>
+            <Typography sx={{ fontWeight: 'bold', color: '#ffffff', bgcolor: '#f5c242', p: 1, borderRadius: 1 }}>
+              {section.name}
+            </Typography>
+            <Table size="small" sx={{ my: 1 }}>
+              <TableBody>
+                {section.subcategories.map(subcat => (
+                  <TableRow key={subcat.id}>
+                    <TableCell>{subcat.name}</TableCell>
+                    <TableCell align="right">
+                      {['multiple_choice', 'checkbox', 'linear_scale'].includes(subcat.subcategory_type)
+                        ? `${getSubcategoryScore(subcat).toFixed(1)} %`
+                        : 'N/A'
+                      }
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </Select>
-            </FormControl>
-            <Paper sx={{ p: 3, mt: 2 }}>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                Form Name: <b>{selectedResult.form?.name}</b>
-              </Typography>
-              <Typography>Evaluatee: {getFullName(selectedResult.evaluatee)}</Typography>
-              <Typography>Evaluator: {selectedResult.evaluators?.[0] ? getFullName(selectedResult.evaluators[0]) : ''}</Typography>
-              <Typography>Period: {selectedResult.period_start_date} - {selectedResult.period_end_date}</Typography>
-              <Divider sx={{ my: 2 }} />
-
-              {/* Per-section breakdown */}
-              {selectedResult.form.sections.map((section, idx) => (
-                <Box key={section.id || idx} sx={{ mb: 3 }}>
-                  <Typography sx={{ fontWeight: 'bold', color: '#ffffff', bgcolor: '#f5c242', p: 1, borderRadius: 1 }}>
-                    {section.name}
-                  </Typography>
-                  <Table size="small" sx={{ my: 1 }}>
-                    <TableBody>
-                      {section.subcategories.map(subcat => (
-                        <TableRow key={subcat.id}>
-                          <TableCell>{subcat.name}</TableCell>
-                          <TableCell align="right">
-                            {['multiple_choice', 'checkbox', 'linear_scale'].includes(subcat.subcategory_type)
-                              ? `${getSubcategoryScore(subcat).toFixed(1)} %`
-                              : 'N/A'
-                            }
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }}>Total Rating</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                          {(() => {
-                            const avg = computeSectionAverage(section);
-                            return avg != null ? `${avg.toFixed(2)} %` : 'N/A';
-                          })()}
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </Box>
-              ))}
-
-              {/* Weighted Scores Table */}
-              <Divider sx={{ my: 2 }} />
-              <Box sx={{ mb: 2 }}>
-                <Typography sx={{ fontWeight: 'bold', color: '#ffffff', bgcolor: '#f5c242', p: 1, borderRadius: 1 }}>
-                  Weighted Scores
-                </Typography>
-                <Table size="small" sx={{ my: 1 }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Section (Score Set)</TableCell>
-                      <TableCell align="right">Subcategory Average</TableCell>
-                      <TableCell align="right">Weighted Average</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Total Rating</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>
                     {(() => {
-                      const { rows, grandTotal } = computeWeightedScores(selectedResult.form.sections);
-                      return (
-                        <>
-                          {rows.map(row => (
-                            <TableRow key={row.section}>
-                              <TableCell>{row.section + ' - ' + (row.weight * 100).toFixed(0) + ' %'}</TableCell>
-                              <TableCell align="right">{row.avg !== null && !isNaN(row.avg) ? row.avg.toFixed(2) + ' %' : 'N/A'}</TableCell>
-                              <TableCell align="right">{row.avg !== null && !isNaN(row.avg) ? (row.avg * row.weight / 100).toFixed(2) + ' %' : 'N/A'}</TableCell>
-                            </TableRow>
-                          ))}
-                          <TableRow>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
-                            <TableCell />
-                            <TableCell align="right" sx={{ fontWeight: 'bold', color: 'green' }}>
-                              {grandTotal.toFixed(2)} %
-                            </TableCell>
-                          </TableRow>
-                        </>
-                      );
+                      const avg = computeSectionAverage(section);
+                      return avg != null ? `${avg.toFixed(2)} %` : 'N/A';
                     })()}
-                  </TableBody>
-                </Table>
-              </Box>
-            </Paper>
-          </>
-        )}
-        {!loading && !selectedResultId && (
-          <Typography variant="body1" color="gray" sx={{ mt: 4 }}>
-            Select a result above to view your evaluation.
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Box>
+        ))}
+
+        {/* Weighted Scores Table */}
+        <Divider sx={{ my: 2 }} />
+        <Box sx={{ mb: 2 }}>
+          <Typography sx={{ fontWeight: 'bold', color: '#ffffff', bgcolor: '#f5c242', p: 1, borderRadius: 1 }}>
+            Weighted Scores
           </Typography>
-        )}
-      </Box>
-    </Layout>
-  );
-};
+          <Table size="small" sx={{ my: 1 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Section (Score Set)</TableCell>
+                <TableCell align="right">Subcategory Average</TableCell>
+                <TableCell align="right">Weighted Average</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(() => {
+                const { rows, grandTotal } = computeWeightedScores(result.form.sections);
+                return (
+                  <>
+                    {rows.map(row => (
+                      <TableRow key={row.section}>
+                        <TableCell>{row.section + ' - ' + (row.weight * 100).toFixed(0) + ' %'}</TableCell>
+                        <TableCell align="right">{row.avg !== null && !isNaN(row.avg) ? row.avg.toFixed(2) + ' %' : 'N/A'}</TableCell>
+                        <TableCell align="right">{row.avg !== null && !isNaN(row.avg) ? (row.avg * row.weight / 100).toFixed(2) + ' %' : 'N/A'}</TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                      <TableCell />
+                      <TableCell align="right" sx={{ fontWeight: 'bold', color: 'green' }}>
+                        {grandTotal.toFixed(2)} %
+                      </TableCell>
+                    </TableRow>
+                  </>
+                );
+              })()}
+            </TableBody>
+          </Table>
+        </Box>
+      </Paper>
+    );
+  }
+
+  return (
+      <Layout title="Performance Evaluation Results">
+        <Box sx={{ mt: 4, p: 4, bgcolor: 'white', borderRadius: 2, maxWidth: '1400px', mx: 'auto', boxShadow: 3, position: 'relative' }}>
+          {/* X (Close) Button */}
+          <IconButton
+            onClick={() => navigate(-1)}
+            sx={{
+              position: 'absolute',
+              top: 25,
+              right: 30,
+              border: '1px solid #BEBEBE',
+              borderRadius: '50%',
+              padding: '5px',
+              color: '#BEBEBE',
+            }}
+          >
+            <CloseIcon sx={{ fontSize: '1.2rem' }} />
+          </IconButton>
+          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>Performance Evaluation Result</Typography>
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+              <CircularProgress />
+            </Box>
+          )}
+          {!loading && results.length === 0 && (
+            <Typography variant="body1" color="gray" sx={{ mt: 4 }}>
+              You have no evaluation results.
+            </Typography>
+          )}
+
+          {!loading && results.length > 0 && (
+            <Box sx={{
+              display: { xs: 'block', md: 'flex' },
+              gap: 3,
+              width: '100%',
+            }}>
+              <Box sx={{ flex: 1, minWidth: 0, maxWidth: compareResult ? { md: '46%' } : { md: '900px' }, mx: compareResult ? 0 : 'auto' }}>
+                <FormControl sx={{ minWidth: 280, mb: 3, width: '100%' }}>
+                  <InputLabel>Select Evaluation</InputLabel>
+                  <Select
+                    value={selectedResultId}
+                    label="Select Evaluation"
+                    onChange={e => setSelectedResultId(e.target.value)}
+                  >
+                    <MenuItem value="" disabled>Select Evaluation Result</MenuItem>
+                    {results.map(r => (
+                      <MenuItem value={r.id} key={r.id}>
+                        {r.form?.name} — {r.date}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {selectedResult && renderResultPanel(selectedResult, "Evaluation Result")}
+              </Box>
+              {/* ARROW in the middle if both selected */}
+              {compareResult && (
+                <Box sx={{
+                  display: { xs: 'none', md: 'flex' },
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  px: 2,
+                  fontSize: 40,
+                  color: '#BEBEBE'
+                }}>
+                  &rarr;
+                </Box>
+              )}
+              <Box sx={{ flex: 1, minWidth: 0, maxWidth: compareResult ? { md: '46%' } : { md: '900px' }, mx: compareResult ? 0 : 'auto' }}>
+                <FormControl sx={{ minWidth: 280, mb: 3, width: '100%' }}>
+                  <InputLabel>Compare to</InputLabel>
+                  <Select
+                    value={compareResultId}
+                    label="Compare to"
+                    onChange={e => setCompareResultId(e.target.value)}
+                  >
+                    <MenuItem value="">None</MenuItem>
+                    {results
+                      .filter(r => r.id !== selectedResultId)
+                      .map(r => (
+                        <MenuItem value={r.id} key={r.id}>
+                          {r.form?.name} — {r.date}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+                {compareResult && renderResultPanel(compareResult, "Comparison Result")}
+              </Box>
+            </Box>
+          )}
+          {/* Only show this if there are results but no selection */}
+          {!loading && results.length > 0 && !selectedResultId && (
+            <Typography variant="body1" color="gray" sx={{ mt: 4 }}>
+              Select a result above to view your evaluation.
+            </Typography>
+          )}
+        </Box>
+      </Layout>
+    );
+  };
+
 
 export default PerformanceEvaluationResultPage;

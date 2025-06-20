@@ -1,25 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import axiosInstance from "../../../../utils/axiosConfig";
+import { useIncentive, useSaveEmployeeIncentives } from "../../../../hooks/useIncentives";
 
-const EmployeeIncentiveAdd = ({ userName, headers, onClose }) => {
+const EmployeeIncentiveAdd = ({ userName, onClose }) => {
+    const {incentivesData} = useIncentive();
+    const saveEmployeeIncentives = useSaveEmployeeIncentives();
+    const incentives = incentivesData?.incentives || [];
 
     const [incentiveEerror, setIncentiveError] = useState(false);
     const [numberError, setNumberError] = useState(false);
 
-    const [incentives, setIncentives] = useState([]);
     const [incentive, setIncentive] = useState('');
     const [number, setNumber] = useState('');
-
-    useEffect(() => {
-        axiosInstance.get('/compensation/getIncentives', { headers })
-            .then((response) => {
-                setIncentives(response.data.incentives);
-            }).catch((error) => {
-                console.error('Error fetching incentives:', error);
-            });
-    }, []);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -65,45 +58,21 @@ const EmployeeIncentiveAdd = ({ userName, headers, onClose }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-
         const data = { userName: userName, incentive: incentive, number: number };
-
-        axiosInstance.post('/compensation/saveEmployeeIncentives', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Incentive saved successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        onClose(true);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        saveEmployeeIncentives.mutate({data: data, onSuccessCallback: () => onClose(true)});
     };
 
     return (
         <Box component="form" sx={{ mt: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
-            <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                '& label.Mui-focused': { color: '#97a5ba' },
-                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-            }}>
+            <FormGroup row={true} className="d-flex justify-content-between">
                 <FormControl sx={{
-                    marginBottom: 3, width: '29%', '& label.Mui-focused': { color: '#97a5ba' },
-                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
+                    marginBottom: 3, width: '29%',
                 }}>
                     <TextField
                         required
                         select
                         id="incentives"
-                        label="incentive"
+                        label="Incentives"
                         value={incentive}
                         error={incentiveEerror}
                         onChange={(event) => setIncentive(event.target.value)}
@@ -115,9 +84,7 @@ const EmployeeIncentiveAdd = ({ userName, headers, onClose }) => {
                 </FormControl>
 
                 <FormControl sx={{
-                    marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
-                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                }}>
+                    marginBottom: 3, width: '69%'}}>
                     <TextField
                         required
                         id="number"
