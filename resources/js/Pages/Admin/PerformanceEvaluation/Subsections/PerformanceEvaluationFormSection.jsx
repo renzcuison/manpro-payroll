@@ -704,7 +704,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                                             }}
                                                                                             sx={{
                                                                                             // Ensures description field takes the rest of the row and does not grow vertically
-                                                                                            minWidth: 400,
+                                                                                            minWidth: 390,
                                                                                             maxWidth: "100%",
                                                                                             }}
                                                                                         />
@@ -774,7 +774,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                     }}
                                                                     sx={{
                                                                     // Ensures description field takes the rest of the row and does not grow vertically
-                                                                    minWidth: 562,
+                                                                    minWidth: 500,
                                                                     maxWidth: "100%",
                                                                     }}
                                                                 />
