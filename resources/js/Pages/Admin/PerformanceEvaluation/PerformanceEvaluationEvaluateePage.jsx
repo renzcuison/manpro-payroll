@@ -333,7 +333,7 @@ const PerformanceEvaluationEvaluateePage = () => {
       else if (form?.creator_sign_date) creatorDate = form.creator_sign_date.slice(0, 10);
       signatureBlocks.push({ url: creatorSignatureFilePath, name: creatorName, date: creatorDate });
 
-      let creatorDate = responseMeta?.media[0].created_at.split('T')[0];
+      let creatorDate = responseMeta?.media[0]?.created_at.split('T')[0] ?? '';
       signatureBlocks.push({
         url: creatorSignatureFilePath,
         name: creatorName,
@@ -341,7 +341,7 @@ const PerformanceEvaluationEvaluateePage = () => {
       });
     }
     if (evaluateeSignatureFilePath) {
-      let evalDate = responseMeta?.media[1].created_at.split('T')[0];
+      let evalDate = responseMeta?.media[1]?.created_at.split('T')[0] ?? '';
       signatureBlocks.push({
         url: evaluateeSignatureFilePath,
         name: responseMeta?.evaluatee ? `${getFullName(responseMeta.evaluatee)} (Evaluatee)` : "Evaluatee",
