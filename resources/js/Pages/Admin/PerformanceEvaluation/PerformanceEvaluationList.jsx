@@ -49,7 +49,7 @@ const PerformanceEvaluationList = () => {
 
     // Pagination state
     const [page, setPage] = useState(0); // 0-based for TablePagination
-    const [rowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
     // Search state
@@ -112,6 +112,11 @@ const PerformanceEvaluationList = () => {
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     // Search handlers
@@ -337,13 +342,13 @@ const PerformanceEvaluationList = () => {
                                 {/* Pagination controls */}
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                                     <TablePagination
-                                        rowsPerPageOptions={[10]}
+                                        rowsPerPageOptions={[10, 25, 50]}
                                         component="div"
                                         count={totalCount}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}
-                                        onRowsPerPageChange={() => { }}
+                                        onRowsPerPageChange={handleChangeRowsPerPage}
                                     />
                                 </Box>
                             </>
