@@ -42,7 +42,7 @@ import { SubcategoryDropdownMouseSensor } from '../Sensors/SubcategoryDropdownMo
 import { SubcategoryDropdownTouchSensor } from '../Sensors/SubcategoryDropdownTouchSensor';
 import Swal from 'sweetalert2';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
-import { useClickAway } from '../Test/useClickAway';
+import { useClickAway } from '../../../../hooks/useClickAway';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
 
