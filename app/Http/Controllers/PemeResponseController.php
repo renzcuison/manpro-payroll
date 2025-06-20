@@ -207,11 +207,11 @@ class PemeResponseController extends Controller
 
         $questionIdsInRequest = collect($validated['responses'])
             ->pluck('peme_q_item_id')
-            ->map(fn($id) => Crypt::decrypt($id))
+            ->map(fn($id) => $id)
             ->toArray();
 
         $requiredQuestionIds = PemeQItem::where('peme_id', $pemeResponse->peme_id)
-            ->where('isRequired', 1) // changed true -> 1
+            ->where('isRequired', 1)
             ->pluck('id')
             ->toArray();
 
