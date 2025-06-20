@@ -32,10 +32,9 @@ const GroupLifeEmployees = () => {
     const storedUser = localStorage.getItem("nasya_user");
     const user = storedUser ? JSON.parse(storedUser) : null;
     const [employees, setEmployees] = useState([]);
-    const [planName, setPlanName] = useState("");
     const [loading, setLoading] = useState(true);
-    const [employeePlans, setEmployeePlans] = useState([]);
-    const [rows, setRows] = useState([]);  
+    const [filterByBranch, setFilterByBranch] = useState("");
+    const [filterByDepartment, setFilterByDepartment] = useState("");
 
     const [selectedEmployeePlanId, setSelectedEmployeePlanId] = useState(null);
 
@@ -61,14 +60,14 @@ const GroupLifeEmployees = () => {
         navigator("/admin/medical-records/group-life-masterlist-records");
     };
 
-    const filteredRecords = employees.filter((employees) =>
-        [
-        employees.employee_name,
-        employees.dependents_count,
-        employees.enroll_date,
-        employees.branch,
-        employees.department,
-        employees.role
+    const filteredRecords = employees.filter((employee) => {
+        const matchesSearch = [
+        employee.employee_name,
+        employee.dependents_count,
+        employee.enroll_date,
+        employee.branch,
+        employee.department,
+        employee.role
         ].some((field) =>
             (typeof field === "number"
                 ? field.toFixed(2)
@@ -76,8 +75,18 @@ const GroupLifeEmployees = () => {
             )
                 .toLowerCase()
                 .includes(search.toLowerCase())
-        )
-    );
+        );
+
+        const matchesBranch = filterByBranch
+            ? employee.branch?.name === filterByBranch
+            : true;
+
+        const matchesDepartment = filterByDepartment
+            ? employee.department?.name === filterByDepartment
+            : true;
+
+        return matchesSearch && matchesBranch && matchesDepartment;
+    });
 
     const resultsCount = filteredRecords.length;
 
@@ -106,6 +115,11 @@ const GroupLifeEmployees = () => {
             .catch(console.error)
             .finally(() => setLoading(false));
     };
+
+    const uniqueBranches = [...new Set(employees.map(emp => emp.branch?.name).filter(Boolean))];
+    const uniqueDepartments = [...new Set(employees.map(emp => emp.department?.name).filter(Boolean))];
+
+
 
     return (
         <Layout title="GroupLife Masterlist">
@@ -183,50 +197,65 @@ const GroupLifeEmployees = () => {
                         boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)'
                     }}
                 >
-                    <Grid item>
-                        <Grid item>
-                        <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
-                            <InputLabel htmlFor="custom-search">
-                                Search
-                            </InputLabel>
-                            <OutlinedInput
-                                id="custom-search"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                endAdornment={
-                                    search && (
-                                        <InputAdornment position="end">
-                                            <Typography variant="body2" sx={{ color: "gray" }}>
-                                                {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
-                                            </Typography>
-                                        </InputAdornment>
-                                    )
-                                }
-                                label="Search"
-                            />
-                        </FormControl>
+                    <Grid container spacing={50} alignItems="center" sx={{ mb: 2 }}>
+                        <Grid item xs={12} md={6}>
+                            <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
+                                <InputLabel htmlFor="custom-search">
+                                    Search
+                                </InputLabel>
+                                <OutlinedInput
+                                    id="custom-search"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    endAdornment={
+                                        search && (
+                                            <InputAdornment position="end">
+                                                <Typography variant="body2" sx={{ color: "gray" }}>
+                                                    {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
+                                                </Typography>
+                                            </InputAdornment>
+                                        )
+                                    }
+                                    label="Search"
+                                />
+                                </FormControl>
                         </Grid>
-                        <Grid item>
+                        <Grid item xs={12} md={6}>
+                            {/* Branch Filter */}
                             <TextField
-                                select
-                                id="column-view-select"
-                                label="Filter by Branch"
-                                // onChange={(event) => {
-                                //     setFilterByBranch( event.target.value );
-                                // }}
-                                sx={{ width: "50%" }}
+                            select
+                            label="Filter by Branch"
+                            value={filterByBranch}
+                            onChange={(e) => setFilterByBranch(e.target.value)}
+                            fullWidth
                             >
-                                {/* {branches.map((branch) => ( */}
-                                    <MenuItem 
-                                    // key={branch.id} value={branch.name}
-                                     >
-                                        Test
-                                    </MenuItem>
-                                {/* ))} */}
+                            <MenuItem value="">All Branches</MenuItem>
+                            {uniqueBranches.map((branchName) => (
+                                <MenuItem key={branchName} value={branchName}>
+                                {branchName}
+                                </MenuItem>
+                            ))}
                             </TextField>
-                        </Grid>
-                    </Grid>
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                            {/* Department Filter */}
+                            <TextField
+                            select
+                            label="Filter by Department"
+                            value={filterByDepartment}
+                            onChange={(e) => setFilterByDepartment(e.target.value)}
+                            fullWidth
+                            >
+                            <MenuItem value="">All Departments</MenuItem>
+                            {uniqueDepartments.map((deptName) => (
+                                <MenuItem key={deptName} value={deptName}>
+                                {deptName}
+                                </MenuItem>
+                            ))}
+                            </TextField>
 
+                    </Grid>
+</Grid>
                     <Grid>
                         <Box sx={{ pl: 1, pr: 1, bgcolor: '#ffffff', borderRadius: '8px', height: '100%' }}>
                             <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', }}>Assigned Employees</Typography>
