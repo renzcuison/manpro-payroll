@@ -135,8 +135,8 @@ const PassOrFail = ({ value, onChange }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-                ? "Fail"
-                : "";
+            ? "Fail"
+            : "";
 
     return (
         <Box
@@ -165,8 +165,8 @@ const PostiveOrNegative = ({ value, onChange }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-                ? "Negative"
-                : "";
+            ? "Negative"
+            : "";
 
     return (
         <Box
@@ -225,7 +225,6 @@ const PemeQuestionnaireView = () => {
     const [expirationDate, setExpirationDate] = useState(dayjs());
     const [nextSchedule, setNextSchedule] = useState(dayjs());
     const [status, setStatus] = useState("");
-    const [pemeResponses, setPemeResponses] = useState("");
     const [isDraftStatus, setIsDraftStatus] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [filePreviewOpen, setFilePreviewOpen] = useState(false);
@@ -239,6 +238,7 @@ const PemeQuestionnaireView = () => {
                 console.log("RESPONSE.DATA", response.data);
                 setEmployeeResponse(response.data);
                 setIsDraftStatus(response.data.isDraft);
+                setStatus(response.data.status);
                 const initialAnswers = {};
                 if (Array.isArray(response.data.details)) {
                     response.data.details.forEach((form) => {
@@ -264,15 +264,13 @@ const PemeQuestionnaireView = () => {
 
     //Set FE dates and status to values from DB
     useEffect(() => {
-        if (pemeResponses && pemeResponses[0]) {
-            const res = pemeResponses[0];
-            if (res.expiry_date) setExpirationDate(dayjs(res.expiry_date));
-            if (res.next_schedule) setNextSchedule(dayjs(res.next_schedule));
-            if (res.status) setStatus(res.status);
+        if (employeeResponse) {
+            setExpirationDate(dayjs(employeeResponse.expiry_date));
+            setNextSchedule(dayjs(employeeResponse.next_schedule));
         }
-    }, [pemeResponses]);
+    }, [employeeResponse]);
 
-    const handleOnConfirmClick = () => {
+    const handleOnConfirmClick = (draftStatus) => {
         Swal.fire({
             customClass: { container: "my-swal" },
             title: "Are you sure?",
@@ -284,43 +282,149 @@ const PemeQuestionnaireView = () => {
             showCancelButton: true,
             cancelButtonText: "Cancel",
         }).then(async (res) => {
-            if (res.isConfirmed) {
-                try {
-                    const payload = {
-                        expiry_date: expirationDate,
-                        next_schedule: nextSchedule,
-                        status: status,
-                    };
-                    console.log(payload);
+            const responses = [];
+            const attachedMedia = [];
+            if (Array.isArray(employeeResponse.details)) {
+                employeeResponse.details.forEach((form) => {
+                    if (Array.isArray(form.input_type)) {
+                        form.input_type.forEach((type) => {
+                            const value =
+                                answers[form.question_id]?.[type.input_type] ??
+                                null;
 
-                    await axiosInstance.patch(
-                        `/peme-responses/${PemeResponseID}/status`,
-                        payload,
-                        { headers }
+                            let answerValue = value;
+
+                            const responseEntry = {
+                                peme_q_item_id: form.question_id,
+                                peme_q_type_id: type.id,
+                                value: answerValue,
+                            };
+
+                            console.log("question:", form.question_id);
+                            console.log("input_type:", type.input_type);
+                            console.log("value:", value);
+                            console.log(
+                                "value[0] instanceof File:",
+                                value[0] instanceof File
+                            );
+                            console.log("typeof value[0]:", typeof value[0]);
+
+                            if (
+                                Array.isArray(answerValue) &&
+                                answerValue[0] instanceof File
+                            ) {
+                                responseEntry.files = answerValue;
+                            }
+
+                            responses.push(responseEntry);
+
+                            // If value is an array of Files
+                            if (
+                                Array.isArray(value) &&
+                                value[0] instanceof File
+                            ) {
+                                value.forEach((file) => {
+                                    attachedMedia.push({
+                                        file: file,
+                                    });
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            const payload = {
+                peme_response_id: PemeResponseID,
+                responses: responses,
+            };
+
+            const formData = new FormData();
+            formData.append("peme_response_id", PemeResponseID);
+            formData.append("isDraft", draftStatus);
+
+            responses.forEach((item, index) => {
+                formData.append(
+                    `responses[${index}][peme_q_item_id]`,
+                    item.peme_q_item_id
+                );
+                formData.append(
+                    `responses[${index}][peme_q_type_id]`,
+                    item.peme_q_type_id
+                );
+
+                if (
+                    Array.isArray(item.files) &&
+                    item.files[0] instanceof File
+                ) {
+                    item.files.forEach((file, fileIndex) => {
+                        formData.append(
+                            `responses[${index}][files][${fileIndex}]`,
+                            file
+                        );
+                    });
+                    formData.append(`responses[${index}][value]`, "");
+                } else {
+                    formData.append(
+                        `responses[${index}][value]`,
+                        item.value ?? ""
                     );
-
-                    console.log("payload", payload);
-
-                    Swal.fire({
-                        icon: "success",
-                        text: "Changes updated successfully.",
-                        showConfirmButton: false,
-                        timer: 1500,
-                    });
-                } catch (error) {
-                    Swal.fire({
-                        title: "Error",
-                        text: "Failed to save changes. Please try again.",
-                        icon: "error",
-                        confirmButtonText: "Okay",
-                        confirmButtonColor: "#177604",
-                    });
                 }
+            });
+
+            for (const pair of formData.entries()) {
+                console.log(pair[0], pair[1]);
+            }
+
+            try {
+                const secondaryPayload = {
+                    expiry_date: expirationDate,
+                    next_schedule: nextSchedule,
+                };
+                console.log(secondaryPayload);
+
+                await axiosInstance.patch(
+                    `/peme-responses/${PemeResponseID}/status`,
+                    secondaryPayload,
+                    { headers }
+                );
+
+                await axiosInstance.post(`/peme-responses/storeAll`, formData, {
+                    headers,
+                });
+                Swal.fire({
+                    icon: "success",
+                    text: "Draft saved successfully.",
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+            } catch (error) {
+                setIsDraftStatus(1);
+                const status = error.response.status;
+                const [errorMessage, setErrorMessage] = useState("");
+
+                if (status >= 500) {
+                    setErrorMessage("Server Error 500");
+                }
+                if (status === 400) {
+                    setErrorMessage("Submission Failed");
+                } else {
+                    setErrorMessage("Please Fill Up Required Fields");
+                }
+                Swal.fire({
+                    title: "Error",
+                    text: `${errorMessage}`,
+                    icon: "error",
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                });
+
+                console.log(error);
             }
         });
     };
 
-    const handleSaveDraft = async () => {
+    const handleSaveDraft = async (draftStatus) => {
         const responses = [];
         const attachedMedia = [];
 
@@ -340,11 +444,14 @@ const PemeQuestionnaireView = () => {
                             value: answerValue,
                         };
 
-                        console.log('question:', form.question_id);
-                        console.log('input_type:', type.input_type);
-                        console.log('value:', value);
-                        console.log('value[0] instanceof File:', value[0] instanceof File);
-                        console.log('typeof value[0]:', typeof value[0]);
+                        console.log("question:", form.question_id);
+                        console.log("input_type:", type.input_type);
+                        console.log("value:", value);
+                        console.log(
+                            "value[0] instanceof File:",
+                            value[0] instanceof File
+                        );
+                        console.log("typeof value[0]:", typeof value[0]);
 
                         if (
                             Array.isArray(answerValue) &&
@@ -376,7 +483,7 @@ const PemeQuestionnaireView = () => {
         const formData = new FormData();
 
         formData.append("peme_response_id", PemeResponseID);
-        formData.append("isDraft", isDraftStatus);
+        formData.append("isDraft", draftStatus);
 
         responses.forEach((item, index) => {
             formData.append(
@@ -552,7 +659,7 @@ const PemeQuestionnaireView = () => {
                                         form.input_type.map((type, i) => {
                                             const value =
                                                 answers[form.question_id]?.[
-                                                type.input_type
+                                                    type.input_type
                                                 ] || "";
 
                                             const attachmentValue =
@@ -564,9 +671,9 @@ const PemeQuestionnaireView = () => {
                                                 attachmentValue
                                             )
                                                 ? attachmentValue.filter(
-                                                    (item) =>
-                                                        item instanceof File
-                                                )
+                                                      (item) =>
+                                                          item instanceof File
+                                                  )
                                                 : [];
 
                                             switch (type.input_type) {
@@ -639,7 +746,7 @@ const PemeQuestionnaireView = () => {
                                                             {Array.isArray(
                                                                 form.media
                                                             ) &&
-                                                                form.media.length >
+                                                            form.media.length >
                                                                 0 ? (
                                                                 form.media.map(
                                                                     (
@@ -720,6 +827,19 @@ const PemeQuestionnaireView = () => {
                                                     return null;
                                             }
                                         })}
+
+                                    {form.isRequired === 1 ? (
+                                        <Typography
+                                            sx={{
+                                                fontWeight: "bold",
+                                                color: "red",
+                                            }}
+                                        >
+                                            REQUIRED
+                                        </Typography>
+                                    ) : (
+                                        ""
+                                    )}
                                 </Box>
                             ))}
                         <Box
@@ -766,39 +886,18 @@ const PemeQuestionnaireView = () => {
                                         onChange={setNextSchedule}
                                     />
                                 </LocalizationProvider>
-
-                                <FormControl sx={{ width: 200 }}>
-                                    <InputLabel>Status</InputLabel>
-                                    <Select
-                                        value={status}
-                                        label="Status"
-                                        onChange={(e) =>
-                                            setStatus(e.target.value)
-                                        }
-                                    >
-                                        <MenuItem value={"Pending"}>
-                                            Pending
-                                        </MenuItem>
-                                        <MenuItem value={"Clear"}>
-                                            Clear
-                                        </MenuItem>
-                                        <MenuItem value={"Rejected"}>
-                                            Rejected
-                                        </MenuItem>
-                                    </Select>
-                                </FormControl>
                             </Box>
 
                             <Box sx={{ display: "flex", gap: 2 }}>
                                 <Button
                                     variant="contained"
-                                    onClick={handleSaveDraft}
+                                    onClick={() => handleSaveDraft(1)}
                                 >
                                     Save Draft
                                 </Button>
                                 <Button
                                     variant="contained"
-                                    onClick={handleOnConfirmClick}
+                                    onClick={() => handleOnConfirmClick(0)}
                                 >
                                     Submit
                                 </Button>
