@@ -10,7 +10,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
 import PerformanceEvaluationEvaluateeAcknowledge from './Modals/PerformanceEvaluationEvaluateeAcknowledge';
 import Swal from 'sweetalert2';
-import ScoreLinearBar from './Test/ScoreLinearBar';
+import ScoreLinearBar from './Subsections/ScoreLinearBar';
 import jsPDF from "jspdf";
 import ModalReviewForm from './Modals/ModalReviewForm';
 
