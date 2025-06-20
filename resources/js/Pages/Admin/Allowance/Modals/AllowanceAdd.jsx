@@ -10,14 +10,9 @@ import { useSaveAllowance } from '../../../../hooks/useAllowances';
 const AllowanceAdd = ({ open, close }) => {
     const saveAllowance = useSaveAllowance();
     const [allowanceNameError, setAllowanceNameError] = useState(false);
-    const [allowanceAmountError, setAllowanceAmountError] = useState(false);
-    const [allowancePercentageError, setAllowancePercentageError] = useState(false);
     const [paymentScheduleError, setPaymentScheduleError] = useState(false);
 
     const [allowanceName, setAllowanceName] = useState('');
-    const [allowanceType, setAllowanceType] = useState('');
-    const [allowanceAmount, setAllowanceAmount] = useState('');
-    const [allowancePercentage, setAllowancePercentage] = useState('');
     const [paymentSchedule, setPaymentSchedule] = useState(1);
 
     const checkInput = (event) => {
@@ -29,124 +24,44 @@ const AllowanceAdd = ({ open, close }) => {
             setAllowanceNameError(false);
         }
 
-        if ( allowanceType == "Amount" ) {
-            checkInputAmount(event);
+        if (!paymentSchedule) {
+            setPaymentScheduleError(true);
+        } else {
+            setPaymentScheduleError(false);
         }
 
-        if ( allowanceType == "Percentage" ) {
-            checkInputPercentage(event);
+        if ( allowanceNameError == true || paymentScheduleError == true ) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        } else {
+            new Swal({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "You want to save this Allowance Type?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: 'Save',
+                confirmButtonColor: '#177604',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveInput(event);
+                }
+            });
         }
     };
-
-    const checkInputAmount = () => {
-
-        if (!allowanceAmount) {
-            setAllowanceAmountError(true);
-        } else {
-            setAllowanceAmountError(false);
-        }
-
-        if ( allowanceNameError == true || allowanceAmountError == true ) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            new Swal({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "You want to save this Allowance Type?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: 'Save',
-                confirmButtonColor: '#177604',
-                showCancelButton: true,
-                cancelButtonText: 'Cancel',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
-            });
-        }
-    }
-
-    const checkInputPercentage = () => {
-        if (!allowancePercentage) {
-            setAllowancePercentageError(true);
-        } else {
-            setAllowancePercentageError(false);
-        }
-
-        if ( allowanceNameError == true || allowancePercentageError == true ) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            new Swal({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "You want to save this Allowance Type?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: 'Save',
-                confirmButtonColor: '#177604',
-                showCancelButton: true,
-                cancelButtonText: 'Cancel',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
-            });
-        }
-    }
 
     const saveInput = (event) => {
         event.preventDefault();
 
-        const amount = parseFloat(allowanceAmount.replace(/,/g, "")) || 0;
-        const percentage = parseFloat(allowancePercentage.replace(/,/g, "")) || 0;
-
-        const data = {
-            name: allowanceName,
-            type: allowanceType,
-            amount: amount,
-            percentage: percentage,
-            payment_schedule: paymentSchedule,
-        };
+        const data = { name: allowanceName, payment_schedule: paymentSchedule };
         saveAllowance.mutate({data: data, onSuccessCallback: () => close(true)});
-    };
-
-    const formatCurrency = (value) => {
-        if (!value) return "";
-
-        let sanitizedValue = value.replace(/[^0-9.]/g, "");
-
-        const parts = sanitizedValue.split(".");
-        if (parts.length > 2) {
-            sanitizedValue = parts[0] + "." + parts.slice(1).join("");
-        }
-
-        let [integerPart, decimalPart] = sanitizedValue.split(".");
-        integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-        if (decimalPart !== undefined) {
-            decimalPart = decimalPart.slice(0, 2);
-            return decimalPart.length > 0 ? `${integerPart}.${decimalPart}` : integerPart + ".";
-        }
-
-        return integerPart;
-    };
-
-    const handleInputChange = (e, setValue) => {
-        const formattedValue = formatCurrency(e.target.value);
-        setValue(formattedValue);
     };
 
     return (
@@ -163,7 +78,7 @@ const AllowanceAdd = ({ open, close }) => {
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
                         <FormGroup row={true} className="d-flex justify-content-between">
-                            <FormControl sx={{ marginBottom: 3, width: '69%'}}>
+                            <FormControl sx={{ marginBottom: 3, width: '64%'}}>
                                 <TextField
                                     required
                                     id="allowanceName"
@@ -175,82 +90,28 @@ const AllowanceAdd = ({ open, close }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%' }}>
+                            <FormControl sx={{ marginBottom: 3, width: '34%'}}>
                                 <TextField
                                     required
                                     select
-                                    id="allowanceType"
-                                    label="Type"
-                                    value={allowanceType}
-                                    onChange={(event) => setAllowanceType(event.target.value)}
+                                    id="paymentSchedule"
+                                    label="Payment Schedule"
+                                    value={paymentSchedule}
+                                    error={paymentScheduleError}
+                                    onChange={(event) => setPaymentSchedule(event.target.value)}
                                 >
-                                    <MenuItem key="Amount" value="Amount"> Amount </MenuItem>
-                                    <MenuItem key="Percentage" value="Percentage"> Percentage </MenuItem>
-                                    {/* <MenuItem key="Bracket" value="Bracket"> Bracket </MenuItem> */}
+                                    <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>
+                                    <MenuItem key={2} value={2}> One Time - Second Cutoff</MenuItem>
+                                    <MenuItem key={3} value={3}> Split - First & Second Cutoff</MenuItem>
                                 </TextField>
                             </FormControl>
-                        </FormGroup>
+                        </FormGroup>  
 
-                        <FormGroup row={true} className="d-flex justify-content-between" >
-                            {allowanceType && (
-                                <FormControl sx={{ marginBottom: 3, width: '69%', }}>
-                                    <TextField
-                                        required
-                                        select
-                                        id="paymentSchedule"
-                                        label="Payment Schedule"
-                                        value={paymentSchedule}
-                                        error={paymentScheduleError}
-                                        onChange={(event) => setPaymentSchedule(event.target.value)}
-                                    >
-                                        <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>
-                                        <MenuItem key={2} value={2}> One Time - Second Cutoff</MenuItem>
-                                        <MenuItem key={3} value={3}> Split - First & Second Cutoff</MenuItem>
-                                    </TextField>
-                                </FormControl>
-                            )}
-                            {allowanceType === "Amount" && (
-                                <FormControl sx={{ marginBottom: 3, width: '29%' }}>
-                                    <InputLabel>Amount</InputLabel>
-                                    <OutlinedInput
-                                        required
-                                        id="allowanceAmount"
-                                        label="Amount"
-                                        value={allowanceAmount}
-                                        error={allowanceAmountError}
-                                        startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                        onChange={(e) => handleInputChange(e, setAllowanceAmount)}
-                                    />
-                                </FormControl>       
-                            )}
-                            {allowanceType === "Percentage" && (
-                                <FormControl sx={{ marginBottom: 3, width: '29%' }}>
-                                    <InputLabel>Percentage</InputLabel>
-                                    <OutlinedInput
-                                        required
-                                        id="allowancePercentage"
-                                        label="Percentage"
-                                        value={allowancePercentage}
-                                        error={allowancePercentageError}
-                                        startAdornment={<InputAdornment position="start">%</InputAdornment>}
-                                        onChange={(e) => handleInputChange(e, setAllowancePercentage)}
-                                    />
-                                </FormControl>
-                            )}
-                            
-
-                        </FormGroup>
-                        
-
-                        {allowanceType && (
-                            <>
-                                <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                                    <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Allowance </p>
-                                    </Button>
-                                </Box>
-                            </>
-                        )}
+                        <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
+                            <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                                <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Allowance </p>
+                            </Button>
+                        </Box>
 
                     </Box>
                 </DialogContent>

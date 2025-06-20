@@ -346,30 +346,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         ]);
     });
 
-    //note: use the compensation routes for future referencing
-    Route::prefix('allowance')->group(function () {
-        Route::get('/getAllowances', [
-            AllowanceController::class,
-            'getAllowances',
-        ]);
-        Route::post('/saveAllowance', [
-            AllowanceController::class,
-            'saveAllowance',
-        ]);
-
-        Route::get('/getEmployeeAllowance', [
-            AllowanceController::class,
-            'getEmployeeAllowance',
-        ]);
-        Route::get('/getEmployeesAllowance', [
-            AllowanceController::class,
-            'getEmployeesAllowance',
-        ]);
-        Route::post('/saveEmployeeAllowance', [
-            AllowanceController::class,
-            'saveEmployeeAllowance',
-        ]);
-    });
 
     Route::prefix('compensation')->group(function () {
         //allowances
@@ -422,25 +398,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/updateEmployeeDeduction', [
             CompensationManagementController::class,
             'updateEmployeeDeduction',
-        ]);
-    });
-
-    //note: use the compensation routes for future referencing
-    Route::prefix('benefits')->group(function () {
-        Route::get('/getBenefit', [BenefitsController::class, 'getBenefit']);
-        Route::get('/getBenefits', [BenefitsController::class, 'getBenefits']);
-        Route::post('/saveBenefit', [BenefitsController::class, 'saveBenefit']);
-
-        Route::post('/updateEmployeeBenefit', [SettingsController::class, 'updateEmployeeBenefit']);
-        Route::post('/addEmployeeBenefit', [BenefitsController::class, 'addEmployeeBenefit']);
-        Route::get('/getEmployeeBenefits', [BenefitsController::class, 'getEmployeeBenefits']);
-        Route::post('/addEmployeeBenefit', [
-            BenefitsController::class,
-            'addEmployeeBenefit',
-        ]);
-        Route::get('/getEmployeeBenefits', [
-            BenefitsController::class,
-            'getEmployeeBenefits',
         ]);
     });
 

@@ -706,9 +706,6 @@ class CompensationManagementController extends Controller
 
         $validated = $request->validate([
             'name' => 'required',
-            'type' => 'required',
-            'amount' => 'required',
-            'percentage' => 'required',
             'payment_schedule' => 'required',
         ]);
 
@@ -721,9 +718,9 @@ class CompensationManagementController extends Controller
 
                 AllowancesModel::create([
                     "name" => $request->name,
-                    "type" => $request->type,
-                    "amount" => $request->amount,
-                    "percentage" => $request->percentage,
+                    "type" => "Amount",
+                    "amount" => 0.00,
+                    "percentage" => 0.00,
                     "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
@@ -787,12 +784,14 @@ class CompensationManagementController extends Controller
         if(!$this->checkUserAdmin()){
             return response()->json(['status' => 200, 'allowances' => null]);  
         }
+
         $employee = UsersModel::where('user_name', $request->username)->first();
         $baseSalary = floatval($employee->salary);
         $allowances = [];
 
         $filterAllowanceId = $request->input('allowance_id');
         $decryptedAllowanceId = null;
+
         if (!empty($filterAllowanceId)) {
             try {
                 $decryptedAllowanceId = Crypt::decrypt($filterAllowanceId);
@@ -808,10 +807,10 @@ class CompensationManagementController extends Controller
 
             $amount = 0;
             $type = $allowance->allowance->type;
-            if($type == 'Amount'){
+
+            if ($type == 'Amount'){
                 $amount += $allowance->allowance->amount;
-            }
-            else{
+            } else {
                 $amount += ($baseSalary * ($allowance->allowance->percentage / 100));
             }
             
@@ -821,6 +820,7 @@ class CompensationManagementController extends Controller
                 'number' => $allowance->number,
                 'type' => $type,
                 'amount' => $allowance->allowance->amount,
+                'employee_amount' => (float) $allowance->amount,
                 'percentage' => $allowance->allowance->percentage,
                 'payment_schedule' => $allowance->allowance->payment_schedule,
                 'calculated_amount' => $amount,
@@ -975,6 +975,7 @@ class CompensationManagementController extends Controller
         $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_allowance_id);
 
         if($emp_allowance){
+            $emp_allowance->amount = $request->amount;
             $emp_allowance->status = $request->status;
             $emp_allowance->save();
         }
