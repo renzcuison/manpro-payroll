@@ -122,14 +122,9 @@ class AttendanceMobileController extends Controller
         $day = Carbon::parse($timestamp)->toDateString();
         $dayStart = Carbon::parse("$day {$workHour->first_time_in}");
 
-        $dayEnd = $workHour->shift_type === 'Regular'
-            ? Carbon::parse("$day {$workHour->first_time_out}")
-            : Carbon::parse("$day {$workHour->second_time_out}");
+        $dayEnd = $workHour->shift_type === 'Regular'? Carbon::parse("$day {$workHour->first_time_out}"): Carbon::parse("$day {$workHour->second_time_out}");
 
-        $summary = AttendanceSummary::where('user_id', $user->id)
-            ->where('work_day_start', $dayStart)
-            ->where('work_day_end', $dayEnd)
-            ->first();
+        $summary = AttendanceSummary::where('user_id', $user->id)->where('work_day_start', $dayStart)->where('work_day_end', $dayEnd)->first();
 
         if (!$summary) {
             $summary = AttendanceSummary::create([
