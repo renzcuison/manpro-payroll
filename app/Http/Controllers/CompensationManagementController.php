@@ -741,9 +741,6 @@ class CompensationManagementController extends Controller
     public function updateAllowance(Request $request){
         $validated = $request->validate([
             'name' => 'required',
-            'type' => 'required',
-            'amount' => 'required',
-            'percentage' => 'required',
             "payment_schedule" => 'required',
         ]);
 
@@ -752,20 +749,18 @@ class CompensationManagementController extends Controller
         }
 
         try{
-            $allowance_id = Crypt::decrypt($request->allowance_id);
+            $id = Crypt::decrypt($request->allowance_id);
         }
         catch(\Exception $e){
             return response()->json(["status" => 403, 'message' => 'Invalid ID']);
         }
 
-        $allowance = AllowancesModel::findOrFail($allowance_id);
+        $allowance = AllowancesModel::findOrFail($id);
+        
         if($allowance){
             try{
                 DB::beginTransaction();
                 $allowance->name = $request->name;
-                $allowance->type = $request->type;
-                $allowance->amount = $request->amount;
-                $allowance->percentage = $request->percentage;
                 $allowance->payment_schedule = $request->payment_schedule;
                 $allowance->save();
                 DB::commit();

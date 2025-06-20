@@ -349,9 +349,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('compensation')->group(function () {
         //allowances
-        Route::get('/getAllowances', [ CompensationManagementController::class, 'getAllowances', ]);
-        Route::post('/saveAllowance', [ CompensationManagementController::class, 'saveAllowance', ]);
-        Route::post('/updateAllowance', [ CompensationManagementController::class, 'updateAllowance', ]);
+        Route::get('/getAllowances', [ CompensationManagementController::class, 'getAllowances']);
+        Route::post('/saveAllowance', [ CompensationManagementController::class, 'saveAllowance']);
+        Route::post('/updateAllowance', [ CompensationManagementController::class, 'updateAllowance']);
 
         Route::get('/getEmployeeAllowance', [CompensationManagementController::class, 'getEmployeeAllowance']);
         Route::get('/getEmployeesAllowance', [CompensationManagementController::class, 'getEmployeesAllowance']);
