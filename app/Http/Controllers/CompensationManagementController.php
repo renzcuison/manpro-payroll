@@ -47,19 +47,42 @@ class CompensationManagementController extends Controller
         }
         return false;
     }
+    //#---------------->[endregion AUTH CHECKERS]
 
-    //---------------->[#endregion AUTH CHECKERS]
 
+    //#---------------->[region general utility function]
+
+    // public function filterEmployeesWithPagination($client, $filterName, $filterBranchId,
+    //  $filterDepartmentId, $qualifyingEmployeeIds){
+    //     $query = UsersModel::with(['branch', 'department'])
+    //     ->where('client_id', $client->id)
+    //     ->whereHas('branch')
+    //     ->whereHas('department')
+    //     ->whereIn('id', $qualifyingEmployeeIds)
+    //     ->when($filterName, fn($q) => $q->whereRaw("LOWER(CONCAT(last_name, ', ', first_name)) LIKE ?", ["%$filterName%"]))
+    //     ->when($filterBranchId, fn($q) => $q->where('branch_id', $filterBranchId))
+    //     ->when($filterDepartmentId, fn($q) => $q->where('department_id', $filterDepartmentId));
+    //     return $query;
+    // }
     
-    // #---------------->[region INCENTIVES CONTROLLERS]
+    //#---------------->[endregion general utility function]
+
+
+    //#---------------->[region INCENTIVES CONTROLLERS]
 
     public function getEmployeesIncentives(Request $request)
     {
         if(!$this->checkUserAdmin()){
-            return response()->json(['status' => 200, 'employees' => null]);
+            return response()->json([
+                'status' => 200,
+                'employee_count' => 0,
+                'employees' => [],
+                'total' => 0,
+            ]);
         }
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
+
         $filterName = strtolower($request->input('name'));
         $filterBranchId = $request->input('branch_id');
         $filterDepartmentId = $request->input('department_id');
@@ -67,32 +90,40 @@ class CompensationManagementController extends Controller
         $page = max(1, (int)$request->input('page', 1));
         $perPage = max(1, (int)$request->input('per_page', 10));
 
-        $filteredEmployees = $client->employees->filter(function ($employee) use ($filterName, $filterBranchId, $filterDepartmentId) {
-            $fullName = strtolower($employee->last_name . ", " . $employee->first_name);
-            $matchesName = $filterName === '' || str_contains($fullName, $filterName);
-            $matchesBranch = !$filterBranchId || $employee->branch_id == $filterBranchId;
-            $matchesDepartment = !$filterDepartmentId || $employee->department_id == $filterDepartmentId;
-            return $matchesName && $matchesBranch && $matchesDepartment;
-        });
+        $qualifyingEmployeeIds = EmployeeIncentivesModel::whereNull('deleted_at')
+        ->when($filterIncentiveId, fn($q) => $q->where('incentive_id', $filterIncentiveId))
+        ->pluck('user_id')
+        ->unique();
 
-        $resultEmployees = collect();
+        $query = UsersModel::with(['branch', 'department'])
+        ->where('client_id', $client->id)
+        ->whereHas('branch')
+        ->whereHas('department')
+        ->whereIn('id', $qualifyingEmployeeIds)
+        ->when($filterName, fn($q) => $q->whereRaw("LOWER(CONCAT(last_name, ', ', first_name)) LIKE ?", ["%$filterName%"]))
+        ->when($filterBranchId, fn($q) => $q->where('branch_id', $filterBranchId))
+        ->when($filterDepartmentId, fn($q) => $q->where('department_id', $filterDepartmentId));
 
-        foreach($filteredEmployees as $employee){
-            $incentivesQuery = EmployeeIncentivesModel::with('incentive')->where('user_id', $employee->id)->whereNull('deleted_at');
-            if($filterIncentiveId){
-                $incentivesQuery->where('incentive_id', $filterIncentiveId);
-            }
-            $incentives = $incentivesQuery->get();
+        $countQuery = (clone $query);
+        $total_count = $countQuery->count();
+        $employees = $query
+        ->offset(($page - 1) * $perPage)
+        ->limit($perPage)
+        ->get();
 
-            if($filterIncentiveId && $incentives->isEmpty()){
-                continue;
-            }
+        $result = collect();
+        $total_amount = 0;
+
+        foreach($employees as $employee){
+            $incentives = EmployeeIncentivesModel::with('incentive')
+            ->where('user_id', $employee->id)
+            ->whereNull('deleted_at')
+            ->when($filterIncentiveId, fn($q) => $q->where('incentive_id', $filterIncentiveId))
+            ->get();
+            
             $baseSalary = floatval($employee->salary);
             $amount = 0;
             foreach($incentives as $incentive){  
-                if($filterIncentiveId && $incentive->incentive_id != $filterIncentiveId){
-                    continue;
-                }
                 $type = $incentive->incentive->type;
                 if($type == 'Amount'){
                     $amount += $incentive->incentive->amount;
@@ -101,7 +132,7 @@ class CompensationManagementController extends Controller
                     $amount += $baseSalary * ($incentive->incentive->percentage / 100);
                 }
             }
-            $resultEmployees->push([
+            $result->push([
                 'user_name' => $employee->user_name,
                 'name' => "{$employee->last_name}, {$employee->first_name} {$employee->middle_name} {$employee->suffix}",
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
@@ -109,16 +140,14 @@ class CompensationManagementController extends Controller
                 'branch_id' => $employee->branch_id,
                 'department_id' => $employee->department_id,
                 'amount' => $amount,
-            ]);   
+            ]);  
+            $total_amount += $amount; 
         }
-        $total_count = $resultEmployees->count();
-        $paginated = $resultEmployees->forPage($page, $perPage)->values();
-
         return response()->json([
             'status' => 200,
             'employee_count' => $total_count,
-            'employees' => $paginated,
-            'total' => $paginated->sum('amount'),
+            'employees' => $result->values(),
+            'total' => $total_amount,
             'current_page' => $page,
         ]);
     }
@@ -162,6 +191,7 @@ class CompensationManagementController extends Controller
                 'type' => $incentive->incentive->type,
                 'amount' => $incentive->incentive->amount,
                 'percentage' => $incentive->incentive->percentage,
+                'payment_schedule' => $incentive->incentive->payment_schedule,
                 'calculated_amount' => $amount,
                 'status' =>$incentive->status,
                 'created_at' => $incentive->created_at,
@@ -186,6 +216,7 @@ class CompensationManagementController extends Controller
                 'type' => $incentive->type,
                 'amount' => $incentive->amount,
                 'percentage' => $incentive->percentage,
+                'payment_schedule' => $incentive->payment_schedule,
             ];
         }
         return response()->json(['status' => 200, 'incentives' => $incentives]);
@@ -198,10 +229,10 @@ class CompensationManagementController extends Controller
             'type' => 'required',
             'amount' => 'required',
             'percentage' => 'required',
+            'payment_schedule' => 'required',
         ]);
 
         if ($this->checkUserAdmin() && $validated) {
-
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
@@ -213,6 +244,7 @@ class CompensationManagementController extends Controller
                     "type" => $request->type,
                     "amount" => $request->amount,
                     "percentage" => $request->percentage,
+                    "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
 
@@ -227,6 +259,45 @@ class CompensationManagementController extends Controller
                 throw $e;
             }
         }
+    }
+
+    public function updateIncentives(Request $request){
+        $validated = $request->validate([
+            'name' => 'required',
+            'type' => 'required',
+            'amount' => 'required',
+            'percentage' => 'required',
+            'payment_schedule' => 'required',
+        ]);
+        if(!$this->checkUserAdmin() && !$validated){
+            return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
+        }
+
+        try{
+            $incentive_id = Crypt::decrypt($request->incentive_id);
+        }
+        catch(\Exception $e){
+            return response()->json(["status" => 403, 'message' => 'Invalid ID']);
+        }
+
+        $incentive = IncentivesModel::findOrFail($incentive_id);
+        if($incentive){
+            try{
+                DB::beginTransaction();
+                $incentive->name = $request->name;
+                $incentive->type = $request->type;
+                $incentive->amount = $request->amount;
+                $incentive->percentage = $request->percentage;
+                $incentive->payment_schedule = $request->payment_schedule;
+                $incentive->save();
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+        return response()->json(['status' => 200, 'message' => 'Process Success']);
     }
 
     public function saveEmployeeIncentives(Request $request)
@@ -273,6 +344,7 @@ class CompensationManagementController extends Controller
 
         if($emp_incentive){
             $emp_incentive->number = $request->number;
+            $emp_incentive->status = $request->status;
             $emp_incentive->save();
         }
         return response()->json(['status' => 200]);
@@ -299,6 +371,7 @@ class CompensationManagementController extends Controller
             return response()->json([
                 'status' => 200,
                 'employees' => [],
+                'employee_count' => 0,
                 'employee_total' => 0,
                 'employer_total' => 0,
                 'total' => 0,
@@ -314,66 +387,69 @@ class CompensationManagementController extends Controller
         $page = max(1, (int)$request->input('page', 1));
         $perPage = max(1, (int)$request->input('per_page', 10));
 
-        $filteredEmployees = $client->employees->filter(function ($employee) use ($filterName, $filterBranchId, $filterDepartmentId) {
-            $fullName = strtolower($employee->last_name . ", " . $employee->first_name);
-            $matchesName = $filterName === '' || str_contains($fullName, $filterName);
-            $matchesBranch = !$filterBranchId || $employee->branch_id == $filterBranchId;
-            $matchesDepartment = !$filterDepartmentId || $employee->department_id == $filterDepartmentId;
-            return $matchesName && $matchesBranch && $matchesDepartment;
-        });
+        $qualifyingEmployeeIds = EmployeeBenefitsModel::whereNull('deleted_at')
+        ->when($filterBenefitId, fn($q) => $q->where('benefit_id', $filterBenefitId))
+        ->pluck('user_id')
+        ->unique();
 
-        $resultEmployees = collect();
+        $query = UsersModel::with(['branch', 'department'])
+        ->where('client_id', $client->id)
+        ->whereHas('branch')
+        ->whereHas('department')
+        ->whereIn('id', $qualifyingEmployeeIds)
+        ->when($filterName, fn($q) => $q->whereRaw("LOWER(CONCAT(last_name, ', ', first_name)) LIKE ?", ["%$filterName%"]))
+        ->when($filterBranchId, fn($q) => $q->where('branch_id', $filterBranchId))
+        ->when($filterDepartmentId, fn($q) => $q->where('department_id', $filterDepartmentId));
+        
+        $countQuery = (clone $query);
+        $total_count = $countQuery->count();
+        $employees = $query
+        ->offset(($page - 1) * $perPage)
+        ->limit($perPage)
+        ->get();
 
-        foreach($filteredEmployees as $employee){
-            $rawBenefitsQuery = EmployeeBenefitsModel::with('benefit')->where('user_id', $employee->id)->whereNull('deleted_at');
-            if($filterBenefitId){
-                $rawBenefitsQuery->where('benefit_id', $filterBenefitId);
-            }
-            $rawBenefits = $rawBenefitsQuery->get();
+        $result = collect();
+        $total_employee_amount = 0;
+        $total_employer_amount = 0;
 
-            //if there are no matching benefits held by the employee
-            if($filterBenefitId && $rawBenefits->isEmpty()){
-                continue;
-            }
+        foreach($employees as $employee){
+            $benefits = EmployeeBenefitsModel::with('benefit')
+            ->where('user_id', $employee->id)
+            ->whereNull('deleted_at')
+            ->when($filterBenefitId, fn($q) => $q->where('benefit_id', $filterBenefitId))
+            ->get();
 
             $baseSalary = floatval($employee->salary);
             $employee_calc_amount = 0;
             $employer_calc_amount = 0;
-            $benefits = [];
+            $calculatedBenefits = [];
 
-            foreach($rawBenefits as $rawBenefit){
-                //if benefit filter is provided, then those that do not match with the benefit id gets skipped in the calculation
-                if ($filterBenefitId && $rawBenefit->benefit_id != $filterBenefitId) {
-                    continue;
-                }
-                $calc = $this->calculateBenefits($rawBenefit, $baseSalary);
-                $benefits[] = $calc;
+            foreach($benefits as $benefit){
+                $calc = $this->calculateBenefits($benefit, $baseSalary);
+                $calculatedBenefits[] = $calc;
                 $employee_calc_amount += $calc['employee_contribution'];
                 $employer_calc_amount += $calc['employer_contribution'];
             }
-
-            $resultEmployees->push([
+            $result->push([
                 'user_name' => $employee->user_name,
                 'name' => "{$employee->last_name}, {$employee->first_name} {$employee->middle_name} {$employee->suffix}",
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
                 'department' => $employee->department->name . " (" . $employee->department->acronym . ")",
                 'branch_id' => $employee->branch_id,
                 'department_id' => $employee->department_id,
-                'benefits' => $benefits,
                 'employee_amount' => $employee_calc_amount,
                 'employer_amount' => $employer_calc_amount,
             ]);
+            $total_employee_amount += $employee_calc_amount;
+            $total_employer_amount += $employer_calc_amount;
         }
-
-        $total_count = $resultEmployees->count();
-        $paginated = $resultEmployees->forPage($page, $perPage)->values();
 
         return response()->json([
             'status' => 200,
-            'employees' => $paginated,
-            'employee_total' => $paginated->sum('employee_amount'),
-            'employer_total' => $paginated->sum('employer_amount'),
-            'total' => $total_count,
+            'employees' => $result->values(),
+            'employee_total' => $total_employer_amount,
+            'employer_total' => $total_employee_amount,
+            'employee_count' => $total_count,
             'current_page' => $page,
         ]);
     }
@@ -425,6 +501,7 @@ class CompensationManagementController extends Controller
                 'employee_percentage' => $benefit->benefit->employee_percentage,
                 'employer_contribution' => $employer_amount,
                 'employee_contribution' => $employee_amount,
+                'payment_schedule' => $benefit->benefit->payment_schedule,
                 'status' => $benefit->status,
                 'created_at' => $benefit->created_at,
             ];
@@ -450,6 +527,7 @@ class CompensationManagementController extends Controller
                 'employee_amount' => $benefit->employee_amount,
                 'employer_percentage' => $benefit->employer_percentage,
                 'employee_percentage' => $benefit->employee_percentage,
+                "payment_schedule" => $benefit->payment_schedule,
             ];
         }
         
@@ -465,10 +543,10 @@ class CompensationManagementController extends Controller
             'employerAmount' => 'required',
             'employeePercentage' => 'required',
             'employerPercentage' => 'required',
+            'payment_schedule' => 'required',
         ]);
 
         if ($this->checkUserAdmin() && $validated) {
-
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
@@ -482,6 +560,7 @@ class CompensationManagementController extends Controller
                     "employer_percentage" => $request->employerPercentage,
                     "employee_amount" => $request->employeeAmount,
                     "employer_amount" => $request->employerAmount,
+                    "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
                 DB::commit();
@@ -494,6 +573,50 @@ class CompensationManagementController extends Controller
                 throw $e;
             }
         }
+    }
+
+    public function updateBenefits(Request $request){
+        $validated = $request->validate([
+            'benefitName' => 'required',
+            'benefitType' => 'required',
+            'employeeAmount' => 'required',
+            'employerAmount' => 'required',
+            'employeePercentage' => 'required',
+            'employerPercentage' => 'required',
+            'payment_schedule' => 'required',
+        ]);
+
+        if(!$this->checkUserAdmin() && !$validated){
+            return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
+        }
+
+        try{
+            $benefit_id = Crypt::decrypt($request->benefit_id);
+        }
+        catch(\Exception $e){
+            return response()->json(["status" => 403, 'message' => 'Invalid ID']);
+        }
+
+        $benefit = BenefitsModel::findOrFail($benefit_id);
+        if($benefit){
+            try{
+                DB::beginTransaction();
+                $benefit->name = $request->benefitName;
+                $benefit->type = $request->benefitType;
+                $benefit->employer_amount = $request->employerAmount;
+                $benefit->employee_amount = $request->employeeAmount;
+                $benefit->employer_percentage = $request->employerPercentage;
+                $benefit->employee_percentage = $request->employeePercentage;
+                $benefit->payment_schedule = $request->payment_schedule;
+                $benefit->save();
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+        return response()->json(['status' => 200, 'message' => 'Process Success']);
     }
 
     public function saveEmployeeBenefits(Request $request)
@@ -540,6 +663,7 @@ class CompensationManagementController extends Controller
 
         if($emp_benefit){
             $emp_benefit->number = $request->number;
+            $emp_benefit->status = $request->status;
             $emp_benefit->save();
         }
         return response()->json(['status' => 200]);
@@ -548,7 +672,7 @@ class CompensationManagementController extends Controller
 
 
     //---------------->[#region ALLOWANCES CONTROLLERS]
-
+    
     public function getAllowances()
     {
         // log::info("AllowanceController::getAllowances");
@@ -566,6 +690,7 @@ class CompensationManagementController extends Controller
                     'type' => $allowance->type,
                     'amount' => $allowance->amount,
                     'percentage' => $allowance->percentage,
+                    "payment_schedule" => $allowance->payment_schedule,
                 ];
             }
 
@@ -584,21 +709,22 @@ class CompensationManagementController extends Controller
             'type' => 'required',
             'amount' => 'required',
             'percentage' => 'required',
+            'payment_schedule' => 'required',
         ]);
 
         if ($this->checkUserAdmin() && $validated) {
-
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
             try {
                 DB::beginTransaction();
 
-                $allowance = AllowancesModel::create([
+                AllowancesModel::create([
                     "name" => $request->name,
                     "type" => $request->type,
                     "amount" => $request->amount,
                     "percentage" => $request->percentage,
+                    "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
 
@@ -613,6 +739,46 @@ class CompensationManagementController extends Controller
                 throw $e;
             }
         }
+    }
+
+    public function updateAllowance(Request $request){
+        $validated = $request->validate([
+            'name' => 'required',
+            'type' => 'required',
+            'amount' => 'required',
+            'percentage' => 'required',
+            "payment_schedule" => 'required',
+        ]);
+
+        if(!$this->checkUserAdmin() && !$validated){
+            return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
+        }
+
+        try{
+            $allowance_id = Crypt::decrypt($request->allowance_id);
+        }
+        catch(\Exception $e){
+            return response()->json(["status" => 403, 'message' => 'Invalid ID']);
+        }
+
+        $allowance = AllowancesModel::findOrFail($allowance_id);
+        if($allowance){
+            try{
+                DB::beginTransaction();
+                $allowance->name = $request->name;
+                $allowance->type = $request->type;
+                $allowance->amount = $request->amount;
+                $allowance->percentage = $request->percentage;
+                $allowance->payment_schedule = $request->payment_schedule;
+                $allowance->save();
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+        return response()->json(['status' => 200, 'message' => 'Process Success']);
     }
 
     public function getEmployeeAllowance(Request $request)
@@ -656,6 +822,7 @@ class CompensationManagementController extends Controller
                 'type' => $type,
                 'amount' => $allowance->allowance->amount,
                 'percentage' => $allowance->allowance->percentage,
+                'payment_schedule' => $allowance->allowance->payment_schedule,
                 'calculated_amount' => $amount,
                 'status' =>$allowance->status,
                 'created_at' => $allowance->created_at,
@@ -669,6 +836,7 @@ class CompensationManagementController extends Controller
         if (!$this->checkUserAdmin()) {
             return response()->json([
                 'status' => 200,
+                'employee_count' => 0,
                 'employees' => [],
                 'total' => 0,
             ]);
@@ -682,33 +850,55 @@ class CompensationManagementController extends Controller
         $filterAllowanceId = $request->filled('allowance_id') ? Crypt::decrypt($request->input('allowance_id')) : null;
         $page = max(1, (int)$request->input('page', 1));
         $perPage = max(1, (int)$request->input('per_page', 10));
+        
+        //fetch employees that have existing allowance records. If there is a filter prompted in the FE, triggers the when() function
+        $qualifyingEmployeeIds = EmployeeAllowancesModel::whereNull('deleted_at')
+        ->when($filterAllowanceId, fn($q) => $q->where('allowance_id', $filterAllowanceId))
+        ->pluck('user_id')
+        ->unique();
 
-        $filteredEmployees = $client->employees->filter(function ($employee) use ($filterName, $filterBranchId, $filterDepartmentId) {
-            $fullName = strtolower($employee->last_name . ", " . $employee->first_name);
-            $matchesName = $filterName === '' || str_contains($fullName, $filterName);
-            $matchesBranch = !$filterBranchId || $employee->branch_id == $filterBranchId;
-            $matchesDepartment = !$filterDepartmentId || $employee->department_id == $filterDepartmentId;
-            return $matchesName && $matchesBranch && $matchesDepartment;
-        });
+        //for filtering employees, based on the previous result above this code ^ (whereHas is to ensure that those with existing department/branch link are included only)
+        $query = UsersModel::with(['branch', 'department'])
+        ->where('client_id', $client->id)
+        ->whereHas('branch')
+        ->whereHas('department')
+        ->whereIn('id', $qualifyingEmployeeIds);
 
-        $resultEmployees = collect();
+        //These three only triggers if the corresponding values are not null
+        //search name filtering via FE searchbar
+        if($filterName){
+            $query->whereRaw("LOWER(CONCAT(last_name, ', ', first_name)) LIKE ?", ["%$filterName%"]);
+        }
+        //branch filtering via FE dropdown
+        if($filterBranchId){
+            $query->where('branch_id', $filterBranchId);
+        }
+        if($filterDepartmentId){
+            $query->where('department_id', $filterDepartmentId);
+        }
 
-        foreach($filteredEmployees as $employee){
-            $allowancesQuery = EmployeeAllowancesModel::with('allowance')->where('user_id', $employee->id)->whereNull('deleted_at');
-            if($filterAllowanceId){
-                $allowancesQuery->where('allowance_id', $filterAllowanceId);
-            }
-            $allowances = $allowancesQuery->get();
+        //for employee counting purposes <pagination>
+        $countQuery = (clone $query);
+        $total_count = $countQuery->count();
+        $employees = $query
+        ->offset(($page - 1) * $perPage)
+        ->limit($perPage)
+        ->get();
 
-            if($filterAllowanceId && $allowances->isEmpty()){
-                continue;
-            }
+        $result = collect();
+        $total_amount = 0;
+
+        //allowance calculation purposes
+        foreach($employees as $employee){
+            $allowances = EmployeeAllowancesModel::with('allowance')
+            ->where('user_id', $employee->id)
+            ->whereNull('deleted_at')
+            ->when($filterAllowanceId, fn($q) => $q->where('allowance_id', $filterAllowanceId))
+            ->get();
+
             $baseSalary = floatval($employee->salary);
             $amount = 0;
             foreach($allowances as $allowance){  
-                if($filterAllowanceId && $allowance->allowance_id != $filterAllowanceId){
-                    continue;
-                }
                 $type = $allowance->allowance->type;
                 if($type == 'Amount'){
                     $amount += $allowance->allowance->amount;
@@ -717,7 +907,8 @@ class CompensationManagementController extends Controller
                     $amount += $baseSalary * ($allowance->allowance->percentage / 100);
                 }
             }
-            $resultEmployees->push([
+
+            $result->push([
                 'user_name' => $employee->user_name,
                 'name' => "{$employee->last_name}, {$employee->first_name} {$employee->middle_name} {$employee->suffix}",
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
@@ -725,16 +916,14 @@ class CompensationManagementController extends Controller
                 'branch_id' => $employee->branch_id,
                 'department_id' => $employee->department_id,
                 'amount' => $amount,
-            ]);   
+            ]);  
+            $total_amount += $amount;
         }
-        $total_count = $resultEmployees->count();
-        $paginated = $resultEmployees->forPage($page, $perPage)->values();
-
         return response()->json([
             'status' => 200,
             'employee_count' => $total_count,
-            'employees' => $paginated,
-            'total' => $paginated->sum('amount'),
+            'employees' => $result->values(),
+            'total' => $total_amount,
             'current_page' => $page,
         ]);
     }
@@ -746,7 +935,7 @@ class CompensationManagementController extends Controller
         $validated = $request->validate([
             'userName' => 'required',
             'allowance' => 'required',
-            'number' => 'required',
+            // 'number' => 'required',
         ]);
         if (!$this->checkUserAdmin() || !$validated) {
             return response()->json(['status' => 403]);
@@ -763,7 +952,7 @@ class CompensationManagementController extends Controller
                 "client_id" => $client->id,
                 "user_id" => $employee->id,
                 "allowance_id" => Crypt::decrypt($request->allowance),
-                "number" => $request->number,
+                // "number" => $request->number,
             ]);
 
             DB::commit();
@@ -782,8 +971,8 @@ class CompensationManagementController extends Controller
         if(!$this->checkUserAdmin()){
             return response()->json(['status' => 403]);
         }
-        $employee_deduction_id = Crypt::decrypt($request->emp_allowance_id);
-        $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_deduction_id);
+        $employee_allowance_id = Crypt::decrypt($request->emp_allowance_id);
+        $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_allowance_id);
 
         if($emp_allowance){
             $emp_allowance->status = $request->status;
@@ -815,12 +1004,12 @@ class CompensationManagementController extends Controller
                     'type' => $deduction->type,
                     'amount' => $deduction->amount,
                     'percentage' => $deduction->percentage,
+                    'payment_schedule' => $deduction->payment_schedule,
                 ];
             }
 
             return response()->json(['status' => 200, 'deductions' => $deductions]);
         }
-
         return response()->json(['status' => 200, 'deductions' => null]);
     }
 
@@ -831,6 +1020,7 @@ class CompensationManagementController extends Controller
             'type' => 'required',
             'amount' => 'required',
             'percentage' => 'required',
+            'payment_schedule' => 'required'
         ]);
 
         if ($this->checkUserAdmin() && $validated) {
@@ -846,6 +1036,7 @@ class CompensationManagementController extends Controller
                     "type" => $request->type,
                     "amount" => $request->amount,
                     "percentage" => $request->percentage,
+                    "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
 
@@ -859,6 +1050,45 @@ class CompensationManagementController extends Controller
                 throw $e;
             }
         }
+    }
+
+    public function updateDeductions(Request $request){
+        $validated = $request->validate([
+            'name' => 'required',
+            'type' => 'required',
+            'amount' => 'required',
+            'percentage' => 'required',
+            'payment_schedule' => 'required'
+        ]);
+        if(!$this->checkUserAdmin() && !$validated){
+            return response()->json(['status' => 401, 'message' => 'Unauthorized']);  
+        }
+
+        try{
+            $deduction_id = Crypt::decrypt($request->deduction_id);
+        }
+        catch(\Exception $e){
+            return response()->json(["status" => 403, 'message' => 'Invalid ID']);
+        }
+
+        $deduction = DeductionsModel::findOrFail($deduction_id);
+        if($deduction){
+            try{
+                DB::beginTransaction();
+                $deduction->name = $request->name;
+                $deduction->type = $request->type;
+                $deduction->amount = $request->amount;
+                $deduction->percentage = $request->percentage;
+                $deduction->payment_schedule = $request->payment_schedule;
+                $deduction->save();
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error("Error saving: " . $e->getMessage());
+                throw $e;
+            }
+        }
+        return response()->json(['status' => 200, 'message' => 'Process Success']);
     }
 
     public function getEmployeeDeductions(Request $request)
@@ -900,7 +1130,8 @@ class CompensationManagementController extends Controller
                 'type' => $type,
                 'amount' => $deduction->deduction->amount,
                 'percentage' => $deduction->deduction->percentage,
-                'calculated_amount' => $amount,
+                'payment_schedule' => $deduction->deduction->payment_schedule,
+                'calculated_amount' => $amount,     
                 'status' =>$deduction->status,
                 'created_at' => $deduction->created_at,
             ];
@@ -913,13 +1144,13 @@ class CompensationManagementController extends Controller
         if (!$this->checkUserAdmin()) {
             return response()->json([
                 'status' => 200,
+                'employee_count' => 0,
                 'employees' => [],
                 'total' => 0,
             ]);
         }
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
-
         $filterName = strtolower($request->input('name'));
         $filterBranchId = $request->input('branch_id');
         $filterDepartmentId = $request->input('department_id');
@@ -927,31 +1158,41 @@ class CompensationManagementController extends Controller
         $page = max(1, (int)$request->input('page', 1));
         $perPage = max(1, (int)$request->input('per_page', 10));
 
-        $filteredEmployees = $client->employees->filter(function ($employee) use ($filterName, $filterBranchId, $filterDepartmentId) {
-            $fullName = strtolower($employee->last_name . ", " . $employee->first_name);
-            $matchesName = $filterName === '' || str_contains($fullName, $filterName);
-            $matchesBranch = !$filterBranchId || $employee->branch_id == $filterBranchId;
-            $matchesDepartment = !$filterDepartmentId || $employee->department_id == $filterDepartmentId;
-            return $matchesName && $matchesBranch && $matchesDepartment;
-        });
-        $resultEmployees = collect();
+        $qualifyingEmployeeIds = EmployeeDeductionsModel::whereNull('deleted_at')
+        ->when($filterDeductionId, fn($q) => $q->where('deduction_id', $filterDeductionId))
+        ->pluck('user_id')
+        ->unique();
 
-        foreach($filteredEmployees as $employee){
-            $deductionsQuery = EmployeeDeductionsModel::with('deduction')->where('user_id', $employee->id)->whereNull('deleted_at');
-            if($filterDeductionId){
-                $deductionsQuery->where('deduction_id', $filterDeductionId);
-            }
-            $deductions = $deductionsQuery->get();
+        $query = UsersModel::with(['branch', 'department'])
+        ->where('client_id', $client->id)
+        ->whereHas('branch')
+        ->whereHas('department')
+        ->whereIn('id', $qualifyingEmployeeIds)
+        ->when($filterName, fn($q) => $q->whereRaw("LOWER(CONCAT(last_name, ', ', first_name)) LIKE ?", ["%$filterName%"]))
+        ->when($filterBranchId, fn($q) => $q->where('branch_id', $filterBranchId))
+        ->when($filterDepartmentId, fn($q) => $q->where('department_id', $filterDepartmentId));
 
-            if($filterDeductionId && $deductions->isEmpty()){
-                continue;
-            }
+        $countQuery = (clone $query);
+        $total_count = $countQuery->count();
+        $employees = $query
+        ->offset(($page - 1) * $perPage)
+        ->limit($perPage)
+        ->get();
+
+        $result = collect();
+        $total_amount = 0;
+
+        foreach($employees as $employee){
+            $deductions = EmployeeDeductionsModel::with('deduction')
+            ->where('user_id', $employee->id)
+            ->whereNull('deleted_at')
+            ->when($filterDeductionId, fn($q) => $q->where('deduction_id', $filterDeductionId))
+            ->get();
+            
             $baseSalary = floatval($employee->salary);
             $amount = 0;
+
             foreach($deductions as $deduction){  
-                if($filterDeductionId && $deduction->deduction_id != $filterDeductionId){
-                    continue;
-                }
                 $type = $deduction->deduction->type;
                 if($type == 'Amount'){
                     $amount += $deduction->deduction->amount;
@@ -960,7 +1201,7 @@ class CompensationManagementController extends Controller
                     $amount += $baseSalary * ($deduction->deduction->percentage / 100);
                 }
             }
-            $resultEmployees->push([
+            $result->push([
                 'user_name' => $employee->user_name,
                 'name' => "{$employee->last_name}, {$employee->first_name} {$employee->middle_name} {$employee->suffix}",
                 'branch' => $employee->branch->name . " (" . $employee->branch->acronym . ")",
@@ -970,14 +1211,13 @@ class CompensationManagementController extends Controller
                 'amount' => $amount,
             ]);      
         }
-        $total_count = $resultEmployees->count();
-        $paginated = $resultEmployees->forPage($page, $perPage)->values();
+        $total_amount += $amount;
 
         return response()->json([
             'status' => 200,
             'employee_count' => $total_count,
-            'employees' => $paginated,
-            'total' => $paginated->sum('amount'),
+            'employees' => $result->values(),
+            'total' => $total_amount,
             'current_page' => $page,
         ]);
     }
@@ -1029,6 +1269,7 @@ class CompensationManagementController extends Controller
 
         if($emp_deduction){
             $emp_deduction->number = $request->number;
+            $emp_deduction->status = $request->status;
             $emp_deduction->save();
         }
         return response()->json(['status' => 200]);

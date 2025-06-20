@@ -4,53 +4,52 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import React, { useState, useEffect } from 'react';
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 import 'react-quill/dist/quill.snow.css';
-import { useSaveIncentives } from '../../../../hooks/useIncentives';
+import { useUpdateDeduction } from '../../../../hooks/useDeductions';
 
-const IncentivesAdd = ({ open, close }) => {
-    const saveIncentives = useSaveIncentives();
+const DeductionsEdit = ({ deduction, open, close }) => {
+    const updateDeductions = useUpdateDeduction();
 
-    const [incentivesNameError, setIncentivesNameError] = useState(false);
-    const [incentivesAmountError, setIncentivesAmountError] = useState(false);
-    const [incentivesPercentageError, setIncentivesPercentageError] = useState(false);
+    const [deductionsNameError, setDeductionsNameError] = useState(false);
+    const [deductionsAmountError, setDeductionsAmountError] = useState(false);
+    const [deductionsPercentageError, setDeductionsPercentageError] = useState(false);
 
-    const [incentivesName, setIncentivesName] = useState('');
-    const [incentivesType, setIncentivesType] = useState('');
-    const [incentivesAmount, setIncentivesAmount] = useState('');
-    const [incentivesPercentage, setIncentivesPercentage] = useState('');
+    const [deductionsName, setDeductionsName] = useState(deduction?.name);
+    const [deductionsType, setDeductionsType] = useState(deduction?.type);
+    const [deductionsAmount, setDeductionsAmount] = useState(deduction?.amount);
+    const [deductionsPercentage, setDeductionsPercentage] = useState(deduction?.percentage);
 
     const [paymentScheduleError, setPaymentScheduleError] = useState(false);
-    const [paymentSchedule, setPaymentSchedule] = useState(1);
+    const [paymentSchedule, setPaymentSchedule] = useState(deduction?.payment_schedule || 1);
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!incentivesName) {
-            setIncentivesNameError(true);
+        if (!deductionsName) {
+            setDeductionsNameError(true);
         } else {
-            setIncentivesNameError(false);
+            setDeductionsNameError(false);
         }
 
-        if ( incentivesType == "Amount" ) {
+        if ( deductionsType == "Amount" ) {
             checkInputAmount(event);
         }
 
-        if ( incentivesType == "Percentage" ) {
+        if ( deductionsType == "Percentage" ) {
             checkInputPercentage(event);
         }
     };
 
     const checkInputAmount = () => {
 
-        if (!incentivesAmount) {
-            setIncentivesAmountError(true);
+        if (!deductionsAmount) {
+            setDeductionsAmountError(true);
         } else {
-            setIncentivesAmountError(false);
+            setDeductionsAmountError(false);
         }
 
-        if ( incentivesNameError == true || incentivesAmountError == true ) {
+        if ( deductionsNameError == true || deductionsAmountError == true ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -62,7 +61,7 @@ const IncentivesAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Incentives Type?",
+                text: "You want to save this Deduction Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -78,13 +77,13 @@ const IncentivesAdd = ({ open, close }) => {
     }
 
     const checkInputPercentage = () => {
-        if (!incentivesPercentage) {
-            setIncentivesPercentageError(true);
+        if (!deductionsPercentage) {
+            setDeductionsPercentageError(true);
         } else {
-            setIncentivesPercentageError(false);
+            setDeductionsPercentageError(false);
         }
 
-        if ( incentivesNameError == true || incentivesPercentageError == true ) {
+        if ( deductionsNameError == true || deductionsPercentageError == true ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -96,7 +95,7 @@ const IncentivesAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Incentives Type?",
+                text: "You want to save this Deduction Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -113,17 +112,18 @@ const IncentivesAdd = ({ open, close }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
-        const amount = parseFloat(incentivesAmount.replace(/,/g, "")) || 0;
-        const percentage = parseFloat(incentivesPercentage.replace(/,/g, "")) || 0;
+        const amount = parseFloat(deductionsAmount.replace(/,/g, "")) || 0;
+        const percentage = parseFloat(deductionsPercentage.replace(/,/g, "")) || 0;
 
         const data = {
-            name: incentivesName,
-            type: incentivesType,
+            deduction_id: deduction?.id,
+            name: deductionsName,
+            type: deductionsType,
             amount: amount,
             percentage: percentage,
             payment_schedule: paymentSchedule,
         };
-        saveIncentives.mutate({data: data, onSuccessCallback: () => close(true)});
+        updateDeductions.mutate({data: data, onSuccessCallback: () => close(true)});
     };
 
     const formatCurrency = (value) => {
@@ -158,44 +158,42 @@ const IncentivesAdd = ({ open, close }) => {
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Incentives </Typography>
-                        <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
+                        <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
 
                 <DialogContent sx={{ padding: 5, paddingBottom: 1 }}>
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
-
                         <FormGroup row={true} className="d-flex justify-content-between">
-                            <FormControl sx={{ marginBottom: 3, width: '69%', }}>
+                            <FormControl sx={{ marginBottom: 3, width: '69%'}}>
                                 <TextField
                                     required
-                                    id="incentivesName"
-                                    label="Incentives Name"
+                                    id="deductionsName"
+                                    label="Deductions Name"
                                     variant="outlined"
-                                    value={incentivesName}
-                                    error={incentivesNameError}
-                                    onChange={(e) => setIncentivesName(e.target.value)}
+                                    value={deductionsName}
+                                    error={deductionsNameError}
+                                    onChange={(e) => setDeductionsName(e.target.value)}
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%' }}>
+                            <FormControl sx={{ marginBottom: 3, width: '29%'}}>
                                 <TextField
                                     required
                                     select
-                                    id="incentivesType"
+                                    id="deductionsType"
                                     label="Type"
-                                    value={incentivesType}
-                                    onChange={(event) => setIncentivesType(event.target.value)}
+                                    value={deductionsType}
+                                    onChange={(event) => setDeductionsType(event.target.value)}
                                 >
                                     <MenuItem key="Amount" value="Amount"> Amount </MenuItem>
                                     <MenuItem key="Percentage" value="Percentage"> Percentage </MenuItem>
-                                    {/* <MenuItem key="Bracket" value="Bracket"> Bracket </MenuItem> */}
                                 </TextField>
                             </FormControl>
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between">
-                            {incentivesType && (
+                            {deductionsType && (
                                 <FormControl sx={{ marginBottom: 3, width: '69%', }}>
                                     <TextField
                                         required
@@ -212,45 +210,44 @@ const IncentivesAdd = ({ open, close }) => {
                                     </TextField>
                                 </FormControl>
                             )}
-
-                            {incentivesType === "Amount" && (
+                            {deductionsType === "Amount" && (
                                 <FormControl sx={{
-                                    marginBottom: 3, width: '29%',
-                                }}>
+                                    marginBottom: 3, width: '29%'}}>
                                     <InputLabel>Amount</InputLabel>
                                     <OutlinedInput
                                         required
-                                        id="incentivesAmount"
+                                        id="deductionsAmount"
                                         label="Amount"
-                                        value={incentivesAmount}
-                                        error={incentivesAmountError}
+                                        value={deductionsAmount}
+                                        error={deductionsAmountError}
                                         startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                        onChange={(e) => handleInputChange(e, setIncentivesAmount)}
+                                        onChange={(e) => handleInputChange(e, setDeductionsAmount)}
                                     />
                                 </FormControl>
                             )}
-
-                            {incentivesType === "Percentage" && (
-                                <FormControl sx={{ marginBottom: 3, width: '29%', }}>
+                            
+                            {deductionsType === "Percentage" && (
+                                <FormControl sx={{
+                                    marginBottom: 3, width: '29%'}}>
                                     <InputLabel>Percentage</InputLabel>
                                     <OutlinedInput
                                         required
-                                        id="incentivesPercentage"
+                                        id="deductionsPercentage"
                                         label="Percentage"
-                                        value={incentivesPercentage}
-                                        error={incentivesPercentageError}
+                                        value={deductionsPercentage}
+                                        error={deductionsPercentageError}
                                         startAdornment={<InputAdornment position="start">%</InputAdornment>}
-                                        onChange={(e) => handleInputChange(e, setIncentivesPercentage)}
+                                        onChange={(e) => handleInputChange(e, setDeductionsPercentage)}
                                     />
                                 </FormControl>
                             )}
                         </FormGroup>
 
-                        {incentivesType && (
+                        {deductionsType && (
                             <>
                                 <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                                     <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save incentives </p>
+                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Deduction </p>
                                     </Button>
                                 </Box>
                             </>
@@ -263,4 +260,4 @@ const IncentivesAdd = ({ open, close }) => {
     )
 }
 
-export default IncentivesAdd;
+export default DeductionsEdit;

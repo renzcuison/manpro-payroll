@@ -4,7 +4,7 @@ import { Table, TableHead, TableBody, TableFooter,  TableCell, TableContainer, T
 import Layout from '../../../components/Layout/Layout';
 import { Link, useNavigate } from 'react-router-dom';
 import EmployeeDeductionView from './Modals/EmployeeDeductionView';
-import { useDeductions } from '../../../hooks/useDeductions';
+import { useDeduction, useEmployeesDeductions } from '../../../hooks/useDeductions';
 import { useDepartments } from '../../../hooks/useDepartments';
 import { useBranches } from '../../../hooks/useBranches';
 
@@ -17,28 +17,27 @@ const EmployeesDeductionsList = () => {
     const [selectedDeduction, setSelectedDeduction] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const filters = {
+        name: searchName,
+        branch_id: selectedBranch,
+        department_id: selectedDepartment,
+        deduction_id: selectedDeduction,
+    }
+    const pagination = {
+        page: page + 1,
+        per_page: rowsPerPage,
+    }
 
-    const { employeesDeductions, deductions: deductionsQuery } = useDeductions({
-        loadEmployeesDeductions: true,
-        loadDeductions: true,
-        filters: {
-            name: searchName,
-            branchId: selectedBranch,
-            departmentId: selectedDepartment,
-            deductionId: selectedDeduction,
-        },
-        pagination: {
-            page: page,
-            perPage: rowsPerPage,
-        }
-
-    });
+    const {deductionsData} = useDeduction();
+    const {employeesDeductions, isEmployeesDeductionsLoading, refetchEmployeesDeductions} = useEmployeesDeductions(filters, pagination);
+    
     const { departments: departmentData } = useDepartments({loadDepartments: true}); 
     const { data: branchesData } = useBranches();
 
-    const employees = employeesDeductions.data?.employees || [];
-    const deductions = deductionsQuery.data?.deductions || [];
-    const total = employeesDeductions.data?.total || 0;
+    const employees = employeesDeductions?.employees || [];
+    const deductions = deductionsData?.deductions || [];
+    const total = employeesDeductions?.total || 0;
+    const count = employeesDeductions?.employee_count || 0;
 
     const departments = departmentData.data?.departments || [];
     const branches = branchesData?.branches || [];
@@ -49,7 +48,7 @@ const EmployeesDeductionsList = () => {
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
-        employeesDeductions.refetch();
+        refetchEmployeesDeductions();
     };
 
     const handleChangePage = (_, newPage) => {
@@ -147,7 +146,7 @@ const EmployeesDeductionsList = () => {
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
-                        {employeesDeductions.isLoading ? (
+                        {isEmployeesDeductionsLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -208,7 +207,7 @@ const EmployeesDeductionsList = () => {
                                     <TablePagination
                                         rowsPerPageOptions={[5, 10, 25]}
                                         component="div"
-                                        count={employees.length}
+                                        count={count}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}

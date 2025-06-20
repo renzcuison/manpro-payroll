@@ -1,28 +1,25 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
-import FilledInput from '@mui/material/FilledInput';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import React, { useState, useEffect } from 'react';
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 import 'react-quill/dist/quill.snow.css';
-import { useSaveIncentives } from '../../../../hooks/useIncentives';
+import { useUpdateIncentive } from '../../../../hooks/useIncentives';
 
-const IncentivesAdd = ({ open, close }) => {
-    const saveIncentives = useSaveIncentives();
-
+const IncentivesEdit = ({ incentive, open, close }) => {
+    const updateIncentive = useUpdateIncentive();
     const [incentivesNameError, setIncentivesNameError] = useState(false);
     const [incentivesAmountError, setIncentivesAmountError] = useState(false);
     const [incentivesPercentageError, setIncentivesPercentageError] = useState(false);
 
-    const [incentivesName, setIncentivesName] = useState('');
-    const [incentivesType, setIncentivesType] = useState('');
-    const [incentivesAmount, setIncentivesAmount] = useState('');
-    const [incentivesPercentage, setIncentivesPercentage] = useState('');
+    const [incentivesName, setIncentivesName] = useState(incentive?.name);
+    const [incentivesType, setIncentivesType] = useState(incentive?.type);
+    const [incentivesAmount, setIncentivesAmount] = useState(incentive?.amount);
+    const [incentivesPercentage, setIncentivesPercentage] = useState(incentive?.percentage);
 
     const [paymentScheduleError, setPaymentScheduleError] = useState(false);
-    const [paymentSchedule, setPaymentSchedule] = useState(1);
+    const [paymentSchedule, setPaymentSchedule] = useState(incentive?.payment_schedule);
 
     const checkInput = (event) => {
         event.preventDefault();
@@ -33,7 +30,7 @@ const IncentivesAdd = ({ open, close }) => {
             setIncentivesNameError(false);
         }
 
-        if ( incentivesType == "Amount" ) {
+        if ( incentivesType == "Amount") {
             checkInputAmount(event);
         }
 
@@ -113,17 +110,19 @@ const IncentivesAdd = ({ open, close }) => {
 
     const saveInput = (event) => {
         event.preventDefault();
+
         const amount = parseFloat(incentivesAmount.replace(/,/g, "")) || 0;
         const percentage = parseFloat(incentivesPercentage.replace(/,/g, "")) || 0;
 
         const data = {
+            incentive_id: incentive.id,
             name: incentivesName,
             type: incentivesType,
             amount: amount,
             percentage: percentage,
             payment_schedule: paymentSchedule,
         };
-        saveIncentives.mutate({data: data, onSuccessCallback: () => close(true)});
+        updateIncentive.mutate({data: data, onSuccessCallback: () => close(true)});
     };
 
     const formatCurrency = (value) => {
@@ -166,7 +165,8 @@ const IncentivesAdd = ({ open, close }) => {
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
                         <FormGroup row={true} className="d-flex justify-content-between">
-                            <FormControl sx={{ marginBottom: 3, width: '69%', }}>
+                            <FormControl sx={{ marginBottom: 3, width: '69%',
+                            }}>
                                 <TextField
                                     required
                                     id="incentivesName"
@@ -178,7 +178,8 @@ const IncentivesAdd = ({ open, close }) => {
                                 />
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%' }}>
+                            <FormControl sx={{ marginBottom: 3, width: '29%',
+                            }}>
                                 <TextField
                                     required
                                     select
@@ -263,4 +264,4 @@ const IncentivesAdd = ({ open, close }) => {
     )
 }
 
-export default IncentivesAdd;
+export default IncentivesEdit;

@@ -1,29 +1,34 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
+
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import React, { useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
-import 'react-quill/dist/quill.snow.css';
-import { useSaveBenefits } from '../../../../hooks/useBenefits';
+import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 
-const BenefitsAdd = ({ open, close }) => {
-    const saveBenefits = useSaveBenefits();
+import Swal from 'sweetalert2';
+
+import 'react-quill/dist/quill.snow.css';
+import { useUpdateBenefits } from '../../../../hooks/useBenefits';
+
+const BenefitsEdit = ({ benefit, open, close }) => {
+    const updateBenefits = useUpdateBenefits();
     const [benefitNameError, setBenefitNameError] = useState(false);
     const [employeeAmountShareError, setEmployeeAmountShareError] = useState(false);
     const [employerAmountShareError, setEmployerAmountShareError] = useState(false);
     const [employeePercentageShareError, setEmployeePercentageShareError] = useState(false);
     const [employerPercentageShareError, setEmployerPercentageShareError] = useState(false);
 
-    const [benefitName, setBenefitName] = useState('');
-    const [benefitType, setBenefitType] = useState('');
-    const [employeeAmountShare, setEmployeeAmountShare] = useState('');
-    const [employerAmountShare, setEmployerAmountShare] = useState('');
-    const [employeePercentageShare, setEmployeePercentageShare] = useState('');
-    const [employerPercentageShare, setEmployerPercentageShare] = useState('');
+    const [benefitName, setBenefitName] = useState(benefit?.name);
+    const [benefitType, setBenefitType] = useState(benefit?.type);
+    const [employeeAmountShare, setEmployeeAmountShare] = useState(benefit?.employee_amount);
+    const [employerAmountShare, setEmployerAmountShare] = useState(benefit?.employer_amount);
+    const [employeePercentageShare, setEmployeePercentageShare] = useState(benefit?.employee_percentage);
+    const [employerPercentageShare, setEmployerPercentageShare] = useState(benefit?.employer_percentage);
 
     const [paymentScheduleError, setPaymentScheduleError] = useState(false);
-    const [paymentSchedule, setPaymentSchedule] = useState(1);
+    const [paymentSchedule, setPaymentSchedule] = useState(benefit?.payment_schedule);
+
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -68,7 +73,7 @@ const BenefitsAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to add this benefit?",
+                text: "You want to save this Benefits Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -115,7 +120,7 @@ const BenefitsAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to add this benefit?",
+                text: "You want to save this Benefits Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -139,6 +144,7 @@ const BenefitsAdd = ({ open, close }) => {
         const employerPercentage = parseFloat(employerPercentageShare.replace(/,/g, "")) || 0;
 
         const data = {
+            benefit_id: benefit.id,
             benefitName: benefitName,
             benefitType: benefitType,
             employeeAmount: employeeAmount,
@@ -147,7 +153,7 @@ const BenefitsAdd = ({ open, close }) => {
             employerPercentage: employerPercentage,
             payment_schedule: paymentSchedule,
         };
-        saveBenefits.mutate({data: data, onSuccessCallback: () => close(true)})
+        updateBenefits.mutate({data: data, onSuccessCallback: () => close(true)})
     };
 
     const formatCurrency = (value) => {
@@ -181,7 +187,7 @@ const BenefitsAdd = ({ open, close }) => {
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Benefit </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Edit Benefit </Typography>
                         <IconButton onClick={close}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -297,6 +303,7 @@ const BenefitsAdd = ({ open, close }) => {
                                     </FormControl> 
                                 </>   
                             )}
+                            
                         </FormGroup>
 
                         {benefitType && (
@@ -316,4 +323,4 @@ const BenefitsAdd = ({ open, close }) => {
     )
 }
 
-export default BenefitsAdd;
+export default BenefitsEdit;

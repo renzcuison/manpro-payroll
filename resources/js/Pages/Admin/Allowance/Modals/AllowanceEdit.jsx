@@ -1,56 +1,53 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
-import FilledInput from '@mui/material/FilledInput';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import React, { useState, useEffect } from 'react';
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 import 'react-quill/dist/quill.snow.css';
-import { useSaveIncentives } from '../../../../hooks/useIncentives';
+import { useUpdateAllowance } from '../../../../hooks/useAllowances';
 
-const IncentivesAdd = ({ open, close }) => {
-    const saveIncentives = useSaveIncentives();
+const AllowanceEdit = ({allowance, open, close }) => {
+    const updateAllowance = useUpdateAllowance();
 
-    const [incentivesNameError, setIncentivesNameError] = useState(false);
-    const [incentivesAmountError, setIncentivesAmountError] = useState(false);
-    const [incentivesPercentageError, setIncentivesPercentageError] = useState(false);
-
-    const [incentivesName, setIncentivesName] = useState('');
-    const [incentivesType, setIncentivesType] = useState('');
-    const [incentivesAmount, setIncentivesAmount] = useState('');
-    const [incentivesPercentage, setIncentivesPercentage] = useState('');
-
+    const [allowanceNameError, setAllowanceNameError] = useState(false);
+    const [allowanceAmountError, setAllowanceAmountError] = useState(false);
+    const [allowancePercentageError, setAllowancePercentageError] = useState(false);
     const [paymentScheduleError, setPaymentScheduleError] = useState(false);
-    const [paymentSchedule, setPaymentSchedule] = useState(1);
+
+    const [allowanceName, setAllowanceName] = useState(allowance?.name);
+    const [allowanceType, setAllowanceType] = useState(allowance?.type);
+    const [allowanceAmount, setAllowanceAmount] = useState(allowance?.amount);
+    const [allowancePercentage, setAllowancePercentage] = useState(allowance?.percentage);
+    const [paymentSchedule, setPaymentSchedule] = useState(allowance?.payment_schedule || 1);
+
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!incentivesName) {
-            setIncentivesNameError(true);
+        if (!allowanceName) {
+            setAllowanceNameError(true);
         } else {
-            setIncentivesNameError(false);
+            setAllowanceNameError(false);
         }
 
-        if ( incentivesType == "Amount" ) {
+        if ( allowanceType == "Amount" ) {
             checkInputAmount(event);
         }
 
-        if ( incentivesType == "Percentage" ) {
+        if ( allowanceType == "Percentage" ) {
             checkInputPercentage(event);
         }
     };
-
     const checkInputAmount = () => {
 
-        if (!incentivesAmount) {
-            setIncentivesAmountError(true);
+        if (!allowanceAmount) {
+            setAllowanceAmountError(true);
         } else {
-            setIncentivesAmountError(false);
+            setAllowanceAmountError(false);
         }
 
-        if ( incentivesNameError == true || incentivesAmountError == true ) {
+        if ( allowanceNameError == true || allowanceAmountError == true ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -62,7 +59,7 @@ const IncentivesAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Incentives Type?",
+                text: "You want to Update this Allowance Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -78,13 +75,14 @@ const IncentivesAdd = ({ open, close }) => {
     }
 
     const checkInputPercentage = () => {
-        if (!incentivesPercentage) {
-            setIncentivesPercentageError(true);
+
+        if (!allowancePercentage) {
+            setAllowancePercentageError(true);
         } else {
-            setIncentivesPercentageError(false);
+            setAllowancePercentageError(false);
         }
 
-        if ( incentivesNameError == true || incentivesPercentageError == true ) {
+        if ( allowanceNameError == true || allowancePercentageError == true ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -96,7 +94,7 @@ const IncentivesAdd = ({ open, close }) => {
             new Swal({
                 customClass: { container: "my-swal" },
                 title: "Are you sure?",
-                text: "You want to save this Incentives Type?",
+                text: "You want to Update this Allowance Type?",
                 icon: "warning",
                 showConfirmButton: true,
                 confirmButtonText: 'Save',
@@ -111,19 +109,20 @@ const IncentivesAdd = ({ open, close }) => {
         }
     }
 
-    const saveInput = (event) => {
+    const saveInput  = (event) => {
         event.preventDefault();
-        const amount = parseFloat(incentivesAmount.replace(/,/g, "")) || 0;
-        const percentage = parseFloat(incentivesPercentage.replace(/,/g, "")) || 0;
+        const amount = parseFloat(allowanceAmount.replace(/,/g, "")) || 0;
+        const percentage = parseFloat(allowancePercentage.replace(/,/g, "")) || 0;
 
         const data = {
-            name: incentivesName,
-            type: incentivesType,
+            allowance_id: allowance.id,
+            name: allowanceName,
+            type: allowanceType,
             amount: amount,
             percentage: percentage,
             payment_schedule: paymentSchedule,
         };
-        saveIncentives.mutate({data: data, onSuccessCallback: () => close(true)});
+        updateAllowance.mutate({data: data, onSuccessCallback: () => close(true)});
     };
 
     const formatCurrency = (value) => {
@@ -157,7 +156,7 @@ const IncentivesAdd = ({ open, close }) => {
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Incentives </Typography>
+                        <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Edit Allowance </Typography>
                         <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
                 </DialogTitle>
@@ -166,26 +165,28 @@ const IncentivesAdd = ({ open, close }) => {
                     <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
 
                         <FormGroup row={true} className="d-flex justify-content-between">
-                            <FormControl sx={{ marginBottom: 3, width: '69%', }}>
+                            <FormControl sx={{ marginBottom: 3, width: '69%',
+                            }}>
                                 <TextField
                                     required
-                                    id="incentivesName"
-                                    label="Incentives Name"
+                                    id="allowanceName"
+                                    label="Allowance Name"
                                     variant="outlined"
-                                    value={incentivesName}
-                                    error={incentivesNameError}
-                                    onChange={(e) => setIncentivesName(e.target.value)}
-                                />
+                                    value={allowanceName}
+                                    error={allowanceNameError}
+                                    onChange={(e) => setAllowanceName(e.target.value)}
+                                />  
                             </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: '29%' }}>
+                            <FormControl sx={{ marginBottom: 3, width: '29%',
+                            }}>
                                 <TextField
                                     required
                                     select
-                                    id="incentivesType"
+                                    id="allowanceType"
                                     label="Type"
-                                    value={incentivesType}
-                                    onChange={(event) => setIncentivesType(event.target.value)}
+                                    value={allowanceType}
+                                    onChange={(event) => setAllowanceType(event.target.value)}
                                 >
                                     <MenuItem key="Amount" value="Amount"> Amount </MenuItem>
                                     <MenuItem key="Percentage" value="Percentage"> Percentage </MenuItem>
@@ -193,9 +194,9 @@ const IncentivesAdd = ({ open, close }) => {
                                 </TextField>
                             </FormControl>
                         </FormGroup>
-
-                        <FormGroup row={true} className="d-flex justify-content-between">
-                            {incentivesType && (
+                        
+                        <FormGroup row={true} className="d-flex justify-content-between" >
+                            {allowanceType && (
                                 <FormControl sx={{ marginBottom: 3, width: '69%', }}>
                                     <TextField
                                         required
@@ -212,45 +213,41 @@ const IncentivesAdd = ({ open, close }) => {
                                     </TextField>
                                 </FormControl>
                             )}
-
-                            {incentivesType === "Amount" && (
-                                <FormControl sx={{
-                                    marginBottom: 3, width: '29%',
-                                }}>
+                            {allowanceType === "Amount" && (
+                                <FormControl sx={{ marginBottom: 3, width: '29%' }}>
                                     <InputLabel>Amount</InputLabel>
                                     <OutlinedInput
                                         required
-                                        id="incentivesAmount"
+                                        id="allowanceAmount"
                                         label="Amount"
-                                        value={incentivesAmount}
-                                        error={incentivesAmountError}
+                                        value={allowanceAmount}
+                                        error={allowanceAmountError}
                                         startAdornment={<InputAdornment position="start">₱</InputAdornment>}
-                                        onChange={(e) => handleInputChange(e, setIncentivesAmount)}
+                                        onChange={(e) => handleInputChange(e, setAllowanceAmount)}
                                     />
-                                </FormControl>
+                                </FormControl>       
                             )}
-
-                            {incentivesType === "Percentage" && (
-                                <FormControl sx={{ marginBottom: 3, width: '29%', }}>
+                            {allowanceType === "Percentage" && (
+                                <FormControl sx={{ marginBottom: 3, width: '29%' }}>
                                     <InputLabel>Percentage</InputLabel>
                                     <OutlinedInput
                                         required
-                                        id="incentivesPercentage"
+                                        id="allowancePercentage"
                                         label="Percentage"
-                                        value={incentivesPercentage}
-                                        error={incentivesPercentageError}
+                                        value={allowancePercentage}
+                                        error={allowancePercentageError}
                                         startAdornment={<InputAdornment position="start">%</InputAdornment>}
-                                        onChange={(e) => handleInputChange(e, setIncentivesPercentage)}
+                                        onChange={(e) => handleInputChange(e, setAllowancePercentage)}
                                     />
                                 </FormControl>
                             )}
                         </FormGroup>
 
-                        {incentivesType && (
+                        {allowanceType && (
                             <>
                                 <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                                     <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
-                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save incentives </p>
+                                        <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Allowance </p>
                                     </Button>
                                 </Box>
                             </>
@@ -263,4 +260,4 @@ const IncentivesAdd = ({ open, close }) => {
     )
 }
 
-export default IncentivesAdd;
+export default AllowanceEdit;
