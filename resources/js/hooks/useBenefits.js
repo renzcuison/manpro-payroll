@@ -13,7 +13,7 @@ const buildParams = (filters = {}, pagination = {}) => {
     if (name) params.name = name;
     if (branch_id) params.branch_id = branch_id;
     if (department_id) params.department_id = department_id;
-    if (benefit_id) params.allowance_id = benefit_id;
+    if (benefit_id) params.benefit_id = benefit_id;
     if (page) params.page = page;
     if (per_page) params.per_page = per_page;
     return params;
