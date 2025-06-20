@@ -55,6 +55,7 @@ export function useEvaluationFormSubcategory(subcategory) {
         setLinearScaleEndLabel(subcategory.linear_scale_end_label);
         setOrder(subcategory.order);
         setOptions(subcategory.options);
+        setSavedSubcategory({ ...subcategory });
         // --- Set linear scale options if type is linearScale ---
         if (getSubcategorySelectValue(subcategory.subcategory_type) === 'linearScale') {
             setLinearScaleOptions(
@@ -106,7 +107,10 @@ export function useEvaluationFormSubcategory(subcategory) {
                     setLinearScaleStart(evaluationFormSubcategory.linear_scale_start);
                     setLinearScaleEnd(evaluationFormSubcategory.linear_scale_end);
                     setOrder(evaluationFormSubcategory.order);
-                    setSavedSubcategory({ ...evaluationFormSubcategory });
+                    setSavedSubcategory({
+                        ...savedSubcategory,
+                        ...evaluationFormSubcategory
+                    });
                 } else if (response.data.status.toString().startsWith(4)) {
                     Swal.fire({
                         text: response.data.message,
@@ -158,7 +162,10 @@ export function useEvaluationFormSubcategory(subcategory) {
                     // Optionally update UI or trigger another action
                     const { evaluationFormSubcategory } = response.data;
                     if(!evaluationFormSubcategory) return;
-                    setSavedSubcategory({ ...evaluationFormSubcategory });
+                    setSavedSubcategory({
+                        ...savedSubcategory,
+                        ...evaluationFormSubcategory
+                    });
                     alert("Subcategory saved successfully!");
                 } else {
                     alert("Error saving subcategory");

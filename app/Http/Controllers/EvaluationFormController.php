@@ -502,12 +502,13 @@ class EvaluationFormController extends Controller
                 'message' => 'Evaluation Form Section already deleted!',
                 'evaluationFormSection' => $evaluationFormSection
             ]);
-
-            $newOrder = (
+            
+            $newOrder = min(
                 EvaluationFormSection
                     ::where('form_id', $evaluationFormSection->form_id)
+                    ->withTrashed()
                     ->min('order')
-                ?? 1
+                , 1
             ) - 1;
 
             $now = date('Y-m-d H:i');
@@ -906,11 +907,12 @@ class EvaluationFormController extends Controller
                 'evaluationFormSubcategory' => $evaluationFormSubcategory
             ]);
 
-            $newOrder = (
-                EvaluationFormSubcategory
-                    ::where('section_id', $evaluationFormSubcategory->section_id)
+            $newOrder = min(
+                EvaluationFormSection
+                    ::where('form_id', $evaluationFormSection->form_id)
+                    ->withTrashed()
                     ->min('order')
-                ?? 1
+                , 1
             ) - 1;
 
             $now = date('Y-m-d H:i');
@@ -1464,11 +1466,12 @@ class EvaluationFormController extends Controller
                 'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption
             ]);
 
-            $newOrder = (
-                EvaluationFormSubcategoryOption
-                    ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
+            $newOrder = min(
+                EvaluationFormSection
+                    ::where('form_id', $evaluationFormSection->form_id)
+                    ->withTrashed()
                     ->min('order')
-                ?? 1
+                , 1
             ) - 1;
 
             $now = date('Y-m-d H:i');
