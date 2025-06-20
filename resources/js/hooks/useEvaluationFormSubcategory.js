@@ -10,8 +10,8 @@ export function useEvaluationFormSubcategory(subcategory) {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [isNew, setIsNew] = useState(true);
+    const [savedSubcategory, setSavedSubcategory] = useState();
     const [subcategoryId, setSubcategoryId] = useState();
-    const [expanded, setExpanded] = useState(false);
     const [subcategoryName, setSubcategoryName] = useState('');
     const [sectionId, setSectionId] = useState();
     const [subcategoryType, setSubcategoryType] = useState();
@@ -28,6 +28,7 @@ export function useEvaluationFormSubcategory(subcategory) {
         { label: '', description: '' },
         { label: '', description: '' }
     ]);
+    const [saved, setSaved] = useState(true);
     const subcategoryTypeDisplay = {
         short_answer: "Short Text",
         long_answer: "Long Text",
@@ -105,6 +106,7 @@ export function useEvaluationFormSubcategory(subcategory) {
                     setLinearScaleStart(evaluationFormSubcategory.linear_scale_start);
                     setLinearScaleEnd(evaluationFormSubcategory.linear_scale_end);
                     setOrder(evaluationFormSubcategory.order);
+                    setSavedSubcategory({ ...evaluationFormSubcategory });
                 } else if (response.data.status.toString().startsWith(4)) {
                     Swal.fire({
                         text: response.data.message,
@@ -127,7 +129,7 @@ export function useEvaluationFormSubcategory(subcategory) {
         ;
     }
 
-    const saveSubcategory = () => {
+    function saveSubcategory () {
         // Prepare linear scale options with automatically assigned scores
         const transformedLinearScaleOptions = linearScaleOptions.map((opt, idx) => ({
             label: opt.label,
@@ -154,6 +156,9 @@ export function useEvaluationFormSubcategory(subcategory) {
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
                     // Optionally update UI or trigger another action
+                    const { evaluationFormSubcategory } = response.data;
+                    if(!evaluationFormSubcategory) return;
+                    setSavedSubcategory({ ...evaluationFormSubcategory });
                     alert("Subcategory saved successfully!");
                 } else {
                     alert("Error saving subcategory");
@@ -178,10 +183,6 @@ export function useEvaluationFormSubcategory(subcategory) {
             setAllowOtherOption(!allowOtherOption);
         else
             editSubcategory({ allow_other_option: !allowOtherOption });
-    }
-
-    function toggleExpand() {
-        setExpanded(!expanded);
     }
 
     function toggleRequired() {
@@ -322,7 +323,6 @@ export function useEvaluationFormSubcategory(subcategory) {
             options
         },
         subcategoryId, subcategoryTypeDisplay,
-        expanded, toggleExpand,
         subcategoryName, setSubcategoryName, editSubcategory, saveSubcategory,
         responseType: getSubcategorySelectValue(subcategoryType), switchResponseType,
         subcategoryDescription, setSubcategoryDescription,
@@ -332,6 +332,7 @@ export function useEvaluationFormSubcategory(subcategory) {
         linearScaleEnd, setLinearScaleEnd,
         linearScaleStartLabel, setLinearScaleStartLabel,
         linearScaleEndLabel, setLinearScaleEndLabel,
+        saved, setSaved,
         order,
         options, deleteOption, editOption, moveOption, saveOption, setOptions,
         linearScaleOptions, addLinearScaleOption, removeLinearScaleOption, editLinearScaleOption

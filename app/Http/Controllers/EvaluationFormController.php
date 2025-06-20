@@ -507,7 +507,7 @@ class EvaluationFormController extends Controller
                 EvaluationFormSection
                     ::where('form_id', $evaluationFormSection->form_id)
                     ->min('order')
-                ?? 0
+                ?? 1
             ) - 1;
 
             $now = date('Y-m-d H:i');
@@ -910,7 +910,7 @@ class EvaluationFormController extends Controller
                 EvaluationFormSubcategory
                     ::where('section_id', $evaluationFormSubcategory->section_id)
                     ->min('order')
-                ?? 0
+                ?? 1
             ) - 1;
 
             $now = date('Y-m-d H:i');
@@ -1468,7 +1468,7 @@ class EvaluationFormController extends Controller
                 EvaluationFormSubcategoryOption
                     ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
                     ->min('order')
-                ?? 0
+                ?? 1
             ) - 1;
 
             $now = date('Y-m-d H:i');
