@@ -31,6 +31,7 @@ import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import { OptionMouseSensor } from '../Sensors/OptionMouseSensor';
 import { OptionTouchSensor } from '../Sensors/OptionTouchSensor';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
+import PerformanceEvaluationMultipleChoiceEditor from './PerformanceEvaluationMultipleChoiceEditor';
 import PerformanceEvaluationRating from './PerformanceEvaluationRating';
 import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvaluationFormAddSubcategory';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
@@ -64,7 +65,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
         editableSectionName, toggleEditableSection,
         editSection,
         sectionCategory, setSectionCategory,
-        editableCategory, toggleEditableCategory,
         expanded, toggleExpand,
         order,
         subcategories, saveSubcategory, deleteSubcategory, moveSubcategory,
@@ -732,6 +732,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                                     <AddRounded/>Add Option
                                                                 </ButtonBase>
                                                             </Box>
+                                                            // <PerformanceEvaluationMultipleChoiceEditor subcategoryOptions={ subcategoryOptions } setSubcategoryOptions={ setSubcategoryOptions }/>
                                                         )}
                                                         {subcategoryDraft.subcategory_type === 'linear_scale' && (
                                                         <Box sx={{ mb: 2 }}>

@@ -11,6 +11,7 @@ export function useEvaluationFormSubcategory(subcategory) {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [isNew, setIsNew] = useState(true);
     const [subcategoryId, setSubcategoryId] = useState();
+    const [expanded, setExpanded] = useState(false);
     const [subcategoryName, setSubcategoryName] = useState('');
     const [sectionId, setSectionId] = useState();
     const [subcategoryType, setSubcategoryType] = useState();
@@ -27,6 +28,15 @@ export function useEvaluationFormSubcategory(subcategory) {
         { label: '', description: '' },
         { label: '', description: '' }
     ]);
+    const subcategoryTypeDisplay = {
+        short_answer: "Short Text",
+        long_answer: "Long Text",
+        checkbox: "Checkbox",
+        linear_scale: "Linear Scale",
+        multiple_choice: "Multiple Choice",
+        rating: "Rating",
+        comment: "Comment"
+    }[subcategoryType] ?? 'Unknown';
 
     useEffect(() => {
         if(!subcategory) return;
@@ -170,6 +180,10 @@ export function useEvaluationFormSubcategory(subcategory) {
             editSubcategory({ allow_other_option: !allowOtherOption });
     }
 
+    function toggleExpand() {
+        setExpanded(!expanded);
+    }
+
     function toggleRequired() {
         if(isNew)
             setRequired(!required);
@@ -235,6 +249,30 @@ export function useEvaluationFormSubcategory(subcategory) {
             })
     }
 
+    function moveOption(oldOrder, newOrder) {
+        if(oldOrder === newOrder) return;
+        axiosInstance
+            .post('/moveEvaluationFormSubcategoryOption', {
+                id: options[oldOrder - 1].id,
+                order: newOrder
+            }, { headers })
+            .catch(error => {
+                console.error('Error moving option: ', error);
+                setOptions([...options]);
+            })
+        ;
+        const moveUp = oldOrder < newOrder;
+        for(
+            let order = moveUp ? oldOrder + 1 : oldOrder - 1;
+            moveUp ? (order <= newOrder) : (order >= newOrder);
+            order += (moveUp ? 1 : -1) * 1
+        ) options[order - 1].order = order + (moveUp ? -1 : 1);
+        const removed = options.splice(oldOrder - 1, 1)[0];
+        removed.order = newOrder;
+        options.splice(newOrder - 1, 0, removed);
+        setOptions([...options]);
+    }
+
     function saveOption(label, score, description) {
         if(isNew)
             setOptions([ ...options, { label, score, description } ]);
@@ -283,7 +321,8 @@ export function useEvaluationFormSubcategory(subcategory) {
             linear_scale_end_label: linearScaleEndLabel,
             options
         },
-        subcategoryId,
+        subcategoryId, subcategoryTypeDisplay,
+        expanded, toggleExpand,
         subcategoryName, setSubcategoryName, editSubcategory, saveSubcategory,
         responseType: getSubcategorySelectValue(subcategoryType), switchResponseType,
         subcategoryDescription, setSubcategoryDescription,
@@ -294,7 +333,7 @@ export function useEvaluationFormSubcategory(subcategory) {
         linearScaleStartLabel, setLinearScaleStartLabel,
         linearScaleEndLabel, setLinearScaleEndLabel,
         order,
-        options, deleteOption, editOption, saveOption,
+        options, deleteOption, editOption, moveOption, saveOption, setOptions,
         linearScaleOptions, addLinearScaleOption, removeLinearScaleOption, editLinearScaleOption
     };
 
