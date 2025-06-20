@@ -100,6 +100,8 @@ const PerformanceEvaluationCreatorPage = () => {
         timerProgressBar: true,
         showConfirmButton: false,
         position: 'center'
+      }).then(() => {
+        navigate('/admin/performance-evaluation'); 
       });
     } catch (err) {
       console.error(err);
