@@ -200,7 +200,7 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
                             <FormControl  sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                 }}>
-                                <Autocomplete
+                                {/* <Autocomplete
                                 freeSolo
                                 disabled={!groupLifeCompanyId}
                                 value={planType}
@@ -217,6 +217,13 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
                                     }}
                                     />
                                 )}
+                                /> */}
+                                <TextField
+                                    fullWidth
+                                    label="Plan Type"
+                                    value={planType}
+                                    onChange={(e) => setPlanType(e.target.value)}
+                                    disabled={!groupLifeCompanyId}
                                 />
                             </FormControl>                            
                             <FormControl sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
@@ -276,7 +283,6 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
                                     </FormGroup>
                                 </>
                                 )}
-
                                         {paymentType === "Percentage" && (
                                         <>
                                         <FormGroup row={true} className="d-flex justify-content-between" sx={{

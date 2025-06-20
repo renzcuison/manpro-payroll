@@ -17,6 +17,7 @@ import Layout from "../../../../components/Layout/Layout";
 import GroupLifeEmployeeTable from "./GroupLifeEmployeeTable";
 import GroupLifeAssignEmployee from "./Modal/GroupLifeAssignEmployee";
 import GroupLifeEditEmployee from "./Modal/GroupLifeEditEmployee";
+import GroupLifeEditPlanModal from "./Modal/GroupLifeEditPlanModal";
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 
 const GroupLifeEmployees = () => {
@@ -186,79 +187,72 @@ const GroupLifeEmployees = () => {
                     </Grid>
                 </Grid>
 
-                <Grid item
-                    md={4}
-                    xs={12}
-                    sx={{
-                        mt: 3,
-                        p: 3,
-                        bgcolor: "#fff",
-                        borderRadius: "8px",
-                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)'
-                    }}
-                >
-                    <Grid container spacing={50} alignItems="center" sx={{ mb: 2 }}>
-                        <Grid item xs={12} md={6}>
-                            <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
-                                <InputLabel htmlFor="custom-search">
-                                    Search
-                                </InputLabel>
-                                <OutlinedInput
-                                    id="custom-search"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    endAdornment={
-                                        search && (
-                                            <InputAdornment position="end">
-                                                <Typography variant="body2" sx={{ color: "gray" }}>
-                                                    {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
-                                                </Typography>
-                                            </InputAdornment>
-                                        )
-                                    }
-                                    label="Search"
-                                />
-                                </FormControl>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            {/* Branch Filter */}
-                            <TextField
-                            select
-                            label="Filter by Branch"
-                            value={filterByBranch}
-                            onChange={(e) => setFilterByBranch(e.target.value)}
-                            fullWidth
-                            >
-                            <MenuItem value="">All Branches</MenuItem>
-                            {uniqueBranches.map((branchName) => (
-                                <MenuItem key={branchName} value={branchName}>
-                                {branchName}
-                                </MenuItem>
-                            ))}
-                            </TextField>
+                <Grid item md={4} xs={12} sx={{ mt: 3, p: 3, bgcolor: "#fff", borderRadius: "8px", boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)'  }}                >
+                    <Box sx={{ bgcolor: "#ffffff", borderRadius: "8px" }} >
+                    <Grid container sx={{ pb: 2, borderBottom: "1px solid #e0e0e0" }} >
+                        <Grid container size={12} spacing={2}>
+                            <Grid size={3} mr={45}>
+                                <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
+                                    <InputLabel htmlFor="custom-search">
+                                        Search
+                                    </InputLabel>
+                                    <OutlinedInput
+                                        id="custom-search"
+                                        size="medium"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        endAdornment={
+                                            search && (
+                                                <InputAdornment position="end">
+                                                    <Typography variant="body2" sx={{ color: "gray" }}>
+                                                        {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
+                                                    </Typography>
+                                                </InputAdornment>
+                                            )
+                                        }
+                                        label="Search"
+                                    />
+                                    </FormControl>
                             </Grid>
-                            <Grid item xs={12} md={6}>
-                            {/* Department Filter */}
-                            <TextField
-                            select
-                            label="Filter by Department"
-                            value={filterByDepartment}
-                            onChange={(e) => setFilterByDepartment(e.target.value)}
-                            fullWidth
-                            >
-                            <MenuItem value="">All Departments</MenuItem>
-                            {uniqueDepartments.map((deptName) => (
-                                <MenuItem key={deptName} value={deptName}>
-                                {deptName}
-                                </MenuItem>
-                            ))}
-                            </TextField>
-
+                            <Grid size={3}>
+                            {/* Branch Filter */}
+                                <TextField
+                                    select
+                                    label="Filter by Branch"
+                                    value={filterByBranch}
+                                    onChange={(e) => setFilterByBranch(e.target.value)}
+                                    sx={{ width: "100%" }}
+                                    >
+                                    <MenuItem value="">All Branches</MenuItem>
+                                    {uniqueBranches.map((branchName) => (
+                                        <MenuItem key={branchName} value={branchName}>
+                                        {branchName}
+                                        </MenuItem>
+                                ))}
+                                </TextField>
+                            </Grid>
+                            <Grid size={3}>
+                                {/* Department Filter */}
+                                <TextField
+                                    select
+                                    label="Filter by Department"
+                                    value={filterByDepartment}
+                                    onChange={(e) => setFilterByDepartment(e.target.value)}
+                                    sx={{ width: "100%" }}
+                                    >
+                                    <MenuItem value="">All Departments</MenuItem>
+                                    {uniqueDepartments.map((deptName) => (
+                                        <MenuItem key={deptName} value={deptName}>
+                                        {deptName}
+                                    </MenuItem>
+                                ))}
+                                </TextField>
+                            </Grid>
+                        </Grid>
                     </Grid>
-</Grid>
+                    </Box>
                     <Grid>
                         <Box sx={{ pl: 1, pr: 1, bgcolor: '#ffffff', borderRadius: '8px', height: '100%' }}>
-                            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', }}>Assigned Employees</Typography>
                             <GroupLifeEmployeeTable
                                 employees={filteredRecords}
                                 onRowClick={(row) => {
@@ -299,11 +293,11 @@ const GroupLifeEmployees = () => {
                         open={openEditEmployeeModal}
                         close={setOpenEditEmployeeModal}
                         employeePlanId={selectedEmployeePlanId}
+                        refreshEmployees={refreshEmployees}
                     />
                 )}
 
                 {openAssignEmployeeModal && (
-                    
                     <GroupLifeAssignEmployee
                         open={openAssignEmployeeModal}
                         close={setOpenAssignEmployeeModal}

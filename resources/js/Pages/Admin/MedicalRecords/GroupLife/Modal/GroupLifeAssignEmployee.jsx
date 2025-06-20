@@ -40,6 +40,17 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
         typeof dep.relationship === "string" &&
         dep.relationship.trim().length > 0;
 
+        useEffect(() => {
+        axiosInstance
+            .get("/employee/getEmployees", { headers })
+            .then((response) => {
+                setEmployees(response.data.employees);
+            })
+            .catch((error) => {
+                console.error("Error fetching clients:", error);
+            });
+        }, []);
+
     const handleAddDependent = () => {
         if (
             dependents.length === 0 || !isFilled(dependents[0]) || !isFilled(dependents[dependents.length - 1])
@@ -65,8 +76,19 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
 
     const handleSubmit = async () => {
         try {
-            if (!selectedEmployee || !selectedEmployee.id || !enrollDate) {
-                alert("Please select an employee and enrollment date.");
+            if (!selectedEmployee || !selectedEmployee.id) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Employee Missing!',
+            });
+                return;
+            }
+
+            if (!enrollDate) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Enroll Date Missing!',
+            });
                 return;
             }
 
@@ -83,11 +105,9 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
                 refreshEmployees(); 
 
                 close();
-
-            console.log("Success:", res.data);
             Swal.fire({
                 icon: 'success',
-                text: 'Group Life Plan saved successfully!',
+                text: 'Group Life Employee added successfully!',
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -96,7 +116,7 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
             console.error("Error submitting:", err);
             Swal.fire({
                 icon: 'error',
-                title: 'Error saving Group Life Plan!',
+                title: 'Error added Group Life Employee!',
             });
         }
     };

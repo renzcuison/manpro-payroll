@@ -20,6 +20,7 @@ import {    Box,
             TableHead,
             TableRow,
             Paper,
+            CircularProgress
         } from "@mui/material";
 import axiosInstance, { getJWTHeader } from "@/utils/axiosConfig";
 import { useState, useEffect } from 'react';
@@ -27,16 +28,18 @@ import 'react-quill/dist/quill.snow.css';
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import Swal from 'sweetalert2';
 
-const GroupLifeEditEmployee = ({ open, close, employeePlanId }) => {
+const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }) => {
 
     const storedUser = localStorage.getItem("nasya_user");
     const user = storedUser ? JSON.parse(storedUser) : null;
     const headers = getJWTHeader(JSON.parse(storedUser));
     const [dependents, setDependents] = useState([]);
-
+    const [showSaveButton, setShowSaveButton] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
     const [newDependent, setNewDependent] = useState({ name: "", relationship: "" });
+    const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState({
         employee_name: '',
@@ -48,12 +51,11 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId }) => {
 
     useEffect(() => {
     if (!employeePlanId) return;
-
+    setLoading(true);
     axiosInstance.get(`/medicalRecords/getGroupLifeEmployeePlanById/${employeePlanId}`, {
         headers: { Authorization: `Bearer ${user.token}` }
     })
     .then(res => {
-        console.log("Fetched data:", res.data);
         const data = res.data.data;
 
         setFormData({
@@ -73,13 +75,14 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId }) => {
     })
     .catch(err => {
         console.error("Error fetching employee plan:", err);
-    });
+    })
+    .finally(() => {
+        setLoading(false);
+        });
     }, [employeePlanId]);
 
     const [editingIndex, setEditingIndex] = useState(null);
-
     const relationshipOptions = ["Spouse", "Child", "Parent"];
-
     const [dependentWarning, setDependentWarning] = useState('');
 
     const handleAddDependent = () => {
@@ -113,57 +116,70 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId }) => {
         setDependents(updated);
     };
 
-    const handleSubmit = () => {
-        if (!formData.enroll_date) {
-            alert("Enroll date is required.");
+    const handleSubmit = (afterSaveCallback) => {
+        if (!dependents.length || dependents.some(d => !d.name.trim() || !d.relationship.trim())) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Please ensure all dependents have both name and relationship.',
+            });        
             return;
-    }
-
-    if (!dependents.length || dependents.some(d => !d.name.trim() || !d.relationship.trim())) {
-        alert("Please ensure all dependents have both name and relationship.");
-        return;
-    }
-    console.log("Submitting:", {
-        enroll_date: formData.enroll_date,
-        // dependents: dependents.map(dep => ({
-        //     id: dep.id,
-        //     name: dep.name,
-        //     relationship: dep.relationship
-        // }))
-        dependents: dependents.map(dep => {
-        const details = {
-            name: dep.name,
-            relationship: dep.relationship
         };
-        return dep.id ? { ...details, id: dep.id } : details;
-    })
-    });
-
-    axiosInstance.put(`/medicalRecords/editGroupLifeEmployeePlan/${employeePlanId}`, {
-        enroll_date: formData.enroll_date,
-        dependents: dependents.map(dep => ({
-            id: dep.id,
-            name: dep.name,
-            relationship: dep.relationship
-        }))
-        }, {
-        headers: { Authorization: `Bearer ${user.token}` }
+        axiosInstance.put(`/medicalRecords/editGroupLifeEmployeePlan/${employeePlanId}`, {
+            enroll_date: formData.enroll_date,
+            dependents: dependents.map(dep => ({
+                id: dep.id,
+                name: dep.name,
+                relationship: dep.relationship
+            }))}, 
+            {headers: { Authorization: `Bearer ${user.token}` }
         })
+        .then(res => {
+            refreshEmployees();
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Group Life Employee updated successfully!',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+        if (typeof afterSaveCallback === 'function') {
+        afterSaveCallback();
+        }})
+        .catch(err => {
+            console.error("Error submitting:", err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error updating Group Life Employee!',
+            });
+        });
+    };
+
+    const reloadData = () => {
+    axiosInstance.get(`/medicalRecords/getGroupLifeEmployeePlanById/${employeePlanId}`, {
+        headers: { Authorization: `Bearer ${user.token}` }
+    })
     .then(res => {
-        console.log("Success:", res.data);
-        alert("Employee Plan updated.");
-        close(false); // Close modal
+        const data = res.data.data;
+        setFormData({
+        employee_name: data.employee_name,
+        branch_name: data.branch_name,
+        department_name: data.department_name,
+        enroll_date: data.enroll_date,
+        dependents: data.dependents || []
+        });
+        setDependents(data.dependents.map(dep => ({
+        id: dep.id,
+        name: dep.name,
+        relationship: dep.relationship
+        })));
     })
     .catch(err => {
-
-    if (err.response?.status === 422) {
-        console.error("Validation errors:", err.response.data.errors);
-        alert("Validation failed. See console.");
-    } else {
-        console.error("Other error:", err);
-        alert("Failed to update employee plan.");
-    }
-    });
+        console.error("Error fetching Group Life Employee", err);
+        Swal.fire({
+                icon: 'error',
+                title: 'Error fetching Group Life Employee!',
+            });
+    })
     };
 
     return (
@@ -174,81 +190,87 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId }) => {
                         <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Edit Employee</Typography>
                         <IconButton onClick={() => close(false)}><i className="si si-close"></i></IconButton>
                     </Box>
-                    <DialogContent sx={{ padding: 1, paddingBottom: 1 }}>                      
-                    <Box sx={{ mb: 2, textAlign: 'left' }}>
-                        <Typography variant="body1"><strong>Employee Name:</strong> {formData.employee_name || '-'}</Typography>
-                        <Typography variant="body1"><strong>Branch:</strong> {formData.branch_name || '-'}</Typography>
-                        <Typography variant="body1"><strong>Department:</strong> {formData.department_name || '-'}</Typography>
-                        <Typography variant="body1"><strong>Enroll Date:</strong> {formData.enroll_date || '-'}</Typography>
+                    <DialogContent sx={{ padding: 1, paddingBottom: 1 }}>   
+                        {loading ? (
+                            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+                                <CircularProgress />
+                            </Box>
+                            ) : (                   
+                                <Box sx={{ mb: 2, textAlign: 'left' }}>
+                                    <Typography variant="body1"><strong>Employee Name:</strong> {formData.employee_name || '-'}</Typography>
+                                    <Typography variant="body1"><strong>Branch:</strong> {formData.branch_name || '-'}</Typography>
+                                    <Typography variant="body1"><strong>Department:</strong> {formData.department_name || '-'}</Typography>
+                                    <Typography variant="body1"><strong>Enroll Date:</strong> {formData.enroll_date || '-'}</Typography>
 
-                {showAddForm && (
-                <Box sx={{ mb: 2 }}>
-                    <Grid container spacing={2}>
-                    <Grid item xs={5}>
-                        <TextField
-                        fullWidth
-                        label="Dependent Name"
-                        value={newDependent.name}
-                        onChange={(e) =>
-                            setNewDependent((prev) => ({ ...prev, name: e.target.value }))
-                        }
-                        />
-                    </Grid>
+                                {showAddForm && (
+                                <Box sx={{ mb: 2, mt: 2 }}>
+                                    <Grid container spacing={2}>
+                                    <Grid size={6} item xs={5}>
+                                        <TextField
+                                        fullWidth
+                                        label="Dependent Name"
+                                        value={newDependent.name}
+                                        onChange={(e) =>
+                                            setNewDependent((prev) => ({ ...prev, name: e.target.value }))
+                                        }
+                                        />
+                                    </Grid>
 
-                    <Grid item xs={5}>
-                        <Autocomplete
-                        fullWidth
-                        freeSolo
-                        options={relationshipOptions}
-                        value={newDependent.relationship}
-                        onChange={(_, newValue) =>
-                            setNewDependent((prev) => ({ ...prev, relationship: newValue || "" }))
-                        }
-                        onInputChange={(_, newInputValue) =>
-                            setNewDependent((prev) => ({ ...prev, relationship: newInputValue || "" }))
-                        }
-                        renderInput={(params) => (
-                            <TextField {...params} label="Relationship" fullWidth />
-                        )}
-                        />
-                    </Grid>
+                                    <Grid size={6} item xs={5}>
+                                        <Autocomplete
+                                        fullWidth
+                                        freeSolo
+                                        options={relationshipOptions}
+                                        value={newDependent.relationship}
+                                        onChange={(_, newValue) =>
+                                            setNewDependent((prev) => ({ ...prev, relationship: newValue || "" }))
+                                        }
+                                        onInputChange={(_, newInputValue) =>
+                                            setNewDependent((prev) => ({ ...prev, relationship: newInputValue || "" }))
+                                        }
+                                        renderInput={(params) => (
+                                            <TextField {...params} label="Relationship" fullWidth />
+                                        )}
+                                        />
+                                    </Grid>
+                            </Grid>
+                            <Grid container spacing={2} justifyContent="center">
+                            <Grid item sx={{mt: 1}}>
+                                <Button
+                                variant="contained"
+                                color="success"
+                                onClick={() => {
+                                    if (!newDependent.name.trim() || !newDependent.relationship.trim()) {
+                                    alert("Please complete both fields.");
+                                    return;
+                                    }
 
-                    <Grid item sx={{mt: 1}}>
-                        <Button
-                        variant="contained"
-                        color="success"
-                        onClick={() => {
-                            if (!newDependent.name.trim() || !newDependent.relationship.trim()) {
-                            alert("Please complete both fields.");
-                            return;
-                            }
+                                    setDependents((prev) => [
+                                    ...prev,
+                                    {
+                                        name: newDependent.name,
+                                        relationship: newDependent.relationship,
+                                    },
+                                    ]);
+                                    setShowAddForm(false);
+                                }}
+                                >
+                                Add
+                                </Button>
 
-                            setDependents((prev) => [
-                            ...prev,
-                            {
-                                name: newDependent.name,
-                                relationship: newDependent.relationship,
-                            },
-                            ]);
-                            setShowAddForm(false);
-                        }}
-                        >
-                        Add
-                        </Button>
-
-                    </Grid>
-                        <Grid item sx={{mt: 1}}>
-                        <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={() => setShowAddForm(false)}
-                        >
-                        Cancel
-                        </Button>
-                    </Grid>
-                    </Grid>
-                </Box>
-                )}
+                            </Grid>
+                                <Grid item sx={{mt: 1}}>
+                                <Button
+                                variant="contained"
+                                color="secondary"
+                                onClick={() => setShowAddForm(false)}
+                                >
+                                Cancel
+                                </Button>
+                            </Grid>
+                            </Grid>
+                        </Box>
+                    )}
 
                 {!showAddForm && (
                 <>
@@ -257,8 +279,7 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId }) => {
                         sx={{
                         marginTop: 2,
                         overflowY: "scroll",
-                        minHeight: 400,
-                        maxHeight: 500,
+                        minHeight: 300,
                         }}
                         style={{ overflowX: "auto" }}
                     >
@@ -308,7 +329,19 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId }) => {
                                     </TableCell>
 
                                     <TableCell>
-                                    <Button onClick={() => setEditingIndex(null)}>Done</Button>
+                                        <Button
+                                        variant="contained"
+                                        color="primary"
+                                        size="small"
+                                        onClick={() => {
+                                            handleSubmit(() => {
+                                            reloadData();
+                                            setEditingIndex(null);
+                                            });
+                                        }}
+                                        >
+                                        Save
+                                        </Button>
                                     </TableCell>
                                 </>
                                 ) : (
@@ -330,8 +363,6 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId }) => {
                     ) : (
                     <Typography variant="body2">No dependents</Typography>
                     )}
-
-                    {/* Centered Add & Cancel buttons BELOW the table */}
                     <Grid container spacing={2} justifyContent="center" sx={{ mt: 2 }}>
                     <Grid item>
                         <Button
@@ -339,6 +370,7 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId }) => {
                         onClick={() => {
                             setShowAddForm(true);
                             setNewDependent({ name: "", relationship: "" });
+                            setShowSaveButton(true);
                         }}
                         >
                         Add Dependent
@@ -347,16 +379,28 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId }) => {
                     </Grid>
                 </>
                 )}
-                <Button
+                <Grid container spacing={2} justifyContent="center" sx={{ mt: 2 }}>
+                {/* <Button
                 variant="contained"
                 color="primary"
                 onClick={handleSubmit}
                 sx={{ mt: 2 }}
                 >
                 Save Changes
-                </Button>
+                </Button> */}
+                {showSaveButton && (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSubmit}
+                        sx={{ mt: 2 }}
+                    >
+                        Save Changes
+                    </Button>
+                    )}
+                </Grid>
                     </Box>                           
-                    </DialogContent>
+                     )}</DialogContent>
                 </DialogTitle>
             </Dialog>
         </>

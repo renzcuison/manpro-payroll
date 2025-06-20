@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../../../components/Layout/Layout";
-import GroupLifeAddModal from "./Modal/GroupLifeAddModal";
+import GroupLifeAddPlanModal from "./Modal/GroupLifeAddPlanModal";
 import GroupLifeAddCompanyModal from "./Modal/GroupLifeAddCompanyModal";
 import GroupLifeCompanyTable from "./GroupLifeCompanyTable";
 import GroupLifeOverview from "./GroupLifeOverview";
@@ -50,7 +50,6 @@ const GroupLifeMasterlist = () => {
         axiosInstance
             .get("/medicalRecords/getGroupLifeCompanies", { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
-                console.log("API response:", res.data); 
                 setListOfCompanies(
                     (res.data.companies || []).map(company => ({
                         companyMenuItem: company.name,
@@ -61,7 +60,6 @@ const GroupLifeMasterlist = () => {
             .catch(console.error)
             .finally(() => setLoading(false));
         }, [user]);
-        
         
 
     useEffect(() => {
@@ -85,7 +83,7 @@ const GroupLifeMasterlist = () => {
             }))
             );
             })
-                .catch(console.error);
+            .catch(console.error);
         }, [user]);
 
         const refreshCompanies = () => {
@@ -93,7 +91,6 @@ const GroupLifeMasterlist = () => {
             setLoading(true);
         axiosInstance.get('/group-life-companies', { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
-                console.log("Rows updated", rows);
                 setListOfCompanies(
                     res.data.map(company => ({
                         companyMenuItem: company.name,
@@ -113,7 +110,6 @@ const GroupLifeMasterlist = () => {
             })
             .then(res => {
                 const plans = res.data.plans || [];
-                console.log("Processed plans:", plans);
                 setRows(
                     plans.map(row => ({
                         id: row.id,
@@ -166,8 +162,6 @@ const GroupLifeMasterlist = () => {
         const startIndex = currentPage * rowsPerPage;
         return filteredRecords.slice(startIndex, startIndex + rowsPerPage);
     }, [filteredRecords, currentPage, rowsPerPage]);
-
-    console.log("Rows sent to chart:", rows);
 
     return (
     <Layout title={"Pre-Employment Medical Exam Records"}>
@@ -234,7 +228,7 @@ const GroupLifeMasterlist = () => {
                                 // rows={filteredRecords}
                                 rows={paginatedRows}
                                 search={search}
-                                refreshPlans={refreshPlans}
+                                // refreshPlans={refreshPlans}
                                 loading={loading}
                                 />
                                 <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
@@ -264,7 +258,7 @@ const GroupLifeMasterlist = () => {
                     </Box>
 
                     {openAddGroupLifeModal && (
-                        <GroupLifeAddModal
+                        <GroupLifeAddPlanModal
                             open={openAddGroupLifeModal}
                             close={() => setOpenAddGroupLifeModal(false)}
                             listOfCompanies={listOfCompanies}
@@ -278,10 +272,10 @@ const GroupLifeMasterlist = () => {
                         onAddCompany={companyName => {
                         // setOpenAddCompanyModal(false);
                         refreshCompanies();
-                        setListOfCompanies(prev => [
-                            ...prev,
-                            { companyMenuItem: companyName }
-                        ]);
+                        // setListOfCompanies(prev => [
+                        //     ...prev,
+                        //     { companyMenuItem: companyName }
+                        // ]);
                         }}
                     />
                     )}

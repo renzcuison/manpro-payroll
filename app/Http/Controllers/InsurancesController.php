@@ -93,8 +93,51 @@ class InsurancesController extends Controller
         ]);
     }
 
-    public function getGroupLifePlans()
+    public function editGroupLifeCompany(Request $request, $id)
+    {
+        Log::info("InsurancesController::editGroupLifeCompany");
 
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $company = GroupLifeCompany::where('client_id', $user->client_id)
+                                    ->where('id', $id)
+                                    ->first();
+
+        if (!$company) {
+            return response()->json([
+                'status' => 404,
+            ], 404);
+        }
+
+        $company->name = $validated['name'];
+        $company->save();
+
+        return response()->json([
+            'status' => 200,
+            'company' => [
+                'id' => $company->id,
+                'name' => $company->name,
+            ]
+        ]);
+    }
+
+    public function deleteGroupLifeCompany($id)
+    {
+        $company = GroupLifeCompany::withCount('plans')->find($id);
+
+        if ($company->plans_count > 0) {
+            return response(null, 400);
+        }
+
+        $company->delete();
+        return response()->json(['message' => 'Company soft deleted successfully.'], 200);
+    }
+
+    public function getGroupLifePlans()
         {
         log::info("InsurancesController::getGroupLifePlans");
 
@@ -148,6 +191,28 @@ class InsurancesController extends Controller
         $plan = GroupLifeCompanyPlan::create($validated);
 
         return response()->json($plan, 201);
+    }
+
+    public function editGroupLifePlan(Request $request, $id)
+        {
+        Log::info("InsurancesController::editGroupLifePlan");
+
+        $validated = $request->validate([
+            'plan_name' => 'required|string|max:255',
+            'type' => 'required|string|max:50',
+            'employer_share' => 'required|numeric|min:0',
+            'employee_share' => 'required|numeric|min:0',
+        ]);
+
+        $plan = GroupLifeCompanyPlan::findOrFail($id);
+
+        $plan->plan_name = $validated['plan_name'];
+        $plan->type = $validated['type'];
+        $plan->employer_share = $validated['employer_share'];
+        $plan->employee_share = $validated['employee_share'];
+        $plan->save();
+
+        return response()->json(null, 200);
     }
 
     public function getGroupLifeEmployeePlan()
@@ -215,70 +280,6 @@ class InsurancesController extends Controller
             ], 404);
         }
     }
-
-    // public function editGroupLifeEmployeePlan(Request $request, $id)
-    // {
-    //     $validated = $request->validate([
-    //         'enroll_date' => 'required|date',
-    //         'dependents' => 'required|array',
-    //         'dependents.*.name' => 'required|string|max:255',
-    //         'dependents.*.relationship' => 'required|string|max:100',
-    //     ]);
-
-    //     $employeePlan = GroupLifeEmployeePlan::with('employee', 'dependents')->find($id);
-
-    //     if (!$employeePlan) {
-    //         return response()->json(['message' => 'Employee plan not found.'], 404);
-    //     }
-
-    //     $employeePlan->update([
-    //         'enroll_date' => $validated['enroll_date'],
-    //     ]);
-
-    //     $existingDependents = $employeePlan->dependents->keyBy('id');
-    //     $incoming = collect($validated['dependents']);
-
-    //     $incomingIds = $incoming->pluck('id')->filter(); 
-    //     $toDelete = $existingDependents->keys()->diff($incomingIds); 
-
-    //     $added = [];
-    //     $updated = [];
-    //     foreach ($incoming as $newDep) {
-    //             if (isset($newDep['id']) && $existingDependents->has($newDep['id'])) {                    
-    //                 $dep = $existingDependents[$newDep['id']];
-    //                 if (
-    //                     $dep->dependent_name !== $newDep['name'] ||
-    //                     $dep->relationship !== $newDep['relationship']
-    //                 ) {
-    //                     $dep->update([
-    //                         'dependent_name' => $newDep['name'],
-    //                         'relationship' => $newDep['relationship'],
-    //                     ]);
-    //                     $updated[] = $dep;
-    //                 }
-    //             } else {                    
-    //                 $created = $employeePlan->dependents()->create([
-    //                     'dependent_name' => $newDep['name'],
-    //                     'relationship' => $newDep['relationship'],
-    //                 ]);
-    //                 $added[] = $created;
-    //             }
-    //         }
-
-    //     GroupLifeDependents::whereIn('id', $toDelete)->delete();
-
-    //     $employeePlan->load('dependents', 'employee');
-
-    //     return response()->json([
-    //         'status' => 200,
-    //         'message' => 'Employee plan updated successfully.',
-    //         'enroll_date' => $employeePlan->enroll_date,
-    //         'employee_name' => $employeePlan->employee->first_name . ' ' . $employeePlan->employee->last_name,
-    //         'added_dependents' => $added,
-    //         'updated_dependents' => $updated,
-    //         'all_dependents' => $employeePlan->dependents,
-    //     ]);
-    // }
 
     public function editGroupLifeEmployeePlan(Request $request, $id)
     {
