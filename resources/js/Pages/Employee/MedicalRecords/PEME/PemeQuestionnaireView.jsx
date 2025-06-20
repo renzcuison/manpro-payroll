@@ -1,6 +1,7 @@
 import Layout from "../../../../components/Layout/Layout";
 import React, { useState, useEffect, useRef } from "react";
 import PemeRecordsFilePreview from "./Modals/PemeRecordsFilePreview";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 import {
     Box,
@@ -26,7 +27,15 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import dayjs from "dayjs";
 import Swal from "sweetalert2";
 
-const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
+const UploadForm = ({
+    files = [],
+    onChange,
+    file,
+    fileName,
+    onFileClick,
+    onRemoveFile,
+    formID,
+}) => {
     const fileInputRef = useRef();
 
     const handleFileChange = (e) => {
@@ -49,28 +58,48 @@ const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
             >
                 {/* Show existing file from props */}
                 {file && (
-                    <Typography
-                        color="primary"
-                        onClick={() => {
-                            if (onFileClick && file?.url) {
-                                onFileClick(file.url, file.file_name);
-                            }
-                        }}
-                        sx={{
-                            boxShadow: 1,
-                            padding: 1,
-                            borderRadius: 1,
-                            display: "inline-block",
-                            backgroundColor: "#fafafa",
-                            cursor: "pointer",
-                            mr: 2,
-                        }}
-                    >
-                        <FileUploadIcon
-                            sx={{ mr: 1, verticalAlign: "middle" }}
-                        />
-                        {fileName}
-                    </Typography>
+                    <>
+                        <Typography
+                            color="primary"
+                            onClick={() => {
+                                if (onFileClick && file?.url) {
+                                    onFileClick(file.url, file.file_name);
+                                }
+                            }}
+                            sx={{
+                                position: "relative",
+                                boxShadow: 1,
+                                padding: 1,
+                                borderRadius: 1,
+                                display: "inline-block",
+                                backgroundColor: "#fafafa",
+                                cursor: "pointer",
+                                mr: 2,
+                            }}
+                        >
+                            <FileUploadIcon
+                                sx={{ mr: 1, verticalAlign: "middle" }}
+                            />
+                            {fileName}
+                            <Button
+                                sx={{
+                                    zIndex: 10,
+                                    margin: 0,
+                                    padding: 0,
+                                    color: "#f92a2a",
+                                    position: "absolute",
+                                    right: -30,
+                                    top: -10,
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRemoveFile && onRemoveFile();
+                                }}
+                            >
+                                <CancelIcon></CancelIcon>
+                            </Button>
+                        </Typography>
+                    </>
                 )}
 
                 {/* Show newly uploaded files */}
@@ -80,6 +109,7 @@ const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
                             key={index}
                             color="primary"
                             sx={{
+                                position: "relative",
                                 boxShadow: 1,
                                 padding: 1,
                                 borderRadius: 1,
@@ -98,6 +128,22 @@ const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
                                 sx={{ mr: 1, verticalAlign: "middle" }}
                             />
                             {file.name || file.fileName || "Unknown file"}
+                            <Button
+                                sx={{
+                                    zIndex: 10,
+                                    margin: 0,
+                                    padding: 0,
+                                    color: "#c92a2a",
+                                    position: "absolute",
+                                    right: -30,
+                                    top: -10,
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                }}
+                            >
+                                <CancelIcon></CancelIcon>
+                            </Button>
                         </Typography>
                     ))
                 ) : !file ? (
@@ -129,6 +175,8 @@ const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
         </>
     );
 };
+
+``;
 
 const PassOrFail = ({ value, onChange }) => {
     const normalizedValue =
@@ -217,6 +265,7 @@ const TextBox = ({ value, onChange }) => {
 
 const PemeQuestionnaireView = () => {
     const [answers, setAnswers] = useState({});
+
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const { PemeResponseID } = useParams();
@@ -269,6 +318,8 @@ const PemeQuestionnaireView = () => {
             setNextSchedule(dayjs(employeeResponse.next_schedule));
         }
     }, [employeeResponse]);
+
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handleOnConfirmClick = (draftStatus) => {
 
@@ -378,18 +429,6 @@ const PemeQuestionnaireView = () => {
             }
 
             try {
-                const secondaryPayload = {
-                    expiry_date: expirationDate,
-                    next_schedule: nextSchedule,
-                };
-                console.log(secondaryPayload);
-
-                // await axiosInstance.patch(
-                //     `/peme-responses/${PemeResponseID}/status`,
-                //     secondaryPayload,
-                //     { headers }
-                // );
-
                 await axiosInstance.post(`/peme-responses/storeAll`, formData, {
                     headers,
                 });
@@ -458,15 +497,6 @@ const PemeQuestionnaireView = () => {
                             value: answerValue,
                         };
 
-                        console.log("question:", form.question_id);
-                        console.log("input_type:", type.input_type);
-                        console.log("value:", value);
-                        console.log(
-                            "value[0] instanceof File:",
-                            value[0] instanceof File
-                        );
-                        console.log("typeof value[0]:", typeof value[0]);
-
                         if (
                             Array.isArray(answerValue) &&
                             answerValue[0] instanceof File
@@ -489,12 +519,9 @@ const PemeQuestionnaireView = () => {
             });
         }
 
-        const payload = {
-            peme_response_id: PemeResponseID,
-            responses: responses,
-        };
-
         const formData = new FormData();
+
+        console.log("RESPONSES ARRAY", responses);
 
         formData.append("peme_response_id", PemeResponseID);
         formData.append("isDraft", draftStatus);
@@ -527,20 +554,6 @@ const PemeQuestionnaireView = () => {
         }
 
         try {
-            const secondaryPayload = {
-                expiry_date: expirationDate,
-                next_schedule: nextSchedule,
-                status: status,
-            };
-            console.log(secondaryPayload);
-
-            await axiosInstance.patch(
-                `/peme-responses/${PemeResponseID}/status`,
-                secondaryPayload,
-                { headers }
-            );
-
-            console.log("ANSWERS", payload.responses);
             await axiosInstance.post(`/peme-responses/storeAll`, formData, {
                 headers,
             });
@@ -570,9 +583,7 @@ const PemeQuestionnaireView = () => {
 
     const navigator = useNavigate();
     const handleOnCancelClick = () => {
-        navigator(
-            `/employee/medical-records/peme/peme-responses`
-        );
+        navigator(`/employee/medical-records/peme/peme-responses`);
     };
 
     const handleInputChange = (questionId, inputType, value) => {
@@ -583,6 +594,24 @@ const PemeQuestionnaireView = () => {
                 [inputType]: value,
             },
         }));
+    };
+
+    const handleRemoveFile = (questionId, fileToRemove) => {
+        setAnswers((prev) => {
+            let prevFiles = prev[questionId]?.attachment;
+            // Ensure prevFiles is always an array
+            if (!Array.isArray(prevFiles)) prevFiles = [];
+            const updatedFiles = prevFiles.filter(
+                (file) => file !== fileToRemove
+            );
+            return {
+                ...prev,
+                [questionId]: {
+                    ...prev[questionId],
+                    attachment: updatedFiles,
+                },
+            };
+        });
     };
 
     return (
@@ -772,6 +801,12 @@ const PemeQuestionnaireView = () => {
                                                                                 key={
                                                                                     j
                                                                                 }
+                                                                                formID={
+                                                                                    form.question_id
+                                                                                }
+                                                                                fileID={
+                                                                                    file.id
+                                                                                }
                                                                                 fileSizeLimit={
                                                                                     type.file_size_limit
                                                                                 }
@@ -787,6 +822,39 @@ const PemeQuestionnaireView = () => {
                                                                                 onFileClick={
                                                                                     handleFileClick
                                                                                 }
+                                                                                onRemoveFile={(
+                                                                                    fileToRemove
+                                                                                ) => {
+                                                                                    handleRemoveFile(
+                                                                                        form.question_id,
+                                                                                        fileToRemove
+                                                                                    );
+                                                                                    setEmployeeResponse(
+                                                                                        (
+                                                                                            prev
+                                                                                        ) => ({
+                                                                                            ...prev,
+                                                                                            details: prev.details.map(
+                                                                                                (
+                                                                                                    f
+                                                                                                ) =>
+                                                                                                    f.question_id ===
+                                                                                                    form.question_id
+                                                                                                        ? {
+                                                                                                              ...f,
+                                                                                                              media: f.media.filter(
+                                                                                                                  (
+                                                                                                                      m
+                                                                                                                  ) =>
+                                                                                                                      m.id !==
+                                                                                                                      file.id
+                                                                                                              ),
+                                                                                                          }
+                                                                                                        : f
+                                                                                            ),
+                                                                                        })
+                                                                                    );
+                                                                                }}
                                                                                 onChange={(
                                                                                     newFiles
                                                                                 ) => {
