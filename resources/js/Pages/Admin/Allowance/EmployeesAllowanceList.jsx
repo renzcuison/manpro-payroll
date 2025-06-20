@@ -25,7 +25,7 @@ const EmployeesAllowanceList = () => {
         allowanceId: selectedAllowance,
     };
     const pagination = {
-        page: page,
+        page: page + 1,
         per_page: rowsPerPage,
     };
     

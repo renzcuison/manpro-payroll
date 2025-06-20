@@ -57,7 +57,7 @@ const BenefitsTypes = () => {
                             <Link to="/admin/compensation/benefits" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
-                            &nbsp; Benefits Types
+                            &nbsp; Statutory Benefits Types
                         </Typography>
 
                         <Button variant="contained" color="primary" onClick={handleOpenAddBenefitsModal}>

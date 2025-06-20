@@ -19,13 +19,13 @@ const EmployeesDeductionsList = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const filters = {
         name: searchName,
-        branchId: selectedBranch,
-        departmentId: selectedDepartment,
-        deductionId: selectedDeduction,
+        branch_id: selectedBranch,
+        department_id: selectedDepartment,
+        deduction_id: selectedDeduction,
     }
     const pagination = {
-        page: page,
-        perPage: rowsPerPage,
+        page: page + 1,
+        per_page: rowsPerPage,
     }
 
     const {deductionsData} = useDeduction();
@@ -37,6 +37,7 @@ const EmployeesDeductionsList = () => {
     const employees = employeesDeductions?.employees || [];
     const deductions = deductionsData?.deductions || [];
     const total = employeesDeductions?.total || 0;
+    const count = employeesDeductions?.employee_count || 0;
 
     const departments = departmentData.data?.departments || [];
     const branches = branchesData?.branches || [];
@@ -206,7 +207,7 @@ const EmployeesDeductionsList = () => {
                                     <TablePagination
                                         rowsPerPageOptions={[5, 10, 25]}
                                         component="div"
-                                        count={employees.length}
+                                        count={count}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}

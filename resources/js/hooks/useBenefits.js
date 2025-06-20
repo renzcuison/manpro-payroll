@@ -6,16 +6,16 @@ const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 import Swal from "sweetalert2";
 
 const buildParams = (filters = {}, pagination = {}) => {
-    const {name, branchId, departmentId, allowanceId} = filters;
-    const {page = 1, perPage = 10} = pagination;
+    const {name, branch_id, department_id, benefit_id} = filters;
+    const {page = 1, per_page = 10} = pagination;
     const params = {};
     
     if (name) params.name = name;
-    if (branchId) params.branch_id = branchId;
-    if (departmentId) params.department_id = departmentId;
-    if (allowanceId) params.allowance_id = allowanceId;
+    if (branch_id) params.branch_id = branch_id;
+    if (department_id) params.department_id = department_id;
+    if (benefit_id) params.allowance_id = benefit_id;
     if (page) params.page = page;
-    if (perPage) params.per_page = perPage;
+    if (per_page) params.per_page = per_page;
     return params;
 }
 

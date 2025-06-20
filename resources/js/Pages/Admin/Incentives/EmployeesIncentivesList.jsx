@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Table, TableHead, TableBody, TableFooter, TableCell, TableContainer, TableRow, Box, 
     Typography, Grid, TextField, FormControl, CircularProgress, TablePagination, Button, MenuItem } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import EmployeeIncentiveView from './Modals/EmployeeIncentiveView';
 import { useIncentive, useEmployeesIncentives } from '../../../hooks/useIncentives';
 import { useDepartments } from '../../../hooks/useDepartments';
@@ -19,13 +19,13 @@ const EmployeesIncentivesList = () => {
     
     const filters = {
         name: searchName,
-        branchId: selectedBranch,
-        departmentId: selectedDepartment,
-        incentiveId: selectedIncentive,
+        branch_id: selectedBranch,
+        department_id: selectedDepartment,
+        incentive_id: selectedIncentive,
     }
     const pagination = {
-        page: page,
-        perPage: rowsPerPage,
+        page: page + 1,
+        per_page: rowsPerPage,
     }
 
     const {incentivesData} = useIncentive();
@@ -36,6 +36,7 @@ const EmployeesIncentivesList = () => {
     const employees = employeesIncentives?.employees || [];
     const incentives = incentivesData?.incentives || [];
     const total = employeesIncentives?.total || 0;
+    const count = employeesIncentives?.employee_count || 0;
 
     const departments = departmentData.data?.departments || [];
     const branches = branchesData?.branches || [];
@@ -204,7 +205,7 @@ const EmployeesIncentivesList = () => {
                                     <TablePagination
                                         rowsPerPageOptions={[5, 10, 25]}
                                         component="div"
-                                        count={employees.length}
+                                        count={count}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}

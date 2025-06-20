@@ -21,13 +21,13 @@ const EmployeesBenefitsList = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const filters = {
         name: searchName,
-        branchId: selectedBranch,
-        departmentId: selectedDepartment,
-        benefitId: selectedBenefit,
+        branch_id: selectedBranch,
+        department_id: selectedDepartment,
+        benefit_id: selectedBenefit,
     }
     const pagination = {
-        page: page,
-        perPage: rowsPerPage,
+        page: page + 1,
+        per_page: rowsPerPage,
     }
 
     const {benefitsData} = useBenefit();
@@ -39,6 +39,7 @@ const EmployeesBenefitsList = () => {
     const employees = employeesBenefits?.employees || [];
     const employer_total = employeesBenefits?.employer_total || 0;
     const employee_total = employeesBenefits?.employee_total || 0;
+    const count = employeesBenefits?.employee_count || 0;
     const departments = departmentData?.departments || [];
     const branches = branchesData?.branches || [];
     const benefits = benefitsData?.benefits || [];
@@ -215,7 +216,7 @@ const EmployeesBenefitsList = () => {
                                     <TablePagination
                                         rowsPerPageOptions={[5, 10, 25]}
                                         component="div"
-                                        count={employees.length}
+                                        count={count}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}
