@@ -321,6 +321,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             'getEmployeeShortDetails',
         ]);
 
+        Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
+        Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']); 
+
+       
+        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
+        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeeController::class, 'getEmployeesByBranch']);
         Route::post('/editMyProfile', [
             EmployeesController::class,
             'editMyProfile',
@@ -446,6 +452,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getBenefits', [BenefitsController::class, 'getBenefits']);
         Route::post('/saveBenefit', [BenefitsController::class, 'saveBenefit']);
 
+        Route::post('/updateEmployeeBenefit', [SettingsController::class, 'updateEmployeeBenefit']);
+        Route::post('/addEmployeeBenefit', [BenefitsController::class, 'addEmployeeBenefit']);
+        Route::get('/getEmployeeBenefits', [BenefitsController::class, 'getEmployeeBenefits']);
         Route::post('/addEmployeeBenefit', [
             BenefitsController::class,
             'addEmployeeBenefit',

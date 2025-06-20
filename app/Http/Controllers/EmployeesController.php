@@ -137,6 +137,10 @@ class EmployeesController extends Controller
     }
 
 
+
+
+
+
     public function updateBranchPosition(Request $request)
     {
         $validated = $request->validate([

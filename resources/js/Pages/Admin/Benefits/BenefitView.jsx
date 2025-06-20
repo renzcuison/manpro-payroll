@@ -1,254 +1,231 @@
-import React, { useEffect, useState } from 'react'
-import { Tabs, Tab, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, CircularProgress, Avatar, Button, Menu, MenuItem } from '@mui/material'
-import Layout from '../../../components/Layout/Layout'
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import PropTypes from 'prop-types';
-import PageHead from '../../../components/Table/PageHead'
-import PageToolbar from '../../../components/Table/PageToolbar'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { getComparator, stableSort } from '../../../components/utils/tableUtils'
-
-import EmploymentDetailsEdit from '../../../Modals/Employees/EmployeeDetailsEdit';
+import Layout from '../../../components/Layout/Layout';
+import LoadingSpinner from '../../../components/LoadingStates/LoadingSpinner';
+import {
+  Box,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  Grid,
+  TextField,
+  IconButton
+} from '@mui/material';
 
 const BenefitView = () => {
-    const { benefitID } = useParams();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const storedUser = localStorage.getItem('nasya_user');
+  const headers = getJWTHeader(JSON.parse(storedUser));
 
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
+  const [benefit, setBenefit] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchKeyword, setSearchKeyword] = useState('');
 
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [benefit, setBenefit] = useState(''); 
-    const [employee, setEmployee] = useState(''); 
+        const benefitResponse = await axiosInstance.get(`/benefits/getBenefit/${id}`, { headers });
+        setBenefit(benefitResponse.data.benefit);
 
+        const employeesResponse = await axiosInstance.get(`/benefits/getEmployeesByBenefit/${id}`, { headers });
+        setEmployees(employeesResponse.data.employees || []);
 
-    useEffect(() => {
-        const data = { id: benefitID };
-
-        axiosInstance.get(`/benefits/getBenefit`, { params: data, headers })
-            .then((response) => {
-                if ( response.data.status === 200 ) {
-                    console.log(response);
-                    setBenefit(response.data.benefit);
-                    setIsLoading(false);
-                }
-            }).catch((error) => {
-                console.error('Error fetching getBenefit:', error);
-            });
-    }, []);
-
-    // const getEmployeeDetails = () => {
-        
-    // };
-
-    const handleOpenActions = (event) => {
-        setAnchorEl(event.currentTarget);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load data');
+      } finally {
+        setIsLoading(false);
+      }
     };
-    
-    const handleCloseActions = () => {
-        setAnchorEl(null);
-    };
-    
-    return (
-        <Layout title={"BenefitView"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
-                <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' }}}>
 
-                    <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
-                        <Typography variant="h4" sx={{ fontWeight: 'bold' }} > View Benefit </Typography>
+    fetchData();
+  }, [id]);
 
-                        <Button variant="contained" color="primary" onClick={handleOpenActions} >
-                            Actions
-                        </Button>
-                        
-                        <Menu anchorEl={anchorEl} open={open} onClose={handleCloseActions} >
-                            {/* <MenuItem onClick={handleCloseActions}>Edit Employee Information</MenuItem> */}
-                            {/* <MenuItem onClick={handleOpenEmploymentDetailsEditModal}>Edit Employment Details</MenuItem> */}
-                        </Menu>
-                    </Box>
+  if (error) return (
+    <Layout title={'Benefit Details'}>
+      <Typography color="error">{error}</Typography>
+    </Layout>
+  );
+  
+  if (!benefit) return (
+    <Layout title={'Benefit Details'}>
+      <Typography> </Typography>
+    </Layout>
+  );
 
-                    <Grid container spacing={4} sx={{ mt: 2 }}>
+  const filteredEmployees = employees.filter(emp => 
+    emp.name.toLowerCase().includes(searchKeyword.toLowerCase())
+  );
 
-                        <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                            <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px'}}>
-
-                                {isLoading ? (
-                                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
-                                        <CircularProgress />
-                                    </Box>
-                                ) : (
-                                    <>
-                                        <Grid container spacing={4} sx={{ p: 1 }}>
-                                            <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Name </Grid>
-                                            <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> {benefit.name} </Grid>
-                                        </Grid>
-
-                                        <Grid container spacing={4} sx={{ p: 1 }}>
-                                            <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Type </Grid>
-                                            <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> {benefit.type} </Grid>
-                                        </Grid>
-
-                                        {benefit?.type === "Percentage" && (
-                                            <>
-                                                <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Employee Share</Grid>
-                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> {benefit.employee_percentage}% </Grid>
-                                                </Grid>
-                                            
-                                                <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Employeer Share</Grid>
-                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> {benefit.employer_percentage}% </Grid>
-                                                </Grid>
-
-                                                <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Total </Grid>
-                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> {benefit.employee_percentage} + {benefit.employer_percentage}% </Grid>
-                                                </Grid>
-                                            </>
-                                        )}
-
-                                        {benefit?.type === "Amount" && (
-                                            <>
-                                                <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Employee Share</Grid>
-                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> ₱{benefit.employee_amount} </Grid>
-                                                </Grid>
-                                            
-                                                <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Employeer Share</Grid>
-                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> ₱{benefit.employer_amount} </Grid>
-                                                </Grid>
-
-                                                <Grid container spacing={4} sx={{ p: 1 }}>
-                                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}> Total </Grid>
-                                                    <Grid size={{ xs: 8, sm: 8, md: 8, lg: 4 }}> ₱{benefit.employee_amount} + {benefit.employer_amount} </Grid>
-                                                </Grid>
-                                            </>
-                                        )}
-                                    </>
-                                )}
-                            </Box>
-                        </Grid>
-
-                        <Grid size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>
-                            <Box sx={{ mb: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
-
-                                <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }} > Summary </Typography>
-
-                                <Grid container spacing={4}>
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                            <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#7eb73d' }}>100,000</Avatar>
-                                            </Grid>
-                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Typography variant="h6"> Signed Payroll </Typography>
-                                            </Grid>
-                                        </Box>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                            <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#eab000' }}>100,000</Avatar>
-                                            </Grid>
-                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Typography variant="h6"> Attendance </Typography>
-                                            </Grid>
-                                        </Box>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Box sx={{ bgcolor: '#ffffff', borderRadius: '8px' }}>
-                                            <Grid container sx={{ pb: 2, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Avatar sx={{ width: 114, height: 114, bgcolor: '#de5146' }}>100,000</Avatar>
-                                            </Grid>
-                                            <Grid container sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                                <Typography variant="h6"> Applications </Typography>
-                                            </Grid>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                            </Box>
-
-                            <Box sx={{ mt: 4, py: 3, px: 4, bgcolor: '#ffffff', borderRadius: '8px' }}>
-
-                                <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }} > Employement Details </Typography>
-
-                                <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography> Role </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Typography> {employee.role || '-' } </Typography>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography> Job Title </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Typography> {employee.jobTitle || '-' } </Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography> Department </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Typography> {employee.department || '-' } </Typography>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography> Branch </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Typography> {employee.branch || '-' } </Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography> Type </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Typography> {employee.employment_type || '-' } </Typography>
-                                    </Grid>
-
-                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography> Status </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Typography> {employee.employment_status || '-' } </Typography>
-                                    </Grid>
-                                </Grid>
-
-                                <Grid container spacing={4} sx={{ py: 1 }}>
-                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography> Team </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Typography> {employee.work_group || '-' } </Typography>                                    
-                                    </Grid>
-
-                                    <Grid size={{ xs: 2, sm: 2, md: 2, lg: 2 }}>
-                                        <Typography> Employment Date </Typography>
-                                    </Grid>
-                                    <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4}}>
-                                        <Typography> {employee.date_start ? `${formattedStartDate}` : '-'} {employee.date_end ? `- ${formattedEndDate}` : ''} </Typography>
-                                    </Grid>
-                                </Grid>
-                            </Box>
-                        </Grid>
-
-                    </Grid>
-                
-                </Box>
+  return (
+    <Layout title={'Benefit Details'}>
+      {isLoading ? (
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: 'calc(100vh - 200px)'
+        }}>
+          <LoadingSpinner />
+        </Box>
+      ) : (
+        <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
+          <Box sx={{ mx: 'auto', width: { xs: '100%', md: '1400px' } }}>
+            <Box
+              sx={{
+                mt: 5,
+                display: 'flex',
+                justifyContent: 'space-between',
+                px: 1,
+                alignItems: 'center',
+              }}
+            >
+              <Typography variant="h4" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+                <i
+                  className="fa fa-chevron-left"
+                  aria-hidden="true"
+                  style={{ fontSize: '80%', cursor: 'pointer' }}
+                  onClick={() => navigate('/admin/benefits')}
+                ></i>
+                {benefit.name}
+              </Typography>
             </Box>
-        </Layout >
-    )
-}
 
-export default BenefitView
+            <Box
+              sx={{
+                mt: 6,
+                p: 3,
+                bgcolor: '#ffffff',
+                borderRadius: '8px',
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                  Benefit Type: {benefit.type}
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                  {benefit.type === "Percentage" ? (
+                    <>
+                      Employee Share: {benefit.employee_percentage}% | 
+                      Employer Share: {benefit.employer_percentage}%
+                    </>
+                  ) : (
+                    <>
+                      Employee Share: ₱{benefit.employee_amount} | 
+                      Employer Share: ₱{benefit.employer_amount}
+                    </>
+                  )}
+                </Typography>
+              </Box>
+
+              <Box sx={{ mt: 1 }}>
+                <Grid container spacing={2} sx={{ pb: 4, borderBottom: '1px solid rgb(255, 253, 253)' }}>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Search Employees"
+                      sx={{
+                        height: 50,
+                        fontSize: '1',
+                        padding: '4px 10px',
+                        minWidth: 300,
+                      }}
+                      variant="outlined"
+                      value={searchKeyword}
+                      onChange={(e) => setSearchKeyword(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <i className="fa fa-search mr-2"></i>
+                        )
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+
+                {filteredEmployees.length > 0 ? (
+                  <TableContainer sx={{ mt: 3, maxHeight: 500 }}>
+                    <Table stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell align="left" sx={{fontWeight: 'bold'}}>Employee Name</TableCell>
+                          <TableCell align="left" sx={{fontWeight: 'bold'}}>Department</TableCell>
+                          <TableCell align="left" sx={{fontWeight: 'bold'}}>Position</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {filteredEmployees.map((employee, index) => (
+                          <TableRow
+                            key={index}
+                            hover
+                            sx={{
+                              cursor: 'pointer',
+                              '&:hover': {
+                                backgroundColor: 'rgba(0, 0, 0, 0.1)'
+                              }
+                            }}
+                          >
+                            <TableCell align="left">
+                              {employee.name}
+                            </TableCell>
+                            <TableCell align="left">
+                              {employee.department}
+                            </TableCell>
+                            <TableCell align="left">
+                              {employee.position}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} align="center">
+                      No employees found with this benefit.
+                    </TableCell>
+                  </TableRow>
+                )}
+
+                {filteredEmployees.length > 0 && (
+                  <Box
+                    display="flex"
+                    sx={{
+                      py: 2,
+                      pr: 2,
+                      width: '100%',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography sx={{ mr: 2 }}>
+                      Number of Employees:
+                    </Typography>
+                    <Typography
+                      variant="h6"
+                      sx={{ fontWeight: 'bold' }}
+                    >
+                      {filteredEmployees.length}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      )}
+    </Layout>
+  );
+};
+
+export default BenefitView;
