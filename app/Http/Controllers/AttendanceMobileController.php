@@ -57,7 +57,7 @@ class AttendanceMobileController extends Controller
             DB::beginTransaction();
 
             $workHour = WorkHoursModel::find($user->workShift->work_hour_id);
-            $method = $request->biometric_signature ? 2 : 1;
+            $method = $request->biometric_signature ? 3 : 2;
 
             // Create attendance log
             $attendance = AttendanceLogsModel::create([
