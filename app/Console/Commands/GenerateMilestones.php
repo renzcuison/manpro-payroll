@@ -31,85 +31,87 @@ class GenerateMilestones extends Command
     {
         try {
             $today = now();
-            $targetDate = now()->addMonth(); // Check 1 month in advance
-            $targetMonthDay = $targetDate->format('m-d');
+            $oneMonthLater = now()->addMonth();
 
             $users = UsersModel::all();
 
             foreach ($users as $user) {
                 $todayDateString = $today->toDateString();
-                // Birthday check 1 month ahead
-                if (
-                    $user->birth_date &&
-                    $user->birth_date->format('m-d') === $targetMonthDay
-                ) {
-                    $milestoneDate = now()
-                        ->addMonth()
-                        ->toDateString();
 
-                    $milestone = Milestone::firstOrCreate([
-                        'user_id' => $user->id,
-                        'type' => 'birthday',
-                        'date' => $milestoneDate,
-                        'description' => "Happy Birthday! {$user->name} 1 month ahead of your birthday",
-                        'client_id' => $user->client_id,
-                    ]);
+                // 🎂 Birthday within 1 month range
+                if ($user->birth_date) {
+                    $nextBirthday = $user->birth_date
+                        ->copy()
+                        ->year($today->year);
 
-                    // $user->notify(
-                    //     new MilestoneReminder('Birthday', $milestoneDate)
-                    // );
-                    Log::info($milestone);
-                }
+                    // Handle birthdays already passed this year
+                    if ($nextBirthday->lessThan($today)) {
+                        $nextBirthday->addYear();
+                    }
 
-                // Anniversary check 1 month ahead
-                if (
-                    $user->date_start &&
-                    $user->date_start->format('m-d') === $targetMonthDay
-                ) {
-                    $years = $targetDate->year - $user->date_start->year;
-                    $milestoneDate = now()
-                        ->addMonth()
-                        ->toDateString();
-
-                    $milestone = Milestone::firstOrCreate([
-                        'user_id' => $user->id,
-                        'type' => 'anniversary',
-                        'date' => $milestoneDate,
-                        'description' => "$years Year Work Anniversary",
-                        'client_id' => $user->client_id,
-                    ]);
-
-                    // $user->notify(
-                    //     new MilestoneReminder(
-                    //         'Work Anniversary',
-                    //         $milestoneDate
-                    //     )
-                    // );
-                    Log::info($milestone);
-                }
-
-                // 🗓️ Work Monthsary (triggered today)
-                if (
-                    $user->date_start &&
-                    $user->date_start->format('d') === $today->format('d')
-                ) {
-                    $monthsSinceStart = $user->date_start->diffInMonths($today);
-
-                    if ($monthsSinceStart > 0) {
+                    if ($nextBirthday->between($today, $oneMonthLater)) {
                         Milestone::firstOrCreate([
                             'user_id' => $user->id,
-                            'type' => 'monthsary',
-                            'date' => $todayDateString,
-                            'description' => "$monthsSinceStart Month Work",
+                            'type' => 'birthday',
+                            'date' => $nextBirthday->toDateString(),
+                            'description' => "Happy upcoming Birthday! {$user->name}",
                             'client_id' => $user->client_id,
                         ]);
 
-                        // $user->notify(
-                        //     new MilestoneReminder(
-                        //         'Work Monthsary',
-                        //         $todayDateString
-                        //     )
-                        // );
+                        Log::info(
+                            "Upcoming birthday milestone created for {$user->name}"
+                        );
+                    }
+                }
+
+                // 🥳 Work Anniversary within 1 month range
+                if ($user->date_start) {
+                    $nextAnniversary = $user->date_start
+                        ->copy()
+                        ->year($today->year);
+                    if ($nextAnniversary->lessThan($today)) {
+                        $nextAnniversary->addYear();
+                    }
+
+                    if ($nextAnniversary->between($today, $oneMonthLater)) {
+                        $years =
+                            $nextAnniversary->year - $user->date_start->year;
+
+                        Milestone::firstOrCreate([
+                            'user_id' => $user->id,
+                            'type' => 'anniversary',
+                            'date' => $nextAnniversary->toDateString(),
+                            'description' => "$years Year Work Anniversary",
+                            'client_id' => $user->client_id,
+                        ]);
+
+                        Log::info(
+                            "Upcoming anniversary milestone created for {$user->name}"
+                        );
+                    }
+                }
+
+                // 📆 Monthsary within next month range (exact date)
+                if ($user->date_start) {
+                    $monthsSinceStart = $user->date_start->diffInMonths($today);
+                    if ($monthsSinceStart > 0) {
+                        $nextMonthsary = $user->date_start
+                            ->copy()
+                            ->addMonths($monthsSinceStart + 1);
+                        if ($nextMonthsary->between($today, $oneMonthLater)) {
+                            Milestone::firstOrCreate([
+                                'user_id' => $user->id,
+                                'type' => 'monthsary',
+                                'date' => $nextMonthsary->toDateString(),
+                                'description' =>
+                                    $monthsSinceStart + 1 . " Month Work",
+                                'client_id' => $user->client_id,
+                            ]);
+
+                            Log::info(
+                                "Upcoming monthsary milestone created for {$user->name}"
+                            );
+                        }
                     }
                 }
             }
