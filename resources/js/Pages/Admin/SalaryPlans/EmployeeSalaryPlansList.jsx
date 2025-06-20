@@ -39,8 +39,10 @@ const SalaryPlans = () => {
                 }
             })
             .then((response) => {
-                // If your backend returns all plans, map to just the grades
-                setAllSalaryGrades((response.data.salaryPlans || []).map(plan => plan.salary_grade));
+                setAllSalaryGrades((response.data.salaryPlans || []).map(plan => ({
+                    salary_grade: plan.salary_grade,
+                    salary_grade_version: plan.salary_grade_version ?? ''
+                })));
             })
             .catch((error) => {
                 console.error("Error fetching all salary grades:", error);

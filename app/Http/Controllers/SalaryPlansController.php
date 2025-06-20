@@ -78,6 +78,7 @@ class SalaryPlansController extends Controller {
 
                 $salaryPlan = SalaryPlansModel::create([
                     "salary_grade" => $request->salary_grade,
+                    "salary_grade_version" => $request->salary_grade_version,
                     "amount" => $request->amount,
                     "client_id" => $client->id,
                 ]);
@@ -108,6 +109,7 @@ class SalaryPlansController extends Controller {
             $salaryGrade = SalaryPlansModel::find($request->input('id'));
 
             $salaryGrade->salary_grade = $request->input('salary_grade');
+            $salaryGrade->salary_grade_version = $request->input('salary_grade_version');
             $salaryGrade->amount = $request->input('amount');
 
             $salaryGrade->save();
