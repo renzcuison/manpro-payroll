@@ -14,6 +14,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import Swal from "sweetalert2";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useUser } from "../../../../hooks/useUser";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const PerformanceEvaluationEditModal = ({
   open,
@@ -223,35 +224,43 @@ const PerformanceEvaluationEditModal = ({
             autoFocus
           />
           {sections && !!sections.length && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
-                Sections
-              </Typography>
-              {sections.map(section => (
-                <Box
-                  key={section.id}
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+              Sections
+            </Typography>
+            {sections.map(section => (
+              <Box
+                key={section.id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  mb: 1,
+                  pl: 1,
+                  pr: 1,
+                  borderRadius: 1,
+                  border: '1px solid #e0e0e0',
+                  background: 'transparent',
+                  transition: 'background 0.2s',
+                  '&:hover': {
+                    background: '#f4f6f8',
+                  },
+                }}
+              >
+                <Typography sx={{ flex: 1, py: 1, color: '#38404A' }}>{section.name}</Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => handleDeleteSection(section.id, section.name)}
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    mb: 1,
-                    pl: 1,
-                    pr: 1,
-                    background: '#fff',
-                    borderRadius: 1,
-                    boxShadow: '0px 1px 4px #eee'
+                    color: 'gray',
+                    ml: 1,
+                    '&:hover': { background: 'rgba(183,28,28,0.08)' }
                   }}
                 >
-                  <Typography sx={{ flex: 1 }}>{section.name}</Typography>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleDeleteSection(section.id, section.name)}
-                    sx={{ color: '#D32F2F' }}
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </Box>
-              ))}
-            </Box>
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            ))}
+          </Box>
           )}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
             <Button

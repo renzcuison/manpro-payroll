@@ -31,7 +31,7 @@ import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import { OptionMouseSensor } from '../Sensors/OptionMouseSensor';
 import { OptionTouchSensor } from '../Sensors/OptionTouchSensor';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
-import PerformanceEvaluationMultipleChoiceEditor from './PerformanceEvaluationMultipleChoiceEditor';
+// import PerformanceEvaluationMultipleChoiceEditor from './PerformanceEvaluationMultipleChoiceEditor';
 import PerformanceEvaluationRating from './PerformanceEvaluationRating';
 import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvaluationFormAddSubcategory';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
