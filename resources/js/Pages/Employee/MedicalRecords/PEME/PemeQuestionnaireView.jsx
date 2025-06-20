@@ -583,7 +583,9 @@ const PemeQuestionnaireView = () => {
 
     const navigator = useNavigate();
     const handleOnCancelClick = () => {
-        navigator(`/employee/medical-records/peme/peme-responses`);
+        navigator(
+            `/admin/medical-records/peme-records/peme-responses/${PemeResponseID}`
+        );
     };
 
     const handleInputChange = (questionId, inputType, value) => {

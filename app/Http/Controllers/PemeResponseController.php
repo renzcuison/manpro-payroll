@@ -186,6 +186,8 @@ class PemeResponseController extends Controller
             'responses.*.value' => 'nullable|string|max:512',
             'responses.*.files' => 'nullable|array',
             'responses.*.files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png',
+            'responses.*.existing_files' => 'nullable|array',
+            'responses.*.existing_files.*' => 'string',
             'isDraft' => 'required|boolean',
         ]);
 
@@ -243,15 +245,29 @@ class PemeResponseController extends Controller
 
                 if ($existing) {
                     $existing->update(['value' => $response['value'] ?? null]);
-                    continue;
+                    $detail = $existing;
+                } else {
+
+                    $detail = PemeResponseDetails::create([
+                        'peme_response_id' => $pemeResponseId,
+                        'peme_q_item_id' => $questionId,
+                        'peme_q_type_id' => $typeId,
+                        'value' => $response['value'] ?? null,
+                    ]);
                 }
 
-                $detail = PemeResponseDetails::create([
-                    'peme_response_id' => $pemeResponseId,
-                    'peme_q_item_id' => $questionId,
-                    'peme_q_type_id' => $typeId,
-                    'value' => $response['value'] ?? null,
+                $existingFiles = $response['existing_files'] ?? [];
+
+                \Log::info("Existing files for detail ID {$detail->id}", [
+                    'existing_files' => $existingFiles,
+                    'media_attached' => $detail->getMedia('attachments')->pluck('uuid')->toArray(),
                 ]);
+
+                $detail->getMedia('attachments')->each(function ($media) use ($existingFiles) {
+                    if (!in_array((string) $media->uuid, array_map('strval', $existingFiles))) {
+                        $media->delete();
+                    }
+                });
 
                 $files = data_get($request->allFiles(), "responses.$index.files", []);
 
