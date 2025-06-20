@@ -90,14 +90,14 @@ export function useEvaluationResponse(responseId) {
             });
     }
 
-    function loadSignatureFilePath(userId, filePath) {
-        const byteCharacters = window.atob(filePath);
+    function loadSignatureFilePath(userId, file) {
+        const byteCharacters = window.atob(file);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++)
             byteNumbers[i] = byteCharacters.charCodeAt(i);
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: 'image/png' });
-        if (filePath && filePath.startsWith('blob:')) URL.revokeObjectURL(filePath);
+        if (file && file.startsWith('blob:')) URL.revokeObjectURL(file);
         signatureFilePaths[userId] = URL.createObjectURL(blob);
         setSignatureFilePaths({ ...signatureFilePaths });
     }
@@ -478,7 +478,7 @@ export function useEvaluationResponse(responseId) {
 
             if (
                 (response.status && String(response.status).startsWith('2')) ||
-                (response.data && response.data.status && String(response.data.status).startsWith('2'))
+                (response.data?.status && String(response.data.status).startsWith('2'))
             ) {
                 return response.data.evaluationCommentor;
             } else {
@@ -540,10 +540,8 @@ export function useEvaluationResponse(responseId) {
                 payload,
                 { headers }
             );
-
             if (
-                (response.status && String(response.status).startsWith('2')) ||
-                (response.data && response.data.status && String(response.data.status).startsWith('2'))
+                (response.data?.status && String(response.data.status).startsWith('2'))
             ) {
                 getEvaluationResponse();
                 return response.data.evaluationResponse;
