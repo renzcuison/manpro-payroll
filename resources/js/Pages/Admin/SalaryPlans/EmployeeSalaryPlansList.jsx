@@ -7,7 +7,7 @@ import { Tabs, Tab } from '@mui/material';
 
 import SalaryGradeAdd from './Modals/SalaryGradeAdd';
 import SalaryGradeEdit from './Modals/SalaryGradeEdit';
-import { useBenefits } from '../../../hooks/useBenefits';
+import { useBenefit } from '../../../hooks/useBenefits';
 
 const SalaryPlans = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -23,8 +23,8 @@ const SalaryPlans = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
-    const { benefits } = useBenefits({ loadBenefits: true });
-    const benefitsData = benefits.data?.benefits || [];
+    const { benefitsData, isBenefitsLoading } = useBenefit(true);
+    const benefitsList = benefitsData?.benefits || [];
     const [selectedBenefitIndex, setSelectedBenefitIndex] = useState(0);
     const [allSalaryGrades, setAllSalaryGrades] = useState([]);
 
@@ -134,7 +134,7 @@ const SalaryPlans = () => {
                             </Box>
                         ) : (
                             <>
-                                {benefitsData.length > 0 &&
+                                {benefitsList.length > 0 &&
                                     (
                                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'flex-end' }}>
                                             <Tabs
@@ -144,7 +144,7 @@ const SalaryPlans = () => {
                                                 variant="scrollable"
                                                 scrollButtons="auto"
                                             >
-                                                {benefitsData.map((benefit, idx) => (
+                                                {benefitsList.map((benefit, idx) => (
                                                 <Tab key={benefit.id} label={benefit.name} />
                                                 ))}
                                             </Tabs>
@@ -167,14 +167,14 @@ const SalaryPlans = () => {
                                                 
                                             </TableRow>
                                             <TableRow>
-                                                {benefitsData[selectedBenefitIndex] && (
+                                                {benefitsList[selectedBenefitIndex] && (
                                                     <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }} align="center">
-                                                        {benefitsData[selectedBenefitIndex].name} Employer's Share{benefitsData[selectedBenefitIndex].type === 'Amount' ? ' (₱)':  ' (' + formatPercentage(benefitsData[selectedBenefitIndex].employer_percentage ?? 0) + '%)'}
+                                                        {benefitsList[selectedBenefitIndex].name} Employer's Share{benefitsList[selectedBenefitIndex].type === 'Amount' ? ' (₱)':  ' (' + formatPercentage(benefitsList[selectedBenefitIndex].employer_percentage ?? 0) + '%)'}
                                                     </TableCell>
                                                 )}  
-                                                {benefitsData[selectedBenefitIndex] && (
+                                                {benefitsList[selectedBenefitIndex] && (
                                                     <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }} align="center">
-                                                        {benefitsData[selectedBenefitIndex].name} Employee's Share{benefitsData[selectedBenefitIndex].type === 'Amount' ? ' (₱)': ' (' + formatPercentage(benefitsData[selectedBenefitIndex].employee_percentage ?? 0) + '%)'}
+                                                        {benefitsList[selectedBenefitIndex].name} Employee's Share{benefitsList[selectedBenefitIndex].type === 'Amount' ? ' (₱)': ' (' + formatPercentage(benefitsList[selectedBenefitIndex].employee_percentage ?? 0) + '%)'}
                                                     </TableCell>
                                                 )}
                                             </TableRow>
@@ -190,17 +190,17 @@ const SalaryPlans = () => {
                                                         <TableCell sx={{ fontSize: 14 }} align="center">
                                                             {salaryPlan.employee_count}
                                                         </TableCell>
-                                                        {benefitsData[selectedBenefitIndex] && (
+                                                        {benefitsList[selectedBenefitIndex] && (
                                                         <>
                                                             <TableCell align="center" sx={{ fontSize: 14 }}>
-                                                            {benefitsData[selectedBenefitIndex].type === 'Amount'
-                                                                ? '₱ ' + Number(benefitsData[selectedBenefitIndex].employer_amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                                                                : '₱ ' + Number((benefitsData[selectedBenefitIndex].employer_percentage ?? 0) * salaryPlan.amount * 0.01).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            {benefitsList[selectedBenefitIndex].type === 'Amount'
+                                                                ? '₱ ' + Number(benefitsList[selectedBenefitIndex].employer_amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                                                : '₱ ' + Number((benefitsList[selectedBenefitIndex].employer_percentage ?? 0) * salaryPlan.amount * 0.01).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                             </TableCell>
                                                             <TableCell align="center" sx={{ fontSize: 14 }}>
-                                                            {benefitsData[selectedBenefitIndex].type === 'Amount'
-                                                                ? '₱ ' + Number(benefitsData[selectedBenefitIndex].employee_amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                                                                : '₱ ' + Number((benefitsData[selectedBenefitIndex].employee_percentage ?? 0) * salaryPlan.amount * 0.01).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            {benefitsList[selectedBenefitIndex].type === 'Amount'
+                                                                ? '₱ ' + Number(benefitsList[selectedBenefitIndex].employee_amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                                                : '₱ ' + Number((benefitsList[selectedBenefitIndex].employee_percentage ?? 0) * salaryPlan.amount * 0.01).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                             </TableCell>
                                                         </>
                                                         )}
@@ -208,7 +208,7 @@ const SalaryPlans = () => {
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={2 + benefitsData.length * 2} align="center"> No Salary Plans </TableCell>
+                                                    <TableCell colSpan={2 + benefitsList.length * 2} align="center"> No Salary Plans </TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
