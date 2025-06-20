@@ -103,8 +103,10 @@ const PerformanceEvaluationEvaluateePage = () => {
         timerProgressBar: true,
         showConfirmButton: false,
         position: 'center'
+      }).then(() => {
+        setAckModalOpen(false);
+        navigate('/employee/performance-evaluation');
       });
-      setAckModalOpen(false);
     } catch (e) {
       Swal.fire({
         icon: 'error',

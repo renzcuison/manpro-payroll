@@ -516,7 +516,6 @@ const PerformanceEvaluationAnswerPage = () => {
                     </Typography> */}
                     <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                       {getFullName(evaluator)}
-                      {evaluator.evaluator_id}, {evaluatorId}
                     </Typography>
                     <TextField
                       label="Evaluator Comment"
