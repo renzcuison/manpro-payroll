@@ -14,8 +14,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 const PemeRecordsFilePreview = ({ open, close, file }) => {
     const downloadFile = async (filename) => {
         try {
-            // const response = await fetch(`http://192.168.1.150:8000/api/download/${filename}`, {
-            const response = await fetch(`http://localhost:8000/api/download/${filename}`, {
+            const response = await fetch(`http://192.168.79.59:8000/api/download/${filename}`, {
                 method: "GET",
             });
 

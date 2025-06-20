@@ -134,7 +134,6 @@ class PemeController extends Controller
         return response()->json($pemeList);
     }
 
-
     public function getPemeStats()
     {
         $clientId = Auth::user()->client_id;
