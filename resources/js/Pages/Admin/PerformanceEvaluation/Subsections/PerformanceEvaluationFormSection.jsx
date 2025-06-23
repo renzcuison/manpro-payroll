@@ -566,12 +566,12 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                         id={'subcategory_'+subcategory.id}
                                         order={subcategory.order}
                                     >
-                                        <PerformanceEvaluationFormSubcategory
+                                        {/* <PerformanceEvaluationFormSubcategory
                                             subcategory={ subcategory }
                                             expandedSubcategoryId={ expandedSubcategory }
                                             setExpandedSubcategoryId={ setExpandedSubcategory }
-                                        />
-                                        {/* <Accordion
+                                        /> */}
+                                        <Accordion
                                             expanded={expandedSubcategory === subcategory.id}
                                             onChange={handleSubcategoryToggle(subcategory.id, subcategory)}
                                             sx={{
@@ -917,7 +917,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                                     <PerformanceEvaluationRating subcategory={subcategory} />
                                                 )}
                                             </AccordionDetails>
-                                        </Accordion> */}
+                                        </Accordion>
                                     </Sortable>
                                 )
                             }
