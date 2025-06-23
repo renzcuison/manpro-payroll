@@ -98,6 +98,7 @@ export default function PerformanceEvaluationFormSubcategory({
                     boxShadow: 'none',
                     px: 3,
                     py: 0,
+                    cursor: draggedId ? 'move!important' : 'pointer'
                 }}
             >
                 <Box sx={{ width: "100%" }}>
