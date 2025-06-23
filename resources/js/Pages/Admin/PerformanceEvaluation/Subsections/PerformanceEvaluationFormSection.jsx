@@ -8,7 +8,6 @@ import {
     TextField,
     Typography
 } from '@mui/material';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import {
     closestCenter,
     DndContext,
@@ -16,15 +15,10 @@ import {
     useSensors
 } from '@dnd-kit/core';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import LinearScaleIcon from '@mui/icons-material/LinearScale';
-import { OptionMouseSensor } from '../Sensors/OptionMouseSensor';
-import { OptionTouchSensor } from '../Sensors/OptionTouchSensor';
 import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
 import PerformanceEvaluationFormSubcategory from './PerformanceEvaluationSubcategory';
 import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvaluationFormAddSubcategory';
-import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import ShortTextIcon from '@mui/icons-material/ShortText';
 import Sortable from './Sortable';
 import {
     SortableContext,
@@ -33,7 +27,6 @@ import {
 import { SubcategoryDropdownMouseSensor } from '../Sensors/SubcategoryDropdownMouseSensor';
 import { SubcategoryDropdownTouchSensor } from '../Sensors/SubcategoryDropdownTouchSensor';
 import Swal from 'sweetalert2';
-import TextFieldsIcon from '@mui/icons-material/TextFields';
 import { useClickAway } from '../../../../hooks/useClickAway';
 import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useRef, useState } from 'react';
