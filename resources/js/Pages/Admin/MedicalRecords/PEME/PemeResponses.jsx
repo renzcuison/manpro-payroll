@@ -58,7 +58,7 @@ const PemeResponses = () => {
                 setPemeRecords(response.data);
                 setVisible(response.data.isVisible === 1);
                 setEditable(response.data.isEditable === 1);
-                setMultiple(response.data.isEditable === 1);
+                setMultiple(response.data.isMultiple === 1);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -73,7 +73,7 @@ const PemeResponses = () => {
             .get(`/peme-responses/${PemeID}`, { headers })
             .then((response) => {
                 setPemeResponses([response.data]);
-                console.log("resposnes", response.data);
+                console.log("responses", response.data);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -85,62 +85,6 @@ const PemeResponses = () => {
     const [visible, setVisible] = useState(true);
     const [multiple, setMultiple] = useState(true);
     const [editable, setEditable] = useState(true);
-
-    // const setIsHiddenOrVisible = async () => {
-    //     const isCurrentlyVisible = visible;
-    //     const newStatus = isCurrentlyVisible ? 0 : 1;
-
-    //     if (isCurrentlyVisible) {
-    //         Swal.fire({
-    //             title: "Hide this PEME Exam?",
-    //             text: `You are about to hide "${pemeRecords?.peme || "this PEME Exam"}".`,
-    //             icon: "warning",
-    //             showCancelButton: true,
-    //             confirmButtonText: "Hide",
-    //             cancelButtonText: "Cancel",
-    //             confirmButtonColor: "#d33",
-    //             customClass: { container: "my-swal" },
-    //         }).then(async (result) => {
-    //             if (result.isConfirmed) {
-    //                 try {
-    //                     const payload = { isVisible: 0 };
-
-    //                     await axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, { headers });
-
-    //                     Swal.fire({
-    //                         icon: "success",
-    //                         text: `PEME exam hidden successfully.`,
-    //                         showConfirmButton: false,
-    //                         timer: 1500,
-    //                     });
-
-    //                     setVisible(false);
-    //                 } catch (error) {
-    //                     console.error("Visibility toggle failed:", error);
-    //                     Swal.fire({
-    //                         icon: "error",
-    //                         title: "Error",
-    //                         text: "Failed to update visibility.",
-    //                     });
-    //                 }
-    //             }
-    //         });
-    //     } else {
-    //         try {
-    //             const payload = { isVisible: 1 };
-
-    //             await axiosInstance.patch(`/updatePemeSettings/${PemeID}`, payload, { headers });
-    //             setVisible(true);
-    //         } catch (error) {
-    //             console.error("Visibility toggle failed:", error);
-    //             Swal.fire({
-    //                 icon: "error",
-    //                 title: "Error",
-    //                 text: "Failed to update visibility.",
-    //             });
-    //         }
-    //     }
-    // };
 
     const handleOnRowClick = (responseID) => {
         navigator(
@@ -260,6 +204,8 @@ const PemeResponses = () => {
     };
 
     // Route::patch('/updatePemeSettings/{id}', [PemeController::class, 'updatePemeSettings']);
+    // const hasRespondents = pemeResponses.length > 0;
+    const hasRespondents = filteredRecords?.[0]?.length > 0;
 
     return (
         <Layout title="Pre-Employment Medical Exam Type Responses">
@@ -384,7 +330,7 @@ const PemeResponses = () => {
                                             >
                                                 {resultsCount}{" "}
                                                 {resultsCount === 1 ||
-                                                resultsCount === 0
+                                                    resultsCount === 0
                                                     ? "Match"
                                                     : "Matches"}
                                             </Typography>
@@ -430,6 +376,8 @@ const PemeResponses = () => {
                 editable={editable}
                 setEditable={setEditable}
                 PemeID={PemeID}
+                // hasRespondents={filteredRecords.length > 0}
+                hasRespondents = {hasRespondents}
                 pemeRecords={pemeRecords}
                 headers={headers}
             />

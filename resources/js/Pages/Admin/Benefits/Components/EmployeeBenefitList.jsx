@@ -23,6 +23,7 @@ const EmployeeBenefitList = ({ benefits, isLoading, onAdd, onEdit }) => {
                             <TableCell align="center">Employer's Share</TableCell>
                             <TableCell align="center">Employee's Share</TableCell>
                             <TableCell align="center">Date</TableCell>
+                            <TableCell align="center">Status</TableCell>
                             <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
@@ -45,10 +46,13 @@ const EmployeeBenefitList = ({ benefits, isLoading, onAdd, onEdit }) => {
                                         ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).
                                         format(benefit.employee_contribution)}
                                     </TableCell>
-
                                     <TableCell align="center">
                                         <Typography>{dayjs(benefit.created_at).format("MMMM DD, YYYY")}</Typography>
                                     </TableCell>
+                                    <TableCell align='center'>
+                                        <Typography>{benefit.status}</Typography>
+                                    </TableCell>
+
                                     <TableCell align="center">
                                         <Tooltip title="Edit">
                                             <Button onClick={() => onEdit(index)} variant="text" sx={{ width: '40px', minWidth: '40px' }}>

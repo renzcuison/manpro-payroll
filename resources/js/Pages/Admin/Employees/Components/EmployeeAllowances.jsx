@@ -45,7 +45,7 @@ const EmployeeAllowances = ({userName, allowances, onRefresh}) => {
                                         <Typography>{allowance.number}</Typography>
                                     </TableCell>
                                     <TableCell align="right">
-                                        <Typography>₱{(allowance.calculated_amount).toFixed(2)}</Typography>
+                                        <Typography>₱{(allowance.employee_amount).toFixed(2)}</Typography>
                                     </TableCell>
                                 </TableRow>
                             ))) :
@@ -58,8 +58,11 @@ const EmployeeAllowances = ({userName, allowances, onRefresh}) => {
                     </TableBody>
                 </Table>
             </TableContainer>
-            {openEmployeeViewAllowance && <EmployeeAllowanceView userName={userName}
-            open={openEmployeeViewAllowance} close={handleCloseViewEmployeeAllowance}></EmployeeAllowanceView>}
+
+            {openEmployeeViewAllowance &&
+                <EmployeeAllowanceView userName={userName} open={openEmployeeViewAllowance} close={handleCloseViewEmployeeAllowance}></EmployeeAllowanceView>
+            }
+
         </Box>
     )
 }

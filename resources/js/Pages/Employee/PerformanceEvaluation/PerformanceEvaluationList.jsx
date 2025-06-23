@@ -144,6 +144,18 @@ const PerformanceEvaluationList = () => {
         }
         navigate(getEvaluationRoleRoute(row));
     };
+ 
+    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+        <TablePagination
+            rowsPerPageOptions={[10, 25, 50]}
+            component="div"
+            count={totalCount}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+    </Box>
 
     return (
         <Layout title={"PerformanceEvaluation"}>

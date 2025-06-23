@@ -47,7 +47,7 @@ class UserAuthController extends Controller
 
             if ($user && Hash::check($request->input('pass'), $user->password)) {
                 log::info("Valid User");
-                return response()->json(['success' => 1, 'user' => $user->id, 'email' => $user->email]);
+                return response()->json(['success' => 1, 'user' => $user->id, 'email' => $user->email, 'user_type' => $user->user_type]);
             } else {
                 log::info("Invalid User");
                 return response()->json(['success' => 0]);

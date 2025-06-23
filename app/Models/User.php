@@ -16,7 +16,7 @@ class User extends Authenticatable implements HasMedia
 {
     use HasApiTokens, HasFactory, Notifiable, InteractsWithMedia;
 
-    protected $table = 'user';
+    protected $table = 'users';
 
     protected $primaryKey = 'user_id';
 

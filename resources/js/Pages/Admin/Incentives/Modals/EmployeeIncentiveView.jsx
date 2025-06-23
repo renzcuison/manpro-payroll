@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Typography, TableContainer, TableHead, TableBody, TableRow, TableCell, Table } from "@mui/material";
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Typography } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 
@@ -11,13 +11,13 @@ dayjs.extend(localizedFormat);
 import EmployeeIncentiveAdd from "../Components/EmployeeIncentiveAdd";
 import EmployeeIncentivesList from "../Components/EmployeeIncentiveList";
 import EmployeeIncentiveEdit from "../Components/EmployeeIncentiveEdit";
-import { useIncentives } from "../../../../hooks/useIncentives";
+import { useEmployeeIncentives } from "../../../../hooks/useIncentives";
 
 const EmployeeIncentiveView = ({ open, close, userName, incentive}) => {
-    const { employeeIncentives } = useIncentives({userName: userName, filters: {incentiveId: incentive}});
+    const {employeeIncentives, isEmployeeIncentivesLoading, refetchEmployeeIncentives} = useEmployeeIncentives(userName, incentive);
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
-    const incentives = employeeIncentives.data?.incentives || [];
+    const incentives = employeeIncentives?.incentives || [];
 
     const [incentivesAddOpen, setIncentivesAddOpen] = useState(false);
     const [incentivesEditOpen, setEditIncentivesOpen] = useState(false);
@@ -50,7 +50,7 @@ const EmployeeIncentiveView = ({ open, close, userName, incentive}) => {
         setIncentivesAddOpen(false);
         setIncentivesListOpen(true);
         if(reload){
-            employeeIncentives.refetch();
+            refetchEmployeeIncentives();
         }
     }
 
@@ -64,7 +64,7 @@ const EmployeeIncentiveView = ({ open, close, userName, incentive}) => {
         setIncentivesListOpen(true);
         setEditIncentivesOpen(false);
         if(reload){
-            employeeIncentives.refetch();
+            refetchEmployeeIncentives();
         }
     }
 
@@ -94,7 +94,7 @@ const EmployeeIncentiveView = ({ open, close, userName, incentive}) => {
                     </Box>
                     
                     {incentivesListOpen && (
-                        <EmployeeIncentivesList incentives={incentives} isLoading={employeeIncentives.isLoading} onAdd={() => handleOpenAddEmployeeIncentive()} 
+                        <EmployeeIncentivesList incentives={incentives} isLoading={isEmployeeIncentivesLoading} onAdd={() => handleOpenAddEmployeeIncentive()} 
                         onEdit={(index) => handleOpenEditEmployeeIncentives(index)}/>
                     )}
 

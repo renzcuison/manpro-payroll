@@ -1,25 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import { Link } from 'react-router-dom';
 import BenefitsAdd from './Modals/BenefitsAdd';
-import { useBenefits } from '../../../hooks/useBenefits';
-
+import { useBenefit } from '../../../hooks/useBenefits';
+import BenefitsEdit from './Modals/BenefitsEdit';
 
 const BenefitsTypes = () => {
-    const {benefits} = useBenefits({loadBenefits:true});
+    const {benefitsData, isBenefitsLoading, refetchBenefits} = useBenefit();
     
-    const benefitsData = benefits.data?.benefits || [];
+    const benefits = benefitsData?.benefits || [];
     const [openAddBenefitsModal, setOpenAddBenefitsModal] = useState(false);
+    const [openEditBenefitsModal, setOpenEditBenefitsModal] = useState(false);
+    const [selectedBenefit, setSelectedBenefit] = useState(null);
 
     const handleOpenAddBenefitsModal = () => {
         setOpenAddBenefitsModal(true);
     }
 
-    const handleCloseAddBenefitsModal = () => {
+    const handleCloseAddBenefitsModal = (reload) => {
         setOpenAddBenefitsModal(false);
-        benefits.refetch();
+        if(reload){
+            refetchBenefits();
+        }
+    }
+
+    const handleOpenEditBenefitsModal = (incentive) => {
+        setSelectedBenefit(incentive);
+        setOpenEditBenefitsModal(true);
+        
+    }
+    const handleCloseEditBenefitsModal = (reload) => {
+        setOpenEditBenefitsModal(false);
+        setSelectedBenefit(null);
+        if(reload){
+            refetchBenefits();
+        }
+    }
+
+    const getPaymentScheduleName = (scheduleNum) => {
+        let scheduleName = '';
+        switch(scheduleNum){
+            case 1: scheduleName = 'One Time - First Cutoff'; break;
+            case 2: scheduleName = 'One Time - Second Cutoff'; break;
+            case 3: scheduleName = 'Split - First & Second Cutoff'; break;
+        }
+        return scheduleName;
     }
 
     return (
@@ -31,7 +57,7 @@ const BenefitsTypes = () => {
                             <Link to="/admin/compensation/benefits" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
-                            &nbsp; Benefits Types
+                            &nbsp; Statutory Benefits Types
                         </Typography>
 
                         <Button variant="contained" color="primary" onClick={handleOpenAddBenefitsModal}>
@@ -40,7 +66,7 @@ const BenefitsTypes = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {benefits.isLoading? (
+                        {isBenefitsLoading? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -52,20 +78,30 @@ const BenefitsTypes = () => {
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Name </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Type </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Payment Schedule </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employer's Share </TableCell>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Employee's Share </TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {benefitsData.length > 0 ? (
-                                                benefitsData.map((benefit) => (
-                                                    <TableRow key={benefit.id}>
+                                            {benefits.length > 0 ? (
+                                                benefits.map((benefit, index) => (
+                                                    <TableRow key={benefit.id} onClick={() => handleOpenEditBenefitsModal(benefit)}
+                                                    sx={{ backgroundColor: index % 2 === 0 ? '#f8f8f8' : '#ffffff',
+                                                     '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{benefit.name}</TableCell>
                                                         <TableCell align="center">{benefit.type}</TableCell>
+                                                        <TableCell align="center">{getPaymentScheduleName(benefit.payment_schedule)}</TableCell>
                                                         {benefit.type === 'Amount' && 
                                                         <>
-                                                            <TableCell align="center">₱{benefit.employer_amount}</TableCell>
-                                                            <TableCell align="center">₱{benefit.employee_amount}</TableCell>
+                                                            <TableCell align="center">
+                                                                ₱ {new Intl.NumberFormat('en-US', 
+                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.employer_amount)}
+                                                            </TableCell>
+                                                            <TableCell align="center">
+                                                                ₱ {new Intl.NumberFormat('en-US', 
+                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.employee_amount)}
+                                                            </TableCell>
                                                         </>
                                                         }
                                                         {benefit.type === 'Percentage' && 
@@ -92,7 +128,10 @@ const BenefitsTypes = () => {
                 {openAddBenefitsModal &&
                     <BenefitsAdd open={openAddBenefitsModal} close={handleCloseAddBenefitsModal}/>
                 }
-
+                {openEditBenefitsModal &&
+                    <BenefitsEdit open={openEditBenefitsModal} close={handleCloseEditBenefitsModal} benefit={selectedBenefit}/>
+                }
+                
             </Box>
         </Layout>
     );

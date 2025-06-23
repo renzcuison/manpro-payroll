@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Layout from "../../../components/Layout/Layout";
 import {
     Avatar,
@@ -40,22 +40,19 @@ function Milestones() {
 
     const { milestones, employees } = dashboard;
 
-    const milestonesToday = useMemo(() => {
-        return milestones.filter((milestone) => {
-            const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");
-            const today = moment().format("YYYY-MM-DD");
-            return milestoneDate === today;
-        });
-    }, [milestones]);
+    const milestonesToday = milestones?.filter((milestone) => {
+        const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");
+        const today = moment().format("YYYY-MM-DD");
+        return milestoneDate === today;
+    });
 
-    const milestonesUpcoming = useMemo(() => {
-        return milestones.filter((milestone) => {
-            const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");
-            const today = moment().format("YYYY-MM-DD");
-            return milestoneDate > today;
-        });
-    }, [milestones]);
-    console.log("Milestones today: ", milestonesToday);
+    const milestonesUpcoming = milestones?.filter((milestone) => {
+        const milestoneDate = moment(milestone.date).format("YYYY-MM-DD");
+        const today = moment().format("YYYY-MM-DD");
+        return milestoneDate > today;
+    });
+
+    console.log("Milestones: ", milestones);
 
     const handleDeleteMilestone = (id) => {
         console.log(id);

@@ -5,7 +5,7 @@ import {
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
 
-export function useEvaluationFormSubcategory(subcategory) {
+export function useEvaluationFormSubcategory(subcategoryInit) {
 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -31,6 +31,20 @@ export function useEvaluationFormSubcategory(subcategory) {
         { label: '', description: '' }
     ]);
     const [saved, setSaved] = useState(true);
+    const subcategory = {
+        id: subcategoryId,
+        section_id: sectionId,
+        name: subcategoryName,
+        subcategory_type: subcategoryType,
+        description: subcategoryDescription,
+        required,
+        allow_other_option: allowOtherOption,
+        linear_scale_start: linearScaleStart,
+        linear_scale_end: linearScaleEnd,
+        linear_scale_start_label: linearScaleStartLabel,
+        linear_scale_end_label: linearScaleEndLabel,
+        options
+    };
     const responseTypeDisplay = {
         short_answer: "Short Text",
         long_answer: "Long Text",
@@ -42,34 +56,34 @@ export function useEvaluationFormSubcategory(subcategory) {
     }[subcategoryType] ?? 'Unknown';
 
     useEffect(() => {
-        if(!subcategory) return;
+        if(!subcategoryInit) return;
         setIsNew(false);
-        setSubcategoryId(subcategory.id);
-        setSubcategoryName(subcategory.name);
-        setSectionId(subcategory.section_id);
-        setSubcategoryType(subcategory.subcategory_type);
-        setSubcategoryDescription(subcategory.description);
-        setRequired(subcategory.required);
-        setAllowOtherOption(subcategory.allow_other_option);
-        setLinearScaleStart(subcategory.linear_scale_start);
-        setLinearScaleEnd(subcategory.linear_scale_end);
-        setLinearScaleStartLabel(subcategory.linear_scale_start_label);
-        setLinearScaleEndLabel(subcategory.linear_scale_end_label);
-        setOrder(subcategory.order);
-        setOptions(subcategory.options);
-        setSavedSubcategory({ ...subcategory });
+        setSubcategoryId(subcategoryInit.id);
+        setSubcategoryName(subcategoryInit.name);
+        setSectionId(subcategoryInit.section_id);
+        setSubcategoryType(subcategoryInit.subcategory_type);
+        setSubcategoryDescription(subcategoryInit.description);
+        setRequired(subcategoryInit.required);
+        setAllowOtherOption(subcategoryInit.allow_other_option);
+        setLinearScaleStart(subcategoryInit.linear_scale_start);
+        setLinearScaleEnd(subcategoryInit.linear_scale_end);
+        setLinearScaleStartLabel(subcategoryInit.linear_scale_start_label);
+        setLinearScaleEndLabel(subcategoryInit.linear_scale_end_label);
+        setOrder(subcategoryInit.order);
+        setOptions(subcategoryInit.options);
+        setSavedSubcategory({ ...subcategoryInit });
         // --- Set linear scale options if type is linearScale ---
-        if (getSubcategorySelectValue(subcategory.subcategory_type) === 'linearScale') {
+        if (getSubcategorySelectValue(subcategoryInit.subcategory_type) === 'linearScale') {
             setLinearScaleOptions(
-                Array.isArray(subcategory.options) && subcategory.options.length
-                    ? subcategory.options.map(opt => ({
+                Array.isArray(subcategoryInit.options) && subcategoryInit.options.length
+                    ? subcategoryInit.options.map(opt => ({
                         label: opt.label || '',
                         description: opt.description || ''
                     }))
                     : [{ label: '', description: '' }, { label: '', description: '' }]
             );
         }
-    }, [subcategory?.id]);
+    }, [subcategoryInit?.id]);
 
     // --- Linear Scale Option Handlers ---
     function addLinearScaleOption() {
@@ -82,6 +96,7 @@ export function useEvaluationFormSubcategory(subcategory) {
             setLinearScaleOptions(linearScaleOptions.filter((_, i) => i !== idx));
         }
     }
+
     function editLinearScaleOption(idx, field, value) {
         setLinearScaleOptions(
             linearScaleOptions.map((opt, i) =>
@@ -91,48 +106,81 @@ export function useEvaluationFormSubcategory(subcategory) {
     }
 
     // --- Subcategory CRUD ---
-    async function editSubcategory(subcategory) {
-        axiosInstance
-            .post('/editEvaluationFormSubcategory', {
+    async function editSubcategory() {
+        try {
+            // update subcategory
+            const response = await axiosInstance.post('/editEvaluationFormSubcategory', {
                 id: subcategoryId,
-                ...subcategory                
-            }, { headers })
-            .then((response) => {
-                if (response.data.status.toString().startsWith(2)) {
-                    const { evaluationFormSubcategory } = response.data;
-                    if(!evaluationFormSubcategory) return;
-                    setSubcategoryName(evaluationFormSubcategory.name);
-                    setSubcategoryType(evaluationFormSubcategory.subcategory_type);
-                    setSubcategoryDescription(evaluationFormSubcategory.description);
-                    setRequired(evaluationFormSubcategory.required);
-                    setAllowOtherOption(evaluationFormSubcategory.allow_other_option);
-                    setLinearScaleStart(evaluationFormSubcategory.linear_scale_start);
-                    setLinearScaleEnd(evaluationFormSubcategory.linear_scale_end);
-                    setOrder(evaluationFormSubcategory.order);
-                    setSavedSubcategory({
-                        ...evaluationFormSubcategory,
-                        options: [...subcategory.options]
-                    });
-                } else if (response.data.status.toString().startsWith(4)) {
-                    Swal.fire({
-                        text: response.data.message,
-                        icon: "error",
-                        confirmButtonColor: '#177604',
-                        customClass: {
-                            popup: 'swal-popup-overlay'
-                        }
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error saving subcategory:', error);
-                Swal.fire({
-                    text: "Error saving subcategory",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
+                ...subcategory
+            }, { headers });
+            if (response.data.status.toString().startsWith(2)) {
+                const { evaluationFormSubcategory } = response.data;
+                if(!evaluationFormSubcategory) return;
+                setSubcategoryName(evaluationFormSubcategory.name);
+                setSubcategoryType(evaluationFormSubcategory.subcategory_type);
+                setSubcategoryDescription(evaluationFormSubcategory.description);
+                setRequired(evaluationFormSubcategory.required);
+                setAllowOtherOption(evaluationFormSubcategory.allow_other_option);
+                setLinearScaleStart(evaluationFormSubcategory.linear_scale_start);
+                setLinearScaleEnd(evaluationFormSubcategory.linear_scale_end);
+                setOrder(evaluationFormSubcategory.order);
+                setSavedSubcategory({
+                    ...evaluationFormSubcategory,
+                    options: [...subcategory.options]
                 });
-            })
-        ;
+            } else if (response.data.status.toString().startsWith(4)) throw response;
+            // create, delete, update options
+            for(let index = 0; index < options.length; index++) {
+                const option = options[index];
+                let response;
+                switch(option.action) {
+                    case 'create':
+                        response = await axiosInstance.post(
+                            '/saveEvaluationFormSubcategoryOption', { ...option }, { headers }
+                        );
+                        if(response.data.status.toString().startsWith(4)) throw response;
+                        option.id = response.data.evaluationSubcategoryOptionID;
+                        delete option.action;
+                        break;
+                    case 'delete':
+                        response = await axiosInstance.post(
+                            '/deleteEvaluationFormSubcategoryOption', { id: option.id }, { headers }
+                        );
+                        if(response.data.status.toString().startsWith(4)) throw response;
+                        options.splice(index, 1);
+                        index--;
+                        break;
+                    case 'update':
+                        response = await axiosInstance.post(
+                            '/editEvaluationFormSubcategoryOption', { ...option }, { headers }
+                        );
+                        if(response.data.status.toString().startsWith(4)) throw response;
+                        delete option.action;
+                }
+            }
+            // move options
+            let moving = false;
+            for(let option of options) {
+                if(!option.move && moving) break;
+                if(!option.move) continue;
+                if(option.move) moving = true;
+                const response = await axiosInstance.post('/moveEvaluationFormSubcategoryOption', {
+                    id: option.id,
+                    order: option.order
+                }, { headers });
+                if(response.data.status.toString().startsWith(4)) throw response;
+            }
+        } catch(error) {
+            console.error('Error saving subcategory:', error);
+            Swal.fire({
+                text: error.data?.message ?? 'Error saving subcategory',
+                icon: "error",
+                confirmButtonColor: '#177604',
+                customClass: {
+                    popup: 'swal-popup-overlay'
+                }
+            });
+        }
     }
 
     function saveSubcategory () {
@@ -206,43 +254,26 @@ export function useEvaluationFormSubcategory(subcategory) {
     // --- Option operations for multipleChoice/checkbox ---
     
     function deleteOption(option) {
-        if(option.action === 'create')
-            options.splice(options.indexOf(option), 1);
-        else option.action = 'delete';
+        let index = options.indexOf(option);
+        if(option.action === 'create') {
+            options.splice(index, 1);
+            index--;
+        } else option.action = 'delete';
+        index++;
+        for(; index < options.length; index++) {
+            option = options[index];
+            option.order--;
+            option.move = true;
+        }
         setOptions([ ...options ]);
     }
 
-    function editOption(optionIndex, label, score, description) {
-        if(isNew) {
-            options[ optionIndex ].label = label;
-            options[ optionIndex ].score = score;
-            options[ optionIndex ].description = description;
-            setOptions([ ...options ]);
-        } else axiosInstance
-            .post('/editEvaluationFormSubcategoryOption', {
-                id: subcategoryId,
-                ...options[optionIndex]
-            }, { headers })
-            .then((response) => {
-                if (response.data.status.toString().startsWith(4)) {
-                    Swal.fire({
-                        text: response.data.message,
-                        icon: "error",
-                        confirmButtonColor: '#177604',
-                        customClass: {
-                            popup: 'swal-popup-overlay'
-                        }
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error saving subcategory option:', error);
-                Swal.fire({
-                    text: "Error saving subcategory option",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                });
-            });
+    function editOption(option, params) {
+        if('label' in params) option.label = params.label;
+        if('description' in params) option.description = params.description;
+        if('score' in params) option.score = params.score;
+        if(option.action != 'create') option.action = 'update';
+        reloadOptions();
     }
 
     function getOption(optionId) {
@@ -293,13 +324,14 @@ export function useEvaluationFormSubcategory(subcategory) {
         setOptions([...options]);
     }
 
-    function saveOption(label, score, description) {
+    function saveOption(label = '', score = '', description = '') {
         setOptions([
             ...options,
             {
                 id: newOptionId,
+                subcategory_id: subcategoryId,
                 label, score, description,
-                order: options[options.length - 1].order + 1,
+                order: options.length + 1,
                 action: 'create'
             }
         ]);
@@ -337,20 +369,7 @@ export function useEvaluationFormSubcategory(subcategory) {
     }
 
     return {
-        subcategory: {
-            id: subcategoryId,
-            section_id: sectionId,
-            name: subcategoryName,
-            subcategory_type: subcategoryType,
-            description: subcategoryDescription,
-            required,
-            allow_other_option: allowOtherOption,
-            linear_scale_start: linearScaleStart,
-            linear_scale_end: linearScaleEnd,
-            linear_scale_start_label: linearScaleStartLabel,
-            linear_scale_end_label: linearScaleEndLabel,
-            options
-        },
+        subcategory,
         subcategoryId,
         subcategoryName, setSubcategoryName, editSubcategory, saveSubcategory,
         responseType: getSubcategorySelectValue(subcategoryType), switchResponseType,
