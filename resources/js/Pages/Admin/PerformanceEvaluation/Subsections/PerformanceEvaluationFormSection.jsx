@@ -155,9 +155,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
             });
             return;
         }
-
-
-
         editSection({ category: categoryValue });
     };
 
@@ -334,7 +331,8 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                     '& .MuiAccordionSummary-content': { my: 0, alignItems: 'center' },
                     boxShadow: 'none',
                     px: 3,
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    cursor: draggedId ? 'move!important' : 'pointer'
                 }}
             >
                 <Box
@@ -342,7 +340,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                         display: 'inline-block',
                         maxWidth: (sectionNameWrapperRef.current?.parentElement.offsetWidth ?? 0)+`px`,
                         position: 'relative',
-                        cursor: draggedId ? 'move' : 'pointer',
                         fontWeight: "bold",
                         fontSize: 20,
                         color: 'white'
@@ -448,7 +445,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                 mt: 2,
                                 mb: 2,
                                 mx: 2,
-                                cursor: "pointer",
                                 boxShadow: 2
                             }}
                             onDoubleClick={() => {
