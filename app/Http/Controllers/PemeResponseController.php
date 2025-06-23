@@ -248,12 +248,23 @@ class PemeResponseController extends Controller
                     ]);
                 }
 
-                $existingIds = array_map('strval', $response['existing_file_ids'] ?? []);
-                $mediaItems = $detail->getMedia('attachments');
+                if (array_key_exists('existing_file_ids', $response)) {
+                    // Decrypt all IDs from the request
+                    $existingIds = array_map(function ($id) {
+                        try {
+                            return Crypt::decrypt($id);
+                        } catch (\Exception $e) {
+                            return null;
+                        }
+                    }, $response['existing_file_ids'] ?? []);
+                    $existingIds = array_filter($existingIds); // Remove nulls
 
-                foreach ($mediaItems as $media) {
-                    if (!in_array((string)$media->id, $existingIds, true)) {
-                        $media->delete();
+                    $mediaItems = $detail->getMedia('attachments');
+
+                    foreach ($mediaItems as $media) {
+                        if (!in_array($media->id, $existingIds, true)) {
+                            $media->delete();
+                        }
                     }
                 }
 

@@ -6,6 +6,8 @@ import {
     DialogContent,
     Typography,
 } from "@mui/material";
+
+import PersonIcon from '@mui/icons-material/Person';
 import React from "react";
 import dayjs from "dayjs";
 
@@ -43,8 +45,8 @@ const AttendanceDateLog = ({ log, onClose }) => {
                         backgroundColor: "#f8f9fa",
                         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                         borderRadius: { xs: 0, md: "20px" },
-                        minWidth: { xs: "100%", md: "600px" },
-                        maxWidth: "650px",
+                        minWidth: { xs: "100%", md: "500px" },
+                        maxWidth: 0,
                         marginBottom: "5%",
                     },
                 },
@@ -68,46 +70,98 @@ const AttendanceDateLog = ({ log, onClose }) => {
                 </Box>
             </DialogTitle>
 
-            <DialogContent sx={{ py: 2, pb: 5 }}>
-                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body1">Date</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        {timestamp.format("MMMM D, YYYY")}
-                    </Typography>
-                </Box>
+            <DialogContent sx={{ py: 2, pb: 4 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3 }}>
+                    <Box sx={{ flex: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                            <Typography variant="body1">Date</Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                {timestamp.format("MMMM D, YYYY")}
+                            </Typography>
+                        </Box>
 
-                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body1">Time</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        {timestamp.format("hh:mm:ss A")}
-                    </Typography>
-                </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                            <Typography variant="body1">Time</Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                {timestamp.format("hh:mm:ss A")}
+                            </Typography>
+                        </Box>
 
-                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body1">Action</Typography>
-                    <Typography
-                        variant="body1"
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                            <Typography variant="body1">Action</Typography>
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    fontWeight: 'bold',
+                                    color:
+                                        log.action === "Duty In"
+                                            ? "#177604"
+                                            : log.action === "Duty Out"
+                                                ? "#f44336"
+                                                : log.action === "Overtime In"
+                                                    ? "#e9ae20"
+                                                    : log.action === "Overtime Out"
+                                                        ? "#f57c00"
+                                                        : "#000000",
+                                }}
+                            >
+                                {log.action || "-"}
+                            </Typography>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="body1">Method</Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                                {getMethodName(log.method)}
+                            </Typography>
+                        </Box>
+                    </Box>
+
+                    <Box
                         sx={{
-                            fontWeight: 'bold',
-                            color:
-                                log.action === "Duty In" ? "#177604" :
-                                    log.action === "Duty Out" ? "#f44336" :
-                                        log.action === "Overtime In" ? "#e9ae20" :
-                                            log.action === "Overtime Out" ? "#f57c00" :
-                                                "#000000",
+                            width: 130,
+                            height: 130,
+                            border: '2px solid #ccc',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            boxSizing: 'border-box',
+                            flexShrink: 0,
+                            p: 1,
                         }}
                     >
-                        {log.action || "-"}
-                    </Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body1">Method</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        {getMethodName(log.method)}
-                    </Typography>
+                        {log.method === 2 && log.imageUrl ? (
+                            <Box
+                                component="img"
+                                src={log.imageUrl}
+                                alt="Selfie"
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                }}
+                            />
+                        ) : (
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <PersonIcon sx={{ fontSize: 120, color: '#b0b0b0', mb: -2 }} />
+                                <Typography variant="body2" sx={{ color: '#999', textAlign: 'center', mb: 1 }}>
+                                    No image available
+                                </Typography>
+                            </Box>
+                        )}
+                    </Box>
                 </Box>
             </DialogContent>
+
+
+
 
         </Dialog>
     );

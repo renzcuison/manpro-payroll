@@ -281,6 +281,7 @@ const PemeQuestionnaireView = () => {
                 headers,
             })
             .then((response) => {
+                console.log("RESPONSE.DATA", response.data);
                 setEmployeeResponse(response.data);
                 setIsDraftStatus(response.data.isDraft);
                 setStatus(response.data.status);
@@ -290,24 +291,15 @@ const PemeQuestionnaireView = () => {
                         initialAnswers[form.question_id] = {};
                         if (Array.isArray(form.input_type)) {
                             form.input_type.forEach((type) => {
-                                if (type.input_type === "attachment") {
-                                    // Initialize with existing files from form.media
-                                    initialAnswers[form.question_id][
-                                        "attachment"
-                                    ] = Array.isArray(form.media)
-                                            ? [...form.media]
-                                            : [];
-                                } else {
-                                    initialAnswers[form.question_id][
-                                        type.input_type
-                                    ] = type.value ?? "";
-                                }
+                                initialAnswers[form.question_id][
+                                    type.input_type
+                                ] = type.value ?? "";
                             });
                         }
                     });
                 }
-                console.log("RESPONSE:", employeeResponse, initialAnswers);
                 setAnswers(initialAnswers);
+
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -315,7 +307,6 @@ const PemeQuestionnaireView = () => {
                 setIsLoading(false);
             });
     }, []);
-    // ...existing code...
 
     //Set FE dates and status to values from DB
     useEffect(() => {
@@ -530,12 +521,16 @@ const PemeQuestionnaireView = () => {
 
             // Always append existing file IDs
             if (item.existing_file_ids) {
-                item.existing_file_ids.forEach((id, idIndex) => {
-                    formData.append(
-                        `responses[${index}][existing_file_ids][${idIndex}]`,
-                        id
-                    );
-                });
+                if (item.existing_file_ids.length === 0) {
+                    formData.append(`responses[${index}][existing_file_ids]`, "");
+                } else {
+                    item.existing_file_ids.forEach((id, idIndex) => {
+                        formData.append(
+                            `responses[${index}][existing_file_ids][${idIndex}]`,
+                            id
+                        );
+                    });
+                }
             }
 
             // Append new files
@@ -553,6 +548,12 @@ const PemeQuestionnaireView = () => {
                 formData.append(`responses[${index}][value]`, item.value);
             }
         });
+
+        console.log("About to log FormData...");
+        console.log("FORMDATA PAYLOAD:");
+        for (const pair of formData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
 
         try {
             await axiosInstance.post(`/peme-responses/storeAll`, formData, {
@@ -622,21 +623,28 @@ const PemeQuestionnaireView = () => {
         });
 
         // Remove from employeeResponse.details (existing backend files)
-        setEmployeeResponse((prev) => ({
-            ...prev,
-            details: prev.details.map((form) =>
+        setEmployeeResponse((prev) => {
+            const updatedDetails = prev.details.map((form) =>
                 form.question_id === questionId
                     ? {
-                          ...form,
-                          media: Array.isArray(form.media)
-                              ? form.media.filter(
-                                    (file) => file.id !== fileToRemove.id
-                                )
-                              : [],
-                      }
+                        ...form,
+                        media: Array.isArray(form.media)
+                            ? form.media.filter(
+                                (file) => file.id !== fileToRemove.id
+                            )
+                            : [],
+                    }
                     : form
-            ),
-        }));
+            );
+            // Log the existing file IDs for this question after removal
+            const form = updatedDetails.find(f => f.question_id === questionId);
+            const ids = (form && Array.isArray(form.media)) ? form.media.map(f => f.id) : [];
+            console.log("Existing file IDs after removal for question", questionId, ":", ids);
+            return {
+                ...prev,
+                details: updatedDetails,
+            };
+        });
     };
 
     return (
