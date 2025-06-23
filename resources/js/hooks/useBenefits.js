@@ -214,6 +214,30 @@ export function useManageBenefits({benefit, onSuccess} = {}) {
             });
             return;
         }
+
+        //since the second-to-the-last range end field doesn't affect the preceding range end fields
+        if ((benefitType === "Bracket Amount" || benefitType === "Bracket Percentage") && bracketsList.length >= 2) {
+            const secondToLastIndex = bracketsList.length - 2;
+            const secondToLastEnd = parseFloat(bracketsList[secondToLastIndex]?.range_end?.replace(/,/g, '') || 0);
+        
+            const precedingEndValues = bracketsList
+                .slice(0, secondToLastIndex)
+                .map(b => parseFloat(b.range_end?.replace(/,/g, '') || 0));
+        
+            const hasInvalidReduction = precedingEndValues.some(prevEnd => secondToLastEnd < prevEnd);
+        
+            if (hasInvalidReduction) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "The second-to-the-last bracket's range end cannot be less than any of the preceding range ends.",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+        }
+
         const confirmText = (!benefit) ? "You want to add this benefit": "You want to update this benefit";
         Swal.fire({ 
             customClass: { container: "my-swal" },

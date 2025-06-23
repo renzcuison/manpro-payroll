@@ -28,6 +28,7 @@ const BenefitsBracketField = ({type, bracketsList, onAdd, onChange, onRemove, br
                                     <TextField
                                         size="small"
                                         variant="outlined"
+                                        error={bracketListErrors[index]}
                                         InputProps={{
                                             startAdornment: <InputAdornment position="start">₱</InputAdornment>,
                                             readOnly: true,
@@ -41,6 +42,7 @@ const BenefitsBracketField = ({type, bracketsList, onAdd, onChange, onRemove, br
                                     <TextField
                                         size="small"
                                         variant="outlined"
+                                        error={bracketListErrors[index]}
                                         placeholder={index === bracketsList.length - 1 ? 'and above' : ''}
                                         InputProps={{
                                             startAdornment: <InputAdornment position="start">₱</InputAdornment>,
