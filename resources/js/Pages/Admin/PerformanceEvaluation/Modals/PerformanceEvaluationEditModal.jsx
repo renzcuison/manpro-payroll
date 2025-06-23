@@ -15,6 +15,9 @@ import Swal from "sweetalert2";
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
 import { useUser } from "../../../../hooks/useUser";
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
+
 
 const PerformanceEvaluationEditModal = ({
   open,
@@ -124,6 +127,7 @@ const PerformanceEvaluationEditModal = ({
             setFormName('');
             if (onSuccess) onSuccess(formName);
             fetchSections(); // Refresh sections in case name changed
+             window.location.reload();
           } else {
             Swal.fire({
               text: response.data.message || "Something went wrong.",
@@ -144,6 +148,51 @@ const PerformanceEvaluationEditModal = ({
       }
     });
   };
+
+  const [editingSectionId, setEditingSectionId] = useState(null);
+const [editingSectionName, setEditingSectionName] = useState('');
+const [sectionNameLoading, setSectionNameLoading] = useState(false);
+
+const handleEditSectionClick = (section) => {
+  setEditingSectionId(section.id);
+  setEditingSectionName(section.name);
+};
+const handleCancelEditSection = () => {
+  setEditingSectionId(null);
+  setEditingSectionName('');
+};
+
+const handleSaveEditSection = async (sectionId) => {
+  if (!editingSectionName.trim()) {
+    Swal.fire({
+      text: "Section Name is required!",
+      icon: "error",
+      confirmButtonColor: '#177604'
+    });
+    return;
+  }
+  setSectionNameLoading(true);
+  try {
+    const response = await axiosInstance.post(
+      '/editEvaluationFormSection',
+      { id: sectionId, name: editingSectionName },
+      { headers }
+    );
+    if (response.data.status && response.data.status.toString().startsWith('2')) {
+      setEditingSectionId(null);
+      setEditingSectionName('');
+      fetchSections();
+      if (onSuccess) onSuccess(formName);
+    } else {
+      Swal.fire("Error", response.data.message || "Failed to edit section", "error");
+    }
+  } catch (e) {
+    Swal.fire("Error", "Failed to edit section", "error");
+    console.error(e);
+  } finally {
+    setSectionNameLoading(false);
+  }
+};
 
   const handleDeleteSection = async (sectionId, sectionName) => {
     const result = await Swal.fire({
@@ -229,37 +278,74 @@ const PerformanceEvaluationEditModal = ({
               Sections
             </Typography>
             {sections.map(section => (
-              <Box
-                key={section.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  mb: 1,
-                  pl: 1,
-                  pr: 1,
-                  borderRadius: 1,
-                  border: '1px solid #e0e0e0',
-                  background: 'transparent',
-                  transition: 'background 0.2s',
-                  '&:hover': {
-                    background: '#f4f6f8',
-                  },
-                }}
-              >
-                <Typography sx={{ flex: 1, py: 1, color: '#38404A' }}>{section.name}</Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => handleDeleteSection(section.id, section.name)}
-                  sx={{
-                    color: 'gray',
-                    ml: 1,
-                    '&:hover': { background: 'rgba(183,28,28,0.08)' }
-                  }}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            ))}
+  <Box
+    key={section.id}
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      mb: 1,
+      pl: 1,
+      pr: 1,
+      borderRadius: 1,
+      border: '1px solid #e0e0e0',
+      background: 'transparent',
+      transition: 'background 0.2s',
+      '&:hover': { background: '#f4f6f8' },
+    }}
+  >
+    {editingSectionId === section.id ? (
+      <>
+        <TextField
+          size="small"
+          value={editingSectionName}
+          onChange={e => setEditingSectionName(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleSaveEditSection(section.id);
+            if (e.key === 'Escape') handleCancelEditSection();
+          }}
+          disabled={sectionNameLoading}
+          sx={{ flex: 1, mr: 1 }}
+        />
+        <IconButton
+          onClick={() => handleSaveEditSection(section.id)}
+          disabled={sectionNameLoading}
+          sx={{ color: '#177604', ml: 1 }}
+        >
+          <CheckIcon />
+        </IconButton>
+        <IconButton
+          onClick={handleCancelEditSection}
+          disabled={sectionNameLoading}
+          sx={{ color: 'gray', ml: 1 }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </>
+    ) : (
+      <>
+        <Typography sx={{ flex: 1, py: 1, color: '#38404A' }}>{section.name}</Typography>
+        <IconButton
+          size="small"
+          onClick={() => handleEditSectionClick(section)}
+          sx={{ color: '#1976d2', ml: 1 }}
+        >
+          <EditIcon />
+        </IconButton>
+        <IconButton
+          size="small"
+          onClick={() => handleDeleteSection(section.id, section.name)}
+          sx={{
+            color: 'gray',
+            ml: 1,
+            '&:hover': { background: 'rgba(183,28,28,0.08)' }
+          }}
+        >
+          <DeleteIcon />
+        </IconButton>
+      </>
+    )}
+  </Box>
+))}
           </Box>
           )}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
