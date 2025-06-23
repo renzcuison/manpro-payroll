@@ -18,20 +18,26 @@ import {
 } from '@mui/material';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CloseIcon from '@mui/icons-material/Close';
-import { createContext, useContext } from 'react';
-import { DragHandleRounded } from '@mui/icons-material';
 import {
-    DndContext, 
     closestCenter,
+    DndContext, 
     useSensor,
     useSensors
 } from '@dnd-kit/core';
+import {
+    createContext,
+    useContext
+} from 'react';
+import { DragHandleRounded } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import { OptionMouseSensor } from '../Sensors/OptionMouseSensor';
 import { OptionTouchSensor } from '../Sensors/OptionTouchSensor';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
-import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import {
+    restrictToFirstScrollableAncestor,
+    restrictToVerticalAxis
+} from '@dnd-kit/modifiers';
 import ShortTextIcon from '@mui/icons-material/ShortText';
 import Sortable from './Sortable';
 import {
@@ -61,23 +67,19 @@ export default function PerformanceEvaluationFormSubcategory({
         subcategoryName, setSubcategoryName,
         subcategoryDescription, setSubcategoryDescription,
         options, draggedOptionId, deleteOption, editOption, moveOption,
-        reloadOptions, saveOption, setDraggedOptionId,
+        reloadOptions, saveOption, setDraggedOptionId
     } = useEvaluationFormSubcategory(subcategoryInit);
 
-    const handleExpand = () => {
-        setExpandedSubcategoryId(
-            expandedSubcategoryId !== subcategoryId ? subcategoryId
-            : undefined
-        );
-    }
+    const expanded = (expandedSubcategoryId === subcategoryId);
+    const handleExpand = () => setExpandedSubcategoryId(!expanded ? subcategoryId : undefined);
 
     return <SubcategoryContext.Provider value={{
         options, draggedOptionId,
         deleteOption, editOption, moveOption, reloadOptions, saveOption, setDraggedOptionId
     }}>
         <Accordion
-            expanded={ expandedSubcategoryId === subcategoryId }
-            onChange={ handleExpand}
+            expanded={ expanded }
+            onChange={ handleExpand }
             sx={{
                 my: 2,
                 boxShadow: 2,
@@ -144,7 +146,7 @@ export default function PerformanceEvaluationFormSubcategory({
                     <Box sx={{ mb: 2, width: '100%', maxWidth: '935px' }}>
                         <TextField
                             label="Description"
-                            variant="outlined"  // here
+                            variant="outlined"
                             fullWidth
                             multiline
                             rows={3}

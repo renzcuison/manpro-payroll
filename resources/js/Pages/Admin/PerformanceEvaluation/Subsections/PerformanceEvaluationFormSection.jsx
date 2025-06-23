@@ -171,45 +171,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
             });
             return;
         }
-        if (subcategory.subcategory_type === "linear_scale") {
-            if (
-                subcategory.linear_scale_start == null ||
-                subcategory.linear_scale_end == null ||
-                isNaN(subcategory.linear_scale_start) ||
-                isNaN(subcategory.linear_scale_end)
-            ) {
-                Swal.fire({
-                    text: "Linear Scale Start and End values are required and must be numbers!",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                });
-                return;
-            }
-            if (subcategory.linear_scale_start >= subcategory.linear_scale_end) {
-                Swal.fire({
-                    text: "Linear Scale Start must be less than End!",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                });
-                return;
-            }
-            if (!subcategory.linear_scale_start_label?.trim()) {
-                Swal.fire({
-                    text: "Linear Scale Start Label is required!",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                });
-                return;
-            }
-            if (!subcategory.linear_scale_end_label?.trim()) {
-                Swal.fire({
-                    text: "Linear Scale End Label is required!",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                });
-                return;
-            }
-        }
         saveSubcategory(subcategory);
     };
 

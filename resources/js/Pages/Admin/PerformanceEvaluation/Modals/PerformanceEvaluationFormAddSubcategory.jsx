@@ -1,92 +1,76 @@
-import React from 'react';
-import { Dialog, DialogContent, DialogTitle, TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, Typography, IconButton, Box } from '@mui/material';
-import LinearScaleIcon from '@mui/icons-material/LinearScale';
-import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import ShortTextIcon from '@mui/icons-material/ShortText';
-import TextFieldsIcon from '@mui/icons-material/TextFields';
-import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
+import { AddRounded } from '@mui/icons-material';
+import {
+    Box,
+    Button,
+    ButtonBase,
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    Grid,
+    IconButton,
+    InputLabel,
+    MenuItem,
+    Select,
+    TextField,
+    Typography
+} from '@mui/material';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CloseIcon from '@mui/icons-material/Close';
+import {
+    closestCenter,
+    DndContext,
+    useSensor,
+    useSensors
+} from '@dnd-kit/core';
+import {
+    createContext,
+    useContext
+} from 'react';
+import { DragHandleRounded } from '@mui/icons-material';
+import LinearScaleIcon from '@mui/icons-material/LinearScale';
+import { OptionMouseSensor } from '../Sensors/OptionMouseSensor';
+import { OptionTouchSensor } from '../Sensors/OptionTouchSensor';
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
+import {
+    restrictToFirstScrollableAncestor,
+    restrictToVerticalAxis
+} from '@dnd-kit/modifiers';
+import ShortTextIcon from '@mui/icons-material/ShortText';
+import Sortable from '../Subsections/Sortable';
+import {
+    SortableContext,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import TextFieldsIcon from '@mui/icons-material/TextFields';
+
 import { useEvaluationFormSubcategory } from '../../../../hooks/useEvaluationFormSubcategory';
 
-const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
+const SubcategoryContext = createContext();
+
+export default function PerformanceEvaluationFormAddSubcategory({ open, onClose, onSave }) {
     const {
-        subcategory,
+        subcategory, subcategoryId,
+        editSubcategory,
+        subcategoryType, subcategoryTypeDisplay, switchSubcategoryType,
         subcategoryName, setSubcategoryName,
-        responseType, switchResponseType,
         subcategoryDescription, setSubcategoryDescription,
-        required, toggleRequired,
-        allowOtherOption, toggleAllowOtherOption,
-        linearScaleStart, setLinearScaleStart,
-        linearScaleEnd, setLinearScaleEnd,
-        linearScaleStartLabel, setLinearScaleStartLabel,
-        linearScaleEndLabel, setLinearScaleEndLabel,
-        order,
-        options, deleteOption, editOption, saveOption,
-        linearScaleOptions, addLinearScaleOption, removeLinearScaleOption, editLinearScaleOption,
-        saveSubcategory//, editOptionScore
+        resetSubcategory,
+        options, draggedOptionId, deleteOption, editOption, moveOption,
+        reloadOptions, saveOption, setDraggedOptionId
     } = useEvaluationFormSubcategory();
 
     const handleSave = () => {
-        let patchedSubcategory = { ...subcategory };
-        if (responseType === 'linearScale') {
-            patchedSubcategory.options = linearScaleOptions.map((opt, idx) => ({
-                label: opt.label,
-                description: opt.description,
-                score: idx + 1,
-                order: idx + 1
-            }));
-        }
-        onSave(patchedSubcategory);
+        onSave(subcategory);
+        resetSubcategory();
         onClose();
     };
 
-
-    const handleOptionChange = (index, event) => {
-        editOption(index, event.target.value, options[index].score);
-    };
-
-    const handleOptionScoreChange = (index, event) => {
-        editOption(index, options[index].label, Number(event.target.value));
-    };
-
-    const handleOptionDescriptionChange = (index, event) => {
-        // Add this function
-        editOption(index, options[index].label, options[index].score, event.target.value);
-    };
-
-
-    const handleAddOption = () => {
-        saveOption('', 1, ''); 
-    };
-
-    const handleRemoveOption = (index) => {
-        deleteOption(index);
-    };
-    
-    const handleAddLinearScaleOption = () => {
-        if (linearScaleOptions.length < 10) {
-            setLinearScaleOptions([
-                ...linearScaleOptions,
-                { label: '', description: '', score: linearScaleOptions.length + 1 }
-            ]);
-        } else {
-            // Optionally show a message when the limit of 10 options is reached.
-            alert("You can only add up to 10 options for the linear scale.");
-        }
-    };
-
-    const handleRemoveLinearScaleOption = (idx) => {
-        if (linearScaleOptions.length > 2) { // Keep at least 2 options
-            const newOptions = linearScaleOptions.filter((_, index) => index !== idx);
-            setLinearScaleOptions(newOptions);
-        }
-    };
-
-    
-
-    return (
-        
+    return <SubcategoryContext.Provider value={{
+        options, draggedOptionId,
+        deleteOption, editOption, moveOption, reloadOptions, saveOption, setDraggedOptionId
+    }}>
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth 
             sx={{
                 '& .MuiPaper-root': {
@@ -126,24 +110,24 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                         <FormControl fullWidth>
                             <InputLabel>Response Type</InputLabel>
                             <Select
-                                value={responseType}
-                                onChange={(e) => switchResponseType(e.target.value)}
+                                value={ subcategoryType ?? '' }
+                                onChange={(e) => switchSubcategoryType(e.target.value)}
                                 label="Response Type"
                                 required
                             >
-                                <MenuItem value="linearScale">
+                                <MenuItem value="linear_scale">
                                     <LinearScaleIcon sx={{ mr: 2 }} /> Linear Scale
                                 </MenuItem>
-                                <MenuItem value="multipleChoice">
+                                <MenuItem value="multiple_choice">
                                     <RadioButtonCheckedIcon sx={{ mr: 2 }} /> Multiple Choice
                                 </MenuItem>
                                 <MenuItem value="checkbox">
                                     <CheckBoxIcon sx={{ mr: 2 }} /> Checkbox
                                 </MenuItem>
-                                <MenuItem value="shortText">
+                                <MenuItem value="short_answer">
                                     <ShortTextIcon sx={{ mr: 2 }} /> Short Text
                                 </MenuItem>
-                                <MenuItem value="longText">
+                                <MenuItem value="long_answer">
                                     <TextFieldsIcon sx={{ mr: 2 }} /> Long Text
                                 </MenuItem>
                             </Select>
@@ -163,158 +147,11 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                         required
                     />
                 </Box>
-
-                {(responseType === 'multipleChoice' || responseType === 'checkbox') && (
-                    <Box sx={{ mb: 2, width: '100%'}}>
-                        {options.map(({ label, score, description }, index) => (
-                            <Grid container spacing={3} key={index} sx={{ mb: 2 }} alignItems="center">
-                                <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Typography variant="body1">{index + 1}.</Typography>
-                                </Grid>
-                                <Grid item xs={3}>
-                                    <TextField
-                                        variant="outlined"
-                                        fullWidth
-                                        value={label}
-                                        onChange={(e) => handleOptionChange(index, e)}
-                                        placeholder="Option label"
-                                        inputProps={{ maxLength: 100 }}
-                                    />
-                                </Grid>
-                                <Grid item xs={2}>
-                                    <TextField
-                                        variant="outlined"
-                                        placeholder="Score"
-                                        value={score || ""}
-                                        type="number"
-                                        onChange={(e) => handleOptionScoreChange(index, e)}
-                                        sx={{ width: 80 }}
-                                        inputProps={{ min: 0, style: { textAlign: "center" } }}
-                                    
-                                    />
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <TextField
-                                    variant="outlined"
-                                  
-                                    label="Description"
-                                    placeholder="Why this score?"
-                                    value={description || ""}
-                                    onChange={e => handleOptionDescriptionChange(index, e)}
-                                    fullWidth
-                                        inputProps={{
-                                    maxLength: 250,
-                                    style: {
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis'
-                                    }
-                                    }}
-                                    sx={{
-                                    // Ensures description field takes the rest of the row and does not grow vertically
-                                    minWidth: 370,
-                                    maxWidth: "100%",
-                                    }}
-                                />
-                                </Grid>
-                                
-                                <Grid item xs={1}>
-                                    <IconButton
-                                        onClick={() => handleRemoveOption(index)}
-                                        sx={{ color: 'gray' }}
-                                    >
-                                        <CloseIcon />
-                                    </IconButton>
-                                </Grid>
-                            </Grid>
-                        ))}
-                        <Typography
-                            onClick={handleAddOption}
-                            sx={{
-                                color: '#000000',
-                                fontSize: '14px',
-                                cursor: 'pointer',
-                                marginTop: '8px',
-                            }}
-                        >
-                            {options.length + 1}. Add Option
-                        </Typography>
-                    </Box>
+                {(subcategoryType === 'multiple_choice' || subcategoryType === 'checkbox') && (
+                    <OptionsEditor/>
                 )}
-
-                {responseType === 'linearScale' && (
-                    <Box sx={{ mb: 2 }}>
-                        <Box sx={{my: 3}}>
-                            <Typography sx={{ fontWeight: '400', fontStyle: 'italic' }}>
-                                Note: Scoring is 1 as the lowest and {linearScaleOptions.length} as the highest
-                            </Typography>
-                        </Box>
-                        
-                        
-                        {linearScaleOptions.map((option, idx) => (
-                            
-                            <Grid container spacing={2} key={idx} alignItems="center" sx={{ mb: 1 }}>
-                                
-                                <Grid item xs={1}>
-                                    <Typography variant="body1">{idx + 1}.</Typography>
-                                </Grid>
-                                <Grid item xs={4}>
-                                    <TextField
-                                        variant="outlined"
-                                        label="Label"
-                                        value={option.label}
-                                        onChange={e => editLinearScaleOption(idx, 'label', e.target.value)}
-                                        fullWidth
-                                    />
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <TextField
-                                        variant="outlined"
-                                        label="Description (optional)"
-                                        value={option.description}
-                                        onChange={e => editLinearScaleOption(idx, 'description', e.target.value)}
-                                        fullWidth
-                                        inputProps={{
-                                        maxLength: 250,
-                                        style: {
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis'
-                                        }
-                                        }}
-                                        sx={{
-                                        // Ensures description field takes the rest of the row and does not grow vertically
-                                        minWidth: 500,
-                                        maxWidth: "100%",
-                                        }}
-                                    />
-                                </Grid>
-                                <Grid item xs={1}>
-                                    {linearScaleOptions.length > 2 && (
-                                        <IconButton
-                                            onClick={() => removeLinearScaleOption(idx)}
-                                            sx={{ color: 'gray' }}
-                                        >
-                                            <CloseIcon />
-                                        </IconButton>
-                                    )}
-                                </Grid>
-                            </Grid>
-                        ))}
-                        {linearScaleOptions.length < 10 && (
-                            <Typography
-                                onClick={addLinearScaleOption}
-                                sx={{
-                                    color: '#000000',
-                                    fontSize: '14px',
-                                    cursor: 'pointer',
-                                    marginTop: '8px',
-                                }}
-                            >
-                                {linearScaleOptions.length + 1}. Add Option
-                            </Typography>
-                        )}
-                    </Box>
+                {(subcategoryType === 'linear_scale') && (
+                    <LinearScaleEditor/>
                 )}
                 <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                     <Button
@@ -370,7 +207,206 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
                 </Box>
             </DialogContent>
         </Dialog>
-    );
+    </SubcategoryContext.Provider>;
 };
 
-export default PerformanceEvaluationFormAddSubcategory;
+function OptionsEditor() {
+    const {
+        options, draggedOptionId,
+        deleteOption, editOption, moveOption, saveOption, setDraggedOptionId
+    } = useContext(SubcategoryContext);
+    const optionSensors = useSensors(
+        useSensor(OptionTouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+        useSensor(OptionMouseSensor, { activationConstraint: { distance: 10 } })
+    );
+
+    const handleAddOption = () => {
+        saveOption();
+    }
+    const handleChangeDescription = (option, e) => {
+        editOption(option, { description: e.target.value });
+    }
+    const handleChangeLabel = (option, e) => {
+        editOption(option, { label: e.target.value });
+    }
+    const handleChangeScore = (option, e) => {
+        editOption(option, { score: e.target.value });
+    }
+    const handleOptionDragStart = (event) => {
+        setDraggedOptionId(event.active?.id ?? null);
+    };
+    const handleOptionDragEnd = (event) => {
+        setDraggedOptionId(null);
+        if(!event.active || !event.over) return;
+        moveOption(
+            event.active.data.current.order,
+            event.over.data.current.order
+        );
+    }
+
+    return <>
+        <Box sx={{ mb: 2 }}>
+            <DndContext
+                sensors={ optionSensors }
+                collisionDetection={ closestCenter }
+                onDragStart={ handleOptionDragStart }
+                onDragEnd={ handleOptionDragEnd }
+                modifiers={ [restrictToFirstScrollableAncestor, restrictToVerticalAxis] }
+            ><SortableContext items={ options.map(option=>({ ...option, id: 'option_'+option.id })) } strategy={ verticalListSortingStrategy }>
+                <Box sx={{ mt: 2, overflow: 'auto' }}>
+                    {options.map((option) => (
+                        (option.action != 'delete') && <Sortable key={option.id} id={'option_'+option.id} order={option.order}>
+                            <Grid container spacing={2} sx={{ mb: 2 }} alignItems="center">
+                                <Grid className='option-dragger' item xs={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'move', width: '5%' }}>
+                                    <Typography variant="body1"><DragHandleRounded sx={{color: 'gray'}}/></Typography>
+                                </Grid>
+                                <Grid item xs={7} sx={{width: '20%'}}>
+                                    <TextField
+                                        variant="outlined"
+                                        fullWidth
+                                        value={option.label}
+                                        onChange={e => handleChangeLabel(option, e)}
+                                    />
+                                </Grid>
+                                <Grid item xs={2} sx={{width: '10%'}}>
+                                    <TextField
+                                        variant="outlined"
+                                        placeholder="Score"
+                                        value={option.score ?? ""}
+                                        type="number"
+                                        onChange={e => handleChangeScore(option, e)}
+                                        inputProps={{ min: 0, step: 1 }}
+                                    />
+                                </Grid>
+                                <Grid item xs={4} sx={{width: '50%'}}>
+                                    <TextField
+                                        variant="outlined"
+                                        label="Description"
+                                        placeholder="Why this score?"
+                                        value={option.description || ""}
+                                        onChange={e => handleChangeDescription(option, e)}
+                                        fullWidth
+                                        inputProps={{
+                                            maxLength: 250,
+                                            style: {
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }
+                                        }}
+                                    />
+                                </Grid>
+                                <Grid item xs={2} sx={{width: '5%'}}>
+                                    <IconButton
+                                        onClick={() => deleteOption(option)}
+                                        sx={{ color: 'gray' }}
+                                    ><CloseIcon/></IconButton>
+                                </Grid>
+                            </Grid>
+                        </Sortable>
+                    ))}
+                </Box>
+            </SortableContext></DndContext>
+            <ButtonBase
+                onClick={handleAddOption}
+                sx={{
+                    color: '#000000',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    marginTop: '8px',
+                }}
+            >
+                <AddRounded/>Add Option
+            </ButtonBase>
+        </Box>
+    </>;
+}
+
+function LinearScaleEditor() {
+    const {
+        options, draggedOptionId,
+        deleteOption, editOption, moveOption, reloadOptions, saveOption, setDraggedOptionId
+    } = useContext(SubcategoryContext);
+
+    const handleAddOption = () => {
+        saveOption();
+    }
+    const handleChangeDescription = (option, e) => {
+        editOption(option, { description: e.target.value });
+    }
+    const handleChangeLabel = (option, e) => {
+        editOption(option, { label: e.target.value });
+    }
+    const handleOptionDragStart = (event) => {
+        setDraggedOptionId(event.active?.id ?? null);
+    };
+
+    return <>
+        <Box sx={{ mb: 2 }}>
+            {
+                options.map((option) => (
+                <Grid container spacing={2} key={option.id} alignItems="center" sx={{ mb: 1 }}>
+                    <Grid item xs={1}>
+                        <Typography variant="body1">{option.order}.</Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                    <TextField
+                        variant="outlined"
+                        label="Label"
+                        value={option.label ?? ''}
+                        onChange={ e => handleChangeLabel(option, e) }
+                        fullWidth
+                    />
+                    </Grid>
+                    <Grid item xs={6}>
+                    <TextField
+                        variant="outlined"
+                        label="Description (optional)"
+                        value={option.description ?? ''}
+                        onChange={ e => handleChangeDescription(option, e) }
+                        fullWidth
+                        inputProps={{
+                            maxLength: 250,
+                            style: {
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                            }
+                        }}
+                        sx={{
+                            minWidth: 500,
+                            maxWidth: "100%"
+                        }}
+                    />
+                    </Grid>
+                    <Grid item xs={1}>{
+                        options.length > 2 && (
+                            <IconButton
+                            onClick={ () => deleteOption(option) }
+                            sx={{ color: 'gray' }}
+                            >
+                            <CloseIcon />
+                            </IconButton>
+                        )
+                    }</Grid>
+                </Grid>
+                ))
+            }
+            {
+                options.length < 10 && (
+                    <Typography
+                        onClick={ handleAddOption }
+                        sx={{
+                            color: '#000000',
+                            fontSize: '14px',
+                            cursor: 'pointer',
+                            marginTop: '8px',
+                        }}
+                    >
+                        {options.length + 1}. Add Option
+                    </Typography>
+                )
+            }
+        </Box>
+    </>;
+}

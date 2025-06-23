@@ -23,10 +23,6 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
     const [options, setOptions] = useState([]);
     const [newOptionId, setNewOptionId] = useState(0);
     const [draggedOptionId, setDraggedOptionId] = useState();
-    const [linearScaleOptions, setLinearScaleOptions] = useState([
-        { label: '', description: '' },
-        { label: '', description: '' }
-    ]);
     const [saved, setSaved] = useState(true);
     const subcategory = {
         id: subcategoryId,
@@ -47,9 +43,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         long_answer: "Long Text",
         checkbox: "Checkbox",
         linear_scale: "Linear Scale",
-        multiple_choice: "Multiple Choice",
-        rating: "Rating",
-        comment: "Comment"
+        multiple_choice: "Multiple Choice"
     }[subcategoryType] ?? 'Unknown';
 
     useEffect(() => {
@@ -69,37 +63,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setOrder(subcategoryInit.order);
         setOptions(subcategoryInit.options);
         setSavedSubcategory({ ...subcategoryInit });
-        if (subcategoryInit.subcategory_type === 'linear_scale') {
-            setLinearScaleOptions(
-                Array.isArray(subcategoryInit.options) && subcategoryInit.options.length
-                    ? subcategoryInit.options.map(opt => ({
-                        label: opt.label || '',
-                        description: opt.description || ''
-                    }))
-                    : [{ label: '', description: '' }, { label: '', description: '' }]
-            );
-        }
     }, [subcategoryInit?.id]);
-
-    // --- Linear Scale Option Handlers ---
-    function addLinearScaleOption() {
-        if (linearScaleOptions.length < 10) {
-            setLinearScaleOptions([...linearScaleOptions, { label: '', description: '' }]);
-        }
-    }
-    function removeLinearScaleOption(idx) {
-        if (linearScaleOptions.length > 2) { // keep at least 2
-            setLinearScaleOptions(linearScaleOptions.filter((_, i) => i !== idx));
-        }
-    }
-
-    function editLinearScaleOption(idx, field, value) {
-        setLinearScaleOptions(
-            linearScaleOptions.map((opt, i) =>
-                i === idx ? { ...opt, [field]: value } : opt
-            )
-        );
-    }
 
     // --- Subcategory CRUD ---
     async function editSubcategory() {
@@ -122,8 +86,9 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                 setOrder(evaluationFormSubcategory.order);
                 setSavedSubcategory({
                     ...evaluationFormSubcategory,
-                    options: [...subcategory.options]
+                    options: []
                 });
+                for(let option of subcategory.options) savedSubcategory.options.push({ ...option });
             } else if (response.data.status.toString().startsWith(4)) throw response;
             // create, delete, update options
             const isLinearScale = subcategoryType === 'linear_scale';
@@ -183,23 +148,23 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         }
     }
 
+    function resetSubcategory() {
+        setSubcategoryId();
+        setSubcategoryName('');
+        setSubcategoryDescription('');
+        setSubcategoryType('');
+        setOptions([]);
+    }
+
     function saveSubcategory () {
-        /// remember to save score as number, not string
 
-        // Prepare linear scale options with automatically assigned scores
-        const transformedLinearScaleOptions = linearScaleOptions.map((opt, idx) => ({
-            label: opt.label,
-            description: opt.description,
-            score: idx + 1, // Automatically assign score based on index
-            order: idx + 1 // Ensure the order is correct
-        }));
-
-        // Now send the data, including the transformed options
+        if(subcategoryType == 'linear_scale') for(let option of options)
+            option.score = option.order;
         axiosInstance
             .post('/saveEvaluationFormSubcategory', {
                 section_id: sectionId,
                 name: subcategoryName,
-                subcategory_type: 'linear_scale',
+                subcategory_type: subcategoryType,
                 description: subcategoryDescription,
                 required,
                 allow_other_option: allowOtherOption,
@@ -207,17 +172,19 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                 linear_scale_end: linearScaleEnd,
                 linear_scale_start_label: linearScaleStartLabel,
                 linear_scale_end_label: linearScaleEndLabel,
-                options: transformedLinearScaleOptions, // Use the transformed options
+                options
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
                     // Optionally update UI or trigger another action
-                    const { evaluationFormSubcategory } = response.data;
-                    if(!evaluationFormSubcategory) return;
+                    const { evaluationFormSubcategoryID } = response.data;
+                    if(!evaluationFormSubcategoryID) return;
+                    setSubcategoryId(evaluationFormSubcategoryID);
                     setSavedSubcategory({
-                        ...evaluationFormSubcategory,
-                        options: [...subcategory.options]
+                        ...subcategory,
+                        options: []
                     });
+                    for(let option of subcategory.options) savedSubcategory.options.push({ ...option });
                     alert("Subcategory saved successfully!");
                 } else {
                     alert("Error saving subcategory");
@@ -326,9 +293,9 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
     }
 
     return {
-        subcategory,
+        subcategory, savedSubcategory,
         subcategoryId,
-        subcategoryName, setSubcategoryName, editSubcategory, saveSubcategory,
+        subcategoryName, setSubcategoryName, editSubcategory, resetSubcategory, saveSubcategory,
         subcategoryType, switchSubcategoryType,
         subcategoryTypeDisplay,
         subcategoryDescription, setSubcategoryDescription,
@@ -341,8 +308,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         saved, setSaved,
         order,
         options, deleteOption, editOption, moveOption, reloadOptions, saveOption, setOptions,
-        draggedOptionId, setDraggedOptionId,
-        linearScaleOptions, addLinearScaleOption, removeLinearScaleOption, editLinearScaleOption
+        draggedOptionId, setDraggedOptionId
     };
 
 }

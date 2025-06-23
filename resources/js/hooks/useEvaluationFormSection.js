@@ -138,6 +138,8 @@ export function useEvaluationFormSection(section) {
             });
             return;
         }
+        if(subcategory.subcategoryType == 'linear_scale') for(let option of subcategory.options)
+            option.score = option.order;
         axiosInstance
             .post('/saveEvaluationFormSubcategory', {
                 ...subcategory,
