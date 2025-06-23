@@ -141,24 +141,24 @@ const PerformanceEvaluationList = () => {
     };
 
     // Check if the evaluation/comment period is disabled
-const isRowDisabled = (row) => {
-    const now = new Date();
-    const start = row.period_start_at ? new Date(row.period_start_at) : null;
-    const end = row.period_end_at ? new Date(row.period_end_at) : null;
-    if (!start || !end) return false;
-    return now < start || now > end;
-};
+    const isRowDisabled = (row) => {
+        const now = new Date();
+        const start = row.period_start_at ? new Date(row.period_start_at) : null;
+        const end = row.period_end_at ? new Date(row.period_end_at) : null;
+        if (!start || !end) return false;
+        return now < start || now > end;
+    };
 
     // Handle row click for period validation
     const handleRowClick = (row) => {
+        // Get period info
         const now = new Date();
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
-        if (!periodStart || !periodEnd) {
-            navigate(getEvaluationRoleRoute(row));
-            return;
-        }
-        if (now < periodStart || now > periodEnd) {
+        const isDisabled = periodStart && periodEnd && (now < periodStart || now > periodEnd);
+
+        // 1. Disabled check takes precedence (show this SWAL even if status is "Sent")
+        if (isDisabled) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Action not allowed',
@@ -167,8 +167,22 @@ const isRowDisabled = (row) => {
             });
             return;
         }
+
+        // 2. If not disabled, but status is Sent
+        if (row.status === "Sent") {
+            Swal.fire({
+                icon: 'info',
+                title: 'This Evaluation is still on going.',
+                text: "You can't Access this Form yet.",
+                confirmButtonColor: '#f5c242'
+            });
+            return;
+        }
+
+        // 3. Otherwise, allow navigation
         navigate(getEvaluationRoleRoute(row));
     };
+
 
     let filteredResponses = evaluationResponses;
     if (statusFilter === 'Disabled') {
