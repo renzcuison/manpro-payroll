@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
     TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
-    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel
+    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel, Chip
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
@@ -12,6 +12,69 @@ import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import Swal from 'sweetalert2';
+
+const STATUS_STYLES = {
+    Pending: {
+        background: '#f8e414',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Sent: {
+        background: '#f89c14',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    New: {
+        background: '#ffcc14',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Submitted: {
+        background: '#78b42c',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Done: {
+        background: '#209c3c',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Disabled: {
+        background: '#e57373',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    }
+};
 
 const getEvaluationRoleRoute = (row) => {
     switch (row.role) {
@@ -196,6 +259,10 @@ const PerformanceEvaluationList = () => {
     }
     const paginatedResponses = filteredResponses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+    // Helper to render status as a "chip"
+    const renderStatus = (status) => (
+        <span style={STATUS_STYLES[status] || STATUS_STYLES.Pending}>{status}</span>
+    );
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -360,7 +427,7 @@ const PerformanceEvaluationList = () => {
                                                         <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
                                                         <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
                                                         <TableCell align="center">{row.role}</TableCell>
-                                                        <TableCell align="center">{row.status}</TableCell>
+                                                        <TableCell align="center">{renderStatus(row.status)}</TableCell>
                                                     </TableRow>
                                                 ))
                                             )}

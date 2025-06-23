@@ -12,6 +12,70 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import Swal from 'sweetalert2';
 
+// Status styles using your requested colors
+const STATUS_STYLES = {
+    Pending: {
+        background: '#f8e414',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Sent: {
+        background: '#f89c14',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    New: {
+        background: '#ffcc14',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Submitted: {
+        background: '#78b42c',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Done: {
+        background: '#209c3c',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Disabled: {
+        background: '#e57373',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    }
+};
+
 const getEvaluationRoleRoute = (row) => {
     switch (row.role) {
         case "Creator":
@@ -34,6 +98,7 @@ const STATUS_OPTIONS = [
     { value: 'Pending', label: "Pending" },
     { value: 'Submitted', label: "Submitted" },
     { value: 'Done', label: "Done" },
+    { value: 'Disabled', label: "Disabled"}
 ];
 
 const PerformanceEvaluationList = () => {
@@ -48,7 +113,7 @@ const PerformanceEvaluationList = () => {
     // Pagination state
     const [page, setPage] = useState(0); // 0-based for TablePagination
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    // Use filteredResponses.length for pagination
+
     // Search state
     const [searchValue, setSearchValue] = useState('');
     const [searchInput, setSearchInput] = useState('');
@@ -58,13 +123,15 @@ const PerformanceEvaluationList = () => {
 
     useEffect(() => {
         setIsLoading(true);
+        const statusToSend = statusFilter && statusFilter !== 'Disabled' ? statusFilter : undefined;
+        const fetchAll = statusFilter === 'Disabled' || statusFilter === '';
         axiosInstance.get('/getEvaluationResponses', {
             headers,
             params: {
                 page: 1,
-                limit: 1000, // fetch all (we filter on frontend for Disabled/All)
+                limit: fetchAll ? 1000 : rowsPerPage,
                 search: searchValue,
-                status: statusFilter && statusFilter !== 'Disabled' ? statusFilter : undefined,
+                status: statusToSend,
                 order_by: [
                     {key: "status", sort_order: "asc"},
                     {key: "created_at", sort_order: "asc"},
@@ -75,18 +142,18 @@ const PerformanceEvaluationList = () => {
                 ]
             }
         })
-            .then((response) => {
-                if (response.data.status === 200) {
-                    setEvaluationResponses(response.data.evaluationResponses);
-                } else {
-                    setEvaluationResponses([]);
-                }
-            })
-            .catch(() => {
+        .then((response) => {
+            if (response.data.status === 200) {
+                setEvaluationResponses(response.data.evaluationResponses);
+            } else {
                 setEvaluationResponses([]);
-            })
-            .finally(() => setIsLoading(false));
-    }, [searchValue, statusFilter]);
+            }
+        })
+        .catch(() => {
+            setEvaluationResponses([]);
+        })
+        .finally(() => setIsLoading(false));
+    }, [searchValue, statusFilter, rowsPerPage]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -167,6 +234,11 @@ const PerformanceEvaluationList = () => {
         );
     }
     const paginatedResponses = filteredResponses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+    // Helper to render status as a styled "chip"
+    const renderStatus = (status) => (
+        <span style={STATUS_STYLES[status] || STATUS_STYLES.Pending}>{status}</span>
+    );
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -275,7 +347,7 @@ const PerformanceEvaluationList = () => {
                                                         <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
                                                         <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
                                                         <TableCell align="center">{row.role}</TableCell>
-                                                        <TableCell align="center">{row.status}</TableCell>
+                                                        <TableCell align="center">{renderStatus(row.status)}</TableCell>
                                                     </TableRow>
                                                 ))
                                             )}
