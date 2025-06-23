@@ -301,7 +301,6 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
             expanded={expanded}
             onChange={toggleExpand}
             sx={{
-                my: 2,
                 boxShadow: 2,
                 borderRadius: 3,
                 '&:before': { display: 'none' },
@@ -318,6 +317,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                 id={`section-header-${sectionId}`}
                 sx={{
                     position: 'relative',
+                    mt: 2,
                     width: '100%',
                     bgcolor: '#eab31a!important',
                     color: 'white',
