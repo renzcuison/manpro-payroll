@@ -176,8 +176,6 @@ const UploadForm = ({
     );
 };
 
-``;
-
 const PassOrFail = ({ value, onChange }) => {
     const normalizedValue =
         value?.toLowerCase() === "pass"

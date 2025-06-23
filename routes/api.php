@@ -301,9 +301,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         ]);
 
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
-        Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']); 
+        Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
 
-       
+
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
         Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
         Route::post('/editMyProfile', [
@@ -357,7 +357,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeesAllowance', [CompensationManagementController::class, 'getEmployeesAllowance']);
         Route::post('/saveEmployeeAllowance', [CompensationManagementController::class, 'saveEmployeeAllowance']);
         Route::post('/updateEmployeeAllowance', [CompensationManagementController::class, 'updateEmployeeAllowance']);
-        
+
         //incentives
         Route::get('/getIncentives', [ CompensationManagementController::class, 'getIncentives', ]);
         Route::post('saveIncentives', [ CompensationManagementController::class, 'saveIncentives', ]);
@@ -367,7 +367,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeIncentives', [CompensationManagementController::class, 'getEmployeeIncentives']);
         Route::post('/saveEmployeeIncentives', [CompensationManagementController::class, 'saveEmployeeIncentives']);
         Route::post('/updateEmployeeIncentive', [CompensationManagementController::class, 'updateEmployeeIncentive']);
-        
+
         //benefits
         Route::get('/getBenefits', [ CompensationManagementController::class, 'getBenefits', ]);
         Route::post('/saveBenefits', [ CompensationManagementController::class, 'saveBenefits', ]);
