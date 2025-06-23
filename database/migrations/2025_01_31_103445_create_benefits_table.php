@@ -16,7 +16,7 @@ class CreateBenefitsTable extends Migration
         Schema::create('benefits', function (Blueprint $table) {
             $table->id();
             $table->string('name', 128);
-            $table->enum('type',['Amount', 'Percentage', 'Bracket']);
+            $table->enum('type',['Amount', 'Percentage', 'Bracket Amount', 'Bracket Percentage']);
             $table->decimal('employee_percentage', 10, 2)->nullable();
             $table->decimal('employer_percentage', 10, 2)->nullable();
             $table->decimal('employee_amount', 10, 2)->nullable();

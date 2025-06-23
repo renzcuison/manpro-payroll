@@ -1,184 +1,32 @@
-import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
+import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, TextField, Typography, FormGroup, FormControl, InputLabel, MenuItem } from '@mui/material';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
-
-import React, { useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
+import React from 'react';
 import 'react-quill/dist/quill.snow.css';
-import { useSaveBenefits } from '../../../../hooks/useBenefits';
+import { useManageBenefits } from '../../../../hooks/useBenefits';
+import BenefitsBracketField from './BenefitsBracketField';
 
 const BenefitsAdd = ({ open, close }) => {
-    const saveBenefits = useSaveBenefits();
-    const [benefitNameError, setBenefitNameError] = useState(false);
-    const [employeeAmountShareError, setEmployeeAmountShareError] = useState(false);
-    const [employerAmountShareError, setEmployerAmountShareError] = useState(false);
-    const [employeePercentageShareError, setEmployeePercentageShareError] = useState(false);
-    const [employerPercentageShareError, setEmployerPercentageShareError] = useState(false);
+    const {   
+        //values
+        benefitName, benefitType, employeeAmountShare, employerAmountShare, employeePercentageShare,
+        employerPercentageShare, paymentSchedule, bracketsList, bracketListErrors,
 
-    const [benefitName, setBenefitName] = useState('');
-    const [benefitType, setBenefitType] = useState('');
-    const [employeeAmountShare, setEmployeeAmountShare] = useState('');
-    const [employerAmountShare, setEmployerAmountShare] = useState('');
-    const [employeePercentageShare, setEmployeePercentageShare] = useState('');
-    const [employerPercentageShare, setEmployerPercentageShare] = useState('');
+        //errors
+        benefitNameError, employeeAmountShareError, employerAmountShareError,
+        employeePercentageShareError, employerPercentageShareError,
 
-    const [paymentScheduleError, setPaymentScheduleError] = useState(false);
-    const [paymentSchedule, setPaymentSchedule] = useState(1);
-    const checkInput = (event) => {
-        event.preventDefault();
+        //functionalities
+        setBenefitName, setBenefitType, setEmployeeAmountShare,
+        setEmployerAmountShare, setEmployeePercentageShare, 
+        setEmployerPercentageShare, setPaymentSchedule, checkInput, handleInputChange,
+        handleAddBracketsField, handleBracketChanges, handleRemoveBracketsField
 
-        if ( benefitType == "Amount" ) {
-            checkInputAmount(event);
-        }
-
-        if ( benefitType == "Percentage" ) {
-            checkInputPercentage(event);
-        }
-    };
-
-    const checkInputAmount = () => {
-        
-        if (!benefitName) {
-            setBenefitNameError(true);
-        } else {
-            setBenefitNameError(false);
-        }
-
-        if (!employeeAmountShare) {
-            setEmployeeAmountShareError(true);
-        } else {
-            setEmployeeAmountShareError(false);
-        }
-
-        if (!employerAmountShare) {
-            setEmployerAmountShareError(true);
-        } else {
-            setEmployerAmountShareError(false);
-        }
-
-        if ( benefitName == '' || employeeAmountShare == '' || employerAmountShare == '' ) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            new Swal({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "You want to add this benefit?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: 'Save',
-                confirmButtonColor: '#177604',
-                showCancelButton: true,
-                cancelButtonText: 'Cancel',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
-            });
-        }
-    }
-
-    const checkInputPercentage = () => {
-
-        if (!benefitName) {
-            setBenefitNameError(true);
-        } else {
-            setBenefitNameError(false);
-        }
-
-        if (!employeePercentageShare) {
-            setEmployeePercentageShareError(true);
-        } else {
-            setEmployeePercentageShareError(false);
-        }
-
-        if (!employerPercentageShare) {
-            setEmployerPercentageShareError(true);
-        } else {
-            setEmployerPercentageShareError(false);
-        }
-
-        if ( benefitName == '' || employeePercentageShare == '' || employerPercentageShare == '' ) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            new Swal({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "You want to add this benefit?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: 'Save',
-                confirmButtonColor: '#177604',
-                showCancelButton: true,
-                cancelButtonText: 'Cancel',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
-            });
-        }
-    }
-
-    const saveInput = (event) => {
-        event.preventDefault();
-
-        const employeeAmount = parseFloat(employeeAmountShare.replace(/,/g, "")) || 0;
-        const employerAmount = parseFloat(employerAmountShare.replace(/,/g, "")) || 0;
-        const employeePercentage = parseFloat(employeePercentageShare.replace(/,/g, "")) || 0;
-        const employerPercentage = parseFloat(employerPercentageShare.replace(/,/g, "")) || 0;
-
-        const data = {
-            benefitName: benefitName,
-            benefitType: benefitType,
-            employeeAmount: employeeAmount,
-            employerAmount: employerAmount,
-            employeePercentage: employeePercentage,
-            employerPercentage: employerPercentage,
-            payment_schedule: paymentSchedule,
-        };
-        saveBenefits.mutate({data: data, onSuccessCallback: () => close(true)})
-    };
-
-    const formatCurrency = (value) => {
-        if (!value) return "";
-
-        let sanitizedValue = value.replace(/[^0-9.]/g, "");
-
-        const parts = sanitizedValue.split(".");
-        if (parts.length > 2) {
-            sanitizedValue = parts[0] + "." + parts.slice(1).join("");
-        }
-
-        let [integerPart, decimalPart] = sanitizedValue.split(".");
-        integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-        if (decimalPart !== undefined) {
-            decimalPart = decimalPart.slice(0, 2);
-            return decimalPart.length > 0 ? `${integerPart}.${decimalPart}` : integerPart + ".";
-        }
-
-        return integerPart;
-    };
-
-    const handleInputChange = (e, setValue) => {
-        const formattedValue = formatCurrency(e.target.value);
-        setValue(formattedValue);
-    };
+    } = useManageBenefits({onSuccess: () => close(true)});
 
     return (
         <>
-            <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
+            <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1050px', marginBottom: '5%' }}}>
                 <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ marginLeft: 1 ,fontWeight: 'bold' }}> Add Benefit </Typography>
@@ -215,21 +63,23 @@ const BenefitsAdd = ({ open, close }) => {
                                 >
                                     <MenuItem key="Amount" value="Amount"> Amount </MenuItem>
                                     <MenuItem key="Percentage" value="Percentage"> Percentage </MenuItem>
-                                    {/* <MenuItem key="Bracket" value="Bracket"> Bracket </MenuItem> */}
+                                    <MenuItem key="Bracket Amount" value="Bracket Amount"> Bracket Amount </MenuItem>
+                                    <MenuItem key="Bracket Percentage" value="Bracket Percentage"> Bracket Percentage </MenuItem>
+
                                 </TextField>
                             </FormControl>
                         </FormGroup>
 
                         <FormGroup row={true} className="d-flex justify-content-between">
                             {benefitType && (
-                                    <FormControl sx={{ marginBottom: 3, width: '50%', }}>
+                                    <FormControl sx={{ marginBottom: 3, 
+                                    width: benefitType !== "Amount" && benefitType !== "Percentage" ? '100%': '50%' }}>
                                         <TextField
                                             required
                                             select
                                             id="paymentSchedule"
                                             label="Payment Schedule"
                                             value={paymentSchedule}
-                                            error={paymentScheduleError}
                                             onChange={(event) => setPaymentSchedule(event.target.value)}
                                         >
                                             <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>
@@ -297,12 +147,19 @@ const BenefitsAdd = ({ open, close }) => {
                                     </FormControl> 
                                 </>   
                             )}
+
+                            {(benefitType === "Bracket Amount" || benefitType === "Bracket Percentage") && (
+                                <BenefitsBracketField type={benefitType} bracketsList={bracketsList} 
+                                onAdd={handleAddBracketsField} onChange={handleBracketChanges}
+                                onRemove={handleRemoveBracketsField} bracketListErrors={bracketListErrors}/>
+                            )}
                         </FormGroup>
 
                         {benefitType && (
                             <>
                                 <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
-                                    <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
+                                    <Button type="submit"
+                                    variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
                                         <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save Benefit </p>
                                     </Button>
                                 </Box>
