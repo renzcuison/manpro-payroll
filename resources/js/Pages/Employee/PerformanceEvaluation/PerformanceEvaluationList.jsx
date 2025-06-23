@@ -44,12 +44,11 @@ const PerformanceEvaluationList = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [evaluationResponses, setEvaluationResponses] = useState([]);
-    const [totalCount, setTotalCount] = useState(0);
 
     // Pagination state
     const [page, setPage] = useState(0); // 0-based for TablePagination
-    const [rowsPerPage] = useState(10);
-
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    // Use filteredResponses.length for pagination
     // Search state
     const [searchValue, setSearchValue] = useState('');
     const [searchInput, setSearchInput] = useState('');
@@ -62,10 +61,10 @@ const PerformanceEvaluationList = () => {
         axiosInstance.get('/getEvaluationResponses', {
             headers,
             params: {
-                page: page + 1, // backend is 1-based
-                limit: rowsPerPage,
+                page: 1,
+                limit: 1000, // fetch all (we filter on frontend for Disabled/All)
                 search: searchValue,
-                status: statusFilter || undefined, // only send if set
+                status: statusFilter && statusFilter !== 'Disabled' ? statusFilter : undefined,
                 order_by: [
                     {key: "status", sort_order: "asc"},
                     {key: "created_at", sort_order: "asc"},
@@ -79,21 +78,23 @@ const PerformanceEvaluationList = () => {
             .then((response) => {
                 if (response.data.status === 200) {
                     setEvaluationResponses(response.data.evaluationResponses);
-                    setTotalCount(response.data.totalResponseCount);
                 } else {
                     setEvaluationResponses([]);
-                    setTotalCount(0);
                 }
             })
             .catch(() => {
                 setEvaluationResponses([]);
-                setTotalCount(0);
             })
             .finally(() => setIsLoading(false));
-    }, [page, rowsPerPage, searchValue, statusFilter]);
+    }, [searchValue, statusFilter]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     // Search handlers
@@ -124,16 +125,14 @@ const PerformanceEvaluationList = () => {
         return now < periodStart || now > periodEnd;
     };
 
-    // Handle row click for period validation
+    // Handle row click for period validation and Sent status (disabled takes precedence)
     const handleRowClick = (row) => {
         const now = new Date();
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
-        if (!periodStart || !periodEnd) {
-            navigate(getEvaluationRoleRoute(row));
-            return;
-        }
-        if (now < periodStart || now > periodEnd) {
+        const isDisabled = periodStart && periodEnd && (now < periodStart || now > periodEnd);
+
+        if (isDisabled) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Action not allowed',
@@ -142,8 +141,32 @@ const PerformanceEvaluationList = () => {
             });
             return;
         }
+
+        if (row.status === "Sent") {
+            Swal.fire({
+                icon: 'info',
+                title: 'This Evaluation is still on going.',
+                text: "You can't Access this Form yet.",
+                confirmButtonColor: '#f5c242'
+            });
+            return;
+        }
+
         navigate(getEvaluationRoleRoute(row));
     };
+
+    // Filtering
+    let filteredResponses = evaluationResponses;
+    if (statusFilter === 'Disabled') {
+        filteredResponses = evaluationResponses.filter(isRowDisabled);
+    } else if (statusFilter === '') { // "All"
+        filteredResponses = evaluationResponses.filter(row => !isRowDisabled(row));
+    } else {
+        filteredResponses = evaluationResponses.filter(
+            row => row.status === statusFilter && !isRowDisabled(row)
+        );
+    }
+    const paginatedResponses = filteredResponses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -229,14 +252,14 @@ const PerformanceEvaluationList = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {evaluationResponses.length === 0 ? (
+                                            {paginatedResponses.length === 0 ? (
                                                 <TableRow>
                                                     <TableCell colSpan={6} align="center">
                                                         No evaluation responses found.
                                                     </TableCell>
                                                 </TableRow>
                                             ) : (
-                                                evaluationResponses.map((row, idx) => (
+                                                paginatedResponses.map((row, idx) => (
                                                     <TableRow
                                                         key={row.id}
                                                         hover
@@ -262,13 +285,13 @@ const PerformanceEvaluationList = () => {
                                 {/* Pagination controls */}
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                                     <TablePagination
-                                        rowsPerPageOptions={[10]}
+                                        rowsPerPageOptions={[10, 25, 50]}
                                         component="div"
-                                        count={totalCount}
+                                        count={filteredResponses.length}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}
-                                        onRowsPerPageChange={() => { }}
+                                        onRowsPerPageChange={handleChangeRowsPerPage}
                                     />
                                 </Box>
                             </>

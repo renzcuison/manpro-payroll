@@ -502,10 +502,32 @@ class EvaluationFormController extends Controller
                 'message' => 'Evaluation Form Section already deleted!',
                 'evaluationFormSection' => $evaluationFormSection
             ]);
+            
+            $oldOrder = $evaluationFormSection->order;
+            $newOrder = min(
+                EvaluationFormSection
+                    ::where('form_id', $evaluationFormSection->form_id)
+                    ->min('order')
+                , 1
+            ) - 1;
 
             $now = date('Y-m-d H:i');
+            $evaluationFormSection->order = $newOrder;
             $evaluationFormSection->deleted_at = $now;
             $evaluationFormSection->save();
+
+            $evaluationFormSectionsToMove = EvaluationFormSection
+                ::where('form_id', $evaluationFormSection->form_id)
+                ->where('order', '>', $oldOrder)
+                ->orderBy('order', 'asc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationFormSectionsToMove as $evaluationFormSectionToMove) {
+                $evaluationFormSectionToMove->order = $curOrder;
+                $evaluationFormSectionToMove->save();
+                $curOrder++;
+            }
 
             DB::commit();
 
@@ -734,6 +756,13 @@ class EvaluationFormController extends Controller
 
             $oldOrder = $evaluationFormSection->order;
             $newOrder = $request->order;
+            if($oldOrder === $newOrder) return response()->json([ 
+                'status' => 204,
+                'evaluationFormSection' => $evaluationFormSection,
+                'oldOrder' => $oldOrder,
+                'newOrder' => $newOrder,
+                'message' => 'Current order and new order input are the same!'
+            ]);
             $tempOrder = (
                 EvaluationFormSection
                     ::where('form_id', $evaluationFormSection->form_id)
@@ -752,7 +781,6 @@ class EvaluationFormController extends Controller
             $evaluationFormSectionsToMove = EvaluationFormSection
                 ::select( 'id', 'form_id', 'name', 'order', 'created_at', 'updated_at' )
                 ->where('form_id', $evaluationFormSection->form_id)
-                ->whereNull('deleted_at')
                 ->where('order', $moveUp ? '>' : '<', $oldOrder)
                 ->where('order', $moveUp ? '<=' : '>=', $newOrder)
                 ->orderBy('order', $moveUp ? 'asc' : 'desc')
@@ -899,9 +927,31 @@ class EvaluationFormController extends Controller
                 'evaluationFormSubcategory' => $evaluationFormSubcategory
             ]);
 
+            $oldOrder = $evaluationFormSubcategory->order;
+            $newOrder = min(
+                EvaluationFormSubcategory
+                    ::where('section_id', $evaluationFormSubcategory->section_id)
+                    ->min('order')
+                , 1
+            ) - 1;
+
             $now = date('Y-m-d H:i');
+            $evaluationFormSubcategory->order = $newOrder;
             $evaluationFormSubcategory->deleted_at = $now;
             $evaluationFormSubcategory->save();
+
+            $evaluationFormSubcategoriesToMove = EvaluationFormSubcategory
+                ::where('section_id', $evaluationFormSubcategory->section_id)
+                ->where('order', '>', $oldOrder)
+                ->orderBy('order', 'asc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationFormSubcategoriesToMove as $evaluationFormSubcategoryToMove) {
+                $evaluationFormSubcategoryToMove->order = $curOrder;
+                $evaluationFormSubcategoryToMove->save();
+                $curOrder++;
+            }
 
             DB::commit();
 
@@ -960,17 +1010,23 @@ class EvaluationFormController extends Controller
                 'evaluationFormSubcategoryID' => $request->id
             ]);
 
-            $isEmptyName = $request->has('name') && $request->name === null;
-            if( $isEmptyName ) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Form Subcategory Name is required!'
-            ]);
+            if($request->has('name')) {
+                $isEmptyName = $request->name === null;
+                if( $isEmptyName ) return response()->json([ 
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Name is required!'
+                ]);
+                $evaluationFormSubcategory->name = $request->name;
+            }
 
-            $isEmptyDescription = $request->has('description') && $request->description === null;
-            if( $isEmptyDescription ) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Form Subcategory Description is required!'
-            ]);
+            if($request->has('description')) {
+                $isEmptyDescription = $request->description === null;
+                if( $isEmptyDescription ) return response()->json([ 
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Description is required!'
+                ]);
+                $evaluationFormSubcategory->description = $request->description;
+            }
 
             if($request->subcategory_type) {
 
@@ -1142,6 +1198,13 @@ class EvaluationFormController extends Controller
 
             $oldOrder = $evaluationFormSubcategory->order;
             $newOrder = $request->order;
+            if($oldOrder === $newOrder) return response()->json([ 
+                'status' => 204,
+                'evaluationFormSubcategory' => $evaluationFormSubcategory,
+                'oldOrder' => $oldOrder,
+                'newOrder' => $newOrder,
+                'message' => 'Current order and new order input are the same!'
+            ]);
             $tempOrder = (
                 EvaluationFormSubcategory
                     ::where('section_id', $evaluationFormSubcategory->section_id)
@@ -1160,7 +1223,6 @@ class EvaluationFormController extends Controller
             $evaluationFormSubcategoriesToMove = EvaluationFormSubcategory
                 ::select('id', 'section_id', 'order')
                 ->where('section_id', $evaluationFormSubcategory->section_id)
-                ->whereNull('deleted_at')
                 ->where('order', $moveUp ? '>' : '<', $oldOrder)
                 ->where('order', $moveUp ? '<=' : '>=', $newOrder)
                 ->orderBy('order', $moveUp ? 'asc' : 'desc')
@@ -1450,9 +1512,31 @@ class EvaluationFormController extends Controller
                 'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption
             ]);
 
+            $oldOrder = $evaluationFormSubcategoryOption->order;
+            $newOrder = min(
+                EvaluationFormSubcategoryOption
+                    ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
+                    ->min('order')
+                , 1
+            ) - 1;
+
             $now = date('Y-m-d H:i');
+            $evaluationFormSubcategoryOption->order = $newOrder;
             $evaluationFormSubcategoryOption->deleted_at = $now;
             $evaluationFormSubcategoryOption->save();
+
+            $evaluationFormSubcategoryOptionsToMove = EvaluationFormSubcategoryOption
+                ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
+                ->where('order', '>', $oldOrder)
+                ->orderBy('order', 'asc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationFormSubcategoryOptionsToMove as $evaluationFormSubcategoryOptionToMove) {
+                $evaluationFormSubcategoryOptionToMove->order = $curOrder;
+                $evaluationFormSubcategoryOptionToMove->save();
+                $curOrder++;
+            }
 
             DB::commit();
 
@@ -1512,19 +1596,15 @@ class EvaluationFormController extends Controller
                     'status' => 400,
                     'message' => 'Evaluation Form Subcategory Option Label is required!'
                 ]);
-
-                $existingEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
-                    ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
-                    ->where('label', $request->label)
-                    ->where('id', '!=', $request->id)
-                    ->first()
-                ;
-                if( $existingEvaluationFormSubcategoryOption ) return response()->json([ 
-                    'status' => 409,
-                    'message' => 'This Evaluation Form Subcategory Option Label is already in use!',
-                    'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
-                ]);
                 $evaluationFormSubcategoryOption->label = $request->label;
+            }
+            if($request->has('description')) {
+                $isEmptyDescription = ($request->label === "");
+                if( $isEmptyDescription ) return response()->json([ 
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Option Description is required!'
+                ]);
+                $evaluationFormSubcategoryOption->description = $request->description;
             }
             if($request->has('score'))
                 $evaluationFormSubcategoryOption->score = (double) $request->score;
@@ -1637,12 +1717,19 @@ class EvaluationFormController extends Controller
 
             if(!$evaluationFormSubcategoryOption) return response()->json([ 
                 'status' => 404,
-                'message' => 'Evaluation Form SubcategoryOption not found!',
+                'message' => 'Evaluation Form Subcategory Option not found!',
                 'evaluationFormSubcategoryOptionID' => $request->id
             ]);
 
             $oldOrder = $evaluationFormSubcategoryOption->order;
             $newOrder = $request->order;
+            if($oldOrder === $newOrder) return response()->json([ 
+                'status' => 204,
+                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption,
+                'oldOrder' => $oldOrder,
+                'newOrder' => $newOrder,
+                'message' => 'Current order and new order input are the same!'
+            ]);
             $tempOrder = (
                 EvaluationFormSubcategoryOption
                     ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
@@ -1685,7 +1772,6 @@ class EvaluationFormController extends Controller
                 'newOrder' => $newOrder,
                 'message' => 'Evaluation Form Subcategory Option successfully moved'
             ]);
-
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1736,17 +1822,6 @@ class EvaluationFormController extends Controller
                     'message' => 'Options can only be added to Multiple Choice, Checkbox, or Linear Scale subcategories.'
                 ]);
             }
-
-            $existingEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
-                ::where('subcategory_id', $request->subcategory_id)
-                ->where('label', $request->label)
-                ->first();
-
-            if ($existingEvaluationFormSubcategoryOption) return response()->json([
-                'status' => 409,
-                'message' => 'This Evaluation Form Subcategory Option Label is already in use!',
-                'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
-            ]);
 
             $isEmptyScore = !$request->has('score');
             if ($isEmptyScore) return response()->json([

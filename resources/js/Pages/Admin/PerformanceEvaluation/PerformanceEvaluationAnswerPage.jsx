@@ -149,6 +149,10 @@ const PerformanceEvaluationAnswerPage = () => {
     );
   }
 
+  // --- CHECK IF THE CURRENT EVALUATOR HAS ALREADY SIGNED ---
+  let currentEvaluator = evaluators.find(ev => ev.evaluator_id === evaluatorId);
+  let hasEvaluatorSigned = !!(currentEvaluator && currentEvaluator.signature_filepath);
+
   return (
     <Layout title="Performance Evaluation Form">
       <Box
@@ -579,17 +583,26 @@ const PerformanceEvaluationAnswerPage = () => {
               </Typography>
             )}
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={submitting || !form}
-              sx={{ mt: 2, px: 4, py: 1.5, fontWeight: 'bold', bgcolor: '#177604', '&:hover': { bgcolor: '#0d5c27' } }}
-            >
-              {submitting ? "Submitting..." : "Submit Evaluation"}
-            </Button>
-          </Box>
+          {/* Hide submit button if evaluator has already signed */}
+          {!hasEvaluatorSigned ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={submitting || !form}
+                sx={{ mt: 2, px: 4, py: 1.5, fontWeight: 'bold', bgcolor: '#177604', '&:hover': { bgcolor: '#0d5c27' } }}
+              >
+                {submitting ? "Submitting..." : "Submit Evaluation"}
+              </Button>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <Typography variant="h6" sx={{ color: 'green', fontWeight: 'bold' }}>
+                You have already evaluated this form.
+              </Typography>
+            </Box>
+          )}
         </Box>
         <PerformanceEvaluationEvaluatorAcknowledge
           open={openEvaluatorAcknowledge}
