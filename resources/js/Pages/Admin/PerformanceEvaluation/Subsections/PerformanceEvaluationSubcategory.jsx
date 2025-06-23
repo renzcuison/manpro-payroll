@@ -12,14 +12,13 @@ import {
     IconButton,
     InputLabel,
     MenuItem,
-    Paper,
     Select,
     TextField,
     Typography
 } from '@mui/material';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CloseIcon from '@mui/icons-material/Close';
-import { createContext, useContext, useRef, useState } from 'react';
+import { createContext, useContext } from 'react';
 import { DragHandleRounded } from '@mui/icons-material';
 import {
     DndContext, 
@@ -31,9 +30,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import { OptionMouseSensor } from '../Sensors/OptionMouseSensor';
 import { OptionTouchSensor } from '../Sensors/OptionTouchSensor';
-import PerformanceEvaluationFormAddCategory from '../Modals/PerformanceEvaluationFormAddCategory';
-import PerformanceEvaluationRating from './PerformanceEvaluationRating';
-import PerformanceEvaluationFormAddSubcategory from '../Modals/PerformanceEvaluationFormAddSubcategory';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import ShortTextIcon from '@mui/icons-material/ShortText';
@@ -42,12 +38,7 @@ import {
     SortableContext,
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { SubcategoryDropdownMouseSensor } from '../Sensors/SubcategoryDropdownMouseSensor';
-import { SubcategoryDropdownTouchSensor } from '../Sensors/SubcategoryDropdownTouchSensor';
-import Swal from 'sweetalert2';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
-import { useClickAway } from '../../../../hooks/useClickAway';
-import { useEvaluationFormSection } from '../../../../hooks/useEvaluationFormSection';
 import { useEvaluationFormSubcategory } from '../../../../hooks/useEvaluationFormSubcategory';
 
 const RESPONSE_TYPE_OPTIONS = [
@@ -66,7 +57,7 @@ export default function PerformanceEvaluationFormSubcategory({
     const {
         subcategory, subcategoryId,
         editSubcategory,
-        responseType, responseTypeDisplay, switchResponseType,
+        subcategoryType, subcategoryTypeDisplay, switchSubcategoryType,
         subcategoryName, setSubcategoryName,
         subcategoryDescription, setSubcategoryDescription,
         options, draggedOptionId, deleteOption, editOption, moveOption,
@@ -108,7 +99,7 @@ export default function PerformanceEvaluationFormSubcategory({
                         {subcategory.name}
                     </Typography>
                     <Typography variant="body2" sx={{ color: "#555" }}>
-                        Response Type: { responseTypeDisplay }
+                        Response Type: { subcategoryTypeDisplay }
                     </Typography>
                 </Box>
             </AccordionSummary>
@@ -129,8 +120,8 @@ export default function PerformanceEvaluationFormSubcategory({
                             <FormControl fullWidth>
                                 <InputLabel>Response Type</InputLabel>
                                 <Select
-                                    value={responseType || ""}
-                                    onChange={e => switchResponseType(e.target.value)}
+                                    value={subcategoryType || ""}
+                                    onChange={e => switchSubcategoryType(e.target.value)}
                                     label="Response Type"
                                     required
                                 >
@@ -155,88 +146,12 @@ export default function PerformanceEvaluationFormSubcategory({
                             required
                         />
                     </Box>
-                    {(responseType === 'multipleChoice' || responseType === 'checkbox') && (
+                    {(subcategoryType === 'multiple_choice' || subcategoryType === 'checkbox') && (
                         <OptionsEditor/>
                     )}
-                    {/* {subcategoryDraft.subcategory_type === 'linear_scale' && (
-                    <Box sx={{ mb: 2 }}>
-                        {Array.isArray(subcategoryOptions) && subcategoryOptions.map((option, idx) => (
-                        <Grid container spacing={2} key={idx} alignItems="center" sx={{ mb: 1 }}>
-                            <Grid item xs={1}>
-                            <Typography variant="body1">{idx + 1}.</Typography>
-                            </Grid>
-                            <Grid item xs={4}>
-                            <TextField
-                                variant="outlined"
-                                label="Label"
-                                value={option.label}
-                                onChange={e => {
-                                const newOptions = [...subcategoryOptions];
-                                newOptions[idx].label = e.target.value;
-                                setSubcategoryOptions(newOptions);
-                                }}
-                                fullWidth
-                            />
-                            </Grid>
-                            <Grid item xs={6}>
-                            <TextField
-                                variant="outlined"
-                                label="Description (optional)"
-                                value={option.description}
-                                onChange={e => {
-                                const newOptions = [...subcategoryOptions];
-                                newOptions[idx].description = e.target.value;
-                                setSubcategoryOptions(newOptions);
-                                }}
-                                fullWidth
-                                inputProps={{
-                                maxLength: 250,
-                                style: {
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis'
-                                }
-                                }}
-                                sx={{
-                                // Ensures description field takes the rest of the row and does not grow vertically
-                                minWidth: 500,
-                                maxWidth: "100%",
-                                }}
-                            />
-                            </Grid>
-                            <Grid item xs={1}>
-                            {subcategoryOptions.length > 2 && (
-                                <IconButton
-                                onClick={() => {
-                                    const newOptions = subcategoryOptions.filter((_, i) => i !== idx);
-                                    setSubcategoryOptions(newOptions);
-                                }}
-                                sx={{ color: 'gray' }}
-                                >
-                                <CloseIcon />
-                                </IconButton>
-                            )}
-                            </Grid>
-                        </Grid>
-                        ))}
-                        {subcategoryOptions.length < 10 && (
-                        <Typography
-                            onClick={() => setSubcategoryOptions([
-                            ...subcategoryOptions,
-                            { label: '', description: '' }
-                            ])}
-                            sx={{
-                            color: '#000000',
-                            fontSize: '14px',
-                            cursor: 'pointer',
-                            marginTop: '8px',
-                            }}
-                        >
-                            {subcategoryOptions.length + 1}. Add Option
-                        </Typography>
-                        )}
-                    </Box>
-                    )} */}
+                    {subcategoryType === 'linear_scale' && (
+                        <LinearScaleEditor/>
+                    )}
                     <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                         <Box>
                             <Button
@@ -330,7 +245,7 @@ export default function PerformanceEvaluationFormSubcategory({
 function OptionsEditor() {
     const {
         options, draggedOptionId,
-        deleteOption, editOption, moveOption, reloadOptions, saveOption, setDraggedOptionId
+        deleteOption, editOption, moveOption, saveOption, setDraggedOptionId
     } = useContext(SubcategoryContext);
     const optionSensors = useSensors(
         useSensor(OptionTouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
@@ -425,17 +340,6 @@ function OptionsEditor() {
                 </Box>
             </SortableContext></DndContext>
             <ButtonBase
-                onClick={() => console.log(options)}
-                sx={{
-                    color: '#000000',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    marginTop: '8px',
-                }}
-            >
-                <AddRounded/>Log
-            </ButtonBase>
-            <ButtonBase
                 onClick={handleAddOption}
                 sx={{
                     color: '#000000',
@@ -447,5 +351,105 @@ function OptionsEditor() {
                 <AddRounded/>Add Option
             </ButtonBase>
         </Box>
+    </>;
+}
+
+function LinearScaleEditor() {
+    const {
+        options, draggedOptionId,
+        deleteOption, editOption, moveOption, reloadOptions, saveOption, setDraggedOptionId
+    } = useContext(SubcategoryContext);
+
+    const handleAddOption = () => {
+        saveOption();
+    }
+    const handleChangeDescription = (option, e) => {
+        editOption(option, { description: e.target.value });
+    }
+    const handleChangeLabel = (option, e) => {
+        editOption(option, { label: e.target.value });
+    }
+    const handleOptionDragStart = (event) => {
+        setDraggedOptionId(event.active?.id ?? null);
+    };
+
+    return <>
+        <Box sx={{ mb: 2 }}>
+            {
+                options.map((option) => (
+                <Grid container spacing={2} key={option.id} alignItems="center" sx={{ mb: 1 }}>
+                    <Grid item xs={1}>
+                        <Typography variant="body1">{option.order}.</Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                    <TextField
+                        variant="outlined"
+                        label="Label"
+                        value={option.label ?? ''}
+                        onChange={ e => handleChangeLabel(option, e) }
+                        fullWidth
+                    />
+                    </Grid>
+                    <Grid item xs={6}>
+                    <TextField
+                        variant="outlined"
+                        label="Description (optional)"
+                        value={option.description ?? ''}
+                        onChange={ e => handleChangeDescription(option, e) }
+                        fullWidth
+                        inputProps={{
+                            maxLength: 250,
+                            style: {
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                            }
+                        }}
+                        sx={{
+                            minWidth: 500,
+                            maxWidth: "100%"
+                        }}
+                    />
+                    </Grid>
+                    <Grid item xs={1}>{
+                        options.length > 2 && (
+                            <IconButton
+                            onClick={ () => deleteOption(option) }
+                            sx={{ color: 'gray' }}
+                            >
+                            <CloseIcon />
+                            </IconButton>
+                        )
+                    }</Grid>
+                </Grid>
+                ))
+            }
+            {
+                options.length < 10 && (
+                    <Typography
+                        onClick={ handleAddOption }
+                        sx={{
+                            color: '#000000',
+                            fontSize: '14px',
+                            cursor: 'pointer',
+                            marginTop: '8px',
+                        }}
+                    >
+                        {options.length + 1}. Add Option
+                    </Typography>
+                )
+            }
+        </Box>
+        <ButtonBase
+            onClick={() => console.log(options)}
+            sx={{
+                color: '#000000',
+                fontSize: '14px',
+                cursor: 'pointer',
+                marginTop: '8px',
+            }}
+        >
+            <AddRounded/>Log
+        </ButtonBase>
     </>;
 }

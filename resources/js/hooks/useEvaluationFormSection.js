@@ -1,5 +1,4 @@
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
-import { getSubcategoryDbValue } from "../utils/performance-evaluation-utils";
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
 
@@ -143,7 +142,7 @@ export function useEvaluationFormSection(section) {
             .post('/saveEvaluationFormSubcategory', {
                 ...subcategory,
                 section_id: sectionId,
-                subcategory_type: getSubcategoryDbValue(subcategory.subcategory_type)
+                subcategory_type: subcategory.subcategory_type
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
