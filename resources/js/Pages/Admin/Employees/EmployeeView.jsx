@@ -129,10 +129,10 @@ const EmployeeView = () => {
                     <Grid container spacing={4} sx={{ mt: 2 }}>
                         <Grid size={{ xs: 4, sm: 4, md: 4, lg: 4 }}> 
                             <EmployeeInformation employee={employee}/>
-                            <EmployeeBenefits userName={user} benefits={benefits} onRefresh={employeeBenefits.refetch}/>
-                            <EmployeeAllowances userName={user} allowances={allowances} onRefresh={employeeAllowances.refetch}/>
-                            <EmployeeIncentives userName={user} incentives={incentives} onRefresh={employeeIncentives.refetch}/>
-                            <EmployeeDeductions userName={user} deductions={deductions} onRefresh={employeeDeductions.refetch} />
+                            <EmployeeBenefits userName={user} benefits={benefits} onRefresh={refetchEmployeeDeductions}/>
+                            <EmployeeAllowances userName={user} allowances={allowances} onRefresh={refetchEmployeeDeductions}/>
+                            <EmployeeIncentives userName={user} incentives={incentives} onRefresh={refetchEmployeeDeductions}/>
+                            <EmployeeDeductions userName={user} deductions={deductions} onRefresh={refetchEmployeeDeductions} />
                         </Grid>
 
                         <Grid size={{ xs: 8, sm: 8, md: 8, lg: 8 }}>

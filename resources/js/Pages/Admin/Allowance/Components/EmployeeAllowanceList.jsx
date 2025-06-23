@@ -37,8 +37,7 @@ const EmployeeAllowanceList = ({ allowances, isLoading, onAdd, onEdit }) => {
                                         <Typography>{allowance.number || '-'}</Typography>
                                     </TableCell> */}
                                     <TableCell align="center">
-                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).
-                                        format(allowance.calculated_amount)}
+                                        ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(allowance.employee_amount)}
                                     </TableCell>
                                     <TableCell align="center">
                                         <Typography>{dayjs(allowance.created_at).format("MMM DD, YYYY")}</Typography>

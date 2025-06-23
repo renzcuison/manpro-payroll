@@ -71,8 +71,7 @@ export function useSaveAllowance(){
     return useMutation(
         async ({ data }) => {
             return await axiosInstance.post('/compensation/saveAllowance', data, { headers });
-        },
-        {
+        },{
             onSuccess: (response, variables) => {
                 if (response.data.status === 200) {
                     Swal.fire({
@@ -108,8 +107,7 @@ export function useUpdateAllowance() {
     return useMutation(
         async ({ data }) => {
             return await axiosInstance.post('/compensation/updateAllowance', data, { headers });
-        },
-        {
+        }, {
             onSuccess: (response, variables) => {
                 if (response.data.status === 200) {
                     Swal.fire({

@@ -706,9 +706,6 @@ class CompensationManagementController extends Controller
 
         $validated = $request->validate([
             'name' => 'required',
-            'type' => 'required',
-            'amount' => 'required',
-            'percentage' => 'required',
             'payment_schedule' => 'required',
         ]);
 
@@ -721,9 +718,9 @@ class CompensationManagementController extends Controller
 
                 AllowancesModel::create([
                     "name" => $request->name,
-                    "type" => $request->type,
-                    "amount" => $request->amount,
-                    "percentage" => $request->percentage,
+                    "type" => "Amount",
+                    "amount" => 0.00,
+                    "percentage" => 0.00,
                     "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
@@ -744,9 +741,6 @@ class CompensationManagementController extends Controller
     public function updateAllowance(Request $request){
         $validated = $request->validate([
             'name' => 'required',
-            'type' => 'required',
-            'amount' => 'required',
-            'percentage' => 'required',
             "payment_schedule" => 'required',
         ]);
 
@@ -755,20 +749,18 @@ class CompensationManagementController extends Controller
         }
 
         try{
-            $allowance_id = Crypt::decrypt($request->allowance_id);
+            $id = Crypt::decrypt($request->allowance_id);
         }
         catch(\Exception $e){
             return response()->json(["status" => 403, 'message' => 'Invalid ID']);
         }
 
-        $allowance = AllowancesModel::findOrFail($allowance_id);
+        $allowance = AllowancesModel::findOrFail($id);
+        
         if($allowance){
             try{
                 DB::beginTransaction();
                 $allowance->name = $request->name;
-                $allowance->type = $request->type;
-                $allowance->amount = $request->amount;
-                $allowance->percentage = $request->percentage;
                 $allowance->payment_schedule = $request->payment_schedule;
                 $allowance->save();
                 DB::commit();
@@ -787,12 +779,14 @@ class CompensationManagementController extends Controller
         if(!$this->checkUserAdmin()){
             return response()->json(['status' => 200, 'allowances' => null]);  
         }
+
         $employee = UsersModel::where('user_name', $request->username)->first();
         $baseSalary = floatval($employee->salary);
         $allowances = [];
 
         $filterAllowanceId = $request->input('allowance_id');
         $decryptedAllowanceId = null;
+
         if (!empty($filterAllowanceId)) {
             try {
                 $decryptedAllowanceId = Crypt::decrypt($filterAllowanceId);
@@ -808,10 +802,10 @@ class CompensationManagementController extends Controller
 
             $amount = 0;
             $type = $allowance->allowance->type;
-            if($type == 'Amount'){
+
+            if ($type == 'Amount'){
                 $amount += $allowance->allowance->amount;
-            }
-            else{
+            } else {
                 $amount += ($baseSalary * ($allowance->allowance->percentage / 100));
             }
             
@@ -821,6 +815,7 @@ class CompensationManagementController extends Controller
                 'number' => $allowance->number,
                 'type' => $type,
                 'amount' => $allowance->allowance->amount,
+                'employee_amount' => (float) $allowance->amount,
                 'percentage' => $allowance->allowance->percentage,
                 'payment_schedule' => $allowance->allowance->payment_schedule,
                 'calculated_amount' => $amount,
@@ -834,13 +829,9 @@ class CompensationManagementController extends Controller
     public function getEmployeesAllowance(Request $request)
     {
         if (!$this->checkUserAdmin()) {
-            return response()->json([
-                'status' => 200,
-                'employee_count' => 0,
-                'employees' => [],
-                'total' => 0,
-            ]);
+            return response()->json([ 'status' => 200, 'employee_count' => 0, 'employees' => [], 'total' => 0 ]);
         }
+
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
 
@@ -880,33 +871,14 @@ class CompensationManagementController extends Controller
         //for employee counting purposes <pagination>
         $countQuery = (clone $query);
         $total_count = $countQuery->count();
-        $employees = $query
-        ->offset(($page - 1) * $perPage)
-        ->limit($perPage)
-        ->get();
+        $employees = $query->offset(($page - 1) * $perPage)->limit($perPage)->get();
 
         $result = collect();
         $total_amount = 0;
 
         //allowance calculation purposes
         foreach($employees as $employee){
-            $allowances = EmployeeAllowancesModel::with('allowance')
-            ->where('user_id', $employee->id)
-            ->whereNull('deleted_at')
-            ->when($filterAllowanceId, fn($q) => $q->where('allowance_id', $filterAllowanceId))
-            ->get();
-
-            $baseSalary = floatval($employee->salary);
-            $amount = 0;
-            foreach($allowances as $allowance){  
-                $type = $allowance->allowance->type;
-                if($type == 'Amount'){
-                    $amount += $allowance->allowance->amount;
-                }
-                else if($type == 'Percentage'){
-                    $amount += $baseSalary * ($allowance->allowance->percentage / 100);
-                }
-            }
+            $amount = EmployeeAllowancesModel::where('user_id', $employee->id)->sum('amount');
 
             $result->push([
                 'user_name' => $employee->user_name,
@@ -975,6 +947,7 @@ class CompensationManagementController extends Controller
         $emp_allowance = EmployeeAllowancesModel::findOrFail($employee_allowance_id);
 
         if($emp_allowance){
+            $emp_allowance->amount = $request->amount;
             $emp_allowance->status = $request->status;
             $emp_allowance->save();
         }

@@ -577,12 +577,11 @@ class EmployeesController extends Controller
 
         if (($this->checkUserAdmin() || $this->checkUserEmployee()) && $validated) {
             $user = Auth::user();
-            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)
-            ->first();
-            log::info($employee);
-            $educations = EmployeeEducation::where('employee_id', $employee->id)
-            ->select('id', 'employee_id', 'school_name', 'education_level', 'program_name', 'year_graduated')
-            ->get();
+
+            $employee = UsersModel::where('client_id', $user->client_id)->where('user_name', $request->username)->first();
+
+            $educations = EmployeeEducation::where('employee_id', $employee->id)->select('id', 'employee_id', 'school_name', 'education_level', 'program_name', 'year_graduated')->get();
+            
             return response()->json(['educations' => $educations, 'status' => 200]);
         }
     }

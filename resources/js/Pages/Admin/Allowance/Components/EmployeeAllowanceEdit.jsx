@@ -5,7 +5,10 @@ import { useUpdateEmployeeAllowance } from "../../../../hooks/useAllowances";
 
 const EmployeeAllowanceEdit = ({allowances, onClose}) => {
     const updateEmployeeAllowance = useUpdateEmployeeAllowance();
-    // const [number, setNumber] = useState(allowances?.number)
+
+    // const [amount, setAmount] = useState(allowances?.number)
+
+    const [amount, setAmount] = useState(allowances?.employee_amount);
     const [selectedStatus, setSelectedStatus] = useState(allowances?.status);
 
     const checkInput = (event) => {
@@ -28,7 +31,7 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
 
     const saveAllowance = (event) => {
         event.preventDefault();
-        const data = {emp_allowance_id: allowances.id, status: selectedStatus}
+        const data = {emp_allowance_id: allowances.id, status: selectedStatus, amount: amount};
         updateEmployeeAllowance.mutate({data: data, onSuccessCallback: () => onClose(true)})
     }
 
@@ -36,38 +39,24 @@ const EmployeeAllowanceEdit = ({allowances, onClose}) => {
         <>
             <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
                 <FormGroup row={true} className="d-flex justify-content-between" sx={{mb:4}}>
-                    <FormControl sx={{
-                     width: '65%', '& label.Mui-focused': { color: '#97a5ba' },
-                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
-                }}>
-                        <TextField
-                            label={'Allowance'}
-                            value={allowances.name}
-                            InputProps={{ readOnly: true }}
-                         />                    
+                    <FormControl sx={{  width: '100%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}}>
+                        <TextField label={'Allowance'} value={allowances.name} InputProps={{ readOnly: true }}  />                    
+                    </FormControl>
+                </FormGroup>
+
+                <FormGroup row={true} className="d-flex justify-content-between" sx={{mb:4}}>
+                    <FormControl sx={{  width: '49%', '& label.Mui-focused': { color: '#97a5ba' }, '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }}}}>
+                        <TextField label={'Amount'} value={amount} onChange={(event) => setAmount(event.target.value)} />                    
                     </FormControl>
 
-                    {/* <FormControl sx={{width:'30%'}}>
-                        <TextField
-                            label={'Number'}
-                            value={number}
-                            onChange={(event) => setNumber(event.target.value)}
-                         />                    
-                    </FormControl>  */}
-
-                    <FormControl sx={{width:'32%'}}>
-                        <TextField
-                            select
-                            id="status"
-                            label="Status"
-                            value={selectedStatus}
-                            onChange={(event) => setSelectedStatus(event.target.value)}
-                        >
+                    <FormControl sx={{width:'49%'}}>
+                        <TextField select id="status" label="Status" value={selectedStatus} onChange={(event) => setSelectedStatus(event.target.value)} >
                             <MenuItem key="Active" value="Active"> Active </MenuItem>
                             <MenuItem key="Inactive" value="Inactive"> Inactive </MenuItem>
                         </TextField>
                     </FormControl>
-                </FormGroup>  
+                </FormGroup>
+
                 <Box display="flex" justifyContent="center" alignItems="center">
                     <Button type="submit" variant="contained" sx={{backgroundColor: 'green', mx:1}}>
                         <i className="fa fa-floppy-o mr-2"/>Update

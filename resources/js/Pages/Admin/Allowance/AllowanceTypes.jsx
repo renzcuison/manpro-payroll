@@ -74,10 +74,7 @@ const AllowanceTypes = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Name </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Type </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Payment Schedule </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Amount/Percentage </TableCell>
-                                                
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Payment Schedule </TableCell>                                                
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -87,24 +84,12 @@ const AllowanceTypes = () => {
                                                     sx={{ backgroundColor: index % 2 === 0 ? '#f8f8f8' : '#ffffff',
                                                      '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{allowance.name}</TableCell>
-                                                        <TableCell align="center">{allowance.type}</TableCell>
                                                         <TableCell align="center">{getPaymentScheduleName(allowance.payment_schedule)}</TableCell>
-
-                                                        {allowance.type === "Amount" && (
-                                                            <TableCell align="center">
-                                                                ₱ {new Intl.NumberFormat('en-US', 
-                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(allowance.amount)}
-                                                            </TableCell>
-                                                        )}
-
-                                                        {allowance.type === "Percentage" && (
-                                                            <TableCell align="center">{allowance.percentage}%</TableCell>
-                                                        )}
                                                     </TableRow>
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={3} align="center"> No Allowances </TableCell>
+                                                    <TableCell colSpan={2} align="center"> No Allowances </TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
