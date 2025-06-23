@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\UsersModel;
 use App\Models\ClientsModel;
 use App\Models\AllowancesModel;
+use App\Models\BenefitBracket;
 use App\Models\EmployeeAllowancesModel;
 use App\Models\IncentivesModel;
 use App\Models\EmployeeIncentivesModel;
@@ -354,17 +355,6 @@ class CompensationManagementController extends Controller
 
     //---------------->[#region BENEFITS CONTROLLERS]
 
-    public function calculateBenefits($rawBenefit, $baseSalary) {
-        $benefit = $rawBenefit->benefit;
-        $employeeContribution = ($baseSalary * ($benefit->employee_percentage / 100)) + $benefit->employee_amount;
-        $employerContribution = ($baseSalary * ($benefit->employer_percentage / 100)) + $benefit->employer_amount;
-        
-        return [
-            'employee_contribution' => $employeeContribution,
-            'employer_contribution' => $employerContribution
-        ];
-    }
-
     public function getEmployeesBenefits(Request $request)
     {
         if (!$this->checkUserAdmin()) {
@@ -380,6 +370,7 @@ class CompensationManagementController extends Controller
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
 
+        //filtering variables for name, department, branch search filters and paginations
         $filterName = strtolower($request->input('name'));
         $filterBranchId = $request->input('branch_id');
         $filterDepartmentId = $request->input('department_id');
@@ -401,8 +392,7 @@ class CompensationManagementController extends Controller
         ->when($filterBranchId, fn($q) => $q->where('branch_id', $filterBranchId))
         ->when($filterDepartmentId, fn($q) => $q->where('department_id', $filterDepartmentId));
         
-        $countQuery = (clone $query);
-        $total_count = $countQuery->count();
+        $total_count = (clone $query)->count();
         $employees = $query
         ->offset(($page - 1) * $perPage)
         ->limit($perPage)
@@ -422,13 +412,42 @@ class CompensationManagementController extends Controller
             $baseSalary = floatval($employee->salary);
             $employee_calc_amount = 0;
             $employer_calc_amount = 0;
-            $calculatedBenefits = [];
 
             foreach($benefits as $benefit){
-                $calc = $this->calculateBenefits($benefit, $baseSalary);
-                $calculatedBenefits[] = $calc;
-                $employee_calc_amount += $calc['employee_contribution'];
-                $employer_calc_amount += $calc['employer_contribution'];
+                $type = $benefit->benefit->type;
+                //->benefit refers to the relationship function located in EmployeeBenefitsModel
+                if($type === "Amount"){
+                    $employee_calc_amount += $benefit->benefit->employee_amount;
+                    $employer_calc_amount += $benefit->benefit->employer_amount;
+                }
+                else if($type === "Percentage"){
+                    $employee_calc_amount += $baseSalary * ($benefit->benefit->employee_percentage / 100);
+                    $employer_calc_amount += $baseSalary * ($benefit->benefit->employer_percentage / 100);
+                }
+                else if ($type === "Bracket Amount") {
+                    $brackets = $benefit->benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; // if end is null, assume open-ended
+                        if ($baseSalary >= $start && $baseSalary <= $end) {
+                            $employee_calc_amount += floatval($bracket->employee_share);
+                            $employer_calc_amount += floatval($bracket->employer_share);
+                            break; 
+                        }
+                    }
+                }
+                else if ($type === "Bracket Percentage") {
+                    $brackets = $benefit->benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; 
+                        if ($baseSalary >= $start && $baseSalary <= $end) {
+                            $employee_calc_amount += $baseSalary * ($bracket->employee_share / 100);
+                            $employer_calc_amount += $baseSalary * ($bracket->employer_share / 100);
+                            break; 
+                        }
+                    }
+                }
             }
             $result->push([
                 'user_name' => $employee->user_name,
@@ -447,8 +466,8 @@ class CompensationManagementController extends Controller
         return response()->json([
             'status' => 200,
             'employees' => $result->values(),
-            'employee_total' => $total_employer_amount,
-            'employer_total' => $total_employee_amount,
+            'employee_total' => $total_employee_amount,
+            'employer_total' => $total_employer_amount,
             'employee_count' => $total_count,
             'current_page' => $page,
         ]);
@@ -486,10 +505,35 @@ class CompensationManagementController extends Controller
                 $employee_amount += $benefit->benefit->employee_amount;
                 $employer_amount += $benefit->benefit->employer_amount;
             }
-            else{
+            else if($type == "Percentage"){
                 $employee_amount += ($baseSalary * ($benefit->benefit->employee_percentage / 100));
                 $employer_amount += ($baseSalary * ($benefit->benefit->employer_percentage / 100));
             }
+            else if ($type === "Bracket Amount") {
+                $brackets = $benefit->benefit->brackets;
+                foreach ($brackets as $bracket) {
+                    $start = floatval($bracket->range_start);
+                    $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; // if end is null, assume open-ended
+                    if ($baseSalary >= $start && $baseSalary <= $end) {
+                        $employee_amount += floatval($bracket->employee_share);
+                        $employer_amount += floatval($bracket->employer_share);
+                        break; 
+                    }
+                }
+            }
+            else if ($type === "Bracket Percentage") {
+                $brackets = $benefit->benefit->brackets;
+                foreach ($brackets as $bracket) {
+                    $start = floatval($bracket->range_start);
+                    $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; 
+                    if ($baseSalary >= $start && $baseSalary <= $end) {
+                        $employee_amount += $baseSalary * ($bracket->employee_share / 100);
+                        $employer_amount += $baseSalary * ($bracket->employer_share / 100);
+                        break; 
+                    }
+                }
+            }
+
             $benefits[] = [
                 'id' => Crypt::encrypt($benefit->id),
                 'name' => $benefit->benefit->name,
@@ -516,9 +560,35 @@ class CompensationManagementController extends Controller
         }
         $user = Auth::user();
         $client = ClientsModel::find($user->client_id);
+        $benefitsRaw = $client->benefits()
+        ->with(['brackets' => function ($query) {
+            $query->select('id', 'benefit_id', 'range_start', 'range_end', 'employer_share', 'employee_share');
+        }])
+        ->get();
         $benefits = [];
 
-        foreach ($client->benefits as $benefit) {    
+        foreach ($benefitsRaw as $benefit) {    
+            $brackets = $benefit->brackets ?? [];
+
+            $lowestEmployerShare = null;
+            $highestEmployerShare = null;
+            $lowestEmployeeShare = null;
+            $highestEmployeeShare = null;
+
+            if ($brackets->count() > 0) {
+                $employerShares = $brackets->pluck('employer_share')->map(function ($val) {
+                    return floatval($val);
+                });
+                $employeeShares = $brackets->pluck('employee_share')->map(function ($val) {
+                    return floatval($val);
+                });
+    
+                $lowestEmployerShare = $employerShares->min();
+                $highestEmployerShare = $employerShares->max();
+                $lowestEmployeeShare = $employeeShares->min();
+                $highestEmployeeShare = $employeeShares->max();
+            }
+
             $benefits[] = [
                 'id' => Crypt::encrypt($benefit->id),
                 'name' => $benefit->name,
@@ -527,6 +597,11 @@ class CompensationManagementController extends Controller
                 'employee_amount' => $benefit->employee_amount,
                 'employer_percentage' => $benefit->employer_percentage,
                 'employee_percentage' => $benefit->employee_percentage,
+                'benefit_brackets' => $benefit->brackets ?? [],
+                'lowest_employee_share' => $lowestEmployeeShare,
+                'highest_employee_share' => $highestEmployeeShare,
+                'lowest_employer_share' => $lowestEmployerShare,
+                'highest_employer_share' => $highestEmployerShare,
                 "payment_schedule" => $benefit->payment_schedule,
             ];
         }
@@ -549,6 +624,8 @@ class CompensationManagementController extends Controller
         if ($this->checkUserAdmin() && $validated) {
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
+            $type = $request->benefitType;
+            $brackets_list = $request->input('brackets_list');
 
             try {
                 DB::beginTransaction();
@@ -563,12 +640,24 @@ class CompensationManagementController extends Controller
                     "payment_schedule" => $request->payment_schedule,
                     "client_id" => $client->id,
                 ]);
+
+                if(is_array($brackets_list) && !empty($brackets_list && ($type != "Amount" || $type != "Percentage"))){
+                    foreach($brackets_list as $bracket){
+                        BenefitBracket::create([
+                            "benefit_id" => $benefit->id,
+                            "range_start" => $bracket['range_start'],
+                            "range_end" => $bracket['range_end'],
+                            "employer_share" => $bracket['employer_share'],
+                            "employee_share" => $bracket['employee_share'],
+                        ]);
+                    }
+                }
+
                 DB::commit();
 
-                return response()->json(['status' => 200, 'benefit' => $benefit]);
+                return response()->json(['status' => 200, 'message' => "Benefits saved successfully!"]);
             } catch (\Exception $e) {
                 DB::rollBack();
-
                 Log::error("Error saving: " . $e->getMessage());
                 throw $e;
             }
@@ -598,6 +687,8 @@ class CompensationManagementController extends Controller
         }
 
         $benefit = BenefitsModel::findOrFail($benefit_id);
+        $brackets_list = $request->input('brackets_list');
+        $type = $request->benefitType;
         if($benefit){
             try{
                 DB::beginTransaction();
@@ -609,6 +700,37 @@ class CompensationManagementController extends Controller
                 $benefit->employee_percentage = $request->employeePercentage;
                 $benefit->payment_schedule = $request->payment_schedule;
                 $benefit->save();
+
+                if(is_array($brackets_list) && !empty($brackets_list && ($type != "Amount" || $type != "Percentage")))
+                {   
+                    //collects id for deletion purposes
+                    $submittedIds = [];
+                    foreach ($brackets_list as $bracket) {
+                        //if the list contains the id key (from the database), update said data
+                        if (isset($bracket['id'])) {
+                            BenefitBracket::where('id', $bracket['id'])->update([
+                                'range_start' => $bracket['range_start'],
+                                'range_end' => $bracket['range_end'],
+                                'employer_share' => $bracket['employer_share'],
+                                'employee_share' => $bracket['employee_share'],
+                            ]);
+                            $submittedIds[] = $bracket['id'];
+                        //else insert it to the table
+                        } else {
+                            $new = $benefit->brackets()->create([
+                                'range_start' => $bracket['range_start'],
+                                'range_end' => $bracket['range_end'],
+                                'employer_share' => $bracket['employer_share'],
+                                'employee_share' => $bracket['employee_share'],
+                            ]);
+                            $submittedIds[] = $new->id;
+                        }
+                    }
+                    // Delete brackets not in the submitted ID list
+                    BenefitBracket::where('benefit_id', $benefit->id)
+                        ->whereNotIn('id', $submittedIds)
+                        ->delete();
+                }    
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -616,7 +738,7 @@ class CompensationManagementController extends Controller
                 throw $e;
             }
         }
-        return response()->json(['status' => 200, 'message' => 'Process Success']);
+        return response()->json(['status' => 200, 'message' => 'Benefits updated successfully!']);
     }
 
     public function saveEmployeeBenefits(Request $request)
