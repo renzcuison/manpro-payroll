@@ -6,10 +6,10 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 import dayjs from "dayjs";
 
-export default function DateRangePicker({ onRangeChange, label = "Select Date" }) {
+export default function DateRangePicker({ onRangeChange, label = "Select Date", defaultRange = [dayjs(), dayjs()] }) {
     const [anchorEl, setAnchorEl] = useState(null);
-    const [startDate, setStartDate] = useState(dayjs());
-    const [endDate, setEndDate] = useState(dayjs());
+    const [startDate, setStartDate] = useState(defaultRange[0]);
+    const [endDate, setEndDate] = useState(defaultRange[1]);
     const [showCustom, setShowCustom] = useState(false);
     const [earliestLogDate, setEarliestLogDate] = useState(null);;
     const [rangeSelect, setRangeSelect] = useState("Today");
@@ -50,25 +50,26 @@ export default function DateRangePicker({ onRangeChange, label = "Select Date" }
         [startDate, endDate, showCustom]);
 
     useEffect(() => {
-        axiosInstance.get("/attendance/getEarliestUserLog", { headers }).then((res) => {
-            console.log("Raw API response:", res.data);
-            const date = res.data?.earliest_date;
-            if (date) {
-                const earliest = dayjs(date);
-                setEarliestLogDate(earliest);
-            } else {
-                console.warn("No earliest_date in API response.");
-            }
-        }).catch(err => {
-            console.error("API error:", err);
-        });
+        axiosInstance.get("/attendance/getEarliestUserLog", { headers })
+            .then((res) => {
+                const date = res.data?.earliest_date;
+                if (date) {
+                    const earliest = dayjs(date);
+                    setEarliestLogDate(earliest);
+                } else {
+                    setEarliestLogDate(dayjs().startOf("year"));
+                }
+            })
+            .catch(() => {
+                setEarliestLogDate(dayjs().startOf("year"));
+            });
     }, []);
 
-    useEffect(() => {
-        if (earliestLogDate) {
-            console.log("Earliest log date has been set to:", earliestLogDate.format());
-        }
-    }, [earliestLogDate]);
+    // useEffect(() => {
+    //     if (earliestLogDate) {
+    //         console.log("Earliest log date has been set to:", earliestLogDate.format());
+    //     }
+    // }, [earliestLogDate]);
 
     // useEffect(() => {
     //     if (earliestLogDate) {

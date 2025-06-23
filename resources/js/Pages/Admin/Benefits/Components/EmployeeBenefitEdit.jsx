@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField,  FormControl, FormGroup, InputAdornment } from "@mui/material";
-import dayjs from "dayjs";
 import Swal from "sweetalert2";
-import { useBenefits } from "../../../../hooks/useBenefits";
+import { useUpdateEmployeeBenefit } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitEdit = ({benefits, onClose}) => {
-    const {updateEmployeeBenefit} = useBenefits();
-
+    const updateEmployeeBenefit = useUpdateEmployeeBenefit();
     const [number, setNumber] = useState(benefits?.number)
     const [selectedStatus, setSelectedStatus] = useState(benefits?.status);
 
@@ -41,31 +39,13 @@ const EmployeeBenefitEdit = ({benefits, onClose}) => {
 
     const saveBenefit = (event) => {
         event.preventDefault();
-        const data = {emp_benefit_id: benefits.id, number: number}
-        updateEmployeeBenefit.mutate(data,
-        {
-            onSuccess: () => {
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "Update Successful",
-                    icon: "success",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                }).then(() =>{
-                    onClose(true);
-                })
-            }
-        },{
-            onError: (error) => {
-                console.log(error);
-            }
-        })
+        const data = {emp_benefit_id: benefits.id, number: number, status: selectedStatus}
+        updateEmployeeBenefit.mutate({data: data, onSuccessCallback: () => onClose(true)});
     }
 
     return (
         <>
             <Box component="form" sx={{ mt: 3, my: 6 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
-                {/*Details <Read-Only>*/}
                 <FormGroup row={true} className="d-flex justify-content-between" sx={{mb:4}}>
                     <FormControl sx={{
                      width: '35%', '& label.Mui-focused': { color: '#97a5ba' },

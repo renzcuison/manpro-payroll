@@ -50,7 +50,6 @@ const AttendanceSummary = () => {
     const [summaryToDate, setSummaryToDate] = useState(dayjs());
     const [selectedRange, setSelectedRange] = useState("today");
 
-
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -231,6 +230,7 @@ const AttendanceSummary = () => {
                                 <DateRangePicker
                                     summaryFromDate={summaryFromDate}
                                     summaryToDate={summaryToDate}
+                                    defaultRange={[dayjs().startOf("month"), dayjs().endOf("month")]}
                                     onRangeChange={(start, end) => handleFilterChange("range", start, end)}
                                 />
                             </Box>

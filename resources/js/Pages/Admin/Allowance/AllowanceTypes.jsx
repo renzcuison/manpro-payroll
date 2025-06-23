@@ -2,15 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import { Link } from 'react-router-dom';
-import { useAllowances } from '../../../hooks/useAllowances';
+import { useAllowance } from '../../../hooks/useAllowances';
 
 import AllowanceAdd from './Modals/AllowanceAdd';
+import AllowanceEdit from './Modals/AllowanceEdit';
 
 const AllowanceTypes = () => {
-    const {allowances: allowanceQuery} = useAllowances({loadAllowances: true});
-    const allowances = allowanceQuery.data?.allowances || [];
+    const {allowancesData, isAllowancesLoading, refetchAllowances} = useAllowance();
+    const allowances = allowancesData?.allowances || [];
 
     const [openAddAllowanceModal, setOpenAddAllowanceModal] = useState(false);
+    const [openEditAllowanceModal, setOpenEditAllowanceModal] = useState(false);
+    const [selectedAllowance, setSelectedAllowance] = useState(null);
 
     const handleOpenAddAllowanceModal = () => {
         setOpenAddAllowanceModal(true);
@@ -18,9 +21,30 @@ const AllowanceTypes = () => {
 
     const handleCloseAddAllowanceModal = () => {
         setOpenAddAllowanceModal(false);
-        allowanceQuery.refetch();
+        refetchAllowances();
     }
 
+    const handleOpenEditAllowanceModal = (allowance) => {
+        setOpenEditAllowanceModal(true);
+        setSelectedAllowance(allowance);
+    }
+    const handleCloseEditAllowanceModal = (reload) => {
+        setOpenEditAllowanceModal(false);
+        setSelectedAllowance(null);
+        if(reload){
+            refetchAllowances();
+        }
+    }
+    
+    const getPaymentScheduleName = (scheduleNum) => {
+        let scheduleName = '';
+        switch(scheduleNum){
+            case 1: scheduleName = 'One Time - First Cutoff'; break;
+            case 2: scheduleName = 'One Time - Second Cutoff'; break;
+            case 3: scheduleName = 'Split - First & Second Cutoff'; break;
+        }
+        return scheduleName;
+    }
     return (
         <Layout title={"LeaveCreditList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -30,7 +54,7 @@ const AllowanceTypes = () => {
                             <Link to="/admin/compensation/allowance" style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <i className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: '80%', cursor: 'pointer' }}></i>
                             </Link>
-                            &nbsp; Allowance Types
+                            &nbsp; Allowances Types
                         </Typography>
 
                         <Button variant="contained" color="primary" onClick={handleOpenAddAllowanceModal}>
@@ -39,7 +63,7 @@ const AllowanceTypes = () => {
                     </Box>
 
                     <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {allowanceQuery.isLoading ? (
+                        {isAllowancesLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -50,29 +74,22 @@ const AllowanceTypes = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell sx={{ fontWeight: 'bold' }} align="center"> Name </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Type </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Amount/Percentage </TableCell>
+                                                <TableCell sx={{ fontWeight: 'bold' }} align="center"> Payment Schedule </TableCell>                                                
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {allowances.length > 0 ? (
-                                                allowances.map((allowance) => (
-                                                    <TableRow key={allowance.id}>
+                                                allowances.map((allowance, index) => (
+                                                    <TableRow key={allowance.id} onClick={() => handleOpenEditAllowanceModal(allowance)}
+                                                    sx={{ backgroundColor: index % 2 === 0 ? '#f8f8f8' : '#ffffff',
+                                                     '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.1)', cursor: 'pointer' } }}>
                                                         <TableCell align="center">{allowance.name}</TableCell>
-                                                        <TableCell align="center">{allowance.type}</TableCell>
-
-                                                        {allowance.type === "Amount" && (
-                                                            <TableCell align="center">₱{allowance.amount}</TableCell>
-                                                        )}
-
-                                                        {allowance.type === "Percentage" && (
-                                                            <TableCell align="center">{allowance.percentage}%</TableCell>
-                                                        )}
+                                                        <TableCell align="center">{getPaymentScheduleName(allowance.payment_schedule)}</TableCell>
                                                     </TableRow>
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={3} align="center"> No Allowances </TableCell>
+                                                    <TableCell colSpan={2} align="center"> No Allowances </TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
@@ -85,6 +102,9 @@ const AllowanceTypes = () => {
 
                 {openAddAllowanceModal &&
                     <AllowanceAdd open={openAddAllowanceModal} close={handleCloseAddAllowanceModal}/>
+                }
+                {openEditAllowanceModal &&
+                    <AllowanceEdit open={openEditAllowanceModal} close={handleCloseEditAllowanceModal} allowance={selectedAllowance}/>
                 }
 
             </Box>

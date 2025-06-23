@@ -5,7 +5,7 @@ import Layout from '../../../components/Layout/Layout';
 import { Link, useNavigate } from 'react-router-dom';
 
 import EmployeeAllowanceView from './Modals/EmployeeAllowanceView';
-import { useAllowances } from '../../../hooks/useAllowances';
+import { useEmployeesAllowances, useAllowance } from '../../../hooks/useAllowances';
 import { useDepartments } from '../../../hooks/useDepartments';
 import { useBranches } from '../../../hooks/useBranches';
 
@@ -17,29 +17,27 @@ const EmployeesAllowanceList = () => {
     const [selectedAllowance, setSelectedAllowance] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    const filters = {
+        name: searchName,
+        branchId: selectedBranch,
+        departmentId: selectedDepartment,
+        allowanceId: selectedAllowance,
+    };
+    const pagination = {
+        page: page + 1,
+        per_page: rowsPerPage,
+    };
     
-    const { employeesAllowances, allowances: allowancesData } = useAllowances({
-        loadEmployeesAllowances: true,
-        loadAllowances: true,
-        filters: {
-            name: searchName,
-            branchId: selectedBranch,
-            departmentId: selectedDepartment,
-            allowanceId: selectedAllowance,
-        },
-        pagination: {
-            page: page,
-            perPage: rowsPerPage,
-        }
-    });
+    const {allowancesData} = useAllowance();
+    const {employeesAllowances, isEmployeesAllowancesLoading, refetchEmployeesAllowances} = useEmployeesAllowances(filters, pagination);
     const { departments: departmentData } = useDepartments({loadDepartments: true});
     const { data: branchesData } = useBranches();
 
-
-    const employees = employeesAllowances.data?.employees || [];
-    const allowances = allowancesData.data?.allowances || [];
-    const total = employeesAllowances.data?.total || 0;
-    const employee_count = employeesAllowances.data?.employee_count || 0;
+    const employees = employeesAllowances?.employees || [];
+    const allowances = allowancesData?.allowances || [];
+    const total = employeesAllowances?.total || 0;
+    const count = employeesAllowances?.employee_count || 0;
 
     const departments = departmentData.data?.departments || [];
     const branches = branchesData?.branches || [];
@@ -50,7 +48,7 @@ const EmployeesAllowanceList = () => {
 
     const handleCloseModal = () => {
         setSelectedEmployee(null);
-        employeesAllowances.refetch();
+        refetchEmployeesAllowances();
     };
 
     const handleChangePage = (event, newPage) => {
@@ -147,7 +145,7 @@ const EmployeesAllowanceList = () => {
                             <Grid container item direction="row" justifyContent="flex-end" xs={4} spacing={2} ></Grid>
                         </Grid>
 
-                        {employeesAllowances.isLoading ? (
+                        {isEmployeesAllowancesLoading ? (
                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 400 }}>
                                 <CircularProgress />
                             </Box>
@@ -207,7 +205,7 @@ const EmployeesAllowanceList = () => {
                                     <TablePagination
                                         rowsPerPageOptions={[5, 10, 25]}
                                         component="div"
-                                        count={employees.length}
+                                        count={count}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}

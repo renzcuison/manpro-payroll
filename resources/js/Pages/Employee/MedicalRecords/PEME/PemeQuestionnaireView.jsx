@@ -320,6 +320,7 @@ const PemeQuestionnaireView = () => {
     const [errorMessage, setErrorMessage] = useState("");
 
     const handleOnConfirmClick = (draftStatus) => {
+
         Swal.fire({
             customClass: { container: "my-swal" },
             title: "Are you sure?",
@@ -425,21 +426,35 @@ const PemeQuestionnaireView = () => {
                 setIsDraftStatus(1);
                 const status = error.response.status;
 
+
+                console.log("ERROR", error);
                 if (status >= 500) {
-                    setErrorMessage("Server Error 500");
-                }
-                if (status === 400) {
-                    setErrorMessage("Submission Failed");
-                } else {
-                    setErrorMessage("Please Fill Up Required Fields");
-                }
-                Swal.fire({
-                    title: "Error",
-                    text: `${errorMessage}`,
+                    Swal.fire({
+                    title: "Server Error",
+                    text: `error`,
                     icon: "error",
                     confirmButtonText: "Okay",
                     confirmButtonColor: "#177604",
                 });
+                }
+                else if (status === 400) {
+                    Swal.fire({
+                    title: "Error",
+                    text: `Submission Failed`,
+                    icon: "error",
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                });
+                } else {
+                    Swal.fire({
+                    title: "Error",
+                    text: `Please Fill out all required fields`,
+                    icon: "error",
+                    confirmButtonText: "Okay",
+                    confirmButtonColor: "#177604",
+                });
+                }
+
 
                 console.log(error);
             }
@@ -569,7 +584,9 @@ const PemeQuestionnaireView = () => {
 
     const navigator = useNavigate();
     const handleOnCancelClick = () => {
-        navigator(`/employee/medical-records/peme/peme-responses`);
+        navigator(
+            `/employee/medical-records/peme/peme-responses`
+        );
     };
 
     const handleInputChange = (questionId, inputType, value) => {
