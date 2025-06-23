@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, Menu, MenuItem, CircularProgress, Divider, Grid, FormControlLabel, Radio, RadioGroup, Checkbox, TextField } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Box, Typography, Button, Menu, MenuItem, CircularProgress, Grid, FormControlLabel, Radio, RadioGroup, Checkbox, TextField } from '@mui/material';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 
 const flattenSubcategories = (form) => {
