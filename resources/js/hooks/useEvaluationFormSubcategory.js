@@ -61,11 +61,26 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setLinearScaleStartLabel(subcategoryInit.linear_scale_start_label);
         setLinearScaleEndLabel(subcategoryInit.linear_scale_end_label);
         setOrder(subcategoryInit.order);
-        setOptions(subcategoryInit.options);
+        setOptions([]);
         setSavedSubcategory({ ...subcategoryInit });
+        for(let option of subcategoryInit.options) options.push({ ...option });
     }, [subcategoryInit?.id]);
 
     // --- Subcategory CRUD ---
+    function cancelEditSubcategory() {
+        setSubcategoryName(savedSubcategory?.name);
+        setSubcategoryType(savedSubcategory?.subcategory_type);
+        setSubcategoryDescription(savedSubcategory?.description);
+        setRequired(savedSubcategory?.required);
+        setAllowOtherOption(savedSubcategory?.allow_other_option);
+        setLinearScaleStart(savedSubcategory?.linear_scale_start);
+        setLinearScaleEnd(savedSubcategory?.linear_scale_end);
+        setLinearScaleStartLabel(savedSubcategory?.linear_scale_start_label);
+        setLinearScaleEndLabel(savedSubcategory?.linear_scale_end_label);
+        setOptions([]);
+        if(savedSubcategory) for(let option of savedSubcategory.options) options.push({ ...option });
+    }
+
     async function editSubcategory() {
         try {
             // update subcategory
@@ -295,10 +310,11 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
     return {
         subcategory, savedSubcategory,
         subcategoryId,
-        subcategoryName, setSubcategoryName, editSubcategory, resetSubcategory, saveSubcategory,
+        subcategoryName, setSubcategoryName,
         subcategoryType, switchSubcategoryType,
         subcategoryTypeDisplay,
         subcategoryDescription, setSubcategoryDescription,
+        cancelEditSubcategory, editSubcategory, resetSubcategory, saveSubcategory,
         required, toggleRequired,
         allowOtherOption, toggleAllowOtherOption,
         linearScaleStart, setLinearScaleStart,

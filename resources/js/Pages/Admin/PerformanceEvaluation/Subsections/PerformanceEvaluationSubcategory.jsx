@@ -62,7 +62,7 @@ export default function PerformanceEvaluationFormSubcategory({
 }) {
     const {
         subcategory, subcategoryId,
-        editSubcategory,
+        cancelEditSubcategory, editSubcategory,
         subcategoryType, subcategoryTypeDisplay, switchSubcategoryType,
         subcategoryName, setSubcategoryName,
         subcategoryDescription, setSubcategoryDescription,
@@ -71,6 +71,10 @@ export default function PerformanceEvaluationFormSubcategory({
     } = useEvaluationFormSubcategory(subcategoryInit);
 
     const expanded = (expandedSubcategoryId === subcategoryId);
+    const handleCancel = () => {
+        cancelEditSubcategory();
+        setExpandedSubcategoryId();
+    };
     const handleExpand = () => setExpandedSubcategoryId(!expanded ? subcategoryId : undefined);
 
     return <SubcategoryContext.Provider value={{
@@ -165,7 +169,7 @@ export default function PerformanceEvaluationFormSubcategory({
                     <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                         <Box>
                             <Button
-                            onClick={() => {}}
+                            onClick={ handleCancel }
                             variant="contained"
                             sx={{
                                 backgroundColor: '#727F91',
