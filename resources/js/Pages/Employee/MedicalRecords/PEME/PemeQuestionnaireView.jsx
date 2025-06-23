@@ -350,15 +350,6 @@ const PemeQuestionnaireView = () => {
                                 value: answerValue,
                             };
 
-                            console.log("question:", form.question_id);
-                            console.log("input_type:", type.input_type);
-                            console.log("value:", value);
-                            console.log(
-                                "value[0] instanceof File:",
-                                value[0] instanceof File
-                            );
-                            console.log("typeof value[0]:", typeof value[0]);
-
                             if (
                                 Array.isArray(answerValue) &&
                                 answerValue[0] instanceof File
@@ -383,11 +374,6 @@ const PemeQuestionnaireView = () => {
                     }
                 });
             }
-
-            const payload = {
-                peme_response_id: PemeResponseID,
-                responses: responses,
-            };
 
             const formData = new FormData();
             formData.append("peme_response_id", PemeResponseID);
@@ -477,7 +463,6 @@ const PemeQuestionnaireView = () => {
 
     const handleSaveDraft = async (draftStatus) => {
         const responses = [];
-        const attachedMedia = [];
 
         if (Array.isArray(employeeResponse.details)) {
             employeeResponse.details.forEach((form) => {
@@ -487,29 +472,36 @@ const PemeQuestionnaireView = () => {
                             answers[form.question_id]?.[type.input_type] ??
                             null;
 
-                        let answerValue = value;
+                        // Handle attachments
+                        if (type.input_type === "attachment") {
+                            // Existing backend files
+                            const existingFiles = Array.isArray(form.media)
+                                ? form.media
+                                : [];
+                            // New files (File objects)
+                            const newFiles = Array.isArray(value)
+                                ? value.filter((f) => f instanceof File)
+                                : [];
 
-                        const responseEntry = {
-                            peme_q_item_id: form.question_id,
-                            peme_q_type_id: type.id,
-                            value: answerValue,
-                        };
+                            const responseEntry = {
+                                peme_q_item_id: form.question_id,
+                                peme_q_type_id: type.id,
+                                existing_file_ids: existingFiles.map(
+                                    (f) => f.id
+                                ), // <-- use .id, not .file
+                            };
 
-                        if (
-                            Array.isArray(answerValue) &&
-                            answerValue[0] instanceof File
-                        ) {
-                            responseEntry.files = answerValue;
-                        }
+                            if (newFiles.length > 0) {
+                                responseEntry.files = newFiles;
+                            }
 
-                        responses.push(responseEntry);
-
-                        // If value is an array of Files
-                        if (Array.isArray(value) && value[0] instanceof File) {
-                            value.forEach((file) => {
-                                attachedMedia.push({
-                                    file: file,
-                                });
+                            responses.push(responseEntry);
+                        } else {
+                            // Non-attachment types
+                            responses.push({
+                                peme_q_item_id: form.question_id,
+                                peme_q_type_id: type.id,
+                                value: value,
                             });
                         }
                     });
@@ -518,9 +510,6 @@ const PemeQuestionnaireView = () => {
         }
 
         const formData = new FormData();
-
-        console.log("RESPONSES ARRAY", responses);
-
         formData.append("peme_response_id", PemeResponseID);
         formData.append("isDraft", draftStatus);
 
@@ -534,6 +523,17 @@ const PemeQuestionnaireView = () => {
                 item.peme_q_type_id
             );
 
+            // Always append existing file IDs
+            if (item.existing_file_ids) {
+                item.existing_file_ids.forEach((id, idIndex) => {
+                    formData.append(
+                        `responses[${index}][existing_file_ids][${idIndex}]`,
+                        id
+                    );
+                });
+            }
+
+            // Append new files
             if (Array.isArray(item.files) && item.files[0] instanceof File) {
                 item.files.forEach((file, fileIndex) => {
                     formData.append(
@@ -541,20 +541,24 @@ const PemeQuestionnaireView = () => {
                         file
                     );
                 });
-                formData.append(`responses[${index}][value]`, "");
-            } else {
-                formData.append(`responses[${index}][value]`, item.value ?? "");
+            }
+
+            // For non-attachments
+            if (item.value !== undefined && item.value !== null) {
+                formData.append(`responses[${index}][value]`, item.value);
             }
         });
-
-        for (const pair of formData.entries()) {
-            console.log(pair[0], pair[1]);
-        }
 
         try {
             await axiosInstance.post(`/peme-responses/storeAll`, formData, {
                 headers,
             });
+
+            const response = await axiosInstance.get(
+                `/peme-response/${PemeResponseID}/details`,
+                { headers }
+            );
+            setEmployeeResponse(response.data);
             Swal.fire({
                 icon: "success",
                 text: "Draft saved successfully.",
@@ -569,7 +573,6 @@ const PemeQuestionnaireView = () => {
                 confirmButtonText: "Okay",
                 confirmButtonColor: "#177604",
             });
-
             console.log(error);
         }
     };
@@ -596,10 +599,10 @@ const PemeQuestionnaireView = () => {
         }));
     };
 
+    //Remove file in backend
     const handleRemoveFile = (questionId, fileToRemove) => {
         setAnswers((prev) => {
             let prevFiles = prev[questionId]?.attachment;
-            // Ensure prevFiles is always an array
             if (!Array.isArray(prevFiles)) prevFiles = [];
             const updatedFiles = prevFiles.filter(
                 (file) => file !== fileToRemove
@@ -705,19 +708,19 @@ const PemeQuestionnaireView = () => {
                                                     type.input_type
                                                 ] || "";
 
-                                            const attachmentValue =
-                                                answers[form.question_id]
-                                                    ?.attachment || [];
+                                            // const attachmentValue =
+                                            //     answers[form.question_id]
+                                            //         ?.attachment || [];
 
-                                            // Extract only File objects
-                                            const filesOnly = Array.isArray(
-                                                attachmentValue
-                                            )
-                                                ? attachmentValue.filter(
-                                                      (item) =>
-                                                          item instanceof File
-                                                  )
-                                                : [];
+                                            // // Extract only File objects
+                                            // const filesOnly = Array.isArray(
+                                            //     attachmentValue
+                                            // )
+                                            //     ? attachmentValue.filter(
+                                            //           (item) =>
+                                            //               item instanceof File
+                                            //       )
+                                            //     : [];
 
                                             switch (type.input_type) {
                                                 case "remarks":
@@ -814,7 +817,7 @@ const PemeQuestionnaireView = () => {
                                                                                     file
                                                                                 }
                                                                                 files={
-                                                                                    filesOnly
+                                                                                    value
                                                                                 }
                                                                                 fileName={
                                                                                     file.file_name
