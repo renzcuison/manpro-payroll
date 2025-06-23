@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
     TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
-    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel
+    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel, Chip
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
@@ -12,6 +12,69 @@ import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import Swal from 'sweetalert2';
+
+const STATUS_STYLES = {
+    Pending: {
+        background: '#f8e414',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Sent: {
+        background: '#f89c14',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    New: {
+        background: '#ffcc14',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Submitted: {
+        background: '#78b42c',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Done: {
+        background: '#209c3c',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Disabled: {
+        background: '#e57373',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    }
+};
 
 const getEvaluationRoleRoute = (row) => {
     switch (row.role) {
@@ -35,6 +98,7 @@ const STATUS_OPTIONS = [
     { value: 'Pending', label: "Pending" },
     { value: 'Submitted', label: "Submitted" },
     { value: 'Done', label: "Done" },
+    { value: 'Disabled', label: "Disabled"}
 ];
 
 const PerformanceEvaluationList = () => {
@@ -49,7 +113,7 @@ const PerformanceEvaluationList = () => {
 
     // Pagination state
     const [page, setPage] = useState(0); // 0-based for TablePagination
-    const [rowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
     // Search state
@@ -77,13 +141,16 @@ const PerformanceEvaluationList = () => {
     // Fetch evaluation responses for the current user (as evaluatee or evaluator or commentor)
     useEffect(() => {
         setIsLoading(true);
+        const statusToSend = statusFilter && statusFilter !== 'Disabled' ? statusFilter : undefined;
+        // Use a high limit if filtering on frontend
+        const fetchAll = statusFilter === 'Disabled' || statusFilter === '';
         axiosInstance.get('/getEvaluationResponses', {
             headers,
             params: {
-                page: page + 1, // backend is 1-based
-                limit: rowsPerPage,
+                page: 1,
+                limit: fetchAll ? 1000 : rowsPerPage,
                 search: searchValue,
-                status: statusFilter || undefined, // only send if set
+                status: statusToSend,
                 order_by: [
                     {key: "status", sort_order: "asc"},
                     {key: "created_at", sort_order: "asc"},
@@ -94,24 +161,27 @@ const PerformanceEvaluationList = () => {
                 ]
             }
         })
-            .then((response) => {
-                if (response.data.status === 200) {
-                    setEvaluationResponses(response.data.evaluationResponses);
-                    setTotalCount(response.data.totalResponseCount);
-                } else {
-                    setEvaluationResponses([]);
-                    setTotalCount(0);
-                }
-            })
-            .catch(() => {
+        .then((response) => {
+            if (response.data.status === 200) {
+                setEvaluationResponses(response.data.evaluationResponses);
+                // No need to set totalCount, use filteredResponses.length for pagination
+            } else {
                 setEvaluationResponses([]);
-                setTotalCount(0);
-            })
-            .finally(() => setIsLoading(false));
-    }, [page, rowsPerPage, searchValue, statusFilter]);
+            }
+        })
+        .catch(() => {
+            setEvaluationResponses([]);
+        })
+        .finally(() => setIsLoading(false));
+    }, [searchValue, statusFilter]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     // Search handlers
@@ -136,22 +206,22 @@ const PerformanceEvaluationList = () => {
     // Check if the evaluation/comment period is disabled
     const isRowDisabled = (row) => {
         const now = new Date();
-        const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
-        const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
-        if (!periodStart || !periodEnd) return false;
-        return now < periodStart || now > periodEnd;
+        const start = row.period_start_at ? new Date(row.period_start_at) : null;
+        const end = row.period_end_at ? new Date(row.period_end_at) : null;
+        if (!start || !end) return false;
+        return now < start || now > end;
     };
 
     // Handle row click for period validation
     const handleRowClick = (row) => {
+        // Get period info
         const now = new Date();
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
-        if (!periodStart || !periodEnd) {
-            navigate(getEvaluationRoleRoute(row));
-            return;
-        }
-        if (now < periodStart || now > periodEnd) {
+        const isDisabled = periodStart && periodEnd && (now < periodStart || now > periodEnd);
+
+        // 1. Disabled check takes precedence (show this SWAL even if status is "Sent")
+        if (isDisabled) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Action not allowed',
@@ -160,8 +230,39 @@ const PerformanceEvaluationList = () => {
             });
             return;
         }
+
+        // 2. If not disabled, but status is Sent
+        if (row.status === "Sent") {
+            Swal.fire({
+                icon: 'info',
+                title: 'This Evaluation is still on going.',
+                text: "You can't Access this Form yet.",
+                confirmButtonColor: '#f5c242'
+            });
+            return;
+        }
+
+        // 3. Otherwise, allow navigation
         navigate(getEvaluationRoleRoute(row));
     };
+
+
+    let filteredResponses = evaluationResponses;
+    if (statusFilter === 'Disabled') {
+        filteredResponses = evaluationResponses.filter(isRowDisabled);
+    } else if (statusFilter === '') { // "All"
+        filteredResponses = evaluationResponses.filter(row => !isRowDisabled(row));
+    } else {
+        filteredResponses = evaluationResponses.filter(
+            row => row.status === statusFilter && !isRowDisabled(row)
+        );
+    }
+    const paginatedResponses = filteredResponses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+    // Helper to render status as a "chip"
+    const renderStatus = (status) => (
+        <span style={STATUS_STYLES[status] || STATUS_STYLES.Pending}>{status}</span>
+    );
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -303,31 +404,31 @@ const PerformanceEvaluationList = () => {
                                         </TableRow>
                                     </TableHead>
                                         <TableBody>
-                                            {evaluationResponses.length === 0 ? (
+                                            {paginatedResponses.length === 0 ? (
                                                 <TableRow>
                                                     <TableCell colSpan={6} align="center">
                                                         No evaluation responses found.
                                                     </TableCell>
                                                 </TableRow>
                                             ) : (
-                                                evaluationResponses.map((row, idx) => (
-                                                <TableRow
-                                                    key={row.id}
-                                                    hover
-                                                    style={{
-                                                        cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
-                                                        backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
-                                                        opacity: isRowDisabled(row) ? 0.5 : 1,
-                                                    }}
-                                                    onClick={() => handleRowClick(row)}
-                                                >
-                                                    <TableCell align="center">{row.date}</TableCell>
-                                                    <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
-                                                    <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
-                                                    <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
-                                                    <TableCell align="center">{row.role}</TableCell>
-                                                    <TableCell align="center">{row.status}</TableCell>
-                                                </TableRow>
+                                                paginatedResponses.map((row, idx) => (
+                                                    <TableRow
+                                                        key={row.id}
+                                                        hover
+                                                        style={{
+                                                            cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
+                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
+                                                            opacity: isRowDisabled(row) ? 0.5 : 1,
+                                                        }}
+                                                        onClick={() => handleRowClick(row)}
+                                                    >
+                                                        <TableCell align="center">{row.date}</TableCell>
+                                                        <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
+                                                        <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
+                                                        <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
+                                                        <TableCell align="center">{row.role}</TableCell>
+                                                        <TableCell align="center">{renderStatus(row.status)}</TableCell>
+                                                    </TableRow>
                                                 ))
                                             )}
                                         </TableBody>
@@ -337,13 +438,13 @@ const PerformanceEvaluationList = () => {
                                 {/* Pagination controls */}
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                                     <TablePagination
-                                        rowsPerPageOptions={[10]}
+                                        rowsPerPageOptions={[10, 25, 50]}
                                         component="div"
-                                        count={totalCount}
+                                        count={filteredResponses.length}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}
-                                        onRowsPerPageChange={() => { }}
+                                        onRowsPerPageChange={handleChangeRowsPerPage}
                                     />
                                 </Box>
                             </>

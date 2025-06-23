@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Typography,
   Button,
   IconButton,
   Grid,
-  FormControl,
   FormControlLabel,
   Radio,
   RadioGroup,
