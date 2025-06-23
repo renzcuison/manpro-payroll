@@ -244,8 +244,17 @@ const PerformanceEvaluationFormAddSubcategory = ({ open, onClose, onSave }) => {
 
                 {responseType === 'linearScale' && (
                     <Box sx={{ mb: 2 }}>
+                        <Box sx={{my: 3}}>
+                            <Typography sx={{ fontWeight: '400', fontStyle: 'italic' }}>
+                                Note: Scoring is 1 as the lowest and {linearScaleOptions.length} as the highest
+                            </Typography>
+                        </Box>
+                        
+                        
                         {linearScaleOptions.map((option, idx) => (
+                            
                             <Grid container spacing={2} key={idx} alignItems="center" sx={{ mb: 1 }}>
+                                
                                 <Grid item xs={1}>
                                     <Typography variant="body1">{idx + 1}.</Typography>
                                 </Grid>
