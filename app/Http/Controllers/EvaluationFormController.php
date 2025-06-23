@@ -1596,19 +1596,15 @@ class EvaluationFormController extends Controller
                     'status' => 400,
                     'message' => 'Evaluation Form Subcategory Option Label is required!'
                 ]);
-
-                $existingEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
-                    ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
-                    ->where('label', $request->label)
-                    ->where('id', '!=', $request->id)
-                    ->first()
-                ;
-                if( $existingEvaluationFormSubcategoryOption ) return response()->json([ 
-                    'status' => 409,
-                    'message' => 'This Evaluation Form Subcategory Option Label is already in use!',
-                    'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
-                ]);
                 $evaluationFormSubcategoryOption->label = $request->label;
+            }
+            if($request->has('description')) {
+                $isEmptyDescription = ($request->label === "");
+                if( $isEmptyDescription ) return response()->json([ 
+                    'status' => 400,
+                    'message' => 'Evaluation Form Subcategory Option Description is required!'
+                ]);
+                $evaluationFormSubcategoryOption->description = $request->description;
             }
             if($request->has('score'))
                 $evaluationFormSubcategoryOption->score = (double) $request->score;
@@ -1826,17 +1822,6 @@ class EvaluationFormController extends Controller
                     'message' => 'Options can only be added to Multiple Choice, Checkbox, or Linear Scale subcategories.'
                 ]);
             }
-
-            $existingEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
-                ::where('subcategory_id', $request->subcategory_id)
-                ->where('label', $request->label)
-                ->first();
-
-            if ($existingEvaluationFormSubcategoryOption) return response()->json([
-                'status' => 409,
-                'message' => 'This Evaluation Form Subcategory Option Label is already in use!',
-                'evaluationFormSubcategoryOptionID' => $existingEvaluationFormSubcategoryOption->id
-            ]);
 
             $isEmptyScore = !$request->has('score');
             if ($isEmptyScore) return response()->json([

@@ -112,7 +112,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
             const response = await axiosInstance.post('/editEvaluationFormSubcategory', {
                 id: subcategoryId,
                 ...subcategory
-            });
+            }, { headers });
             if (response.data.status.toString().startsWith(2)) {
                 const { evaluationFormSubcategory } = response.data;
                 if(!evaluationFormSubcategory) return;
@@ -136,7 +136,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                 switch(option.action) {
                     case 'create':
                         response = await axiosInstance.post(
-                            '/saveEvaluationFormSubcategoryOption', { ...option }
+                            '/saveEvaluationFormSubcategoryOption', { ...option }, { headers }
                         );
                         if(response.data.status.toString().startsWith(4)) throw response;
                         option.id = response.data.evaluationSubcategoryOptionID;
@@ -144,7 +144,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                         break;
                     case 'delete':
                         response = await axiosInstance.post(
-                            '/deleteEvaluationFormSubcategoryOption', { id: option.id }
+                            '/deleteEvaluationFormSubcategoryOption', { id: option.id }, { headers }
                         );
                         if(response.data.status.toString().startsWith(4)) throw response;
                         options.splice(index, 1);
@@ -152,11 +152,10 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                         break;
                     case 'update':
                         response = await axiosInstance.post(
-                            '/editEvaluationFormSubcategoryOption', { ...option }
+                            '/editEvaluationFormSubcategoryOption', { ...option }, { headers }
                         );
                         if(response.data.status.toString().startsWith(4)) throw response;
                         delete option.action;
-                        break;
                 }
             }
             // move options
@@ -168,7 +167,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                 const response = await axiosInstance.post('/moveEvaluationFormSubcategoryOption', {
                     id: option.id,
                     order: option.order
-                });
+                }, { headers });
                 if(response.data.status.toString().startsWith(4)) throw response;
             }
         } catch(error) {
@@ -269,37 +268,12 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setOptions([ ...options ]);
     }
 
-    function editOption(optionIndex, label, score, description) {
-        if(isNew) {
-            options[ optionIndex ].label = label;
-            options[ optionIndex ].score = score;
-            options[ optionIndex ].description = description;
-            setOptions([ ...options ]);
-        } else axiosInstance
-            .post('/editEvaluationFormSubcategoryOption', {
-                id: subcategoryId,
-                ...options[optionIndex]
-            }, { headers })
-            .then((response) => {
-                if (response.data.status.toString().startsWith(4)) {
-                    Swal.fire({
-                        text: response.data.message,
-                        icon: "error",
-                        confirmButtonColor: '#177604',
-                        customClass: {
-                            popup: 'swal-popup-overlay'
-                        }
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error saving subcategory option:', error);
-                Swal.fire({
-                    text: "Error saving subcategory option",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                });
-            });
+    function editOption(option, params) {
+        if('label' in params) option.label = params.label;
+        if('description' in params) option.description = params.description;
+        if('score' in params) option.score = params.score;
+        if(option.action != 'create') option.action = 'update';
+        reloadOptions();
     }
 
     function getOption(optionId) {
@@ -350,13 +324,14 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setOptions([...options]);
     }
 
-    function saveOption(label, score, description) {
+    function saveOption(label = '', score = '', description = '') {
         setOptions([
             ...options,
             {
                 id: newOptionId,
+                subcategory_id: subcategoryId,
                 label, score, description,
-                order: options[options.length - 1].order + 1,
+                order: options.length + 1,
                 action: 'create'
             }
         ]);

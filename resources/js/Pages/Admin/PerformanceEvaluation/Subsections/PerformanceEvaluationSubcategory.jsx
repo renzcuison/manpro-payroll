@@ -69,13 +69,13 @@ export default function PerformanceEvaluationFormSubcategory({
         responseType, responseTypeDisplay, switchResponseType,
         subcategoryName, setSubcategoryName,
         subcategoryDescription, setSubcategoryDescription,
-        options, draggedOptionId, deleteOption, moveOption,
+        options, draggedOptionId, deleteOption, editOption, moveOption,
         reloadOptions, saveOption, setDraggedOptionId,
     } = useEvaluationFormSubcategory(subcategoryInit);
 
     return <SubcategoryContext.Provider value={{
         options, draggedOptionId,
-        deleteOption, moveOption, reloadOptions, saveOption, setDraggedOptionId
+        deleteOption, editOption, moveOption, reloadOptions, saveOption, setDraggedOptionId
     }}>
         <Accordion
             expanded={ expandedSubcategoryId === subcategoryId }
@@ -330,7 +330,7 @@ export default function PerformanceEvaluationFormSubcategory({
 function OptionsEditor() {
     const {
         options, draggedOptionId,
-        deleteOption, moveOption, reloadOptions, saveOption, setDraggedOptionId
+        deleteOption, editOption, moveOption, reloadOptions, saveOption, setDraggedOptionId
     } = useContext(SubcategoryContext);
     const optionSensors = useSensors(
         useSensor(OptionTouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
@@ -341,19 +341,13 @@ function OptionsEditor() {
         saveOption();
     }
     const handleChangeDescription = (option, e) => {
-        option.description = e.target.value;
-        option.action = 'update';
-        reloadOptions();
+        editOption(option, { description: e.target.value });
     }
     const handleChangeLabel = (option, e) => {
-        option.label = e.target.value;
-        option.action = 'update';
-        reloadOptions();
+        editOption(option, { label: e.target.value });
     }
     const handleChangeScore = (option, e) => {
-        option.score = e.target.value;
-        option.action = 'update';
-        reloadOptions();
+        editOption(option, { score: e.target.value });
     }
     const handleOptionDragStart = (event) => {
         setDraggedOptionId(event.active?.id ?? null);
