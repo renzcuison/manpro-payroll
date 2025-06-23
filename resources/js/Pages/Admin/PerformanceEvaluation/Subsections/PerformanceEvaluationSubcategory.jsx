@@ -64,13 +64,20 @@ export default function PerformanceEvaluationFormSubcategory({
         reloadOptions, saveOption, setDraggedOptionId,
     } = useEvaluationFormSubcategory(subcategoryInit);
 
+    const handleExpand = () => {
+        setExpandedSubcategoryId(
+            expandedSubcategoryId !== subcategoryId ? subcategoryId
+            : undefined
+        );
+    }
+
     return <SubcategoryContext.Provider value={{
         options, draggedOptionId,
         deleteOption, editOption, moveOption, reloadOptions, saveOption, setDraggedOptionId
     }}>
         <Accordion
             expanded={ expandedSubcategoryId === subcategoryId }
-            onChange={ () => setExpandedSubcategoryId(subcategoryId) }
+            onChange={ handleExpand}
             sx={{
                 my: 2,
                 boxShadow: 2,
@@ -440,16 +447,5 @@ function LinearScaleEditor() {
                 )
             }
         </Box>
-        <ButtonBase
-            onClick={() => console.log(options)}
-            sx={{
-                color: '#000000',
-                fontSize: '14px',
-                cursor: 'pointer',
-                marginTop: '8px',
-            }}
-        >
-            <AddRounded/>Log
-        </ButtonBase>
     </>;
 }
