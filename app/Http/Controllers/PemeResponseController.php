@@ -82,6 +82,7 @@ class PemeResponseController extends Controller
                 "response_id" => Crypt::encrypt($response->id),
                 // "response_id" => $response->id,
                 "peme_id" => Crypt::encrypt($response->peme_id),
+                // "peme_id" => $response->peme_id,
                 "peme" => $response->peme->name,
                 "user_id" => Crypt::encrypt($response->user_id) ?? 'null',
                 "name" => $response->user
@@ -177,7 +178,6 @@ class PemeResponseController extends Controller
 
     public function storeAll(Request $request)
     {
-
         $validated = $request->validate([
             'peme_response_id' => 'required|string',
             'responses' => 'required|array',
@@ -186,26 +186,19 @@ class PemeResponseController extends Controller
             'responses.*.value' => 'nullable|string|max:512',
             'responses.*.files' => 'nullable|array',
             'responses.*.files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png',
-            'responses.*.existing_files' => 'nullable|array',
-            'responses.*.existing_files.*' => 'string',
+            'responses.*.existing_file_ids' => 'nullable|array',
             'isDraft' => 'required|boolean',
         ]);
 
-        foreach ($request->input('responses', []) as $index => $response) {
-            $files = data_get($request->allFiles(), "responses.$index.files", []);
-            $files = is_array($files) ? $files : [$files];
-        }
+        // foreach ($request->input('responses', []) as $index => $response) {
+        //     $files = data_get($request->allFiles(), "responses.$index.files", []);
+        //     $files = is_array($files) ? $files : [$files];
+        // }
 
         $pemeResponseId = Crypt::decrypt($validated['peme_response_id']);
         $pemeResponse = PemeResponse::where('id', $pemeResponseId)
             ->where('user_id', Auth::id())
             ->firstOrFail();
-
-        // if (!$pemeResponse->isDraft && !empty($validated['responses'])) {
-        //     return response()->json([
-        //         'message' => 'Cannot modify a completed response.',
-        //     ], 403);
-        // }
 
         $questionIdsInRequest = collect($validated['responses'])
             ->pluck('peme_q_item_id')
@@ -247,7 +240,6 @@ class PemeResponseController extends Controller
                     $existing->update(['value' => $response['value'] ?? null]);
                     $detail = $existing;
                 } else {
-
                     $detail = PemeResponseDetails::create([
                         'peme_response_id' => $pemeResponseId,
                         'peme_q_item_id' => $questionId,
@@ -256,21 +248,16 @@ class PemeResponseController extends Controller
                     ]);
                 }
 
-                $existingFiles = $response['existing_files'] ?? [];
+                $existingIds = array_map('strval', $response['existing_file_ids'] ?? []);
+                $mediaItems = $detail->getMedia('attachments');
 
-                \Log::info("Existing files for detail ID {$detail->id}", [
-                    'existing_files' => $existingFiles,
-                    'media_attached' => $detail->getMedia('attachments')->pluck('uuid')->toArray(),
-                ]);
-
-                $detail->getMedia('attachments')->each(function ($media) use ($existingFiles) {
-                    if (!in_array((string) $media->uuid, array_map('strval', $existingFiles))) {
+                foreach ($mediaItems as $media) {
+                    if (!in_array((string)$media->id, $existingIds, true)) {
                         $media->delete();
                     }
-                });
+                }
 
                 $files = data_get($request->allFiles(), "responses.$index.files", []);
-
                 if (!is_array($files)) {
                     $files = [$files];
                 }
@@ -711,7 +698,8 @@ class PemeResponseController extends Controller
             $user->last_name;
 
         return response()->json([
-            'peme_name' => $pemeResponse->peme->name,
+            'peme' => $pemeResponse->peme->name,
+            'peme_id' => $pemeResponse->peme->id,
             'peme_response_id' => Crypt::encrypt($pemeResponse->id),
             'user_id' => Crypt::encrypt($pemeResponse->user_id),
             'respondent' => $fullName,

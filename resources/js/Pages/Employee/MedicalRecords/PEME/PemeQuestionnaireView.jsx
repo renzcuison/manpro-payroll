@@ -181,8 +181,8 @@ const PassOrFail = ({ value, onChange }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-            ? "Fail"
-            : "";
+                ? "Fail"
+                : "";
 
     return (
         <Box
@@ -211,8 +211,8 @@ const PostiveOrNegative = ({ value, onChange }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-            ? "Negative"
-            : "";
+                ? "Negative"
+                : "";
 
     return (
         <Box
@@ -282,7 +282,6 @@ const PemeQuestionnaireView = () => {
                 headers,
             })
             .then((response) => {
-                console.log("RESPONSE.DATA", response.data);
                 setEmployeeResponse(response.data);
                 setIsDraftStatus(response.data.isDraft);
                 setStatus(response.data.status);
@@ -292,15 +291,24 @@ const PemeQuestionnaireView = () => {
                         initialAnswers[form.question_id] = {};
                         if (Array.isArray(form.input_type)) {
                             form.input_type.forEach((type) => {
-                                initialAnswers[form.question_id][
-                                    type.input_type
-                                ] = type.value ?? "";
+                                if (type.input_type === "attachment") {
+                                    // Initialize with existing files from form.media
+                                    initialAnswers[form.question_id][
+                                        "attachment"
+                                    ] = Array.isArray(form.media)
+                                            ? [...form.media]
+                                            : [];
+                                } else {
+                                    initialAnswers[form.question_id][
+                                        type.input_type
+                                    ] = type.value ?? "";
+                                }
                             });
                         }
                     });
                 }
+                console.log("RESPONSE:", employeeResponse, initialAnswers);
                 setAnswers(initialAnswers);
-
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -308,6 +316,7 @@ const PemeQuestionnaireView = () => {
                 setIsLoading(false);
             });
     }, []);
+    // ...existing code...
 
     //Set FE dates and status to values from DB
     useEffect(() => {
@@ -430,29 +439,29 @@ const PemeQuestionnaireView = () => {
                 console.log("ERROR", error);
                 if (status >= 500) {
                     Swal.fire({
-                    title: "Server Error",
-                    text: `error`,
-                    icon: "error",
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                });
+                        title: "Server Error",
+                        text: `error`,
+                        icon: "error",
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    });
                 }
                 else if (status === 400) {
                     Swal.fire({
-                    title: "Error",
-                    text: `Submission Failed`,
-                    icon: "error",
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                });
+                        title: "Error",
+                        text: `Submission Failed`,
+                        icon: "error",
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    });
                 } else {
                     Swal.fire({
-                    title: "Error",
-                    text: `Please Fill out all required fields`,
-                    icon: "error",
-                    confirmButtonText: "Okay",
-                    confirmButtonColor: "#177604",
-                });
+                        title: "Error",
+                        text: `Please Fill out all required fields`,
+                        icon: "error",
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    });
                 }
 
 
@@ -705,7 +714,7 @@ const PemeQuestionnaireView = () => {
                                         form.input_type.map((type, i) => {
                                             const value =
                                                 answers[form.question_id]?.[
-                                                    type.input_type
+                                                type.input_type
                                                 ] || "";
 
                                             // const attachmentValue =
@@ -792,7 +801,7 @@ const PemeQuestionnaireView = () => {
                                                             {Array.isArray(
                                                                 form.media
                                                             ) &&
-                                                            form.media.length >
+                                                                form.media.length >
                                                                 0 ? (
                                                                 form.media.map(
                                                                     (
@@ -842,17 +851,17 @@ const PemeQuestionnaireView = () => {
                                                                                                     f
                                                                                                 ) =>
                                                                                                     f.question_id ===
-                                                                                                    form.question_id
+                                                                                                        form.question_id
                                                                                                         ? {
-                                                                                                              ...f,
-                                                                                                              media: f.media.filter(
-                                                                                                                  (
-                                                                                                                      m
-                                                                                                                  ) =>
-                                                                                                                      m.id !==
-                                                                                                                      file.id
-                                                                                                              ),
-                                                                                                          }
+                                                                                                            ...f,
+                                                                                                            media: f.media.filter(
+                                                                                                                (
+                                                                                                                    m
+                                                                                                                ) =>
+                                                                                                                    m.id !==
+                                                                                                                    file.id
+                                                                                                            ),
+                                                                                                        }
                                                                                                         : f
                                                                                             ),
                                                                                         })
