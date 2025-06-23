@@ -58,48 +58,46 @@ const UploadForm = ({
             >
                 {/* Show existing file from props */}
                 {file && (
-                    <>
-                        <Typography
-                            color="primary"
-                            onClick={() => {
-                                if (onFileClick && file?.url) {
-                                    onFileClick(file.url, file.file_name);
-                                }
-                            }}
+                    <Typography
+                        color="primary"
+                        onClick={() => {
+                            if (onFileClick && file?.url) {
+                                onFileClick(file.url, file.file_name);
+                            }
+                        }}
+                        sx={{
+                            position: "relative",
+                            boxShadow: 1,
+                            padding: 1,
+                            borderRadius: 1,
+                            display: "inline-block",
+                            backgroundColor: "#fafafa",
+                            cursor: "pointer",
+                            mr: 2,
+                        }}
+                    >
+                        <FileUploadIcon
+                            sx={{ mr: 1, verticalAlign: "middle" }}
+                        />
+                        {fileName}
+                        <Button
                             sx={{
-                                position: "relative",
-                                boxShadow: 1,
-                                padding: 1,
-                                borderRadius: 1,
-                                display: "inline-block",
-                                backgroundColor: "#fafafa",
-                                cursor: "pointer",
-                                mr: 2,
+                                zIndex: 10,
+                                margin: 0,
+                                padding: 0,
+                                color: "#f92a2a",
+                                position: "absolute",
+                                right: -30,
+                                top: -10,
+                            }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onRemoveFile && onRemoveFile(file); // Pass the file object
                             }}
                         >
-                            <FileUploadIcon
-                                sx={{ mr: 1, verticalAlign: "middle" }}
-                            />
-                            {fileName}
-                            <Button
-                                sx={{
-                                    zIndex: 10,
-                                    margin: 0,
-                                    padding: 0,
-                                    color: "#f92a2a",
-                                    position: "absolute",
-                                    right: -30,
-                                    top: -10,
-                                }}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onRemoveFile && onRemoveFile();
-                                }}
-                            >
-                                <CancelIcon></CancelIcon>
-                            </Button>
-                        </Typography>
-                    </>
+                            <CancelIcon />
+                        </Button>
+                    </Typography>
                 )}
 
                 {/* Show newly uploaded files */}
@@ -140,9 +138,10 @@ const UploadForm = ({
                                 }}
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    onRemoveFile && onRemoveFile(file); // Pass the file object
                                 }}
                             >
-                                <CancelIcon></CancelIcon>
+                                <CancelIcon />
                             </Button>
                         </Typography>
                     ))
@@ -329,7 +328,6 @@ const PemeQuestionnaireView = () => {
     const [errorMessage, setErrorMessage] = useState("");
 
     const handleOnConfirmClick = (draftStatus) => {
-
         Swal.fire({
             customClass: { container: "my-swal" },
             title: "Are you sure?",
@@ -435,7 +433,6 @@ const PemeQuestionnaireView = () => {
                 setIsDraftStatus(1);
                 const status = error.response.status;
 
-
                 console.log("ERROR", error);
                 if (status >= 500) {
                     Swal.fire({
@@ -445,8 +442,7 @@ const PemeQuestionnaireView = () => {
                         confirmButtonText: "Okay",
                         confirmButtonColor: "#177604",
                     });
-                }
-                else if (status === 400) {
+                } else if (status === 400) {
                     Swal.fire({
                         title: "Error",
                         text: `Submission Failed`,
@@ -463,7 +459,6 @@ const PemeQuestionnaireView = () => {
                         confirmButtonColor: "#177604",
                     });
                 }
-
 
                 console.log(error);
             }
@@ -518,6 +513,7 @@ const PemeQuestionnaireView = () => {
             });
         }
 
+        console.log("DRAFT PAYLOAD", responses);
         const formData = new FormData();
         formData.append("peme_response_id", PemeResponseID);
         formData.append("isDraft", draftStatus);
@@ -593,9 +589,7 @@ const PemeQuestionnaireView = () => {
 
     const navigator = useNavigate();
     const handleOnCancelClick = () => {
-        navigator(
-            `/employee/medical-records/peme/peme-responses`
-        );
+        navigator(`/employee/medical-records/peme/peme-responses`);
     };
 
     const handleInputChange = (questionId, inputType, value) => {
@@ -610,9 +604,11 @@ const PemeQuestionnaireView = () => {
 
     //Remove file in backend
     const handleRemoveFile = (questionId, fileToRemove) => {
+        // Remove from answers (new files)
         setAnswers((prev) => {
             let prevFiles = prev[questionId]?.attachment;
             if (!Array.isArray(prevFiles)) prevFiles = [];
+            // Only remove if it's a File object (new upload)
             const updatedFiles = prevFiles.filter(
                 (file) => file !== fileToRemove
             );
@@ -624,6 +620,23 @@ const PemeQuestionnaireView = () => {
                 },
             };
         });
+
+        // Remove from employeeResponse.details (existing backend files)
+        setEmployeeResponse((prev) => ({
+            ...prev,
+            details: prev.details.map((form) =>
+                form.question_id === questionId
+                    ? {
+                          ...form,
+                          media: Array.isArray(form.media)
+                              ? form.media.filter(
+                                    (file) => file.id !== fileToRemove.id
+                                )
+                              : [],
+                      }
+                    : form
+            ),
+        }));
     };
 
     return (
@@ -834,37 +847,10 @@ const PemeQuestionnaireView = () => {
                                                                                 onFileClick={
                                                                                     handleFileClick
                                                                                 }
-                                                                                onRemoveFile={(
-                                                                                    fileToRemove
-                                                                                ) => {
+                                                                                onRemoveFile={() => {
                                                                                     handleRemoveFile(
                                                                                         form.question_id,
-                                                                                        fileToRemove
-                                                                                    );
-                                                                                    setEmployeeResponse(
-                                                                                        (
-                                                                                            prev
-                                                                                        ) => ({
-                                                                                            ...prev,
-                                                                                            details: prev.details.map(
-                                                                                                (
-                                                                                                    f
-                                                                                                ) =>
-                                                                                                    f.question_id ===
-                                                                                                        form.question_id
-                                                                                                        ? {
-                                                                                                            ...f,
-                                                                                                            media: f.media.filter(
-                                                                                                                (
-                                                                                                                    m
-                                                                                                                ) =>
-                                                                                                                    m.id !==
-                                                                                                                    file.id
-                                                                                                            ),
-                                                                                                        }
-                                                                                                        : f
-                                                                                            ),
-                                                                                        })
+                                                                                        file
                                                                                     );
                                                                                 }}
                                                                                 onChange={(
