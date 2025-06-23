@@ -941,12 +941,12 @@ class PayrollController extends Controller
 
         $renderedHolidayMinutes = AttendanceSummary::where('user_id', $employee->id)->where('day_type', 'Regular Holiday')->whereBetween('work_day_start', [$startDate, $endDate])->sum('minutes_rendered');
 
-        log::info("============================");
-        log::info("User ID          : " . $employee->id);
-        log::info("Regular Days     : " . $regularDays);
-        log::info("Rest Days        : " . $renderedRestDayMinutes);
-        log::info("Regular Holidays : " . $renderedHolidayMinutes);
-        log::info("============================");
+        // log::info("============================");
+        // log::info("User ID          : " . $employee->id);
+        // log::info("Regular Days     : " . $regularDays);
+        // log::info("Rest Days        : " . $renderedRestDayMinutes);
+        // log::info("Regular Holidays : " . $renderedHolidayMinutes);
+        // log::info("============================");
 
         $restDayPay = $renderedRestDayMinutes * $perMin * 1.3;
         $restDayOTPay = $renderedRestDayOTMinutes * $perMin * 1.69;
@@ -988,13 +988,29 @@ class PayrollController extends Controller
         $rawAllowance = EmployeeAllowancesModel::where('user_id', $employee->id)->get();
 
         foreach ( $rawAllowance as $allowance ) {
-            $totalAllowance = $totalAllowance + $allowance->allowance->amount;
 
-            $allowances[] = [
-                'allowance' => encrypt($allowance->id),
-                'name' => $allowance->allowance->name,
-                'amount' => $allowance->allowance->amount,
-            ];
+            $schedule = $allowance->allowance->payment_schedule;
+
+            if ($request->cutOff == "First" && $schedule == 1 ) {
+                $allowanceAmount = $allowance->allowance->amount;
+                $totalAllowance = $totalAllowance + $allowanceAmount;
+
+                $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
+            }
+
+            if ($request->cutOff == "Second" && $schedule == 2 ) {
+                $allowanceAmount = $allowance->allowance->amount;
+                $totalAllowance = $totalAllowance + $allowanceAmount;
+
+                $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
+            }
+
+            if ( $schedule == 3 ) {
+                $allowanceAmount = $allowance->allowance->amount / 2;
+                $totalAllowance = $totalAllowance + $allowanceAmount;
+
+                $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
+            }
         }
 
         $totalEarnings =  $basicPay + $overTimePay + $totalHolidayEarnings + $totalRestDayEarnings - $absents + $leaveEarnings - $tardiness + $totalAllowance;
