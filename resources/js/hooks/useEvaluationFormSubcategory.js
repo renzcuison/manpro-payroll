@@ -61,9 +61,10 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setLinearScaleStartLabel(subcategoryInit.linear_scale_start_label);
         setLinearScaleEndLabel(subcategoryInit.linear_scale_end_label);
         setOrder(subcategoryInit.order);
-        setOptions([]);
-        setSavedSubcategory({ ...subcategoryInit });
+        const options = [];
         for(let option of subcategoryInit.options) options.push({ ...option });
+        setOptions(options);
+        setSavedSubcategory({ ...subcategoryInit });
     }, [subcategoryInit?.id]);
 
     // --- Subcategory CRUD ---
@@ -99,11 +100,9 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                 setLinearScaleStart(evaluationFormSubcategory.linear_scale_start);
                 setLinearScaleEnd(evaluationFormSubcategory.linear_scale_end);
                 setOrder(evaluationFormSubcategory.order);
-                setSavedSubcategory({
-                    ...evaluationFormSubcategory,
-                    options: []
-                });
-                for(let option of subcategory.options) savedSubcategory.options.push({ ...option });
+                const options = [];
+                for(let option of subcategory.options) options.push({ ...option });
+                setSavedSubcategory({ ...evaluationFormSubcategory, options });
             } else if (response.data.status.toString().startsWith(4)) throw response;
             // create, delete, update options
             const isLinearScale = subcategoryType === 'linear_scale';
@@ -195,11 +194,9 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                     const { evaluationFormSubcategoryID } = response.data;
                     if(!evaluationFormSubcategoryID) return;
                     setSubcategoryId(evaluationFormSubcategoryID);
-                    setSavedSubcategory({
-                        ...subcategory,
-                        options: []
-                    });
-                    for(let option of subcategory.options) savedSubcategory.options.push({ ...option });
+                    const options = [];
+                    for(let option of subcategory.options) options.push({ ...option });
+                    setSavedSubcategory({ ...subcategory, options });
                     alert("Subcategory saved successfully!");
                 } else {
                     alert("Error saving subcategory");
