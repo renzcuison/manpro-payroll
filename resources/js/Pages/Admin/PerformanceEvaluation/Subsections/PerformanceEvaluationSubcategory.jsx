@@ -75,7 +75,12 @@ export default function PerformanceEvaluationFormSubcategory({
         cancelEditSubcategory();
         setExpandedSubcategoryId();
     };
-    const handleExpand = () => setExpandedSubcategoryId(!expanded ? subcategoryId : undefined);
+    const handleExpand = () => {
+        if(expanded) {
+            setExpandedSubcategoryId();
+            cancelEditSubcategory();
+        } else setExpandedSubcategoryId(subcategoryId);
+    }
 
     return <SubcategoryContext.Provider value={{
         options, draggedOptionId,
