@@ -1,7 +1,4 @@
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
-import {
-    getSubcategoryDbValue, getSubcategorySelectValue
-} from "../utils/performance-evaluation-utils";
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
 
@@ -45,7 +42,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         linear_scale_end_label: linearScaleEndLabel,
         options
     };
-    const responseTypeDisplay = {
+    const subcategoryTypeDisplay = {
         short_answer: "Short Text",
         long_answer: "Long Text",
         checkbox: "Checkbox",
@@ -72,8 +69,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setOrder(subcategoryInit.order);
         setOptions(subcategoryInit.options);
         setSavedSubcategory({ ...subcategoryInit });
-        // --- Set linear scale options if type is linearScale ---
-        if (getSubcategorySelectValue(subcategoryInit.subcategory_type) === 'linearScale') {
+        if (subcategoryInit.subcategory_type === 'linear_scale') {
             setLinearScaleOptions(
                 Array.isArray(subcategoryInit.options) && subcategoryInit.options.length
                     ? subcategoryInit.options.map(opt => ({
@@ -130,8 +126,11 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                 });
             } else if (response.data.status.toString().startsWith(4)) throw response;
             // create, delete, update options
+            const isLinearScale = subcategoryType === 'linear_scale';
             for(let index = 0; index < options.length; index++) {
                 const option = options[index];
+                if(isLinearScale && option.score !== option.order)
+                    editOption(option, { score: option.order });
                 let response;
                 switch(option.action) {
                     case 'create':
@@ -170,6 +169,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                 }, { headers });
                 if(response.data.status.toString().startsWith(4)) throw response;
             }
+            reloadOptions();
         } catch(error) {
             console.error('Error saving subcategory:', error);
             Swal.fire({
@@ -229,12 +229,8 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
             });
     };
 
-    function switchResponseType(responseType) {
-        const subcategoryDbValue = getSubcategoryDbValue(responseType);
-        if(isNew)
-            setSubcategoryType(subcategoryDbValue);
-        else
-            editSubcategory({ subcategory_type: subcategoryDbValue });
+    function switchSubcategoryType(subcategoryType) {
+        setSubcategoryType(subcategoryType);
     }
 
     function toggleAllowOtherOption() {
@@ -293,16 +289,6 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
 
     function moveOption(oldOrder, newOrder) {
         if(oldOrder === newOrder) return;
-        // axiosInstance
-        //     .post('/moveEvaluationFormSubcategoryOption', {
-        //         id: options[oldOrder - 1].id,
-        //         order: newOrder
-        //     }, { headers })
-        //     .catch(error => {
-        //         console.error('Error moving option: ', error);
-        //         setOptions([...options]);
-        //     })
-        // ;
         const moveUp = oldOrder < newOrder;
         for(
             let order = moveUp ? oldOrder + 1 : oldOrder - 1;
@@ -310,13 +296,14 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
             order += (moveUp ? 1 : -1) * 1
         ) {
             const option = options[order - 1];
-            option.order = order + (moveUp ? -1 : 1);
+            const newOrder = order + (moveUp ? -1 : 1);
+            option.order = newOrder;
             option.move = true;
         }
-        const removed = options.splice(oldOrder - 1, 1)[0];
-        removed.order = newOrder;
-        removed.move = true;
-        options.splice(newOrder - 1, 0, removed);
+        const option = options.splice(oldOrder - 1, 1)[0];
+        option.order = newOrder;
+        option.move = true;
+        options.splice(newOrder - 1, 0, option);
         setOptions([...options]);
     }
 
@@ -336,44 +323,14 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
             }
         ]);
         setNewOptionId(newOptionId - 1);
-        // if(isNew)
-        //     setOptions([ ...options, { label, score, description }]);
-        // else axiosInstance
-        //     .post('/saveEvaluationFormSubcategoryOption', {
-        //         subcategory_id: subcategoryId, label, score, description
-        //     }, { headers })
-        //     .then((response) => {
-        //         if (response.data.status.toString().startsWith(2)) {
-        //             const { evaluationFormSubcategoryOptionID } = response.data;
-        //             if(!evaluationFormSubcategoryOptionID ) return;
-        //             getOption(evaluationFormSubcategoryOptionID);
-        //         } else if (response.data.status.toString().startsWith(4)) {
-        //             Swal.fire({
-        //                 text: response.data.message,
-        //                 icon: "error",
-        //                 confirmButtonColor: '#177604',
-        //                 customClass: {
-        //                     popup: 'swal-popup-overlay'
-        //                 }
-        //             });
-        //         }
-        //     })
-        //     .catch(error => {
-        //         console.error('Error saving subcategory option:', error);
-        //         Swal.fire({
-        //             text: "Error saving subcategory option",
-        //             icon: "error",
-        //             confirmButtonColor: '#177604',
-        //         });
-        //     });
     }
 
     return {
         subcategory,
         subcategoryId,
         subcategoryName, setSubcategoryName, editSubcategory, saveSubcategory,
-        responseType: getSubcategorySelectValue(subcategoryType), switchResponseType,
-        responseTypeDisplay,
+        subcategoryType, switchSubcategoryType,
+        subcategoryTypeDisplay,
         subcategoryDescription, setSubcategoryDescription,
         required, toggleRequired,
         allowOtherOption, toggleAllowOtherOption,
