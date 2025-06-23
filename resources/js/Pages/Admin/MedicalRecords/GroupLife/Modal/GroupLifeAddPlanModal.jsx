@@ -102,50 +102,48 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
         { planTypeMenuItem: 'Final Expense Insurance'}
     ];
 
-    const handleSave = async () => {
-        const cleanNumber = (value) =>
-            Number(value.replace(/[^\d.]/g, "")) || 0;
+const handleSave = async () => {
+  const cleanNumber = (value) =>
+    Number((value || "").replace(/[^\d.]/g, "")) || 0;
 
-        const payload = {
-            group_life_company_id: groupLifeCompanyId,
-            plan_name: planType,
-            type: paymentType,
-            employee_share: paymentType === "Amount"
-                ? cleanNumber(employeeAmountShare)
-                : cleanNumber(employeePercentageShare),
-            employer_share: paymentType === "Amount"
-                ? cleanNumber(employerAmountShare)
-                : cleanNumber(employerPercentageShare),
-        };
+  const isAmount = paymentType === "Amount";
 
-        console.log("Payload being sent:", payload);
+  const payload = {
+    group_life_company_id: groupLifeCompanyId,
+    plan_name: planType,
+    type: paymentType,
+    employee_share: cleanNumber(
+      isAmount ? employeeAmountShare : employeePercentageShare
+    ),
+    employer_share: cleanNumber(
+      isAmount ? employerAmountShare : employerPercentageShare
+    ),
+  };
 
-        try {
-            await axiosInstance.post("/medicalRecords/saveGroupLifePlans", payload, {
-                headers: { Authorization: `Bearer ${user.token}` }
-            });
-        if (typeof refreshPlans === "function") {
-            refreshPlans();
-        }
+  console.log("Payload being sent:", payload);
 
-        Swal.fire({
-            icon: 'success',
-            text: 'Group Life Plan saved successfully!',
-            timer: 2000,
-            showConfirmButton: false
-        });
-        
+  try {
+    await axiosInstance.post("/medicalRecords/saveGroupLifePlans", payload, {
+      headers: { Authorization: `Bearer ${user.token}` },
+    });
 
-        if (typeof close === "function") close();
+    refreshPlans?.();
 
-        } 
-        catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error saving Group Life Plan!',
-        });
-    }
+    Swal.fire({
+      icon: "success",
+      text: "Group Life Plan saved successfully!",
+      timer: 2000,
+      showConfirmButton: false,
+    });
 
+    close?.();
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error saving Group Life Plan!",
+    });
+  } finally {
+    // Reset fields after everything
     setGroupLifeCompanyId("");
     setPlanType("");
     setPaymentType("Amount");
@@ -153,7 +151,9 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
     setEmployerAmountShare("");
     setEmployeePercentageShare("");
     setEmployerPercentageShare("");
-    };
+  }
+};
+
 
     return (
         <>

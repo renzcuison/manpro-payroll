@@ -147,7 +147,6 @@ const GroupLifeMasterlist = () => {
     const resultsCount = filteredRecords.length;
 
     const handleOnRowClick = (row) => {
-        localStorage.setItem("selected_plan_details", JSON.stringify(row));
         navigator(
             `/admin/medical-records/group-life-masterlist/group-life-employees/${row.id}`,
             { state: row }
@@ -270,12 +269,7 @@ const GroupLifeMasterlist = () => {
                         open={true}
                         close={() => setOpenAddCompanyModal(false)}
                         onAddCompany={companyName => {
-                        // setOpenAddCompanyModal(false);
                         refreshCompanies();
-                        // setListOfCompanies(prev => [
-                        //     ...prev,
-                        //     { companyMenuItem: companyName }
-                        // ]);
                         }}
                     />
                     )}

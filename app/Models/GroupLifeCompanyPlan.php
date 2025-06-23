@@ -22,6 +22,8 @@ class GroupLifeCompanyPlan extends Model
         'employee_share'
     ];
 
+        protected $dates = ['deleted_at'];
+
     public function company() {
         return $this->belongsTo(GroupLifeCompany::class, 'group_life_company_id');
     }

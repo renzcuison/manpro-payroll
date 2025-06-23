@@ -171,6 +171,35 @@ class InsurancesController extends Controller
         ]);
     }
 
+    public function getGroupLifePlan($id)
+    {
+        Log::info("InsurancesController::getGroupLifePlan");
+
+        $user = Auth::user();
+
+    $plan = GroupLifeCompanyPlan::with('company:id,name')
+        ->withCount('assignedEmployees')
+        ->whereHas('company', function ($query) use ($user) {
+            $query->where('client_id', $user->client_id);
+        })
+        ->findOrFail($id); 
+
+        $formattedPlan = [
+            'id' => $plan->id,
+            'group_life_company_name' => $plan->company->name,
+            'plan_name' => $plan->plan_name,
+            'type' => $plan->type,
+            'employer_share' => $plan->employer_share,
+            'employee_share' => $plan->employee_share,
+            'employees_assigned_count' => $plan->assigned_employees_count,
+        ];
+
+        return response()->json([
+            'status' => 200,
+            'plan' => $formattedPlan,
+        ]);
+    }
+
     public function saveGroupLifePlans(Request $request)
     {
         log::info("InsurancesController::saveGroupLifePlans");
@@ -194,8 +223,10 @@ class InsurancesController extends Controller
     }
 
     public function editGroupLifePlan(Request $request, $id)
-        {
+    {
         Log::info("InsurancesController::editGroupLifePlan");
+
+        $user = Auth::user();
 
         $validated = $request->validate([
             'plan_name' => 'required|string|max:255',
@@ -204,7 +235,12 @@ class InsurancesController extends Controller
             'employee_share' => 'required|numeric|min:0',
         ]);
 
-        $plan = GroupLifeCompanyPlan::findOrFail($id);
+        $plan = GroupLifeCompanyPlan::where('id', $id)
+            ->first();
+
+        if (!$plan) {
+            return response()->json(['status' => 404], 404);
+        }
 
         $plan->plan_name = $validated['plan_name'];
         $plan->type = $validated['type'];
@@ -212,8 +248,46 @@ class InsurancesController extends Controller
         $plan->employee_share = $validated['employee_share'];
         $plan->save();
 
-        return response()->json(null, 200);
+        return response()->json([
+            'status' => 200,
+            'plan' => [
+                'id' => $plan->id,
+                'plan_name' => $plan->plan_name,
+                'type' => $plan->type,
+                'employer_share' => $plan->employer_share,
+                'employee_share' => $plan->employee_share,
+            ]
+        ]);
     }
+
+    public function deleteGroupLifePlan($id)
+    {
+        Log::info("InsurancesController::deleteGroupLifePlan");
+
+        $user = Auth::user();
+
+        $plan = GroupLifeCompanyPlan::where('id', $id)
+            ->first();
+
+        if (!$plan) {
+            return response()->json(['message' => 'Plan not found.'], 404);
+        }
+        $hasEmployees = GroupLifeEmployeePlan::where('group_life_plan_id', $id)->exists();
+
+        if ($hasEmployees) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Cannot delete plan. Employees are still assigned.'
+            ], 400);
+        }
+        $plan->delete();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Group Life Plan successfully deleted.'
+        ]);
+    }
+
 
     public function getGroupLifeEmployeePlan()
     {

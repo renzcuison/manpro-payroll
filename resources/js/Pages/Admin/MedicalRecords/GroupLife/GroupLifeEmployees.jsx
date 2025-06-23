@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
     Box,
@@ -19,10 +19,18 @@ import GroupLifeAssignEmployee from "./Modal/GroupLifeAssignEmployee";
 import GroupLifeEditEmployee from "./Modal/GroupLifeEditEmployee";
 import GroupLifeEditPlanModal from "./Modal/GroupLifeEditPlanModal";
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
+import Swal from 'sweetalert2';
 
 const GroupLifeEmployees = () => {
-    const location = useLocation();
+    const location = useLocation(); // CHECK
+
+
     const { id } = useParams();
+    const [plan, setPlan] = useState(null); // CHECK
+    const hasError = useRef(false); 
+
+    const justDeleted = location.state?.justDeleted || false;
+
 
     const storedPlanDetails = localStorage.getItem("selected_plan_details");
     const planDetails = storedPlanDetails ? JSON.parse(storedPlanDetails) : {};
@@ -32,27 +40,53 @@ const GroupLifeEmployees = () => {
     const [openEditEmployeeModal, setOpenEditEmployeeModal] = useState(false);
     const storedUser = localStorage.getItem("nasya_user");
     const user = storedUser ? JSON.parse(storedUser) : null;
-    const [employees, setEmployees] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [employees, setEmployees] = useState([]);    // CHECK
+    const [loading, setLoading] = useState(true); // CHECK
     const [filterByBranch, setFilterByBranch] = useState("");
     const [filterByDepartment, setFilterByDepartment] = useState("");
+    const [openEditModal, setOpenEditModal] = useState(false);
 
     const [selectedEmployeePlanId, setSelectedEmployeePlanId] = useState(null);
-
+    const [hasHandledError, setHasHandledError] = useState(false);
+  
+    // Fetch Plan Details
     useEffect(() => {
-        if (!id) return;
-        setLoading(true);
+    if (!id || !user) return;
 
+    axiosInstance
+        .get(`/medicalRecords/getGroupLifePlan/${id}`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+        })
+        .then((res) => {
+        setPlan(res.data.plan);
+        
+        }
+    )
+    .catch((err) => {
+        if (err.response?.status === 404) {
+            navigator("/admin/medical-records/group-life-masterlist-records", { replace: true });
+        } else {
+            console.error("Unexpected error:", err);
+        }
+        });
+    }, [id]);
+
+    // Fetch Employees 
+    useEffect(() => {
+        if (!id || !user) return;
+
+        setLoading(true);
         axiosInstance
         .get(`/medicalRecords/getGroupLifeEmployees`, {
             headers: { Authorization: `Bearer ${user.token}` },
-            params: { plan_id: id }
+            params: { plan_id: id },
         })
-        .then(res => {
+        .then((res) => {
             setEmployees(res.data.employees || []);
         })
-        .catch(err => {
+        .catch((err) => {
             setEmployees([]);
+            console.error("Failed to fetch employees", err);
         })
         .finally(() => setLoading(false));
     }, [id]);
@@ -120,32 +154,71 @@ const GroupLifeEmployees = () => {
     const uniqueBranches = [...new Set(employees.map(emp => emp.branch?.name).filter(Boolean))];
     const uniqueDepartments = [...new Set(employees.map(emp => emp.department?.name).filter(Boolean))];
 
-
+    const handleDelete = () => {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This will delete the plan if there are no employees assigned.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+            axiosInstance
+                .delete(`/medicalRecords/deleteGroupLifePlan/${id}`, {
+                headers: { Authorization: `Bearer ${user.token}` },
+                })
+                .then((res) => {
+                Swal.fire("Deleted!", res.data.message, "success").then(() => {
+                    navigator("/admin/medical-records/group-life-masterlist-records"); // 👈 Redirect to Page A
+                });
+                })
+                .catch((err) => {
+                Swal.fire(
+                    "Delete failed",
+                    err.response?.data?.message || "Something went wrong",
+                    "error"
+                );
+                });
+            }
+        });
+    };
 
     return (
         <Layout title="GroupLife Masterlist">
             <Box sx={{ mx: 'auto', width: '100%', px: { xs: 1, md: 3 } }}>
                 <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        {planDetails.planType}
+                        {plan?.plan_name}
                     </Typography>
                     <Grid container spacing={2} gap={2}>
                         <Button
-                            style={{ backgroundColor: "#727F91" }}
-                            onClick={handleOnBackClick}
-                            variant="contained"
-                        >
+                            style={{ backgroundColor: "#727F91" }} onClick={handleOnBackClick} variant="contained">
                             Back
                         </Button>
                         <Button
-                            onClick={() => setOpenAssignEmployeeModal(true)}
-                            variant="contained"
-                            style={{ color: "#e8f1e6" }}
-                        >
+                            onClick={() => setOpenAssignEmployeeModal(true)} variant="contained" style={{ color: "#e8f1e6" }}>
                             Assign
+                        </Button>
+                        <Button variant="contained" onClick={() => setOpenEditModal(true)}>
+                            Edit Plan
+                        </Button>
+                        <Button variant="contained" color="error" onClick={handleDelete}>
+                            Delete Plan
                         </Button>
                     </Grid>
                 </Box>
+
+                <GroupLifeEditPlanModal
+                    open={openEditModal}
+                    onClose={() => setOpenEditModal(false)}
+                    plan={plan}
+                    user={user}
+                    onSave={(updatedPlan) => {
+                        setPlan(updatedPlan); 
+                        setOpenEditModal(false);
+                        Swal.fire("Success", "Plan updated successfully!", "success");
+                    }}
+                />
 
                 <Grid container spacing={3}>
                     <Grid item xs={12} md={4} sx={{ width: '100%', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
@@ -158,7 +231,7 @@ const GroupLifeEmployees = () => {
                                     </Grid>
                                     <Grid item xs={6} sm={8}>
                                         <Typography variant="body1">
-                                            {planDetails.paymentType || 'N/A'}
+                                            {plan?.type || 'N/A'}
                                             </Typography>
                                     </Grid>
                                 </Box>
@@ -168,8 +241,10 @@ const GroupLifeEmployees = () => {
                                     </Grid>
                                     <Grid item xs={6} sm={8}>
                                         <Typography variant="body1">
-                                            {planDetails.employerShare !== undefined ? `₱${planDetails.employerShare.toFixed(2)}` : 'Unassigned'}
-                                            </Typography>
+                                                  {plan?.employer_share !== undefined
+                                                    ? `₱${parseFloat(plan.employer_share).toFixed(2)}`
+                                                    : 'Unassigned'}
+                                        </Typography>
                                     </Grid>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
@@ -178,8 +253,10 @@ const GroupLifeEmployees = () => {
                                     </Grid>
                                     <Grid item xs={6} sm={8}>
                                         <Typography variant="body1">
-                                            {planDetails.employeeShare !== undefined ? `₱${planDetails.employeeShare.toFixed(2)}` : 'N/A'}
-                                            </Typography>
+                                                  {plan?.employee_share !== undefined
+                                                    ? `₱${parseFloat(plan.employee_share).toFixed(2)}`
+                                                    : 'N/A'}
+                                        </Typography>
                                     </Grid>
                                 </Box>
                             </Grid>
@@ -211,7 +288,7 @@ const GroupLifeEmployees = () => {
                                             )
                                         }
                                         label="Search"
-                                    />
+/>
                                     </FormControl>
                             </Grid>
                             <Grid size={3}>
