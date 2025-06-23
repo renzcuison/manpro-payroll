@@ -25,7 +25,7 @@ const STATUS_STYLES = {
         textAlign: 'center'
     },
     Sent: {
-        background: '#2464ac',
+        background: '#fba922',
         color: '#fff',
         borderRadius: 20,
         padding: '2px 22px',
@@ -55,7 +55,7 @@ const STATUS_STYLES = {
         textAlign: 'center'
     },
     Done: {
-        background: '#209c3c',
+        background: '#2464ac',
         color: '#fff',
         borderRadius: 20,
         padding: '2px 22px',

@@ -12,7 +12,6 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import Swal from 'sweetalert2';
 
-// Status styles using your requested colors
 const STATUS_STYLES = {
     Pending: {
         background: '#f89c14',
@@ -25,7 +24,7 @@ const STATUS_STYLES = {
         textAlign: 'center'
     },
     Sent: {
-        background: '#2464ac',
+        background: '#fba922',
         color: '#fff',
         borderRadius: 20,
         padding: '2px 22px',
@@ -55,7 +54,7 @@ const STATUS_STYLES = {
         textAlign: 'center'
     },
     Done: {
-        background: '#209c3c',
+        background: '#2464ac',
         color: '#fff',
         borderRadius: 20,
         padding: '2px 22px',
@@ -75,6 +74,7 @@ const STATUS_STYLES = {
         textAlign: 'center'
     }
 };
+
 
 const getEvaluationRoleRoute = (row) => {
     switch (row.role) {
