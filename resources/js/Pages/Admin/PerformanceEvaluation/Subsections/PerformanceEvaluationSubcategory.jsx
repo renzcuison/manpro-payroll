@@ -65,6 +65,7 @@ export default function PerformanceEvaluationFormSubcategory({
 }) {
     const {
         subcategory, subcategoryId,
+        editSubcategory,
         responseType, responseTypeDisplay, switchResponseType,
         subcategoryName, setSubcategoryName,
         subcategoryDescription, setSubcategoryDescription,
@@ -235,11 +236,11 @@ export default function PerformanceEvaluationFormSubcategory({
                         </Typography>
                         )}
                     </Box>
-                    )}
+                    )} */}
                     <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                         <Box>
                             <Button
-                            onClick={handleCancelEditSubcategory}
+                            onClick={() => {}}
                             variant="contained"
                             sx={{
                                 backgroundColor: '#727F91',
@@ -267,10 +268,7 @@ export default function PerformanceEvaluationFormSubcategory({
                         
                         <Box justifyContent="flex-end" display="flex" gap={1}>
                             <Button
-                            onClick={e => {
-                                e.stopPropagation();
-                                deleteSubcategory(subcategory.id);
-                            }}
+                            onClick={(e) => {e.stopPropagation()}}
                             variant="contained"
                             sx={{
                                 backgroundColor: '#727F91',
@@ -296,7 +294,7 @@ export default function PerformanceEvaluationFormSubcategory({
                         </Button>
                         
                         <Button
-                            onClick={handleSaveEditSubcategory}
+                            onClick={editSubcategory}
                             variant="contained"
                             sx={{
                                 backgroundColor: '#177604',
@@ -322,7 +320,7 @@ export default function PerformanceEvaluationFormSubcategory({
                         </Button>
                         </Box>
                         
-                    </Box> */}
+                    </Box>
                 </Box>
             </AccordionDetails>
         </Accordion>
