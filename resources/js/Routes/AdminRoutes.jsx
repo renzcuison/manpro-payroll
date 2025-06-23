@@ -11,6 +11,11 @@ import DepartmentDetails from "../Pages/Admin/Department/DepartmentDetails";
 import BranchList from "../Pages/Admin/Branches/BranchList";
 import BranchDetails from "../Pages/Admin/Branches/BranchDetails";
 
+import Roles from "../Pages/Admin/Roles/Roles";
+import RolesDetails from "../Pages/Admin/Roles/RolesDetails"; 
+
+
+
 import EmployeesAdd from "../Pages/Admin/Employees/EmployeesAdd";
 import EmployeeView from "../Pages/Admin/Employees/EmployeeView";
 import EmployeesList from "../Pages/Admin/Employees/EmployeesList";

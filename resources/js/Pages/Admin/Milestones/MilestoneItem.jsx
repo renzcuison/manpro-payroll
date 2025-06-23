@@ -111,7 +111,9 @@ function MilestoneItem({ milestone, refetch, handleDelete }) {
                 <AccordionDetails sx={{ borderRadius: 5 }}>
                     <Stack>
                         <Typography variant="h5">
-                            {moment(milestone.date).format("dddd YYYY-MM-DD")}
+                            {moment(milestone.date).format(
+                                "dddd, MMMM DD, YYYY"
+                            )}
                         </Typography>
 
                         <Button variant="outlined" onClick={handleDelete}>

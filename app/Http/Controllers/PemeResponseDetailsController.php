@@ -241,6 +241,11 @@ class PemeResponseDetailsController extends Controller
 
         foreach ($files as $file) {
             $detail->addMedia($file)->toMediaCollection('attachments');
+
+            \Log::info("File saved:", [
+                'filename' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+            ]);
         }
 
         return response()->json([
