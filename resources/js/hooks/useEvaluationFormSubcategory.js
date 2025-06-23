@@ -65,6 +65,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         for(let option of subcategoryInit.options) options.push({ ...option });
         setOptions(options);
         setSavedSubcategory({ ...subcategoryInit });
+
     }, [subcategoryInit?.id]);
 
     // --- Subcategory CRUD ---
@@ -78,8 +79,9 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setLinearScaleEnd(savedSubcategory?.linear_scale_end);
         setLinearScaleStartLabel(savedSubcategory?.linear_scale_start_label);
         setLinearScaleEndLabel(savedSubcategory?.linear_scale_end_label);
-        setOptions([]);
+        const options = [];
         if(savedSubcategory) for(let option of savedSubcategory.options) options.push({ ...option });
+        setOptions(options);
     }
 
     async function editSubcategory() {
