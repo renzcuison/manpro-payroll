@@ -44,7 +44,6 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
-
 import { useEvaluationFormSubcategory } from '../../../../hooks/useEvaluationFormSubcategory';
 
 const SubcategoryContext = createContext();
