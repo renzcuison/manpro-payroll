@@ -259,19 +259,26 @@ const PemeResponses = () => {
                             >
                                 Return
                             </Button>
-                            <Button
-                                onClick={handleOnDeleteClick}
-                                variant="contained"
-                                sx={{ backgroundColor: "Red" }}
-                            >
-                                Delete
-                            </Button>
-                            <Button
-                                onClick={handleOnEditClick}
-                                variant="contained"
-                            >
-                                Edit
-                            </Button>
+                            {editable === 1 ? (
+                                <>
+                                    <Button
+                                        onClick={handleOnDeleteClick}
+                                        variant="contained"
+                                        sx={{ backgroundColor: "Red" }}
+                                    >
+                                        Delete
+                                    </Button>
+                                    <Button
+                                        onClick={handleOnEditClick}
+                                        variant="contained"
+                                    >
+                                        Edit
+                                    </Button>
+                                </>
+                            ) : (
+                                ""
+                            )}
+
                             <Button
                                 onClick={handleOnPreviewClick}
                                 variant="contained"
@@ -330,7 +337,7 @@ const PemeResponses = () => {
                                             >
                                                 {resultsCount}{" "}
                                                 {resultsCount === 1 ||
-                                                    resultsCount === 0
+                                                resultsCount === 0
                                                     ? "Match"
                                                     : "Matches"}
                                             </Typography>
@@ -377,7 +384,7 @@ const PemeResponses = () => {
                 setEditable={setEditable}
                 PemeID={PemeID}
                 // hasRespondents={filteredRecords.length > 0}
-                hasRespondents = {hasRespondents}
+                hasRespondents={hasRespondents}
                 pemeRecords={pemeRecords}
                 headers={headers}
             />

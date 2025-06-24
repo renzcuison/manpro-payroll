@@ -179,58 +179,6 @@ const SelectForm = ({
                     />
                 </Box>
             </FormControl>
-            {Array.isArray(formType) && formType.includes("attachment") && (
-                <Box
-                    sx={{
-                        marginTop: 2,
-                        display: "flex",
-                        justifyContent: "space-between",
-                    }}
-                >
-                    <FormControl>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                gap: 2,
-                                alignItems: "center",
-                            }}
-                        >
-                            <TextField
-                                value={fileSize}
-                                onChange={(e) => {
-                                    let value = e.target.value;
-                                    if (value === "") {
-                                        setFileSize("");
-                                        return;
-                                    }
-                                    value = Number(value);
-                                    if (isNaN(value)) return;
-                                    if (value < 0) value = 0;
-                                    if (value > 500) value = 500;
-                                    setFileSize(value);
-                                }}
-                                type="number"
-                                label="File Size"
-                                inputprops={{
-                                    min: 0,
-                                    max: 500,
-                                }}
-                            ></TextField>
-                            <Typography
-                                sx={{
-                                    fontSize: "16px",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                MB
-                            </Typography>
-                            <Typography sx={{ color: "#ccc" }}>
-                                Max 500MB
-                            </Typography>
-                        </Box>
-                    </FormControl>
-                </Box>
-            )}
         </FormGroup>
     );
 };
@@ -249,7 +197,7 @@ const PemeRecordsForm = () => {
     const [questionnaireForms, setQuestionnaireForms] = useState([]);
     const [formName, setFormName] = useState("");
     const [formType, setFormType] = useState([]);
-    const [fileSize, setFileSize] = useState(10);
+    const [fileSize, setFileSize] = useState(25);
     const [isLoading, setIsLoading] = useState(true);
     const [pemeForms, setPemeForms] = useState({ questions: [] });
     const [initialForms, setInitialForms] = useState([]);
@@ -323,6 +271,12 @@ const PemeRecordsForm = () => {
                             { headers }
                         );
                         setPemeForms(refreshed.data);
+                        Swal.fire({
+                            icon: "success",
+                            text: "Question added successfully.",
+                            showConfirmButton: false,
+                            timer: 1500,
+                        });
                     } catch (err) {
                         console.error("Error fetching forms:", err);
                         Swal.fire({
@@ -367,7 +321,7 @@ const PemeRecordsForm = () => {
             input_types: formType,
             file_size_limit:
                 fileSize === "" || Number(fileSize) === 0
-                    ? 10
+                    ? 25
                     : Number(fileSize),
             isRequired: isRequired ? 1 : 0
         };
@@ -383,7 +337,7 @@ const PemeRecordsForm = () => {
         Swal.fire({
             customClass: { container: "my-swal" },
             title: "Are you sure?",
-            text: `You want to delete ${form.question}?`,
+            html: `You want to delete <b>${form.question}?</b>`,
             icon: "warning",
             showConfirmButton: true,
             confirmButtonText: "Delete",
@@ -430,7 +384,7 @@ const PemeRecordsForm = () => {
                             timer: 1500,
                         });
                     } catch (error) {
-                        console.error("Error deleting form:", error);
+                        console.error("Error deleting question:", error);
                         Swal.fire({
                             title: "Error",
                             text: "Failed to delete form. Please try again.",
@@ -463,7 +417,7 @@ const PemeRecordsForm = () => {
         setEditFileSize(
             form.input_types.find(
                 (item) => (item.input_type ?? item) === "attachment"
-            )?.file_size_limit ?? 10
+            )?.file_size_limit ?? 25
         );
     };
 
@@ -503,7 +457,7 @@ const PemeRecordsForm = () => {
         setEditSavedFormType(form.input_types.map((item) => item.input_type));
         setEditSavedFileSize(
             form.input_types.find((item) => item.input_type === "attachment")
-                ?.file_size_limit ?? 10
+                ?.file_size_limit ?? 25
         );
         setEditSavedIsRequired(form.isRequired);
     };
@@ -746,11 +700,12 @@ const PemeRecordsForm = () => {
                                                 isEditing
                                                     ? editFileSize
                                                     : form.input_types.find(
-                                                        (item) =>
-                                                            (item.input_type ??
-                                                                item) ===
-                                                            "attachment"
-                                                    )?.file_size_limit ?? 10
+
+                                                          (item) =>
+                                                              (item.input_type ??
+                                                                  item) ===
+                                                              "attachment"
+                                                      )?.file_size_limit ?? 25
                                             }
                                             setFileSize={
                                                 isEditing
@@ -889,10 +844,10 @@ const PemeRecordsForm = () => {
                                                 isEditing
                                                     ? editSavedFileSize
                                                     : form.input_types.find(
-                                                        (item) =>
-                                                            item.input_type ===
-                                                            "attachment"
-                                                    )?.file_size_limit ?? 10
+                                                          (item) =>
+                                                              item.input_type ===
+                                                              "attachment"
+                                                      )?.file_size_limit ?? 25
                                             }
                                             setFileSize={
                                                 isEditing
