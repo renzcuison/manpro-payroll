@@ -30,7 +30,7 @@ import Swal from "sweetalert2";
 const UploadForm = ({
     files = [],
     onChange,
-    file,
+    fileArray,
     fileName,
     onFileClick,
     onRemoveFile,
@@ -57,49 +57,52 @@ const UploadForm = ({
                 }}
             >
                 {/* Show existing file from props */}
-                {file && (
-                    <Typography
-                        color="primary"
-                        onClick={() => {
-                            if (onFileClick && file?.url) {
-                                onFileClick(file.url, file.file_name);
-                            }
-                        }}
-                        sx={{
-                            position: "relative",
-                            boxShadow: 1,
-                            padding: 1,
-                            borderRadius: 1,
-                            display: "inline-block",
-                            backgroundColor: "#fafafa",
-                            cursor: "pointer",
-                            mr: 2,
-                        }}
-                    >
-                        <FileUploadIcon
-                            sx={{ mr: 1, verticalAlign: "middle" }}
-                        />
-                        {fileName}
-                        <Button
-                            sx={{
-                                zIndex: 10,
-                                margin: 0,
-                                padding: 0,
-                                color: "#f92a2a",
-                                position: "absolute",
-                                right: -30,
-                                top: -10,
+
+                {fileArray.map((file, index) => {
+                    return (
+                        <Typography
+                            key={index}
+                            color="primary"
+                            onClick={() => {
+                                if (onFileClick && file?.url) {
+                                    onFileClick(file.url, file.file_name);
+                                }
                             }}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onRemoveFile && onRemoveFile(file); // Pass the file object
+                            sx={{
+                                position: "relative",
+                                boxShadow: 1,
+                                padding: 1,
+                                borderRadius: 1,
+                                display: "inline-block",
+                                backgroundColor: "#fafafa",
+                                cursor: "pointer",
+                                mr: 2,
                             }}
                         >
-                            <CancelIcon />
-                        </Button>
-                    </Typography>
-                )}
-
+                            <FileUploadIcon
+                                sx={{ mr: 1, verticalAlign: "middle" }}
+                            />
+                            {file.file_name}
+                            <Button
+                                sx={{
+                                    zIndex: 10,
+                                    margin: 0,
+                                    padding: 0,
+                                    color: "#f92a2a",
+                                    position: "absolute",
+                                    right: -30,
+                                    top: -10,
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRemoveFile && onRemoveFile(file); // Pass the file object
+                                }}
+                            >
+                                <CancelIcon />
+                            </Button>
+                        </Typography>
+                    );
+                })}
                 {/* Show newly uploaded files */}
                 {Array.isArray(files) && files.length > 0 ? (
                     files.map((file, index) => (
@@ -125,7 +128,7 @@ const UploadForm = ({
                             <FileUploadIcon
                                 sx={{ mr: 1, verticalAlign: "middle" }}
                             />
-                            {file.name || file.fileName || "Unknown file"}
+                            {file.name || file.file_name || "Unknown file"}
                             <Button
                                 sx={{
                                     zIndex: 10,
@@ -145,10 +148,9 @@ const UploadForm = ({
                             </Button>
                         </Typography>
                     ))
-                ) : !file ? (
+                ) : fileArray.length === 0 ? (
                     <Typography sx={{ mr: 2 }}>No file uploaded</Typography>
                 ) : null}
-
                 {/* Upload button */}
                 <input
                     type="file"
@@ -180,8 +182,8 @@ const PassOrFail = ({ value, onChange }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-                ? "Fail"
-                : "";
+            ? "Fail"
+            : "";
 
     return (
         <Box
@@ -210,8 +212,8 @@ const PostiveOrNegative = ({ value, onChange }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-                ? "Negative"
-                : "";
+            ? "Negative"
+            : "";
 
     return (
         <Box
@@ -271,7 +273,6 @@ const PemeQuestionnaireView = () => {
     const [expirationDate, setExpirationDate] = useState(dayjs());
     const [nextSchedule, setNextSchedule] = useState(dayjs());
     const [status, setStatus] = useState("");
-    const [isDraftStatus, setIsDraftStatus] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [filePreviewOpen, setFilePreviewOpen] = useState(false);
 
@@ -283,7 +284,6 @@ const PemeQuestionnaireView = () => {
             .then((response) => {
                 console.log("RESPONSE.DATA", response.data);
                 setEmployeeResponse(response.data);
-                setIsDraftStatus(response.data.isDraft);
                 setStatus(response.data.status);
                 const initialAnswers = {};
                 if (Array.isArray(response.data.details)) {
@@ -316,8 +316,6 @@ const PemeQuestionnaireView = () => {
         }
     }, [employeeResponse]);
 
-    const [errorMessage, setErrorMessage] = useState("");
-
     const handleOnConfirmClick = (draftStatus) => {
         Swal.fire({
             customClass: { container: "my-swal" },
@@ -331,7 +329,7 @@ const PemeQuestionnaireView = () => {
             cancelButtonText: "Cancel",
         }).then(async (res) => {
             const responses = [];
-            const attachedMedia = [];
+
             if (Array.isArray(employeeResponse.details)) {
                 employeeResponse.details.forEach((form) => {
                     if (Array.isArray(form.input_type)) {
@@ -340,32 +338,36 @@ const PemeQuestionnaireView = () => {
                                 answers[form.question_id]?.[type.input_type] ??
                                 null;
 
-                            let answerValue = value;
+                            // Handle attachments
+                            if (type.input_type === "attachment") {
+                                // Existing backend files
+                                const existingFiles = Array.isArray(form.media)
+                                    ? form.media
+                                    : [];
+                                // New files (File objects)
+                                const newFiles = Array.isArray(value)
+                                    ? value.filter((f) => f instanceof File)
+                                    : [];
 
-                            const responseEntry = {
-                                peme_q_item_id: form.question_id,
-                                peme_q_type_id: type.id,
-                                value: answerValue,
-                            };
+                                const responseEntry = {
+                                    peme_q_item_id: form.question_id,
+                                    peme_q_type_id: type.id,
+                                    existing_file_ids: existingFiles.map(
+                                        (f) => f.id
+                                    ), // <-- use .id, not .file
+                                };
 
-                            if (
-                                Array.isArray(answerValue) &&
-                                answerValue[0] instanceof File
-                            ) {
-                                responseEntry.files = answerValue;
-                            }
+                                if (newFiles.length > 0) {
+                                    responseEntry.files = newFiles;
+                                }
 
-                            responses.push(responseEntry);
-
-                            // If value is an array of Files
-                            if (
-                                Array.isArray(value) &&
-                                value[0] instanceof File
-                            ) {
-                                value.forEach((file) => {
-                                    attachedMedia.push({
-                                        file: file,
-                                    });
+                                responses.push(responseEntry);
+                            } else {
+                                // Non-attachment types
+                                responses.push({
+                                    peme_q_item_id: form.question_id,
+                                    peme_q_type_id: type.id,
+                                    value: value,
                                 });
                             }
                         });
@@ -387,6 +389,24 @@ const PemeQuestionnaireView = () => {
                     item.peme_q_type_id
                 );
 
+                // Always append existing file IDs
+                if (item.existing_file_ids) {
+                    if (item.existing_file_ids.length === 0) {
+                        formData.append(
+                            `responses[${index}][existing_file_ids]`,
+                            ""
+                        );
+                    } else {
+                        item.existing_file_ids.forEach((id, idIndex) => {
+                            formData.append(
+                                `responses[${index}][existing_file_ids][${idIndex}]`,
+                                id
+                            );
+                        });
+                    }
+                }
+
+                // Append new files
                 if (
                     Array.isArray(item.files) &&
                     item.files[0] instanceof File
@@ -397,15 +417,16 @@ const PemeQuestionnaireView = () => {
                             file
                         );
                     });
-                    formData.append(`responses[${index}][value]`, "");
-                } else {
-                    formData.append(
-                        `responses[${index}][value]`,
-                        item.value ?? ""
-                    );
+                }
+
+                // For non-attachments
+                if (item.value !== undefined && item.value !== null) {
+                    formData.append(`responses[${index}][value]`, item.value);
                 }
             });
 
+            console.log("About to log FormData...");
+            console.log("FORMDATA PAYLOAD:");
             for (const pair of formData.entries()) {
                 console.log(pair[0], pair[1]);
             }
@@ -414,6 +435,12 @@ const PemeQuestionnaireView = () => {
                 await axiosInstance.post(`/peme-responses/storeAll`, formData, {
                     headers,
                 });
+
+                const response = await axiosInstance.get(
+                    `/peme-response/${PemeResponseID}/details`,
+                    { headers }
+                );
+                setEmployeeResponse(response.data);
                 Swal.fire({
                     icon: "success",
                     text: "Draft saved successfully.",
@@ -421,7 +448,6 @@ const PemeQuestionnaireView = () => {
                     timer: 1500,
                 });
             } catch (error) {
-                setIsDraftStatus(1);
                 const status = error.response.status;
 
                 console.log("ERROR", error);
@@ -504,7 +530,6 @@ const PemeQuestionnaireView = () => {
             });
         }
 
-        console.log("DRAFT PAYLOAD", responses);
         const formData = new FormData();
         formData.append("peme_response_id", PemeResponseID);
         formData.append("isDraft", draftStatus);
@@ -522,7 +547,10 @@ const PemeQuestionnaireView = () => {
             // Always append existing file IDs
             if (item.existing_file_ids) {
                 if (item.existing_file_ids.length === 0) {
-                    formData.append(`responses[${index}][existing_file_ids]`, "");
+                    formData.append(
+                        `responses[${index}][existing_file_ids]`,
+                        ""
+                    );
                 } else {
                     item.existing_file_ids.forEach((id, idIndex) => {
                         formData.append(
@@ -627,19 +655,29 @@ const PemeQuestionnaireView = () => {
             const updatedDetails = prev.details.map((form) =>
                 form.question_id === questionId
                     ? {
-                        ...form,
-                        media: Array.isArray(form.media)
-                            ? form.media.filter(
-                                (file) => file.id !== fileToRemove.id
-                            )
-                            : [],
-                    }
+                          ...form,
+                          media: Array.isArray(form.media)
+                              ? form.media.filter(
+                                    (file) => file.id !== fileToRemove.id
+                                )
+                              : [],
+                      }
                     : form
             );
             // Log the existing file IDs for this question after removal
-            const form = updatedDetails.find(f => f.question_id === questionId);
-            const ids = (form && Array.isArray(form.media)) ? form.media.map(f => f.id) : [];
-            console.log("Existing file IDs after removal for question", questionId, ":", ids);
+            const form = updatedDetails.find(
+                (f) => f.question_id === questionId
+            );
+            const ids =
+                form && Array.isArray(form.media)
+                    ? form.media.map((f) => f.id)
+                    : [];
+            console.log(
+                "Existing file IDs after removal for question",
+                questionId,
+                ":",
+                ids
+            );
             return {
                 ...prev,
                 details: updatedDetails,
@@ -735,7 +773,7 @@ const PemeQuestionnaireView = () => {
                                         form.input_type.map((type, i) => {
                                             const value =
                                                 answers[form.question_id]?.[
-                                                type.input_type
+                                                    type.input_type
                                                 ] || "";
 
                                             // const attachmentValue =
@@ -818,98 +856,53 @@ const PemeQuestionnaireView = () => {
                                                     );
                                                 case "attachment":
                                                     return (
-                                                        <>
-                                                            {Array.isArray(
-                                                                form.media
-                                                            ) &&
-                                                                form.media.length >
-                                                                0 ? (
-                                                                form.media.map(
-                                                                    (
-                                                                        file,
-                                                                        j
-                                                                    ) => {
-                                                                        return (
-                                                                            <UploadForm
-                                                                                key={
-                                                                                    j
-                                                                                }
-                                                                                formID={
-                                                                                    form.question_id
-                                                                                }
-                                                                                fileID={
-                                                                                    file.id
-                                                                                }
-                                                                                fileSizeLimit={
-                                                                                    type.file_size_limit
-                                                                                }
-                                                                                file={
-                                                                                    file
-                                                                                }
-                                                                                files={
-                                                                                    value
-                                                                                }
-                                                                                fileName={
-                                                                                    file.file_name
-                                                                                }
-                                                                                onFileClick={
-                                                                                    handleFileClick
-                                                                                }
-                                                                                onRemoveFile={() => {
-                                                                                    handleRemoveFile(
-                                                                                        form.question_id,
-                                                                                        file
-                                                                                    );
-                                                                                }}
-                                                                                onChange={(
-                                                                                    newFiles
-                                                                                ) => {
-                                                                                    handleInputChange(
-                                                                                        form.question_id,
-
-                                                                                        "attachment",
-                                                                                        [
-                                                                                            ...(answers[
-                                                                                                form
-                                                                                                    .question_id
-                                                                                            ]
-                                                                                                ?.attachment ||
-                                                                                                []),
-                                                                                            ...newFiles,
-                                                                                        ]
-                                                                                    );
-                                                                                }}
-                                                                            />
-                                                                        );
-                                                                    }
+                                                        <UploadForm
+                                                            key={i}
+                                                            formID={
+                                                                form.question_id
+                                                            }
+                                                            fileArray={
+                                                                form.media || []
+                                                            } // existing files from backend
+                                                            files={
+                                                                answers[
+                                                                    form
+                                                                        .question_id
+                                                                ]?.attachment ||
+                                                                []
+                                                            } // new files
+                                                            fileSizeLimit={
+                                                                type.file_size_limit
+                                                            }
+                                                            onFileClick={
+                                                                handleFileClick
+                                                            }
+                                                            onRemoveFile={(
+                                                                file
+                                                            ) =>
+                                                                handleRemoveFile(
+                                                                    form.question_id,
+                                                                    file
                                                                 )
-                                                            ) : (
-                                                                <UploadForm
-                                                                    key={i}
-                                                                    files={
-                                                                        value
-                                                                    }
-                                                                    onChange={(
-                                                                        newFiles
-                                                                    ) => {
-                                                                        handleInputChange(
-                                                                            form.question_id,
-
-                                                                            "attachment",
-                                                                            [
-                                                                                ...(answers[
-                                                                                    form
-                                                                                        .question_id
-                                                                                ]
-                                                                                    ?.attachment ||
-                                                                                    []),
-                                                                                ...newFiles,
-                                                                            ]
-                                                                        );
-                                                                    }}
-                                                                />
-                                                            )}
-                                                        </>
+                                                            }
+                                                            onChange={(
+                                                                newFiles
+                                                            ) => {
+                                                                handleInputChange(
+                                                                    form.question_id,
+                                                                    "attachment",
+                                                                    [
+                                                                        ...(answers[
+                                                                            form
+                                                                                .question_id
+                                                                        ]
+                                                                            ?.attachment ||
+                                                                            []),
+                                                                        ...newFiles,
+                                                                    ]
+                                                                );
+                                                            }}
+                                                        />
                                                     );
                                                 default:
                                                     return null;
