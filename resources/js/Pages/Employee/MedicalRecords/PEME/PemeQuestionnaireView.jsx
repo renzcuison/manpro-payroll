@@ -182,8 +182,8 @@ const PassOrFail = ({ value, onChange }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-                ? "Fail"
-                : "";
+            ? "Fail"
+            : "";
 
     return (
         <Box
@@ -212,8 +212,8 @@ const PostiveOrNegative = ({ value, onChange }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-                ? "Negative"
-                : "";
+            ? "Negative"
+            : "";
 
     return (
         <Box
@@ -298,7 +298,8 @@ const PemeQuestionnaireView = () => {
                 initialAnswers[form.question_id] = {};
                 if (Array.isArray(form.input_type)) {
                     form.input_type.forEach((type) => {
-                        initialAnswers[form.question_id][type.input_type] = type.value ?? "";
+                        initialAnswers[form.question_id][type.input_type] =
+                            type.value ?? "";
                     });
                 }
             });
@@ -306,7 +307,6 @@ const PemeQuestionnaireView = () => {
             setIsLoading(false);
         }
     }, [employeeResponse]);
-
 
     const handleOnConfirmClick = (draftStatus) => {
         Swal.fire({
@@ -480,10 +480,13 @@ const PemeQuestionnaireView = () => {
         employeeResponse.details.forEach((form) => {
             if (Array.isArray(form.input_type)) {
                 form.input_type.forEach((type) => {
-                    const value = answers[form.question_id]?.[type.input_type] ?? null;
+                    const value =
+                        answers[form.question_id]?.[type.input_type] ?? null;
 
                     if (type.input_type === "attachment") {
-                        const existingFiles = Array.isArray(form.media) ? form.media : [];
+                        const existingFiles = Array.isArray(form.media)
+                            ? form.media
+                            : [];
                         const newFiles = Array.isArray(value)
                             ? value.filter((f) => f instanceof File)
                             : [];
@@ -496,7 +499,9 @@ const PemeQuestionnaireView = () => {
                             const responseEntry = {
                                 peme_q_item_id: form.question_id,
                                 peme_q_type_id: type.id,
-                                existing_file_ids: existingFiles.map((f) => f.id),
+                                existing_file_ids: existingFiles.map(
+                                    (f) => f.id
+                                ),
                             };
                             if (newFiles.length > 0) {
                                 responseEntry.files = newFiles;
@@ -582,8 +587,8 @@ const PemeQuestionnaireView = () => {
                 { headers }
             );
             setEmployeeResponse(response.data);
-            console.log("Refetch response.data", response.data)
-            console.log("Refetch employeeResponse", employeeResponse)
+            console.log("Refetch response.data", response.data);
+            console.log("Refetch employeeResponse", employeeResponse);
 
             Swal.fire({
                 icon: "success",
@@ -647,13 +652,13 @@ const PemeQuestionnaireView = () => {
             const updatedDetails = prev.details.map((form) =>
                 form.question_id === questionId
                     ? {
-                        ...form,
-                        media: Array.isArray(form.media)
-                            ? form.media.filter(
-                                (file) => file.id !== fileToRemove.id
-                            )
-                            : [],
-                    }
+                          ...form,
+                          media: Array.isArray(form.media)
+                              ? form.media.filter(
+                                    (file) => file.id !== fileToRemove.id
+                                )
+                              : [],
+                      }
                     : form
             );
             // Log the existing file IDs for this question after removal
@@ -765,7 +770,7 @@ const PemeQuestionnaireView = () => {
                                         form.input_type.map((type, i) => {
                                             const value =
                                                 answers[form.question_id]?.[
-                                                type.input_type
+                                                    type.input_type
                                                 ] || "";
 
                                             // const attachmentValue =
@@ -940,25 +945,6 @@ const PemeQuestionnaireView = () => {
                                 >
                                     Cancel
                                 </Button>
-
-                                <LocalizationProvider
-                                    dateAdapter={AdapterDayjs}
-                                >
-                                    <DatePicker
-                                        label="Expiration Date"
-                                        value={expirationDate}
-                                        onChange={setExpirationDate}
-                                    />
-                                </LocalizationProvider>
-                                <LocalizationProvider
-                                    dateAdapter={AdapterDayjs}
-                                >
-                                    <DatePicker
-                                        label="Next Schedule"
-                                        value={nextSchedule}
-                                        onChange={setNextSchedule}
-                                    />
-                                </LocalizationProvider>
                             </Box>
 
                             <Box sx={{ display: "flex", gap: 2 }}>
