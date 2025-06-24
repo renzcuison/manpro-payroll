@@ -297,8 +297,8 @@ class PayrollController extends Controller
 
     public function payrollProcess(Request $request)
     {
-        log::info("PayrollController::payrollProcess");
-        log::info($request);
+        // log::info("PayrollController::payrollProcess");
+        // log::info($request);
 
         $user = Auth::user();
 
@@ -691,7 +691,7 @@ class PayrollController extends Controller
 
     public function calculateAttendance($start_date, $end_date, $employeeId)
     {
-        Log::info("PayrollController::calculateAttendance");
+        // Log::info("PayrollController::calculateAttendance");
 
         $summaries = AttendanceSummary::where('user_id', $employeeId)->whereBetween('work_day_start', [$start_date, $end_date])->get();
 
@@ -782,10 +782,10 @@ class PayrollController extends Controller
             $summary->minutes_rendered = $renderedMinutes;
             $summary->save();
 
-            Log::info("Updated Summary ID: {$summary->id} - Late: {$late} mins, Rendered: {$renderedMinutes} mins");
+            // Log::info("Updated Summary ID: {$summary->id} - Late: {$late} mins, Rendered: {$renderedMinutes} mins");
         }
 
-        Log::info("Attendance calculations complete for employee ID: {$employeeId}");
+        // Log::info("Attendance calculations complete for employee ID: {$employeeId}");
 
         return true;
     }
@@ -820,16 +820,8 @@ class PayrollController extends Controller
         $attendance = $this->calculateAttendance($startDate, $endDate, $employee->id);
 
         $regularDays = AttendanceSummary::where('user_id', $employee->id)->where('day_type', "Regular Day")->whereBetween('work_day_start', [$startDate, $endDate])->count();
-        $restDays = AttendanceSummary::where('user_id', $employee->id)->where('day_type', "Rest Day")->whereBetween('work_day_start', [$startDate, $endDate])->count();
-        $regularHolidays = AttendanceSummary::where('user_id', $employee->id)->where('day_type', "Regular Holiday")->whereBetween('work_day_start', [$startDate, $endDate])->count();
-
-        // log::info("User ID          : " . $employee->id);
-        // log::info("Regular Days     : " . $regularDays);
-        // log::info("Rest Days        : " . $restDays);
-        // log::info("Regular Holidays : " . $regularHolidays);
 
         $numberOfPresent = $regularDays;
-
 
         $payrollData = $this->getNumberOfDays(Carbon::parse($startDate), Carbon::parse($endDate));
 
@@ -942,12 +934,36 @@ class PayrollController extends Controller
         $holidayOTPay = $holidayPays['holidayOTPay'];
         $holidayOTMins = $holidayPays['holidayOTMins'];
 
+
+
+        $renderedRestDayMinutes = AttendanceSummary::where('user_id', $employee->id)->where('day_type', 'Rest Day')->whereBetween('work_day_start', [$startDate, $endDate])->sum('minutes_rendered');
+        $renderedRestDayOTMinutes = AttendanceSummary::where('user_id', $employee->id)->where('day_type', 'Rest Day')->whereBetween('work_day_start', [$startDate, $endDate])->sum('minutes_overtime');
+
+        $renderedHolidayMinutes = AttendanceSummary::where('user_id', $employee->id)->where('day_type', 'Regular Holiday')->whereBetween('work_day_start', [$startDate, $endDate])->sum('minutes_rendered');
+
+        // log::info("============================");
+        // log::info("User ID          : " . $employee->id);
+        // log::info("Regular Days     : " . $regularDays);
+        // log::info("Rest Days        : " . $renderedRestDayMinutes);
+        // log::info("Regular Holidays : " . $renderedHolidayMinutes);
+        // log::info("============================");
+
+        $restDayPay = $renderedRestDayMinutes * $perMin * 1.3;
+        $restDayOTPay = $renderedRestDayOTMinutes * $perMin * 1.69;
+
         $earnings = [
             ['earning' => '1', 'name' => 'Basic Pay', 'amount' => $basicPay],
             ['earning' => '2', 'name' => "Over Time Pay ({$totalOvertime} mins)", 'amount' => $overTimePay],
+            
             ['earning' => '3', 'name' => 'Holiday Pay', 'amount' => $holidayPay],
             ['earning' => '4', 'name' => "Holiday OT Pay ({$holidayOTMins} mins)", 'amount' => $holidayOTPay],
+
+            ['earning' => '5', 'name' => "Rest Day Pay (" . (int) $renderedRestDayMinutes . " mins)", 'amount' => $restDayPay],
+            ['earning' => '6', 'name' => "Rest Day OT Pay (" . (int) $renderedRestDayOTMinutes . " mins)", 'amount' => $restDayOTPay],
         ];
+
+        $totalHolidayEarnings = $holidayPay + $holidayOTPay;
+        $totalRestDayEarnings = $restDayPay + $restDayOTPay;
 
 
         // ================ DEDUCTIONS ================
@@ -972,16 +988,32 @@ class PayrollController extends Controller
         $rawAllowance = EmployeeAllowancesModel::where('user_id', $employee->id)->get();
 
         foreach ( $rawAllowance as $allowance ) {
-            $totalAllowance = $totalAllowance + $allowance->allowance->amount;
 
-            $allowances[] = [
-                'allowance' => encrypt($allowance->id),
-                'name' => $allowance->allowance->name,
-                'amount' => $allowance->allowance->amount,
-            ];
+            $schedule = $allowance->allowance->payment_schedule;
+
+            if ($request->cutOff == "First" && $schedule == 1 ) {
+                $allowanceAmount = $allowance->allowance->amount;
+                $totalAllowance = $totalAllowance + $allowanceAmount;
+
+                $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
+            }
+
+            if ($request->cutOff == "Second" && $schedule == 2 ) {
+                $allowanceAmount = $allowance->allowance->amount;
+                $totalAllowance = $totalAllowance + $allowanceAmount;
+
+                $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
+            }
+
+            if ( $schedule == 3 ) {
+                $allowanceAmount = $allowance->allowance->amount / 2;
+                $totalAllowance = $totalAllowance + $allowanceAmount;
+
+                $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
+            }
         }
 
-        $totalEarnings =  $basicPay + $overTimePay + $holidayPay + $holidayOTPay - $absents + $leaveEarnings - $tardiness + $totalAllowance;
+        $totalEarnings =  $basicPay + $overTimePay + $totalHolidayEarnings + $totalRestDayEarnings - $absents + $leaveEarnings - $tardiness + $totalAllowance;
         $totalDeductions =  $employeeShare + $cashAdvance + $loans + $tax;
 
         $payroll = [
@@ -1218,7 +1250,7 @@ class PayrollController extends Controller
 
     public function getPayrollRecord(Request $request)
     {
-        // log::info("PayrollController::getPayrollRecord");
+        log::info("PayrollController::getPayrollRecord");
 
         if ($this->checkUserAdmin() || $this->checkUserEmployee()) {
             $record = PayslipsModel::find(decrypt($request->selectedPayroll));

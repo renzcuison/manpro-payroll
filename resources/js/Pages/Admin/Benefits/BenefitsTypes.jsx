@@ -47,7 +47,7 @@ const BenefitsTypes = () => {
         }
         return scheduleName;
     }
-
+    
     return (
         <Layout title={"BenefitsList"}>
             <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
@@ -93,23 +93,51 @@ const BenefitsTypes = () => {
                                                         <TableCell align="center">{benefit.type}</TableCell>
                                                         <TableCell align="center">{getPaymentScheduleName(benefit.payment_schedule)}</TableCell>
                                                         {benefit.type === 'Amount' && 
-                                                        <>
-                                                            <TableCell align="center">
-                                                                ₱ {new Intl.NumberFormat('en-US', 
-                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.employer_amount)}
-                                                            </TableCell>
-                                                            <TableCell align="center">
-                                                                ₱ {new Intl.NumberFormat('en-US', 
-                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.employee_amount)}
-                                                            </TableCell>
-                                                        </>
+                                                            <>
+                                                                <TableCell align="center">
+                                                                    ₱ {new Intl.NumberFormat('en-US', 
+                                                                    { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.employer_amount)}
+                                                                </TableCell>
+                                                                <TableCell align="center">
+                                                                    ₱ {new Intl.NumberFormat('en-US', 
+                                                                    { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.employee_amount)}
+                                                                </TableCell>
+                                                            </>
                                                         }
                                                         {benefit.type === 'Percentage' && 
+                                                            <>
+                                                                <TableCell align="center">{benefit.employer_percentage}%</TableCell>
+                                                                <TableCell align="center">{benefit.employee_percentage}%</TableCell>
+                                                            </>
+                                                        }
+                                                        {benefit.type === "Bracket Amount" && 
                                                         <>
-                                                            <TableCell align="center">{benefit.employer_percentage}%</TableCell>
-                                                            <TableCell align="center">{benefit.employee_percentage}%</TableCell>
+                                                            <TableCell align="center">
+                                                                ₱ {new Intl.NumberFormat('en-US', 
+                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.lowest_employer_share)} - 
+                                                                ₱ {new Intl.NumberFormat('en-US', 
+                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.highest_employer_share)}
+                                                            </TableCell> 
+
+                                                           <TableCell align="center">
+                                                                ₱ {new Intl.NumberFormat('en-US', 
+                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.lowest_employee_share)} - 
+                                                                ₱ {new Intl.NumberFormat('en-US', 
+                                                                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(benefit.highest_employee_share)}
+                                                            </TableCell>                   
                                                         </>
-                                                        }    
+                                                        }   
+                                                        {benefit.type === "Bracket Percentage" && 
+                                                        <>  
+                                                            <TableCell align="center">
+                                                                {benefit.lowest_employer_share}% - {benefit.highest_employer_share}%
+                                                            </TableCell>
+
+                                                            <TableCell align="center">
+                                                                {benefit.lowest_employee_share}% - {benefit.highest_employee_share}%
+                                                            </TableCell> 
+                                                        </>
+                                                        }  
                                                     </TableRow>
                                                 ))
                                             ) : (

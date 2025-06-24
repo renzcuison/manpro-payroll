@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Paper,
   TextField, Grid, FormControlLabel, Radio, IconButton, Menu, MenuItem, Button, Divider
@@ -674,21 +674,28 @@ const PerformanceEvaluationCreatorPage = () => {
             <Typography color="text.secondary"><i>No commentors found.</i></Typography>
           )}
         </Box>
-
+          
         {/* Approve/Sign Button */}
-        {!evaluationResponse.creator_signature_filepath && (
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-            <Button
-              variant="contained"
-              color="success"
-              size="large"
-              onClick={() => setOpenAcknowledgeModal(true)}
-              disabled={saving}
-            >
-              {saving ? "Saving..." : "Approve"}
-            </Button>
-          </Box>
-        )}
+       {!evaluationResponse.creator_signature_filepath ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={submitting || !form}
+            sx={{ mt: 2, px: 4, py: 1.5, fontWeight: 'bold', bgcolor: '#177604', '&:hover': { bgcolor: '#0d5c27' } }}
+          >
+            {submitting ? "Submitting..." : "Submit Evaluation"}
+          </Button>
+        </Box>
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Typography variant="h6" sx={{ color: 'green', fontWeight: 'bold' }}>
+            You have already approved this form.
+          </Typography>
+        </Box>
+      )}
+
 
         {/* Creator Acknowledge Modal */}
         <PerformanceEvaluationCreatorAcknowledge

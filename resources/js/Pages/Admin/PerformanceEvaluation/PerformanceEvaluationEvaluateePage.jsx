@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, CircularProgress, Accordion, AccordionSummary, AccordionDetails,
@@ -14,6 +14,7 @@ import ScoreLinearBar from './Subsections/ScoreLinearBar';
 import jsPDF from "jspdf";
 import ModalReviewForm from './Modals/ModalReviewForm';
 
+// Utility to calculate section and weighted scores
 const getSectionScore = (section) => {
   if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [], weightedScore: 0 };
   let scoreTotal = 0;
@@ -59,8 +60,6 @@ const getSectionScore = (section) => {
   const weightedScore = ((sectionScore / 100) * (section.score || 0));
   return { sectionScore, subcatScores, weightedScore };
 };
-
-
 
 const PerformanceEvaluationEvaluateePage = () => {
   const { id } = useParams();
@@ -122,252 +121,320 @@ const PerformanceEvaluationEvaluateePage = () => {
     }
   };
 
-const handleDownloadPDF = async () => {
-  const doc = new jsPDF("p", "pt", "a4");
-  const margin = 40;
-  let y = margin;
+ const handleDownloadPDFClick = async () => {
+    const doc = new jsPDF("p", "pt", "a4");
+    const margin = 40;
+    const cardWidth = 520;
+    let y = margin;
+    const gold = [233, 174, 32];
 
-  const form = evaluationResponse.form;
-  const responseMeta = evaluationResponse;
+    const form = evaluationResponse.form;
+    const responseMeta = evaluationResponse;
 
-  // Centered Form Name
-  doc.setFontSize(22);
-  doc.setFont(undefined, "bold");
-  const pageWidth = doc.internal.pageSize.getWidth();
-  doc.text(form.name, pageWidth / 2, y, { align: "center" });
-  y += 36;
+    // HEADER (Single form name, not repeated)
+    doc.setFontSize(18);
+    doc.setTextColor(34, 34, 34);
+    doc.setFont(undefined, "bold");
+    doc.text(form.name, margin, y);
+    y += 32;
 
-  // Employee, Evaluator(s), Period
-  doc.setFontSize(13);
-  doc.setFont(undefined, "normal");
-  doc.text(`Employee Name:`, margin, y);
-  doc.setFont(undefined, "bold");
-  doc.text(`${getFullName(responseMeta?.evaluatee) || ''}`, margin + 120, y);
-  doc.setFont(undefined, "normal");
-  y += 18;
-  doc.text(`Evaluator(s):`, margin, y);
-  doc.setFont(undefined, "bold");
-  doc.text(`${responseMeta?.evaluators ? responseMeta.evaluators.map(getFullName).join(', ') : ''}`, margin + 120, y);
-  doc.setFont(undefined, "normal");
-  y += 18;
-  doc.text(`Period:`, margin, y);
-  doc.setFont(undefined, "bold");
-  doc.text(`${responseMeta.period_start_date} to ${responseMeta.period_end_date}`, margin + 120, y);
-  doc.setFont(undefined, "normal");
-  y += 28;
+    doc.setFontSize(11);
+    doc.setFont(undefined, "normal");
+    doc.text(`Evaluatee:`, margin, y);
+    doc.setFont(undefined, "bold");
+    doc.text(responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : '', margin + 62, y);
+    doc.setFont(undefined, "normal");
+    y += 16;
+    doc.text(`Evaluator:`, margin, y);
+    doc.setFont(undefined, "bold");
+    doc.text(responseMeta?.evaluators ? responseMeta.evaluators.map(getFullName).join(', ') : '', margin + 57, y);
+    doc.setFont(undefined, "normal");
+    y += 16;
+    doc.text(`Period:`, margin, y);
+    doc.setFont(undefined, "bold");
+    doc.text(`${responseMeta.period_start_date} - ${responseMeta.period_end_date}`, margin + 40, y);
+    y += 32;
 
-  // Sections
-  for (const section of form.sections) {
+    // --- SECTIONS ---
+    form.sections.forEach((section, idx) => {
+      // Compact Gold Bar Header
+      const barHeight = 28;
+      const barRadius = 5;
+      doc.setFillColor(...gold);
+      doc.roundedRect(margin, y, cardWidth, barHeight, barRadius, barRadius, "F");
+      doc.setFontSize(15);
+      doc.setFont(undefined, "bold");
+      doc.setTextColor(255, 255, 255);
+      doc.text(section.name, margin + 20, y + barHeight / 3 + 4, { baseline: "middle" });
+
+      y += barHeight; 
+      y += 18;
+
+      // Section Content
+      doc.setFontSize(12);
+      doc.setFont(undefined, "normal");
+      doc.setTextColor(51, 51, 51);
+
+      const { sectionScore, subcatScores } = getSectionScore(section);
+      subcatScores.forEach(({ name, score }) => {
+        doc.setFont(undefined, "normal");
+        doc.text(name, margin + 30, y);
+        doc.text(`${score.toFixed(2)} %`, margin + cardWidth - 35, y, { align: "right" });
+        y += 18;
+      });
+
+      doc.setFont(undefined, "bold");
+      doc.text("Total Rating", margin + 30, y);
+      doc.text(`${sectionScore.toFixed(2)} %`, margin + cardWidth - 35, y, { align: "right" });
+      y += 20;
+
+      // Divider and space before next section
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(1.2);
+      doc.line(margin, y, margin + cardWidth, y);
+      y += 20;
+    });
+
+    // --- Weighted Scores Card ---
+    const weightedBarHeight = 28;
+    doc.setFillColor(...gold);
+    doc.roundedRect(margin, y, cardWidth, weightedBarHeight, 5, 5, "F");
     doc.setFontSize(15);
     doc.setFont(undefined, "bold");
-    doc.text(`${section.name}`, margin, y);
-    doc.setFont(undefined, "normal");
+    doc.setTextColor(255, 255, 255);
+    doc.text("Weighted Scores", margin + 20, y + weightedBarHeight / 3 + 4, { baseline: "middle" });
+
+    y += weightedBarHeight;
     y += 18;
 
-    if (section.category) {
-      doc.setFontSize(12);
-      doc.setFont(undefined, "italic");
-      doc.text(section.category, margin + 8, y);
-      doc.setFont(undefined, "normal");
-      y += 16;
-    }
-
-    for (const subcat of section.subcategories) {
-      doc.setFontSize(12);
-      doc.setFont(undefined, "bold");
-      doc.text(subcat.name, margin + 16, y);
-      doc.setFont(undefined, "normal");
-      y += 14;
-
-      doc.setFontSize(11);
-      doc.text(`Response Type:`, margin + 32, y);
-      doc.text(
-        `${subcat.subcategory_type?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`,
-        margin + 120,
-        y
-      );
-      y += 13;
-
-      if (subcat.description) {
-        doc.text(`Description:`, margin + 32, y);
-        const descLines = doc.splitTextToSize(subcat.description, 350);
-        doc.text(descLines, margin + 120, y);
-        y += descLines.length * 12;
-      }
-
-      // Answers
-      let answerText = '';
-      if (subcat.subcategory_type === 'multiple_choice') {
-        const selected = subcat.options.find(opt => opt.option_answer);
-        answerText = selected ? selected.label : "(No answer)";
-      } else if (subcat.subcategory_type === 'checkbox') {
-        const selected = subcat.options.filter(opt => opt.option_answer).map(opt => opt.label);
-        answerText = selected.length > 0 ? selected.join(', ') : "(No answer)";
-      } else if (subcat.subcategory_type === 'linear_scale') {
-        answerText = typeof subcat.percentage_answer?.value === 'number'
-          ? String(subcat.percentage_answer.value)
-          : "(No answer)";
-      } else if (subcat.subcategory_type === 'short_answer' || subcat.subcategory_type === 'long_answer') {
-        answerText = subcat.text_answer?.answer || "(No answer)";
-      }
-      doc.text(`Answer/s:`, margin + 32, y);
-      const answerLines = doc.splitTextToSize(answerText, 350);
-      doc.text(answerLines, margin + 120, y);
-      y += answerLines.length * 13 + 8;
-
-      // page break if needed
-      if (y > 740) { doc.addPage(); y = margin; }
-    }
+    // Table Header (aligned columns)
+    doc.setFontSize(12);
+    doc.setFont(undefined, "bold");
+    doc.setTextColor(51, 51, 51);
+    doc.text("Section (Score Set)", margin + 20, y);
+    doc.text("Subcategory Average", margin + 220, y);
+    doc.text("Weighted Average", margin + 410, y);
     y += 10;
-  }
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(1.2);
+    y += 10;
 
-  // Evaluator Comments
-  if (responseMeta.evaluators && responseMeta.evaluators.length > 0) {
-    for (const evaluator of responseMeta.evaluators) {
-      doc.setFontSize(13);
-      doc.setFont(undefined, "bold");
-      doc.text("Evaluator Comment:", margin, y);
-      doc.setFont(undefined, "normal");
-      y += 16;
-      const evalComment = evaluator.comment || "(No comment provided)";
-      const evalCommentLines = doc.splitTextToSize(evalComment, 450);
-      doc.text(evalCommentLines, margin + 20, y);
-      y += evalCommentLines.length * 13 + 8;
-      if (y > 740) { doc.addPage(); y = margin; }
-    }
-  }
+    doc.setFontSize(12);
+    doc.setFont(undefined, "normal");
+    let totalWeighted = 0;
+    const weightedSections = form.sections.filter(section =>
+      section.subcategories.some(sc =>
+        sc.subcategory_type === 'multiple_choice' ||
+        sc.subcategory_type === 'checkbox' ||
+        sc.subcategory_type === 'linear_scale'
+      )
+    );
+    weightedSections.forEach(section => {
+      const { sectionScore, weightedScore } = getSectionScore(section);
+      totalWeighted += weightedScore;
+      doc.text(`${section.name} - ${section.score || 0}%`, margin + 20, y);
+      doc.text(`${sectionScore.toFixed(2)} %`, margin + 280, y, { align: "right" });
+      doc.text(`${weightedScore.toFixed(2)} %`, margin + 495, y, { align: "right" });
+      y += 18;
+    });
+    // Table Total
+    doc.setFont(undefined, "bold");
+    doc.setTextColor(51,153,85);
+    doc.text("Total", margin + 20, y);
+    doc.text(`${totalWeighted.toFixed(2)} %`, margin + 495, y, { align: "right" });
+    y += 18;
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(1.2);
+    doc.line(margin, y, margin + cardWidth, y);
+    y += 28;
 
-  // Commentors
-  if (responseMeta.commentors && responseMeta.commentors.length > 0) {
-    let idx = 1;
-    for (const commentor of responseMeta.commentors) {
+    // --- Comments Section ---
+    const commentsBarHeight = 28;
+    doc.setFillColor(...gold);
+    doc.roundedRect(margin, y, cardWidth, weightedBarHeight, 5, 5, "F");
+    doc.setFontSize(15);
+    doc.setFont(undefined, "bold");
+    doc.setTextColor(255, 255, 255);
+    doc.text("Comments", margin + 20, y + weightedBarHeight / 3 + 4, { baseline: "middle" });
+
+    y += commentsBarHeight;
+    y += 20;
+
+    // Evaluator
+    if (Array.isArray(responseMeta.evaluators) && responseMeta.evaluators.length > 0) {
       doc.setFontSize(12);
       doc.setFont(undefined, "bold");
-      doc.text(`Commenter ${idx}: ${getFullName(commentor)}`, margin, y);
-      doc.setFont(undefined, "normal");
-      y += 15;
-      const comment = commentor.comment || "(No comment provided)";
-      const commentLines = doc.splitTextToSize(comment, 420);
-      doc.text(commentLines, margin + 20, y);
-      y += commentLines.length * 13 + 8;
-      idx++;
-      if (y > 740) { doc.addPage(); y = margin; }
-    }
-  }
-
-  // Signatures header
-  y += 20;
-  doc.setFontSize(14);
-  doc.setFont(undefined, "bold");
-  doc.text("Signatures:", margin, y);
-  doc.setFont(undefined, "normal");
-  y += 12;
-
-  // Gather all signatures
-  const signatureBlocks = [];
-
-  // Creator (if you have a creator name, otherwise fallback)
-  if (creatorSignatureFilePath) {
-    // Try to find the creator's name or fallback to "Creator"
-    let creatorName = "Creator";
-    if (form?.creator_user_name) creatorName = form.creator_user_name + " (Creator)";
-    signatureBlocks.push({
-      url: creatorSignatureFilePath,
-      name: creatorName,
-    });
-  }
-
-  // Evaluatee
-  if (evaluateeSignatureFilePath) {
-    signatureBlocks.push({
-      url: evaluateeSignatureFilePath,
-      name: responseMeta?.evaluatee
-        ? `${getFullName(responseMeta.evaluatee)} (Evaluatee)`
-        : "Evaluatee",
-    });
-  }
-
-  // Evaluators
-  if (responseMeta?.evaluators) {
-    for (const evaluator of responseMeta.evaluators) {
-      const signatureFilePath = signatureFilePaths[evaluator.evaluator_id];
-      if (signatureFilePath) {
-        signatureBlocks.push({
-          url: signatureFilePath,
-          name: `${getFullName(evaluator)} (Evaluator)`,
-        });
-      }
-    }
-  }
-
-  // Commentors
-  if (responseMeta?.commentors) {
-    for (const commentor of responseMeta.commentors) {
-      const signatureFilePath = signatureFilePaths[commentor.commentor_id];
-      if (signatureFilePath) {
-        signatureBlocks.push({
-          url: signatureFilePath,
-          name: `${getFullName(commentor)} (Commentor)`,
-        });
-      }
-    }
-  }
-
-  // Helper to render a signature cell
-  async function drawSignatureCell(sig, x, y, cellWidth) {
-    const imgWidth = 120;
-    const imgHeight = 40;
-    try {
-      if(!sig.url || sig.url === "data:image/png;base64,")
-        throw new Error();
-      const img = new window.Image();
-      img.src = sig.url;
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
+      doc.setTextColor(51, 51, 51);
+      doc.text("Evaluator:", margin + 20, y);
+      y += 20; // LESS space here
+      responseMeta.evaluators.forEach((evaluator) => {
+        if (y > 700) { doc.addPage(); y = margin; }
+        doc.setFont(undefined, "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(34,34,34);
+        doc.text(getFullName(evaluator), margin + 20, y);
+        y += 18;
+        doc.setFont(undefined, "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(80,80,80);
+        let comment = evaluator.comment || "";
+        if (comment) {
+          const commentLines = doc.splitTextToSize(comment, 490);
+          doc.text(commentLines, margin + 20, y);
+          y += commentLines.length * 13 + 3;
+        } else {
+          doc.text("(No comment provided)", margin+16, y);
+          y += 20;
+        }
+        y += 6;
       });
-      const imgX = x + (cellWidth - imgWidth) / 2;
-      doc.addImage(img, "PNG", imgX, y, imgWidth, imgHeight);
-      doc.setFontSize(11);
+
+      // Divider and extra space before next section
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(1.2);
+      doc.line(margin, y, margin + cardWidth, y);
+      y += 30; // <<-- Add more space here (try 30 or more)
+    }
+
+    // Commentors
+    if (Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0) {
+      responseMeta.commentors.forEach((commentor, idx) => {
+        if (y > 700) { doc.addPage(); y = margin; }
+        doc.setFont(undefined, "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(51, 51, 51);
+        doc.text(`Commentor ${idx + 1}:`, margin + 20, y);
+        y += 20;
+        doc.setFont(undefined, "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(34,34,34);
+        doc.text(getFullName(commentor), margin + 20, y);
+        y += 18;
+        doc.setFont(undefined, "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(80,80,80);
+        let comment = commentor.comment || "";
+        if (comment) {
+          const commentLines = doc.splitTextToSize(comment, 490);
+          doc.text(commentLines, margin + 20, y);
+          y += commentLines.length * 13 + 3;
+        } else {
+          doc.text("(No comment provided)", margin+16, y);
+          y += 20;
+        }
+        y += 6; 
+        // Draw a horizontal divider after each commentor's comment
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(1);
+        doc.line(margin, y, margin + cardWidth, y);
+        y += 20; 
+      });
+    }
+    y += 18;
+
+    // --- Signatures grid (3 per row, white rounded cards) ---
+    const signatureBarHeight = 28;
+    doc.setFillColor(...gold);
+    doc.roundedRect(margin, y, cardWidth, weightedBarHeight, 5, 5, "F");
+    doc.setFontSize(15);
+    doc.setFont(undefined, "bold");
+    doc.setTextColor(255, 255, 255);
+    doc.text("Signatures", margin + 20, y + weightedBarHeight / 3 + 4, { baseline: "middle" });
+
+    y += signatureBarHeight;
+    y += 18;
+
+    const signatureBlocks = [];
+    if (creatorSignatureFilePath) {
+      let creatorName = form?.creator_user_name ? `${ form.creator_user_name } (Creator)` : "Creator";
+      let creatorDate = responseMeta?.media[0]?.created_at.split('T')[0] ?? '';
+      signatureBlocks.push({
+        url: creatorSignatureFilePath,
+        name: creatorName,
+        date: creatorDate,
+      });
+    }
+    if (evaluateeSignatureFilePath) {
+      let evalDate = responseMeta?.media[1]?.created_at.split('T')[0] ?? '';
+      signatureBlocks.push({
+        url: evaluateeSignatureFilePath,
+        name: responseMeta?.evaluatee ? `${getFullName(responseMeta.evaluatee)} (Evaluatee)` : "Evaluatee",
+        date: evalDate,
+      });
+    }
+    if (responseMeta?.evaluators) {
+      for (const evaluator of responseMeta.evaluators) {
+        const signatureFilePath = signatureFilePaths[evaluator.evaluator_id];
+        if (signatureFilePath) {
+          let evalDate = evaluator.updated_at ? evaluator.updated_at.slice(0, 10) : "";
+          signatureBlocks.push({
+            url: signatureFilePath,
+            name: `${getFullName(evaluator)} (Evaluator)`,
+            date: evalDate,
+          });
+        }
+      }
+    }
+    if (responseMeta?.commentors) {
+      for (const commentor of responseMeta.commentors) {
+        const signatureFilePath = signatureFilePaths[commentor.commentor_id];
+        if (signatureFilePath) {
+          let commDate = commentor.updated_at ? commentor.updated_at.slice(0, 10) : "";
+          signatureBlocks.push({
+            url: signatureFilePath,
+            name: `${getFullName(commentor)} (Commentor)`,
+            date: commDate,
+          });
+        }
+      }
+    }
+
+    const colWidth = 155, sigImgHeight = 36, sigImgWidth = 100;
+    let col = 0, row = 0, startY = y;
+    for (let i = 0; i < signatureBlocks.length; ++i) {
+      const sig = signatureBlocks[i];
+      const x = margin + col * (colWidth + 8);
+      const y0 = startY + row * 70;
+
+      try {
+        if (!sig.url || sig.url === "data:image/png;base64,")
+          throw new Error();
+        const img = new window.Image();
+        img.src = sig.url;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+        doc.addImage(img, "PNG", x + (colWidth-sigImgWidth)/2, y0 + 6, sigImgWidth, sigImgHeight);
+      } catch (e) {
+        doc.setFontSize(9);
+        doc.setFont(undefined, "italic");
+        doc.setTextColor(180, 180, 180);
+        doc.text("(no signature)", x + colWidth/2, y0 + 22, { align: "center" });
+      }
+      // Signature owner name
+      doc.setFontSize(9);
       doc.setFont(undefined, "bold");
-      doc.text(sig.name, x + cellWidth / 2, y + imgHeight + 16, { align: "center" });
-    } catch (e) {
-      doc.setFontSize(10);
-      doc.setFont(undefined, "italic");
-      doc.text(`${sig.name} (signature not found)`, x + cellWidth / 2, y + 15, { align: "center" });
-    }
-  }
+      doc.setTextColor(90,90,90);
+      doc.text(sig.name, x + colWidth/2, y0 + 53, { align: "center" });
 
-  // Draw signatures in 2-column rows
-  const cellWidth = 210; // adjust as needed
-  const startX = margin; // left margin
-  let sigY = y + 10; // starting y for signatures
-  for (let i = 0; i < signatureBlocks.length; i += 2) {
-    // First column
-    await drawSignatureCell(signatureBlocks[i], startX, sigY, cellWidth);
-    // Second column (if exists)
-    if (signatureBlocks[i + 1]) {
-      await drawSignatureCell(signatureBlocks[i + 1], startX + cellWidth + 40, sigY, cellWidth);
-    }
-    sigY += 70; // vertical space per row
-    if (sigY > 740) { doc.addPage(); sigY = margin; }
-  }
+      // Signature date (on the line below name)
+      if (sig.date) {
+        doc.setFontSize(9);
+        doc.setFont(undefined, "normal");
+        doc.setTextColor(120,120,120);
+        doc.text(sig.date, x + colWidth/2, y0 + 66, { align: "center" });
+      }
 
-  doc.save(`evaluation_${form.name.replace(/\s+/g, '_')}.pdf`);
-};
-  const getOrderLabel = (idx) => {
-    const n = idx + 1;
-    if (n === 1) return "First";
-    if (n === 2) return "Second";
-    if (n === 3) return "Third";
-    if (n === 4) return "Fourth";
-    if (n === 5) return "Fifth";
-    return `${n}th`;
+      col++;
+      if (col === 3) { col = 0; row++; }
+    }
+
+    doc.save(`evaluation_${form.name.replace(/\s+/g, '_')}.pdf`);
   };
 
   const form = evaluationResponse.form;
   const responseMeta = evaluationResponse;
-
   if (loading) {
     return (
       <Layout title="Performance Evaluation Answers">
@@ -377,7 +444,6 @@ const handleDownloadPDF = async () => {
       </Layout>
     );
   }
-
   if (!form || !responseMeta) {
     return (
       <Layout title="Performance Evaluation Answers">
@@ -387,30 +453,25 @@ const handleDownloadPDF = async () => {
       </Layout>
     );
   }
-
   const allCommentors = Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0
     ? responseMeta.commentors
     : [];
-
   const allEvaluators = Array.isArray(responseMeta.evaluators) && responseMeta.evaluators.length > 0
     ? responseMeta.evaluators
     : [];
-
   const hasAcknowledged = Boolean(evaluateeSignatureFilePath);
 
-  return <>
+  return (
     <Layout title="Performance Evaluation Answers">
-      <Box
-        sx={{
-          mt: 5,
-          p: 5,
-          bgcolor: 'white',
-          borderRadius: '8px',
-          maxWidth: '1000px',
-          mx: 'auto',
-          boxShadow: 3,
-        }}
-      >
+      <Box sx={{
+        mt: 5,
+        p: 5,
+        bgcolor: 'white',
+        borderRadius: '8px',
+        maxWidth: '1000px',
+        mx: 'auto',
+        boxShadow: 3,
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, position: 'relative' }}>
           <IconButton
             onClick={handleSettingsClick}
@@ -436,48 +497,24 @@ const handleDownloadPDF = async () => {
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
-            <MenuItem
-              onClick={() => {
-                handleSettingsClose();
-                setTimeout(() => navigate('/admin/performance-evaluation'), 100);
-              }}
-            >Exit Form</MenuItem>
-            <MenuItem
-              onClick={() => {
-                handleSettingsClose();
-                setReviewModalOpen(true);
-              }}
-            >
-              View Form
-            </MenuItem>
-            
-            <MenuItem onClick={async () => {
-              handleSettingsClose();
-              await handleDownloadPDF();
-            }}>Download</MenuItem>
+            <MenuItem onClick={() => { handleSettingsClose(); setTimeout(() => navigate('/admin/performance-evaluation'), 100); }}>Exit Form</MenuItem>
+            <MenuItem onClick={() => { handleSettingsClose(); setReviewModalOpen(true); }}>View Form</MenuItem>
+            <MenuItem onClick={async () => { handleSettingsClose(); await handleDownloadPDFClick(); }}>Download</MenuItem>
           </Menu>
-                    <ModalReviewForm
-              open={reviewModalOpen}
-              onClose={() => setReviewModalOpen(false)}
-              id={id} // pass the evaluation id
-            />
-          <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>
-            {form.name}
-          </Typography>
+          <ModalReviewForm open={reviewModalOpen} onClose={() => setReviewModalOpen(false)} id={id} />
+          <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold' }}>{form.name}</Typography>
         </Box>
         <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
           Employee Name: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
-            evaluator => getFullName(evaluator)
-          ).join(' & ') : ''}
+          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(evaluator => getFullName(evaluator)).join(' & ') : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
         </Typography>
 
-        {/* Sections */}
+        {/* Sections as cards */}
         {(!form.sections || form.sections.length === 0) && (
           <Typography>No sections available for this form.</Typography>
         )}
@@ -527,11 +564,11 @@ const handleDownloadPDF = async () => {
                 </Box>
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 2 }}>
+                {/* Scored subcategories (bars) */}
                 {hasScorableSubcats && (
                   <>
-                    {/* SCORES BAR CHART */}
                     <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
-                      {subcatScores.map(({ name, score, description, id }, idx) => (
+                      {subcatScores.map(({ name, score, description, id }) => (
                         <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={id}>
                           <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
                             <Box
@@ -566,9 +603,9 @@ const handleDownloadPDF = async () => {
                                     maxWidth: 320,
                                     fontSize: '0.97rem',
                                     pointerEvents: 'none',
-                                    wordBreak: 'break-word',    
-                                    overflow: 'auto',          
-                                    maxHeight: 200,             
+                                    wordBreak: 'break-word',
+                                    overflow: 'auto',
+                                    maxHeight: 200,
                                     whiteSpace: 'pre-line',
                                   }}
                                 >
@@ -610,9 +647,9 @@ const handleDownloadPDF = async () => {
                                     maxWidth: 320,
                                     fontSize: '0.97rem',
                                     pointerEvents: 'none',
-                                    wordBreak: 'break-word',    
-                                    overflow: 'auto',          
-                                    maxHeight: 200,             
+                                    wordBreak: 'break-word',
+                                    overflow: 'auto',
+                                    maxHeight: 200,
                                     whiteSpace: 'pre-line',
                                   }}
                                 >
@@ -630,10 +667,7 @@ const handleDownloadPDF = async () => {
                         </Grid>
                       ))}
                     </Box>
-
                     <Divider sx={{ my: 2 }} />
-
-                    {/* Section Total */}
                     <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
                       <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }}>
                         <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
@@ -653,52 +687,18 @@ const handleDownloadPDF = async () => {
                     </Box>
                   </>
                 )}
-                {/* SHORT/LONG ANSWERS WITH HOVER OVERLAY */}
+                {/* Open-ended/Text answers (Section 4 style) */}
                 {openAnswers.length > 0 && (
                   <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 3, mb: 1 }}>
                     {openAnswers.map(subcat => (
                       <Box key={subcat.id} sx={{ mb: 2 }}>
-                        <Box
-                          onMouseEnter={() => setHoveredOpenAnswer(subcat.id)}
-                          onMouseLeave={() => setHoveredOpenAnswer(null)}
-                          sx={{ display: 'inline-block', fontWeight: 'bold', mb: 1, position: 'relative', cursor: 'default' }}
-                        >
+                        <Typography sx={{ fontWeight: 'bold', mb: 0.5 }}>
                           Open-ended Answers: {subcat.name}
-                          {hoveredOpenAnswer === subcat.id && !!subcat.description && (
-                            <Box
-                              sx={{
-                                position: 'absolute',
-                                left: 0,
-                                top: '100%',
-                                mt: 1,
-                                bgcolor: '#fffde7',
-                                color: '#444',
-                                zIndex: 10,
-                                boxShadow: 3,
-                                borderRadius: 1,
-                                border: '1px solid #ffe082',
-                                px: 2,
-                                py: 1,
-                                minWidth: 200,
-                                maxWidth: 320,
-                                fontSize: '0.97rem',
-                                pointerEvents: 'none',
-                                wordBreak: 'break-word',
-                                overflow: 'auto',
-                                maxHeight: 200,
-                                whiteSpace: 'pre-line',
-                              }}
-                            >
-                              <Typography variant="body2" sx={{ fontWeight: 500, color: '#E9AE20', mb: 0.5 }}>
-                                Description
-                              </Typography>
-                              <Typography variant="body2">{subcat.description}</Typography>
-                            </Box>
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#444', flex: 1 }}>
+                          {subcat.text_answer?.answer || (
+                            <span style={{ color: "#bbb", fontStyle: "italic" }}>No answer</span>
                           )}
-                        </Box>
-                        <Typography variant="body2" sx={{ color: '#444', flex: 1, mt: 1 }}>
-                          {subcat.text_answer?.answer ||
-                            <span style={{ color: "#bbb", fontStyle: "italic" }}>No answer</span>}
                         </Typography>
                       </Box>
                     ))}
@@ -709,7 +709,7 @@ const handleDownloadPDF = async () => {
           );
         })}
 
-        {/* --- Weighted Section Scores Summary (styled like sections) --- */}
+        {/* Weighted Section Scores Summary */}
         <Box sx={{ mt: 6, mb: 4, bgcolor: 'white', borderRadius: 2, boxShadow: 3 }}>
           <Box
             sx={{
@@ -775,7 +775,7 @@ const handleDownloadPDF = async () => {
           </Box>
         </Box>
 
-        {/* All Evaluators Section - Each in its own box, stacked vertically */}
+        {/* Evaluator Comments */}
         <Box sx={{ mt: 6 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
             Evaluator Comments:
@@ -865,7 +865,7 @@ const handleDownloadPDF = async () => {
           )}
         </Box>
 
-        {/* All Commentors Section - Each in its own box, stacked vertically */}
+        {/* All Commentors Section */}
         <Box sx={{ mt: 6 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
             Comments:
@@ -891,9 +891,6 @@ const handleDownloadPDF = async () => {
                     boxShadow: 2,
                   }}
                 >
-                  {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-                    {getOrderLabel(i)} Commentor
-                  </Typography> */}
                   <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
                     {getFullName(commentor)}
                   </Typography>
@@ -992,7 +989,7 @@ const handleDownloadPDF = async () => {
         />
       </Box>
     </Layout>
-  </>;
+  );
 };
 
 export default PerformanceEvaluationEvaluateePage;
