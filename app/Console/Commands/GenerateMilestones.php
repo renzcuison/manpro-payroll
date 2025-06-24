@@ -94,22 +94,42 @@ class GenerateMilestones extends Command
                 // 📆 Monthsary within next month range (exact date)
                 if ($user->date_start) {
                     $monthsSinceStart = $user->date_start->diffInMonths($today);
+
                     if ($monthsSinceStart > 0) {
                         $nextMonthsary = $user->date_start
                             ->copy()
                             ->addMonths($monthsSinceStart + 1);
+
                         if ($nextMonthsary->between($today, $oneMonthLater)) {
+                            $totalMonths = $monthsSinceStart + 1;
+                            $years = intdiv($totalMonths, 12);
+                            $months = $totalMonths % 12;
+
+                            $descriptionParts = [];
+                            if ($years > 0) {
+                                $descriptionParts[] =
+                                    $years . ' yr' . ($years > 1 ? 's' : '');
+                            }
+                            if ($months > 0) {
+                                $descriptionParts[] =
+                                    $months .
+                                    ' month' .
+                                    ($months > 1 ? 's' : '');
+                            }
+
+                            $description =
+                                implode(' and ', $descriptionParts) . ' Work';
+
                             Milestone::firstOrCreate([
                                 'user_id' => $user->id,
                                 'type' => 'monthsary',
                                 'date' => $nextMonthsary->toDateString(),
-                                'description' =>
-                                    $monthsSinceStart + 1 . " Month Work",
+                                'description' => $description,
                                 'client_id' => $user->client_id,
                             ]);
 
                             Log::info(
-                                "Upcoming monthsary milestone created for {$user->name}"
+                                "Upcoming monthsary milestone created for {$user->name}: {$description}"
                             );
                         }
                     }
