@@ -12,6 +12,70 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import Swal from 'sweetalert2';
 
+const STATUS_STYLES = {
+    Pending: {
+        background: '#f89c14',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Sent: {
+        background: '#fba922',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    New: {
+        background: '#f06c1c',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Submitted: {
+        background: '#68c906',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        width: 100,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Done: {
+        background: '#2464ac',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Disabled: {
+        background: '#e57373',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    }
+};
+
+
 const getEvaluationRoleRoute = (row) => {
     switch (row.role) {
         case "Creator":
@@ -34,6 +98,7 @@ const STATUS_OPTIONS = [
     { value: 'Pending', label: "Pending" },
     { value: 'Submitted', label: "Submitted" },
     { value: 'Done', label: "Done" },
+    { value: 'Disabled', label: "Disabled"}
 ];
 
 const PerformanceEvaluationList = () => {
@@ -44,11 +109,10 @@ const PerformanceEvaluationList = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [evaluationResponses, setEvaluationResponses] = useState([]);
-    const [totalCount, setTotalCount] = useState(0);
 
     // Pagination state
     const [page, setPage] = useState(0); // 0-based for TablePagination
-    const [rowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     // Search state
     const [searchValue, setSearchValue] = useState('');
@@ -59,13 +123,15 @@ const PerformanceEvaluationList = () => {
 
     useEffect(() => {
         setIsLoading(true);
+        const statusToSend = statusFilter && statusFilter !== 'Disabled' ? statusFilter : undefined;
+        const fetchAll = statusFilter === 'Disabled' || statusFilter === '';
         axiosInstance.get('/getEvaluationResponses', {
             headers,
             params: {
-                page: page + 1, // backend is 1-based
-                limit: rowsPerPage,
+                page: 1,
+                limit: fetchAll ? 1000 : rowsPerPage,
                 search: searchValue,
-                status: statusFilter || undefined, // only send if set
+                status: statusToSend,
                 order_by: [
                     {key: "status", sort_order: "asc"},
                     {key: "created_at", sort_order: "asc"},
@@ -76,24 +142,26 @@ const PerformanceEvaluationList = () => {
                 ]
             }
         })
-            .then((response) => {
-                if (response.data.status === 200) {
-                    setEvaluationResponses(response.data.evaluationResponses);
-                    setTotalCount(response.data.totalResponseCount);
-                } else {
-                    setEvaluationResponses([]);
-                    setTotalCount(0);
-                }
-            })
-            .catch(() => {
+        .then((response) => {
+            if (response.data.status === 200) {
+                setEvaluationResponses(response.data.evaluationResponses);
+            } else {
                 setEvaluationResponses([]);
-                setTotalCount(0);
-            })
-            .finally(() => setIsLoading(false));
-    }, [page, rowsPerPage, searchValue, statusFilter]);
+            }
+        })
+        .catch(() => {
+            setEvaluationResponses([]);
+        })
+        .finally(() => setIsLoading(false));
+    }, [searchValue, statusFilter, rowsPerPage]);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     // Search handlers
@@ -124,16 +192,14 @@ const PerformanceEvaluationList = () => {
         return now < periodStart || now > periodEnd;
     };
 
-    // Handle row click for period validation
+    // Handle row click for period validation and Sent status (disabled takes precedence)
     const handleRowClick = (row) => {
         const now = new Date();
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
-        if (!periodStart || !periodEnd) {
-            navigate(getEvaluationRoleRoute(row));
-            return;
-        }
-        if (now < periodStart || now > periodEnd) {
+        const isDisabled = periodStart && periodEnd && (now < periodStart || now > periodEnd);
+
+        if (isDisabled) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Action not allowed',
@@ -142,20 +208,37 @@ const PerformanceEvaluationList = () => {
             });
             return;
         }
+
+        if (row.status === "Sent") {
+            Swal.fire({
+                icon: 'info',
+                title: 'This Evaluation is still on going.',
+                text: "You can't Access this Form yet.",
+                confirmButtonColor: '#f5c242'
+            });
+            return;
+        }
+
         navigate(getEvaluationRoleRoute(row));
     };
- 
-    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-        <TablePagination
-            rowsPerPageOptions={[10, 25, 50]}
-            component="div"
-            count={totalCount}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-    </Box>
+
+    // Filtering
+    let filteredResponses = evaluationResponses;
+    if (statusFilter === 'Disabled') {
+        filteredResponses = evaluationResponses.filter(isRowDisabled);
+    } else if (statusFilter === '') { // "All"
+        filteredResponses = evaluationResponses.filter(row => !isRowDisabled(row));
+    } else {
+        filteredResponses = evaluationResponses.filter(
+            row => row.status === statusFilter && !isRowDisabled(row)
+        );
+    }
+    const paginatedResponses = filteredResponses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+    // Helper to render status as a styled "chip"
+    const renderStatus = (status) => (
+        <span style={STATUS_STYLES[status] || STATUS_STYLES.Pending}>{status}</span>
+    );
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -241,14 +324,14 @@ const PerformanceEvaluationList = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {evaluationResponses.length === 0 ? (
+                                            {paginatedResponses.length === 0 ? (
                                                 <TableRow>
                                                     <TableCell colSpan={6} align="center">
                                                         No evaluation responses found.
                                                     </TableCell>
                                                 </TableRow>
                                             ) : (
-                                                evaluationResponses.map((row, idx) => (
+                                                paginatedResponses.map((row, idx) => (
                                                     <TableRow
                                                         key={row.id}
                                                         hover
@@ -264,7 +347,7 @@ const PerformanceEvaluationList = () => {
                                                         <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
                                                         <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
                                                         <TableCell align="center">{row.role}</TableCell>
-                                                        <TableCell align="center">{row.status}</TableCell>
+                                                        <TableCell align="center">{renderStatus(row.status)}</TableCell>
                                                     </TableRow>
                                                 ))
                                             )}
@@ -274,13 +357,13 @@ const PerformanceEvaluationList = () => {
                                 {/* Pagination controls */}
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                                     <TablePagination
-                                        rowsPerPageOptions={[10]}
+                                        rowsPerPageOptions={[10, 25, 50]}
                                         component="div"
-                                        count={totalCount}
+                                        count={filteredResponses.length}
                                         rowsPerPage={rowsPerPage}
                                         page={page}
                                         onPageChange={handleChangePage}
-                                        onRowsPerPageChange={() => { }}
+                                        onRowsPerPageChange={handleChangeRowsPerPage}
                                     />
                                 </Box>
                             </>

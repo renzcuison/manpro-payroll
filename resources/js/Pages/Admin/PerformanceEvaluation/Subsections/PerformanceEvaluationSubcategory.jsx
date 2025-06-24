@@ -62,7 +62,7 @@ export default function PerformanceEvaluationFormSubcategory({
 }) {
     const {
         subcategory, subcategoryId,
-        editSubcategory,
+        cancelEditSubcategory, editSubcategory,
         subcategoryType, subcategoryTypeDisplay, switchSubcategoryType,
         subcategoryName, setSubcategoryName,
         subcategoryDescription, setSubcategoryDescription,
@@ -71,7 +71,16 @@ export default function PerformanceEvaluationFormSubcategory({
     } = useEvaluationFormSubcategory(subcategoryInit);
 
     const expanded = (expandedSubcategoryId === subcategoryId);
-    const handleExpand = () => setExpandedSubcategoryId(!expanded ? subcategoryId : undefined);
+    const handleCancel = () => {
+        cancelEditSubcategory();
+        setExpandedSubcategoryId();
+    };
+    const handleExpand = () => {
+        if(expanded) {
+            setExpandedSubcategoryId();
+            cancelEditSubcategory();
+        } else setExpandedSubcategoryId(subcategoryId);
+    }
 
     return <SubcategoryContext.Provider value={{
         options, draggedOptionId,
@@ -165,7 +174,7 @@ export default function PerformanceEvaluationFormSubcategory({
                     <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                         <Box>
                             <Button
-                            onClick={() => {}}
+                            onClick={ handleCancel }
                             variant="contained"
                             sx={{
                                 backgroundColor: '#727F91',
@@ -387,51 +396,52 @@ function LinearScaleEditor() {
         <Box sx={{ mb: 2 }}>
             {
                 options.map((option) => (
-                <Grid container spacing={2} key={option.id} alignItems="center" sx={{ mb: 1 }}>
-                    <Grid item xs={1}>
-                        <Typography variant="body1">{option.order}.</Typography>
+                    (option.action != 'delete') &&
+                    <Grid container spacing={2} key={option.id} alignItems="center" sx={{ mb: 1 }}>
+                        <Grid item xs={1}>
+                            <Typography variant="body1">{option.order}.</Typography>
+                        </Grid>
+                        <Grid item xs={4}>
+                        <TextField
+                            variant="outlined"
+                            label="Label"
+                            value={option.label ?? ''}
+                            onChange={ e => handleChangeLabel(option, e) }
+                            fullWidth
+                        />
+                        </Grid>
+                        <Grid item xs={6}>
+                        <TextField
+                            variant="outlined"
+                            label="Description (optional)"
+                            value={option.description ?? ''}
+                            onChange={ e => handleChangeDescription(option, e) }
+                            fullWidth
+                            inputProps={{
+                                maxLength: 250,
+                                style: {
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                }
+                            }}
+                            sx={{
+                                minWidth: 500,
+                                maxWidth: "100%"
+                            }}
+                        />
+                        </Grid>
+                        <Grid item xs={1}>{
+                            options.length > 2 && (
+                                <IconButton
+                                onClick={ () => deleteOption(option) }
+                                sx={{ color: 'gray' }}
+                                >
+                                <CloseIcon />
+                                </IconButton>
+                            )
+                        }</Grid>
                     </Grid>
-                    <Grid item xs={4}>
-                    <TextField
-                        variant="outlined"
-                        label="Label"
-                        value={option.label ?? ''}
-                        onChange={ e => handleChangeLabel(option, e) }
-                        fullWidth
-                    />
-                    </Grid>
-                    <Grid item xs={6}>
-                    <TextField
-                        variant="outlined"
-                        label="Description (optional)"
-                        value={option.description ?? ''}
-                        onChange={ e => handleChangeDescription(option, e) }
-                        fullWidth
-                        inputProps={{
-                            maxLength: 250,
-                            style: {
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }
-                        }}
-                        sx={{
-                            minWidth: 500,
-                            maxWidth: "100%"
-                        }}
-                    />
-                    </Grid>
-                    <Grid item xs={1}>{
-                        options.length > 2 && (
-                            <IconButton
-                            onClick={ () => deleteOption(option) }
-                            sx={{ color: 'gray' }}
-                            >
-                            <CloseIcon />
-                            </IconButton>
-                        )
-                    }</Grid>
-                </Grid>
                 ))
             }
             {

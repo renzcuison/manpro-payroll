@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
     TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
-    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel
+    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel, Chip
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
@@ -12,6 +12,69 @@ import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import Swal from 'sweetalert2';
+
+const STATUS_STYLES = {
+    Pending: {
+        background: '#f89c14',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Sent: {
+        background: '#fba922',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    New: {
+        background: '#f06c1c',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Submitted: {
+        background: '#68c906',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        width: 100,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Done: {
+        background: '#2464ac',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
+    Disabled: {
+        background: '#e57373',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    }
+};
 
 const getEvaluationRoleRoute = (row) => {
     switch (row.role) {
@@ -141,24 +204,24 @@ const PerformanceEvaluationList = () => {
     };
 
     // Check if the evaluation/comment period is disabled
-const isRowDisabled = (row) => {
-    const now = new Date();
-    const start = row.period_start_at ? new Date(row.period_start_at) : null;
-    const end = row.period_end_at ? new Date(row.period_end_at) : null;
-    if (!start || !end) return false;
-    return now < start || now > end;
-};
+    const isRowDisabled = (row) => {
+        const now = new Date();
+        const start = row.period_start_at ? new Date(row.period_start_at) : null;
+        const end = row.period_end_at ? new Date(row.period_end_at) : null;
+        if (!start || !end) return false;
+        return now < start || now > end;
+    };
 
     // Handle row click for period validation
     const handleRowClick = (row) => {
+        // Get period info
         const now = new Date();
         const periodStart = row.period_start_at ? new Date(row.period_start_at) : null;
         const periodEnd = row.period_end_at ? new Date(row.period_end_at) : null;
-        if (!periodStart || !periodEnd) {
-            navigate(getEvaluationRoleRoute(row));
-            return;
-        }
-        if (now < periodStart || now > periodEnd) {
+        const isDisabled = periodStart && periodEnd && (now < periodStart || now > periodEnd);
+
+        // 1. Disabled check takes precedence (show this SWAL even if status is "Sent")
+        if (isDisabled) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Action not allowed',
@@ -167,8 +230,22 @@ const isRowDisabled = (row) => {
             });
             return;
         }
+
+        // 2. If not disabled, but status is Sent
+        if (row.status === "Sent") {
+            Swal.fire({
+                icon: 'info',
+                title: 'This Evaluation is still on going.',
+                text: "You can't Access this Form yet.",
+                confirmButtonColor: '#f5c242'
+            });
+            return;
+        }
+
+        // 3. Otherwise, allow navigation
         navigate(getEvaluationRoleRoute(row));
     };
+
 
     let filteredResponses = evaluationResponses;
     if (statusFilter === 'Disabled') {
@@ -182,6 +259,10 @@ const isRowDisabled = (row) => {
     }
     const paginatedResponses = filteredResponses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+    // Helper to render status as a "chip"
+    const renderStatus = (status) => (
+        <span style={STATUS_STYLES[status] || STATUS_STYLES.Pending}>{status}</span>
+    );
 
     return (
         <Layout title={"PerformanceEvaluation"}>
@@ -346,7 +427,7 @@ const isRowDisabled = (row) => {
                                                         <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
                                                         <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
                                                         <TableCell align="center">{row.role}</TableCell>
-                                                        <TableCell align="center">{row.status}</TableCell>
+                                                        <TableCell align="center">{renderStatus(row.status)}</TableCell>
                                                     </TableRow>
                                                 ))
                                             )}

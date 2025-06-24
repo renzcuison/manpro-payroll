@@ -44,7 +44,6 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
-
 import { useEvaluationFormSubcategory } from '../../../../hooks/useEvaluationFormSubcategory';
 
 const SubcategoryContext = createContext();
@@ -52,7 +51,7 @@ const SubcategoryContext = createContext();
 export default function PerformanceEvaluationFormAddSubcategory({ open, onClose, onSave }) {
     const {
         subcategory, subcategoryId,
-        editSubcategory,
+        cancelEditSubcategory, editSubcategory,
         subcategoryType, subcategoryTypeDisplay, switchSubcategoryType,
         subcategoryName, setSubcategoryName,
         subcategoryDescription, setSubcategoryDescription,
@@ -66,6 +65,10 @@ export default function PerformanceEvaluationFormAddSubcategory({ open, onClose,
         resetSubcategory();
         onClose();
     };
+    const handleCancel = () => {
+        cancelEditSubcategory();
+        onClose();
+    }
 
     return <SubcategoryContext.Provider value={{
         options, draggedOptionId,
@@ -155,7 +158,7 @@ export default function PerformanceEvaluationFormAddSubcategory({ open, onClose,
                 )}
                 <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                     <Button
-                        onClick={onClose}
+                        onClick={ handleCancel }
                         variant="contained"
                         sx={{
                             backgroundColor: '#727F91',

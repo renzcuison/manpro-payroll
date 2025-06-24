@@ -61,11 +61,29 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setLinearScaleStartLabel(subcategoryInit.linear_scale_start_label);
         setLinearScaleEndLabel(subcategoryInit.linear_scale_end_label);
         setOrder(subcategoryInit.order);
-        setOptions(subcategoryInit.options);
+        const options = [];
+        for(let option of subcategoryInit.options) options.push({ ...option });
+        setOptions(options);
         setSavedSubcategory({ ...subcategoryInit });
+
     }, [subcategoryInit?.id]);
 
     // --- Subcategory CRUD ---
+    function cancelEditSubcategory() {
+        setSubcategoryName(savedSubcategory?.name);
+        setSubcategoryType(savedSubcategory?.subcategory_type);
+        setSubcategoryDescription(savedSubcategory?.description);
+        setRequired(savedSubcategory?.required);
+        setAllowOtherOption(savedSubcategory?.allow_other_option);
+        setLinearScaleStart(savedSubcategory?.linear_scale_start);
+        setLinearScaleEnd(savedSubcategory?.linear_scale_end);
+        setLinearScaleStartLabel(savedSubcategory?.linear_scale_start_label);
+        setLinearScaleEndLabel(savedSubcategory?.linear_scale_end_label);
+        const options = [];
+        if(savedSubcategory) for(let option of savedSubcategory.options) options.push({ ...option });
+        setOptions(options);
+    }
+
     async function editSubcategory() {
         try {
             // update subcategory
@@ -84,11 +102,9 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                 setLinearScaleStart(evaluationFormSubcategory.linear_scale_start);
                 setLinearScaleEnd(evaluationFormSubcategory.linear_scale_end);
                 setOrder(evaluationFormSubcategory.order);
-                setSavedSubcategory({
-                    ...evaluationFormSubcategory,
-                    options: []
-                });
-                for(let option of subcategory.options) savedSubcategory.options.push({ ...option });
+                const options = [];
+                for(let option of subcategory.options) options.push({ ...option });
+                setSavedSubcategory({ ...evaluationFormSubcategory, options });
             } else if (response.data.status.toString().startsWith(4)) throw response;
             // create, delete, update options
             const isLinearScale = subcategoryType === 'linear_scale';
@@ -180,11 +196,9 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                     const { evaluationFormSubcategoryID } = response.data;
                     if(!evaluationFormSubcategoryID) return;
                     setSubcategoryId(evaluationFormSubcategoryID);
-                    setSavedSubcategory({
-                        ...subcategory,
-                        options: []
-                    });
-                    for(let option of subcategory.options) savedSubcategory.options.push({ ...option });
+                    const options = [];
+                    for(let option of subcategory.options) options.push({ ...option });
+                    setSavedSubcategory({ ...subcategory, options });
                     alert("Subcategory saved successfully!");
                 } else {
                     alert("Error saving subcategory");
@@ -295,10 +309,11 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
     return {
         subcategory, savedSubcategory,
         subcategoryId,
-        subcategoryName, setSubcategoryName, editSubcategory, resetSubcategory, saveSubcategory,
+        subcategoryName, setSubcategoryName,
         subcategoryType, switchSubcategoryType,
         subcategoryTypeDisplay,
         subcategoryDescription, setSubcategoryDescription,
+        cancelEditSubcategory, editSubcategory, resetSubcategory, saveSubcategory,
         required, toggleRequired,
         allowOtherOption, toggleAllowOtherOption,
         linearScaleStart, setLinearScaleStart,
