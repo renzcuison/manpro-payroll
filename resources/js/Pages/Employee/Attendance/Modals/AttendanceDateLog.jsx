@@ -5,9 +5,9 @@ import {
     DialogTitle,
     DialogContent,
     Typography,
+    Divider,
 } from "@mui/material";
 
-import PersonIcon from '@mui/icons-material/Person';
 import React from "react";
 import dayjs from "dayjs";
 
@@ -46,13 +46,12 @@ const AttendanceDateLog = ({ log, onClose }) => {
                         boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
                         borderRadius: { xs: 0, md: "20px" },
                         minWidth: { xs: "100%", md: "500px" },
-                        maxWidth: 0,
+                        maxWidth: "650px",
                         marginBottom: "5%",
                     },
                 },
             }}
         >
-
             <DialogTitle sx={{ padding: 2 }}>
                 <Box
                     sx={{
@@ -71,8 +70,8 @@ const AttendanceDateLog = ({ log, onClose }) => {
             </DialogTitle>
 
             <DialogContent sx={{ py: 2, pb: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3 }}>
-                    <Box sx={{ flex: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                             <Typography variant="body1">Date</Typography>
                             <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
@@ -109,6 +108,8 @@ const AttendanceDateLog = ({ log, onClose }) => {
                             </Typography>
                         </Box>
 
+                        <Divider sx={{ mb: 2 }} />
+
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                             <Typography variant="body1">Method</Typography>
                             <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
@@ -119,50 +120,38 @@ const AttendanceDateLog = ({ log, onClose }) => {
 
                     <Box
                         sx={{
-                            width: 130,
-                            height: 130,
-                            border: '2px solid #ccc',
+                            mt: 1,
+                            width: '100%',
+                            height: '300px',
+                            border: '1px solid #ccc',
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            boxSizing: 'border-box',
-                            flexShrink: 0,
-                            p: 1,
+                            overflow: 'hidden',
                         }}
                     >
+                    {/* image-logic will adjust upon spatie implementation */}
                         {log.method === 2 && log.imageUrl ? (
                             <Box
                                 component="img"
                                 src={log.imageUrl}
-                                alt="Selfie"
+                                alt="Captured Attendance"
                                 sx={{
                                     width: '100%',
                                     height: '100%',
-                                    objectFit: 'cover',
+                                    objectFit: 'contain',
+                                    objectPosition: 'center'
                                 }}
                             />
                         ) : (
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                <PersonIcon sx={{ fontSize: 120, color: '#b0b0b0', mb: -2 }} />
-                                <Typography variant="body2" sx={{ color: '#999', textAlign: 'center', mb: 1 }}>
-                                    No image available
-                                </Typography>
-                            </Box>
+                            <Typography variant="body2" sx={{ color: '#999' }}>
+                                No image available
+                            </Typography>
                         )}
+                    {/* image-logic will adjust upon spatie implementation */}
                     </Box>
                 </Box>
             </DialogContent>
-
-
-
-
         </Dialog>
     );
 };
