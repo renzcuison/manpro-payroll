@@ -75,6 +75,8 @@ function UserInformation({ user }) {
         formData.append('id', user.id);
         formData.append('profile_picture', file);
 
+        console.log(formData);
+
         axiosInstance.post('/employee/editMyProfilePicture', formData, { headers })
             .then(response => {
                 if (response.data.status === 200) {
