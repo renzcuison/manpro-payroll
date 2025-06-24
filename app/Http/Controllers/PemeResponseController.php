@@ -29,26 +29,21 @@ class PemeResponseController extends Controller
 
     public function index()
     {
-
         $user = Auth::user();
 
         $responses = PemeResponse::where("user_id", $user->id)
-            ->with(['peme.questions.types', 'details', 'peme.user'])
+            ->with(['peme.questions.types', 'details.media', 'peme.user'])
             ->latest()
             ->get();
 
         $responses = $responses->map(function ($response) {
-            $expiryDate = $response->expiry_date
-                ? $response->expiry_date->format("Y-m-d")
-                : null;
-
-            $nextSchedule = $response->next_schedule
-                ? $response->next_schedule->format("Y-m-d")
-                : null;
+            $expiryDate = optional($response->expiry_date)->format("Y-m-d");
+            $nextSchedule = optional($response->next_schedule)->format("Y-m-d");
 
             $questions = $response->peme->questions ?? collect();
             $details = $response->details ?? collect();
 
+            // Prepare detail map
             $detailMap = [];
             foreach ($details as $detail) {
                 $qID = (int) $detail->peme_q_item_id;
@@ -60,19 +55,20 @@ class PemeResponseController extends Controller
             $answeredQuestions = 0;
 
             foreach ($questions as $question) {
-                $allAnswered = $question->types->every(function ($type) use (
-                    $question,
-                    $detailMap
-                ) {
-                    $matchedDetail =
-                        $detailMap[(int) $question->id][(int) $type->id] ??
-                        null;
-                    return $matchedDetail &&
-                        $matchedDetail->value !== null &&
-                        trim($matchedDetail->value) !== '';
+                $types = $question->types;
+                $isAnswered = $types->some(function ($type) use ($question, $detailMap) {
+                    $qID = (int) $question->id;
+                    $tID = (int) $type->id;
+                    $detail = $detailMap[$qID][$tID] ?? null;
+
+                    if ($type->input_type === 'attachment') {
+                        return $detail && $detail->media && $detail->media->count() > 0;
+                    }
+
+                    return $detail && $detail->value !== null && trim($detail->value) !== '';
                 });
 
-                if ($allAnswered) {
+                if ($isAnswered) {
                     $answeredQuestions++;
                 }
             }
@@ -80,14 +76,10 @@ class PemeResponseController extends Controller
             return [
                 "date" => $response->created_at->format("Y-m-d"),
                 "response_id" => Crypt::encrypt($response->id),
-                // "response_id" => $response->id,
                 "peme_id" => Crypt::encrypt($response->peme_id),
-                // "peme_id" => $response->peme_id,
                 "peme" => $response->peme->name,
                 "user_id" => Crypt::encrypt($response->user_id) ?? 'null',
-                "name" => $response->user
-                    ? $response->user->user_name
-                    : 'null',
+                "name" => $response->user ? $response->user->user_name : 'null',
                 "expiry_date" => $expiryDate,
                 "next_schedule" => $nextSchedule,
                 "status" => ucfirst($response->status),
@@ -95,11 +87,8 @@ class PemeResponseController extends Controller
                 "progress" => [
                     "completed" => $answeredQuestions,
                     "total" => $totalQuestions,
-                    "percent" =>
-                    $totalQuestions > 0
-                        ? round(
-                            ($answeredQuestions / $totalQuestions) * 100
-                        )
+                    "percent" => $totalQuestions > 0
+                        ? round(($answeredQuestions / $totalQuestions) * 100)
                         : 0,
                 ],
             ];
@@ -107,6 +96,7 @@ class PemeResponseController extends Controller
 
         return response()->json($responses);
     }
+
 
     public function store(Request $request)
     {
@@ -202,7 +192,7 @@ class PemeResponseController extends Controller
 
         $questionIdsInRequest = collect($validated['responses'])
             ->pluck('peme_q_item_id')
-            ->map(fn($id) => $id)
+            ->map(fn($id) => Crypt::decrypt($id))
             ->toArray();
 
         $requiredQuestionIds = PemeQItem::where('peme_id', $pemeResponse->peme_id)
@@ -210,7 +200,37 @@ class PemeResponseController extends Controller
             ->pluck('id')
             ->toArray();
 
-        $missing = array_diff($requiredQuestionIds, $questionIdsInRequest);
+        $missing = [];
+        foreach ($requiredQuestionIds as $requiredId) {
+            // Find all responses for this question
+            $responsesForQuestion = collect($validated['responses'])
+                ->filter(function ($resp) use ($requiredId) {
+                    return Crypt::decrypt($resp['peme_q_item_id']) == $requiredId;
+                });
+
+            if ($responsesForQuestion->isEmpty()) {
+                $missing[] = $requiredId;
+                continue;
+            }
+
+            foreach ($responsesForQuestion as $resp) {
+                if (
+                    array_key_exists('files', $resp) ||
+                    array_key_exists('existing_file_ids', $resp)
+                ) {
+                    $hasFiles = !empty($resp['files'] ?? []) || !empty($resp['existing_file_ids'] ?? []);
+                    if (!$hasFiles) {
+                        $missing[] = $requiredId;
+                        break;
+                    }
+                } else {
+                    if (!isset($resp['value']) || trim($resp['value']) === '') {
+                        $missing[] = $requiredId;
+                        break;
+                    }
+                }
+            }
+        }
 
         if (!empty($missing) && !$validated['isDraft']) {
             return response()->json([
@@ -428,10 +448,28 @@ class PemeResponseController extends Controller
                     ];
                 });
 
+                $media = collect([]);
+                if (isset($details[$question->id])) {
+                    foreach ($details[$question->id] as $detail) {
+                        if ($detail->media->count() > 0) {
+                            $media = $detail->media->map(function ($media) {
+                                return [
+                                    'id' => Crypt::encrypt($media->id),
+                                    'file_name' => $media->file_name,
+                                    'url' => $media->getUrl(),
+                                    'size' => $media->size,
+                                ];
+                            });
+                            break;
+                        }
+                    }
+                }
+
                 return [
                     'question_id' => Crypt::encrypt($question->id),
                     'question_text' => $question->question,
                     'input_type' => $inputTypesWithValues,
+                    'media' => $media,
                 ];
             });
 
@@ -439,11 +477,14 @@ class PemeResponseController extends Controller
             $answeredQuestions = 0;
 
             foreach ($questionsOutput as $q) {
-                $allAnswered = collect($q['input_type'])->every(function ($input) {
+                $anyAnswered = collect($q['input_type'])->some(function ($input) use ($q) {
+                    if ($input['input_type'] === 'attachment') {
+                        return isset($q['media']) && is_iterable($q['media']) && $q['media']->count() > 0;
+                    }
                     return $input['value'] !== null && trim($input['value']) !== '';
                 });
 
-                if ($allAnswered) {
+                if ($anyAnswered) {
                     $answeredQuestions++;
                 }
             }

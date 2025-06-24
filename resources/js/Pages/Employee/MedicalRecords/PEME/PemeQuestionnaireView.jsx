@@ -182,8 +182,8 @@ const PassOrFail = ({ value, onChange }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-            ? "Fail"
-            : "";
+                ? "Fail"
+                : "";
 
     return (
         <Box
@@ -212,8 +212,8 @@ const PostiveOrNegative = ({ value, onChange }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-            ? "Negative"
-            : "";
+                ? "Negative"
+                : "";
 
     return (
         <Box
@@ -282,25 +282,7 @@ const PemeQuestionnaireView = () => {
                 headers,
             })
             .then((response) => {
-                console.log("RESPONSE.DATA", response.data);
                 setEmployeeResponse(response.data);
-                setStatus(response.data.status);
-                const initialAnswers = {};
-                if (Array.isArray(response.data.details)) {
-                    response.data.details.forEach((form) => {
-                        initialAnswers[form.question_id] = {};
-                        if (Array.isArray(form.input_type)) {
-                            form.input_type.forEach((type) => {
-                                initialAnswers[form.question_id][
-                                    type.input_type
-                                ] = type.value ?? "";
-                            });
-                        }
-                    });
-                }
-                setAnswers(initialAnswers);
-
-                setIsLoading(false);
             })
             .catch((error) => {
                 console.error("Error fetching PEME records:", error);
@@ -308,13 +290,23 @@ const PemeQuestionnaireView = () => {
             });
     }, []);
 
-    //Set FE dates and status to values from DB
+    // Re-initialize answers whenever employeeResponse changes
     useEffect(() => {
-        if (employeeResponse) {
-            setExpirationDate(dayjs(employeeResponse.expiry_date));
-            setNextSchedule(dayjs(employeeResponse.next_schedule));
+        if (Array.isArray(employeeResponse.details)) {
+            const initialAnswers = {};
+            employeeResponse.details.forEach((form) => {
+                initialAnswers[form.question_id] = {};
+                if (Array.isArray(form.input_type)) {
+                    form.input_type.forEach((type) => {
+                        initialAnswers[form.question_id][type.input_type] = type.value ?? "";
+                    });
+                }
+            });
+            setAnswers(initialAnswers);
+            setIsLoading(false);
         }
     }, [employeeResponse]);
+
 
     const handleOnConfirmClick = (draftStatus) => {
         Swal.fire({
@@ -443,7 +435,7 @@ const PemeQuestionnaireView = () => {
                 setEmployeeResponse(response.data);
                 Swal.fire({
                     icon: "success",
-                    text: "Draft saved successfully.",
+                    text: "Response saved successfully.",
                     showConfirmButton: false,
                     timer: 1500,
                 });
@@ -485,50 +477,47 @@ const PemeQuestionnaireView = () => {
     const handleSaveDraft = async (draftStatus) => {
         const responses = [];
 
-        if (Array.isArray(employeeResponse.details)) {
-            employeeResponse.details.forEach((form) => {
-                if (Array.isArray(form.input_type)) {
-                    form.input_type.forEach((type) => {
-                        const value =
-                            answers[form.question_id]?.[type.input_type] ??
-                            null;
+        employeeResponse.details.forEach((form) => {
+            if (Array.isArray(form.input_type)) {
+                form.input_type.forEach((type) => {
+                    const value = answers[form.question_id]?.[type.input_type] ?? null;
 
-                        // Handle attachments
-                        if (type.input_type === "attachment") {
-                            // Existing backend files
-                            const existingFiles = Array.isArray(form.media)
-                                ? form.media
-                                : [];
-                            // New files (File objects)
-                            const newFiles = Array.isArray(value)
-                                ? value.filter((f) => f instanceof File)
-                                : [];
+                    if (type.input_type === "attachment") {
+                        const existingFiles = Array.isArray(form.media) ? form.media : [];
+                        const newFiles = Array.isArray(value)
+                            ? value.filter((f) => f instanceof File)
+                            : [];
 
+                        if (
+                            newFiles.length > 0 ||
+                            existingFiles.length > 0 ||
+                            form.isRequired === 1
+                        ) {
                             const responseEntry = {
                                 peme_q_item_id: form.question_id,
                                 peme_q_type_id: type.id,
-                                existing_file_ids: existingFiles.map(
-                                    (f) => f.id
-                                ), // <-- use .id, not .file
+                                existing_file_ids: existingFiles.map((f) => f.id),
                             };
-
                             if (newFiles.length > 0) {
                                 responseEntry.files = newFiles;
                             }
-
                             responses.push(responseEntry);
-                        } else {
-                            // Non-attachment types
+                        }
+                    } else {
+                        if (
+                            (value !== null && value !== "") ||
+                            form.isRequired === 1
+                        ) {
                             responses.push({
                                 peme_q_item_id: form.question_id,
                                 peme_q_type_id: type.id,
                                 value: value,
                             });
                         }
-                    });
-                }
-            });
-        }
+                    }
+                });
+            }
+        });
 
         const formData = new FormData();
         formData.append("peme_response_id", PemeResponseID);
@@ -593,6 +582,9 @@ const PemeQuestionnaireView = () => {
                 { headers }
             );
             setEmployeeResponse(response.data);
+            console.log("Refetch response.data", response.data)
+            console.log("Refetch employeeResponse", employeeResponse)
+
             Swal.fire({
                 icon: "success",
                 text: "Draft saved successfully.",
@@ -655,13 +647,13 @@ const PemeQuestionnaireView = () => {
             const updatedDetails = prev.details.map((form) =>
                 form.question_id === questionId
                     ? {
-                          ...form,
-                          media: Array.isArray(form.media)
-                              ? form.media.filter(
-                                    (file) => file.id !== fileToRemove.id
-                                )
-                              : [],
-                      }
+                        ...form,
+                        media: Array.isArray(form.media)
+                            ? form.media.filter(
+                                (file) => file.id !== fileToRemove.id
+                            )
+                            : [],
+                    }
                     : form
             );
             // Log the existing file IDs for this question after removal
@@ -773,7 +765,7 @@ const PemeQuestionnaireView = () => {
                                         form.input_type.map((type, i) => {
                                             const value =
                                                 answers[form.question_id]?.[
-                                                    type.input_type
+                                                type.input_type
                                                 ] || "";
 
                                             // const attachmentValue =
