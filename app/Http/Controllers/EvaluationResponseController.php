@@ -1091,12 +1091,32 @@ class EvaluationResponseController extends Controller
             $evaluationResponses = $evaluationResponses
                 ->slice($skip, $limit)
                 ->values()
-                ->map(function($evaluationResponse) {
-                    return $evaluationResponse;
-                    // return [
-
-                    // ];
-                })
+                // ->map(function($evaluationResponse) {
+                //     return [
+                //         "id" => Crypt::encrypt($evaluationResponse->id),
+				// 		"role" => $evaluationResponse->role,
+				// 		"commentor_order" => $evaluationResponse->commentor_order,
+				// 		"opened_at" => $evaluationResponse->opened_at,
+				// 		"evaluatee_signature_filepath" => $evaluationResponse->evaluatee_signature_filepath,
+				// 		"creator_signature_filepath" => $evaluationResponse->creator_signature_filepath,
+				// 		"evaluators_unsigned_count" => $evaluationResponse->evaluators_unsigned_count,
+				// 		"commentors_unsigned_count" => $evaluationResponse->commentors_unsigned_count,
+				// 		"commentors_signed_count" => $evaluationResponse->commentors_signed_count,
+				// 		"date" => $evaluationResponse->date,
+				// 		"form_id" => $evaluationResponse->form_id,
+				// 		"evaluatee_id" => $evaluationResponse->evaluatee_id,
+				// 		"created_at" => $evaluationResponse->created_at,
+				// 		"updated_at" => $evaluationResponse->updated_at,
+				// 		"period_start_at" => $evaluationResponse->period_start_at,
+				// 		"period_end_at" => $evaluationResponse->period_end_at,
+				// 		"status" => $evaluationResponse->status,
+				// 		"form" => [
+                //             "id" => Crypt::encrypt($evaluationResponse->form->id),
+				// 		    "name" => $evaluationResponse->form->name
+                //         ],
+				// 		"evaluatee" => $evaluationResponse->evaluatee
+                //     ];
+                // })
             ;
 
             return response()->json([
