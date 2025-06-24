@@ -85,7 +85,16 @@ class EvaluationResponseController extends Controller
         return response()->json([
             'status' => 200,
             'message' => 'Commentors successfully retrieved.',
-            'evaluatees' => $commentors
+            'commentors' => $commentors->map(function ($evaluatee) {
+                return [
+                    'id' => Crypt::encrypt($evaluatee->id),
+                    'user_name' => $evaluatee->user_name,
+                    'last_name' => $evaluatee->last_name,
+                    'first_name' => $evaluatee->first_name,
+                    'middle_name' => $evaluatee->middle_name,
+                    'suffix' => $evaluatee->suffix
+                ];
+            })
         ]);
     }
 
@@ -147,7 +156,16 @@ class EvaluationResponseController extends Controller
         return response()->json([
             'status' => 200,
             'message' => 'Evaluatees successfully retrieved.',
-            'evaluatees' => $evaluatees
+            'evaluatees' => $evaluatees->map(function ($evaluatee) {
+                return [
+                    'id' => Crypt::encrypt($evaluatee->id),
+                    'user_name' => $evaluatee->user_name,
+                    'last_name' => $evaluatee->last_name,
+                    'first_name' => $evaluatee->first_name,
+                    'middle_name' => $evaluatee->middle_name,
+                    'suffix' => $evaluatee->suffix
+                ];
+            })
         ]);
     }
 
@@ -210,7 +228,16 @@ class EvaluationResponseController extends Controller
         return response()->json([
             'status' => 200,
             'message' => 'Evaluators successfully retrieved.',
-            'users' => $evaluators
+            'evaluators' => $evaluators->map(function ($evaluator) {
+                return [
+                    'id' => Crypt::encrypt($evaluator->id),
+                    'user_name' => $evaluator->user_name,
+                    'last_name' => $evaluator->last_name,
+                    'first_name' => $evaluator->first_name,
+                    'middle_name' => $evaluator->middle_name,
+                    'suffix' => $evaluator->suffix
+                ];
+            })
         ]);
     }
 
@@ -220,7 +247,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number
+            id: string
         */
 
         // returns:
@@ -253,7 +280,7 @@ class EvaluationResponseController extends Controller
         try {
             DB::beginTransaction();
 
-            $evaluationResponse = EvaluationResponse::find($request->id);
+            $evaluationResponse = EvaluationResponse::find(Crypt::decrypt($request->id));
 
             if (!$evaluationResponse) {
                 return response()->json([ 
@@ -267,7 +294,7 @@ class EvaluationResponseController extends Controller
                 return response()->json([ 
                     'status' => 405,
                     'message' => 'Evaluation Response already deleted!',
-                    'evaluationResponse' => $evaluationResponse
+                    'evaluationResponseID' => Crypt::encrypt($evaluationResponse->id)
                 ]);
             }
 
@@ -276,9 +303,22 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationResponse' => $evaluationResponse,
+                'evaluationResponse' => $evaluationResponse ? [
+                    'id' => Crypt::encrypt($evaluationResponse->id),
+                    'creator_id' => Crypt::encrypt($evaluationResponse->creator_id),
+                    'updated_at' => $evaluationResponse->updated_at,
+                    'created_at' => $evaluationResponse->created_at,
+                    'evaluatee_id' => Crypt::encrypt($evaluationResponse->evaluatee_id),
+                    'form_id' => Crypt::encrypt($evaluationResponse->form_id),
+                    'evaluatee_opened_at' => $evaluationResponse->evaluatee_opened_at,
+                    'creator_signature_filepath' => $evaluationResponse->creator_signature_filepath,
+                    'evaluatee_signature_filepath' => $evaluationResponse->evaluatee_signature_filepath,
+                    'period_start_at' => $evaluationResponse->period_start_at,
+                    'period_end_at' => $evaluationResponse->period_end_at,
+                    'deleted_at' => $evaluationResponse->deleted_at
+                ] : null,
                 'message' => 'Evaluation Response successfully deleted'
             ]);
         } catch (\Exception $e) {
@@ -293,7 +333,7 @@ class EvaluationResponseController extends Controller
 
         // inputs:
         /*
-            id: number,
+            id: string,
             evaluatee_id?: number,
             form_id?: number,
             period_start_at?: string,
@@ -326,6 +366,7 @@ class EvaluationResponseController extends Controller
 
             DB::beginTransaction();
 
+            $request->id = Crypt::decrypt($request->id);
             $evaluationResponse = EvaluationResponse
                 ::select(
                     'id', 'evaluatee_id', 'form_id', 'period_start_at', 'period_end_at',
@@ -371,9 +412,9 @@ class EvaluationResponseController extends Controller
             // }
 
             if($request->evaluatee_id !== null)
-                $evaluationResponse->evaluatee_id = $request->evaluatee_id;
+                $evaluationResponse->evaluatee_id = Crypt::decrypt($request->evaluatee_id);
             if($request->form_id !== null)
-                $evaluationResponse->form_id = $request->form_id;
+                $evaluationResponse->form_id = Crypt::decrypt($request->form_id);
             $evaluationResponse->period_end_at = $request->period_end_at;
             $evaluationResponse->period_start_at = $request->period_start_at;
             
@@ -414,8 +455,25 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 201,
                 'message' => 'Evaluation Response successfully updated',
-                'evaluationResponse' => $evaluationResponse
-            ], 200);
+                'evaluationResponse' => $evaluationResponse ? [
+                    'id' => Crypt::encrypt($evaluationResponse->id),
+                    'evaluatee_id' => Crypt::encrypt($evaluationResponse->evaluatee_id),
+                    'form_id' => Crypt::encrypt($evaluationResponse->form_id),
+                    'period_start_at' => $evaluationResponse->period_start_at,
+                    'period_end_at' => $evaluationResponse->period_end_at,
+                    'creator_signature_filepath' => $evaluationResponse->creator_signature_filepath,
+                    'evaluatee_signature_filepath' => $evaluationResponse->evaluatee_signature_filepath,
+                    'created_at' => $evaluationResponse->created_at,
+                    'updated_at' => $evaluationResponse->updated_at,
+                    'media' => $evaluationResponse->media->map(function ($media) {
+                        return [
+                            'id' => Crypt::encrypt($media->id),
+                            'created_at' => $media->created_at,
+                            'updated_at' => $media->updated_at
+                        ];
+                    })
+                ] : null
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error saving evaluation response: ' . $e->getMessage());
@@ -427,7 +485,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: number
+            id: string
         */
 
         // returns:
@@ -487,6 +545,7 @@ class EvaluationResponseController extends Controller
         try {
 
             // 1. Fetching response raw details
+            $request->id = Crypt::decrypt($request->id);
             $evaluationResponse = EvaluationResponse
                 ::join('evaluation_forms', 'evaluation_forms.id', '=', 'evaluation_responses.form_id')
                 ->join('users', 'users.id', '=', 'evaluation_forms.creator_id')
@@ -746,16 +805,164 @@ class EvaluationResponseController extends Controller
                     $evaluationResponse->evaluatee_opened_at = $now;
             }
             DB::commit();
-            // 5. ID encryption
-            // $evaluationResponseClone = clone $evaluationResponse;
-            // $evaluationResponseClone->id = Crypt::encrypt($evaluationResponse->id);
 
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Response successfully retrieved.',
-                'userID' => $userID,
-                'evaluationResponse' => $evaluationResponse
+                'userID' => Crypt::encrypt($userID),
+                'evaluationResponse' => $evaluationResponse ? [
+                    'id' => Crypt::encrypt($evaluationResponse->id),
+                    'evaluatee_id' => Crypt::encrypt($evaluationResponse->evaluatee_id),
+                    'creator_id' => Crypt::encrypt($evaluationResponse->creator_id),
+                    'period_start_date' => $evaluationResponse->period_start_date,
+                    'period_end_date' => $evaluationResponse->period_end_date,
+                    'creator_signature_filepath' => $evaluationResponse->creator_signature_filepath,
+                    'evaluatee_signature_filepath' => $evaluationResponse->evaluatee_signature_filepath,
+                    'evaluatee_opened_at' => $evaluationResponse->evaluatee_opened_at,
+                    'created_at' => $evaluationResponse->created_at,
+                    'updated_at' => $evaluationResponse->updated_at,
+                    'form_id' => Crypt::encrypt($evaluationResponse->form_id),
+                    'creator_user_name' => $evaluationResponse->creator_user_name,
+                    'evaluatee_signature' => $evaluationResponse->evaluatee_signature,
+                    'creator_signature' => $evaluationResponse->creator_signature,
+                    'role' => $evaluationResponse->role,
+                    'evaluatee' => $evaluationResponse->evaluatee ? [
+                        'id' => Crypt::encrypt($evaluationResponse->evaluatee->id),
+                        'last_name' => $evaluationResponse->evaluatee->last_name,
+                        'first_name' => $evaluationResponse->evaluatee->first_name,
+                        'middle_name' => $evaluationResponse->evaluatee->middle_name,
+                        'suffix' => $evaluationResponse->evaluatee->suffix,
+                        'media' => $evaluationResponse->evaluatee->media->map(function ($media) {
+                            return [
+                                'id' => Crypt::encrypt($media->id),
+                                'created_at' => $media->created_at,
+                                'updated_at' => $media->updated_at
+                            ];
+                        })
+                    ] : null,
+                    'evaluators' => $evaluationResponse->evaluators->map(function ($evaluator) {
+                        return [
+                            'evaluator_id' => Crypt::encrypt($evaluator->evaluator_id),
+                            'response_id' => Crypt::encrypt($evaluator->response_id),
+                            'last_name' => $evaluator->last_name,
+                            'first_name' => $evaluator->first_name,
+                            'middle_name' => $evaluator->middle_name,
+                            'suffix' => $evaluator->suffix,
+                            'comment' => $evaluator->comment,
+                            'order' => $evaluator->order,
+                            'opened_at' => $evaluator->opened_at,
+                            'signature_filepath' => $evaluator->signature_filepath,
+                            'updated_at' => $evaluator->updated_at,
+                            'media' => array_map(function ($media) {
+                                return [
+                                    'id' => Crypt::encrypt($media->id),
+                                    'created_at' => $media->created_at,
+                                    'updated_at' => $media->updated_at
+                                ];
+                            }, $evaluator->media),
+                            'evaluator_signature' => $evaluator->evaluator_signature
+                        ];
+                    }),
+                    'commentors' => $evaluationResponse->commentors->map(function ($commentor) {
+                        return [
+                            'id' => Crypt::encrypt($commentor->id),
+                            'commentor_id' => Crypt::encrypt($commentor->commentor_id),
+                            'response_id' => Crypt::encrypt($commentor->response_id),
+                            'last_name' => $commentor->last_name,
+                            'first_name' => $commentor->first_name,
+                            'middle_name' => $commentor->middle_name,
+                            'suffix' => $commentor->suffix,
+                            'comment' => $commentor->comment,
+                            'order' => $commentor->order,
+                            'opened_at' => $commentor->opened_at,
+                            'signature_filepath' => $commentor->signature_filepath,
+                            'updated_at' => $commentor->updated_at,
+                            'media' => array_map(function ($media) {
+                                return [
+                                    'id' => Crypt::encrypt($media->id),
+                                    'created_at' => $media->created_at,
+                                    'updated_at' => $media->updated_at
+                                ];
+                            }, $commentor->media),
+                            'commentor_signature' => $commentor->commentor_signature
+                        ];
+                    }),
+                    'form' => $evaluationResponse->form ? [
+                        'id' => Crypt::encrypt($evaluationResponse->form->id),
+                        'name' => $evaluationResponse->form->name,
+                        'creator_id' => Crypt::encrypt($evaluationResponse->form->creator_id),
+                        'creator_user_name' => $evaluationResponse->form->creator_user_name,
+                        'sections' => $evaluationResponse->form->sections->map(function ($section) {
+                            return [
+                                'form_id' => Crypt::encrypt($section->form_id),
+                                'id' => Crypt::encrypt($section->id),
+                                'name' => $section->name,
+                                'category' => $section->category,
+                                'order' => $section->order,
+                                'score' => $section->score,
+                                'achieved_score' => $section->achieved_score,
+                                'subcategories' => $section->subcategories->map(function ($subcategory) {
+                                    return [
+                                        'section_id' => Crypt::encrypt($subcategory->section_id),
+                                        'id' => Crypt::encrypt($subcategory->id),
+                                        'name' => $subcategory->name,
+                                        'subcategory_type' => $subcategory->subcategory_type,
+                                        'description' => $subcategory->description,
+                                        'required' => $subcategory->required,
+                                        'allow_other_option' => $subcategory->allow_other_option,
+                                        'linear_scale_start' => $subcategory->linear_scale_start,
+                                        'linear_scale_end' => $subcategory->linear_scale_end,
+                                        'linear_scale_end_label' => $subcategory->linear_scale_end_label,
+                                        'linear_scale_start_label' => $subcategory->linear_scale_start_label,
+                                        'order' => $subcategory->order,
+                                        'score' => $subcategory->score,
+                                        'achieved_score' => $subcategory->achieved_score,
+                                        'options' => $subcategory->options->map(function ($option) {
+                                            return [
+                                                'subcategory_id' => Crypt::encrypt($option->subcategory_id),
+                                                'id' => Crypt::encrypt($option->id),
+                                                'label' => $option->label,
+                                                'score' => $option->score,
+                                                'order' => $option->order,
+                                                'description' => $option->description,
+                                                'option_answer_count' => $option->option_answer_count,
+                                                'option_answer' => $option->optionAnswer ? [
+                                                    'id' => Crypt::encrypt($option->optionAnswer->id),
+                                                    'response_id' => Crypt::encrypt($option->optionAnswer->response_id),
+                                                    'option_id' => Crypt::encrypt($option->optionAnswer->option_id)
+                                                ] : null
+                                            ];
+                                        }),
+                                        'percentage_answer' => $subcategory->percentageAnswer ? [
+                                            'id' => Crypt::encrypt($subcategory->percentageAnswer->id),
+                                            'response_id' => Crypt::encrypt($subcategory->percentageAnswer->response_id),
+                                            'subcategory_id' => Crypt::encrypt($subcategory->percentageAnswer->subcategory_id),
+                                            'percentage' => $subcategory->percentageAnswer->percentage,
+                                            'subcategory_type' => $subcategory->percentageAnswer->subcategory_type,
+                                            'value' => $subcategory->percentageAnswer->value,
+                                            'linear_scale_index' => $subcategory->percentageAnswer->linear_scale_index
+                                        ] : null,
+                                        'text_answer' => $subcategory->textAnswer ? [
+                                            'id' => Crypt::encrypt($subcategory->textAnswer->id),
+                                            'response_id' => Crypt::encrypt($subcategory->textAnswer->response_id),
+                                            'subcategory_id' => Crypt::encrypt($subcategory->textAnswer->subcategory_id),
+                                            'answer' => $subcategory->textAnswer->answer
+                                        ] : null
+                                    ];
+                                })
+                            ];
+                        })
+                    ] : null,
+                    'media' => $evaluationResponse->media->map(function ($media) {
+                        return [
+                            'id' => Crypt::encrypt($media->id),
+                            'created_at' => $media->created_at,
+                            'updated_at' => $media->updated_at
+                        ];
+                    })
+                ] : null
             ]);
+
         } catch (\Exception $e) {
             Log::error('Error getting evaluation response: ' . $e->getMessage());
             return response()->json([
@@ -956,7 +1163,10 @@ class EvaluationResponseController extends Controller
                 }])
             ;
             if ($request->form_id !== null)
-                $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
+                $evaluationResponses = $evaluationResponses->where(
+                    'evaluation_responses.form_id',
+                    Crypt::decrypt($request->form_id)
+                );
             $evaluationResponses = $evaluationResponses->get();
 
             // 1. Assign status
@@ -1087,45 +1297,56 @@ class EvaluationResponseController extends Controller
             $totalResponseCount = $evaluationResponses->count();
             $maxPageCount = ceil($totalResponseCount / $limit);
             $pageResponseCount = min($limit, max(0, $totalResponseCount - $skip));
-            // 6. Encryption
-            $evaluationResponses = $evaluationResponses
-                ->slice($skip, $limit)
-                ->values()
-                // ->map(function($evaluationResponse) {
-                //     return [
-                //         "id" => Crypt::encrypt($evaluationResponse->id),
-				// 		"role" => $evaluationResponse->role,
-				// 		"commentor_order" => $evaluationResponse->commentor_order,
-				// 		"opened_at" => $evaluationResponse->opened_at,
-				// 		"evaluatee_signature_filepath" => $evaluationResponse->evaluatee_signature_filepath,
-				// 		"creator_signature_filepath" => $evaluationResponse->creator_signature_filepath,
-				// 		"evaluators_unsigned_count" => $evaluationResponse->evaluators_unsigned_count,
-				// 		"commentors_unsigned_count" => $evaluationResponse->commentors_unsigned_count,
-				// 		"commentors_signed_count" => $evaluationResponse->commentors_signed_count,
-				// 		"date" => $evaluationResponse->date,
-				// 		"form_id" => $evaluationResponse->form_id,
-				// 		"evaluatee_id" => $evaluationResponse->evaluatee_id,
-				// 		"created_at" => $evaluationResponse->created_at,
-				// 		"updated_at" => $evaluationResponse->updated_at,
-				// 		"period_start_at" => $evaluationResponse->period_start_at,
-				// 		"period_end_at" => $evaluationResponse->period_end_at,
-				// 		"status" => $evaluationResponse->status,
-				// 		"form" => [
-                //             "id" => Crypt::encrypt($evaluationResponse->form->id),
-				// 		    "name" => $evaluationResponse->form->name
-                //         ],
-				// 		"evaluatee" => $evaluationResponse->evaluatee
-                //     ];
-                // })
-            ;
+            $evaluationResponses = $evaluationResponses->slice($skip, $limit)->values();
 
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Responses successfully retrieved.',
-                'evaluationResponses' => $evaluationResponses,
-                'pageResponseCount' => $pageResponseCount,
-                'totalResponseCount' => $totalResponseCount,
-                'maxPageCount' => $maxPageCount
+                'evaluationResponses' => $evaluationResponses->map(function ($evaluationResponse) {
+                    return [
+                        'id' => Crypt::encrypt($evaluationResponse->id),
+                        'role' => $evaluationResponse->role,
+                        'commentor_order' => $evaluationResponse->commentor_order,
+                        'opened_at' => $evaluationResponse->opened_at,
+                        'evaluatee_signature_filepath' => $evaluationResponse->evaluatee_signature_filepath,
+                        'creator_signature_filepath' => $evaluationResponse->creator_signature_filepath,
+                        'evaluators_unsigned_count' => $evaluationResponse->evaluators_unsigned_count,
+                        'commentors_unsigned_count' => $evaluationResponse->commentors_unsigned_count,
+                        'commentors_signed_count' => $evaluationResponse->commentors_signed_count,
+                        'date' => $evaluationResponse->date,
+                        'form_id' => Crypt::encrypt($evaluationResponse->form_id),
+                        'evaluatee_id' => Crypt::encrypt($evaluationResponse->evaluatee_id),
+                        'created_at' => $evaluationResponse->created_at,
+                        'updated_at' => $evaluationResponse->updated_at,
+                        'period_start_at' => $evaluationResponse->period_start_at,
+                        'period_end_at' => $evaluationResponse->period_end_at,
+                        'status' => $evaluationResponse->status,
+                        'form' => $evaluationResponse->form ? [
+                            'id' => Crypt::encrypt($evaluationResponse->form->id),
+                            'name' => $evaluationResponse->form->name
+                        ] : null,
+                        'evaluatee' => $evaluationResponse->evaluatee ? [
+                            'id' => Crypt::encrypt($evaluationResponse->evaluatee->id),
+                            'last_name' => $evaluationResponse->evaluatee->last_name,
+                            'first_name' => $evaluationResponse->evaluatee->first_name,
+                            'middle_name' => $evaluationResponse->evaluatee->middle_name,
+                            'suffix' => $evaluationResponse->evaluatee->suffix,
+                            'branch_id' => Crypt::encrypt($evaluationResponse->evaluatee->branch_id),
+                            'department_id' => Crypt::encrypt($evaluationResponse->evaluatee->department_id),
+                            'branch' => $evaluationResponse->evaluatee->branch ? [
+                                'id' => Crypt::encrypt($evaluationResponse->evaluatee->branch->id),
+                                'name' => $evaluationResponse->evaluatee->branch->name
+                            ] : null,
+                            'department' => $evaluationResponse->evaluatee->department ? [
+                                'id' => Crypt::encrypt($evaluationResponse->evaluatee->department->id),
+                                'name' => $evaluationResponse->evaluatee->department->name
+                            ] : null
+                        ] : null
+                    ];
+                }),
+                'pageResponseCount' => 6,
+                'totalResponseCount' => 6,
+                'maxPageCount' => 1
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1138,8 +1359,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            evaluatee_id: number,
-            form_id: number,
+            evaluatee_id: string,
+            form_id: string,
             evaluators: number[],
             commentors: number[],
             period_start_at: string,
@@ -1205,9 +1426,9 @@ class EvaluationResponseController extends Controller
             // }
 
             $newEvaluationResponse = EvaluationResponse::create([
-                'evaluatee_id' => $request->evaluatee_id,
-                'form_id' => $request->form_id,
-                'creator_id' => $userID,
+                'evaluatee_id' => Crypt::decrypt($request->evaluatee_id),
+                'form_id' => Crypt::decrypt($request->form_id),
+                'creator_id' => Crypt::decrypt($userID),
                 'period_start_at' => $request->period_start_at,
                 'period_end_at' => $request->period_end_at
             ]);
@@ -1215,7 +1436,7 @@ class EvaluationResponseController extends Controller
             foreach ($request->evaluators as $index => $evaluator_id) {
                 EvaluationEvaluator::create([
                     'response_id' => $newEvaluationResponse->id,
-                    'evaluator_id' => $evaluator_id,
+                    'evaluator_id' => Crypt::decrypt($evaluator_id),
                     'order' => $index + 1
                 ]);
             }
@@ -1223,7 +1444,7 @@ class EvaluationResponseController extends Controller
             foreach ($request->commentors as $index => $commentor_id) {
                 EvaluationCommentor::create([
                     'response_id' => $newEvaluationResponse->id,
-                    'commentor_id' => $commentor_id,
+                    'commentor_id' => Crypt::decrypt($commentor_id),
                     'order' => $index + 1
                 ]);
             }
@@ -1232,7 +1453,7 @@ class EvaluationResponseController extends Controller
 
             return response()->json([
                 'status' => 201,
-                'evaluationResponseID' => $newEvaluationResponse->id,
+                'evaluationResponseID' => Crypt::encrypt($newEvaluationResponse->id),
                 'message' => 'Evaluation Response successfully created'
             ]);
         } catch (\Exception $e) {
@@ -1308,7 +1529,10 @@ class EvaluationResponseController extends Controller
             ;
 
             if ($request->form_id !== null)
-                $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
+                $evaluationResponses = $evaluationResponses->where(
+                    'evaluation_responses.form_id',
+                    Crypt::decrypt($request->form_id)
+                );
 
             $evaluationResponses = $evaluationResponses->get();
 
@@ -1388,11 +1612,20 @@ class EvaluationResponseController extends Controller
                 ->slice($skip, $limit)
                 ->values()
             ;
-
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Responses successfully retrieved.',
-                'evaluationResponses' => $evaluationResponses,
+                'evaluationResponses' => $evaluationResponses->map(function ($evaluationResponse) {
+                    return [
+                        'id' => Crypt::encrypt($evaluationResponse->id),
+                        'evaluators_unsigned_count' => $evaluationResponse->evaluators_unsigned_count,
+                        'commentors_unsigned_count' => $evaluationResponse->commentors_unsigned_count,
+                        'date' => $evaluationResponse->date,
+                        'form_id' => Crypt::encrypt($evaluationResponse->form_id),
+                        'created_at' => $evaluationResponse->created_at,
+                        'updated_at' => $evaluationResponse->updated_at
+                    ];
+                }),
                 'pageResponseCount' => $pageResponseCount,
                 'totalResponseCount' => $totalResponseCount,
                 'maxPageCount' => $maxPageCount
@@ -1410,8 +1643,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            evaluator_id: number
+            response_id: string,
+            evaluator_id: string
         */
 
         // returns:
@@ -1443,8 +1676,8 @@ class EvaluationResponseController extends Controller
 
             $evaluationEvaluator = EvaluationEvaluator
                 ::select()
-                ->where('response_id', $request->response_id)
-                ->where('evaluator_id', $request->evaluator_id)
+                ->where('response_id', Crypt::decrypt($request->response_id))
+                ->where('evaluator_id', Crypt::decrypt($request->evaluator_id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -1488,7 +1721,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
+            response_id: string,
             comment?: string,
             signature_filepath?: string
         */
@@ -1524,7 +1757,7 @@ class EvaluationResponseController extends Controller
                     'id', 'response_id', 'evaluator_id', 'comment', 'order',
                     'signature_filepath', 'created_at', 'updated_at'
                 )
-                ->where('response_id', $request->response_id)
+                ->where('response_id', Crypt::decrypt($request->response_id))
                 ->where('evaluator_id', $userID)
                 ->whereNull('deleted_at')
                 ->first()
@@ -1579,8 +1812,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            evaluator_id: number,
+            response_id: string,
+            evaluator_id: string,
         */
 
         // returns:
@@ -1645,7 +1878,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number
+            response_id: string
         */
 
         // returns:
@@ -1705,8 +1938,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            evaluator_id: number
+            response_id: string,
+            evaluator_id: string
         */
 
         // returns:
@@ -1808,8 +2041,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            commentor_id: number
+            response_id: string,
+            commentor_id: string
         */
 
         // returns:
@@ -1886,7 +2119,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
+            response_id: string,
             comment?: string,
             signature_filepath?: string
         */
@@ -1976,8 +2209,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            commentor_id: number,
+            response_id: string,
+            commentor_id: string,
         */
 
         // returns:
@@ -2042,7 +2275,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number
+            response_id: string
         */
 
         // returns:
@@ -2102,8 +2335,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            commentor_id: number
+            response_id: string,
+            commentor_id: string
         */
 
         // returns:
@@ -2205,8 +2438,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            subcategory_id: number
+            response_id: string,
+            subcategory_id: string
         */
 
         // returns:
@@ -2282,8 +2515,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            subcategory_id: number,
+            response_id: string,
+            subcategory_id: string,
             percentage?: number,            // either percentage or value must be given
             value?: number                  // value means percentage is auto-calculated
         */
@@ -2408,8 +2641,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            subcategory_id: number,
+            response_id: string,
+            subcategory_id: string,
         */
 
         // returns:
@@ -2466,7 +2699,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            subcategory_id: number
+            subcategory_id: string
         */
 
         // returns:
@@ -2522,8 +2755,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            subcategory_id: number,
+            response_id: string,
+            subcategory_id: string,
             percentage?: number,            // either percentage or value must be given
             value?: number                  // value means percentage is auto-calculated
         */
@@ -2635,8 +2868,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            subcategory_id: number
+            response_id: string,
+            subcategory_id: string
         */
 
         // returns:
@@ -2712,8 +2945,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            subcategory_id: number,
+            response_id: string,
+            subcategory_id: string,
             answer: string
         */
 
@@ -2801,8 +3034,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            subcategory_id: number
+            response_id: string,
+            subcategory_id: string
         */
 
         // returns:
@@ -2856,7 +3089,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            subcategory_id: number
+            subcategory_id: string
         */
 
         // returns:
@@ -2911,8 +3144,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            subcategory_id: number,
+            response_id: string,
+            subcategory_id: string,
             answer: string
         */
 
@@ -3003,8 +3236,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            option_id: number
+            response_id: string,
+            option_id: string
         */
 
         // returns:
@@ -3081,9 +3314,9 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            option_id: number,
-            new_option_id: number
+            response_id: string,
+            option_id: string,
+            new_option_id: string
         */
 
         // returns:
@@ -3185,8 +3418,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            option_id: number
+            response_id: string,
+            option_id: string
         */
 
         // returns:
@@ -3378,8 +3611,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: number,
-            option_id: number
+            response_id: string,
+            option_id: string
         */
 
         // returns:
