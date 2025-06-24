@@ -1057,11 +1057,11 @@ class EvaluationFormController extends Controller
                 $evaluationFormSubcategory->linear_scale_start = $request->linear_scale_start;
             if(is_numeric($request->linear_scale_end))
                 $evaluationFormSubcategory->linear_scale_end = $request->linear_scale_end;
-            if($evaluationFormSubcategory->linear_scale_start>=$evaluationFormSubcategory->linear_scale_end)
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
-                ]);
+            // if($evaluationFormSubcategory->linear_scale_start>=$evaluationFormSubcategory->linear_scale_end)
+            //     return response()->json([
+            //         'status' => 400,
+            //         'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
+            //     ]);
             $isEmptyLinearScaleStartLabel = $request->has('linear_scale_start_label') && $request->linear_scale_start_label === null;
             if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
                 'status' => 400,
