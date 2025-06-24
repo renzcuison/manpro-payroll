@@ -24,6 +24,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
     const [newOptionId, setNewOptionId] = useState(0);
     const [draggedOptionId, setDraggedOptionId] = useState();
     const [saved, setSaved] = useState(true);
+
     const subcategory = {
         id: subcategoryId,
         section_id: sectionId,
@@ -61,11 +62,12 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setLinearScaleStartLabel(subcategoryInit.linear_scale_start_label);
         setLinearScaleEndLabel(subcategoryInit.linear_scale_end_label);
         setOrder(subcategoryInit.order);
-        const options = [];
-        for(let option of subcategoryInit.options) options.push({ ...option });
-        setOptions(options);
+        const optionsArr = [];
+        if (subcategoryInit.options) {
+            for(let option of subcategoryInit.options) optionsArr.push({ ...option });
+        }
+        setOptions(optionsArr);
         setSavedSubcategory({ ...subcategoryInit });
-
     }, [subcategoryInit?.id]);
 
     // --- Subcategory CRUD ---
@@ -79,87 +81,96 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setLinearScaleEnd(savedSubcategory?.linear_scale_end);
         setLinearScaleStartLabel(savedSubcategory?.linear_scale_start_label);
         setLinearScaleEndLabel(savedSubcategory?.linear_scale_end_label);
-        const options = [];
-        if(savedSubcategory) for(let option of savedSubcategory.options) options.push({ ...option });
-        setOptions(options);
+        const optionsArr = [];
+        if(savedSubcategory && savedSubcategory.options) for(let option of savedSubcategory.options) optionsArr.push({ ...option });
+        setOptions(optionsArr);
     }
 
     async function editSubcategory() {
         try {
-            // update subcategory
             const response = await axiosInstance.post('/editEvaluationFormSubcategory', {
                 id: subcategoryId,
                 ...subcategory
             }, { headers });
-            if (response.data.status.toString().startsWith(2)) {
-                const { evaluationFormSubcategory } = response.data;
-                if(!evaluationFormSubcategory) return;
-                setSubcategoryName(evaluationFormSubcategory.name);
-                setSubcategoryType(evaluationFormSubcategory.subcategory_type);
-                setSubcategoryDescription(evaluationFormSubcategory.description);
-                setRequired(evaluationFormSubcategory.required);
-                setAllowOtherOption(evaluationFormSubcategory.allow_other_option);
-                setLinearScaleStart(evaluationFormSubcategory.linear_scale_start);
-                setLinearScaleEnd(evaluationFormSubcategory.linear_scale_end);
-                setOrder(evaluationFormSubcategory.order);
-                const options = [];
-                for(let option of subcategory.options) options.push({ ...option });
-                setSavedSubcategory({ ...evaluationFormSubcategory, options });
-            } else if (response.data.status.toString().startsWith(4)) throw response;
-            // create, delete, update options
+
+            if (Number(response.data.status) !== 200) {
+                throw response.data;
+            }
+            const { evaluationFormSubcategory } = response.data;
+            if(!evaluationFormSubcategory) return;
+            setSubcategoryName(evaluationFormSubcategory.name);
+            setSubcategoryType(evaluationFormSubcategory.subcategory_type);
+            setSubcategoryDescription(evaluationFormSubcategory.description);
+            setRequired(evaluationFormSubcategory.required);
+            setAllowOtherOption(evaluationFormSubcategory.allow_other_option);
+            setLinearScaleStart(evaluationFormSubcategory.linear_scale_start);
+            setLinearScaleEnd(evaluationFormSubcategory.linear_scale_end);
+            setOrder(evaluationFormSubcategory.order);
+            const optionsArr = [];
+            for(let option of subcategory.options) optionsArr.push({ ...option });
+            setSavedSubcategory({ ...evaluationFormSubcategory, options: optionsArr });
+
+            // Option CRUD
             const isLinearScale = subcategoryType === 'linear_scale';
             for(let index = 0; index < options.length; index++) {
                 const option = options[index];
                 if(isLinearScale && option.score !== option.order)
                     editOption(option, { score: option.order });
-                let response;
+                let optResponse;
                 switch(option.action) {
                     case 'create':
-                        response = await axiosInstance.post(
+                        optResponse = await axiosInstance.post(
                             '/saveEvaluationFormSubcategoryOption', { ...option }, { headers }
                         );
-                        if(response.data.status.toString().startsWith(4)) throw response;
-                        option.id = response.data.evaluationSubcategoryOptionID;
+                        if(Number(optResponse.data.status) !== 200) throw optResponse.data;
+                        option.id = optResponse.data.evaluationSubcategoryOptionID;
                         delete option.action;
                         break;
                     case 'delete':
-                        response = await axiosInstance.post(
+                        optResponse = await axiosInstance.post(
                             '/deleteEvaluationFormSubcategoryOption', { id: option.id }, { headers }
                         );
-                        if(response.data.status.toString().startsWith(4)) throw response;
+                        if(Number(optResponse.data.status) !== 200) throw optResponse.data;
                         options.splice(index, 1);
                         index--;
                         break;
                     case 'update':
-                        response = await axiosInstance.post(
+                        optResponse = await axiosInstance.post(
                             '/editEvaluationFormSubcategoryOption', { ...option }, { headers }
                         );
-                        if(response.data.status.toString().startsWith(4)) throw response;
+                        if(Number(optResponse.data.status) !== 200) throw optResponse.data;
                         delete option.action;
+                        break;
+                    default: break;
                 }
             }
-            // move options
+            // Move options
             let moving = false;
             for(let option of options) {
                 if(!option.move && moving) break;
                 if(!option.move) continue;
                 if(option.move) moving = true;
-                const response = await axiosInstance.post('/moveEvaluationFormSubcategoryOption', {
+                const moveResp = await axiosInstance.post('/moveEvaluationFormSubcategoryOption', {
                     id: option.id,
                     order: option.order
                 }, { headers });
-                if(response.data.status.toString().startsWith(4)) throw response;
+                if(Number(moveResp.data.status) !== 200) throw moveResp.data;
             }
             reloadOptions();
-        } catch(error) {
-            console.error('Error saving subcategory:', error);
+
             Swal.fire({
-                text: error.data?.message ?? 'Error saving subcategory',
+                text: "Subcategory updated successfully!",
+                icon: "success",
+                confirmButtonColor: '#177604'
+            });
+
+        } catch(error) {
+            let errorMsg = (error?.message) || (error?.data?.message) || 'Error saving subcategory';
+            Swal.fire({
+                text: errorMsg,
                 icon: "error",
                 confirmButtonColor: '#177604',
-                customClass: {
-                    popup: 'swal-popup-overlay'
-                }
+                customClass: { popup: 'swal-popup-overlay' }
             });
         }
     }
@@ -172,12 +183,13 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         setOptions([]);
     }
 
-    function saveSubcategory () {
-
-        if(subcategoryType == 'linear_scale') for(let option of options)
-            option.score = option.order;
-        axiosInstance
-            .post('/saveEvaluationFormSubcategory', {
+    async function saveSubcategory () {
+        try {
+            if(subcategoryType === 'linear_scale') {
+                for(let option of options)
+                    option.score = option.order;
+            }
+            const response = await axiosInstance.post('/saveEvaluationFormSubcategory', {
                 section_id: sectionId,
                 name: subcategoryName,
                 subcategory_type: subcategoryType,
@@ -189,25 +201,33 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                 linear_scale_start_label: linearScaleStartLabel,
                 linear_scale_end_label: linearScaleEndLabel,
                 options
-            }, { headers })
-            .then((response) => {
-                if (response.data.status.toString().startsWith(2)) {
-                    // Optionally update UI or trigger another action
-                    const { evaluationFormSubcategoryID } = response.data;
-                    if(!evaluationFormSubcategoryID) return;
-                    setSubcategoryId(evaluationFormSubcategoryID);
-                    const options = [];
-                    for(let option of subcategory.options) options.push({ ...option });
-                    setSavedSubcategory({ ...subcategory, options });
-                    alert("Subcategory saved successfully!");
-                } else {
-                    alert("Error saving subcategory");
-                }
-            })
-            .catch((error) => {
-                console.error('Error saving subcategory:', error);
-                alert("Error saving subcategory");
+            }, { headers });
+
+            if (Number(response.data.status) !== 200) {
+                throw response.data;
+            }
+
+            const { evaluationFormSubcategoryID } = response.data;
+            if(!evaluationFormSubcategoryID) return;
+            setSubcategoryId(evaluationFormSubcategoryID);
+            const optionsCopy = [];
+            for(let option of subcategory.options) optionsCopy.push({ ...option });
+            setSavedSubcategory({ ...subcategory, options: optionsCopy });
+
+            Swal.fire({
+                text: "Subcategory saved successfully!",
+                icon: "success",
+                confirmButtonColor: '#177604'
             });
+
+        } catch (error) {
+            let errorMsg = (error?.message) || (error?.data?.message) || 'Error saving subcategory';
+            Swal.fire({
+                text: errorMsg,
+                icon: "error",
+                confirmButtonColor: '#177604'
+            });
+        }
     };
 
     function switchSubcategoryType(subcategoryType) {
@@ -229,7 +249,6 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
     }
 
     // --- Option operations for multipleChoice/checkbox ---
-    
     function deleteOption(option) {
         let index = options.indexOf(option);
         if(option.action === 'create') {
@@ -249,7 +268,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
         if('label' in params) option.label = params.label;
         if('description' in params) option.description = params.description;
         if('score' in params) option.score = params.score;
-        if(option.action != 'create') option.action = 'update';
+        if(option.action !== 'create') option.action = 'update';
         reloadOptions();
     }
 
@@ -277,8 +296,8 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
             order += (moveUp ? 1 : -1) * 1
         ) {
             const option = options[order - 1];
-            const newOrder = order + (moveUp ? -1 : 1);
-            option.order = newOrder;
+            const newOrderVal = order + (moveUp ? -1 : 1);
+            option.order = newOrderVal;
             option.move = true;
         }
         const option = options.splice(oldOrder - 1, 1)[0];
