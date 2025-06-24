@@ -24,7 +24,7 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSala
 
     const [salaryGradeError, setSalaryGradeError] = useState(false);
     const [amountError, setAmountError] = useState(false);
-
+    
     const checkInput = (event) => {
         event.preventDefault();
 
@@ -157,6 +157,7 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSala
                         confirmButtonColor: '#177604',
                     }).then(() => {
                         close();
+                        if (onUpdated) onUpdated();
                         if (onDeleted) onDeleted();
                     });
                 }
