@@ -222,11 +222,18 @@ const AttendanceView = () => {
                                                 }}
                                             >
                                                 {employeeList && Array.isArray(employeeList) && employeeList.length > 0 ? (
-                                                    employeeList.map((emp) => (
-                                                        <MenuItem key={emp.emp_id} value={emp.emp_id}>
-                                                            {`${emp.emp_first_name} ${emp.emp_middle_name || ''} ${emp.emp_last_name} ${emp.emp_suffix || ''}`}
-                                                        </MenuItem>
-                                                    ))
+                                                    [...employeeList]
+                                                        .sort((a, b) => {
+                                                            // Compare by last name, then first name, then middle name, then suffix
+                                                            const aName = `${a.emp_last_name || ''}, ${a.emp_first_name || ''} ${a.emp_middle_name || ''} ${a.emp_suffix || ''}`.trim().toLowerCase();
+                                                            const bName = `${b.emp_last_name || ''}, ${b.emp_first_name || ''} ${b.emp_middle_name || ''} ${b.emp_suffix || ''}`.trim().toLowerCase();
+                                                            return aName.localeCompare(bName);
+                                                        })
+                                                        .map((emp) => (
+                                                            <MenuItem key={emp.emp_id} value={emp.emp_id}>
+                                                                {` ${emp.emp_last_name}, ${emp.emp_first_name} ${emp.emp_middle_name || ''} ${emp.emp_suffix || ''}`}
+                                                            </MenuItem>
+                                                        ))
                                                 ) : (
                                                     <MenuItem disabled>No employees found</MenuItem>
                                                 )}

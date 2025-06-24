@@ -4,12 +4,14 @@ import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import React from 'react';
 import { Tabs, Tab } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 import SalaryGradeAdd from './Modals/SalaryGradeAdd';
 import SalaryGradeEdit from './Modals/SalaryGradeEdit';
 import { useBenefit } from '../../../hooks/useBenefits';
 
 const SalaryPlans = () => {
+    const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     
@@ -17,7 +19,6 @@ const SalaryPlans = () => {
     const [salaryPlans, setSalaryPlans] = useState([]);
     const [loadSalaryGrade, setLoadSalaryGrade] = useState(null);
     const [openAddSalaryGrade, setOpenAddSalaryGrade] = useState(false);
-    const [openEditSalaryGrade, setOpenEditSalaryGrade] = useState(false);
 
     const [page, setPage] = useState(0); // 0-based for TablePagination
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -92,17 +93,6 @@ const SalaryPlans = () => {
         fetchSalaryPlans();
     }
 
-    // Edit Salary Plan Functions
-    const handleOpenEditSalaryGrade = (salaryGrade) => {
-        setLoadSalaryGrade(salaryGrade)
-        setOpenEditSalaryGrade(true);
-    }
-
-    const handleCloseEditSalaryGrade = () => {
-        setOpenEditSalaryGrade(false);
-        fetchSalaryPlans();
-    }
-
     //Pagination Functions
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -112,6 +102,22 @@ const SalaryPlans = () => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
+
+    const sortedSalaryPlans = [...salaryPlans].sort((a, b) => {
+        // Compare salary_grade as number
+        const gradeA = Number(a.salary_grade);
+        const gradeB = Number(b.salary_grade);
+        if (gradeA !== gradeB) return gradeA - gradeB;
+
+        // If grades are equal, compare version (empty string or null should come first)
+        if (!a.salary_grade_version && b.salary_grade_version) return -1;
+        if (a.salary_grade_version && !b.salary_grade_version) return 1;
+        if (!a.salary_grade_version && !b.salary_grade_version) return 0;
+
+        // Both have versions, compare as number if possible
+        return Number(a.salary_grade_version) - Number(b.salary_grade_version);
+    });
+
 
     return (
         <Layout title={"Salary Plans"}>
@@ -157,7 +163,7 @@ const SalaryPlans = () => {
                                             <TableRow>
                                                 <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '20%' }} align="center">
                                                 Salary Grade
-                                                </TableCell>
+                                                </TableCell>    
                                                 <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '15%' }} align="center">
                                                 Amount
                                                 </TableCell>
@@ -180,9 +186,18 @@ const SalaryPlans = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {salaryPlans.length > 0 ? (
-                                                salaryPlans.map((salaryPlan) => (
-                                                    <TableRow key={salaryPlan.id} sx={{ p: 1, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}} onClick={() => handleOpenEditSalaryGrade(salaryPlan)}>
+                                            {sortedSalaryPlans.length > 0 ? (
+                                                sortedSalaryPlans.map((salaryPlan) => (
+                                                    <TableRow
+                                                        key={salaryPlan.id}
+                                                        sx={{ p: 1, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}}
+                                                        onClick={() => {
+                                                            const gradeParam = salaryPlan.salary_grade_version
+                                                                ? `${salaryPlan.salary_grade}-${salaryPlan.salary_grade_version}`
+                                                                : `${salaryPlan.salary_grade}`;
+                                                            navigate(`/admin/compensation/salary-plans/${gradeParam}`);
+                                                        }}
+                                                    >
                                                         <TableCell sx={{fontSize: 14}} align="center">
                                                         Grade {salaryPlan.salary_grade}
                                                         {salaryPlan.salary_grade_version
@@ -240,15 +255,6 @@ const SalaryPlans = () => {
                         open={openAddSalaryGrade}
                         close={handleCloseAddSalaryGrade}
                         existingSalaryGrades={allSalaryGrades}
-                    />
-                }
-                {openEditSalaryGrade &&
-                    <SalaryGradeEdit
-                        open={openEditSalaryGrade}
-                        close={handleCloseEditSalaryGrade}
-                        salaryGradeInfo={loadSalaryGrade}
-                        onDeleted={fetchSalaryPlans}
-                        existingSalaryGrades={allSalaryGrades.filter(grade => grade !== loadSalaryGrade?.salary_grade)}
                     />
                 }
             </Box>

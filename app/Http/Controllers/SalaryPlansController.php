@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 
 use Carbon\Carbon;
 
@@ -44,13 +45,27 @@ class SalaryPlansController extends Controller {
                 ->get();
 
             // For each salary plan, count employees with matching salary_grade
-            $salaryPlansWithEmployeeCount = $salaryPlans->map(function($plan) use ($user) {
-                $employeeCount = UsersModel::where('client_id', $user->client_id)
-                    ->where('salary_grade', $plan->salary_grade)
+           $salaryPlansWithEmployeeCount = $salaryPlans->map(function($plan) use ($user) {
+                $planGradeString = $plan->salary_grade;
+                if (!empty($plan->salary_grade_version)) {
+                    $planGradeString .= '-' . $plan->salary_grade_version;
+                }
+                $employeeCount = \DB::table('users')
+                    ->where('client_id', $user->client_id)
+                    ->where('salary_grade', $planGradeString)
                     ->whereNull('deleted_at')
                     ->count();
-                $plan->employee_count = $employeeCount;
-                return $plan;
+
+                return [
+                    'id' => encrypt($plan->id),
+                    'client_id' => encrypt($plan->client_id),
+                    'salary_grade' => $plan->salary_grade,
+                    'salary_grade_version' => $plan->salary_grade_version,
+                    'amount' => $plan->amount,
+                    'employee_count' => $employeeCount,
+                    'created_at' => $plan->created_at,
+                    'updated_at' => $plan->updated_at,
+                ];
             });
 
             return response()->json([
@@ -85,7 +100,18 @@ class SalaryPlansController extends Controller {
 
                 DB::commit();
 
-                return response()->json(['status' => 200, 'salaryPlan' => $salaryPlan]);
+                return response()->json([
+                    'status' => 200,
+                    'salaryPlan' => [
+                        'id' => encrypt($salaryPlan->id),
+                        'client_id' => encrypt($salaryPlan->client_id),
+                        'salary_grade' => $salaryPlan->salary_grade,
+                        'salary_grade_version' => $salaryPlan->salary_grade_version,
+                        'amount' => $salaryPlan->amount,
+                        'created_at' => $salaryPlan->created_at,
+                        'updated_at' => $salaryPlan->updated_at,
+                    ]
+                ]);
             } catch (\Exception $e) {
                 DB::rollBack();
 
@@ -106,7 +132,11 @@ class SalaryPlansController extends Controller {
 
         if ($this->checkUser() && $validated) {
             $user = Auth::user();
-            $salaryGrade = SalaryPlansModel::find($request->input('id'));
+            $salaryGrade = SalaryPlansModel::find(decrypt($id)); // Decrypt the route param
+
+            if (!$salaryGrade) {
+                return response()->json(['status' => 404, 'message' => 'Salary grade not found.'], 404);
+            }
 
             $salaryGrade->salary_grade = $request->input('salary_grade');
             $salaryGrade->salary_grade_version = $request->input('salary_grade_version');
@@ -114,18 +144,31 @@ class SalaryPlansController extends Controller {
 
             $salaryGrade->save();
 
-            return response()->json(['status' => 200]);
+            return response()->json([
+                'status' => 200,
+                'salaryPlan' => [
+                    'id' => encrypt($salaryGrade->id),
+                    'client_id' => encrypt($salaryGrade->client_id),
+                    'salary_grade' => $salaryGrade->salary_grade,
+                    'salary_grade_version' => $salaryGrade->salary_grade_version,
+                    'amount' => $salaryGrade->amount,
+                    'created_at' => $salaryGrade->created_at,
+                    'updated_at' => $salaryGrade->updated_at,
+                ]
+            ]);
         } 
 
         return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
     }
 
     public function deleteSalaryGrade(Request $request){
-        $salary_grade = SalaryPlansModel::find($request->salary_grade);
-
-        if ($salary_grade) {
-            $salary_grade->delete();
-            return response()->json(['message' => 'Salary grade soft deleted successfully.']);
+        $salaryPlan = SalaryPlansModel::find(decrypt($request->id));
+        if ($salaryPlan) {
+            $salaryPlan->delete();
+            return response()->json([
+                'message' => 'Salary grade soft deleted successfully.',
+                'id' => encrypt($salaryPlan->id)
+            ]);
         } else {
             return response()->json(['message' => 'Salary grade not found.'], 404);
         }
@@ -176,6 +219,89 @@ class SalaryPlansController extends Controller {
             ['status' => 403, 'message' => 'Unauthorized'],
             403
         );
+    }
+
+    public function getSalaryPlan(Request $request) {
+        $user = Auth::user();
+        if ($this->checkUser()) {
+            $plan = SalaryPlansModel::where('client_id', $user->client_id)
+                ->where('salary_grade', $request->salary_grade)
+                ->where(function($q) use ($request) {
+                    if ($request->filled('salary_grade_version')) {
+                        $q->where('salary_grade_version', $request->salary_grade_version);
+                    } else {
+                        $q->whereNull('salary_grade_version')->orWhere('salary_grade_version', '');
+                    }
+                })
+                ->first();
+
+            if ($plan) {
+                // Add this block to count employees for this grade/version
+                $planGradeString = $plan->salary_grade;
+                if (!empty($plan->salary_grade_version)) {
+                    $planGradeString .= '-' . $plan->salary_grade_version;
+                }
+                $employeeCount = \DB::table('users')
+                    ->where('client_id', $user->client_id)
+                    ->where('salary_grade', $planGradeString)
+                    ->whereNull('deleted_at')
+                    ->count();
+
+                return response()->json([
+                    'status' => 200,
+                    'salaryPlan' => [
+                        'id' => encrypt($plan->id),
+                        'client_id' => encrypt($plan->client_id),
+                        'salary_grade' => $plan->salary_grade,
+                        'salary_grade_version' => $plan->salary_grade_version,
+                        'amount' => $plan->amount,
+                        'employee_count' => $employeeCount, // <-- add this
+                        'created_at' => $plan->created_at,
+                        'updated_at' => $plan->updated_at,
+                    ]
+                ]);
+            } else {
+                return response()->json(['status' => 404, 'salaryPlan' => null]);
+            }
+        }
+        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    }
+
+    public function getEmployeesBySalaryGrade(Request $request)
+    {
+        $user = Auth::user();
+        if ($this->checkUser()) {
+            $salary_grade = $request->input('salary_grade');
+            $salary_grade_version = $request->input('salary_grade_version');
+            $gradeString = $salary_grade;
+            if (!empty($salary_grade_version)) {
+                $gradeString .= '-' . $salary_grade_version;
+            }
+
+            $employees = \DB::table('users')
+                ->leftJoin('branches', 'users.branch_id', '=', 'branches.id')
+                ->leftJoin('departments', 'users.department_id', '=', 'departments.id')
+                ->leftJoin('employee_roles', 'users.role_id', '=', 'employee_roles.id')
+                ->where('users.client_id', $user->client_id)
+                ->where('users.salary_grade', $gradeString)
+                ->whereNull('users.deleted_at')
+                ->select(
+                    'users.*',
+                    'branches.name as branch_name',
+                    'branches.acronym as branch_acronym',
+                    'departments.name as department_name',
+                    'departments.acronym as department_acronym',
+                    'employee_roles.name as role_name',
+                    'employee_roles.acronym as role_acronym'
+                )
+                ->get();
+
+            return response()->json([
+                'status' => 200,
+                'employees' => $employees
+            ]);
+        }
+        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
     }
 }
 
