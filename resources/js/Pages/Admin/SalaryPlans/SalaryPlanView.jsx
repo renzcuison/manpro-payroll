@@ -34,8 +34,8 @@ const SalaryPlanView = () => {
 
     let salary_grade = gradeParam;
     let salary_grade_version = '';
-    if (gradeParam.includes('-')) {
-        [salary_grade, salary_grade_version] = gradeParam.split('-');
+    if (gradeParam.includes('.')) {
+        [salary_grade, salary_grade_version] = gradeParam.split('.');
     }
 
     const [salaryPlan, setSalaryPlan] = useState(null);
@@ -168,7 +168,7 @@ const SalaryPlanView = () => {
                                         <Grid item xs={6} sm={8}>
                                             <Typography variant="body1">{salaryPlan ? (
                                                 salaryPlan.salary_grade_version
-                                                    ? `${salaryPlan.salary_grade}-${salaryPlan.salary_grade_version}`
+                                                    ? `${salaryPlan.salary_grade}.${salaryPlan.salary_grade_version}`
                                                     : salaryPlan.salary_grade
                                             ) : gradeParam}
                                             </Typography>

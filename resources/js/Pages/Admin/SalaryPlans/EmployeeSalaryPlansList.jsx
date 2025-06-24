@@ -193,7 +193,7 @@ const SalaryPlans = () => {
                                                         sx={{ p: 1, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}}
                                                         onClick={() => {
                                                             const gradeParam = salaryPlan.salary_grade_version
-                                                                ? `${salaryPlan.salary_grade}-${salaryPlan.salary_grade_version}`
+                                                                ? `${salaryPlan.salary_grade}.${salaryPlan.salary_grade_version}`
                                                                 : `${salaryPlan.salary_grade}`;
                                                             navigate(`/admin/compensation/salary-plans/${gradeParam}`);
                                                         }}
@@ -201,7 +201,7 @@ const SalaryPlans = () => {
                                                         <TableCell sx={{fontSize: 14}} align="center">
                                                         Grade {salaryPlan.salary_grade}
                                                         {salaryPlan.salary_grade_version
-                                                            ? `-${salaryPlan.salary_grade_version}`
+                                                            ? `.${salaryPlan.salary_grade_version}`
                                                             : ''}
                                                         </TableCell>
                                                         <TableCell sx={{ fontSize: 14 }} align="center">

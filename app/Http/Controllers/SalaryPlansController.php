@@ -48,7 +48,7 @@ class SalaryPlansController extends Controller {
            $salaryPlansWithEmployeeCount = $salaryPlans->map(function($plan) use ($user) {
                 $planGradeString = $plan->salary_grade;
                 if (!empty($plan->salary_grade_version)) {
-                    $planGradeString .= '-' . $plan->salary_grade_version;
+                    $planGradeString .= '.' . $plan->salary_grade_version;
                 }
                 $employeeCount = \DB::table('users')
                     ->where('client_id', $user->client_id)
@@ -239,7 +239,7 @@ class SalaryPlansController extends Controller {
                 // Add this block to count employees for this grade/version
                 $planGradeString = $plan->salary_grade;
                 if (!empty($plan->salary_grade_version)) {
-                    $planGradeString .= '-' . $plan->salary_grade_version;
+                    $planGradeString .= '.' . $plan->salary_grade_version;
                 }
                 $employeeCount = \DB::table('users')
                     ->where('client_id', $user->client_id)
@@ -275,7 +275,7 @@ class SalaryPlansController extends Controller {
             $salary_grade_version = $request->input('salary_grade_version');
             $gradeString = $salary_grade;
             if (!empty($salary_grade_version)) {
-                $gradeString .= '-' . $salary_grade_version;
+                $gradeString .= '.' . $salary_grade_version;
             }
 
             $employees = \DB::table('users')
