@@ -34,4 +34,10 @@ class GroupLifeEmployeePlan extends Model
         return $this->hasMany(GroupLifeDependents::class, 'group_life_employee_id');
     }
 
+    // Add this relationship!
+    public function plan()
+    {
+        return $this->belongsTo(GroupLifeCompanyPlan::class, 'group_life_plan_id');
+    }
+
 }

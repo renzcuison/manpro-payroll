@@ -177,7 +177,7 @@ class InsurancesController extends Controller
 
         $user = Auth::user();
 
-    $plan = GroupLifeCompanyPlan::with('company:id,name')
+        $plan = GroupLifeCompanyPlan::with('company:id,name')
         ->withCount('assignedEmployees')
         ->whereHas('company', function ($query) use ($user) {
             $query->where('client_id', $user->client_id);
@@ -215,11 +215,11 @@ class InsurancesController extends Controller
             'type' => 'required|string|max:50',
             'employer_share' => 'required|numeric',
             'employee_share' => 'required|numeric',
-    ]);
+        ]);
 
-        $plan = GroupLifeCompanyPlan::create($validated);
+            $plan = GroupLifeCompanyPlan::create($validated);
 
-        return response()->json($plan, 201);
+            return response()->json($plan, 201);
     }
 
     public function editGroupLifePlan(Request $request, $id)
@@ -500,5 +500,87 @@ class InsurancesController extends Controller
                 'dependents' => $employeePlan->dependents,
             ]
         ]);
+    }
+
+    public function getEmployeeGroupLifePlans(Request $request)
+    {
+        $user = Auth::user();
+
+        $employeePlans = GroupLifeEmployeePlan::with([
+            'plan.company',
+            'dependents',
+            'employee.branch',
+            'employee.department',
+            'employee.role'
+        ])->where('employee_id', $user->id)->get();
+
+        $formattedPlans = $employeePlans->map(function ($plan) {
+            return [
+                'id' => $plan->id,
+                'plan_name' => $plan->plan->plan_name ?? '',
+                'company_name' => $plan->plan->company->name ?? '',
+                'type' => $plan->plan->type ?? '',
+                'employer_share' => $plan->plan->employer_share ?? '',
+                'employee_share' => $plan->plan->employee_share ?? '',
+                'enroll_date' => $plan->enroll_date,
+                'dependents_count' => $plan->dependents->count(),
+                'branch' => [ 'name' => $plan->employee->branch->name ?? '-' ],
+                'department' => [ 'name' => $plan->employee->department->name ?? '-' ],
+                'role' => [ 'name' => $plan->employee->role->name ?? '-' ],
+            ];
+        });
+
+        return response()->json([
+            'status' => 200,
+            'plans' => $formattedPlans,
+        ]);
+    }
+
+    public function getEmployeeGroupLifePlan($id)
+    {
+        $user = Auth::user();
+
+        // Only allow fetching plans for the logged-in user
+        $plan = GroupLifeEmployeePlan::with([
+            'plan.company',
+            'dependents'
+        ])->where('employee_id', $user->id)->find($id);
+
+        if (!$plan) {
+            return response()->json(['plan' => null, 'dependents' => []], 404); // For your frontend check
+        }
+
+        return response()->json([
+            'plan' => [
+                'group_life_company_name' => $plan->plan->company->name ?? '',
+                'plan_name' => $plan->plan->plan_name ?? '',
+                'type' => $plan->plan->type ?? '',
+                'employer_share' => $plan->plan->employer_share ?? '',
+                'employee_share' => $plan->plan->employee_share ?? '',
+                'enroll_date' => $plan->enroll_date,
+            ],
+            'dependents' => $plan->dependents->map(function ($dep) {
+                return [
+                    'name' => $dep->dependent_name,
+                    'relationship' => $dep->relationship
+                ];
+            }),
+        ]);
+    }
+    public function addEmployeeDependent(Request $request)
+    {
+        $request->validate([
+            'employee_plan_id' => 'required|integer|exists:group_life_employee_plans,id',
+            'name' => 'required|string|max:255',
+            'relationship' => 'required|string|max:255',
+        ]);
+
+        $dependent = GroupLifeDependents::create([
+            'employee_plan_id' => $request->employee_plan_id,
+            'name' => $request->name,
+            'relationship' => $request->relationship,
+        ]);
+
+        return response()->json(['dependent' => $dependent], 201);
     }
 }
