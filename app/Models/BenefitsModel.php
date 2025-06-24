@@ -23,4 +23,9 @@ class BenefitsModel extends Model
         'payment_schedule',
         'client_id',
     ];
+
+    public function brackets()
+    {
+        return $this->hasMany(BenefitBracket::class, 'benefit_id');
+    }
 }

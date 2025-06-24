@@ -1,5 +1,5 @@
 import Layout from '../../../components/Layout/Layout';
-import { Box, TextField, Button, Grid, FormControl, Typography, IconButton, Divider, CircularProgress } from '@mui/material';
+import { Box, TextField, Button, Grid, FormControl, Typography, IconButton, Divider } from '@mui/material';
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
@@ -10,6 +10,8 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 import { getFullName } from '../../../utils/user-utils';
+import { Create } from '@mui/icons-material';
+import CreateEvaluationReviewModal from './Modals/CreateEvaluationReviewModal';
 
 const PerformanceEvaluationCreateEvaluation = () => {
     const navigate = useNavigate();
@@ -40,6 +42,8 @@ const PerformanceEvaluationCreateEvaluation = () => {
     const [loadingBranches, setLoadingBranches] = useState(false);
     const [loadingDepartments, setLoadingDepartments] = useState(false);
     const [loadingAdmins, setLoadingAdmins] = useState(false);
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [pendingPayload, setPendingPayload] = useState(null);
 
     // Auth
     const storedUser = localStorage.getItem("nasya_user");
@@ -109,6 +113,25 @@ const PerformanceEvaluationCreateEvaluation = () => {
             period_start_at: formValues.periodFrom + ' 00:00:00',
             period_end_at: formValues.periodTo + ' 23:59:59'
         };
+
+        Swal.fire({
+            icon: 'question',
+            title: 'Are you sure the details are correct?',
+            showCancelButton: true,
+            confirmButtonText: 'Proceed',
+            cancelButtonText: 'View',
+            reverseButtons: true
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await saveEvaluation(payload);
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                setPendingPayload(payload);
+                setReviewModalOpen(true);
+            }
+        });
+    };
+
+    const saveEvaluation = async (payload) => {
         try {
             await axiosInstance.post('/saveEvaluationResponse', payload, { headers });
             Swal.fire({
@@ -304,6 +327,23 @@ const PerformanceEvaluationCreateEvaluation = () => {
 
     // Render
     return (
+        <>
+        <CreateEvaluationReviewModal
+            open={reviewModalOpen}
+            onProceed={() => {
+                setReviewModalOpen(false);
+                if (pendingPayload) saveEvaluation(pendingPayload);
+            }}
+            onClose={() => setReviewModalOpen(false)}
+            data={formValues}
+            branches={branches}
+            departments={departments}
+            employees={employees}
+            admins={admins}
+            performanceEvaluation={performanceEvaluation}
+            extraCommentors={extraCommentors}
+            getFullName={getFullName}
+        />
         <Layout title={"Create Evaluation Form"}>
             <Box sx={{ maxWidth: '1000px', mx: 'auto', mt: 5, p: 3, bgcolor: 'white', borderRadius: '8px', position: 'relative' }}>
                 <IconButton
@@ -578,6 +618,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
                 </form>
             </Box>
         </Layout>
+        </>
     );
 };
 

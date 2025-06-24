@@ -338,11 +338,14 @@ class AttendanceController extends Controller
     public function recordEmployeeAttendance(Request $request)
     {
         Log::info("AttendanceController::recordEmployeeAttendance");
-        // Log::info($request);
+        Log::info($request);
 
         $user = Auth::user();
         $empId = $request->input('employee');
         $employee = UsersModel::with('workShift')->find($empId);
+
+        $workHours = $employee->workHours;
+        Log::info($workHours);
 
         if (!$employee || !$employee->workShift) {
             return response()->json(['status' => 404, 'message' => 'Employee Details Not Found'], 404);
@@ -352,10 +355,32 @@ class AttendanceController extends Controller
             try {
                 DB::beginTransaction();
 
-                AttendanceLogsModel::where('user_id', $empId)
-                    ->whereDate('timestamp', $request->input('date'))
-                    ->delete();
+                // Step 1: Delete existing logs
+                AttendanceLogsModel::where('user_id', $empId)->whereDate('timestamp', $request->input('date'))->delete();
 
+                // Step 2: Create Attendance Summary
+                $day = Carbon::parse($request->input('date'))->toDateString();
+                $firstIn = $request->input('first_in');
+                $timestamp = $firstIn ?? ($request->input('second_in') ?? now());
+
+                $dayStart = Carbon::parse($day . ' ' . $employee->workShift->first_time_in);
+                $dayEnd = $employee->workShift->shift_type === 'Regular' ? Carbon::parse($day . ' ' . $employee->workShift->first_time_out) : Carbon::parse($day . ' ' . $employee->workShift->second_time_out);
+
+                $summary = AttendanceSummary::create([
+                    "user_id" => $employee->id,
+                    "client_id" => $employee->client_id,
+                    "work_hour_id" => $employee->workShift->work_hour_id,
+                    "work_day_start" => $dayStart,
+                    "work_day_end" => $dayEnd,
+                    "day_type" => (Carbon::parse($timestamp)->isSunday()) ? 'Rest Day' : 'Regular Day',
+                    "minutes_late" => 0,
+                    "latest_log_id" => null,
+                ]);
+
+                log::info("Summary Created:");
+                log::info($summary);
+
+                // Step 3: Create logs with reference to summary
                 $logs = [
                     ['action' => 'Duty In', 'timestamp' => $request->input('first_in')],
                     ['action' => 'Duty Out', 'timestamp' => $request->input('first_out')],
@@ -365,21 +390,34 @@ class AttendanceController extends Controller
                     ['action' => 'Overtime Out', 'timestamp' => $request->input('overtime_out')],
                 ];
 
-                //Log::info($logs);
+                $latestLog = null;
 
                 foreach ($logs as $log) {
                     if ($log['timestamp']) {
-                        AttendanceLogsModel::create([
+                        $createdLog = AttendanceLogsModel::create([
                             'user_id' => $employee->id,
                             'work_hour_id' => $employee->workShift->work_hour_id,
                             'action' => $log['action'],
                             'timestamp' => $log['timestamp'],
                             'method' => 0,
+                            'attendance_summary_id' => $summary->id,
                         ]);
+
+                        log::info("Attendance Log Created:");
+                        log::info($createdLog);
+
+                        $latestLog = $createdLog;
                     }
                 }
 
+                // Step 4: Update summary with latest log
+                if ($latestLog) {
+                    $summary->latest_log_id = $latestLog->id;
+                    $summary->save();
+                }
+
                 DB::commit();
+
                 return response()->json(['status' => 200, 'message' => 'Attendance recorded successfully']);
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -394,7 +432,7 @@ class AttendanceController extends Controller
     public function addAttendanceLog(Request $request)
     {
         Log::info("AttendanceController::addAttendanceLog");
-        //Log::info($request);
+        Log::info($request);
 
         $user = Auth::user();
         $empId = $request->input('employee');

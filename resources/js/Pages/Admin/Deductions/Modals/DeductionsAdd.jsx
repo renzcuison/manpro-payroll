@@ -1,159 +1,22 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
-import FilledInput from '@mui/material/FilledInput';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
-
-import React, { useState, useEffect } from 'react';
-import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
-import Swal from 'sweetalert2';
-
+import React from 'react';
 import 'react-quill/dist/quill.snow.css';
-import { useSaveDeductions } from '../../../../hooks/useDeductions';
+import { useManageDeductions } from '../../../../hooks/useDeductions';
 
 const DeductionsAdd = ({ open, close }) => {
+
+    const {
+        //values
+        deductionsName, deductionsType, deductionsAmount, deductionsPercentage, paymentSchedule,
+        //errors
+        deductionsNameError, deductionsAmountError, deductionsPercentageError,
+        //functions
+        setDeductionsName, setDeductionsType, setDeductionsAmount, setDeductionsPercentage, setPaymentSchedule,
+        handleInputChange, checkInput,
+    } = useManageDeductions({onSuccess: () => close(true)});
     
-    const saveDeductions = useSaveDeductions();
-
-    const [deductionsNameError, setDeductionsNameError] = useState(false);
-    const [deductionsAmountError, setDeductionsAmountError] = useState(false);
-    const [deductionsPercentageError, setDeductionsPercentageError] = useState(false);
-
-    const [deductionsName, setDeductionsName] = useState('');
-    const [deductionsType, setDeductionsType] = useState('');
-    const [deductionsAmount, setDeductionsAmount] = useState('');
-    const [deductionsPercentage, setDeductionsPercentage] = useState('');
-
-    const [paymentScheduleError, setPaymentScheduleError] = useState(false);
-    const [paymentSchedule, setPaymentSchedule] = useState(1);
-
-    const checkInput = (event) => {
-        event.preventDefault();
-
-        if (!deductionsName) {
-            setDeductionsNameError(true);
-        } else {
-            setDeductionsNameError(false);
-        }
-
-        if ( deductionsType == "Amount" ) {
-            checkInputAmount(event);
-        }
-
-        if ( deductionsType == "Percentage" ) {
-            checkInputPercentage(event);
-        }
-    };
-
-    const checkInputAmount = () => {
-
-        if (!deductionsAmount) {
-            setDeductionsAmountError(true);
-        } else {
-            setDeductionsAmountError(false);
-        }
-
-        if ( deductionsNameError == true || deductionsAmountError == true ) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            new Swal({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "You want to save this Deductions Type?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: 'Save',
-                confirmButtonColor: '#177604',
-                showCancelButton: true,
-                cancelButtonText: 'Cancel',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
-            });
-        }
-    }
-
-    const checkInputPercentage = () => {
-        if (!deductionsPercentage) {
-            setDeductionsPercentageError(true);
-        } else {
-            setDeductionsPercentageError(false);
-        }
-
-        if ( deductionsNameError == true || deductionsPercentageError == true ) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            new Swal({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "You want to save this Deductions Type?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: 'Save',
-                confirmButtonColor: '#177604',
-                showCancelButton: true,
-                cancelButtonText: 'Cancel',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
-            });
-        }
-    }
-
-    const saveInput = (event) => {
-        event.preventDefault();
-        const amount = parseFloat(deductionsAmount.replace(/,/g, "")) || 0;
-        const percentage = parseFloat(deductionsPercentage.replace(/,/g, "")) || 0;
-
-        const data = {
-            name: deductionsName,
-            type: deductionsType,
-            amount: amount,
-            percentage: percentage,
-            payment_schedule: paymentSchedule,
-        };
-        saveDeductions.mutate({data: data, onSuccessCallback: () => close(true)});
-    };
-
-    const formatCurrency = (value) => {
-        if (!value) return "";
-
-        let sanitizedValue = value.replace(/[^0-9.]/g, "");
-
-        const parts = sanitizedValue.split(".");
-        if (parts.length > 2) {
-            sanitizedValue = parts[0] + "." + parts.slice(1).join("");
-        }
-
-        let [integerPart, decimalPart] = sanitizedValue.split(".");
-        integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
-        if (decimalPart !== undefined) {
-            decimalPart = decimalPart.slice(0, 2);
-            return decimalPart.length > 0 ? `${integerPart}.${decimalPart}` : integerPart + ".";
-        }
-
-        return integerPart;
-    };
-
-    const handleInputChange = (e, setValue) => {
-        const formattedValue = formatCurrency(e.target.value);
-        setValue(formattedValue);
-    };
-
     return (
         <>
             <Dialog open={open} fullWidth maxWidth="md"PaperProps={{ style: { padding: '16px', backgroundColor: '#f8f9fa', boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px', borderRadius: '20px', minWidth: '800px', maxWidth: '1000px', marginBottom: '5%' }}}>
@@ -204,7 +67,6 @@ const DeductionsAdd = ({ open, close }) => {
                                         id="paymentSchedule"
                                         label="Payment Schedule"
                                         value={paymentSchedule}
-                                        error={paymentScheduleError}
                                         onChange={(event) => setPaymentSchedule(event.target.value)}
                                     >
                                         <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>

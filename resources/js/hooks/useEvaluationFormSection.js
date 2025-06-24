@@ -1,5 +1,4 @@
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
-import { getSubcategoryDbValue } from "../utils/performance-evaluation-utils";
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
 
@@ -12,11 +11,11 @@ export function useEvaluationFormSection(section) {
     const [sectionName, setSectionName] = useState('');
     const [editableSectionName, setEditableSectionName] = useState(false);
     const [sectionCategory, setSectionCategory] = useState('');
-    const [editableCategory, setEditableCategory] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [order, setOrder] = useState();
     const [draggedSubcategoryId, setDraggedSubcategoryId] = useState(null);
     const [subcategories, setSubcategories] = useState([]);
+    const [expandedSubcategoryId, setExpandedSubcategoryId] = useState();
 
     useEffect(() => {
         if(!section) return;
@@ -68,10 +67,6 @@ export function useEvaluationFormSection(section) {
                 });
             })
         ;
-    }
-
-    function toggleEditableCategory() {
-        setEditableCategory(!editableCategory);
     }
 
     function toggleEditableSection() {
@@ -143,11 +138,13 @@ export function useEvaluationFormSection(section) {
             });
             return;
         }
+        if(subcategory.subcategoryType == 'linear_scale') for(let option of subcategory.options)
+            option.score = option.order;
         axiosInstance
             .post('/saveEvaluationFormSubcategory', {
                 ...subcategory,
                 section_id: sectionId,
-                subcategory_type: getSubcategoryDbValue(subcategory.subcategory_type)
+                subcategory_type: subcategory.subcategory_type
             }, { headers })
             .then((response) => {
                 if (response.data.status.toString().startsWith(2)) {
@@ -225,10 +222,10 @@ export function useEvaluationFormSection(section) {
         sectionName, setSectionName,
         editableSectionName, toggleEditableSection,
         sectionCategory, setSectionCategory,
-        editableCategory, toggleEditableCategory,
         expanded, toggleExpand,
         order,
         subcategories, saveSubcategory, moveSubcategory, deleteSubcategory,
+        expandedSubcategoryId, setExpandedSubcategoryId,
         draggedSubcategoryId, setDraggedSubcategoryId,
     };
 }
