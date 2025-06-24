@@ -28,14 +28,10 @@ const GroupLifeAddModal = ({ open, close, onAddRow, refreshPlans }) => {
 
     const storedUser = localStorage.getItem("nasya_user");
     const user = storedUser ? JSON.parse(storedUser) : null;
-
-    const [groupLifeNameError, setGroupLifeNameError] = useState(false);
     const [employeeAmountShareError, setEmployeeAmountShareError] = useState(false);
     const [employerAmountShareError, setEmployerAmountShareError] = useState(false);
     const [employeePercentageShareError, setEmployeePercentageShareError] = useState(false);
     const [employerPercentageShareError, setEmployerPercentageShareError] = useState(false);
-
-    const [groupLifeName, setGroupLifeName] = useState('');
     const [planType, setPlanType] = useState('');
     const [paymentType, setPaymentType] = useState('');
     const [employeeAmountShare, setEmployeeAmountShare] = useState('');
@@ -131,6 +127,7 @@ const handleSave = async () => {
 
     Swal.fire({
       icon: "success",
+      title: "Success",
       text: "Group Life Plan saved successfully!",
       timer: 2000,
       showConfirmButton: false,
@@ -140,7 +137,8 @@ const handleSave = async () => {
   } catch (error) {
     Swal.fire({
       icon: "error",
-      title: "Error saving Group Life Plan!",
+      title: "Error",
+      text: "Error saving Group Life Plan!",
     });
   } finally {
     // Reset fields after everything
@@ -200,24 +198,6 @@ const handleSave = async () => {
                             <FormControl  sx={{ marginBottom: 3, width: '30%', '& label.Mui-focused': { color: '#97a5ba' },
                                 '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
                                 }}>
-                                {/* <Autocomplete
-                                freeSolo
-                                disabled={!groupLifeCompanyId}
-                                value={planType}
-                                options={listOfPlanTypes.map(option => option.planTypeMenuItem)}
-                                onChange={(event, newValue) => setPlanType(newValue || "")}
-                                renderInput={params => (
-                                    <TextField
-                                    {...params}
-                                    label="Plan Type"
-                                    onBlur={e => {
-                                        if (e.target.value && e.target.value !== planType) {
-                                        setPlanType(e.target.value);
-                                        }
-                                    }}
-                                    />
-                                )}
-                                /> */}
                                 <TextField
                                     fullWidth
                                     label="Plan Type"

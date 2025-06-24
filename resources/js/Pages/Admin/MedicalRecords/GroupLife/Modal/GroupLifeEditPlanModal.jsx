@@ -23,8 +23,6 @@ import Swal from 'sweetalert2';
 const GroupLifeEditGroupLifePlanModal = ({ open, onClose, plan, user, onSave }) => {
 
     const [paymentType, setPaymentType] = useState('');
-    const [employeeAmountShareError, setEmployeeAmountShareError] = useState(false);
-    const [employerAmountShareError, setEmployerAmountShareError] = useState(false);
     const [formData, setFormData] = useState({
         plan_name: plan?.plan_name || "",
         type: plan?.type || "",

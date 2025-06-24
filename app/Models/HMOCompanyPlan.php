@@ -6,16 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class GroupLifeCompanyPlan extends Model
+class HMOCompanyPlan extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'group_life_plans';
+    protected $table = 'hmo_plans';
 
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'group_life_company_id',
+        'hmo_company_id',
         'plan_name',
         'type',
         'employer_share',
@@ -25,24 +25,24 @@ class GroupLifeCompanyPlan extends Model
     protected $dates = ['deleted_at'];
 
     public function company() {
-        return $this->belongsTo(GroupLifeCompany::class, 'group_life_company_id');
+        return $this->belongsTo(HMOCompany::class, 'hmo_company_id');
     }
 
     public function employees()
     {
         return $this->belongsToMany(
             UsersModel::class,
-            'group_life_employee_plan',
-            'group_life_plan_id',
+            'hmo_employee_plan',
+            'hmo_plan_id',
             'employee_id'
         )
-        ->using(GroupLifeEmployeePlan::class)
+        ->using(HMOEmployeePlan::class)
         ->withPivot('enroll_date')
         ->withTimestamps();
     }
 
     public function assignedEmployees()
     {
-        return $this->hasMany(GroupLifeEmployeePlan::class, 'group_life_plan_id');
+    return $this->hasMany(HMOEmployeePlan::class, 'hmo_plan_id');
     }
 }

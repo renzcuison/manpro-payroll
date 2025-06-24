@@ -77,12 +77,14 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
             await fetchCompanies();
             Swal.fire({
                 icon: 'success',
+                title: "Success",
                 text: 'Company saved successfully!',
                 showConfirmButton: false
             });
         } catch (error) {
             Swal.fire({
                 icon: 'error',
+                title: "Error",
                 text: 'Error saving company!'
                 });
         }
@@ -115,7 +117,7 @@ const GroupLifeAddCompanyModal = ({ open, close, onAddCompany }) => {
     })
     .catch(err => {
         console.error("Rename failed:", err);
-        Swal.fire({ icon: 'error', text: 'Rename failed.' });
+        Swal.fire({ icon: 'error', title: "Error", text: 'Rename failed.' });
     });
     };
 

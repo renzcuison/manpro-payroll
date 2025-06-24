@@ -79,7 +79,8 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
             if (!selectedEmployee || !selectedEmployee.id) {
             Swal.fire({
                 icon: 'error',
-                title: 'Employee Missing!',
+                title: "Error",
+                text: 'Employee Missing!',
             });
                 return;
             }
@@ -87,7 +88,8 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
             if (!enrollDate) {
             Swal.fire({
                 icon: 'error',
-                title: 'Enroll Date Missing!',
+                title: "Error",
+                text: 'Enroll Date Missing!',
             });
                 return;
             }
@@ -107,7 +109,8 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
                 close();
             Swal.fire({
                 icon: 'success',
-                text: 'Group Life Employee added successfully!',
+                title: "Success",
+                text: 'Group Life Employee added successfully.',
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -116,7 +119,8 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
             console.error("Error submitting:", err);
             Swal.fire({
                 icon: 'error',
-                title: 'Error added Group Life Employee!',
+                title: 'Error',
+                text: "Error adding Group Life Employee."
             });
         }
     };
@@ -305,14 +309,12 @@ const GroupLifeAssignEmployee = ({ open, close, planId, refreshEmployees }) => {
 
                                         <Button
                                             variant="contained"
-                                            sx={{ backgroundColor: "#7a7a7a" }}
-                                        >
+                                            sx={{ backgroundColor: "#7a7a7a" }}>
                                             Cancel
                                         </Button>
                                         <Button
                                             variant="contained"
-                                            onClick={handleSubmit}
-                                        >
+                                            onClick={handleSubmit}>
                                             Submit
                                     </Button>
                                 </Box>
