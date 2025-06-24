@@ -33,7 +33,9 @@ import { Link } from "react-router-dom";
 const iconMap = {
     birthday: <CakeIcon color="secondary" />,
     anniversary: <WorkIcon color="primary" />,
-    achievement: <EmojiEventsIcon color="warning" />,
+    monthsary: <WorkIcon color="warning" />,
+    promotion: <WorkIcon color="primary" />,
+    transfer: <WorkIcon color="primary" />,
 };
 
 function MilestoneItem({ milestone, refetch, handleDelete }) {
@@ -73,11 +75,18 @@ function MilestoneItem({ milestone, refetch, handleDelete }) {
         });
     };
 
-    console.log(milestone);
-
     return (
         <>
-            <Accordion>
+            <Accordion
+                sx={{
+                    borderRadius: 5,
+                    border: "none",
+                    "&::before": {
+                        // Removes the default divider line
+                        display: "none",
+                    },
+                }}
+            >
                 <AccordionSummary
                     expandIcon={<ExpandMoreIcon />}
                     aria-controls="panel1-content"
@@ -92,16 +101,26 @@ function MilestoneItem({ milestone, refetch, handleDelete }) {
                             to={`/admin/employee/${milestone.user.user_name}`}
                         />
                         <Box>
+                            <Typography variant="h5">
+                                {moment(milestone.date).format(
+                                    "dddd, MMMM DD, YYYY"
+                                )}
+                            </Typography>
                             <Typography variant="h6">
                                 {milestone.user.first_name}{" "}
                                 {milestone.user.last_name}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                                {milestone.description || milestone.type}
+                                {milestone.description || milestone.type} -{" "}
+                                {milestone.type}
                             </Typography>
                         </Box>
                         <Chip
-                            label={milestone.type.toUpperCase()}
+                            label={
+                                milestone.type === "monthsary"
+                                    ? "Employee Service Milestone"
+                                    : milestone.type.toUpperCase()
+                            }
                             icon={iconMap[milestone.type]}
                             color="primary"
                         />
@@ -109,16 +128,21 @@ function MilestoneItem({ milestone, refetch, handleDelete }) {
                 </AccordionSummary>
                 <Divider sx={{ my: 1, borderStyle: "dashed" }} />
                 <AccordionDetails sx={{ borderRadius: 5 }}>
-                    <Stack>
+                    <Stack spacing={1}>
                         <Typography variant="h5">
                             {moment(milestone.date).format(
                                 "dddd, MMMM DD, YYYY"
                             )}
                         </Typography>
-
-                        <Button variant="outlined" onClick={handleDelete}>
-                            Delete milestone
-                        </Button>
+                        <div>
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                onClick={handleDelete}
+                            >
+                                Delete milestone
+                            </Button>
+                        </div>
                     </Stack>
                     <Divider sx={{ my: 1, borderStyle: "dashed" }} />
                     <List>
