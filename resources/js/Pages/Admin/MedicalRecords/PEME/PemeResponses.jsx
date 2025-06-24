@@ -56,9 +56,9 @@ const PemeResponses = () => {
             .get(`/peme/${PemeID}/questionnaire`, { headers })
             .then((response) => {
                 setPemeRecords(response.data);
-                setVisible(response.data.isVisible === 1);
-                setEditable(response.data.isEditable === 1);
-                setMultiple(response.data.isMultiple === 1);
+                setVisible(response.data.isVisible);
+                setEditable(response.data.isEditable);
+                setMultiple(response.data.isMultiple);
                 setIsLoading(false);
             })
             .catch((error) => {

@@ -15,6 +15,7 @@ class PemeQItem extends Model
     protected $fillable = [
         'peme_id',
         'question',
+        'isRequired',
     ];
     public function peme()
     {

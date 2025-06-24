@@ -411,6 +411,7 @@ class PemeResponseController extends Controller
         $id = Crypt::decrypt($id);
 
         $responses = PemeResponse::where('peme_id', $id)
+            ->where('isDraft', 0)
             ->with([
                 'peme.questions.types',
                 'peme.user.branch',

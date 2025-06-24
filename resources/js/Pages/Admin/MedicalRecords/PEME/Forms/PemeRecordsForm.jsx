@@ -253,6 +253,7 @@ const PemeRecordsForm = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [pemeForms, setPemeForms] = useState({ questions: [] });
     const [initialForms, setInitialForms] = useState([]);
+    const [isRequired, setIsRequired] = useState(false);
 
     useEffect(() => {
         axiosInstance
@@ -286,6 +287,7 @@ const PemeRecordsForm = () => {
                 question: formToSave.question,
                 input_types: formToSave.input_types,
                 file_size_limit: formToSave.file_size_limit,
+                isRequired: formToSave.isRequired || 0
             };
 
             console.log("Payload to send:", payload);
@@ -338,6 +340,7 @@ const PemeRecordsForm = () => {
                     setFormName("");
                     setFormType([]);
                     setFileSize(10); // reset to default value
+                    setIsRequired(false);
                 }
             });
         } catch (error) {
@@ -366,6 +369,7 @@ const PemeRecordsForm = () => {
                 fileSize === "" || Number(fileSize) === 0
                     ? 10
                     : Number(fileSize),
+            isRequired: isRequired ? 1 : 0
         };
 
         setInitialForms((prev) => [...prev, newForm]);
@@ -470,11 +474,11 @@ const PemeRecordsForm = () => {
             prev.map((f) =>
                 f.tempId === form.tempId
                     ? {
-                          ...f,
-                          question: editFormName,
-                          input_types: editFormType,
-                          file_size_limit: editFileSize,
-                      }
+                        ...f,
+                        question: editFormName,
+                        input_types: editFormType,
+                        file_size_limit: editFileSize,
+                    }
                     : f
             )
         );
@@ -701,11 +705,10 @@ const PemeRecordsForm = () => {
                                             transition: "all",
                                             transitionDuration: ".3s",
                                             border: 2,
-                                            borderColor: `${
-                                                isEditing
-                                                    ? "green"
-                                                    : "transparent"
-                                            }`,
+                                            borderColor: `${isEditing
+                                                ? "green"
+                                                : "transparent"
+                                                }`,
                                             backgroundColor: "#fafafa",
 
                                             padding: 4,
@@ -721,38 +724,38 @@ const PemeRecordsForm = () => {
                                             setFormName={
                                                 isEditing
                                                     ? setEditFormName
-                                                    : () => {}
+                                                    : () => { }
                                             }
                                             formType={
                                                 isEditing
                                                     ? editFormType
                                                     : form.input_types.map(
-                                                          (item) =>
-                                                              typeof item ===
-                                                              "string"
-                                                                  ? item
-                                                                  : item.input_type
-                                                      )
+                                                        (item) =>
+                                                            typeof item ===
+                                                                "string"
+                                                                ? item
+                                                                : item.input_type
+                                                    )
                                             }
                                             setFormType={
                                                 isEditing
                                                     ? setEditFormType
-                                                    : () => {}
+                                                    : () => { }
                                             }
                                             fileSize={
                                                 isEditing
                                                     ? editFileSize
                                                     : form.input_types.find(
-                                                          (item) =>
-                                                              (item.input_type ??
-                                                                  item) ===
-                                                              "attachment"
-                                                      )?.file_size_limit ?? 10
+                                                        (item) =>
+                                                            (item.input_type ??
+                                                                item) ===
+                                                            "attachment"
+                                                    )?.file_size_limit ?? 10
                                             }
                                             setFileSize={
                                                 isEditing
                                                     ? setEditFileSize
-                                                    : () => {}
+                                                    : () => { }
                                             }
                                             readOnly={!isEditing}
                                         />
@@ -764,7 +767,18 @@ const PemeRecordsForm = () => {
                                             }}
                                         >
                                             <FormControlLabel
-                                                control={<Switch />}
+                                                control={
+                                                    <Switch
+                                                        checked={form.isRequired === 1}
+                                                        onChange={e => {
+                                                            setInitialForms(prev =>
+                                                                prev.map((f, i) =>
+                                                                    i === index ? { ...f, isRequired: e.target.checked ? 1 : 0 } : f
+                                                                )
+                                                            );
+                                                        }}
+                                                    />
+                                                }
                                                 label="Required"
                                             ></FormControlLabel>
                                             {isEditing ? (
@@ -837,11 +851,10 @@ const PemeRecordsForm = () => {
                                             transition: "all",
                                             transitionDuration: ".3s",
                                             border: 2,
-                                            borderColor: `${
-                                                isEditing
-                                                    ? "green"
-                                                    : "transparent"
-                                            }`,
+                                            borderColor: `${isEditing
+                                                ? "green"
+                                                : "transparent"
+                                                }`,
                                             backgroundColor: "#f0f0f0",
 
                                             padding: 4,
@@ -857,34 +870,34 @@ const PemeRecordsForm = () => {
                                             setFormName={
                                                 isEditing
                                                     ? setEditSavedFormName
-                                                    : () => {}
+                                                    : () => { }
                                             }
                                             formType={
                                                 isEditing
                                                     ? editSavedFormType
                                                     : form.input_types.map(
-                                                          (item) =>
-                                                              item.input_type
-                                                      )
+                                                        (item) =>
+                                                            item.input_type
+                                                    )
                                             }
                                             setFormType={
                                                 isEditing
                                                     ? setEditSavedFormType
-                                                    : () => {}
+                                                    : () => { }
                                             }
                                             fileSize={
                                                 isEditing
                                                     ? editSavedFileSize
                                                     : form.input_types.find(
-                                                          (item) =>
-                                                              item.input_type ===
-                                                              "attachment"
-                                                      )?.file_size_limit ?? 10
+                                                        (item) =>
+                                                            item.input_type ===
+                                                            "attachment"
+                                                    )?.file_size_limit ?? 10
                                             }
                                             setFileSize={
                                                 isEditing
                                                     ? setEditSavedFileSize
-                                                    : () => {}
+                                                    : () => { }
                                             }
                                             readOnly={!isEditing}
                                         />
@@ -901,9 +914,9 @@ const PemeRecordsForm = () => {
                                                         checked={
                                                             isEditing
                                                                 ? editSavedIsRequired ===
-                                                                  1
+                                                                1
                                                                 : form.isRequired ===
-                                                                  1
+                                                                1
                                                         }
                                                         onChange={(e) =>
                                                             setEditSavedIsRequired(
