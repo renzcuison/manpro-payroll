@@ -16,6 +16,7 @@ class SalaryPlansModel extends Model
 
     protected $fillable = [
         'salary_grade',
+        'salary_grade_version',
         'amount',
         'client_id',
     ];

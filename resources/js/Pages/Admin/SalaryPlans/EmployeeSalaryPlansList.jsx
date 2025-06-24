@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Grid, TextField, FormControl, CircularProgress, Button, IconButton} from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, CircularProgress, Button} from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Swal from "sweetalert2";
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Tabs, Tab } from '@mui/material';
 
 import SalaryGradeAdd from './Modals/SalaryGradeAdd';
 import SalaryGradeEdit from './Modals/SalaryGradeEdit';
+import { useBenefit } from '../../../hooks/useBenefits';
 
 const SalaryPlans = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -24,9 +23,43 @@ const SalaryPlans = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
+    const { benefitsData, isBenefitsLoading } = useBenefit(true);
+    const benefitsList = benefitsData?.benefits || [];
+    const [selectedBenefitIndex, setSelectedBenefitIndex] = useState(0);
+    const [allSalaryGrades, setAllSalaryGrades] = useState([]);
+
+    const fetchAllSalaryGrades = () => {
+        axiosInstance
+            .get("/getSalaryPlans", {
+                headers,
+                params: {
+                    limit: 10000, // or a large number to get all
+                    page: 1,
+                    onlyGrades: true, // optional: you can handle this in your backend
+                }
+            })
+            .then((response) => {
+                setAllSalaryGrades((response.data.salaryPlans || []).map(plan => ({
+                    salary_grade: plan.salary_grade,
+                    salary_grade_version: plan.salary_grade_version ?? ''
+                })));
+            })
+            .catch((error) => {
+                console.error("Error fetching all salary grades:", error);
+            });
+    };
+
     useEffect(() => {
         fetchSalaryPlans();
     }, [page, rowsPerPage]);    
+
+    function formatPercentage(value) {
+        // Remove trailing zeros after decimal
+        return Number(value).toLocaleString('en-PH', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+        });
+    }
 
     const fetchSalaryPlans = () => {
         axiosInstance
@@ -50,8 +83,9 @@ const SalaryPlans = () => {
 
     //Add Salary Plan Functions
     const handleOpenAddSalaryGrade = () => {
+        fetchAllSalaryGrades();
         setOpenAddSalaryGrade(true);
-    }
+    };
 
     const handleCloseAddSalaryGrade = () => {
         setOpenAddSalaryGrade(false);
@@ -100,50 +134,86 @@ const SalaryPlans = () => {
                             </Box>
                         ) : (
                             <>
+                                {benefitsList.length > 0 &&
+                                    (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'flex-end' }}>
+                                            <Tabs
+                                                value={selectedBenefitIndex}
+                                                onChange={(e, newValue) => setSelectedBenefitIndex(newValue)}
+                                                sx={{ mb: 2 }}
+                                                variant="scrollable"
+                                                scrollButtons="auto"
+                                            >
+                                                {benefitsList.map((benefit, idx) => (
+                                                <Tab key={benefit.id} label={benefit.name} />
+                                                ))}
+                                            </Tabs>
+                                        </Box>
+                                    )
+                                }
                                 <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
                                     <Table aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "20%" }} align="center"> Salary Grade </TableCell>
-                                                <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "80%" }} align="center"> Amount </TableCell>
-                                                {/* <TableCell sx={{ fontWeight: 'bold', fontSize: 16, width: "20%" }} align="center"> Actions </TableCell> */}
+                                                <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '20%' }} align="center">
+                                                Salary Grade
+                                                </TableCell>
+                                                <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '15%' }} align="center">
+                                                Amount
+                                                </TableCell>
+                                                <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '15%' }} align="center">
+                                                Employees
+                                                </TableCell>
+                                                
+                                            </TableRow>
+                                            <TableRow>
+                                                {benefitsList[selectedBenefitIndex] && (
+                                                    <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }} align="center">
+                                                        {benefitsList[selectedBenefitIndex].name} Employer's Share{benefitsList[selectedBenefitIndex].type === 'Amount' ? ' (₱)':  ' (' + formatPercentage(benefitsList[selectedBenefitIndex].employer_percentage ?? 0) + '%)'}
+                                                    </TableCell>
+                                                )}  
+                                                {benefitsList[selectedBenefitIndex] && (
+                                                    <TableCell sx={{ fontWeight: 'bold', fontSize: 16 }} align="center">
+                                                        {benefitsList[selectedBenefitIndex].name} Employee's Share{benefitsList[selectedBenefitIndex].type === 'Amount' ? ' (₱)': ' (' + formatPercentage(benefitsList[selectedBenefitIndex].employee_percentage ?? 0) + '%)'}
+                                                    </TableCell>
+                                                )}
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {salaryPlans.length > 0 ? (
                                                 salaryPlans.map((salaryPlan) => (
-                                                    // onClick={() => setOpenEditSalaryType(salaryPlan)}
                                                     <TableRow key={salaryPlan.id} sx={{ p: 1, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}} onClick={() => handleOpenEditSalaryGrade(salaryPlan)}>
-                                                        <TableCell sx={{fontSize: 14}} align="center">Grade {salaryPlan.salary_grade}</TableCell>
+                                                        <TableCell sx={{fontSize: 14}} align="center">
+                                                        Grade {salaryPlan.salary_grade}
+                                                        {salaryPlan.salary_grade_version
+                                                            ? `-${salaryPlan.salary_grade_version}`
+                                                            : ''}
+                                                        </TableCell>
                                                         <TableCell sx={{ fontSize: 14 }} align="center">
                                                             ₱ {Number(salaryPlan.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </TableCell>
-                                                        {/* <TableCell sx={{fontSize: 14}} align="center">
-                                                            <IconButton
-                                                                color="primary"
-                                                                onClick={() => handleOpenEditSalaryGrade(salaryPlan)}
-                                                                aria-label="edit"
-                                                                size="small"
-                                                            >
-                                                                <EditIcon />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                color="error"
-                                                                onClick={(event) => {
-                                                                    event.stopPropagation();
-                                                                    handleDeleteSalaryGrade(salaryPlan);
-                                                                }}
-                                                                aria-label="delete"
-                                                                size="small"
-                                                            >
-                                                                <DeleteIcon />
-                                                            </IconButton>
-                                                        </TableCell> */}
+                                                        <TableCell sx={{ fontSize: 14 }} align="center">
+                                                            {salaryPlan.employee_count}
+                                                        </TableCell>
+                                                        {benefitsList[selectedBenefitIndex] && (
+                                                        <>
+                                                            <TableCell align="center" sx={{ fontSize: 14 }}>
+                                                            {benefitsList[selectedBenefitIndex].type === 'Amount'
+                                                                ? '₱ ' + Number(benefitsList[selectedBenefitIndex].employer_amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                                                : '₱ ' + Number((benefitsList[selectedBenefitIndex].employer_percentage ?? 0) * salaryPlan.amount * 0.01).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            </TableCell>
+                                                            <TableCell align="center" sx={{ fontSize: 14 }}>
+                                                            {benefitsList[selectedBenefitIndex].type === 'Amount'
+                                                                ? '₱ ' + Number(benefitsList[selectedBenefitIndex].employee_amount ?? 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                                                : '₱ ' + Number((benefitsList[selectedBenefitIndex].employee_percentage ?? 0) * salaryPlan.amount * 0.01).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            </TableCell>
+                                                        </>
+                                                        )}
                                                     </TableRow>
                                                 ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={3} align="center"> No Salary Plans </TableCell>
+                                                    <TableCell colSpan={2 + benefitsList.length * 2} align="center"> No Salary Plans </TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
@@ -166,7 +236,11 @@ const SalaryPlans = () => {
                     </Box>
                 </Box>
                 {openAddSalaryGrade &&
-                    <SalaryGradeAdd open={openAddSalaryGrade} close={handleCloseAddSalaryGrade} existingSalaryGrades={salaryPlans.map(plan => plan.salary_grade)} />
+                    <SalaryGradeAdd
+                        open={openAddSalaryGrade}
+                        close={handleCloseAddSalaryGrade}
+                        existingSalaryGrades={allSalaryGrades}
+                    />
                 }
                 {openEditSalaryGrade &&
                     <SalaryGradeEdit
@@ -174,9 +248,7 @@ const SalaryPlans = () => {
                         close={handleCloseEditSalaryGrade}
                         salaryGradeInfo={loadSalaryGrade}
                         onDeleted={fetchSalaryPlans}
-                        existingSalaryGrades={salaryPlans
-                            .filter(plan => plan.id !== loadSalaryGrade?.id)
-                            .map(plan => plan.salary_grade)}
+                        existingSalaryGrades={allSalaryGrades.filter(grade => grade !== loadSalaryGrade?.salary_grade)}
                     />
                 }
             </Box>

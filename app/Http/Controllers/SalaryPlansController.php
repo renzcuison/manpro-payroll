@@ -43,9 +43,19 @@ class SalaryPlansController extends Controller {
                 ->take($limit)
                 ->get();
 
+            // For each salary plan, count employees with matching salary_grade
+            $salaryPlansWithEmployeeCount = $salaryPlans->map(function($plan) use ($user) {
+                $employeeCount = UsersModel::where('client_id', $user->client_id)
+                    ->where('salary_grade', $plan->salary_grade)
+                    ->whereNull('deleted_at')
+                    ->count();
+                $plan->employee_count = $employeeCount;
+                return $plan;
+            });
+
             return response()->json([
                 'status' => 200,
-                'salaryPlans' => $salaryPlans,
+                'salaryPlans' => $salaryPlansWithEmployeeCount,
                 'totalCount' => $totalCount,
             ]);
         } 
@@ -68,6 +78,7 @@ class SalaryPlansController extends Controller {
 
                 $salaryPlan = SalaryPlansModel::create([
                     "salary_grade" => $request->salary_grade,
+                    "salary_grade_version" => $request->salary_grade_version,
                     "amount" => $request->amount,
                     "client_id" => $client->id,
                 ]);
@@ -98,6 +109,7 @@ class SalaryPlansController extends Controller {
             $salaryGrade = SalaryPlansModel::find($request->input('id'));
 
             $salaryGrade->salary_grade = $request->input('salary_grade');
+            $salaryGrade->salary_grade_version = $request->input('salary_grade_version');
             $salaryGrade->amount = $request->input('amount');
 
             $salaryGrade->save();
