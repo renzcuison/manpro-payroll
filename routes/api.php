@@ -117,26 +117,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     Route::prefix('perimeters')->group(function () {
-        Route::get('/getRadiusPerimeters', [
-            RadiusPerimeterController::class,
-            'getRadiusPerimeters',
-        ]);
-        Route::post('/saveRadiusPerimeter', [
-            RadiusPerimeterController::class,
-            'saveRadiusPerimeter',
-        ]);
-        Route::get('/getRadiusPerimeters', [
-            RadiusPerimeterController::class,
-            'getRadiusPerimeters',
-        ]);
-        Route::post('/saveRadiusPerimeter', [
-            RadiusPerimeterController::class,
-            'saveRadiusPerimeter',
-        ]);
-        Route::get('/user-perimeters', [
-            RadiusPerimeterController::class,
-            'getPerimeterbyUser',
-        ]);
+        Route::get('/getRadiusPerimeters', [RadiusPerimeterController::class, 'getRadiusPerimeters']);
+        Route::post('/saveRadiusPerimeter', [RadiusPerimeterController::class, 'saveRadiusPerimeter']);
+        Route::get('/getRadiusPerimeters', [RadiusPerimeterController::class, 'getRadiusPerimeters']);
+        Route::post('/saveRadiusPerimeter', [RadiusPerimeterController::class, 'saveRadiusPerimeter']);
+        Route::get('/user-perimeters', [RadiusPerimeterController::class, 'getPerimeterbyUser']);
         Route::get('{id}', [RadiusPerimeterController::class, 'show']);
         Route::put('{id}', [RadiusPerimeterController::class, 'update']);
         Route::delete('{id}', [RadiusPerimeterController::class, 'destroy']);
@@ -148,157 +133,58 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveBranch', [SettingsController::class, 'saveBranch']);
         Route::post('/editBranch', [SettingsController::class, 'editBranch']);
 
-        Route::get('/getBranchPositions', [
-            SettingsController::class,
-            'getBranchPositions',
-        ]);
+        Route::get('/getBranchPositions', [SettingsController::class, 'getBranchPositions']);
         Route::get('/getUsers', [SettingsController::class, 'getUsers']);
-        Route::get('/getEmployeesByDepartment/{id}', [
-            SettingsController::class,
-            'getEmployeesByDepartment',
-        ]);
-        Route::post('/saveBranchPosition', [
-            SettingsController::class,
-            'saveBranchPosition',
-        ]);
-        Route::post('/addBranchPositionAssignments', [
-            SettingsController::class,
-            'addBranchPositionAssignments',
-        ]);
-        Route::post('/updateBranchPositionAssignments/{branchId}', [
-            SettingsController::class,
-            'updateBranchPositionAssignments',
-        ]);
+        Route::get('/getEmployeesByDepartment/{id}', [SettingsController::class, 'getEmployeesByDepartment']);
+        Route::post('/saveBranchPosition', [SettingsController::class, 'saveBranchPosition']);
+        Route::post('/addBranchPositionAssignments', [SettingsController::class, 'addBranchPositionAssignments']);
+        Route::post('/updateBranchPositionAssignments/{branchId}', [SettingsController::class, 'updateBranchPositionAssignments']);
 
         //departments
-        Route::get('/getDepartments', [
-            SettingsController::class,
-            'getDepartments',
-        ]);
-        Route::get('/getDepartment/{departmentId}', [
-            SettingsController::class,
-            'getDepartment',
-        ]);
-        Route::get('/getAllDepartments', [
-            SettingsController::class,
-            'getAllDepartments',
-        ]);
-        Route::get('/getDepartmentDetails', [
-            SettingsController::class,
-            'getDepartmentDetails',
-        ]);
+        Route::get('/getDepartments', [SettingsController::class, 'getDepartments']);
+        Route::get('/getDepartment/{departmentId}', [SettingsController::class, 'getDepartment']);
+        Route::get('/getAllDepartments', [SettingsController::class, 'getAllDepartments']);
+        Route::get('/getDepartmentDetails', [SettingsController::class, 'getDepartmentDetails']);
 
-        Route::get('/getDepartmentPositions', [
-            SettingsController::class,
-            'getDepartmentPositions',
-        ]);
-        Route::get('/getAssignedEmployeesByDepartment/{departmentId}', [
-            SettingsController::class,
-            'getAssignedEmployeesByDepartment',
-        ]);
-        Route::get('/getDepartmentWithEmployeePosition', [
-            SettingsController::class,
-            'getDepartmentWithEmployeePosition',
-        ]);
-        Route::post('/saveDepartmentPositions', [
-            SettingsController::class,
-            'saveDepartmentPositions',
-        ]);
-        Route::get('/getDepartment/{id}', [
-            SettingsController::class,
-            'getDepartment',
-        ]);
-        Route::post('/saveDepartment', [
-            SettingsController::class,
-            'saveDepartment',
-        ]);
-        Route::post('/editDepartment', [
-            SettingsController::class,
-            'editDepartment',
-        ]);
-        Route::post('/updateDepartmentPositionAssignments/{departmentId}', [
-            SettingsController::class,
-            'updateDepartmentPositionAssignments',
-        ]);
+        Route::get('/getDepartmentPositions', [SettingsController::class, 'getDepartmentPositions']);
+        Route::get('/getAssignedEmployeesByDepartment/{departmentId}', [SettingsController::class, 'getAssignedEmployeesByDepartment']);
+        Route::get('/getDepartmentWithEmployeePosition', [SettingsController::class, 'getDepartmentWithEmployeePosition']);
+        Route::post('/saveDepartmentPositions', [SettingsController::class, 'saveDepartmentPositions']);
+        Route::get('/getDepartment/{id}', [SettingsController::class, 'getDepartment']);
+        Route::post('/saveDepartment', [SettingsController::class, 'saveDepartment']);
+        Route::post('/editDepartment', [SettingsController::class, 'editDepartment']);
+        Route::post('/updateDepartmentPositionAssignments/{departmentId}', [SettingsController::class, 'updateDepartmentPositionAssignments']);
         //departments (end)
-        Route::get('/getJobTitles', [
-            SettingsController::class,
-            'getJobTitles',
-        ]);
-        Route::post('/saveJobTitle', [
-            SettingsController::class,
-            'saveJobTitle',
-        ]);
-        Route::post('/editJobTitle', [
-            SettingsController::class,
-            'editJobTitle',
-        ]);
+        Route::get('/getJobTitles', [SettingsController::class, 'getJobTitles']);
+        Route::post('/saveJobTitle', [SettingsController::class, 'saveJobTitle']);
+        Route::post('/editJobTitle', [SettingsController::class, 'editJobTitle']);
 
         Route::get('/getRoles', [SettingsController::class, 'getRoles']);
         Route::post('/saveRole', [SettingsController::class, 'saveRole']);
         Route::post('/editRole', [SettingsController::class, 'editRole']);
 
-        Route::post('/saveApplicationType', [
-            SettingsController::class,
-            'saveApplicationType',
-        ]);
-        Route::post('/editApplicationType', [
-            SettingsController::class,
-            'editApplicationType',
-        ]);
+        Route::post('/saveApplicationType', [SettingsController::class, 'saveApplicationType']);
+        Route::post('/editApplicationType', [SettingsController::class, 'editApplicationType']);
     });
 
     Route::prefix('employee')->group(function () {
-        Route::get('/getEmployees', [
-            EmployeesController::class,
-            'getEmployees',
-        ]);
-        Route::get('/getAssignableEmployees', [
-            EmployeesController::class,
-            'getAssignableEmployees',
-        ]);
-        Route::post('/saveEmployee', [
-            EmployeesController::class,
-            'saveEmployee',
-        ]);
+        Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
+        Route::get('/getAssignableEmployees', [EmployeesController::class, 'getAssignableEmployees']);
+        Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
 
-        Route::post('/updateEmployeeBranchPosition', [
-            EmployeesController::class,
-            'updateBranchPosition',
-        ]);
+        Route::post('/updateEmployeeBranchPosition', [EmployeesController::class, 'updateBranchPosition']);
 
-        Route::get('/getEmployeeLeaveCredits', [
-            EmployeesController::class,
-            'getEmployeeLeaveCredits',
-        ]);
+        Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
 
         //test v
-        Route::get('/getLeaveCreditByUser/{username}', [
-            EmployeesController::class,
-            'getLeaveCreditByUser',
-        ]);
+        Route::get('/getLeaveCreditByUser/{username}', [EmployeesController::class, 'getLeaveCreditByUser']);
 
         Route::get('/getMyAvatar', [EmployeesController::class, 'getMyAvatar']);
-        Route::get('/getMyDetails', [
-            EmployeesController::class,
-            'getMyDetails',
-        ]);
-        Route::get('/getEmployeeDetails', [
-            EmployeesController::class,
-            'getEmployeeDetails',
-        ]);
-        Route::get('/getEducationBackground', [
-            EmployeesController::class,
-            'getEducationBackground',
-        ]);
-        Route::get('/getEmployeeEducationBackground', [
-            EmployeesController::class,
-            'getEmployeeEducationBackground',
-        ]);
-        Route::get('/getEmployeeShortDetails', [
-            EmployeesController::class,
-            'getEmployeeShortDetails',
-        ]);
+        Route::get('/getMyDetails', [EmployeesController::class, 'getMyDetails']);
+        Route::get('/getEmployeeDetails', [EmployeesController::class, 'getEmployeeDetails']);
+        Route::get('/getEducationBackground', [EmployeesController::class, 'getEducationBackground']);
+        Route::get('/getEmployeeEducationBackground', [EmployeesController::class, 'getEmployeeEducationBackground']);
+        Route::get('/getEmployeeShortDetails', [EmployeesController::class, 'getEmployeeShortDetails']);
 
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']); 
@@ -306,52 +192,25 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
        
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
         Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
-        Route::post('/editMyProfile', [
-            EmployeesController::class,
-            'editMyProfile',
-        ]);
-        Route::post('/editMyProfilePicture', [
-            EmployeesController::class,
-            'editMyProfilePicture',
-        ]);
-        Route::post('/editEmployeeDetails', [
-            EmployeesController::class,
-            'editEmployeeDetails',
-        ]);
-        Route::get('/employee/getEmployeesByDepartment/{id}', [
-            EmployeesController::class,
-            'getEmployeesByDepartment',
-        ]);
-        Route::get('/employee/getEmployeesByBranch/{id}', [
-            EmployeesController::class,
-            'getEmployeesByBranch',
-        ]);
+        Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
+        Route::post('/editMyProfilePicture', [EmployeesController::class, 'editMyProfilePicture']);
+        Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
+        Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
+        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
 
-        Route::get('/getMyPayrollHistory', [
-            EmployeesController::class,
-            'getMyPayrollHistory',
-        ]);
+        Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
-        Route::get('/getFormLinks', [
-            EmployeesController::class,
-            'getFormLinks',
-        ]);
-        Route::post('/saveFormLink', [
-            EmployeesController::class,
-            'saveFormLink',
-        ]);
-        Route::post('/deleteFormLink', [
-            EmployeesController::class,
-            'deleteFormLink',
-        ]);
+        Route::get('/getFormLinks', [EmployeesController::class, 'getFormLinks']);
+        Route::post('/saveFormLink', [EmployeesController::class, 'saveFormLink']);
+        Route::post('/deleteFormLink', [EmployeesController::class, 'deleteFormLink']);
     });
 
 
     Route::prefix('compensation')->group(function () {
         //allowances
-        Route::get('/getAllowances', [ CompensationManagementController::class, 'getAllowances']);
-        Route::post('/saveAllowance', [ CompensationManagementController::class, 'saveAllowance']);
-        Route::post('/updateAllowance', [ CompensationManagementController::class, 'updateAllowance']);
+        Route::get('/getAllowances', [CompensationManagementController::class, 'getAllowances']);
+        Route::post('/saveAllowance', [CompensationManagementController::class, 'saveAllowance']);
+        Route::post('/updateAllowance', [CompensationManagementController::class, 'updateAllowance']);
 
         Route::get('/getEmployeeAllowance', [CompensationManagementController::class, 'getEmployeeAllowance']);
         Route::get('/getEmployeesAllowance', [CompensationManagementController::class, 'getEmployeesAllowance']);
@@ -359,8 +218,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/updateEmployeeAllowance', [CompensationManagementController::class, 'updateEmployeeAllowance']);
         
         //incentives
-        Route::get('/getIncentives', [ CompensationManagementController::class, 'getIncentives', ]);
-        Route::post('saveIncentives', [ CompensationManagementController::class, 'saveIncentives', ]);
+        Route::get('/getIncentives', [CompensationManagementController::class, 'getIncentives', ]);
+        Route::post('saveIncentives', [CompensationManagementController::class, 'saveIncentives', ]);
         Route::post('/updateIncentives', [CompensationManagementController::class, 'updateIncentives']);
 
         Route::get('/getEmployeesIncentives', [CompensationManagementController::class, 'getEmployeesIncentives']);
@@ -369,8 +228,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/updateEmployeeIncentive', [CompensationManagementController::class, 'updateEmployeeIncentive']);
         
         //benefits
-        Route::get('/getBenefits', [ CompensationManagementController::class, 'getBenefits', ]);
-        Route::post('/saveBenefits', [ CompensationManagementController::class, 'saveBenefits', ]);
+        Route::get('/getBenefits', [CompensationManagementController::class, 'getBenefits', ]);
+        Route::post('/saveBenefits', [CompensationManagementController::class, 'saveBenefits', ]);
         Route::post('/updateBenefits', [CompensationManagementController::class, 'updateBenefits']);
 
         Route::get('/getEmployeesBenefits', [CompensationManagementController::class, 'getEmployeesBenefits']);
@@ -383,645 +242,234 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveDeductions', [CompensationManagementController::class, 'saveDeductions']);
         Route::post('/updateDeductions', [CompensationManagementController::class, 'updateDeductions']);
 
-        Route::get('/getEmployeesDeductions', [
-            CompensationManagementController::class,
-            'getEmployeesDeductions',
-        ]);
-        Route::get('/getEmployeeDeductions', [
-            CompensationManagementController::class,
-            'getEmployeeDeductions',
-        ]);
-        Route::post('/saveEmployeeDeductions', [
-            CompensationManagementController::class,
-            'saveEmployeeDeductions',
-        ]);
-        Route::post('/updateEmployeeDeduction', [
-            CompensationManagementController::class,
-            'updateEmployeeDeduction',
-        ]);
+        Route::get('/getEmployeesDeductions', [CompensationManagementController::class, 'getEmployeesDeductions']);
+        Route::get('/getEmployeeDeductions', [CompensationManagementController::class, 'getEmployeeDeductions']);
+        Route::post('/saveEmployeeDeductions', [CompensationManagementController::class, 'saveEmployeeDeductions']);
+        Route::post('/updateEmployeeDeduction', [CompensationManagementController::class, 'updateEmployeeDeduction']);
     });
 
     Route::prefix('workshedule')->group(function () {
-        Route::get('/getWorkShift', [
-            WorkScheduleController::class,
-            'getWorkShift',
-        ]);
-        Route::get('/getWorkShifts', [
-            WorkScheduleController::class,
-            'getWorkShifts',
-        ]);
-        Route::get('/getWorkShiftLinks', [
-            WorkScheduleController::class,
-            'getWorkShiftLinks',
-        ]);
-        Route::get('/getWorkShiftDetails', [
-            WorkScheduleController::class,
-            'getWorkShiftDetails',
-        ]);
+        Route::get('/getWorkShift', [WorkScheduleController::class, 'getWorkShift']);
+        Route::get('/getWorkShifts', [WorkScheduleController::class, 'getWorkShifts']);
+        Route::get('/getWorkShiftLinks', [WorkScheduleController::class, 'getWorkShiftLinks']);
+        Route::get('/getWorkShiftDetails', [WorkScheduleController::class, 'getWorkShiftDetails']);
 
-        Route::post('/saveSplitWorkShift', [
-            WorkScheduleController::class,
-            'saveSplitWorkShift',
-        ]);
-        Route::post('/saveRegularWorkShift', [
-            WorkScheduleController::class,
-            'saveRegularWorkShift',
-        ]);
+        Route::post('/saveSplitWorkShift', [WorkScheduleController::class, 'saveSplitWorkShift']);
+        Route::post('/saveRegularWorkShift', [WorkScheduleController::class, 'saveRegularWorkShift']);
 
-        Route::get('/getWorkGroups', [
-            WorkScheduleController::class,
-            'getWorkGroups',
-        ]);
-        Route::get('/getWorkGroupLinks', [
-            WorkScheduleController::class,
-            'getWorkGroupLinks',
-        ]);
-        Route::get('/getWorkGroupDetails', [
-            WorkScheduleController::class,
-            'getWorkGroupDetails',
-        ]);
+        Route::get('/getWorkGroups', [WorkScheduleController::class, 'getWorkGroups']);
+        Route::get('/getWorkGroupLinks', [WorkScheduleController::class, 'getWorkGroupLinks']);
+        Route::get('/getWorkGroupDetails', [WorkScheduleController::class, 'getWorkGroupDetails']);
 
-        Route::patch('/editWorkGroup', [
-            WorkScheduleController::class,
-            'editWorkGroup',
-        ]);
-        Route::post('/saveWorkGroup', [
-            WorkScheduleController::class,
-            'saveWorkGroup',
-        ]);
-        Route::post('/saveWorkGroupShift', [
-            WorkScheduleController::class,
-            'saveWorkGroupShift',
-        ]);
+        Route::patch('/editWorkGroup', [WorkScheduleController::class, 'editWorkGroup']);
+        Route::post('/saveWorkGroup', [WorkScheduleController::class, 'saveWorkGroup']);
+        Route::post('/saveWorkGroupShift', [WorkScheduleController::class, 'saveWorkGroupShift']);
 
-        Route::get('/getWorkHours', [
-            WorkScheduleController::class,
-            'getWorkHours',
-        ]);
+        Route::get('/getWorkHours', [WorkScheduleController::class, 'getWorkHours']);
 
-        Route::get('/getWorkDays', [
-            WorkScheduleController::class,
-            'getWorkDays',
-        ]);
-        Route::post('/saveWorkDay', [
-            WorkScheduleController::class,
-            'saveWorkDay',
-        ]);
+        Route::get('/getWorkDays', [WorkScheduleController::class, 'getWorkDays']);
+        Route::post('/saveWorkDay', [WorkScheduleController::class, 'saveWorkDay']);
 
-        Route::get('/getHolidays', [
-            WorkScheduleController::class,
-            'getHolidays',
-        ]);
+        Route::get('/getHolidays', [WorkScheduleController::class, 'getHolidays']);
     });
 
     Route::prefix('attendance')->group(function () {
-        Route::get('/getAttendanceLogs', [
-            AttendanceController::class,
-            'getAttendanceLogs',
-        ]);
-        Route::get('/getAttendanceSummary', [
-            AttendanceController::class,
-            'getAttendanceSummary',
-        ]);
-        Route::get('/getAttendanceOvertime', [
-            AttendanceController::class,
-            'getAttendanceOvertime',
-        ]);
-        Route::get('/getEmployeeAttendanceLogs', [
-            AttendanceController::class,
-            'getEmployeeAttendanceLogs',
-        ]);
-        Route::get('/getEmployeeAttendanceSummary', [
-            AttendanceController::class,
-            'getEmployeeAttendanceSummary',
-        ]);
-        Route::get('/getEmployeeDashboardAttendance', [
-            AttendanceController::class,
-            'getEmployeeDashboardAttendance',
-        ]);
+        Route::get('/getAttendanceLogs', [AttendanceController::class, 'getAttendanceLogs']);
+        Route::get('/getAttendanceSummary', [AttendanceController::class, 'getAttendanceSummary']);
+        Route::get('/getAttendanceOvertime', [AttendanceController::class, 'getAttendanceOvertime']);
+        Route::get('/getEmployeeAttendanceLogs', [AttendanceController::class, 'getEmployeeAttendanceLogs']);
+        Route::get('/getEmployeeAttendanceSummary', [AttendanceController::class, 'getEmployeeAttendanceSummary']);
+        Route::get('/getEmployeeDashboardAttendance', [AttendanceController::class, 'getEmployeeDashboardAttendance']);
 
-        Route::get('/getEmployeeLatestAttendance', [
-            AttendanceController::class,
-            'getEmployeeLatestAttendance',
-        ]);
-        Route::get('/getEmployeeWorkDayAttendance', [
-            AttendanceController::class,
-            'getEmployeeWorkDayAttendance',
-        ]);
+        Route::get('/getEmployeeLatestAttendance', [AttendanceController::class, 'getEmployeeLatestAttendance']);
+        Route::get('/getEmployeeWorkDayAttendance', [AttendanceController::class, 'getEmployeeWorkDayAttendance']);
 
-        Route::post('/saveEmployeeAttendance', [
-            AttendanceController::class,
-            'saveEmployeeAttendance',
-        ]);
-        Route::post('/saveMobileEmployeeAttendance', [
-            AttendanceMobileController::class,
-            'saveMobileEmployeeAttendance',
-        ]);
+        Route::post('/saveEmployeeAttendance', [AttendanceController::class, 'saveEmployeeAttendance']);
+        Route::post('/saveMobileEmployeeAttendance', [AttendanceMobileController::class,'saveMobileEmployeeAttendance']);
 
-        Route::get('/getAttendanceAdderLogs', [
-            AttendanceController::class,
-            'getAttendanceAdderLogs',
-        ]);
-        Route::post('/recordEmployeeAttendance', [
-            AttendanceController::class,
-            'recordEmployeeAttendance',
-        ]);
-        Route::post('/addAttendanceLog', [
-            AttendanceController::class,
-            'addAttendanceLog',
-        ]);
-        Route::post('/editEmployeeAttendance', [
-            AttendanceController::class,
-            'editEmployeeAttendance',
-        ]);
-        Route::post('/deleteEmployeeAttendance', [
-            AttendanceController::class,
-            'deleteEmployeeAttendance',
-        ]);
+        Route::get('/getAttendanceAdderLogs', [AttendanceController::class,'getAttendanceAdderLogs']);
+        Route::post('/recordEmployeeAttendance', [AttendanceController::class,'recordEmployeeAttendance']);
+        Route::post('/addAttendanceLog', [AttendanceController::class,'addAttendanceLog']);
+        Route::post('/editEmployeeAttendance', [AttendanceController::class,'editEmployeeAttendance']);
+        Route::post('/deleteEmployeeAttendance', [AttendanceController::class,'deleteEmployeeAttendance']);
     });
 
     Route::prefix('payroll')->group(function () {
-        Route::get('/payrollDetails', [
-            PayrollController::class,
-            'payrollDetails',
-        ]);
-        Route::get('/payrollProcess', [
-            PayrollController::class,
-            'payrollProcess',
-        ]);
+        Route::get('/payrollDetails', [PayrollController::class,'payrollDetails']);
+        Route::get('/payrollProcess', [PayrollController::class,'payrollProcess']);
 
-        Route::get('/getPayrollRecord', [
-            PayrollController::class,
-            'getPayrollRecord',
-        ]);
-        Route::get('/getPayrollSummary', [
-            PayrollController::class,
-            'getPayrollSummary',
-        ]);
-        Route::get('/getEmployeePayrollRecords', [
-            PayrollController::class,
-            'getEmployeePayrollRecords',
-        ]);
-        Route::get('/getEmployeesPayrollRecords', [
-            PayrollController::class,
-            'getEmployeesPayrollRecords',
-        ]);
+        Route::get('/getPayrollRecord', [PayrollController::class,'getPayrollRecord']);
+        Route::get('/getPayrollSummary', [PayrollController::class,'getPayrollSummary']);
+        Route::get('/getEmployeePayrollRecords', [PayrollController::class,'getEmployeePayrollRecords']);
+        Route::get('/getEmployeesPayrollRecords', [PayrollController::class,'getEmployeesPayrollRecords']);
 
-        Route::post('/savePayroll', [PayrollController::class, 'savePayroll']);
-        Route::post('/savePayrolls', [
-            PayrollController::class,
-            'savePayrolls',
-        ]);
+        Route::post('/savePayroll', [PayrollController::class,'savePayroll']);
+        Route::post('/savePayrolls', [PayrollController::class,'savePayrolls']);
 
-        Route::post('/storeSignature/{id}', [
-            PayrollController::class,
-            'storeSignature',
-        ]);
+        Route::post('/storeSignature/{id}', [PayrollController::class,'storeSignature']);
 
-        Route::post('/deletePayslip', [
-            PayrollController::class,
-            'deletePayslip',
-        ]);
+        Route::post('/deletePayslip', [PayrollController::class,'deletePayslip']);
     });
 
     Route::prefix('loans')->group(function () {
-        Route::get('/getLoanApplications', [
-            LoanApplicationsController::class,
-            'getLoanApplications',
-        ]);
-        Route::post('/saveLoanApplication', [
-            LoanApplicationsController::class,
-            'saveLoanApplication',
-        ]);
-        Route::post('/cancelLoanApplication/{id}', [
-            LoanApplicationsController::class,
-            'cancelLoanApplication',
-        ]);
-        Route::post('/editLoanApplication', [
-            LoanApplicationsController::class,
-            'editLoanApplication',
-        ]);
-        Route::get('/getLoanApplicationFiles/{id}', [
-            LoanApplicationsController::class,
-            'getLoanApplicationFiles',
-        ]);
-        Route::get('/downloadFile/{id}', [
-            LoanApplicationsController::class,
-            'downloadFile',
-        ]);
+        Route::get('/getLoanApplications', [LoanApplicationsController::class,'getLoanApplications']);
+        Route::post('/saveLoanApplication', [LoanApplicationsController::class,'saveLoanApplication']);
+        Route::post('/cancelLoanApplication/{id}', [LoanApplicationsController::class,'cancelLoanApplication']);
+        Route::post('/editLoanApplication', [LoanApplicationsController::class,'editLoanApplication']);
+        Route::get('/getLoanApplicationFiles/{id}', [LoanApplicationsController::class,'getLoanApplicationFiles']);
+        Route::get('/downloadFile/{id}', [LoanApplicationsController::class,'downloadFile']);
 
-        Route::get('/getLoanDetails/{id}', [
-            LoanApplicationsController::class,
-            'getLoanDetails',
-        ]);
-        Route::get('/getAllLoanApplications', [
-            LoanApplicationsController::class,
-            'getAllLoanApplications',
-        ]);
+        Route::get('/getLoanDetails/{id}', [LoanApplicationsController::class,'getLoanDetails']);
+        Route::get('/getAllLoanApplications', [LoanApplicationsController::class,'getAllLoanApplications']);
 
-        Route::post('/updateLoanStatus/{id}', [
-            LoanApplicationsController::class,
-            'updateLoanStatus',
-        ]);
-        Route::post('/createProposal/{id}', [
-            LoanApplicationsController::class,
-            'createProposal',
-        ]);
-        Route::post('/respondToProposal/{id}', [
-            LoanApplicationsController::class,
-            'respondToProposal',
-        ]);
-        Route::get('/getLoanProposal/{id}', [
-            LoanApplicationsController::class,
-            'getLoanProposal',
-        ]);
+        Route::post('/updateLoanStatus/{id}', [LoanApplicationsController::class,'updateLoanStatus']);
+        Route::post('/createProposal/{id}', [LoanApplicationsController::class,'createProposal']);
+        Route::post('/respondToProposal/{id}', [LoanApplicationsController::class,'respondToProposal']);
+        Route::get('/getLoanProposal/{id}', [LoanApplicationsController::class,'getLoanProposal']);
 
-        Route::get('/getCurrentLoans/{employeeId}', [
-            LoanApplicationsController::class,
-            'getCurrentLoans',
-        ]);
+        Route::get('/getCurrentLoans/{employeeId}', [LoanApplicationsController::class,'getCurrentLoans']);
     });
 
     Route::prefix('applications')->group(function () {
         // Application, Type Lists
-        Route::get('/getApplications', [
-            ApplicationsController::class,
-            'getApplications',
-        ]);
-        Route::get('/getApplicationTypes', [
-            ApplicationsController::class,
-            'getApplicationTypes',
-        ]);
-        Route::post('/editApplicationType', [
-            ApplicationsController::class,
-            'editApplicationType',
-        ]);
-        Route::get('/getMyApplications', [
-            ApplicationsController::class,
-            'getMyApplications',
-        ]);
-        Route::get('/getDashboardApplications', [
-            ApplicationsController::class,
-            'getDashboardApplications',
-        ]);
+        Route::get('/getApplications', [ApplicationsController::class,'getApplications']);
+        Route::get('/getApplicationTypes', [ApplicationsController::class,'getApplicationTypes']);
+        Route::post('/editApplicationType', [ApplicationsController::class,'editApplicationType']);
+        Route::get('/getMyApplications', [ApplicationsController::class,'getMyApplications']);
+        Route::get('/getDashboardApplications', [ApplicationsController::class,'getDashboardApplications']);
 
         // Details
-        Route::get('/getApplicationDetails/{id}', [
-            ApplicationsController::class,
-            'getApplicationDetails',
-        ]);
+        Route::get('/getApplicationDetails/{id}', [ApplicationsController::class,'getApplicationDetails']);
 
         // Restrictions
-        Route::get('/getFullLeaveDays', [
-            ApplicationsController::class,
-            'getFullLeaveDays',
-        ]);
-        Route::get('/getNagerHolidays', [
-            ApplicationsController::class,
-            'getNagerHolidays',
-        ]);
-        Route::get('/getTenureship', [
-            ApplicationsController::class,
-            'getTenureship',
-        ]);
+        Route::get('/getFullLeaveDays', [ApplicationsController::class,'getFullLeaveDays']);
+        Route::get('/getNagerHolidays', [ApplicationsController::class,'getNagerHolidays']);
+        Route::get('/getTenureship', [ApplicationsController::class,'getTenureship']);
 
         // Files
-        Route::get('/downloadFile/{id}', [
-            ApplicationsController::class,
-            'downloadFile',
-        ]);
-        Route::get('/getApplicationFiles/{id}', [
-            ApplicationsController::class,
-            'getApplicationFiles',
-        ]);
+        Route::get('/downloadFile/{id}', [ApplicationsController::class,'downloadFile']);
+        Route::get('/getApplicationFiles/{id}', [ApplicationsController::class,'getApplicationFiles']);
 
         // Submission, Management
-        Route::post('/saveApplication', [
-            ApplicationsController::class,
-            'saveApplication',
-        ]);
-        Route::post('/editApplication', [
-            ApplicationsController::class,
-            'editApplication',
-        ]);
-        Route::get('/cancelApplication/{id}', [
-            ApplicationsController::class,
-            'cancelApplication',
-        ]);
-        Route::post('/manageApplication', [
-            ApplicationsController::class,
-            'manageApplication',
-        ]);
+        Route::post('/saveApplication', [ApplicationsController::class,'saveApplication']);
+        Route::post('/editApplication', [ApplicationsController::class,'editApplication']);
+        Route::get('/cancelApplication/{id}', [ApplicationsController::class,'cancelApplication']);
+        Route::post('/manageApplication', [ApplicationsController::class,'manageApplication']);
 
         // Leave Credits
-        Route::get('/getMyLeaveCredits', [
-            ApplicationsController::class,
-            'getMyLeaveCredits',
-        ]);
-        Route::get('/getLeaveCredits/{user_name}', [
-            ApplicationsController::class,
-            'getLeaveCredits',
-        ]);
-        Route::get('/getLeaveCreditLogs/{user_name}', [
-            ApplicationsController::class,
-            'getLeaveCreditLogs',
-        ]);
+        Route::get('/getMyLeaveCredits', [ApplicationsController::class,'getMyLeaveCredits']);
+        Route::get('/getLeaveCredits/{user_name}', [ApplicationsController::class,'getLeaveCredits']);
+        Route::get('/getLeaveCreditLogs/{user_name}', [ApplicationsController::class,'getLeaveCreditLogs']);
 
-        Route::post('/saveLeaveCredits', [
-            ApplicationsController::class,
-            'saveLeaveCredits',
-        ]);
-        Route::post('/editLeaveCredits', [
-            ApplicationsController::class,
-            'editLeaveCredits',
-        ]);
-        Route::post('/deleteLeaveCredits', [
-            ApplicationsController::class,
-            'deleteLeaveCredits',
-        ]);
-        Route::post('/updateLeaveCredits', [
-            ApplicationsController::class,
-            'updateLeaveCredits',
-        ]);
+        Route::post('/saveLeaveCredits', [ApplicationsController::class,'saveLeaveCredits']);
+        Route::post('/editLeaveCredits', [ApplicationsController::class,'editLeaveCredits']);
+        Route::post('/deleteLeaveCredits', [ApplicationsController::class,'deleteLeaveCredits']);
+        Route::post('/updateLeaveCredits', [ApplicationsController::class,'updateLeaveCredits']);
 
         // Overtime Applications
-        Route::post('/saveOvertimeApplication', [
-            ApplicationsController::class,
-            'saveOvertimeApplication',
-        ]);
+        Route::post('/saveOvertimeApplication', [ApplicationsController::class, 'saveOvertimeApplication']);
 
-        Route::get('/getOvertimeApplications', [
-            ApplicationsController::class,
-            'getOvertimeApplications',
-        ]);
-        Route::post('/manageOvertimeApplication', [
-            ApplicationsController::class,
-            'manageOvertimeApplication',
-        ]);
+        Route::get('/getOvertimeApplications', [ApplicationsController::class, 'getOvertimeApplications']);
+        Route::post('/manageOvertimeApplication', [ApplicationsController::class, 'manageOvertimeApplication']);
     });
 
     Route::prefix('announcements')->group(function () {
         // Announcement Lists
-        Route::get('/getAnnouncements', [
-            AnnouncementsController::class,
-            'getAnnouncements',
-        ]);
-        Route::get('/getEmployeeAnnouncements', [
-            AnnouncementsController::class,
-            'getEmployeeAnnouncements',
-        ]);
+        Route::get('/getAnnouncements', [AnnouncementsController::class, 'getAnnouncements']);
+        Route::get('/getEmployeeAnnouncements', [AnnouncementsController::class, 'getEmployeeAnnouncements']);
 
         // Management
-        Route::post('/saveAnnouncement', [
-            AnnouncementsController::class,
-            'saveAnnouncement',
-        ]);
-        Route::post('/editAnnouncement', [
-            AnnouncementsController::class,
-            'editAnnouncement',
-        ]);
-        Route::post('/publishAnnouncement', [
-            AnnouncementsController::class,
-            'publishAnnouncement',
-        ]);
-        Route::post('/toggleHide/{code}', [
-            AnnouncementsController::class,
-            'toggleHide',
-        ]);
-        Route::post('/deleteAnnouncement', [
-            AnnouncementsController::class,
-            'deleteAnnouncement',
-        ]);
+        Route::post('/saveAnnouncement', [AnnouncementsController::class, 'saveAnnouncement']);
+        Route::post('/editAnnouncement', [AnnouncementsController::class, 'editAnnouncement']);
+        Route::post('/publishAnnouncement', [AnnouncementsController::class, 'publishAnnouncement']);
+        Route::post('/toggleHide/{code}', [AnnouncementsController::class, 'toggleHide']);
+        Route::post('/deleteAnnouncement', [AnnouncementsController::class, 'deleteAnnouncement']);
 
         // Details
-        Route::get('/getAnnouncementDetails/{code}', [
-            AnnouncementsController::class,
-            'getAnnouncementDetails',
-        ]);
-        Route::get('/getEmployeeAnnouncementDetails/{code}', [
-            AnnouncementsController::class,
-            'getEmployeeAnnouncementDetails',
-        ]);
-        Route::get('/getAnnouncementPublishmentDetails/{code}', [
-            AnnouncementsController::class,
-            'getAnnouncementPublishmentDetails',
-        ]);
+        Route::get('/getAnnouncementDetails/{code}', [AnnouncementsController::class, 'getAnnouncementDetails']);
+        Route::get('/getEmployeeAnnouncementDetails/{code}', [AnnouncementsController::class, 'getEmployeeAnnouncementDetails']);
+        Route::get('/getAnnouncementPublishmentDetails/{code}', [AnnouncementsController::class, 'getAnnouncementPublishmentDetails']);
 
         // Files
-        Route::get('/downloadFile/{id}', [
-            AnnouncementsController::class,
-            'downloadFile',
-        ]);
-        Route::get('/getThumbnail/{code}', [
-            AnnouncementsController::class,
-            'getThumbnail',
-        ]);
-        Route::get('/getPageThumbnails', [
-            AnnouncementsController::class,
-            'getPageThumbnails',
-        ]);
-        Route::get('/getAnnouncementFiles/{code}', [
-            AnnouncementsController::class,
-            'getAnnouncementFiles',
-        ]);
-        Route::get('/getEmployeeAnnouncementFiles/{code}', [
-            AnnouncementsController::class,
-            'getEmployeeAnnouncementFiles',
-        ]);
+        Route::get('/downloadFile/{id}', [AnnouncementsController::class, 'downloadFile']);
+        Route::get('/getThumbnail/{code}', [AnnouncementsController::class, 'getThumbnail']);
+        Route::get('/getPageThumbnails', [AnnouncementsController::class, 'getPageThumbnails']);
+        Route::get('/getAnnouncementFiles/{code}', [AnnouncementsController::class, 'getAnnouncementFiles']);
+        Route::get('/getEmployeeAnnouncementFiles/{code}', [AnnouncementsController::class, 'getEmployeeAnnouncementFiles']);
 
         // Acknowledgements
-        Route::post('/acknowledgeAnnouncement', [
-            AnnouncementsController::class,
-            'acknowledgeAnnouncement',
-        ]);
-        Route::get('/getAcknowledgements/{code}', [
-            AnnouncementsController::class,
-            'getAcknowledgements',
-        ]);
+        Route::post('/acknowledgeAnnouncement', [AnnouncementsController::class, 'acknowledgeAnnouncement']);
+        Route::get('/getAcknowledgements/{code}', [AnnouncementsController::class, 'getAcknowledgements']);
 
         //View
-        Route::get('/getViews/{code}', [
-            AnnouncementsController::class,
-            'getViews',
-        ]);
+        Route::get('/getViews/{code}', [AnnouncementsController::class, 'getViews']);
         Route::post('/logView', [AnnouncementsController::class, 'logView']);
     });
 
     Route::prefix('adminDashboard')->group(function () {
-        Route::get('/getDashboardData', [
-            AdminDashboardController::class,
-            'getDashboardData',
-        ]);
-        Route::get('/getAttendanceToday', [
-            AdminDashboardController::class,
-            'getAttendanceToday',
-        ]);
-        Route::post('/getEmployeeAvatars', [
-            AdminDashboardController::class,
-            'getEmployeeAvatars',
-        ]);
+        Route::get('/getDashboardData', [AdminDashboardController::class, 'getDashboardData']);
+        Route::get('/getAttendanceToday', [AdminDashboardController::class, 'getAttendanceToday']);
+        Route::post('/getEmployeeAvatars', [AdminDashboardController::class, 'getEmployeeAvatars']);
         // ADMIN ROUTES
-        Route::get('/admin/dashboard', [
-            AdminDashboardController::class,
-            'index',
-        ]);
-        Route::get('/admin/dashboard1', [
-            AdminDashboardController::class,
-            'getAttendanceToday1',
-        ]);
+        Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+        Route::get('/admin/dashboard1', [AdminDashboardController::class, 'getAttendanceToday1']);
     });
 
     Route::prefix('admin')->group(function () {
         // ADMIN ROUTES
         Route::get('/dashboard', [AdminDashboardController::class, 'index']);
-        Route::get('/attendance/today', [
-            AdminDashboardController::class,
-            'getAttendanceToday',
-        ]);
+        Route::get('/attendance/today', [AdminDashboardController::class, 'getAttendanceToday']);
 
         Route::get('/milestones', [MilestoneController::class, 'index']);
         Route::post('/milestones', [MilestoneController::class, 'store']);
         Route::get('/milestones/{id}', [MilestoneController::class, 'show']);
-        Route::post('/milestones/{id}', [
-            MilestoneController::class,
-            'SendGreetings',
-        ]);
-        Route::delete('/milestones/{id}', [
-            MilestoneController::class,
-            'destroy',
-        ]);
-        Route::delete('/milestones/{id}/comments/{comment_id}', [
-            MilestoneController::class,
-            'deleteComment',
-        ]);
+        Route::post('/milestones/{id}', [MilestoneController::class, 'SendGreetings']);
+        Route::delete('/milestones/{id}', [MilestoneController::class, 'destroy']);
+        Route::delete('/milestones/{id}/comments/{comment_id}', [MilestoneController::class, 'deleteComment']);
     });
 
     Route::prefix('trainings')->group(function () {
         // Trainings, Training Content
-        Route::get('/getTrainings', [
-            TrainingsController::class,
-            'getTrainings',
-        ]);
-        Route::get('/getTrainingDetails/{code}', [
-            TrainingsController::class,
-            'getTrainingDetails',
-        ]);
-        Route::get('/getTrainingContent/{code}', [
-            TrainingsController::class,
-            'getTrainingContent',
-        ]);
-        Route::get('/getContentDetails/{id}', [
-            TrainingsController::class,
-            'getContentDetails',
-        ]);
+        Route::get('/getTrainings', [TrainingsController::class, 'getTrainings']);
+        Route::get('/getTrainingDetails/{code}', [TrainingsController::class, 'getTrainingDetails']);
+        Route::get('/getTrainingContent/{code}', [TrainingsController::class, 'getTrainingContent']);
+        Route::get('/getContentDetails/{id}', [TrainingsController::class, 'getContentDetails']);
 
-        Route::get('/getEmployeeTrainings', [
-            TrainingsController::class,
-            'getEmployeeTrainings',
-        ]);
-        Route::get('/getEmployeeTrainingDetails/{code}', [
-            TrainingsController::class,
-            'getEmployeeTrainingDetails',
-        ]);
-        Route::get('/getEmployeeTrainingContent/{code}', [
-            TrainingsController::class,
-            'getEmployeeTrainingContent',
-        ]);
-        Route::get('/getEmployeeContentDetails/{id}', [
-            TrainingsController::class,
-            'getEmployeeContentDetails',
-        ]);
+        Route::get('/getEmployeeTrainings', [TrainingsController::class, 'getEmployeeTrainings']);
+        Route::get('/getEmployeeTrainingDetails/{code}', [TrainingsController::class, 'getEmployeeTrainingDetails']);
+        Route::get('/getEmployeeTrainingContent/{code}', [TrainingsController::class, 'getEmployeeTrainingContent']);
+        Route::get('/getEmployeeContentDetails/{id}', [TrainingsController::class, 'getEmployeeContentDetails']);
 
         // Files
-        Route::get('/getSource/{id}', [
-            TrainingsController::class,
-            'getSource',
-        ]);
-        Route::get('/getPageCovers', [
-            TrainingsController::class,
-            'getPageCovers',
-        ]);
+        Route::get('/getSource/{id}', [TrainingsController::class, 'getSource']);
+        Route::get('/getPageCovers', [TrainingsController::class, 'getPageCovers']);
 
         // Management
-        Route::post('/saveTraining', [
-            TrainingsController::class,
-            'saveTraining',
-        ]);
-        Route::post('/editTraining', [
-            TrainingsController::class,
-            'editTraining',
-        ]);
-        Route::post('/updateTrainingStatus', [
-            TrainingsController::class,
-            'updateTrainingStatus',
-        ]);
+        Route::post('/saveTraining', [TrainingsController::class, 'saveTraining']);
+        Route::post('/editTraining', [TrainingsController::class, 'editTraining']);
+        Route::post('/updateTrainingStatus', [TrainingsController::class, 'updateTrainingStatus']);
 
-        Route::post('/saveContent', [
-            TrainingsController::class,
-            'saveContent',
-        ]);
-        Route::post('/editContent', [
-            TrainingsController::class,
-            'editContent',
-        ]);
-        Route::post('/removeContent', [
-            TrainingsController::class,
-            'removeContent',
-        ]);
-        Route::post('/saveContentSettings', [
-            TrainingsController::class,
-            'saveContentSettings',
-        ]);
+        Route::post('/saveContent', [TrainingsController::class, 'saveContent']);
+        Route::post('/editContent', [TrainingsController::class, 'editContent']);
+        Route::post('/removeContent', [TrainingsController::class, 'removeContent']);
+        Route::post('/saveContentSettings', [TrainingsController::class, 'saveContentSettings']);
 
         // Views
-        Route::get('/getTrainingViews/{id}', [
-            TrainingsController::class,
-            'getTrainingViews',
-        ]);
-        Route::post('/handleTrainingViews', [
-            TrainingsController::class,
-            'handleTrainingViews',
-        ]);
+        Route::get('/getTrainingViews/{id}', [TrainingsController::class, 'getTrainingViews']);
+        Route::post('/handleTrainingViews', [TrainingsController::class, 'handleTrainingViews']);
 
         // Training Forms
-        Route::get('/getFormItems/{id}', [
-            TrainingFormsController::class,
-            'getFormItems',
-        ]);
-        Route::post('/saveFormItem', [
-            TrainingFormsController::class,
-            'saveFormItem',
-        ]);
-        Route::post('/editFormItem', [
-            TrainingFormsController::class,
-            'editFormItem',
-        ]);
-        Route::post('/removeFormItem', [
-            TrainingFormsController::class,
-            'removeFormItem',
-        ]);
-        Route::post('/saveFormItemSettings', [
-            TrainingFormsController::class,
-            'saveFormItemSettings',
-        ]);
+        Route::get('/getFormItems/{id}', [TrainingFormsController::class, 'getFormItems']);
+        Route::post('/saveFormItem', [TrainingFormsController::class, 'saveFormItem']);
+        Route::post('/editFormItem', [TrainingFormsController::class, 'editFormItem']);
+        Route::post('/removeFormItem', [TrainingFormsController::class, 'removeFormItem']);
+        Route::post('/saveFormItemSettings', [TrainingFormsController::class, 'saveFormItemSettings']);
 
-        Route::get('/getFormAnalytics/{id}', [
-            TrainingFormsController::class,
-            'getFormAnalytics',
-        ]);
+        Route::get('/getFormAnalytics/{id}', [TrainingFormsController::class, 'getFormAnalytics']);
 
-        Route::get('/getEmployeeFormDetails/{id}', [
-            TrainingFormsController::class,
-            'getEmployeeFormDetails',
-        ]);
-        Route::get('/getEmployeeFormReviewer', [
-            TrainingFormsController::class,
-            'getEmployeeFormReviewer',
-        ]);
-        Route::post('/saveEmployeeFormSubmission', [
-            TrainingFormsController::class,
-            'saveEmployeeFormSubmission',
-        ]);
+        Route::get('/getEmployeeFormDetails/{id}', [TrainingFormsController::class, 'getEmployeeFormDetails']);
+        Route::get('/getEmployeeFormReviewer', [TrainingFormsController::class, 'getEmployeeFormReviewer']);
+        Route::post('/saveEmployeeFormSubmission', [TrainingFormsController::class, 'saveEmployeeFormSubmission']);
 
         // Group Life Company - Old
 
@@ -1049,115 +497,37 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 
     // Hr employees
-    Route::get('/employeesHistory/{id}/{dates}', [
-        HrEmployeesController::class,
-        'getEmployeeHistory',
-    ]);
-    Route::get('/additional_benefits_brackets', [
-        HrEmployeesController::class,
-        'getAdditionalBenefitsBrackets',
-    ]);
-    Route::get('/search-employees/{id}', [
-        HrEmployeesController::class,
-        'searchEmployees',
-    ]);
-    Route::get('/get_events', [
-        HrEmployeesController::class,
-        'getCalendarEvents',
-    ]);
-    Route::put('/edit-employees/{id}', [
-        HrEmployeesController::class,
-        'editEmployee',
-    ]);
-    Route::post('/delete-employees', [
-        HrEmployeesController::class,
-        'deleteEmployee',
-    ]);
-    Route::post('/add-employees', [
-        HrEmployeesController::class,
-        'addEmployee',
-    ]);
-    Route::post('/add_event', [
-        HrEmployeesController::class,
-        'addCalendarEvent',
-    ]);
-    Route::post('/delete_events', [
-        HrEmployeesController::class,
-        'deleteCalendarEvent',
-    ]);
-    Route::post('/add_additional_benefits', [
-        HrEmployeesController::class,
-        'AddAdditionalbenefits',
-    ]);
-    Route::post('/delete_additional_benefits', [
-        HrEmployeesController::class,
-        'deleteAdditionalbenefits',
-    ]);
-    Route::post('/delete_employee_loan', [
-        HrEmployeesController::class,
-        'deleteEmployeeLoan',
-    ]);
-    Route::post('/create_employee', [
-        HrEmployeesController::class,
-        'createEmployee',
-    ]);
-    Route::get('/getEmployeePayroll-reports/{id}/{dates}', [
-        HrEmployeesController::class,
-        'getEmployeePayrollReports',
-    ]);
+    Route::get('/employeesHistory/{id}/{dates}', [HrEmployeesController::class, 'getEmployeeHistory']);
+    Route::get('/additional_benefits_brackets', [HrEmployeesController::class, 'getAdditionalBenefitsBrackets']);
+    Route::get('/search-employees/{id}', [HrEmployeesController::class, 'searchEmployees']);
+    Route::get('/get_events', [HrEmployeesController::class, 'getCalendarEvents']);
+    Route::put('/edit-employees/{id}', [HrEmployeesController::class, 'editEmployee']);
+    Route::post('/delete-employees', [HrEmployeesController::class, 'deleteEmployee']);
+    Route::post('/add-employees', [HrEmployeesController::class, 'addEmployee']);
+    Route::post('/add_event', [HrEmployeesController::class, 'addCalendarEvent']);
+    Route::post('/delete_events', [HrEmployeesController::class, 'deleteCalendarEvent']);
+    Route::post('/add_additional_benefits', [HrEmployeesController::class, 'AddAdditionalbenefits']);
+    Route::post('/delete_additional_benefits', [HrEmployeesController::class, 'deleteAdditionalbenefits']);
+    Route::post('/delete_employee_loan', [HrEmployeesController::class, 'deleteEmployeeLoan']);
+    Route::post('/create_employee', [HrEmployeesController::class, 'createEmployee']);
+    Route::get('/getEmployeePayroll-reports/{id}/{dates}', [HrEmployeesController::class, 'getEmployeePayrollReports']);
 
     // Super
-    Route::get('/adminEmployees', [
-        HrEmployeesController::class,
-        'getAdminEmployee',
-    ]);
-    Route::get('/employees/{id}', [
-        HrEmployeesController::class,
-        'getEmployee',
-    ]);
-    Route::get('/additional_benefits/{type}/{id}', [
-        HrEmployeesController::class,
-        'getAdditionalBenefits',
-    ]);
-    Route::get('/get_events/{id}/{shiftId}', [
-        HrEmployeesController::class,
-        'getCalendarEvents',
-    ]);
-    Route::get('/applications/{id}', [
-        HrApplicationsController::class,
-        'getApplications',
-    ]);
-    Route::get('/applications_list/{id}', [
-        HrApplicationsController::class,
-        'getApplicationsList',
-    ]);
-    Route::get('/salary-increase/{id}/{dates}', [
-        HrEmployeesController::class,
-        'getSalaryIncrease',
-    ]);
-    Route::post('/get-attendance/{id}', [
-        HrAttendanceController::class,
-        'getAllAttendance',
-    ]);
-    Route::get('/getPayrollRecord/{id}/{dates}', [
-        HrPayrollController::class,
-        'getPayrollRecord',
-    ]);
-    Route::get('/employeesBenefit/{id}', [
-        HrEmployeesController::class,
-        'getEmployeeBenefit',
-    ]);
-    Route::get('/getEmployeePayroll/{id}', [
-        HrEmployeesController::class,
-        'getEmployeePayroll',
-    ]);
+    Route::get('/adminEmployees', [HrEmployeesController::class, 'getAdminEmployee']);
+    Route::get('/employees/{id}', [HrEmployeesController::class, 'getEmployee']);
+    Route::get('/additional_benefits/{type}/{id}', [HrEmployeesController::class, 'getAdditionalBenefits']);
+    Route::get('/get_events/{id}/{shiftId}', [HrEmployeesController::class, 'getCalendarEvents']);
+    Route::get('/applications/{id}', [HrApplicationsController::class, 'getApplications']);
+    Route::get('/applications_list/{id}', [HrApplicationsController::class, 'getApplicationsList']);
+    Route::get('/salary-increase/{id}/{dates}', [HrEmployeesController::class, 'getSalaryIncrease']);
+    Route::post('/get-attendance/{id}', [HrAttendanceController::class, 'getAllAttendance']);
+    Route::get('/getPayrollRecord/{id}/{dates}', [HrPayrollController::class, 'getPayrollRecord']);
+    Route::get('/employeesBenefit/{id}', [HrEmployeesController::class, 'getEmployeeBenefit']);
+    Route::get('/getEmployeePayroll/{id}', [HrEmployeesController::class, 'getEmployeePayroll']);
 
     // New API for Employees
     Route::get('/getAdmins', [HrEmployeesController::class, 'getAdmins']);
-    Route::get('/getEmployeesName', [
-        HrEmployeesController::class,
-        'getEmployeesName',
-    ]);
+    Route::get('/getEmployeesName', [HrEmployeesController::class, 'getEmployeesName']);
 
     // Work Shift
     // Route::get('/getWorkShift', [HrEmployeesController::class, 'getWorkShift']);
@@ -1168,238 +538,73 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Route::get('/getWorkShiftEmployees', [HrEmployeesController::class, 'getWorkShiftEmployees']);
 
     // Evaluation
-    Route::post('/deleteEvaluationForm', [
-        EvaluationFormController::class,
-        'deleteEvaluationForm',
-    ]);
-    Route::post('/editEvaluationForm', [
-        EvaluationFormController::class,
-        'editEvaluationForm',
-    ]);
-    Route::get('/getEvaluationForm', [
-        EvaluationFormController::class,
-        'getEvaluationForm',
-    ]);
-    Route::get('/getEvaluationForms', [
-        EvaluationFormController::class,
-        'getEvaluationForms',
-    ]);
-    Route::post('/saveEvaluationForm', [
-        EvaluationFormController::class,
-        'saveEvaluationForm',
-    ]);
+    Route::post('/deleteEvaluationForm', [EvaluationFormController::class, 'deleteEvaluationForm']);
+    Route::post('/editEvaluationForm', [EvaluationFormController::class, 'editEvaluationForm']);
+    Route::get('/getEvaluationForm', [EvaluationFormController::class, 'getEvaluationForm']);
+    Route::get('/getEvaluationForms', [EvaluationFormController::class, 'getEvaluationForms']);
+    Route::post('/saveEvaluationForm', [EvaluationFormController::class, 'saveEvaluationForm']);
 
-    Route::post('/deleteEvaluationFormSection', [
-        EvaluationFormController::class,
-        'deleteEvaluationFormSection',
-    ]);
-    Route::post('/editEvaluationFormSection', [
-        EvaluationFormController::class,
-        'editEvaluationFormSection',
-    ]);
-    Route::get('/getEvaluationFormSection', [
-        EvaluationFormController::class,
-        'getEvaluationFormSection',
-    ]);
-    Route::post('/moveEvaluationFormSection', [
-        EvaluationFormController::class,
-        'moveEvaluationFormSection',
-    ]);
-    Route::post('/saveEvaluationFormSection', [
-        EvaluationFormController::class,
-        'saveEvaluationFormSection',
-    ]);
+    Route::post('/deleteEvaluationFormSection', [EvaluationFormController::class, 'deleteEvaluationFormSection']);
+    Route::post('/editEvaluationFormSection', [EvaluationFormController::class, 'editEvaluationFormSection']);
+    Route::get('/getEvaluationFormSection', [EvaluationFormController::class, 'getEvaluationFormSection']);
+    Route::post('/moveEvaluationFormSection', [EvaluationFormController::class, 'moveEvaluationFormSection']);
+    Route::post('/saveEvaluationFormSection', [EvaluationFormController::class, 'saveEvaluationFormSection']);
 
-    Route::post('/deleteEvaluationFormSubcategory', [
-        EvaluationFormController::class,
-        'deleteEvaluationFormSubcategory',
-    ]);
-    Route::post('/editEvaluationFormSubcategory', [
-        EvaluationFormController::class,
-        'editEvaluationFormSubcategory',
-    ]);
-    Route::get('/getEvaluationFormSubcategory', [
-        EvaluationFormController::class,
-        'getEvaluationFormSubcategory',
-    ]);
-    Route::post('/moveEvaluationFormSubcategory', [
-        EvaluationFormController::class,
-        'moveEvaluationFormSubcategory',
-    ]);
-    Route::post('/saveEvaluationFormSubcategory', [
-        EvaluationFormController::class,
-        'saveEvaluationFormSubcategory',
-    ]);
+    Route::post('/deleteEvaluationFormSubcategory', [EvaluationFormController::class, 'deleteEvaluationFormSubcategory']);
+    Route::post('/editEvaluationFormSubcategory', [EvaluationFormController::class, 'editEvaluationFormSubcategory']);
+    Route::get('/getEvaluationFormSubcategory', [EvaluationFormController::class, 'getEvaluationFormSubcategory']);
+    Route::post('/moveEvaluationFormSubcategory', [EvaluationFormController::class, 'moveEvaluationFormSubcategory']);
+    Route::post('/saveEvaluationFormSubcategory', [EvaluationFormController::class, 'saveEvaluationFormSubcategory']);
 
-    Route::post('/advanceEvaluationWorkflow/{id}', [
-        EvaluationResponseController::class,
-        'advanceWorkflow',
-    ]);
-    Route::post('/deleteEvaluationFormSubcategoryOption', [
-        EvaluationFormController::class,
-        'deleteEvaluationFormSubcategoryOption',
-    ]);
-    Route::post('/editEvaluationFormSubcategoryOption', [
-        EvaluationFormController::class,
-        'editEvaluationFormSubcategoryOption',
-    ]);
-    Route::get('/getEvaluationFormSubcategoryOption', [
-        EvaluationFormController::class,
-        'getEvaluationFormSubcategoryOption',
-    ]);
-    Route::post('/moveEvaluationFormSubcategoryOption', [
-        EvaluationFormController::class,
-        'moveEvaluationFormSubcategoryOption',
-    ]);
-    Route::post('/saveEvaluationFormSubcategoryOption', [
-        EvaluationFormController::class,
-        'saveEvaluationFormSubcategoryOption',
-    ]);
+    Route::post('/advanceEvaluationWorkflow/{id}', [EvaluationResponseController::class, 'advanceWorkflow']);
+    Route::post('/deleteEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'deleteEvaluationFormSubcategoryOption']);
+    Route::post('/editEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'editEvaluationFormSubcategoryOption']);
+    Route::get('/getEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'getEvaluationFormSubcategoryOption']);
+    Route::post('/moveEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'moveEvaluationFormSubcategoryOption']);
+    Route::post('/saveEvaluationFormSubcategoryOption', [EvaluationFormController::class, 'saveEvaluationFormSubcategoryOption']);
 
     // Route::get('/form/{formName}', [EvaluationFormController::class, 'getFormDetails']);
     // Route::get('/getEvaluationFormSections', [EvaluationFormController::class, 'getEvaluationFormSections']);
 
-    Route::post('/deleteEvaluationResponse', [
-        EvaluationResponseController::class,
-        'deleteEvaluationResponse',
-    ]);
-    Route::post('/editEvaluationResponse', [
-        EvaluationResponseController::class,
-        'editEvaluationResponse',
-    ]);
-    Route::get('/getEvaluateeResponses', [
-        EvaluationResponseController::class,
-        'getEvaluateeResponses',
-    ]);
-    Route::get('/getEvaluationResponse', [
-        EvaluationResponseController::class,
-        'getEvaluationResponse',
-    ]);
-    Route::get('/getEvaluationResponses', [
-        EvaluationResponseController::class,
-        'getEvaluationResponses',
-    ]);
-    Route::post('/saveEvaluationResponse', [
-        EvaluationResponseController::class,
-        'saveEvaluationResponse',
-    ]);
+    Route::post('/deleteEvaluationResponse', [EvaluationResponseController::class, 'deleteEvaluationResponse']);
+    Route::post('/editEvaluationResponse', [EvaluationResponseController::class, 'editEvaluationResponse']);
+    Route::get('/getEvaluateeResponses', [EvaluationResponseController::class, 'getEvaluateeResponses']);
+    Route::get('/getEvaluationResponse', [EvaluationResponseController::class, 'getEvaluationResponse']);
+    Route::get('/getEvaluationResponses', [EvaluationResponseController::class, 'getEvaluationResponses']);
+    Route::post('/saveEvaluationResponse', [EvaluationResponseController::class, 'saveEvaluationResponse']);
 
-    Route::get('/getEvaluatees', [
-        EvaluationResponseController::class,
-        'getEvaluatees',
-    ]);
-    Route::get('/getEvaluators', [
-        EvaluationResponseController::class,
-        'getEvaluators',
-    ]);
-    Route::get('/getCommentors', [
-        EvaluationResponseController::class,
-        'getCommentors',
-    ]);
-    Route::post('/deleteEvaluationEvaluator', [
-        EvaluationResponseController::class,
-        'deleteEvaluationEvaluator',
-    ]);
-    Route::post('/editEvaluationEvaluator', [
-        EvaluationResponseController::class,
-        'editEvaluationEvaluator',
-    ]);
-    Route::get('/getEvaluationEvaluator', [
-        EvaluationResponseController::class,
-        'getEvaluationEvaluator',
-    ]);
-    Route::get('/getEvaluationEvaluators', [
-        EvaluationResponseController::class,
-        'getEvaluationEvaluators',
-    ]);
-    Route::post('/saveEvaluationEvaluator', [
-        EvaluationResponseController::class,
-        'saveEvaluationEvaluator',
-    ]);
+    Route::get('/getEvaluatees', [EvaluationResponseController::class, 'getEvaluatees']);
+    Route::get('/getEvaluators', [EvaluationResponseController::class, 'getEvaluators']);
+    Route::get('/getCommentors', [EvaluationResponseController::class, 'getCommentors']);
+    Route::post('/deleteEvaluationEvaluator', [EvaluationResponseController::class, 'deleteEvaluationEvaluator']);
+    Route::post('/editEvaluationEvaluator', [EvaluationResponseController::class, 'editEvaluationEvaluator']);
+    Route::get('/getEvaluationEvaluator', [EvaluationResponseController::class, 'getEvaluationEvaluator']);
+    Route::get('/getEvaluationEvaluators', [EvaluationResponseController::class, 'getEvaluationEvaluators']);
+    Route::post('/saveEvaluationEvaluator', [EvaluationResponseController::class, 'saveEvaluationEvaluator']);
 
-    Route::post('/deleteEvaluationCommentor', [
-        EvaluationResponseController::class,
-        'deleteEvaluationCommentor',
-    ]);
-    Route::post('/editEvaluationCommentor', [
-        EvaluationResponseController::class,
-        'editEvaluationCommentor',
-    ]);
-    Route::get('/getEvaluationCommentor', [
-        EvaluationResponseController::class,
-        'getEvaluationCommentor',
-    ]);
-    Route::get('/getEvaluationCommentors', [
-        EvaluationResponseController::class,
-        'getEvaluationCommentors',
-    ]);
-    Route::post('/saveEvaluationCommentor', [
-        EvaluationResponseController::class,
-        'saveEvaluationCommentor',
-    ]);
+    Route::post('/deleteEvaluationCommentor', [EvaluationResponseController::class, 'deleteEvaluationCommentor']);
+    Route::post('/editEvaluationCommentor', [EvaluationResponseController::class, 'editEvaluationCommentor']);
+    Route::get('/getEvaluationCommentor', [EvaluationResponseController::class, 'getEvaluationCommentor']);
+    Route::get('/getEvaluationCommentors', [EvaluationResponseController::class, 'getEvaluationCommentors']);
+    Route::post('/saveEvaluationCommentor', [EvaluationResponseController::class, 'saveEvaluationCommentor']);
 
-    Route::post('/deleteEvaluationTextAnswer', [
-        EvaluationResponseController::class,
-        'deleteEvaluationTextAnswer',
-    ]);
-    Route::post('/editEvaluationTextAnswer', [
-        EvaluationResponseController::class,
-        'editEvaluationTextAnswer',
-    ]);
-    Route::get('/getEvaluationTextAnswer', [
-        EvaluationResponseController::class,
-        'getEvaluationTextAnswer',
-    ]);
-    Route::get('/getEvaluationTextAnswers', [
-        EvaluationResponseController::class,
-        'getEvaluationTextAnswers',
-    ]);
-    Route::post('/saveEvaluationTextAnswer', [
-        EvaluationResponseController::class,
-        'saveEvaluationTextAnswer',
-    ]);
+    Route::post('/deleteEvaluationTextAnswer', [EvaluationResponseController::class, 'deleteEvaluationTextAnswer']);
+    Route::post('/editEvaluationTextAnswer', [EvaluationResponseController::class, 'editEvaluationTextAnswer']);
+    Route::get('/getEvaluationTextAnswer', [EvaluationResponseController::class, 'getEvaluationTextAnswer']);
+    Route::get('/getEvaluationTextAnswers', [EvaluationResponseController::class, 'getEvaluationTextAnswers']);
+    Route::post('/saveEvaluationTextAnswer', [EvaluationResponseController::class, 'saveEvaluationTextAnswer']);
 
-    Route::post('/deleteEvaluationPercentageAnswer', [
-        EvaluationResponseController::class,
-        'deleteEvaluationPercentageAnswer',
-    ]);
-    Route::post('/editEvaluationPercentageAnswer', [
-        EvaluationResponseController::class,
-        'editEvaluationPercentageAnswer',
-    ]);
-    Route::get('/getEvaluationPercentageAnswer', [
-        EvaluationResponseController::class,
-        'getEvaluationPercentageAnswer',
-    ]);
-    Route::get('/getEvaluationPercentageAnswers', [
-        EvaluationResponseController::class,
-        'getEvaluationPercentageAnswers',
-    ]);
-    Route::post('/saveEvaluationPercentageAnswer', [
-        EvaluationResponseController::class,
-        'saveEvaluationPercentageAnswer',
-    ]);
+    Route::post('/deleteEvaluationPercentageAnswer', [EvaluationResponseController::class, 'deleteEvaluationPercentageAnswer']);
+    Route::post('/editEvaluationPercentageAnswer', [EvaluationResponseController::class, 'editEvaluationPercentageAnswer']);
+    Route::get('/getEvaluationPercentageAnswer', [EvaluationResponseController::class, 'getEvaluationPercentageAnswer']);
+    Route::get('/getEvaluationPercentageAnswers', [EvaluationResponseController::class, 'getEvaluationPercentageAnswers']);
+    Route::post('/saveEvaluationPercentageAnswer', [EvaluationResponseController::class, 'saveEvaluationPercentageAnswer']);
 
-    Route::post('/deleteEvaluationOptionAnswer', [
-        EvaluationResponseController::class,
-        'deleteEvaluationOptionAnswer',
-    ]);
-    Route::post('/editEvaluationOptionAnswer', [
-        EvaluationResponseController::class,
-        'editEvaluationOptionAnswer',
-    ]);
-    Route::get('/getEvaluationOptionAnswer', [
-        EvaluationResponseController::class,
-        'getEvaluationOptionAnswer',
-    ]);
-    Route::get('/getEvaluationOptionAnswers', [
-        EvaluationResponseController::class,
-        'getEvaluationOptionAnswers',
-    ]);
-    Route::post('/saveEvaluationOptionAnswer', [
-        EvaluationResponseController::class,
-        'saveEvaluationOptionAnswer',
-    ]);
+    Route::post('/deleteEvaluationOptionAnswer', [EvaluationResponseController::class, 'deleteEvaluationOptionAnswer']);
+    Route::post('/editEvaluationOptionAnswer', [EvaluationResponseController::class, 'editEvaluationOptionAnswer']);
+    Route::get('/getEvaluationOptionAnswer', [EvaluationResponseController::class, 'getEvaluationOptionAnswer']);
+    Route::get('/getEvaluationOptionAnswers', [EvaluationResponseController::class, 'getEvaluationOptionAnswers']);
+    Route::post('/saveEvaluationOptionAnswer', [EvaluationResponseController::class, 'saveEvaluationOptionAnswer']);
 
     // Reports
     Route::get('/getReport', [ReportsController::class, 'getReport']);
@@ -1409,97 +614,43 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/editReport', [ReportsController::class, 'editReport']);
 
     Route::get('/getReportTypes', [ReportsController::class, 'getReportTypes']);
-    Route::post('/saveReportType', [
-        ReportsController::class,
-        'saveReportType',
-    ]);
-    Route::post('/saveReportViewer', [
-        ReportsController::class,
-        'saveReportViewer',
-    ]);
+    Route::post('/saveReportType', [ReportsController::class, 'saveReportType']);
+    Route::post('/saveReportViewer', [ReportsController::class, 'saveReportViewer']);
 
     // Member Attendance
-    Route::get('/get_attendance', [
-        MemberAttendanceController::class,
-        'getCalendarAttendance',
-    ]);
-    Route::post('/add_timein', [
-        MemberAttendanceController::class,
-        'AddTimeinAttendance',
-    ]);
-    Route::post('/add_timeout', [
-        MemberAttendanceController::class,
-        'AddTimeoutAttendance',
-    ]);
-    Route::post('/add_timeinAfternoon', [
-        MemberAttendanceController::class,
-        'AddTimeinAfternoon',
-    ]);
-    Route::post('/add_timeoutAfternoon', [
-        MemberAttendanceController::class,
-        'AddTimeoutAfternoon',
-    ]);
-    Route::get('/get_time', [
-        MemberAttendanceController::class,
-        'setgetTimeAttendance',
-    ]);
+    Route::get('/get_attendance', [MemberAttendanceController::class, 'getCalendarAttendance']);
+    Route::post('/add_timein', [MemberAttendanceController::class, 'AddTimeinAttendance']);
+    Route::post('/add_timeout', [MemberAttendanceController::class, 'AddTimeoutAttendance']);
+    Route::post('/add_timeinAfternoon', [MemberAttendanceController::class, 'AddTimeinAfternoon']);
+    Route::post('/add_timeoutAfternoon', [MemberAttendanceController::class, 'AddTimeoutAfternoon']);
+    Route::get('/get_time', [MemberAttendanceController::class, 'setgetTimeAttendance']);
 
     // New Attendance End Points
-    Route::get('/getEmployeeWorkShift', [
-        MemberAttendanceController::class,
-        'getEmployeeWorkShift',
-    ]);
-    Route::get('/getEmployeeAttendance', [
-        MemberAttendanceController::class,
-        'getEmployeeAttendance',
-    ]);
+    Route::get('/getEmployeeWorkShift', [MemberAttendanceController::class, 'getEmployeeWorkShift']);
+    Route::get('/getEmployeeAttendance', [MemberAttendanceController::class, 'getEmployeeAttendance']);
 
     // Member Applications
-    Route::get('/member_applications_list', [
-        MemberApplicationsController::class,
-        'getMemberApplicationsList',
-    ]);
-    Route::post('/submit_application', [
-        MemberApplicationsController::class,
-        'submitApplication',
-    ]);
-    Route::get('/member_applications', [
-        MemberApplicationsController::class,
-        'getMemberApplications',
-    ]);
+    Route::get('/member_applications_list', [MemberApplicationsController::class, 'getMemberApplicationsList']);
+    Route::post('/submit_application', [MemberApplicationsController::class, 'submitApplication']);
+    Route::get('/member_applications', [MemberApplicationsController::class, 'getMemberApplications']);
 
     // Member Payroll Details
-    Route::get('/member_payroll_record', [
-        MemberPayrollDetails::class,
-        'getMemberPayrollRecord',
-    ]);
+    Route::get('/member_payroll_record', [MemberPayrollDetails::class, 'getMemberPayrollRecord']);
     Route::post('/signature', [MemberPayrollDetails::class, 'updateSignature']);
 
     // Member Personal Details
-    Route::post('/update_profile', [
-        MemberSettingsController::class,
-        'updateProfile',
-    ]);
+    Route::post('/update_profile', [MemberSettingsController::class, 'updateProfile']);
     Route::get('/get_user', [MemberSettingsController::class, 'getUserData']);
     Route::post('/picture', [MemberSettingsController::class, 'updatePicture']);
 
     // Member Dashboard
-    Route::get('/dashboard_recentMemberAttendance', [
-        MemberDashboardController::class,
-        'getMemberAttendances',
-    ]);
-    Route::get('/dashboard_recentMemberApplication', [
-        MemberDashboardController::class,
-        'getMemberApplications',
-    ]);
+    Route::get('/dashboard_recentMemberAttendance', [MemberDashboardController::class, 'getMemberAttendances']);
+    Route::get('/dashboard_recentMemberApplication', [MemberDashboardController::class, 'getMemberApplications']);
 
     // Hr Benefits
     Route::get('/benefits', [HrEmployeesController::class, 'getBenefits']);
     Route::post('/add_benefits', [HrEmployeesController::class, 'addBenefits']);
-    Route::post('/delete_benefits', [
-        HrEmployeesController::class,
-        'deletebenefits',
-    ]);
+    Route::post('/delete_benefits', [HrEmployeesController::class, 'deletebenefits']);
 
     // Hr Loans
     Route::get('/loans', [HrEmployeesController::class, 'getLoans']);
@@ -1507,18 +658,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/delete_loans', [HrEmployeesController::class, 'deleteLoans']);
 
     // Hr Contribution
-    Route::get('/contribution', [
-        HrEmployeesController::class,
-        'getContribution',
-    ]);
-    Route::post('/add_contribution', [
-        HrEmployeesController::class,
-        'addContribution',
-    ]);
-    Route::post('/delete_contribution', [
-        HrEmployeesController::class,
-        'deleteContribution',
-    ]);
+    Route::get('/contribution', [HrEmployeesController::class, 'getContribution']);
+    Route::post('/add_contribution', [HrEmployeesController::class, 'addContribution']);
+    Route::post('/delete_contribution', [HrEmployeesController::class, 'deleteContribution']);
 
     // Hr status
     Route::get('/status', [HrStatusController::class, 'getStatus']);
@@ -1528,351 +670,126 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/add-status', [HrStatusController::class, 'addStatus']);
     Route::post('/add-branch', [HrStatusController::class, 'addBranch']);
     Route::post('/add-bank', [HrStatusController::class, 'addBank']);
-    Route::put('/delete-status/{id}', [
-        HrStatusController::class,
-        'deleteStatus',
-    ]);
-    Route::put('/delete-branch/{id}', [
-        HrStatusController::class,
-        'deleteBranch',
-    ]);
+    Route::put('/delete-status/{id}', [HrStatusController::class, 'deleteStatus']);
+    Route::put('/delete-branch/{id}', [HrStatusController::class, 'deleteBranch']);
     Route::put('/delete-bank/{id}', [HrStatusController::class, 'deleteBank']);
     Route::post('/add-workdays', [HrStatusController::class, 'addWorkDays']);
 
     // Hr Dashboard
-    Route::get('/dashboard_employees/{dateToday}', [
-        HrDashboardController::class,
-        'getEmployees',
-    ]);
-    Route::get('/dashboard_recentAttendance/{dateToday}', [
-        HrDashboardController::class,
-        'getAttendances',
-    ]);
-    Route::get('/dashboard_recentApplication/{dateToday}', [
-        HrDashboardController::class,
-        'getApplications',
-    ]);
-    Route::get('/dashboard_Analytics/{date}', [
-        HrDashboardController::class,
-        'getAnalytics',
-    ]);
+    Route::get('/dashboard_employees/{dateToday}', [HrDashboardController::class, 'getEmployees']);
+    Route::get('/dashboard_recentAttendance/{dateToday}', [HrDashboardController::class, 'getAttendances']);
+    Route::get('/dashboard_recentApplication/{dateToday}', [HrDashboardController::class, 'getApplications']);
+    Route::get('/dashboard_Analytics/{date}', [HrDashboardController::class, 'getAnalytics']);
 
     // Hr attendance
     Route::get('/attendance', [HrAttendanceController::class, 'getAttendance']);
-    Route::get('/getModalAttendanceView/{userData}', [
-        HrAttendanceController::class,
-        'getModalAttendanceView',
-    ]);
-    Route::post('/add-attendance', [
-        HrAttendanceController::class,
-        'addAttendance',
-    ]);
-    Route::post('/get-attendance', [
-        HrAttendanceController::class,
-        'getAllAttendance',
-    ]);
-    Route::post('/get-today-present', [
-        HrAttendanceController::class,
-        'getTodayPresent',
-    ]);
-    Route::post('/get-today-absent', [
-        HrAttendanceController::class,
-        'getTodayAbsent',
-    ]);
-    Route::post('/get-today-leave', [
-        HrAttendanceController::class,
-        'getTodayLeave',
-    ]);
-    Route::post('/updateHrAttendance', [
-        HrAttendanceController::class,
-        'updateHrAttendance',
-    ]);
-    Route::post('/updateHrWorkhours', [
-        HrAttendanceController::class,
-        'updateHrWorkhours',
-    ]);
+    Route::get('/getModalAttendanceView/{userData}', [HrAttendanceController::class, 'getModalAttendanceView' ]);
+    Route::post('/add-attendance', [HrAttendanceController::class, 'addAttendance' ]);
+    Route::post('/get-attendance', [HrAttendanceController::class, 'getAllAttendance' ]);
+    Route::post('/get-today-present', [HrAttendanceController::class, 'getTodayPresent' ]);
+    Route::post('/get-today-absent', [HrAttendanceController::class, 'getTodayAbsent' ]);
+    Route::post('/get-today-leave', [HrAttendanceController::class, 'getTodayLeave' ]);
+    Route::post('/updateHrAttendance', [HrAttendanceController::class, 'updateHrAttendance' ]);
+    Route::post('/updateHrWorkhours', [HrAttendanceController::class, 'updateHrWorkhours' ]);
     Route::post('/getWorkday', [HrAttendanceController::class, 'getWorkdayID']);
-    Route::post('/getWorkdayFuture', [
-        HrAttendanceController::class,
-        'getWorkdayIDFuture',
-    ]);
-    Route::post('/deleteAttendanceView', [
-        HrAttendanceController::class,
-        'deleteAttendanceView',
-    ]);
-    Route::get('/attendance-shift', [
-        HrAttendanceController::class,
-        'getAttendanceShift',
-    ]);
+    Route::post('/getWorkdayFuture', [HrAttendanceController::class, 'getWorkdayIDFuture' ]);
+    Route::post('/deleteAttendanceView', [HrAttendanceController::class, 'deleteAttendanceView' ]);
+    Route::get('/attendance-shift', [HrAttendanceController::class, 'getAttendanceShift' ]);
 
     // Endpoints Used In Edit Attendance Modal
-    Route::get('/getAttendance', [
-        HrAttendanceController::class,
-        'getAttendance',
-    ]);
-    Route::post('/updateAttendance', [
-        HrAttendanceController::class,
-        'updateAttendance',
-    ]);
-    Route::post('/deleteAttendance', [
-        HrAttendanceController::class,
-        'deleteAttendance',
-    ]);
-    Route::post('/addEmployeeAttendance', [
-        HrAttendanceController::class,
-        'addEmployeeAttendance',
-    ]);
+    Route::get('/getAttendance', [HrAttendanceController::class, 'getAttendance']);
+    Route::post('/updateAttendance', [HrAttendanceController::class, 'updateAttendance']);
+    Route::post('/deleteAttendance', [HrAttendanceController::class, 'deleteAttendance']);
+    Route::post('/addEmployeeAttendance', [HrAttendanceController::class, 'addEmployeeAttendance']);
 
-    Route::get('/getUserSchedule', [
-        HrAttendanceController::class,
-        'getUserSchedule',
-    ]);
+    Route::get('/getUserSchedule', [HrAttendanceController::class, 'getUserSchedule']);
 
     // Branch SAM
 
     // Hr applications
-    Route::get('/applications', [
-        HrApplicationsController::class,
-        'getApplications',
-    ]);
-    Route::get('/applications-reports/{id}/{dates}', [
-        HrApplicationsController::class,
-        'getApplicationsReports',
-    ]);
-    Route::post('/delete_applications', [
-        HrApplicationsController::class,
-        'deleteApplications',
-    ]);
-    Route::get('/get_appplication_status', [
-        HrApplicationsController::class,
-        'getApplicationStatus',
-    ]);
-    Route::post('/add-application-status', [
-        HrApplicationsController::class,
-        'addApplicationStatus',
-    ]);
-    Route::post('/update-application', [
-        HrApplicationsController::class,
-        'addApplication',
-    ]);
-    Route::put('/delete-application-status/{id}', [
-        HrApplicationsController::class,
-        'deleteAppStatus',
-    ]);
-    Route::post('/add-applications-list', [
-        HrApplicationsController::class,
-        'addAppList',
-    ]);
-    Route::get('/applications_list', [
-        HrApplicationsController::class,
-        'getApplicationsList',
-    ]);
-    Route::post('/add_type_application', [
-        HrApplicationsController::class,
-        'addNewType',
-    ]);
-    Route::post('/delete_type_application', [
-        HrApplicationsController::class,
-        'deleteApplicationList',
-    ]);
-    Route::put('/edit-leave/{id}', [
-        HrApplicationsController::class,
-        'editLeave',
-    ]);
-    Route::get('/applications_leave/{dates}', [
-        HrApplicationsController::class,
-        'getApplicationsLeave',
-    ]);
+    Route::get('/applications', [HrApplicationsController::class, 'getApplications']);
+    Route::get('/applications-reports/{id}/{dates}', [HrApplicationsController::class, 'getApplicationsReports']);
+    Route::post('/delete_applications', [HrApplicationsController::class, 'deleteApplications']);
+    Route::get('/get_appplication_status', [HrApplicationsController::class, 'getApplicationStatus']);
+    Route::post('/add-application-status', [HrApplicationsController::class, 'addApplicationStatus']);
+    Route::post('/update-application', [HrApplicationsController::class, 'addApplication']);
+    Route::put('/delete-application-status/{id}', [HrApplicationsController::class, 'deleteAppStatus']);
+    Route::post('/add-applications-list', [HrApplicationsController::class, 'addAppList']);
+    Route::get('/applications_list', [HrApplicationsController::class, 'getApplicationsList']);
+    Route::post('/add_type_application', [HrApplicationsController::class, 'addNewType']);
+    Route::post('/delete_type_application', [HrApplicationsController::class, 'deleteApplicationList']);
+    Route::put('/edit-leave/{id}', [HrApplicationsController::class, 'editLeave']);
+    Route::get('/applications_leave/{dates}', [HrApplicationsController::class, 'getApplicationsLeave']);
 
     // Hr payroll
-    Route::post('/payroll_benefits', [
-        HrPayrollController::class,
-        'getPayrollBenefits',
-    ]);
-    Route::post('/payroll_remainingLoan/{id}', [
-        HrPayrollController::class,
-        'getPayrollRemainingLoan',
-    ]);
+    Route::post('/payroll_benefits', [HrPayrollController::class, 'getPayrollBenefits']);
+    Route::post('/payroll_remainingLoan/{id}', [HrPayrollController::class, 'getPayrollRemainingLoan']);
     Route::get('/payroll/{dates}', [HrPayrollController::class, 'getPayroll']);
-    Route::get('/payroll/unextended/{dates}', [
-        HrPayrollController::class,
-        'getUnextendedPayroll',
-    ]);
-    Route::get('/payroll/extended/{dates}', [
-        HrPayrollController::class,
-        'getExtendedPayroll',
-    ]);
-    Route::get('/getPayrollRecord/{dates}', [
-        HrPayrollController::class,
-        'getPayrollRecord',
-    ]);
-    Route::get('/getPayrollSummary/{dates}', [
-        HrPayrollSummaryController::class,
-        'getPayrollSummary',
-    ]);
-    Route::get('/getPayrollSummaryHistory/{id}/{dates}', [
-        HrPayrollSummaryController::class,
-        'getPayrollSummaryHistory',
-    ]);
-    Route::get('/payrollRecordBenefits/{id}', [
-        HrPayrollController::class,
-        'getPayrollRecordBenefits',
-    ]);
-    Route::post('/payrollRecordEarnings', [
-        HrPayrollController::class,
-        'getPayrollRecordEarnings',
-    ]);
-    Route::post('/add_payroll_summary_employee', [
-        HrPayrollSummaryController::class,
-        'addPayrollSummaryEmployee',
-    ]);
-    Route::post('/delete_payroll_summary_employee', [
-        HrPayrollSummaryController::class,
-        'deletePayrollSummaryEmployee',
-    ]);
+    Route::get('/payroll/unextended/{dates}', [HrPayrollController::class, 'getUnextendedPayroll']);
+    Route::get('/payroll/extended/{dates}', [HrPayrollController::class, 'getExtendedPayroll']);
+    Route::get('/getPayrollRecord/{dates}', [HrPayrollController::class, 'getPayrollRecord']);
+    Route::get('/getPayrollSummary/{dates}', [HrPayrollSummaryController::class, 'getPayrollSummary']);
+    Route::get('/getPayrollSummaryHistory/{id}/{dates}', [HrPayrollSummaryController::class, 'getPayrollSummaryHistory']);
+    Route::get('/payrollRecordBenefits/{id}', [HrPayrollController::class, 'getPayrollRecordBenefits']);
+    Route::post('/payrollRecordEarnings', [HrPayrollController::class, 'getPayrollRecordEarnings']);
+    Route::post('/add_payroll_summary_employee', [HrPayrollSummaryController::class, 'addPayrollSummaryEmployee']);
+    Route::post('/delete_payroll_summary_employee', [HrPayrollSummaryController::class, 'deletePayrollSummaryEmployee']);
     Route::post('/save_payroll', [HrPayrollController::class, 'savePayroll']);
-    Route::post('/update_payrollBenefits', [
-        HrPayrollController::class,
-        'updateManualBenefits',
-    ]);
-    Route::post('/delete_payrollBenefits', [
-        HrPayrollController::class,
-        'deleteManualBenefits',
-    ]);
-    Route::put('/update_payroll/{id}', [
-        HrPayrollController::class,
-        'updatePayroll',
-    ]);
-    Route::put('/update_payrollVisibility/{id}', [
-        HrPayrollController::class,
-        'updatepayrollVisibility',
-    ]);
-    Route::put('/update_payrollHide/{id}', [
-        HrPayrollController::class,
-        'updatepayrollHide',
-    ]);
-    Route::put('/update_payrollDelete/{id}', [
-        HrPayrollController::class,
-        'updatepayrollDelete',
-    ]);
+    Route::post('/update_payrollBenefits', [HrPayrollController::class, 'updateManualBenefits']);
+    Route::post('/delete_payrollBenefits', [HrPayrollController::class, 'deleteManualBenefits']);
+    Route::put('/update_payroll/{id}', [HrPayrollController::class, 'updatePayroll']);
+    Route::put('/update_payrollVisibility/{id}', [HrPayrollController::class, 'updatepayrollVisibility']);
+    Route::put('/update_payrollHide/{id}', [HrPayrollController::class, 'updatepayrollHide']);
+    Route::put('/update_payrollDelete/{id}', [HrPayrollController::class, 'updatepayrollDelete']);
 
     // Hr Profile
-    Route::get('/profile/userData/{id}', [
-        HrProfileController::class,
-        'getUserData',
-    ]);
-    Route::get('/payrollHistory/{id}', [
-        HrProfileController::class,
-        'getPayrollHistory',
-    ]);
-    Route::get('/loanDetails/{id}', [
-        HrProfileController::class,
-        'getLoanData',
-    ]);
+    Route::get('/profile/userData/{id}', [HrProfileController::class, 'getUserData']);
+    Route::get('/payrollHistory/{id}', [HrProfileController::class, 'getPayrollHistory']);
+    Route::get('/loanDetails/{id}', [HrProfileController::class, 'getLoanData']);
 
     // Category
     Route::post('/add_category', [CategoriesController::class, 'addCategory']);
-    Route::post('/edit_category', [
-        CategoriesController::class,
-        'editCategory',
-    ]);
-    Route::post('/delete_category', [
-        CategoriesController::class,
-        'deleteCategory',
-    ]);
+    Route::post('/edit_category', [CategoriesController::class, 'editCategory']);
+    Route::post('/delete_category', [CategoriesController::class, 'deleteCategory']);
     Route::post('/add_viewers', [CategoriesController::class, 'addViewers']);
     Route::post('/add_answers', [CategoriesController::class, 'addAnswers']);
-    Route::post('/add_answer_key', [
-        CategoriesController::class,
-        'addAnswerKey',
-    ]);
-    Route::get('/getCategory/{category_id}', [
-        CategoriesController::class,
-        'getCategory',
-    ]);
-    Route::get('/announcements_list', [
-        CategoriesController::class,
-        'announcementsList',
-    ]);
-    Route::get('/trainings_list', [
-        CategoriesController::class,
-        'trainingsList',
-    ]);
-    Route::get('/questions_list', [
-        CategoriesController::class,
-        'questionsList',
-    ]);
-    Route::get('/evaluation_list', [
-        CategoriesController::class,
-        'evaluationList',
-    ]);
-    Route::get('/member_evaluation_list', [
-        CategoriesController::class,
-        'memberEvaluationList',
-    ]);
+    Route::post('/add_answer_key', [CategoriesController::class, 'addAnswerKey']);
+    Route::get('/getCategory/{category_id}', [CategoriesController::class, 'getCategory']);
+    Route::get('/announcements_list', [CategoriesController::class, 'announcementsList']);
+    Route::get('/trainings_list', [CategoriesController::class, 'trainingsList']);
+    Route::get('/questions_list', [CategoriesController::class, 'questionsList']);
+    Route::get('/evaluation_list', [CategoriesController::class, 'evaluationList']);
+    Route::get('/member_evaluation_list', [CategoriesController::class, 'memberEvaluationList']);
     // Route::get('/reports_list', [CategoriesController::class, 'reportsList']);
-    Route::get('/member_reports_list', [
-        CategoriesController::class,
-        'memberReportsList',
-    ]);
+    Route::get('/member_reports_list', [CategoriesController::class, 'memberReportsList']);
     Route::get('/read_by_list', [CategoriesController::class, 'readByList']);
     Route::get('/take_by_list', [CategoriesController::class, 'takeByList']);
     Route::get('/cover', [CategoriesController::class, 'getCover']);
-    Route::post('/add-performance', [
-        CategoriesController::class,
-        'addPerformance',
-    ]);
-    Route::post('/edit-performance', [
-        CategoriesController::class,
-        'editPerformance',
-    ]);
+    Route::post('/add-performance', [CategoriesController::class, 'addPerformance']);
+    Route::post('/edit-performance', [CategoriesController::class, 'editPerformance']);
     Route::get('/performance', [CategoriesController::class, 'getPerformance']);
-    Route::put('/delete-performance/{id}', [
-        CategoriesController::class,
-        'deletePerformance',
-    ]);
-    Route::post('/add_evaluation', [
-        CategoriesController::class,
-        'addEvaluation',
-    ]);
+    Route::put('/delete-performance/{id}', [CategoriesController::class, 'deletePerformance']);
+    Route::post('/add_evaluation', [CategoriesController::class, 'addEvaluation']);
     Route::get('/incidents', [CategoriesController::class, 'getIncident']);
     Route::post('/add_incident', [CategoriesController::class, 'addIncident']);
     // Mailer routes
     Route::get('/mail', [MailController::class, 'referralConfirmationMail']);
     Route::get('/sendPayrollMail/{id}', [MailController::class, 'payrollMail']);
-    Route::get('/sendNewEmployeeMail/{id}', [
-        MailController::class,
-        'newEmployeeMail',
-    ]);
-    Route::get('/sendAnnouncementMail/{id}', [
-        MailController::class,
-        'newAnnouncementMail',
-    ]);
+    Route::get('/sendNewEmployeeMail/{id}', [MailController::class, 'newEmployeeMail']);
+    Route::get('/sendAnnouncementMail/{id}', [MailController::class, 'newAnnouncementMail']);
 
     // ---------------------------------------------------------------- End Client Routes ----------------------------------------------------------------
 
     // ---------------------------------------------------------------- Users Routes ----------------------------------------------------------------
 
-    Route::get('/user/{user_id}', [
-        UserAuthController::class,
-        'getUserDetailsById',
-    ]);
+    Route::get('/user/{user_id}', [UserAuthController::class, 'getUserDetailsById']);
 
     // ---------------------------------------------------------------- Previous Filters ----------------------------------------------------------------
-    Route::get('/previousFilter', [
-        PreviousFilterController::class,
-        'previousFilter',
-    ]);
+    Route::get('/previousFilter', [PreviousFilterController::class, 'previousFilter']);
     Route::post('/addFilter', [PreviousFilterController::class, 'addFilter']);
 
-    Route::get('/getSignatories', [
-        SignatoryController::class,
-        'getSignatories',
-    ]);
-    Route::post('/saveSignatory', [
-        SignatoryController::class,
-        'saveSignatory',
-    ]);
+    Route::get('/getSignatories', [SignatoryController::class, 'getSignatories']);
+    Route::post('/saveSignatory', [SignatoryController::class, 'saveSignatory']);
 
     // Route::post('/google/event', [GoogleController::class, 'addEvent']);
     // Route::get('/google/events', [GoogleController::class, 'getEvents']);
@@ -1884,111 +801,45 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/createPeme', [PemeController::class, 'createPeme']);
     Route::get('/getPemeList', [PemeController::class, 'getPemeList']);
     Route::get('/getPemeStats', [PemeController::class, 'getPemeStats']);
-    Route::patch('/updatePemeSettings/{id}', [
-        PemeController::class,
-        'updatePemeSettings',
-    ]);
+    Route::patch('/updatePemeSettings/{id}', [PemeController::class, 'updatePemeSettings']);
     Route::delete('/deletePeme/{id}', [PemeController::class, 'deletePeme']);
 
     // PEME Questionnaire
-    Route::post('/peme/questionnaire', [
-        PemeQuestionnaireController::class,
-        'store',
-    ]);
-    Route::get('/peme/{pemeId}/questionnaire', [
-        PemeQuestionnaireController::class,
-        'getQuestionnaire',
-    ]);
-    Route::put('peme/{pemeID}/question/{questionId}', [
-        PemeQuestionnaireController::class,
-        'update',
-    ]);
-    Route::delete('/questionnaire/{questionId}', [
-        PemeQuestionnaireController::class,
-        'destroy',
-    ]);
-    Route::get('peme/{pemeID}/question/{questionId}', [
-        PemeQuestionnaireController::class,
-        'show',
-    ]);
+    Route::post('/peme/questionnaire', [PemeQuestionnaireController::class, 'store']);
+    Route::get('/peme/{pemeId}/questionnaire', [PemeQuestionnaireController::class, 'getQuestionnaire']);
+    Route::put('peme/{pemeID}/question/{questionId}', [PemeQuestionnaireController::class, 'update']);
+    Route::delete('/questionnaire/{questionId}', [PemeQuestionnaireController::class, 'destroy']);
+    Route::get('peme/{pemeID}/question/{questionId}', [PemeQuestionnaireController::class, 'show']);
 
     // PEME Responses
-    Route::post('/peme-responses/storeAll', [
-        PemeResponseController::class,
-        'storeAll',
-    ]);
+    Route::post('/peme-responses/storeAll', [PemeResponseController::class, 'storeAll']);
 
-    Route::get('/peme-responses/filter', [
-        PemeResponseController::class,
-        'filter',
-    ]);
+    Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
 
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
-    Route::patch('/peme-responses/{id}/status', [
-        PemeResponseController::class,
-        'updateResponse',
-    ]);
+    Route::patch('/peme-responses/{id}/status', [PemeResponseController::class, 'updateResponse']);
     Route::post('/peme-responses', [PemeResponseController::class, 'store']);
-    Route::get('/peme-responses/summary/{pemeId}', [
-        PemeResponseController::class,
-        'summary',
-    ]);
-    Route::post('/peme-responses/{id}/restore', [
-        PemeResponseController::class,
-        'restore',
-    ]);
-    Route::get('/peme-response/{id}/details', [
-        PemeResponseController::class,
-        'getResponse',
-    ]);
+    Route::get('/peme-responses/summary/{pemeId}', [PemeResponseController::class, 'summary']);
+    Route::post('/peme-responses/{id}/restore', [PemeResponseController::class, 'restore']);
+    Route::get('/peme-response/{id}/details', [PemeResponseController::class, 'getResponse']);
 
     // Response Details
-    Route::get('/peme-response-details', [
-        PemeResponseDetailsController::class,
-        'index',
-    ]);
-    Route::get('/peme-response-details/{id}', [
-        PemeResponseDetailsController::class,
-        'show',
-    ]);
-    Route::post('/peme-response-details', [
-        PemeResponseDetailsController::class,
-        'store',
-    ]);
+    Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
+    Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
+    Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
     // Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
-    Route::patch('/peme-response-details/{id}', [
-        PemeResponseDetailsController::class,
-        'update',
-    ]);
-    Route::delete('/peme-response-details/{id}', [
-        PemeResponseDetailsController::class,
-        'destroy',
-    ]);
-    Route::post('/peme-response-details/{id}/restore', [
-        PemeResponseDetailsController::class,
-        'restore',
-    ]);
-    Route::post('/peme-response-details/{id}/attach-media', [
-        PemeResponseDetailsController::class,
-        'attachMedia',
-    ]);
+    Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);
+    Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
+    Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
+    Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
 
-    Route::put('/public-event/{id}', [
-        GoogleController::class,
-        'updatePublicEvent',
-    ]);
-    Route::delete('/public-event/{id}', [
-        GoogleController::class,
-        'deletePublicEvent',
-    ]);
+    Route::put('/public-event/{id}', [GoogleController::class, 'updatePublicEvent', ]);
+    Route::delete('/public-event/{id}', [GoogleController::class, 'deletePublicEvent', ]);
     Route::post('/google/event', [GoogleController::class, 'addEvent']);
     Route::get('/google/events', [GoogleController::class, 'getEvents']);
     Route::put('/google/event/{id}', [GoogleController::class, 'updateEvent']);
-    Route::delete('/google/event/{id}', [
-        GoogleController::class,
-        'deleteEvent',
-    ]);
+    Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent', ]);
 
     //Salary Plans
     Route::get('getSalaryPlans', [SalaryPlansController::class, 'getSalaryPlans']);
@@ -1996,27 +847,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/editSalaryGrade/{id}', [SalaryPlansController::class, 'editSalaryGrade']);
     Route::post('/deleteSalaryGrade', [SalaryPlansController::class, 'deleteSalaryGrade']);
     Route::get('/getSalaryLogs', [SalaryPlansController::class, 'getSalaryLogs']);
-    Route::delete('/google/event/{id}', [
-        GoogleController::class,
-        'deleteEvent',
-    ]);
+    Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent', ]);
 });
 
 Route::get('/google/redirect', [GoogleController::class, 'redirectToGoogle']);
-Route::get('/google/callback', [
-    GoogleController::class,
-    'handleGoogleCallback',
-]);
+Route::get('/google/callback',  [GoogleController::class, 'handleGoogleCallback' ]);
 
 //Register
-Route::post('/create_employee_link', [
-    HrEmployeesController::class,
-    'createEmployeeLink',
-]);
-Route::get('/sendNewEmployeeMailLink/{id}', [
-    MailController::class,
-    'newEmployeeMailLink',
-]);
+Route::post('/create_employee_link',  [HrEmployeesController::class, 'createEmployeeLink' ]);
+Route::get('/sendNewEmployeeMailLink/{id}',  [MailController::class, 'newEmployeeMailLink' ]);
 
 Route::prefix('desktop')->group(function () {
     Route::get('/getEmployees', [DesktopController::class, 'getEmployees']);
@@ -2024,13 +863,8 @@ Route::prefix('desktop')->group(function () {
 
 Route::post('/make-call', [VoiceController::class, 'makeCall']);
 Route::post('/twiml', [VoiceController::class, 'twiml'])->name('twiml');
-Route::post('/handle-recording', [
-    VoiceController::class,
-    'handleRecording',
-])->name('handleRecording');
-Route::post('/call/status', [VoiceController::class, 'callStatus'])->name(
-    'call.status'
-);
+Route::post('/handle-recording',  [VoiceController::class, 'handleRecording' ])->name('handleRecording');
+Route::post('/call/status', [VoiceController::class, 'callStatus'])->name('call.status');
 Route::get('/token', [VoiceController::class, 'getToken']);
 
 //Annoucements Type
@@ -2038,29 +872,14 @@ Route::get('/token', [VoiceController::class, 'getToken']);
 // Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
 // Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
 
-Route::get('/settings/getEmploymentTypes', [
-    SettingsController::class,
-    'getEmploymentTypes',
-]);
+Route::get('/settings/getEmploymentTypes', [SettingsController::class,'getEmploymentTypes']);
 Route::get('/settings/getStatuses', [SettingsController::class, 'getStatuses']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::post('/addAnnouncementType', [
-        AnnouncementsController::class,
-        'addAnnouncementType',
-    ]);
-    Route::put('/updateAnnouncementType', [
-        AnnouncementsController::class,
-        'updateAnnouncementType',
-    ]);
-    Route::get('/getAnnouncementType', [
-        AnnouncementsController::class,
-        'getAnnouncementType',
-    ]);
-    Route::get('/settings/getRoles', [
-        AnnouncementsController::class,
-        'getRoles',
-    ]);
+    Route::post('/addAnnouncementType', [AnnouncementsController::class, 'addAnnouncementType']);
+    Route::put('/updateAnnouncementType', [AnnouncementsController::class, 'updateAnnouncementType']);
+    Route::get('/getAnnouncementType', [AnnouncementsController::class, 'getAnnouncementType']);
+    Route::get('/settings/getRoles', [AnnouncementsController::class, 'getRoles']);
 });
 
 require __DIR__ . '/super-admin.php';

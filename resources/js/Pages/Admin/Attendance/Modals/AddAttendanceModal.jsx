@@ -97,12 +97,7 @@ const AddAttendanceModal = ({ open, close, employee }) => {
         const requiresSecondShift = employee.shift_type === "Shift" || secondTimeIn || secondTimeOut;
         const requiresOvertime = overtimeView || overtimeIn || overtimeOut;
 
-        const emptyFields =
-            !selectedDate ||
-            !firstTimeIn ||
-            !firstTimeOut ||
-            (requiresSecondShift && (!secondTimeIn || !secondTimeOut)) ||
-            (requiresOvertime && (!overtimeIn || !overtimeOut));
+        const emptyFields = !selectedDate || !firstTimeIn || !firstTimeOut || (requiresSecondShift && (!secondTimeIn || !secondTimeOut)) || (requiresOvertime && (!overtimeIn || !overtimeOut));
 
         const invalidFields =
             (selectedDate && !dayjs(selectedDate).isValid()) ||
@@ -123,39 +118,13 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                 ((secondTimeOut && dayjs(overtimeIn).isBefore(dayjs(secondTimeOut))) ||
                     (!secondTimeOut && firstTimeOut && dayjs(overtimeIn).isBefore(dayjs(firstTimeOut)))));
 
-        setSelectedDateError(!selectedDate || (selectedDate && !dayjs(selectedDate).isValid()));
-        setFirstTimeInError(!firstTimeIn || (firstTimeIn && !dayjs(firstTimeIn).isValid()));
-        setFirstTimeOutError(
-            !firstTimeOut ||
-            (firstTimeOut && !dayjs(firstTimeOut).isValid()) ||
-            (firstTimeIn && firstTimeOut && dayjs(firstTimeOut).isBefore(dayjs(firstTimeIn)))
-        );
-        setSecondTimeInError(
-            requiresSecondShift &&
-            (!secondTimeIn ||
-                (secondTimeIn && !dayjs(secondTimeIn).isValid()) ||
-                (firstTimeOut && secondTimeIn && dayjs(secondTimeIn).isBefore(dayjs(firstTimeOut))))
-        );
-        setSecondTimeOutError(
-            requiresSecondShift &&
-            (!secondTimeOut ||
-                (secondTimeOut && !dayjs(secondTimeOut).isValid()) ||
-                (secondTimeIn && secondTimeOut && dayjs(secondTimeOut).isBefore(dayjs(secondTimeIn))))
-        );
-        setOvertimeInError(
-            requiresOvertime &&
-            (!overtimeIn ||
-                (overtimeIn && !dayjs(overtimeIn).isValid()) ||
-                (overtimeIn &&
-                    ((secondTimeOut && dayjs(overtimeIn).isBefore(dayjs(secondTimeOut))) ||
-                        (!secondTimeOut && firstTimeOut && dayjs(overtimeIn).isBefore(dayjs(firstTimeOut))))))
-        );
-        setOvertimeOutError(
-            requiresOvertime &&
-            (!overtimeOut ||
-                (overtimeOut && !dayjs(overtimeOut).isValid()) ||
-                (overtimeIn && overtimeOut && dayjs(overtimeOut).isBefore(dayjs(overtimeIn))))
-        );
+        setSelectedDateError( !selectedDate || (selectedDate && !dayjs(selectedDate).isValid()) );
+        setFirstTimeInError( !firstTimeIn || (firstTimeIn && !dayjs(firstTimeIn).isValid()) );
+        setFirstTimeOutError( !firstTimeOut ||(firstTimeOut && !dayjs(firstTimeOut).isValid()) ||(firstTimeIn && firstTimeOut && dayjs(firstTimeOut).isBefore(dayjs(firstTimeIn))) );
+        setSecondTimeInError( requiresSecondShift && (!secondTimeIn || (secondTimeIn && !dayjs(secondTimeIn).isValid()) || (firstTimeOut && secondTimeIn && dayjs(secondTimeIn).isBefore(dayjs(firstTimeOut)))) );
+        setSecondTimeOutError( requiresSecondShift && (!secondTimeOut || (secondTimeOut && !dayjs(secondTimeOut).isValid()) || (secondTimeIn && secondTimeOut && dayjs(secondTimeOut).isBefore(dayjs(secondTimeIn)))) );
+        setOvertimeInError( requiresOvertime && (!overtimeIn || (overtimeIn && !dayjs(overtimeIn).isValid()) || (overtimeIn && ((secondTimeOut && dayjs(overtimeIn).isBefore(dayjs(secondTimeOut))) || (!secondTimeOut && firstTimeOut && dayjs(overtimeIn).isBefore(dayjs(firstTimeOut)))))) );
+        setOvertimeOutError( requiresOvertime && (!overtimeOut || (overtimeOut && !dayjs(overtimeOut).isValid()) || (overtimeIn && overtimeOut && dayjs(overtimeOut).isBefore(dayjs(overtimeIn)))) );
 
         document.activeElement.blur();
 
@@ -212,10 +181,7 @@ const AddAttendanceModal = ({ open, close, employee }) => {
             overtime_out: formatTimestamp(overtimeOut, selectedDate),
         };
 
-        axiosInstance
-            .post("/attendance/recordEmployeeAttendance", data, {
-                headers,
-            })
+        axiosInstance.post("/attendance/recordEmployeeAttendance", data, { headers })
             .then((response) => {
                 if (response.data.status == 200) {
                     document.activeElement.blur();
@@ -338,30 +304,26 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                                 <Tab label="Individual" value="2" />
                             </TabList>
                         </Box>
-                        {/* Batch Logs */}
+
                         <TabPanel value="1" sx={{ px: 0 }}>
                             <Box component="form" onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
                                 <Grid container spacing={2}>
-                                    {/* Date */}
+
                                     <Grid size={12}>
-                                        <LocalizationProvider
-                                            dateAdapter={AdapterDayjs}
-                                        >
+                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
                                             <DatePicker
                                                 label="Date"
                                                 value={selectedDate}
                                                 views={['year', 'month', 'day']}
                                                 onChange={(newValue) => setSelectedDate(newValue,)}
                                                 slotProps={{
-                                                    textField: {
-                                                        error: selectedDateError,
-                                                        helperText: selectedDateError ? "Enter a valid date" : "",
-                                                    }
+                                                    textField: { error: selectedDateError, helperText: selectedDateError ? "Enter a valid date" : "" }
                                                 }}
                                                 sx={{ width: "100%" }}
                                             />
                                         </LocalizationProvider>
                                     </Grid>
+
                                     {/* First Time In */}
                                     <Grid size={{ xs: 12, md: 6 }}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -371,10 +333,7 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                                                 views={['hours', 'minutes', 'seconds']}
                                                 onChange={(newValue) => setFirstTimeIn(newValue)}
                                                 slotProps={{
-                                                    textField: {
-                                                        error: firstTimeInError,
-                                                        helperText: firstTimeInError ? "Enter a valid time" : "",
-                                                    },
+                                                    textField: { error: firstTimeInError, helperText: firstTimeInError ? "Enter a valid time" : "" },
                                                 }}
                                                 sx={{ width: "100%" }}
                                             />
@@ -434,6 +393,7 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                                             />
                                         </LocalizationProvider>
                                     </Grid>
+                                    
                                     <Grid size={12}>
                                         <Button
                                             variant="contained"
@@ -498,6 +458,7 @@ const AddAttendanceModal = ({ open, close, employee }) => {
                                 </Grid>
                             </Box>
                         </TabPanel>
+
                         {/* Individual Logs */}
                         <TabPanel value="2" sx={{ px: 0 }}>
                             <Grid container spacing={2}>
