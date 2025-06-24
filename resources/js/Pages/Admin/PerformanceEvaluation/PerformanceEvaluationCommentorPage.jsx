@@ -11,6 +11,10 @@ import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
 import PerformanceEvaluationCommentorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvalutionCommentorAcknowledge';
 import Swal from 'sweetalert2';
 
+// Character count constants
+const COMMENT_CHAR_LIMIT = 512;
+const COMMENT_WARNING_THRESHOLD = 0.9; // 90%
+
 // --- Overall Rating Calculation Helper ---
 const getSectionScore = (section) => {
   if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [] };
@@ -113,6 +117,9 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   const [openAcknowledge, setOpenAcknowledge] = useState(false);
   const [thisCommentor, setThisCommentor] = useState();
 
+  // Character count state
+  const [commentCharCount, setCommentCharCount] = useState(0);
+
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
@@ -121,7 +128,12 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
         ({ commentor_id }) => commentor_id === commentorId
       );
       setThisCommentor(thisCommentor);
-      if (thisCommentor?.comment) setCommentInput(thisCommentor.comment);
+      if (thisCommentor?.comment) {
+        setCommentInput(thisCommentor.comment);
+        setCommentCharCount(thisCommentor.comment.length);
+      } else {
+        setCommentCharCount(0);
+      }
     }
   }, [evaluationResponse]);
 
@@ -181,6 +193,20 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
     } finally {
       setSaving(false);
       setOpenAcknowledge(false);
+    }
+  };
+
+  // Character count color logic
+  let charCountColor = '#888';
+  if (commentCharCount >= COMMENT_CHAR_LIMIT) charCountColor = 'red';
+  else if (commentCharCount >= COMMENT_CHAR_LIMIT * COMMENT_WARNING_THRESHOLD) charCountColor = '#ff9800'; // orange
+
+  // Only allow up to COMMENT_CHAR_LIMIT characters
+  const handleCommentInputChange = (e) => {
+    const value = e.target.value;
+    if (value.length <= COMMENT_CHAR_LIMIT) {
+      setCommentInput(value);
+      setCommentCharCount(value.length);
     }
   };
 
@@ -780,7 +806,7 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
                   minRows={3}
                   fullWidth
                   value={commentInput}
-                  onChange={e => setCommentInput(e.target.value)}
+                  onChange={handleCommentInputChange}
                   placeholder="Enter your comment here"
                   disabled={saving || thisCommentor.signature_filepath}
                   InputProps={{
@@ -796,7 +822,22 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
                     '& .MuiInputBase-input': { padding: 0 },
                     '& label': { color: '#999', fontWeight: 400 }
                   }}
+                  inputProps={{
+                    maxLength: COMMENT_CHAR_LIMIT
+                  }}
                 />
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: charCountColor,
+                      fontWeight: commentCharCount >= COMMENT_CHAR_LIMIT ? 'bold' : 'normal',
+                      fontStyle: commentCharCount >= COMMENT_CHAR_LIMIT ? 'italic' : 'normal'
+                    }}
+                  >
+                    {commentCharCount}/{COMMENT_CHAR_LIMIT}
+                  </Typography>
+                </Box>
                 {thisCommentor.signature_filepath && thisCommentor.updated_at && (
                   <Typography
                     variant="body2"
