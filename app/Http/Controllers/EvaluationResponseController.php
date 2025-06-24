@@ -1702,10 +1702,21 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Evaluator successfully deleted',
-                'evaluationEvaluator' => $evaluationEvaluator
+                'evaluationEvaluator' => $evaluationEvaluator ? [
+                    'response_id' => Crypt::encrypt($evaluationEvaluator->response_id),
+                    'evaluator_id' => Crypt::encrypt($evaluationEvaluator->evaluator_id),
+                    'comment' => $evaluationEvaluator->comment,
+                    'order' => $evaluationEvaluator->order,
+                    'opened_at' => $evaluationEvaluator->opened_at,
+                    'signature_filepath' => $evaluationEvaluator->signature_filepath,
+                    'created_at' => $evaluationEvaluator->created_at,
+                    'updated_at' => $evaluationEvaluator->updated_at,
+                    'deleted_at' => $evaluationEvaluator->deleted_at,
+                    'id' => Crypt::encrypt($evaluationEvaluator->id)
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -1849,8 +1860,8 @@ class EvaluationResponseController extends Controller
                     'users.middle_name',
                     'users.suffix'
                 )
-                ->where('evaluation_evaluators.response_id', $request->response_id)
-                ->where('evaluation_evaluators.evaluator_id', $request->evaluator_id)
+                ->where('evaluation_evaluators.response_id', Crypt::decrypt($request->response_id))
+                ->where('evaluation_evaluators.evaluator_id', Crypt::decrypt($request->evaluator_id))
                 ->whereNull('evaluation_evaluators.deleted_at')
                 ->first()
             ;
@@ -1861,7 +1872,17 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Evaluator successfully retrieved.',
-                'evaluationEvaluator' => $evaluationEvaluator
+                'evaluationEvaluator' => $evaluationEvaluator ? [
+                    'response_id' => Crypt::encrypt($evaluationEvaluator->response_id),
+                    'evaluator_id' => Crypt::encrypt($evaluationEvaluator->evaluator_id),
+                    'comment' => $evaluationEvaluator->comment,
+                    'order' => $evaluationEvaluator->order,
+                    'signature_filepath' => $evaluationEvaluator->signature_filepath,
+                    'last_name' => $evaluationEvaluator->last_name,
+                    'first_name' => $evaluationEvaluator->first_name,
+                    'middle_name' => $evaluationEvaluator->middle_name,
+                    'suffix' => $evaluationEvaluator->suffix
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -1910,7 +1931,7 @@ class EvaluationResponseController extends Controller
                     'users.middle_name',
                     'users.suffix'
                 )
-                ->where('evaluation_evaluators.response_id', $request->response_id)
+                ->where('evaluation_evaluators.response_id', Crypt::decrypt($request->response_id))
                 ->whereNull('evaluation_evaluators.deleted_at')
                 ->get()
             ;
@@ -1921,7 +1942,16 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Evaluators successfully retrieved.',
-                'evaluationEvaluators' => $evaluationEvaluators
+                'evaluationEvaluators' => $evaluationEvaluators->map(function ($evaluationEvaluator) {
+                    return [
+                        'response_id' => Crypt::encrypt($evaluationEvaluator->response_id),
+                        'evaluator_id' => Crypt::encrypt($evaluationEvaluator->evaluator_id),
+                        'last_name' => $evaluationEvaluator->last_name,
+                        'first_name' => $evaluationEvaluator->first_name,
+                        'middle_name' => $evaluationEvaluator->middle_name,
+                        'suffix' => $evaluationEvaluator->suffix
+                    ];
+                })
             ]);
 
         } catch (\Exception $e) {
@@ -1965,7 +1995,7 @@ class EvaluationResponseController extends Controller
             ]);
 
             $evaluationResponse = EvaluationResponse
-                ::where('id', $request->response_id)
+                ::where('id', Crypt::decrypt($request->response_id))
                 ->first()
             ;
             if(!$evaluationResponse) return response()->json([ 
@@ -1973,16 +2003,17 @@ class EvaluationResponseController extends Controller
                 'message' => 'Evaluation Response not found!',
                 'evaluationResponseID' => $request->response_id
             ]);
-            if($evaluationResponse->evaluatee_id === $request->evaluator_id) return response()->json([ 
-                'status' => 400,
-                'message' => 'This user has already been assigned as the evaluatee here!',
-                'evaluationResponseID' => $request->response_id,
-                'evaluationEvaluateeID' => $request->evaluator_id
-            ]);
+            if($evaluationResponse->evaluatee_id === Crypt::decrypt($request->evaluator_id))
+                return response()->json([ 
+                    'status' => 400,
+                    'message' => 'This user has already been assigned as the evaluatee here!',
+                    'evaluationResponseID' => $request->response_id,
+                    'evaluationEvaluateeID' => $request->evaluator_id
+                ]);
             
             $existingFormEvaluator = EvaluationEvaluator
-                ::where('response_id', $request->response_id)
-                ->where('evaluator_id', $request->evaluator_id)
+                ::where('response_id', Crypt::decrypt($request->response_id))
+                ->where('evaluator_id', Crypt::decrypt($request->evaluator_id))
                 ->first()
             ;
             if($existingFormEvaluator) return response()->json([
@@ -1993,8 +2024,8 @@ class EvaluationResponseController extends Controller
             ]);
 
             $existingFormCommentor = EvaluationCommentor
-                ::where('response_id', $request->response_id)
-                ->where('commentor_id', $request->evaluator_id)
+                ::where('response_id', Crypt::decrypt($request->response_id))
+                ->where('commentor_id', Crypt::decrypt($request->evaluator_id))
                 ->first()
             ;
             if($existingFormCommentor) return response()->json([
@@ -2007,13 +2038,14 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $order = (
-                EvaluationEvaluator::where('response_id', $request->response_id)->max('order')
-                ?? 0
+                EvaluationEvaluator::where(
+                    'response_id', Crypt::decrypt($request->response_id)
+                )->max('order') ?? 0
             ) + 1;
 
             $newEvaluationEvaluator = EvaluationEvaluator::create([
-                'response_id' => $request->response_id,
-                'evaluator_id' => $request->evaluator_id,
+                'response_id' => Crypt::decrypt($request->response_id),
+                'evaluator_id' => Crypt::decrypt($request->evaluator_id),
                 'order' => $order
             ]);
 
