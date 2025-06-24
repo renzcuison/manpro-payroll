@@ -150,49 +150,49 @@ const PerformanceEvaluationEditModal = ({
   };
 
   const [editingSectionId, setEditingSectionId] = useState(null);
-const [editingSectionName, setEditingSectionName] = useState('');
-const [sectionNameLoading, setSectionNameLoading] = useState(false);
+  const [editingSectionName, setEditingSectionName] = useState('');
+  const [sectionNameLoading, setSectionNameLoading] = useState(false);
 
-const handleEditSectionClick = (section) => {
-  setEditingSectionId(section.id);
-  setEditingSectionName(section.name);
-};
-const handleCancelEditSection = () => {
-  setEditingSectionId(null);
-  setEditingSectionName('');
-};
+  const handleEditSectionClick = (section) => {
+    setEditingSectionId(section.id);
+    setEditingSectionName(section.name);
+  };
+  const handleCancelEditSection = () => {
+    setEditingSectionId(null);
+    setEditingSectionName('');
+  };
 
-const handleSaveEditSection = async (sectionId) => {
-  if (!editingSectionName.trim()) {
-    Swal.fire({
-      text: "Section Name is required!",
-      icon: "error",
-      confirmButtonColor: '#177604'
-    });
-    return;
-  }
-  setSectionNameLoading(true);
-  try {
-    const response = await axiosInstance.post(
-      '/editEvaluationFormSection',
-      { id: sectionId, name: editingSectionName },
-      { headers }
-    );
-    if (response.data.status && response.data.status.toString().startsWith('2')) {
-      setEditingSectionId(null);
-      setEditingSectionName('');
-      fetchSections();
-      if (onSuccess) onSuccess(formName);
-    } else {
-      Swal.fire("Error", response.data.message || "Failed to edit section", "error");
+  const handleSaveEditSection = async (sectionId) => {
+    if (!editingSectionName.trim()) {
+      Swal.fire({
+        text: "Section Name is required!",
+        icon: "error",
+        confirmButtonColor: '#177604'
+      });
+      return;
     }
-  } catch (e) {
-    Swal.fire("Error", "Failed to edit section", "error");
-    console.error(e);
-  } finally {
-    setSectionNameLoading(false);
-  }
-};
+    setSectionNameLoading(true);
+    try {
+      const response = await axiosInstance.post(
+        '/editEvaluationFormSection',
+        { id: sectionId, name: editingSectionName },
+        { headers }
+      );
+      if (response.data.status && response.data.status.toString().startsWith('2')) {
+        setEditingSectionId(null);
+        setEditingSectionName('');
+        fetchSections();
+        if (onSuccess) onSuccess(formName);
+      } else {
+        Swal.fire("Error", response.data.message || "Failed to edit section", "error");
+      }
+    } catch (e) {
+      Swal.fire("Error", "Failed to edit section", "error");
+      console.error(e);
+    } finally {
+      setSectionNameLoading(false);
+    }
+  };
 
   const handleDeleteSection = async (sectionId, sectionName) => {
     const result = await Swal.fire({
@@ -327,7 +327,7 @@ const handleSaveEditSection = async (sectionId) => {
         <IconButton
           size="small"
           onClick={() => handleEditSectionClick(section)}
-          sx={{ color: '#1976d2', ml: 1 }}
+          sx={{ color: '#E9AE20', ml: 1 }}
         >
           <EditIcon />
         </IconButton>
