@@ -135,7 +135,7 @@ const Sidebar = ({ children, closeMini }) => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="content-side content-side-full content-side-user px-10 align-parent" style={{ backgroundImage: "linear-gradient(190deg, rgb(42, 128, 15,0.8), rgb(233, 171, 19,1))" }} >
                         <div className="sidebar-mini-visible-b align-v animated fadeIn">
                             <img className="img-avatar img-avatar32" src={avatar} alt="" />
@@ -176,9 +176,9 @@ const Sidebar = ({ children, closeMini }) => {
                                 <i className="fa fa-pencil-square-o" style={{ color: "#2a800f" }}></i> <span id="navName" className="sidebar-mini-hide" > Applications </span>
                             </StyledNav>
 
-                            {/* {medicalRecords.map((items, index) => {
+                            {medicalRecords.map((items, index) => {
                                 return <SideItem key={index} items={items} />;
-                            })} */}
+                            })}
 
                             <StyledNav to={`/employee/payroll`}>
                                 <i className="fa fa-money" style={{ color: "#2a800f" }} ></i> <span id="navName" className="sidebar-mini-hide"> Payroll Details </span>
