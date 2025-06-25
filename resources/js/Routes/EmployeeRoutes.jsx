@@ -31,6 +31,8 @@ import PemeResponses from "../Pages/Employee/MedicalRecords/PEME/PemeResponses";
 import PemeQuestionnaireView from "../Pages/Employee/MedicalRecords/PEME/PemeQuestionnaireView";
 import PemeOverview from "../Pages/Employee/MedicalRecords/PEME/PemeOverview";
 
+import GroupLifeEmployeeMasterlist from "../Pages/Employee/MedicalRecords/GroupLife/GroupLifeEmployeeMasterlist";
+import GroupLifeEmployeePlanView from "../Pages/Employee/MedicalRecords/GroupLife/GroupLifeEmployeePlanView";
 
 // 
 import PerformanceEvaluationAnswerPage from '../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationAnswerPage';
@@ -232,6 +234,20 @@ const EmployeeRoutes = ({ user }) => {
                     />
                 }
             />
+
+            <Route
+                path="medical-records/group-life-employee-masterlist"
+                element={
+                    <ProtectedRoute element={<GroupLifeEmployeeMasterlist />} user={user} />
+                }
+            />
+            <Route
+                path="medical-records/group-life-employee-masterlist/view/:id"
+                element={
+                    <ProtectedRoute element={<GroupLifeEmployeePlanView />} user={user} />
+                }
+            />
+
         </Routes>
     );
 };

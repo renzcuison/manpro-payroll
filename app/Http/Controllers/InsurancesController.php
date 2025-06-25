@@ -225,9 +225,9 @@ class InsurancesController extends Controller
             'employee_share' => 'required|numeric',
         ]);
 
-        $plan = GroupLifeCompanyPlan::create($validated);
+            $plan = GroupLifeCompanyPlan::create($validated);
 
-        return response()->json($plan, 201);
+            return response()->json($plan, 201);
     }
 
     public function editGroupLifePlan(Request $request, $id)
@@ -549,7 +549,7 @@ class InsurancesController extends Controller
 
     // HMO Insurance Companies
 
-    public function getHMOCompanies()
+public function getHMOCompanies()
     {
         log::info("InsurancesController::getHMOCompanies");
 
@@ -1040,4 +1040,5 @@ class InsurancesController extends Controller
             'status' => 200,
         ]);
     }
+
 }
