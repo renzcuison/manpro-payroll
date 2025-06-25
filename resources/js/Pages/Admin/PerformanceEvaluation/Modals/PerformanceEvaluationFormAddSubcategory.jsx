@@ -372,11 +372,11 @@ function LinearScaleEditor() {
         <Box sx={{ mb: 2 }}>
             {
                 options.map((option) => (
-                <Grid container spacing={2} key={option.id} alignItems="center" sx={{ mb: 1 }}>
+                <Grid container spacing={1} key={option.id} alignItems="center" sx={{ mb: 1 }}>
                     <Grid item xs={1}>
                         <Typography variant="body1">{option.order}.</Typography>
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={3}>
                     <TextField
                         variant="outlined"
                         label="Label"
@@ -385,7 +385,7 @@ function LinearScaleEditor() {
                         fullWidth
                     />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid item xs={7} sx={{width: '50%'}}>
                     <TextField
                         variant="outlined"
                         label="Description (optional)"
@@ -400,13 +400,13 @@ function LinearScaleEditor() {
                                 textOverflow: 'ellipsis'
                             }
                         }}
-                        sx={{
-                            minWidth: 500,
-                            maxWidth: "100%"
-                        }}
+                        // sx={{
+                        //     minWidth: 500,
+                        //     maxWidth: "100%"
+                        // }}
                     />
                     </Grid>
-                    <Grid item xs={1}>{
+                    <Grid item xs={1} sx={{ textAlign: 'right' }}>{
                         options.length > 2 && (
                             <IconButton
                             onClick={ () => deleteOption(option) }
