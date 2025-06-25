@@ -115,6 +115,7 @@ export function useEvaluationResponse(responseId) {
                 const subcategory = subcategories[subcategory_id];
                 switch(subcategory.subcategory_type) {
                     case 'checkbox':
+                    case 'linear_scale':
                     case 'multiple_choice':
                         for(let { option_answer } of subcategory.options) {
                             if(!option_answer) continue;
@@ -126,11 +127,6 @@ export function useEvaluationResponse(responseId) {
                         const { text_answer } = subcategory;
                         if(!text_answer) break;
                         await saveTextAnswer(text_answer);
-                        break;
-                    case 'linear_scale':
-                        const { percentage_answer } = subcategory;
-                        if(!percentage_answer) break;
-                        await savePercentageAnswer(percentage_answer);
                         break;
                 }
             }
@@ -210,6 +206,7 @@ export function useEvaluationResponse(responseId) {
                 } else option.option_answer.action = 'delete';
                 break;
             }
+            case 'linear_scale':
             case 'multiple_choice':
                 option.option_answer.action = 'delete';
         }
@@ -262,6 +259,11 @@ export function useEvaluationResponse(responseId) {
                 if(!response.data.status.toString().startsWith(2)) throw response;
                 break;
             case 'update':
+                console.log({
+                        ...option_answer,
+                        option_id: option_answer.old_option_id,
+                        new_option_id: option_answer.option_id
+                    })
                 response = await axiosInstance.post(
                     '/editEvaluationOptionAnswer', {
                         ...option_answer,
@@ -334,6 +336,7 @@ export function useEvaluationResponse(responseId) {
                 };
                 break;
             }
+            case 'linear_scale':
             case 'multiple_choice': {
                 const activeOptionId = findActiveOptionId(subcategoryId);
                 if(optionId == undefined) {

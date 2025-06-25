@@ -78,11 +78,6 @@ const PerformanceEvaluationAnswerPage = () => {
     'long_answer': 'Long Answer',
   };
 
-  // Handler for linear scale
-  const handleRadioChange = (subcategoryId, value) => {
-    setPercentageAnswer(subcategoryId, value);
-  };
-
   const handleOptionChange = (optionId) => setOptionAnswer(optionId);
   const handleCheckboxChange = (optionId) => setOptionAnswer(optionId);
 
@@ -346,8 +341,8 @@ const PerformanceEvaluationAnswerPage = () => {
             {opt.label}
           </Typography>
           <Radio
-            checked={subCategory.percentage_answer?.value === opt.score}
-            onChange={() => handleRadioChange(subCategory.id, opt.score)}
+            checked={Boolean(opt.option_answer && opt.option_answer?.action !== 'deleted')}
+            onChange={() => handleOptionChange(opt.id)}
             value={opt.score}
             sx={{ mx: "auto" }}
           />

@@ -3455,28 +3455,28 @@ class EvaluationResponseController extends Controller
                 ->whereNull('deleted_at')
                 ->first()
             ;
-
+            
             if(!$evaluationOptionAnswer) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Option Answer not found!',
                 'evaluationFormResponseID' => $request->response_id,
                 'evaluationFormOptionID' => $request->option_id
             ]);
-
+            
             $evaluationFormSubcategory = EvaluationFormSubcategoryOption
                 ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                 ->select('evaluation_form_subcategories.id', 'evaluation_form_subcategories.subcategory_type')
+                ->where('evaluation_form_subcategory_options.id', Crypt::decrypt($request->option_id))
                 ->whereNull('evaluation_form_subcategory_options.deleted_at')
                 ->first()
             ;
-
             switch($evaluationFormSubcategory->subcategory_type) {
                 case "long_answer":
                 case "short_answer":
                     return response()->json([
                         'status' => 400,
                         'message' => 'This subcategory does not accept choice answers!',
-                        'evaluationFormSubcategoryID' => Crypt::decrypt($evaluationFormSubcategory->id)
+                        'evaluationFormSubcategoryID' => Crypt::encrypt($evaluationFormSubcategory->id)
                     ]);
                     break;
                 case "checkbox":
