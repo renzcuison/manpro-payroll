@@ -535,6 +535,7 @@ class InsurancesController extends Controller
             'plans' => $formattedPlans,
         ]);
     }
+    
 
     public function getEmployeeGroupLifePlan($id)
     {
