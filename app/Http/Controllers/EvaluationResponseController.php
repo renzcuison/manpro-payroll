@@ -910,10 +910,10 @@ class EvaluationResponseController extends Controller
                                         'order' => $subcategory->order,
                                         'score' => $subcategory->score,
                                         'achieved_score' => $subcategory->achieved_score,
-                                        'options' => $subcategory->options->map(function ($option) {
+                                        'options' => $subcategory->options->map(function ($option) use ($encryptedSubcategoryID) {
                                             $encryptedOptionID = Crypt::encrypt($option->id);
                                             return [
-                                                'subcategory_id' => $encryptedSubcategoryId,
+                                                'subcategory_id' => $encryptedSubcategoryID,
                                                 'id' => $encryptedOptionID,
                                                 'label' => $option->label,
                                                 'score' => $option->score,
