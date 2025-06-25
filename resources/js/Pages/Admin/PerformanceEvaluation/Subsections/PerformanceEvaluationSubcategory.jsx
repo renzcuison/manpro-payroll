@@ -329,7 +329,7 @@ function OptionsEditor() {
                                         inputProps={{ min: 0, step: 1 }}
                                     />
                                 </Grid>
-                                <Grid item xs={4} sx={{width: '50%'}}>
+                                <Grid item xs={4} sx={{width: '40%'}}>
                                     <TextField
                                         variant="outlined"
                                         label="Description"
@@ -338,7 +338,7 @@ function OptionsEditor() {
                                         onChange={e => handleChangeDescription(option, e)}
                                         fullWidth
                                         inputProps={{
-                                            maxLength: 250,
+                                            maxLength: 150,
                                             style: {
                                                 whiteSpace: 'nowrap',
                                                 overflow: 'hidden',
@@ -426,7 +426,7 @@ function LinearScaleEditor() {
                                 }
                             }}
                             sx={{
-                                minWidth: 500,
+                                minWidth: 400,
                                 maxWidth: "100%"
                             }}
                         />
