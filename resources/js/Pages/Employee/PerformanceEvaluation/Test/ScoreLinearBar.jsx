@@ -4,7 +4,7 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 
 // The gradient must be on the .bar class, not the root!
 const ScoreLinearBar = styled(LinearProgress)(({ theme }) => ({
-  height: 18,
+  height: 15,
   borderRadius: 9,
   [`&.${linearProgressClasses.colorPrimary}`]: {
     backgroundColor: theme.palette.grey[200],

@@ -625,11 +625,11 @@ const PerformanceEvaluationEvaluateePage = () => {
                               onMouseLeave={() => setHoveredSubcat(null)}
                               sx={{ display: 'inline-block', width: '100%', position: 'relative' }}
                             >
-                              <ScoreLinearBar
-                                variant="determinate"
-                                value={(score)}
-                                sx={{ width: '100%', minWidth: 550 }}
-                              />
+<ScoreLinearBar
+  variant="determinate"
+  value={score}
+  sx={{ width: { xs: 200, sm: 300, md: 500 } }}
+/>
                               {hoveredSubcat === `bar-${id}` && !!description && (
                                 <Box
                                   sx={{
@@ -679,7 +679,7 @@ const PerformanceEvaluationEvaluateePage = () => {
                           <ScoreLinearBar
                             variant="determinate"
                             value={(sectionScore)}
-                            sx={{ width: '100%', minWidth: 550 }}
+                           sx={{ width: { xs: 200, sm: 300, md: 500 } }}
                           />
                         </Grid>
                         <Grid item xs={2}>

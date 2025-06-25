@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import 'react-quill/dist/quill.snow.css';
 
-const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSalaryGrades }) => {
+const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSalaryGrades, onUpdated }) => {
     const navigate = useNavigate();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -18,7 +18,7 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSala
     const [salary_grade_version, setSalaryGradeVersion] = useState(salaryGradeInfo.salary_grade_version ?? '');
     const [salaryGradeInput, setSalaryGradeInput] = useState(
         salaryGradeInfo.salary_grade_version
-            ? `${salaryGradeInfo.salary_grade}-${salaryGradeInfo.salary_grade_version}`
+            ? `${salaryGradeInfo.salary_grade}.${salaryGradeInfo.salary_grade_version}`
             : salaryGradeInfo.salary_grade
     );
 
@@ -39,9 +39,9 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSala
             return;
         }
 
-        // If input contains a dash, both numbers must be present
+        // If input contains a dot, both numbers must be present
         if (
-            salaryGradeInput.includes('-') &&
+            salaryGradeInput.includes('.') &&
             (
                 salary_grade_version === '' ||
                 salary_grade_version === undefined
@@ -289,13 +289,13 @@ const SalaryGradeEdit = ({ open, close, salaryGradeInfo, onDeleted, existingSala
                                     onChange={(e) => {
                                         const value = e.target.value;
 
-                                        // Allow only numbers or numbers-dash-numbers (e.g., 1, 2-1, 10-2)
-                                        const validPattern = /^(\d+|\d+-\d*)$/;
+                                        // Allow only numbers or numbers-dot-numbers (e.g., 1, 2.1, 10.2)
+                                        const validPattern = /^(\d+|\d+.\d*)$/;
                                         if (value === '' || validPattern.test(value)) {
                                             setSalaryGradeInput(value);
 
-                                            if (value.includes('-')) {
-                                                const [main, version] = value.split('-');
+                                            if (value.includes('.')) {
+                                                const [main, version] = value.split('.');
                                                 setSalaryGrade(main.trim());
                                                 setSalaryGradeVersion(version !== undefined ? version.trim() : '');
                                             } else {
