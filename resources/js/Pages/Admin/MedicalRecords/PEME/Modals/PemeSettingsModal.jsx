@@ -9,6 +9,7 @@ import {
     FormControlLabel,
     Typography,
     Box,
+    CircularProgress
 } from "@mui/material";
 import Swal from "sweetalert2";
 import axiosInstance from "@/utils/axiosConfig";
@@ -26,6 +27,7 @@ const PemeSettingsModal = ({
     pemeRecords,
     headers,
     hasRespondents,
+    loading,
 }) => {
     const handleMultipleToggle = async () => {
         const newValue = multiple ? 0 : 1;
@@ -39,9 +41,8 @@ const PemeSettingsModal = ({
             setMultiple(!!newValue);
             Swal.fire({
                 icon: "success",
-                text: `Multiple responses ${
-                    newValue ? "enabled" : "disabled"
-                }.`,
+                text: `Multiple responses ${newValue ? "enabled" : "disabled"
+                    }.`,
                 toast: true,
                 position: "top-end",
                 showConfirmButton: false,
@@ -141,61 +142,69 @@ const PemeSettingsModal = ({
                     padding: 3,
                     display: "flex",
                     flexDirection: "column",
+                    justifyContent: "center",
                 }}
             >
-                <Box sx={{ mt: 2 }}>
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={visible}
-                                onClick={handleVisibilityToggle}
+                {loading || visible === null || editable === null || multiple === null ? (
+                    <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+                        <CircularProgress size={40} sx={{ color: "#2e7d32" }} />
+                    </Box>
+                ) : (
+                    <>
+                        <Box sx={{ mt: 2 }}>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={visible}
+                                        onClick={handleVisibilityToggle}
+                                    />
+                                }
+                                label={`Visibility: ${visible ? "Public" : "Hidden"}`}
                             />
-                        }
-                        label={`Visibility: ${visible ? "Public" : "Hidden"}`}
-                    />
-                </Box>
+                        </Box>
 
-                <Box sx={{ mt: 2 }}>
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={multiple}
-                                onClick={handleMultipleToggle}
+                        <Box sx={{ mt: 2 }}>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={multiple}
+                                        onClick={handleMultipleToggle}
+                                    />
+                                }
+                                label={`Response: ${multiple ? "Multiple" : "Single"}`}
                             />
-                        }
-                        label={`Response: ${multiple ? "Multiple" : "Single"}`}
-                    />
-                </Box>
+                        </Box>
 
-                <Box
-                    sx={{
-                        mt: 2,
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                    }}
-                >
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={editable}
-                                onClick={handleEditableToggle}
-                                disabled={hasRespondents}
+                        <Box
+                            sx={{
+                                mt: 2,
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                            }}
+                        >
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={editable}
+                                        onClick={handleEditableToggle}
+                                        disabled={hasRespondents}
+                                    />
+                                }
+                                label={`Editable: ${editable ? "Yes" : "No"}`}
                             />
-                        }
-                        label={`Editable: ${editable ? "Yes" : "No"}`}
-                    />
-                    <Typography
-                        sx={{
-                            color: "rgba(201, 42, 42, 1)",
-                            fontWeight: "bold",
-                        }}
-                    >
-                        {hasRespondents ? "Drafts currently exist" : ""}
-                    </Typography>
-                </Box>
+                            <Typography
+                                sx={{
+                                    color: "rgba(201, 42, 42, 1)",
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                {hasRespondents ? "Drafts currently exist" : ""}
+                            </Typography>
+                        </Box>
+                    </>
+                )}
             </DialogContent>
-
             <DialogActions
                 sx={{
                     padding: 3,

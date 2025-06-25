@@ -103,7 +103,7 @@ export default function DateRangePicker({ onRangeChange, label = "Select Date", 
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <TextField label={label} value={formatDisplay()} onClick={handleClick} fullWidth readOnly InputLabelProps={{ shrink: true }} disabled/>
+            <TextField label={label} value={formatDisplay()} onClick={handleClick} fullWidth readOnly InputLabelProps={{ shrink: true }}/>
 
             <Menu
                 key={earliestLogDate ? "withAll" : "noAll"}
