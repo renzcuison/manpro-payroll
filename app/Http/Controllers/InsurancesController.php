@@ -52,7 +52,7 @@ class InsurancesController extends Controller
     }
 
 
-    // Group Life Insurance Companies
+    // Group Life Insurance Companies - Admin
     public function saveGroupLifeCompanies(Request $request)
     {
         log::info("InsurancesController::saveGroupLifeCompanies");
@@ -547,31 +547,58 @@ class InsurancesController extends Controller
         ]);
     }
 
-    // HMO Insurance Companies
+    // Group Life Insurance Plans - Employee
 
-public function getHMOCompanies()
+        public function getEmployeeGroupLifePlan($id)
     {
-        log::info("InsurancesController::getHMOCompanies");
-
         $user = Auth::user();
 
-        $rawCompanies = HMOCompany::withCount('plans')->where('client_id', $user->client_id)->get();
+        // Only allow fetching plans for the logged-in user
+        $plan = GroupLifeEmployeePlan::with([
+            'plan.company',
+            'dependents'
+        ])->where('employee_id', $user->id)->find($id);
 
-        $companies = [];
-
-        foreach ($rawCompanies as $company) {
-            $companies[] = [
-                'id' => $company->id,
-                'name' => $company->name,
-                'plans' => $company->plans_count,
-            ];
+        if (!$plan) {
+            return response()->json(['plan' => null, 'dependents' => []], 404); // For your frontend check
         }
 
         return response()->json([
-            'status' => 200,
-            'companies' => $companies,
+            'plan' => [
+                'group_life_company_name' => $plan->plan->company->name ?? '',
+                'plan_name' => $plan->plan->plan_name ?? '',
+                'type' => $plan->plan->type ?? '',
+                'employer_share' => $plan->plan->employer_share ?? '',
+                'employee_share' => $plan->plan->employee_share ?? '',
+                'enroll_date' => $plan->enroll_date,
+            ],
+            'dependents' => $plan->dependents->map(function ($dep) {
+                return [
+                    'name' => $dep->dependent_name,
+                    'relationship' => $dep->relationship
+                ];
+            }),
         ]);
     }
+    public function addEmployeeDependent(Request $request)
+    {
+        $request->validate([
+            'employee_plan_id' => 'required|integer|exists:group_life_employee_plans,id',
+            'name' => 'required|string|max:255',
+            'relationship' => 'required|string|max:255',
+        ]);
+
+        $dependent = GroupLifeDependents::create([
+            'employee_plan_id' => $request->employee_plan_id,
+            'name' => $request->name,
+            'relationship' => $request->relationship,
+        ]);
+
+        return response()->json(['dependent' => $dependent], 201);
+    }
+
+
+    // HMO Insurance Companies - Admin
 
     public function saveHMOCompanies(Request $request)
     {
@@ -595,6 +622,30 @@ public function getHMOCompanies()
         ]);
 
         return response()->json($company, 201);
+    }
+
+    public function getHMOCompanies()
+    {
+        log::info("InsurancesController::getHMOCompanies");
+
+        $user = Auth::user();
+
+        $rawCompanies = HMOCompany::withCount('plans')->where('client_id', $user->client_id)->get();
+
+        $companies = [];
+
+        foreach ($rawCompanies as $company) {
+            $companies[] = [
+                'id' => $company->id,
+                'name' => $company->name,
+                'plans' => $company->plans_count,
+            ];
+        }
+
+        return response()->json([
+            'status' => 200,
+            'companies' => $companies,
+        ]);
     }
 
     public function editHMOCompany(Request $request, $id)
@@ -642,7 +693,7 @@ public function getHMOCompanies()
     }
 
     public function getHMOPlans()
-    {
+        {
         log::info("InsurancesController::getHMOPlans");
 
         $user = Auth::user();
@@ -673,8 +724,8 @@ public function getHMOCompanies()
             'status' => 200,
             'plans' => $formattedPlans,
         ]);
-    }    
-    
+    }
+
     public function getHMOPlan($id)
     {
         Log::info("InsurancesController::getHMOPlan");
@@ -703,7 +754,7 @@ public function getHMOCompanies()
             'plan' => $formattedPlan,
         ]);
     }
-    
+
     public function saveHMOPlans(Request $request)
     {
         log::info("InsurancesController::saveHMOPlans");
@@ -721,9 +772,9 @@ public function getHMOCompanies()
             'employee_share' => 'required|numeric',
         ]);
 
-        $plan = HMOCompanyPlan::create($validated);
+            $plan = HMOCompanyPlan::create($validated);
 
-        return response()->json($plan, 201);
+            return response()->json($plan, 201);
     }
 
     public function editHMOPlan(Request $request, $id)
@@ -774,7 +825,7 @@ public function getHMOCompanies()
             ->first();
 
         if (!$plan) {
-            return response()->json(null, 404);
+            return response()->json(['message' => 'Plan not found.'], 404);
         }
         $hasEmployees = HMOEmployeePlan::where('hmo_plan_id', $id)->exists();
 
@@ -915,9 +966,10 @@ public function getHMOCompanies()
         ]);
     }
 
+
     public function getHMOEmployees(Request $request)
     {
-        Log::info("InsurancesController::getHMOEmployees");
+        Log::info("InsurancesController::getAllHMOEmployees");
 
         $planId = $request->query('plan_id');
 
@@ -964,7 +1016,7 @@ public function getHMOCompanies()
             'dependents.*.relationship' => 'required_with:dependents|string|max:100',
         ]);
 
-        $employeePlan = new GroupLifeEmployeePlan([
+        $employeePlan = new HMOEmployeePlan([
             'hmo_plan_id' => $validated['hmo_plan_id'],
             'employee_id' => $validated['employee_id'],
             'enroll_date' => $validated['enroll_date'],
@@ -1022,6 +1074,7 @@ public function getHMOCompanies()
         ]);
     }
 
+
     public function deleteHMODependent($id)
     {
         Log::info("InsurancesController::deleteHMODependent");
@@ -1040,5 +1093,4 @@ public function getHMOCompanies()
             'status' => 200,
         ]);
     }
-
 }
