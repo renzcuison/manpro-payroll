@@ -154,7 +154,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                     id: option.id,
                     order: option.order
                 }, { headers });
-                if(Number(moveResp.data.status) !== 200) throw moveResp.data;
+                if(!moveResp.data.status.toString().startsWith(2)) throw moveResp.data;
             }
             reloadOptions();
 
