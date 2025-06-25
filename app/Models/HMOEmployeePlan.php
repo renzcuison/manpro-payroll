@@ -16,17 +16,13 @@ class HMOEmployeePlan extends Model
 
     protected $primaryKey = 'id';
 
-    protected $fillable = [
-        'employee_id',
-        'hmo_plan_id',
-        'enroll_date'
-    ];
+    protected $fillable = ['employee_id', 'hmo_plan_id', 'enroll_date'];
 
     public $timestamps = true;
 
     public function employee()
     {
-    return $this->belongsTo(UsersModel::class, 'employee_id');
+        return $this->belongsTo(UsersModel::class, 'employee_id');
     }
 
     public function dependents()
@@ -34,4 +30,8 @@ class HMOEmployeePlan extends Model
         return $this->hasMany(HMODependents::class, 'hmo_employee_id');
     }
 
+    public function plan()
+    {
+        return $this->belongsTo(HMOCompanyPlan::class, 'hmo_plan_id');
+    }
 }

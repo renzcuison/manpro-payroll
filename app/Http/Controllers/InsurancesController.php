@@ -550,37 +550,90 @@ class InsurancesController extends Controller
 
     // Group Life Insurance Plans - Employee
 
-        public function getEmployeeGroupLifePlan($id)
+    //     public function getEmployeeGroupLifePlan($id)
+    // {
+    //     $user = Auth::user();
+
+    //     // Only allow fetching plans for the logged-in user
+    //     $plan = GroupLifeEmployeePlan::with([
+    //         'plan.company',
+    //         'dependents'
+    //     ])->where('employee_id', $user->id)->find($id);
+
+    //     if (!$plan) {
+    //         return response()->json(['plan' => null, 'dependents' => []], 404); // For your frontend check
+    //     }
+
+    //     return response()->json([
+    //         'plan' => [
+    //             'group_life_company_name' => $plan->plan->company->name ?? '',
+    //             'plan_name' => $plan->plan->plan_name ?? '',
+    //             'type' => $plan->plan->type ?? '',
+    //             'employer_share' => $plan->plan->employer_share ?? '',
+    //             'employee_share' => $plan->plan->employee_share ?? '',
+    //             'enroll_date' => $plan->enroll_date,
+    //         ],
+    //         'dependents' => $plan->dependents->map(function ($dep) {
+    //             return [
+    //                 'name' => $dep->dependent_name,
+    //                 'relationship' => $dep->relationship
+    //             ];
+    //         }),
+    //     ]);
+    // }
+
+    public function getEmployeeGroupLifePlan(Request $request)
     {
-        $user = Auth::user();
+    Log::info("InsurancesController::getEmployeeGroupLifePlan");
 
-        // Only allow fetching plans for the logged-in user
-        $plan = GroupLifeEmployeePlan::with([
-            'plan.company',
-            'dependents'
-        ])->where('employee_id', $user->id)->find($id);
-
-        if (!$plan) {
-            return response()->json(['plan' => null, 'dependents' => []], 404); // For your frontend check
-        }
-
-        return response()->json([
-            'plan' => [
-                'group_life_company_name' => $plan->plan->company->name ?? '',
-                'plan_name' => $plan->plan->plan_name ?? '',
-                'type' => $plan->plan->type ?? '',
-                'employer_share' => $plan->plan->employer_share ?? '',
-                'employee_share' => $plan->plan->employee_share ?? '',
-                'enroll_date' => $plan->enroll_date,
-            ],
-            'dependents' => $plan->dependents->map(function ($dep) {
-                return [
-                    'name' => $dep->dependent_name,
-                    'relationship' => $dep->relationship
-                ];
-            }),
-        ]);
+    if (!$this->checkUserEmployee()) {
+        return response()->json(['message' => 'Unauthorized.'], 403);
     }
+
+    $user = Auth::user();
+
+    $record = GroupLifeEmployeePlan::with([
+        'employee.branch',
+        'employee.department',
+        'employee.role',
+        'dependents',
+        'plan.company' // this includes company id & name
+    ])
+    ->where('employee_id', $user->id)
+    ->first(); // Only the current user's plan
+
+    if (!$record) {
+        return response()->json(['plan' => null, 'dependents' => []], 404);
+    }
+
+    Log::info("Plan record:", ['record' => $record]);
+
+    return response()->json([
+        'id' => $record->id,
+        'plan_id' => $record->group_life_plan_id,
+        'employee_id' => $record->employee_id,
+        'employee_name' => $record->employee?->employee_name ?? 'Unknown',
+        'enroll_date' => $record->enroll_date,
+        'dependents_count' => $record->dependents->count(),
+        'dependents' => $record->dependents,
+
+        // Plan (foreign key)
+        'plan_name' => $record->plan?->plan_name ?? '',
+        'plan_type' => $record->plan?->type ?? '',
+        'employer_share' => $record->plan?->employer_share ?? '',
+        'employee_share' => $record->plan?->employee_share ?? '',
+
+        // Company (from plan.company)
+        'company_id' => $record->plan?->company?->id ?? null,
+        'company_name' => $record->plan?->company?->name ?? '',
+
+        // Employee's work info
+        'branch' => $record->employee?->branch ?? 'N/A',
+        'department' => $record->employee?->department ?? 'N/A',
+        'role' => $record->employee?->role ?? 'N/A',
+    ]);
+    }
+
     public function addEmployeeDependent(Request $request)
     {
         $request->validate([
@@ -1093,5 +1146,60 @@ class InsurancesController extends Controller
         return response()->json([
             'status' => 200,
         ]);
+    }
+
+    
+    // HMO Insurance Plans - Employee
+
+    public function getEmployeeHMOPlan(Request $request)
+    {
+    Log::info("InsurancesController::getEmployeeHMOPlan");
+
+    if (!$this->checkUserEmployee()) {
+        return response()->json(['message' => 'Unauthorized.'], 403);
+    }
+
+    $user = Auth::user();
+
+    $record = HMOEmployeePlan::with([
+        'employee.branch',
+        'employee.department',
+        'employee.role',
+        'dependents',
+        'plan.company' // this includes company id & name
+    ])
+    ->where('employee_id', $user->id)
+    ->first(); // Only the current user's plan
+
+    if (!$record) {
+        return response()->json(['plan' => null, 'dependents' => []], 404);
+    }
+
+    Log::info("Plan record:", ['record' => $record]);
+
+    return response()->json([
+        'id' => $record->id,
+        'plan_id' => $record->hmo_plan_id,
+        'employee_id' => $record->employee_id,
+        'employee_name' => $record->employee?->employee_name ?? 'Unknown',
+        'enroll_date' => $record->enroll_date,
+        'dependents_count' => $record->dependents->count(),
+        'dependents' => $record->dependents,
+
+        // Plan (foreign key)
+        'plan_name' => $record->plan?->plan_name ?? '',
+        'plan_type' => $record->plan?->type ?? '',
+        'employer_share' => $record->plan?->employer_share ?? '',
+        'employee_share' => $record->plan?->employee_share ?? '',
+
+        // Company (from plan.company)
+        'company_id' => $record->plan?->company?->id ?? null,
+        'company_name' => $record->plan?->company?->name ?? '',
+
+        // Employee's work info
+        'branch' => $record->employee?->branch ?? 'N/A',
+        'department' => $record->employee?->department ?? 'N/A',
+        'role' => $record->employee?->role ?? 'N/A',
+    ]);
     }
 }

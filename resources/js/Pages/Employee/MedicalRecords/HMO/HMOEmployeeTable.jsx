@@ -38,7 +38,7 @@ const highlightMatch = (text, keyword) => {
     );
 };
 
-const GroupLifeEmployeeTable = ({ employees, onRowClick, search, loading, data }) => {
+const HMOEmployeeTable = ({ employees, onRowClick, search, loading, data }) => {
     const [rows, setRows] = useState([]);
     console.log("Employees Data:", employees);
     console.log("Type of employees:", typeof employees);
@@ -125,4 +125,4 @@ const GroupLifeEmployeeTable = ({ employees, onRowClick, search, loading, data }
     );
 };
 
-export default GroupLifeEmployeeTable;
+export default HMOEmployeeTable;

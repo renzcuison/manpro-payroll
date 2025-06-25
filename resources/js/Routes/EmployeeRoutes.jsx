@@ -24,8 +24,8 @@ import TrainingView from "../Pages/Employee/Trainings/TrainingView";
 import ProfileEdit from "../Pages/Employee/Profile/ProfileEdit";
 import ContentView from "../Pages/Employee/Trainings/ContentView";
 
-import GroupLifeMasterlist from "../Pages/Employee/MedicalRecords/GroupLifeMasterlist";
-import HMOMasterlist from "../Pages/Employee/MedicalRecords/HMOMasterlist";
+import GroupLifeMasterlist from "../Pages/Employee/MedicalRecords/GroupLife/GroupLifeMasterlist";
+import HMOMasterlist from "../Pages/Employee/MedicalRecords/HMO/HMOMasterlist";
 import PemeRecordsForm from "../Pages/Employee/MedicalRecords/PEME/Forms/PemeRecordsForm";
 import PemeResponses from "../Pages/Employee/MedicalRecords/PEME/PemeResponses";
 import PemeQuestionnaireView from "../Pages/Employee/MedicalRecords/PEME/PemeQuestionnaireView";
@@ -33,6 +33,8 @@ import PemeOverview from "../Pages/Employee/MedicalRecords/PEME/PemeOverview";
 
 import GroupLifeEmployeeMasterlist from "../Pages/Employee/MedicalRecords/GroupLife/GroupLifeEmployeeMasterlist";
 import GroupLifeEmployeePlanView from "../Pages/Employee/MedicalRecords/GroupLife/GroupLifeEmployeePlanView";
+
+// import GroupLifeMasterlist from "../Pages/Employee/MedicalRecords/GroupLife/GroupLifeMasterlist";
 
 //
 import PerformanceEvaluationAnswerPage from '../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationAnswerPage';
@@ -235,18 +237,25 @@ const EmployeeRoutes = ({ user }) => {
                 }
             />
 
-            <Route
-                path="medical-records/group-life-employee-masterlist"
+            {/* <Route
+                path="s"
                 element={
-                    <ProtectedRoute element={<GroupLifeEmployeeMasterlist />} user={user} />
+                    <ProtectedRoute element={<GroupLifeMasterlist />} user={user} />
                 }
-            />
-            <Route
+            /> */}
+
+            <Route 
+                path="/medical-records/group-life-employee-masterlist/view/:id"
+                element={
+                    <ProtectedRoute element={<GroupLifeMasterlist />}  user={user} />
+                } />
+
+            {/* <Route
                 path="medical-records/group-life-employee-masterlist/view/:id"
                 element={
                     <ProtectedRoute element={<GroupLifeEmployeePlanView />} user={user} />
                 }
-            />
+            /> */}
             
 
         </Routes>

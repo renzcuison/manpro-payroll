@@ -19,12 +19,13 @@ class HMOCompanyPlan extends Model
         'plan_name',
         'type',
         'employer_share',
-        'employee_share'
+        'employee_share',
     ];
 
     protected $dates = ['deleted_at'];
 
-    public function company() {
+    public function company()
+    {
         return $this->belongsTo(HMOCompany::class, 'hmo_company_id');
     }
 
@@ -36,13 +37,18 @@ class HMOCompanyPlan extends Model
             'hmo_plan_id',
             'employee_id'
         )
-        ->using(HMOEmployeePlan::class)
-        ->withPivot('enroll_date')
-        ->withTimestamps();
+            ->using(HMOEmployeePlan::class)
+            ->withPivot('enroll_date')
+            ->withTimestamps();
     }
 
     public function assignedEmployees()
     {
-    return $this->hasMany(HMOEmployeePlan::class, 'hmo_plan_id');
+        return $this->hasMany(HMOEmployeePlan::class, 'hmo_plan_id');
+    }
+
+    public function plan()
+    {
+        return $this->belongsTo(HMOCompanyPlan::class, 'hmo_plan_id');
     }
 }

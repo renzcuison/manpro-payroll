@@ -52,7 +52,7 @@ const medicalRecords = [
                 icon: "fa fa-cogs",
             },
             {
-                href: `/employee/medical-records/group-life-employee-masterlist`,
+                href: `/employee/medical-records/group-life-masterlist-records`,
                 text: "Group Life Masterlist",
                 icon: "fa fa-cogs",
             },
