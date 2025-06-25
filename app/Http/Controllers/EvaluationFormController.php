@@ -1057,21 +1057,21 @@ class EvaluationFormController extends Controller
                 $evaluationFormSubcategory->linear_scale_start = $request->linear_scale_start;
             if(is_numeric($request->linear_scale_end))
                 $evaluationFormSubcategory->linear_scale_end = $request->linear_scale_end;
-            if($evaluationFormSubcategory->linear_scale_start>=$evaluationFormSubcategory->linear_scale_end)
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
-                ]);
+            // if($evaluationFormSubcategory->linear_scale_start>=$evaluationFormSubcategory->linear_scale_end)
+            //     return response()->json([
+            //         'status' => 400,
+            //         'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
+            //     ]);
             $isEmptyLinearScaleStartLabel = $request->has('linear_scale_start_label') && $request->linear_scale_start_label === null;
-            if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
-            ]);
+            // if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
+            //     'status' => 400,
+            //     'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
+            // ]);
             $isEmptyLinearScaleEndLabel = $request->has('linear_scale_end_label') && $request->linear_scale_end_label === null;
-            if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
-                'status' => 400,
-                'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
-            ]);
+            // if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
+            //     'status' => 400,
+            //     'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
+            // ]);
             $evaluationFormSubcategory->linear_scale_start_label = $request->linear_scale_start_label;
             $evaluationFormSubcategory->linear_scale_end_label = $request->linear_scale_end_label;
 
@@ -1845,7 +1845,7 @@ class EvaluationFormController extends Controller
             DB::commit();
 
             return response()->json([
-                'status' => 201,
+                'status' => 200,
                 'evaluationSubcategoryOptionID' => $newEvaluationFormSubcategoryOption->id,
                 'message' => 'Evaluation Form Subcategory Option successfully created'
             ]);

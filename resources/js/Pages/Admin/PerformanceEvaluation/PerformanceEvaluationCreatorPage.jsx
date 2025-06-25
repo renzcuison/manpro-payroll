@@ -682,10 +682,11 @@ const PerformanceEvaluationCreatorPage = () => {
             type="submit"
             variant="contained"
             color="primary"
-            disabled={submitting || !form}
+            disabled={saving || !form}
             sx={{ mt: 2, px: 4, py: 1.5, fontWeight: 'bold', bgcolor: '#177604', '&:hover': { bgcolor: '#0d5c27' } }}
+            onClick={() => setOpenAcknowledgeModal(true)}
           >
-            {submitting ? "Submitting..." : "Submit Evaluation"}
+            {saving ? "Submitting..." : "Submit Evaluation"}
           </Button>
         </Box>
       ) : (

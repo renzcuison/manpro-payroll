@@ -12,6 +12,9 @@ import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
 import PerformanceEvaluationEvaluatorAcknowledge from './Modals/PerformanceEvaluationEvaluatorAcknowledge';
 import Swal from 'sweetalert2';
 
+const COMMENT_CHAR_LIMIT = 512;
+const COMMENT_WARNING_THRESHOLD = 0.9; // 90% of limit
+
 const PerformanceEvaluationAnswerPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -40,11 +43,24 @@ const PerformanceEvaluationAnswerPage = () => {
   // Modal state for evaluator signature
   const [openEvaluatorAcknowledge, setOpenEvaluatorAcknowledge] = useState(false);
 
+  // Track local comment input for current evaluator to count chars live
+  const [localComment, setLocalComment] = useState('');
+  const [localCommentCount, setLocalCommentCount] = useState(0);
+
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
     }
   }, [evaluationResponse]);
+
+  // Keep local comment in sync with current evaluator's comment
+  useEffect(() => {
+    if (evaluationResponse?.evaluators && evaluatorId) {
+      const currentEvaluator = evaluationResponse.evaluators.find(ev => ev.evaluator_id === evaluatorId);
+      setLocalComment(currentEvaluator?.comment ?? '');
+      setLocalCommentCount((currentEvaluator?.comment ?? '').length);
+    }
+  }, [evaluationResponse, evaluatorId]);
 
   const handleSettingsClick = (event) => {
     setSettingsAnchorEl(event.currentTarget);
@@ -75,8 +91,14 @@ const PerformanceEvaluationAnswerPage = () => {
 
   // EVALUATOR COMMENT HANDLING
   const handleEvaluatorCommentInput = (evaluator, value) => {
-    evaluator.comment = value;
-    reloadEvaluationResponse();
+    if (evaluator.evaluator_id === evaluatorId) {
+      if (value.length <= COMMENT_CHAR_LIMIT) {
+        setLocalComment(value);
+        setLocalCommentCount(value.length);
+        evaluator.comment = value;
+        reloadEvaluationResponse();
+      }
+    }
   };
 
   // Submit Handler - open modal for signature
@@ -148,6 +170,10 @@ const PerformanceEvaluationAnswerPage = () => {
       </Layout>
     );
   }
+
+  // --- CHECK IF THE CURRENT EVALUATOR HAS ALREADY SIGNED ---
+  let currentEvaluator = evaluators.find(ev => ev.evaluator_id === evaluatorId);
+  let hasEvaluatorSigned = !!(currentEvaluator && currentEvaluator.signature_filepath);
 
   return (
     <Layout title="Performance Evaluation Form">
@@ -492,44 +518,109 @@ const PerformanceEvaluationAnswerPage = () => {
             </Typography>
             {evaluators.length > 0 ? (
               <Box>
-                {evaluators.map((evaluator, index) => (
-                  <Paper
-                    key={evaluator.evaluator_id || index}
-                    elevation={2}
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      bgcolor: '#fffff',
-                      borderRadius: 2,
-                      borderLeft: '8px solid #eab31a',
-                      px: 2,
-                      pt: 2,
-                      pb: 2,
-                      mt: 2,
-                      mb: 2,
-                      width: '100%',
-                      boxShadow: 2,
-                    }}
-                  >
-                    {/* <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-                      {evaluator.evaluator_id}
-                    </Typography> */}
-                    <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                      {getFullName(evaluator)}
-                    </Typography>
-                    <TextField
-                      label="Evaluator Comment"
-                      multiline
-                      minRows={3}
-                      fullWidth
-                      inputProps={{readOnly: evaluator.evaluator_id !== evaluatorId}}
-                      value={evaluator.comment}
-                      sx={{ mt: 1 }}
-                      onChange={e => handleEvaluatorCommentInput(evaluator, e.target.value)}
-                      placeholder="Enter your comment here"
-                    />
-                  </Paper>
-                ))}
+                {evaluators.map((evaluator, index) => {
+                  const isCurrent = evaluator.evaluator_id === evaluatorId;
+                  const commentValue = isCurrent ? localComment : evaluator.comment ?? '';
+                  const charCount = isCurrent ? localCommentCount : (evaluator.comment ?? '').length;
+                  let charCountColor = '#888';
+                  if (charCount >= COMMENT_CHAR_LIMIT) charCountColor = 'red';
+                  else if (charCount >= COMMENT_CHAR_LIMIT * COMMENT_WARNING_THRESHOLD) charCountColor = '#ff9800';
+
+                  return (
+                    <Paper
+                      key={evaluator.evaluator_id || index}
+                      elevation={2}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        bgcolor: '#fffff',
+                        borderRadius: 2,
+                        borderLeft: '8px solid #eab31a',
+                        px: 2,
+                        pt: 2,
+                        pb: 2,
+                        mt: 2,
+                        mb: 2,
+                        width: '100%',
+                        boxShadow: 2,
+                      }}
+                    >
+                      <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                        {getFullName(evaluator)}
+                      </Typography>
+                      <Box
+                        sx={{
+                          border: "1.5px solid #ccc",
+                          borderRadius: "8px",
+                          px: 2,
+                          pt: 2,
+                          pb: 0.5,
+                          background: "#fff",
+                          minHeight: 100,
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between"
+                        }}
+                      >
+                        <TextField
+                          variant="standard"
+                          InputProps={{
+                            disableUnderline: true,
+                            readOnly: !isCurrent,
+                            style: {
+                              fontSize: "1rem",
+                              fontWeight: 400,
+                              color: "#222",
+                            }
+                          }}
+                          label="Evaluator Comment"
+                          multiline
+                          minRows={3}
+                          fullWidth
+                          value={commentValue}
+                          onChange={e => handleEvaluatorCommentInput(evaluator, e.target.value)}
+                          placeholder="Enter your comment here"
+                          sx={{
+                            pb: 2,
+                            '& .MuiInputBase-input': {
+                              padding: 0,
+                            },
+                            '& label': { color: '#999', fontWeight: 400 }
+                          }}
+                          inputProps={{
+                            maxLength: COMMENT_CHAR_LIMIT
+                          }}
+                        />
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: charCountColor,
+                              fontWeight: charCount >= COMMENT_CHAR_LIMIT ? 'bold' : 'normal',
+                              fontStyle: charCount >= COMMENT_CHAR_LIMIT ? 'italic' : 'normal'
+                            }}
+                          >
+                            {charCount}/{COMMENT_CHAR_LIMIT}
+                          </Typography>
+                        </Box>
+                        {evaluator.updated_at && evaluator.signature_filepath && (
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "#888",
+                              fontStyle: "italic",
+                              mt: 1,
+                              mb: 1,
+                              ml: 0.5,
+                            }}
+                          >
+                            Signed - {evaluator.updated_at.slice(0, 10)}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Paper>
+                  );
+                })}
               </Box>
             ) : (
               <Typography color="text.secondary">
@@ -537,17 +628,26 @@ const PerformanceEvaluationAnswerPage = () => {
               </Typography>
             )}
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={submitting || !form}
-              sx={{ mt: 2, px: 4, py: 1.5, fontWeight: 'bold', bgcolor: '#177604', '&:hover': { bgcolor: '#0d5c27' } }}
-            >
-              {submitting ? "Submitting..." : "Submit Evaluation"}
-            </Button>
-          </Box>
+          {/* Hide submit button if evaluator has already signed */}
+          {!hasEvaluatorSigned ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={submitting || !form}
+                sx={{ mt: 2, px: 4, py: 1.5, fontWeight: 'bold', bgcolor: '#177604', '&:hover': { bgcolor: '#0d5c27' } }}
+              >
+                {submitting ? "Submitting..." : "Submit Evaluation"}
+              </Button>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <Typography variant="h6" sx={{ color: 'green', fontWeight: 'bold' }}>
+                You have already evaluated this form.
+              </Typography>
+            </Box>
+          )}
         </Box>
         <PerformanceEvaluationEvaluatorAcknowledge
           open={openEvaluatorAcknowledge}

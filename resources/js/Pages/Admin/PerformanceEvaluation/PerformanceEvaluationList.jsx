@@ -20,7 +20,7 @@ const STATUS_STYLES = {
         borderRadius: 20,
         padding: '2px 22px',
         fontSize: 13,
-        minWidth: 60,
+        width: 100,
         display: 'inline-block',
         textAlign: 'center'
     },
@@ -30,7 +30,7 @@ const STATUS_STYLES = {
         borderRadius: 20,
         padding: '2px 22px',
         fontSize: 13,
-        minWidth: 60,
+        width: 100,
         display: 'inline-block',
         textAlign: 'center'
     },
@@ -40,7 +40,7 @@ const STATUS_STYLES = {
         borderRadius: 20,
         padding: '2px 22px',
         fontSize: 13,
-        minWidth: 60,
+        width: 100,
         display: 'inline-block',
         textAlign: 'center'
     },
@@ -60,7 +60,7 @@ const STATUS_STYLES = {
         borderRadius: 20,
         padding: '2px 22px',
         fontSize: 13,
-        minWidth: 60,
+        width: 100,
         display: 'inline-block',
         textAlign: 'center'
     },
@@ -70,7 +70,7 @@ const STATUS_STYLES = {
         borderRadius: 20,
         padding: '2px 22px',
         fontSize: 13,
-        minWidth: 60,
+        width: 100,
         display: 'inline-block',
         textAlign: 'center'
     }

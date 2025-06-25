@@ -11,6 +11,10 @@ import { useEvaluationResponse } from '../../../hooks/useEvaluationResponse';
 import PerformanceEvaluationCommentorAcknowledge from '../../Admin/PerformanceEvaluation/Modals/PerformanceEvalutionCommentorAcknowledge';
 import Swal from 'sweetalert2';
 
+// Character count constants
+const COMMENT_CHAR_LIMIT = 512;
+const COMMENT_WARNING_THRESHOLD = 0.9; // 90%
+
 // --- Overall Rating Calculation Helper ---
 const getSectionScore = (section) => {
   if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [] };
@@ -113,6 +117,9 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
   const [openAcknowledge, setOpenAcknowledge] = useState(false);
   const [thisCommentor, setThisCommentor] = useState();
 
+  // Character count state
+  const [commentCharCount, setCommentCharCount] = useState(0);
+
   useEffect(() => {
     if (evaluationResponse && evaluationResponse.form) {
       setLoading(false);
@@ -121,9 +128,14 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
         ({ commentor_id }) => commentor_id === commentorId
       );
       setThisCommentor(thisCommentor);
-      if (thisCommentor?.comment) setCommentInput(thisCommentor.comment);
+      if (thisCommentor?.comment) {
+        setCommentInput(thisCommentor.comment);
+        setCommentCharCount(thisCommentor.comment.length);
+      } else {
+        setCommentCharCount(0);
+      }
     }
-  }, [evaluationResponse]);
+  }, [evaluationResponse, commentorId]);
 
   const handleSettingsClick = (event) => {
     setSettingsAnchorEl(event.currentTarget);
@@ -180,6 +192,20 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
     } finally {
       setSaving(false);
       setOpenAcknowledge(false);
+    }
+  };
+
+  // Character count color logic
+  let charCountColor = '#888';
+  if (commentCharCount >= COMMENT_CHAR_LIMIT) charCountColor = 'red';
+  else if (commentCharCount >= COMMENT_CHAR_LIMIT * COMMENT_WARNING_THRESHOLD) charCountColor = '#ff9800'; // orange
+
+  // Only allow up to COMMENT_CHAR_LIMIT characters
+  const handleCommentInputChange = (e) => {
+    const value = e.target.value;
+    if (value.length <= COMMENT_CHAR_LIMIT) {
+      setCommentInput(value);
+      setCommentCharCount(value.length);
     }
   };
 
@@ -643,91 +669,91 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
         </Box>                
 
         {/* Previous Commentors Preview */}
-          {previousCommentors.length > 0 && (
-            <Box sx={{ mt: 6 }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-                Previous Commentor Comments:
-              </Typography>
-              {previousCommentors.map((prev, i) => (
-                <Paper
-                  key={prev.commentor_id}
-                  elevation={2}
+        {previousCommentors.length > 0 && (
+          <Box sx={{ mt: 6 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+              Previous Commentor Comments:
+            </Typography>
+            {previousCommentors.map((prev, i) => (
+              <Paper
+                key={prev.commentor_id}
+                elevation={2}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '100%',
+                  bgcolor: '#fff',
+                  borderRadius: 2,
+                  borderLeft: '8px solid #eab31a',
+                  px: 2,
+                  pt: 2,
+                  pb: 2,
+                  mt: 2,
+                  mb: 2,
+                  boxShadow: 2,
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
+                  {prev.client_id}
+                </Typography>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                  {getFullName(prev)}
+                </Typography>
+                <Box
                   sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    width: '100%',
-                    bgcolor: '#fff',
-                    borderRadius: 2,
-                    borderLeft: '8px solid #eab31a',
+                    border: "1.5px solid #ccc",
+                    borderRadius: "8px",
                     px: 2,
                     pt: 2,
-                    pb: 2,
-                    mt: 2,
-                    mb: 2,
-                    boxShadow: 2,
+                    pb: 0.5,
+                    background: "#fff",
+                    minHeight: 100,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#E9AE20', mb: 0.5 }}>
-                    {prev.client_id}
-                  </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
-                    {getFullName(prev)}
-                  </Typography>
-                  <Box
-                    sx={{
-                      border: "1.5px solid #ccc",
-                      borderRadius: "8px",
-                      px: 2,
-                      pt: 2,
-                      pb: 0.5,
-                      background: "#fff",
-                      minHeight: 100,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
+                  <TextField
+                    label="Comment"
+                    variant="standard"
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    value={prev.comment || ''}
+                    InputProps={{
+                      readOnly: true,
+                      disableUnderline: true,
+                      style: {
+                        fontSize: "1rem",
+                        fontWeight: 400,
+                        color: "#222",
+                      }
                     }}
-                  >
-                    <TextField
-                      label="Comment"
-                      variant="standard"
-                      multiline
-                      minRows={3}
-                      fullWidth
-                      value={prev.comment || ''}
-                      InputProps={{
-                        readOnly: true,
-                        disableUnderline: true,
-                        style: {
-                          fontSize: "1rem",
-                          fontWeight: 400,
-                          color: "#222",
-                        }
-                      }}
+                    sx={{
+                      pb: 2,
+                      '& .MuiInputBase-input': { padding: 0 },
+                      '& label': { color: '#999', fontWeight: 400 }
+                    }}
+                  />
+                  {prev.signature_filepath && prev.updated_at && (
+                    <Typography
+                      variant="body2"
                       sx={{
-                        pb: 2,
-                        '& .MuiInputBase-input': { padding: 0 },
-                        '& label': { color: '#999', fontWeight: 400 }
+                        color: "#888",
+                        fontStyle: "italic",
+                        mt: 1,
+                        mb: 1,
+                        ml: 0.5,
                       }}
-                    />
-                    {prev.signature_filepath && prev.updated_at && (
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: "#888",
-                          fontStyle: "italic",
-                          mt: 1,
-                          mb: 1,
-                          ml: 0.5,
-                        }}
-                      >
-                        Signed - {prev.updated_at.slice(0, 10)}
-                      </Typography>
-                    )}
-                  </Box>
-                </Paper>
-              ))}
-            </Box>
-          )}
+                    >
+                      Signed - {prev.updated_at.slice(0, 10)}
+                    </Typography>
+                  )}
+                </Box>
+              </Paper>
+            ))}
+          </Box>
+        )}
 
         {/* This Commentor's Section */}
         {thisCommentor ? (
@@ -779,7 +805,7 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
                   minRows={3}
                   fullWidth
                   value={commentInput}
-                  onChange={e => setCommentInput(e.target.value)}
+                  onChange={handleCommentInputChange}
                   placeholder="Enter your comment here"
                   disabled={saving || thisCommentor.signature_filepath}
                   InputProps={{
@@ -795,7 +821,22 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
                     '& .MuiInputBase-input': { padding: 0 },
                     '& label': { color: '#999', fontWeight: 400 }
                   }}
+                  inputProps={{
+                    maxLength: COMMENT_CHAR_LIMIT
+                  }}
                 />
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: charCountColor,
+                      fontWeight: commentCharCount >= COMMENT_CHAR_LIMIT ? 'bold' : 'normal',
+                      fontStyle: commentCharCount >= COMMENT_CHAR_LIMIT ? 'italic' : 'normal'
+                    }}
+                  >
+                    {commentCharCount}/{COMMENT_CHAR_LIMIT}
+                  </Typography>
+                </Box>
                 {thisCommentor.signature_filepath && thisCommentor.updated_at && (
                   <Typography
                     variant="body2"

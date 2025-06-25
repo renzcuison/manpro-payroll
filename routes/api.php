@@ -837,10 +837,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     //Salary Plans
     Route::get('getSalaryPlans', [SalaryPlansController::class, 'getSalaryPlans']);
+    Route::get('/getSalaryPlan', [SalaryPlansController::class, 'getSalaryPlan']);
     Route::post('/saveSalaryGrade', [SalaryPlansController::class, 'saveSalaryGrade']);
     Route::post('/editSalaryGrade/{id}', [SalaryPlansController::class, 'editSalaryGrade']);
     Route::post('/deleteSalaryGrade', [SalaryPlansController::class, 'deleteSalaryGrade']);
     Route::get('/getSalaryLogs', [SalaryPlansController::class, 'getSalaryLogs']);
+    Route::get('/getEmployeesBySalaryGrade', [SalaryPlansController::class, 'getEmployeesBySalaryGrade']);
     Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent', ]);
 });
 
