@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, CircularProgress, Button} from '@mui/material';
+import { Select, MenuItem, FormControl, InputLabel, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, CircularProgress, Button} from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import React from 'react';
-import { Tabs, Tab } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 import SalaryGradeAdd from './Modals/SalaryGradeAdd';
-import SalaryGradeEdit from './Modals/SalaryGradeEdit';
 import { useBenefit } from '../../../hooks/useBenefits';
 
 const SalaryPlans = () => {
@@ -140,23 +137,26 @@ const SalaryPlans = () => {
                             </Box>
                         ) : (
                             <>
-                                {benefitsList.length > 0 &&
-                                    (
-                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'flex-end' }}>
-                                            <Tabs
+                                {benefitsList.length > 0 && (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'flex-end' }}>
+                                        <FormControl sx={{ minWidth: 220 }}>
+                                            <InputLabel id="benefit-select-label">Select Benefit</InputLabel>
+                                            <Select
+                                                labelId="benefit-select-label"
+                                                id="benefit-select"
                                                 value={selectedBenefitIndex}
-                                                onChange={(e, newValue) => setSelectedBenefitIndex(newValue)}
-                                                sx={{ mb: 2 }}
-                                                variant="scrollable"
-                                                scrollButtons="auto"
+                                                label="Select Benefit"
+                                                onChange={(e) => setSelectedBenefitIndex(e.target.value)}
                                             >
                                                 {benefitsList.map((benefit, idx) => (
-                                                <Tab key={benefit.id} label={benefit.name} />
+                                                    <MenuItem key={benefit.id} value={idx}>
+                                                        {benefit.name}
+                                                    </MenuItem>
                                                 ))}
-                                            </Tabs>
-                                        </Box>
-                                    )
-                                }
+                                            </Select>
+                                        </FormControl>
+                                    </Box>
+                                )}
                                 <TableContainer style={{ overflowX: 'auto' }} sx={{ minHeight: 400 }}>
                                     <Table aria-label="simple table">
                                         <TableHead>
@@ -193,7 +193,7 @@ const SalaryPlans = () => {
                                                         sx={{ p: 1, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer" }}}
                                                         onClick={() => {
                                                             const gradeParam = salaryPlan.salary_grade_version
-                                                                ? `${salaryPlan.salary_grade}-${salaryPlan.salary_grade_version}`
+                                                                ? `${salaryPlan.salary_grade}.${salaryPlan.salary_grade_version}`
                                                                 : `${salaryPlan.salary_grade}`;
                                                             navigate(`/admin/compensation/salary-plans/${gradeParam}`);
                                                         }}
@@ -201,7 +201,7 @@ const SalaryPlans = () => {
                                                         <TableCell sx={{fontSize: 14}} align="center">
                                                         Grade {salaryPlan.salary_grade}
                                                         {salaryPlan.salary_grade_version
-                                                            ? `-${salaryPlan.salary_grade_version}`
+                                                            ? `.${salaryPlan.salary_grade_version}`
                                                             : ''}
                                                         </TableCell>
                                                         <TableCell sx={{ fontSize: 14 }} align="center">
