@@ -488,6 +488,7 @@ class EvaluationFormController extends Controller
             $newOrder = min(
                 EvaluationFormSection
                     ::where('form_id', $evaluationFormSection->form_id)
+                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
@@ -901,6 +902,7 @@ class EvaluationFormController extends Controller
             $newOrder = min(
                 EvaluationFormSubcategory
                     ::where('section_id', $evaluationFormSubcategory->section_id)
+                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
@@ -1475,15 +1477,16 @@ class EvaluationFormController extends Controller
             $newOrder = min(
                 EvaluationFormSubcategoryOption
                     ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
+                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
-
+            
             $now = date('Y-m-d H:i');
             $evaluationFormSubcategoryOption->order = $newOrder;
             $evaluationFormSubcategoryOption->deleted_at = $now;
             $evaluationFormSubcategoryOption->save();
-
+            
             $evaluationFormSubcategoryOptionsToMove = EvaluationFormSubcategoryOption
                 ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
                 ->where('order', '>', $oldOrder)
