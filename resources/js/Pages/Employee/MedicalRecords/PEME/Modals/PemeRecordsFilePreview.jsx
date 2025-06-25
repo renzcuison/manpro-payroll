@@ -16,12 +16,11 @@ const PemeRecordsFilePreview = ({ open, close, file }) => {
     const [docxHtml, setDocxHtml] = useState(null);
 
     useEffect(() => {
-        // Reset HTML when file changes or dialog closes
         setDocxHtml(null);
 
-        // Only handle docx preview if file is docx and has a URL
         if (file?.url && file.url.endsWith(".docx")) {
-            fetch(file.url)
+            console.log("Fetching DOCX for preview:", file.file_name);
+            fetch(`http://192.168.79.33:8000/api/download/${file.file_name}`)
                 .then((res) => res.blob())
                 .then((blob) => blob.arrayBuffer())
                 .then((arrayBuffer) =>

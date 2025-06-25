@@ -27,6 +27,7 @@ class PemeResponseDetailsController extends Controller
         return false;
     }
 
+
     public function download(Media $media)
     {
         $path = $media->getPath();
@@ -35,7 +36,15 @@ class PemeResponseDetailsController extends Controller
             return response()->json(['message' => 'File not found on disk.'], 404);
         }
 
-        return response()->download($path, $media->file_name);
+        $mimeType = $media->mime_type ?? mime_content_type($path) ?? 'application/octet-stream';
+
+        if (str_ends_with(strtolower($media->file_name), '.docx')) {
+            $mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        }
+
+        return response()->download($path, $media->file_name, [
+            'Content-Type' => $mimeType
+        ]);
     }
 
     public function index()
