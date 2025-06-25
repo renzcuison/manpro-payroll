@@ -183,207 +183,208 @@ const HMOEmployees = () => {
 
     return (
         <Layout title="HMO Masterlist">
-            <Box sx={{ mx: 'auto', width: '100%', px: { xs: 1, md: 3 } }}>
-                <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                        {plan?.plan_name}
-                    </Typography>
-                    <Grid container spacing={2} gap={2}>
-                        <Button
-                            style={{ backgroundColor: "#727F91" }} onClick={handleOnBackClick} variant="contained">
-                            Back
-                        </Button>
-                        <Button
-                            onClick={() => setOpenAssignEmployeeModal(true)} variant="contained" style={{ color: "#e8f1e6" }}>
-                            Assign
-                        </Button>
-                        <Button variant="contained" color="secondary" onClick={() => setOpenEditModal(true)}>
-                            Edit Plan
-                        </Button>
-                        <Button variant="contained" color="error" onClick={handleDelete}>
-                            Delete Plan
-                        </Button>
-                    </Grid>
-                </Box>
-
-                <HMOEditPlanModal
-                    open={openEditModal}
-                    onClose={() => setOpenEditModal(false)}
-                    plan={plan}
-                    user={user}
-                    onSave={(updatedPlan) => {
-                        setPlan(updatedPlan); 
-                        setOpenEditModal(false);
-                        Swal.fire("Success", "Plan updated successfully.", "success");
-                    }}
-                />
-
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={4} sx={{ width: '100%', boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
-                        <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px', height: '100%' }}>
-                            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>Group Life Details</Typography>
-                            <Grid container spacing={2} sx={{ display: 'flex', justifyContent: 'space-around' }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
-                                    <Grid item xs={6} sm={4}>
-                                        <Typography variant="subtitle1" fontWeight="bold">Payment Type:</Typography>
-                                    </Grid>
-                                    <Grid item xs={6} sm={8}>
-                                        <Typography variant="body1">
-                                            {plan?.type || 'N/A'}
-                                            </Typography>
-                                    </Grid>
-                                </Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
-                                    <Grid item xs={6} sm={4}>
-                                        <Typography variant="subtitle1" fontWeight="bold">Employer Share:</Typography>
-                                    </Grid>
-                                    <Grid item xs={6} sm={8}>
-                                        <Typography variant="body1">
-                                                  {plan?.employer_share !== undefined
-                                                    ? `₱${parseFloat(plan.employer_share).toFixed(2)}`
-                                                    : 'Unassigned'}
-                                        </Typography>
-                                    </Grid>
-                                </Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
-                                    <Grid item xs={6} sm={4}>
-                                        <Typography variant="subtitle1" fontWeight="bold">Employee Share:</Typography>
-                                    </Grid>
-                                    <Grid item xs={6} sm={8}>
-                                        <Typography variant="body1">
-                                                  {plan?.employee_share !== undefined
-                                                    ? `₱${parseFloat(plan.employee_share).toFixed(2)}`
-                                                    : 'N/A'}
-                                        </Typography>
-                                    </Grid>
-                                </Box>
-                            </Grid>
-                        </Box>
-                    </Grid>
-                </Grid>
-
-                <Grid item md={4} xs={12} sx={{ mt: 3, p: 3, bgcolor: "#fff", borderRadius: "8px", boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)'  }}                >
-                    <Box sx={{ bgcolor: "#ffffff", borderRadius: "8px" }} >
-                    <Grid
-                        container
-                        spacing={2}
-                        sx={{ pl:1, pr: 1, mt: 3, bgcolor: "#fff", borderRadius: "8px", flexWrap: 'wrap', }}
-                        >
-                            <Grid size={3}>
-                                <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
-                                    <InputLabel htmlFor="custom-search">
-                                        Search
-                                    </InputLabel>
-                                    <OutlinedInput
-                                        id="custom-search"
-                                        size="medium"
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        endAdornment={
-                                            search && (
-                                                <InputAdornment position="end">
-                                                    <Typography variant="body2" sx={{ color: "gray" }}>
-                                                        {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
-                                                    </Typography>
-                                                </InputAdornment>
-                                            )
-                                        }
-                                        label="Search"
-                                        />
-                                    </FormControl>
-                            </Grid>
-                            <Grid size={3}  sx={{ml:43, justifyContent: 'flex-end'}}>
-                            {/* Branch Filter */}
-                                <TextField
-                                    select
-                                    label="Filter by Branch"
-                                    value={filterByBranch}
-                                    onChange={(e) => setFilterByBranch(e.target.value)}
-                                    sx={{ width: "100%" }}
-                                    >
-                                    <MenuItem value="">All Branches</MenuItem>
-                                    {uniqueBranches.map((branchName) => (
-                                        <MenuItem key={branchName} value={branchName}>
-                                        {branchName}
-                                        </MenuItem>
-                                ))}
-                                </TextField>
-                            </Grid>
-                            <Grid size={3} sx={{justifyContent: 'flex-end'}}>
-                                {/* Department Filter */}
-                                <TextField
-                                    select
-                                    label="Filter by Department"
-                                    value={filterByDepartment}
-                                    onChange={(e) => setFilterByDepartment(e.target.value)}
-                                    sx={{ width: "100%" }}
-                                    >
-                                    <MenuItem value="">All Departments</MenuItem>
-                                    {uniqueDepartments.map((deptName) => (
-                                        <MenuItem key={deptName} value={deptName}>
-                                        {deptName}
-                                    </MenuItem>
-                                ))}
-                                </TextField>
-                            </Grid>
+            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+                    <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                            {plan?.plan_name}
+                        </Typography>
+                        <Grid container spacing={2} gap={2}>
+                            <Button
+                                style={{ backgroundColor: "#727F91" }} onClick={handleOnBackClick} variant="contained">
+                                Back
+                            </Button>
+                            <Button
+                                onClick={() => setOpenAssignEmployeeModal(true)} variant="contained" style={{ color: "#e8f1e6" }}>
+                                Assign
+                            </Button>
+                            <Button variant="contained" color="secondary" onClick={() => setOpenEditModal(true)}>
+                                Edit Plan
+                            </Button>
+                            <Button variant="contained" color="error" onClick={handleDelete}>
+                                Delete Plan
+                            </Button>
                         </Grid>
-
                     </Box>
-                    <Grid>
-                        <Box sx={{ pl: 1, pr: 1, bgcolor: '#ffffff', borderRadius: '8px', height: '100%' }}>
-                            <HMOEmployeeTable
-                                employees={filteredRecords}
-                                onRowClick={(row) => {
-                                setSelectedEmployeePlanId(row.id);
-                                setOpenEditEmployeeModal(true);
-                                }}
-                                search={search}
-                                loading={loading}
-                            />
-                        </Box>
-                        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-                            <TablePagination
-                                rowsPerPageOptions={[5, 10, 25]}
-                                component="div"
-                                count={filteredRecords.length}
-                                rowsPerPage={rowsPerPage}
-                                page={currentPage}
-                                onPageChange={(event, newPage) => setCurrentPage(newPage)}
-                                onRowsPerPageChange={(event) => {
-                                    setRowsPerPage(parseInt(event.target.value, 10));
-                                    setCurrentPage(0);
-                                }}
-                                sx={{
-                                    ".MuiTablePagination-actions": { mb: 2 },
-                                    ".MuiInputBase-root": { mb: 1 },
-                                    bgcolor: "#ffffff",
-                                    borderRadius: "8px",
-                                    width: "fit-content",
-                                    mt: 2
-                                }}
-                                />
-                        </Box>
+
+                    <HMOEditPlanModal
+                        open={openEditModal}
+                        onClose={() => setOpenEditModal(false)}
+                        plan={plan}
+                        user={user}
+                        onSave={(updatedPlan) => {
+                            setPlan(updatedPlan); 
+                            setOpenEditModal(false);
+                            Swal.fire("Success", "Plan updated successfully.", "success");
+                        }}
+                    />
+
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} md={4} sx={{ width: '100%'}}>
+                            <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px', height: '100%' }}>
+                                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>Group Life Details</Typography>
+                                <Grid container spacing={2} sx={{ display: 'flex', justifyContent: 'space-around' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
+                                        <Grid item xs={6} sm={4}>
+                                            <Typography variant="subtitle1" fontWeight="bold">Payment Type:</Typography>
+                                        </Grid>
+                                        <Grid item xs={6} sm={8}>
+                                            <Typography variant="body1">
+                                                {plan?.type || 'N/A'}
+                                                </Typography>
+                                        </Grid>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
+                                        <Grid item xs={6} sm={4}>
+                                            <Typography variant="subtitle1" fontWeight="bold">Employer Share:</Typography>
+                                        </Grid>
+                                        <Grid item xs={6} sm={8}>
+                                            <Typography variant="body1">
+                                                    {plan?.employer_share !== undefined
+                                                        ? `₱${parseFloat(plan.employer_share).toFixed(2)}`
+                                                        : 'Unassigned'}
+                                            </Typography>
+                                        </Grid>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
+                                        <Grid item xs={6} sm={4}>
+                                            <Typography variant="subtitle1" fontWeight="bold">Employee Share:</Typography>
+                                        </Grid>
+                                        <Grid item xs={6} sm={8}>
+                                            <Typography variant="body1">
+                                                    {plan?.employee_share !== undefined
+                                                        ? `₱${parseFloat(plan.employee_share).toFixed(2)}`
+                                                        : 'N/A'}
+                                            </Typography>
+                                        </Grid>
+                                    </Box>
+                                </Grid>
+                            </Box>
+                        </Grid>
                     </Grid>
-                </Grid>
 
-                {openEditEmployeeModal && selectedEmployeePlanId && (
-                    <HMOEditEmployee
-                        open={openEditEmployeeModal}
-                        close={setOpenEditEmployeeModal}
-                        employeePlanId={selectedEmployeePlanId}
-                        refreshEmployees={refreshEmployees}
-                    />
-                )}
+                    <Grid item md={4} xs={12} sx={{ mt: 3, p: 3, bgcolor: "#fff", borderRadius: "8px"}}>
+                        <Box sx={{ bgcolor: "#ffffff", borderRadius: "8px" }} >
+                        <Grid
+                            container
+                            spacing={2}
+                            sx={{ pl:1, pr: 1, mt: 3, bgcolor: "#fff", borderRadius: "8px", flexWrap: 'wrap', }}
+                            >
+                                <Grid size={3}>
+                                    <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
+                                        <InputLabel htmlFor="custom-search">
+                                            Search
+                                        </InputLabel>
+                                        <OutlinedInput
+                                            id="custom-search"
+                                            size="medium"
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                            endAdornment={
+                                                search && (
+                                                    <InputAdornment position="end">
+                                                        <Typography variant="body2" sx={{ color: "gray" }}>
+                                                            {resultsCount} {resultsCount === 1 || resultsCount === 0 ? "Match" : "Matches"}
+                                                        </Typography>
+                                                    </InputAdornment>
+                                                )
+                                            }
+                                            label="Search"
+                                            />
+                                        </FormControl>
+                                </Grid>
+                                <Grid size={3}  sx={{ml:42, justifyContent: 'flex-end'}}>
+                                {/* Branch Filter */}
+                                    <TextField
+                                        select
+                                        label="Filter by Branch"
+                                        value={filterByBranch}
+                                        onChange={(e) => setFilterByBranch(e.target.value)}
+                                        sx={{ width: "100%" }}
+                                        >
+                                        <MenuItem value="">All Branches</MenuItem>
+                                        {uniqueBranches.map((branchName) => (
+                                            <MenuItem key={branchName} value={branchName}>
+                                            {branchName}
+                                            </MenuItem>
+                                    ))}
+                                    </TextField>
+                                </Grid>
+                                <Grid size={3} sx={{justifyContent: 'flex-end'}}>
+                                    {/* Department Filter */}
+                                    <TextField
+                                        select
+                                        label="Filter by Department"
+                                        value={filterByDepartment}
+                                        onChange={(e) => setFilterByDepartment(e.target.value)}
+                                        sx={{ width: "100%" }}
+                                        >
+                                        <MenuItem value="">All Departments</MenuItem>
+                                        {uniqueDepartments.map((deptName) => (
+                                            <MenuItem key={deptName} value={deptName}>
+                                            {deptName}
+                                        </MenuItem>
+                                    ))}
+                                    </TextField>
+                                </Grid>
+                            </Grid>
 
-                {openAssignEmployeeModal && (
-                    <HMOAssignEmployee
-                        open={openAssignEmployeeModal}
-                        close={setOpenAssignEmployeeModal}
-                        planId={id}
-                        refreshEmployees={refreshEmployees}
-                    />
-                )}
-                
+                        </Box>
+                        <Grid>
+                            <Box sx={{ pl: 1, pr: 1, bgcolor: '#ffffff', borderRadius: '8px', height: '100%' }}>
+                                <HMOEmployeeTable
+                                    employees={filteredRecords}
+                                    onRowClick={(row) => {
+                                    setSelectedEmployeePlanId(row.id);
+                                    setOpenEditEmployeeModal(true);
+                                    }}
+                                    search={search}
+                                    loading={loading}
+                                />
+                            </Box>
+                            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                                <TablePagination
+                                    rowsPerPageOptions={[5, 10, 25]}
+                                    component="div"
+                                    count={filteredRecords.length}
+                                    rowsPerPage={rowsPerPage}
+                                    page={currentPage}
+                                    onPageChange={(event, newPage) => setCurrentPage(newPage)}
+                                    onRowsPerPageChange={(event) => {
+                                        setRowsPerPage(parseInt(event.target.value, 10));
+                                        setCurrentPage(0);
+                                    }}
+                                    sx={{
+                                        ".MuiTablePagination-actions": { mb: 2 },
+                                        ".MuiInputBase-root": { mb: 1 },
+                                        bgcolor: "#ffffff",
+                                        borderRadius: "8px",
+                                        width: "fit-content",
+                                        mt: 2
+                                    }}
+                                    />
+                            </Box>
+                        </Grid>
+                    </Grid>
+
+                    {openEditEmployeeModal && selectedEmployeePlanId && (
+                        <HMOEditEmployee
+                            open={openEditEmployeeModal}
+                            close={setOpenEditEmployeeModal}
+                            employeePlanId={selectedEmployeePlanId}
+                            refreshEmployees={refreshEmployees}
+                        />
+                    )}
+
+                    {openAssignEmployeeModal && (
+                        <HMOAssignEmployee
+                            open={openAssignEmployeeModal}
+                            close={setOpenAssignEmployeeModal}
+                            planId={id}
+                            refreshEmployees={refreshEmployees}
+                        />
+                    )}
+                </Box>    
             </Box>
         </Layout>
     );
