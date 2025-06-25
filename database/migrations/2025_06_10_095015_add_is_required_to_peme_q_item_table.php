@@ -9,7 +9,7 @@ class AddisRequiredToPemeQItemTable extends Migration
     public function up(): void
     {
         Schema::table('peme_q_item', function (Blueprint $table) {
-            $table->boolean('isRequired')->default(1);
+            $table->boolean('isRequired');
         });
     }
 

@@ -36,7 +36,7 @@ class PemeQuestionnaireController extends Controller
             "input_types" => "required|array|min:1",
             "input_types.*" => "in:attachment,pass_fail,pos_neg,remarks,text",
             "file_size_limit" => "nullable|numeric|min:0.1|max:500",
-            "isRequired" => "nullable|boolean",
+            "isRequired" => "required|boolean",
         ]);
 
         $validated["isRequired"] = $validated["isRequired"] ?? 0;

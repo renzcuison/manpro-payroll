@@ -289,7 +289,7 @@ class AttendanceController extends Controller
         Log::info("AttendanceController::calculateAttendanceSummary");
     }
 
-/*
+    /*
     public function saveMobileEmployeeAttendance(Request $request)
     {
         // log::info("AttendanceController::saveMobileEmployeeAttendance");
@@ -994,6 +994,29 @@ class AttendanceController extends Controller
             ->all();
         //Log::info("------------------------- END");
         return response()->json(['status' => 200, 'summary' => $summaryData]);
+    }
+
+    public function getEarliestUserLog(Request $request)
+    {
+        $user = Auth::user();
+        $employeeId = $user->id;
+
+        if ($this->checkUserAdmin() && $request->input('employee')) {
+            $employeeId = $request->input('employee');
+        }
+
+        $earliestLog = AttendanceLogsModel::where('user_id', $employeeId)
+            ->orderBy('timestamp', 'asc')
+            ->value('timestamp');
+
+        if (!$earliestLog) {
+            return response()->json(['status' => 404, 'message' => 'No attendance found.']);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'earliest_date' => Carbon::parse($earliestLog)->format('Y-m-d')
+        ]);
     }
 
     public function getEmployeeDashboardAttendance()

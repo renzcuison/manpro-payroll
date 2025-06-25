@@ -1,6 +1,7 @@
 import Layout from "../../../../components/Layout/Layout";
 import React, { useState, useEffect, useRef } from "react";
 import PemeRecordsFilePreview from "./Modals/PemeRecordsFilePreview";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 import {
     Box,
@@ -26,7 +27,15 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import dayjs from "dayjs";
 import Swal from "sweetalert2";
 
-const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
+const UploadForm = ({
+    files = [],
+    onChange,
+    fileArray,
+    fileName,
+    onFileClick,
+    onRemoveFile,
+    formID,
+}) => {
     const fileInputRef = useRef();
 
     const handleFileChange = (e) => {
@@ -48,31 +57,52 @@ const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
                 }}
             >
                 {/* Show existing file from props */}
-                {file && (
-                    <Typography
-                        color="primary"
-                        onClick={() => {
-                            if (onFileClick && file?.url) {
-                                onFileClick(file.url, file.file_name);
-                            }
-                        }}
-                        sx={{
-                            boxShadow: 1,
-                            padding: 1,
-                            borderRadius: 1,
-                            display: "inline-block",
-                            backgroundColor: "#fafafa",
-                            cursor: "pointer",
-                            mr: 2,
-                        }}
-                    >
-                        <FileUploadIcon
-                            sx={{ mr: 1, verticalAlign: "middle" }}
-                        />
-                        {fileName}
-                    </Typography>
-                )}
 
+                {fileArray.map((file, index) => {
+                    return (
+                        <Typography
+                            key={index}
+                            color="primary"
+                            onClick={() => {
+                                if (onFileClick && file?.url) {
+                                    onFileClick(file.url, file.file_name);
+                                }
+                            }}
+                            sx={{
+                                position: "relative",
+                                boxShadow: 1,
+                                padding: 1,
+                                borderRadius: 1,
+                                display: "inline-block",
+                                backgroundColor: "#fafafa",
+                                cursor: "pointer",
+                                mr: 2,
+                            }}
+                        >
+                            <FileUploadIcon
+                                sx={{ mr: 1, verticalAlign: "middle" }}
+                            />
+                            {file.file_name}
+                            <Button
+                                sx={{
+                                    zIndex: 10,
+                                    margin: 0,
+                                    padding: 0,
+                                    color: "#f92a2a",
+                                    position: "absolute",
+                                    right: -30,
+                                    top: -10,
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRemoveFile && onRemoveFile(file); // Pass the file object
+                                }}
+                            >
+                                <CancelIcon />
+                            </Button>
+                        </Typography>
+                    );
+                })}
                 {/* Show newly uploaded files */}
                 {Array.isArray(files) && files.length > 0 ? (
                     files.map((file, index) => (
@@ -80,6 +110,7 @@ const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
                             key={index}
                             color="primary"
                             sx={{
+                                position: "relative",
                                 boxShadow: 1,
                                 padding: 1,
                                 borderRadius: 1,
@@ -97,13 +128,29 @@ const UploadForm = ({ files = [], onChange, file, fileName, onFileClick }) => {
                             <FileUploadIcon
                                 sx={{ mr: 1, verticalAlign: "middle" }}
                             />
-                            {file.name || file.fileName || "Unknown file"}
+                            {file.name || file.file_name || "Unknown file"}
+                            <Button
+                                sx={{
+                                    zIndex: 10,
+                                    margin: 0,
+                                    padding: 0,
+                                    color: "#c92a2a",
+                                    position: "absolute",
+                                    right: -30,
+                                    top: -10,
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRemoveFile && onRemoveFile(file); // Pass the file object
+                                }}
+                            >
+                                <CancelIcon />
+                            </Button>
                         </Typography>
                     ))
-                ) : !file ? (
+                ) : fileArray.length === 0 ? (
                     <Typography sx={{ mr: 2 }}>No file uploaded</Typography>
                 ) : null}
-
                 {/* Upload button */}
                 <input
                     type="file"
@@ -135,8 +182,8 @@ const PassOrFail = ({ value, onChange }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-                ? "Fail"
-                : "";
+            ? "Fail"
+            : "";
 
     return (
         <Box
@@ -165,8 +212,8 @@ const PostiveOrNegative = ({ value, onChange }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-                ? "Negative"
-                : "";
+            ? "Negative"
+            : "";
 
     return (
         <Box
@@ -217,6 +264,7 @@ const TextBox = ({ value, onChange }) => {
 
 const PemeQuestionnaireView = () => {
     const [answers, setAnswers] = useState({});
+
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
     const { PemeResponseID } = useParams();
@@ -225,8 +273,6 @@ const PemeQuestionnaireView = () => {
     const [expirationDate, setExpirationDate] = useState(dayjs());
     const [nextSchedule, setNextSchedule] = useState(dayjs());
     const [status, setStatus] = useState("");
-    const [pemeResponses, setPemeResponses] = useState("");
-    const [isDraftStatus, setIsDraftStatus] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [filePreviewOpen, setFilePreviewOpen] = useState(false);
 
@@ -236,25 +282,7 @@ const PemeQuestionnaireView = () => {
                 headers,
             })
             .then((response) => {
-                console.log("RESPONSE.DATA", response.data);
                 setEmployeeResponse(response.data);
-                setIsDraftStatus(response.data.isDraft);
-                const initialAnswers = {};
-                if (Array.isArray(response.data.details)) {
-                    response.data.details.forEach((form) => {
-                        initialAnswers[form.question_id] = {};
-                        if (Array.isArray(form.input_type)) {
-                            form.input_type.forEach((type) => {
-                                initialAnswers[form.question_id][
-                                    type.input_type
-                                ] = type.value ?? "";
-                            });
-                        }
-                    });
-                }
-                setAnswers(initialAnswers);
-
-                setIsLoading(false);
             })
             .catch((error) => {
                 console.error("Error fetching PEME records:", error);
@@ -262,17 +290,25 @@ const PemeQuestionnaireView = () => {
             });
     }, []);
 
-    //Set FE dates and status to values from DB
+    // Re-initialize answers whenever employeeResponse changes
     useEffect(() => {
-        if (pemeResponses && pemeResponses[0]) {
-            const res = pemeResponses[0];
-            if (res.expiry_date) setExpirationDate(dayjs(res.expiry_date));
-            if (res.next_schedule) setNextSchedule(dayjs(res.next_schedule));
-            if (res.status) setStatus(res.status);
+        if (Array.isArray(employeeResponse.details)) {
+            const initialAnswers = {};
+            employeeResponse.details.forEach((form) => {
+                initialAnswers[form.question_id] = {};
+                if (Array.isArray(form.input_type)) {
+                    form.input_type.forEach((type) => {
+                        initialAnswers[form.question_id][type.input_type] =
+                            type.value ?? "";
+                    });
+                }
+            });
+            setAnswers(initialAnswers);
+            setIsLoading(false);
         }
-    }, [pemeResponses]);
+    }, [employeeResponse]);
 
-    const handleOnConfirmClick = () => {
+    const handleOnConfirmClick = (draftStatus) => {
         Swal.fire({
             customClass: { container: "my-swal" },
             title: "Are you sure?",
@@ -284,99 +320,213 @@ const PemeQuestionnaireView = () => {
             showCancelButton: true,
             cancelButtonText: "Cancel",
         }).then(async (res) => {
-            if (res.isConfirmed) {
-                try {
-                    const payload = {
-                        expiry_date: expirationDate,
-                        next_schedule: nextSchedule,
-                        status: status,
-                    };
-                    console.log(payload);
+            const responses = [];
 
-                    await axiosInstance.patch(
-                        `/peme-responses/${PemeResponseID}/status`,
-                        payload,
-                        { headers }
-                    );
+            if (Array.isArray(employeeResponse.details)) {
+                employeeResponse.details.forEach((form) => {
+                    if (Array.isArray(form.input_type)) {
+                        form.input_type.forEach((type) => {
+                            const value =
+                                answers[form.question_id]?.[type.input_type] ??
+                                null;
 
-                    console.log("payload", payload);
+                            // Handle attachments
+                            if (type.input_type === "attachment") {
+                                // Existing backend files
+                                const existingFiles = Array.isArray(form.media)
+                                    ? form.media
+                                    : [];
+                                // New files (File objects)
+                                const newFiles = Array.isArray(value)
+                                    ? value.filter((f) => f instanceof File)
+                                    : [];
 
-                    Swal.fire({
-                        icon: "success",
-                        text: "Changes updated successfully.",
-                        showConfirmButton: false,
-                        timer: 1500,
+                                const responseEntry = {
+                                    peme_q_item_id: form.question_id,
+                                    peme_q_type_id: type.id,
+                                    existing_file_ids: existingFiles.map(
+                                        (f) => f.id
+                                    ), // <-- use .id, not .file
+                                };
+
+                                if (newFiles.length > 0) {
+                                    responseEntry.files = newFiles;
+                                }
+
+                                responses.push(responseEntry);
+                            } else {
+                                // Non-attachment types
+                                responses.push({
+                                    peme_q_item_id: form.question_id,
+                                    peme_q_type_id: type.id,
+                                    value: value,
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            const formData = new FormData();
+            formData.append("peme_response_id", PemeResponseID);
+            formData.append("isDraft", draftStatus);
+
+            responses.forEach((item, index) => {
+                formData.append(
+                    `responses[${index}][peme_q_item_id]`,
+                    item.peme_q_item_id
+                );
+                formData.append(
+                    `responses[${index}][peme_q_type_id]`,
+                    item.peme_q_type_id
+                );
+
+                // Always append existing file IDs
+                if (item.existing_file_ids) {
+                    if (item.existing_file_ids.length === 0) {
+                        formData.append(
+                            `responses[${index}][existing_file_ids]`,
+                            ""
+                        );
+                    } else {
+                        item.existing_file_ids.forEach((id, idIndex) => {
+                            formData.append(
+                                `responses[${index}][existing_file_ids][${idIndex}]`,
+                                id
+                            );
+                        });
+                    }
+                }
+
+                // Append new files
+                if (
+                    Array.isArray(item.files) &&
+                    item.files[0] instanceof File
+                ) {
+                    item.files.forEach((file, fileIndex) => {
+                        formData.append(
+                            `responses[${index}][files][${fileIndex}]`,
+                            file
+                        );
                     });
-                } catch (error) {
+                }
+
+                // For non-attachments
+                if (item.value !== undefined && item.value !== null) {
+                    formData.append(`responses[${index}][value]`, item.value);
+                }
+            });
+
+            console.log("About to log FormData...");
+            console.log("FORMDATA PAYLOAD:");
+            for (const pair of formData.entries()) {
+                console.log(pair[0], pair[1]);
+            }
+
+            try {
+                await axiosInstance.post(`/peme-responses/storeAll`, formData, {
+                    headers,
+                });
+
+                const response = await axiosInstance.get(
+                    `/peme-response/${PemeResponseID}/details`,
+                    { headers }
+                );
+                setEmployeeResponse(response.data);
+                Swal.fire({
+                    icon: "success",
+                    text: "Response saved successfully.",
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+            } catch (error) {
+                const status = error.response.status;
+
+                console.log("ERROR", error);
+                if (status >= 500) {
+                    Swal.fire({
+                        title: "Server Error",
+                        text: `error`,
+                        icon: "error",
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    });
+                } else if (status === 400) {
                     Swal.fire({
                         title: "Error",
-                        text: "Failed to save changes. Please try again.",
+                        text: `Submission Failed`,
+                        icon: "error",
+                        confirmButtonText: "Okay",
+                        confirmButtonColor: "#177604",
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Error",
+                        text: `Please Fill out all required fields`,
                         icon: "error",
                         confirmButtonText: "Okay",
                         confirmButtonColor: "#177604",
                     });
                 }
+
+                console.log(error);
             }
         });
     };
 
-    const handleSaveDraft = async () => {
+    const handleSaveDraft = async (draftStatus) => {
         const responses = [];
-        const attachedMedia = [];
 
-        if (Array.isArray(employeeResponse.details)) {
-            employeeResponse.details.forEach((form) => {
-                if (Array.isArray(form.input_type)) {
-                    form.input_type.forEach((type) => {
-                        const value =
-                            answers[form.question_id]?.[type.input_type] ??
-                            null;
+        employeeResponse.details.forEach((form) => {
+            if (Array.isArray(form.input_type)) {
+                form.input_type.forEach((type) => {
+                    const value =
+                        answers[form.question_id]?.[type.input_type] ?? null;
 
-                        let answerValue = value;
-
-                        const responseEntry = {
-                            peme_q_item_id: form.question_id,
-                            peme_q_type_id: type.id,
-                            value: answerValue,
-                        };
-
-                        console.log('question:', form.question_id);
-                        console.log('input_type:', type.input_type);
-                        console.log('value:', value);
-                        console.log('value[0] instanceof File:', value[0] instanceof File);
-                        console.log('typeof value[0]:', typeof value[0]);
+                    if (type.input_type === "attachment") {
+                        const existingFiles = Array.isArray(form.media)
+                            ? form.media
+                            : [];
+                        const newFiles = Array.isArray(value)
+                            ? value.filter((f) => f instanceof File)
+                            : [];
 
                         if (
-                            Array.isArray(answerValue) &&
-                            answerValue[0] instanceof File
+                            newFiles.length > 0 ||
+                            existingFiles.length > 0 ||
+                            form.isRequired === 1
                         ) {
-                            responseEntry.files = answerValue;
+                            const responseEntry = {
+                                peme_q_item_id: form.question_id,
+                                peme_q_type_id: type.id,
+                                existing_file_ids: existingFiles.map(
+                                    (f) => f.id
+                                ),
+                            };
+                            if (newFiles.length > 0) {
+                                responseEntry.files = newFiles;
+                            }
+                            responses.push(responseEntry);
                         }
-
-                        responses.push(responseEntry);
-
-                        // If value is an array of Files
-                        if (Array.isArray(value) && value[0] instanceof File) {
-                            value.forEach((file) => {
-                                attachedMedia.push({
-                                    file: file,
-                                });
+                    } else {
+                        if (
+                            (value !== null && value !== "") ||
+                            form.isRequired === 1
+                        ) {
+                            responses.push({
+                                peme_q_item_id: form.question_id,
+                                peme_q_type_id: type.id,
+                                value: value,
                             });
                         }
-                    });
-                }
-            });
-        }
-
-        const payload = {
-            peme_response_id: PemeResponseID,
-            responses: responses,
-        };
+                    }
+                });
+            }
+        });
 
         const formData = new FormData();
-
         formData.append("peme_response_id", PemeResponseID);
-        formData.append("isDraft", isDraftStatus);
+        formData.append("isDraft", draftStatus);
 
         responses.forEach((item, index) => {
             formData.append(
@@ -388,6 +538,24 @@ const PemeQuestionnaireView = () => {
                 item.peme_q_type_id
             );
 
+            // Always append existing file IDs
+            if (item.existing_file_ids) {
+                if (item.existing_file_ids.length === 0) {
+                    formData.append(
+                        `responses[${index}][existing_file_ids]`,
+                        ""
+                    );
+                } else {
+                    item.existing_file_ids.forEach((id, idIndex) => {
+                        formData.append(
+                            `responses[${index}][existing_file_ids][${idIndex}]`,
+                            id
+                        );
+                    });
+                }
+            }
+
+            // Append new files
             if (Array.isArray(item.files) && item.files[0] instanceof File) {
                 item.files.forEach((file, fileIndex) => {
                     formData.append(
@@ -395,34 +563,33 @@ const PemeQuestionnaireView = () => {
                         file
                     );
                 });
-                formData.append(`responses[${index}][value]`, "");
-            } else {
-                formData.append(`responses[${index}][value]`, item.value ?? "");
+            }
+
+            // For non-attachments
+            if (item.value !== undefined && item.value !== null) {
+                formData.append(`responses[${index}][value]`, item.value);
             }
         });
 
+        console.log("About to log FormData...");
+        console.log("FORMDATA PAYLOAD:");
         for (const pair of formData.entries()) {
             console.log(pair[0], pair[1]);
         }
 
         try {
-            const secondaryPayload = {
-                expiry_date: expirationDate,
-                next_schedule: nextSchedule,
-                status: status,
-            };
-            console.log(secondaryPayload);
-
-            await axiosInstance.patch(
-                `/peme-responses/${PemeResponseID}/status`,
-                secondaryPayload,
-                { headers }
-            );
-
-            console.log("ANSWERS", payload.responses);
             await axiosInstance.post(`/peme-responses/storeAll`, formData, {
                 headers,
             });
+
+            const response = await axiosInstance.get(
+                `/peme-response/${PemeResponseID}/details`,
+                { headers }
+            );
+            setEmployeeResponse(response.data);
+            console.log("Refetch response.data", response.data);
+            console.log("Refetch employeeResponse", employeeResponse);
+
             Swal.fire({
                 icon: "success",
                 text: "Draft saved successfully.",
@@ -437,7 +604,6 @@ const PemeQuestionnaireView = () => {
                 confirmButtonText: "Okay",
                 confirmButtonColor: "#177604",
             });
-
             console.log(error);
         }
     };
@@ -449,9 +615,7 @@ const PemeQuestionnaireView = () => {
 
     const navigator = useNavigate();
     const handleOnCancelClick = () => {
-        navigator(
-            `/admin/medical-records/peme-records/peme-responses/${PemeResponseID}`
-        );
+        navigator(`/employee/medical-records/peme/peme-responses`);
     };
 
     const handleInputChange = (questionId, inputType, value) => {
@@ -462,6 +626,60 @@ const PemeQuestionnaireView = () => {
                 [inputType]: value,
             },
         }));
+    };
+
+    //Remove file in backend
+    const handleRemoveFile = (questionId, fileToRemove) => {
+        // Remove from answers (new files)
+        setAnswers((prev) => {
+            let prevFiles = prev[questionId]?.attachment;
+            if (!Array.isArray(prevFiles)) prevFiles = [];
+            // Only remove if it's a File object (new upload)
+            const updatedFiles = prevFiles.filter(
+                (file) => file !== fileToRemove
+            );
+            return {
+                ...prev,
+                [questionId]: {
+                    ...prev[questionId],
+                    attachment: updatedFiles,
+                },
+            };
+        });
+
+        // Remove from employeeResponse.details (existing backend files)
+        setEmployeeResponse((prev) => {
+            const updatedDetails = prev.details.map((form) =>
+                form.question_id === questionId
+                    ? {
+                          ...form,
+                          media: Array.isArray(form.media)
+                              ? form.media.filter(
+                                    (file) => file.id !== fileToRemove.id
+                                )
+                              : [],
+                      }
+                    : form
+            );
+            // Log the existing file IDs for this question after removal
+            const form = updatedDetails.find(
+                (f) => f.question_id === questionId
+            );
+            const ids =
+                form && Array.isArray(form.media)
+                    ? form.media.map((f) => f.id)
+                    : [];
+            console.log(
+                "Existing file IDs after removal for question",
+                questionId,
+                ":",
+                ids
+            );
+            return {
+                ...prev,
+                details: updatedDetails,
+            };
+        });
     };
 
     return (
@@ -552,22 +770,22 @@ const PemeQuestionnaireView = () => {
                                         form.input_type.map((type, i) => {
                                             const value =
                                                 answers[form.question_id]?.[
-                                                type.input_type
+                                                    type.input_type
                                                 ] || "";
 
-                                            const attachmentValue =
-                                                answers[form.question_id]
-                                                    ?.attachment || [];
+                                            // const attachmentValue =
+                                            //     answers[form.question_id]
+                                            //         ?.attachment || [];
 
-                                            // Extract only File objects
-                                            const filesOnly = Array.isArray(
-                                                attachmentValue
-                                            )
-                                                ? attachmentValue.filter(
-                                                    (item) =>
-                                                        item instanceof File
-                                                )
-                                                : [];
+                                            // // Extract only File objects
+                                            // const filesOnly = Array.isArray(
+                                            //     attachmentValue
+                                            // )
+                                            //     ? attachmentValue.filter(
+                                            //           (item) =>
+                                            //               item instanceof File
+                                            //       )
+                                            //     : [];
 
                                             switch (type.input_type) {
                                                 case "remarks":
@@ -635,91 +853,71 @@ const PemeQuestionnaireView = () => {
                                                     );
                                                 case "attachment":
                                                     return (
-                                                        <>
-                                                            {Array.isArray(
-                                                                form.media
-                                                            ) &&
-                                                                form.media.length >
-                                                                0 ? (
-                                                                form.media.map(
-                                                                    (
-                                                                        file,
-                                                                        j
-                                                                    ) => {
-                                                                        return (
-                                                                            <UploadForm
-                                                                                key={
-                                                                                    j
-                                                                                }
-                                                                                fileSizeLimit={
-                                                                                    type.file_size_limit
-                                                                                }
-                                                                                file={
-                                                                                    file
-                                                                                }
-                                                                                files={
-                                                                                    filesOnly
-                                                                                }
-                                                                                fileName={
-                                                                                    file.file_name
-                                                                                }
-                                                                                onFileClick={
-                                                                                    handleFileClick
-                                                                                }
-                                                                                onChange={(
-                                                                                    newFiles
-                                                                                ) => {
-                                                                                    handleInputChange(
-                                                                                        form.question_id,
-
-                                                                                        "attachment",
-                                                                                        [
-                                                                                            ...(answers[
-                                                                                                form
-                                                                                                    .question_id
-                                                                                            ]
-                                                                                                ?.attachment ||
-                                                                                                []),
-                                                                                            ...newFiles,
-                                                                                        ]
-                                                                                    );
-                                                                                }}
-                                                                            />
-                                                                        );
-                                                                    }
+                                                        <UploadForm
+                                                            key={i}
+                                                            formID={
+                                                                form.question_id
+                                                            }
+                                                            fileArray={
+                                                                form.media || []
+                                                            } // existing files from backend
+                                                            files={
+                                                                answers[
+                                                                    form
+                                                                        .question_id
+                                                                ]?.attachment ||
+                                                                []
+                                                            } // new files
+                                                            fileSizeLimit={
+                                                                type.file_size_limit
+                                                            }
+                                                            onFileClick={
+                                                                handleFileClick
+                                                            }
+                                                            onRemoveFile={(
+                                                                file
+                                                            ) =>
+                                                                handleRemoveFile(
+                                                                    form.question_id,
+                                                                    file
                                                                 )
-                                                            ) : (
-                                                                <UploadForm
-                                                                    key={i}
-                                                                    files={
-                                                                        value
-                                                                    }
-                                                                    onChange={(
-                                                                        newFiles
-                                                                    ) => {
-                                                                        handleInputChange(
-                                                                            form.question_id,
-
-                                                                            "attachment",
-                                                                            [
-                                                                                ...(answers[
-                                                                                    form
-                                                                                        .question_id
-                                                                                ]
-                                                                                    ?.attachment ||
-                                                                                    []),
-                                                                                ...newFiles,
-                                                                            ]
-                                                                        );
-                                                                    }}
-                                                                />
-                                                            )}
-                                                        </>
+                                                            }
+                                                            onChange={(
+                                                                newFiles
+                                                            ) => {
+                                                                handleInputChange(
+                                                                    form.question_id,
+                                                                    "attachment",
+                                                                    [
+                                                                        ...(answers[
+                                                                            form
+                                                                                .question_id
+                                                                        ]
+                                                                            ?.attachment ||
+                                                                            []),
+                                                                        ...newFiles,
+                                                                    ]
+                                                                );
+                                                            }}
+                                                        />
                                                     );
                                                 default:
                                                     return null;
                                             }
                                         })}
+
+                                    {form.isRequired === 1 ? (
+                                        <Typography
+                                            sx={{
+                                                fontWeight: "bold",
+                                                color: "red",
+                                            }}
+                                        >
+                                            REQUIRED
+                                        </Typography>
+                                    ) : (
+                                        ""
+                                    )}
                                 </Box>
                             ))}
                         <Box
@@ -747,58 +945,18 @@ const PemeQuestionnaireView = () => {
                                 >
                                     Cancel
                                 </Button>
-
-                                <LocalizationProvider
-                                    dateAdapter={AdapterDayjs}
-                                >
-                                    <DatePicker
-                                        label="Expiration Date"
-                                        value={expirationDate}
-                                        onChange={setExpirationDate}
-                                    />
-                                </LocalizationProvider>
-                                <LocalizationProvider
-                                    dateAdapter={AdapterDayjs}
-                                >
-                                    <DatePicker
-                                        label="Next Schedule"
-                                        value={nextSchedule}
-                                        onChange={setNextSchedule}
-                                    />
-                                </LocalizationProvider>
-
-                                <FormControl sx={{ width: 200 }}>
-                                    <InputLabel>Status</InputLabel>
-                                    <Select
-                                        value={status}
-                                        label="Status"
-                                        onChange={(e) =>
-                                            setStatus(e.target.value)
-                                        }
-                                    >
-                                        <MenuItem value={"Pending"}>
-                                            Pending
-                                        </MenuItem>
-                                        <MenuItem value={"Clear"}>
-                                            Clear
-                                        </MenuItem>
-                                        <MenuItem value={"Rejected"}>
-                                            Rejected
-                                        </MenuItem>
-                                    </Select>
-                                </FormControl>
                             </Box>
 
                             <Box sx={{ display: "flex", gap: 2 }}>
                                 <Button
                                     variant="contained"
-                                    onClick={handleSaveDraft}
+                                    onClick={() => handleSaveDraft(1)}
                                 >
                                     Save Draft
                                 </Button>
                                 <Button
                                     variant="contained"
-                                    onClick={handleOnConfirmClick}
+                                    onClick={() => handleOnConfirmClick(0)}
                                 >
                                     Submit
                                 </Button>

@@ -49,7 +49,6 @@ const AttendanceSummary = () => {
     const [summaryFromDate, setSummaryFromDate] = useState(dayjs().startOf("month"));
     const [summaryToDate, setSummaryToDate] = useState(dayjs());
     const [selectedRange, setSelectedRange] = useState("today");
-    
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -64,6 +63,15 @@ const AttendanceSummary = () => {
 
     // Summary API
     const fetchAttendanceSummary = () => {
+        console.log("fetchAttendanceSummary:", {
+            summaryFromDate,
+            summaryToDate,
+            isFromValid: dayjs(summaryFromDate).isValid(),
+            isToValid: dayjs(summaryToDate).isValid(),
+            fromType: typeof summaryFromDate,
+            toType: typeof summaryToDate,
+        });
+
         setIsLoading(true);
         const data = {
             summary_from_date: summaryFromDate.format("YYYY-MM-DD"),
@@ -147,6 +155,7 @@ const AttendanceSummary = () => {
     };
 
     const handleFilterChange = (type, newDate, rangeEnd = null) => {
+        console.log("handleFilterChange", { type, newDate, rangeEnd });
         if (type === "from") {
             setSummaryFromDate(newDate);
             if (newDate.isAfter(summaryToDate)) {
@@ -172,6 +181,7 @@ const AttendanceSummary = () => {
     });
 
     const handleDateRangeChange = (start, end) => {
+        console.log("handleDateRangeChange", { start, end });
         if (!start && !end) {
             setSummaryFromDate(dayjs("1900-01-01"));
             setSummaryToDate(dayjs());
@@ -220,6 +230,7 @@ const AttendanceSummary = () => {
                                 <DateRangePicker
                                     summaryFromDate={summaryFromDate}
                                     summaryToDate={summaryToDate}
+                                    defaultRange={[dayjs().startOf("month"), dayjs().endOf("month")]}
                                     onRangeChange={(start, end) => handleFilterChange("range", start, end)}
                                 />
                             </Box>
