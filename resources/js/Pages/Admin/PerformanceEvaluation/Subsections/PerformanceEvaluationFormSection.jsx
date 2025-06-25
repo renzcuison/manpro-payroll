@@ -491,7 +491,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                     </SortableContext></DndContext>
 
                     {/* BUTTONS */}
-                    <Box sx={{ textAlign: 'center', mt: sectionCategory ? 0 : 3 }}>
+                    <Box sx={{ textAlign: 'center', mt: sectionCategory ? 3 : 3 }}>
                         <Button
                             variant="contained"
                             sx={{

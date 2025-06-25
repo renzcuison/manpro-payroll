@@ -72,8 +72,10 @@ function UserInformation({ user }) {
         event.preventDefault();
         const formData = new FormData();
 
-        formData.append('id', user.id);
-        formData.append('profile_picture', file);
+        formData.append('userName', user.user_name);
+        formData.append('profilePicture', file);
+
+        console.log(formData);
 
         axiosInstance.post('/employee/editMyProfilePicture', formData, { headers })
             .then(response => {

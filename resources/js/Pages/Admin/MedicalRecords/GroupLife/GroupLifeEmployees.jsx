@@ -160,7 +160,7 @@ const GroupLifeEmployees = () => {
             text: "This will delete the plan if there are no employees assigned.",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
+            confirmButtonText: "Delete",
         }).then((result) => {
             if (result.isConfirmed) {
             axiosInstance
@@ -168,15 +168,13 @@ const GroupLifeEmployees = () => {
                 headers: { Authorization: `Bearer ${user.token}` },
                 })
                 .then((res) => {
-                Swal.fire("Deleted!", res.data.message, "success").then(() => {
-                    navigator("/admin/medical-records/group-life-masterlist-records"); // 👈 Redirect to Page A
+                Swal.fire("Deleted!", "Group Life Plan deleted successfully", "success").then(() => {
+                    navigator("/admin/medical-records/group-life-masterlist-records");
                 });
                 })
                 .catch((err) => {
                 Swal.fire(
-                    "Delete failed",
-                    err.response?.data?.message || "Something went wrong",
-                    "error"
+                    "Delete failed", "Something went wrong", "error"
                 );
                 });
             }
@@ -199,7 +197,7 @@ const GroupLifeEmployees = () => {
                             onClick={() => setOpenAssignEmployeeModal(true)} variant="contained" style={{ color: "#e8f1e6" }}>
                             Assign
                         </Button>
-                        <Button variant="contained" onClick={() => setOpenEditModal(true)}>
+                        <Button variant="contained" color="secondary" onClick={() => setOpenEditModal(true)}>
                             Edit Plan
                         </Button>
                         <Button variant="contained" color="error" onClick={handleDelete}>
@@ -216,7 +214,7 @@ const GroupLifeEmployees = () => {
                     onSave={(updatedPlan) => {
                         setPlan(updatedPlan); 
                         setOpenEditModal(false);
-                        Swal.fire("Success", "Plan updated successfully!", "success");
+                        Swal.fire("Success", "Plan updated successfully.", "success");
                     }}
                 />
 
@@ -266,9 +264,14 @@ const GroupLifeEmployees = () => {
 
                 <Grid item md={4} xs={12} sx={{ mt: 3, p: 3, bgcolor: "#fff", borderRadius: "8px", boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)'  }}                >
                     <Box sx={{ bgcolor: "#ffffff", borderRadius: "8px" }} >
-                    <Grid container sx={{ pb: 2, borderBottom: "1px solid #e0e0e0" }} >
-                        <Grid container size={12} spacing={2}>
-                            <Grid size={3} mr={45}>
+                    <Grid
+                        container
+                        justifyContent="space-between"
+                        alignItems="center"
+                        spacing={2}
+                        sx={{ pl:1, pr: 1, mt: 3, bgcolor: "#fff", borderRadius: "8px", flexWrap: 'wrap', }}
+                        >
+                            <Grid size={3}>
                                 <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
                                     <InputLabel htmlFor="custom-search">
                                         Search
@@ -288,10 +291,10 @@ const GroupLifeEmployees = () => {
                                             )
                                         }
                                         label="Search"
-/>
+                                        />
                                     </FormControl>
                             </Grid>
-                            <Grid size={3}>
+                            <Grid size={3}  sx={{ml:43, justifyContent: 'flex-end'}}>
                             {/* Branch Filter */}
                                 <TextField
                                     select
@@ -308,7 +311,7 @@ const GroupLifeEmployees = () => {
                                 ))}
                                 </TextField>
                             </Grid>
-                            <Grid size={3}>
+                            <Grid size={3} sx={{justifyContent: 'flex-end'}}>
                                 {/* Department Filter */}
                                 <TextField
                                     select
@@ -326,7 +329,7 @@ const GroupLifeEmployees = () => {
                                 </TextField>
                             </Grid>
                         </Grid>
-                    </Grid>
+
                     </Box>
                     <Grid>
                         <Box sx={{ pl: 1, pr: 1, bgcolor: '#ffffff', borderRadius: '8px', height: '100%' }}>

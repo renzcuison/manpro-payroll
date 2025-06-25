@@ -35,6 +35,7 @@ class UserAuthController extends Controller
         try {
             
             log::info("UserAuthController::checkUser");
+            log::info($request->all());
 
             $fields = $request->validate(['user' => 'required|string', 'pass' => 'required|string']);
 

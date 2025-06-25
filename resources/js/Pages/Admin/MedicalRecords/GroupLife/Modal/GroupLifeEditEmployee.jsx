@@ -1,33 +1,24 @@
-import {    Box, 
-            Button, 
-            Dialog, 
-            DialogTitle, 
-            DialogContent, 
-            FormControl, 
-            TextField, 
-            Typography,  
-            IconButton, 
-            FormGroup,  
-            InputLabel, 
-            MenuItem, 
-            Grid,  
-            Autocomplete,
-            Select,
-            Table,
-            TableBody,
-            TableCell,
-            TableContainer,
-            TableHead,
-            TableRow,
-            Paper,
-            CircularProgress
-        } from "@mui/material";
+import {Box, 
+        Button, 
+        Dialog, 
+        DialogTitle, 
+        DialogContent, 
+        TextField, 
+        Typography,  
+        IconButton, 
+        Grid,  
+        Autocomplete,
+        Table,
+        TableBody,
+        TableCell,
+        TableContainer,
+        TableHead,
+        TableRow,
+        CircularProgress
+    } from "@mui/material";
 import axiosInstance, { getJWTHeader } from "@/utils/axiosConfig";
 import { useState, useEffect } from 'react';
 import 'react-quill/dist/quill.snow.css';
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Swal from 'sweetalert2';
 
 const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }) => {
@@ -105,15 +96,82 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
     };
 
     const handleRemoveDependent = (index) => {
-        const updated = [...dependents];
-        updated.splice(index, 1);
-        setDependents(updated);
+        const dependent = dependents[index];
+
+        if (dependent.id) {
+            Swal.fire({
+            title: "Are you sure?",
+            text: "This will delete the dependent.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Delete",
+            }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            axiosInstance
+                .delete(`/medicalRecords/deleteGroupLifeDependent/${dependent.id}`, {
+                headers: { Authorization: `Bearer ${user.token}` },
+                })
+                .then((res) => {
+                Swal.fire("Deleted!", "Dependent deleted successfully.", "success");
+                setDependents((prev) => prev.filter((_, i) => i !== index));
+                })
+                .catch((err) => {
+                console.error(err);
+                Swal.fire({
+                icon: "error",
+                title: "Delete failed",
+                text: "Something went wrong."
+                });
+                });
+            });
+        } else {
+            setDependents((prev) => prev.filter((_, i) => i !== index));
+        }
     };
 
     const handleDependentChange = (index, field, value) => {
         const updated = [...dependents];
         updated[index][field] = value;
         setDependents(updated);
+    };
+
+    const handleDeleteEmployee = (employeePlanId) => {
+    if (!employeePlanId) return;
+
+    Swal.fire({
+        title: "Are you sure?",
+        text: "This will delete the employee if there are no dependents assigned.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Delete",
+    }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        axiosInstance
+        .delete(`/medicalRecords/deleteGroupLifeEmployee/${employeePlanId}`, {
+            headers: { Authorization: `Bearer ${user.token}` },
+        })
+        .then((res) => {
+            Swal.fire({
+                icon: 'success',
+                title: "Success",
+                text: 'Group Life Employee deleted successfully.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            refreshEmployees();
+        })
+        .catch((err) => {
+            console.error(err);
+            Swal.fire( {
+            icon: "error",
+            title: "Delete failed",
+            text: "Something went wrong."
+            }
+            );
+        });
+    });
     };
 
     const handleSubmit = (afterSaveCallback) => {
@@ -137,7 +195,8 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
             refreshEmployees();
                 Swal.fire({
                     icon: 'success',
-                    text: 'Group Life Employee updated successfully!',
+                    title: "Success!",
+                    text: 'Group Life Employee updated successfully.',
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -149,7 +208,7 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
             console.error("Error submitting:", err);
             Swal.fire({
                 icon: 'error',
-                title: 'Error updating Group Life Employee!',
+                title: 'Error updating Group Life Employee.',
             });
         });
     };
@@ -177,10 +236,11 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
         console.error("Error fetching Group Life Employee", err);
         Swal.fire({
                 icon: 'error',
-                title: 'Error fetching Group Life Employee!',
+                title: 'Error fetching Group Life Employee.',
             });
     })
     };
+
 
     return (
         <>
@@ -286,25 +346,34 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
                         <Table stickyHeader aria-label="simple table">
                         <TableHead>
                             <TableRow>
-                            <TableCell><strong>Name</strong></TableCell>
-                            <TableCell><strong>Relationship</strong></TableCell>
-                            <TableCell><strong>Action</strong></TableCell>
+                            <TableCell align="center"><strong>Name</strong></TableCell>
+                            <TableCell align="center"><strong>Relationship</strong></TableCell>
+                            {editingIndex !== null && <TableCell align="center"><strong>Action</strong></TableCell>}
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {dependents.map((dep, index) => (
-                            <TableRow key={index}>
+                            <TableRow key={index}
+                            hover
+                            sx={{ cursor: editingIndex === index ? 'default' : 'pointer' }}
+                            onClick={() => {
+                                if (editingIndex !== index) {
+                                setEditingIndex(index);
+                                }
+                            }}
+                            >
                                 {editingIndex === index ? (
                                 <>
                                     <TableCell>
                                     <TextField
+                                        label="Name"
                                         fullWidth
                                         value={dep.name}
                                         onChange={(e) => handleDependentChange(index, "name", e.target.value)}
                                     />
                                     </TableCell>
 
-                                    <TableCell sx={{ width: '45%' }}>
+                                    <TableCell sx={{ width: '40%' }}>
                                         <Box sx={{ width: '100%' }}>
                                     <Autocomplete
                                         fullWidth
@@ -321,7 +390,7 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
                                         <TextField
                                             {...params}
                                             label="Relationship"
-                                            size="small"
+                                        
                                         />
                                         )}
                                     />
@@ -330,6 +399,7 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
 
                                     <TableCell>
                                         <Button
+                                        sx={{mr: 2}}
                                         variant="contained"
                                         color="primary"
                                         size="small"
@@ -338,9 +408,14 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
                                             reloadData();
                                             setEditingIndex(null);
                                             });
-                                        }}
-                                        >
+                                        }}>
                                         Save
+                                        </Button>
+                                        <Button                                         
+                                        variant="contained"
+                                        color="error"
+                                        size="small" onClick={() => handleRemoveDependent(index)}>
+                                        Delete
                                         </Button>
                                     </TableCell>
                                 </>
@@ -348,11 +423,11 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
                                 <>
                                     <TableCell>{dep.name}</TableCell>
                                     <TableCell>{dep.relationship}</TableCell>
-                                    <TableCell>
+                                    {/* <TableCell>
                                     <IconButton onClick={() => setEditingIndex(index)}>
                                         <i className="fa fa-pencil-square-o" />
                                     </IconButton>
-                                    </TableCell>
+                                    </TableCell> */}
                                 </>
                                 )}
                             </TableRow>
@@ -376,6 +451,11 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
                         Add Dependent
                         </Button>
                     </Grid>
+                    <Grid item>
+                        <Button variant="contained" color="error" onClick={() => handleDeleteEmployee(employeePlanId)}>
+                            Delete
+                        </Button>
+                        </Grid>
                     </Grid>
                 </>
                 )}
@@ -388,6 +468,9 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
                 >
                 Save Changes
                 </Button> */}
+
+
+
                 {showSaveButton && (
                     <Button
                         variant="contained"

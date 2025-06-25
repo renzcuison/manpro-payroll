@@ -55,8 +55,6 @@ function Milestones() {
     console.log("Milestones: ", milestones);
 
     const handleDeleteMilestone = (id) => {
-        console.log(id);
-
         Swal.fire({
             title: "Are you sure you want to delete greeting?",
             icon: "warning",
@@ -133,15 +131,19 @@ function Milestones() {
                             No upcoming milestones.
                         </Typography>
                     )}
-                    {milestonesUpcoming?.map((milestone) => (
-                        <MilestoneItem
-                            milestone={milestone}
-                            refetch={refetch}
-                            handleDelete={() =>
-                                handleDeleteMilestone(milestone.id)
-                            }
-                        />
-                    ))}
+                    {milestonesUpcoming
+                        ?.sort((a, b) => {
+                            return new Date(a.date) - new Date(b.date);
+                        })
+                        ?.map((milestone) => (
+                            <MilestoneItem
+                                milestone={milestone}
+                                refetch={refetch}
+                                handleDelete={() =>
+                                    handleDeleteMilestone(milestone.id)
+                                }
+                            />
+                        ))}
                 </Stack>
             </Stack>
 
