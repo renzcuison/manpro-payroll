@@ -16,7 +16,7 @@ const PemeOverview = ({ records }) => {
     const canvasRef = useRef(null);
 
     useEffect(() => {
-        // Group by date
+        // Group by exam name
         const dateCounts = records.reduce((acc, record) => {
             acc[record.name] = acc[record.name] || record.respondents;
             return acc;
@@ -37,14 +37,19 @@ const PemeOverview = ({ records }) => {
             data,
             options: {
                 responsive: true,
+                layout: {
+                    padding: {
+                        bottom: 20,
+                    },
+                },
                 plugins: {
                     legend: {
                         display: true,
-                        position: "left",
-                        align: "start",
+                        position: "bottom",
                         labels: {
                             usePointStyle: true,
                             pointStyle: "circle",
+                            padding: 30,
                             font: {
                                 size: 12,
                             },
@@ -65,9 +70,12 @@ const PemeOverview = ({ records }) => {
     return (
         <Box>
             <h6>Exam Respondents</h6>
-            <canvas ref={canvasRef}></canvas>
+            <Box sx={{ mt: 4, mb: -2}}>
+                <canvas ref={canvasRef}></canvas>
+            </Box>
         </Box>
     );
 };
+
 
 export default PemeOverview;
