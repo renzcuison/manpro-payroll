@@ -266,8 +266,6 @@ const GroupLifeEmployees = () => {
                     <Box sx={{ bgcolor: "#ffffff", borderRadius: "8px" }} >
                     <Grid
                         container
-                        justifyContent="space-between"
-                        alignItems="center"
                         spacing={2}
                         sx={{ pl:1, pr: 1, mt: 3, bgcolor: "#fff", borderRadius: "8px", flexWrap: 'wrap', }}
                         >
