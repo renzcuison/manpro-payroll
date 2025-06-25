@@ -1,31 +1,386 @@
-import React from 'react'
-import { Box, Button, Typography, FormGroup, TextField, FormControl, Menu, MenuItem, InputLabel,
-TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Checkbox } from '@mui/material';
+import React, {  useState, useEffect } from 'react'
+import { Box, Button, Typography, FormGroup, TextField, FormControl, Menu, MenuItem, InputLabel } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import { useManageWorkshift } from '../../../hooks/useWorkShifts';
+import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useUser } from '../../../hooks/useUser';
+import Swal from "sweetalert2";
 
+import dayjs, { Dayjs } from 'dayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 
-const WorkshiftAdd = () => {
-    const {
-        //values
-        shiftName,shiftType,firstLabel,secondLabel, 
-        regularTimeIn, regularTimeOut,splitFirstTimeIn, splitFirstTimeOut,
-        splitSecondTimeIn, splitSecondTimeOut,
-        breakStart, breakEnd, overTimeIn,overTimeOut, workDays,
-        //error object
-        errors,
-        //functions
-        setShiftName, handleShiftTypeChange, setFirstLabel,
-        setSecondLabel, setRegularTimeIn, setRegularTimeOut, setSplitFirstTimeIn,
-        setSplitSecondTimeOut,
-        setBreakStart, setBreakEnd, setOverTimeIn, setOverTimeOut, checkInput,
-        handleSplitFirstTimeOutChange, handleSplitSecondTimeInChange, handleWorkDaysChanges,
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Padding } from '@mui/icons-material';
 
-    } = useManageWorkshift();
+const WorkshiftAdd = () => {
+    const { user } = useUser();
+    const navigate = useNavigate();
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
+
+    const [shiftNameError, setShiftNameError] = useState(false);
+    const [firstLabelError, setFirstLabelError] = useState(false);
+    const [secondLabelError, setSecondLabelError] = useState(false);
+    const [regularTimeInError, setRegularTimeInError] = useState(false);
+    const [regularTimeOutError, setRegularTimeOutError] = useState(false);
+    const [splitFirstTimeInError, setSplitFirstTimeInError] = useState(false);
+    const [splitFirstTimeOutError, setSplitFirstTimeOutError] = useState(false);
+    const [splitSecondTimeInError, setSplitSecondTimeInError] = useState(false);
+    const [splitSecondTimeOutError, setSplitSecondTimeOutError] = useState(false);
+
+    const [overTimeInError, setOverTimeInError] = useState(false);
+    const [overTimeOutError, setOverTimeOutError] = useState(false);
+    const [breakStartError, setBreakStartError] = useState(false);
+    const [breakEndError, setBreakEndError] = useState(false);
+
+    const [shiftName, setShiftName] = useState('');
+    const [shiftType, setShiftType] = useState('');
+
+    const [firstLabel, setFirstLabel] = useState('');
+    const [secondLabel, setSecondLabel] = useState('');
+
+    const [regularTimeIn, setRegularTimeIn] = useState(null);
+    const [regularTimeOut, setRegularTimeOut] = useState(null);
+
+    const [splitFirstTimeIn, setSplitFirstTimeIn] = useState(null);
+    const [splitFirstTimeOut, setSplitFirstTimeOut] = useState(null);
+    const [splitSecondTimeIn, setSplitSecondTimeIn] = useState(null);
+    const [splitSecondTimeOut, setSplitSecondTimeOut] = useState(null);
+
+    const [breakStart, setBreakStart] = useState(null);
+    const [breakEnd, setBreakEnd] = useState(null);
+    
+    const [overTimeIn, setOverTimeIn] = useState(null);
+    const [overTimeOut, setOverTimeOut] = useState(null);
+
+    const handleRegularTimeInChange = (newValue) => {
+        setRegularTimeIn(newValue);
+    };
+
+    const handleRegularTimeOutChange = (newValue) => {
+        setRegularTimeOut(newValue);
+    };
+
+    const handleSplitFirstTimeInChange = (newValue) => {
+        setSplitFirstTimeIn(newValue);
+    };
+
+    const handleSplitFirstTimeOutChange = (newValue) => {
+        setSplitFirstTimeOut(newValue);
+
+        if (shiftType == "split" ) {
+            handleBreakStartChange(newValue);
+        }
+    };
+
+    const handleSplitSecondTimeInChange = (newValue) => {
+        setSplitSecondTimeIn(newValue);
+
+        if (shiftType == "split" ) {
+            handleBreakEndChange(newValue);
+        }
+    };
+
+    const handleSplitSecondTimeOutChange = (newValue) => {
+        setSplitSecondTimeOut(newValue);
+    };
+
+    const handleOverTimeInChange = (newValue) => {
+        setOverTimeIn(newValue);
+    };
+
+    const handleOverTimeOutChange = (newValue) => {
+        setOverTimeOut(newValue);
+    };
+
+    const handleBreakStartChange = (newValue) => {
+        setBreakStart(newValue);
+    };
+
+    const handleBreakEndChange = (newValue) => {
+        setBreakEnd(newValue);
+    };
+
+    const handleShiftTypeChange = (newValue) => {
+        
+        setFirstLabelError(false);
+        setSecondLabelError(false);
+
+        setRegularTimeInError(false);
+        setRegularTimeOutError(false);
+
+        setSplitFirstTimeInError(false);
+        setSplitFirstTimeOutError(false);
+        setSplitSecondTimeInError(false);
+        setSplitSecondTimeOutError(false);
+
+        setFirstLabel('');
+        setSecondLabel('');
+
+        setRegularTimeIn(null);
+        setRegularTimeOut(null);
+        
+        setSplitFirstTimeIn(null);
+        setSplitFirstTimeOut(null);
+        setSplitSecondTimeIn(null);
+        setSplitSecondTimeOut(null);
+
+        setBreakStart(null);
+        setBreakEnd(null);
+
+        setOverTimeIn(null);
+        setOverTimeOut(null);
+
+        setShiftType(newValue);
+    };
+
+
+    const checkInput = (event) => {
+        event.preventDefault();
+
+        if (!shiftName) {
+            setShiftNameError(true);
+        } else {
+            setShiftNameError(false);
+        }
+
+        if (overTimeIn === null) {
+            setOverTimeInError(true);
+        } else {
+            setOverTimeInError(false);
+        }
+
+        if (overTimeOut === null) {
+            setOverTimeOutError(true);
+        } else {
+            setOverTimeOutError(false);
+        }
+
+        if ( shiftType == 'regular' ) {
+            checkInputRegular(event);
+        }
+
+        if ( shiftType == 'split' ) {
+            checkInputSplit(event);
+        }
+    };
+
+    const checkInputRegular = (event) => {
+        event.preventDefault();
+
+        if (regularTimeIn === null) {
+            setRegularTimeInError(true);
+        } else {
+            setRegularTimeInError(false);
+        }
+    
+        if (regularTimeOut === null) {
+            setRegularTimeOutError(true);
+        } else {
+            setRegularTimeOutError(false);
+        }
+
+        if (breakStart === null) {
+            setBreakStartError(true);
+        } else {
+            setBreakStartError(false);
+        }
+    
+        if (breakEnd === null) {
+            setBreakEndError(true);
+        } else {
+            setBreakEndError(false);
+        }
+
+        if (overTimeIn === null) {
+            setOverTimeInError(true);
+        } else {
+            setOverTimeInError(false);
+        }
+
+        if (overTimeOut === null) {
+            setOverTimeOutError(true);
+        } else {
+            setOverTimeOutError(false);
+        }
+
+        if ( regularTimeIn === null || regularTimeOut === null || breakStart === null || breakEnd === null || overTimeIn === null || overTimeOut === null ) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        } else {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "You want to save this work shift?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: 'Save',
+                confirmButtonColor: '#177604',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveInputRegular(event);
+                }
+            });
+        }
+    };
+
+    const checkInputSplit = (event) => {
+        event.preventDefault();
+
+        if (!firstLabel) {
+            setFirstLabelError(true);
+        } else {
+            setFirstLabelError(false);
+        }
+
+        if (!secondLabel) {
+            setSecondLabelError(true);
+        } else {
+            setSecondLabelError(false);
+        }
+
+        if (splitFirstTimeIn === null) {
+            setSplitFirstTimeInError(true);
+        } else {
+            setSplitFirstTimeInError(false);
+        }
+    
+        if (splitFirstTimeOut === null) {
+            setSplitFirstTimeOutError(true);
+        } else {
+            setSplitFirstTimeOutError(false);
+        }
+
+        if (splitSecondTimeIn === null) {
+            setSplitSecondTimeInError(true);
+        } else {
+            setSplitSecondTimeInError(false);
+        }
+    
+        if (splitSecondTimeOut === null) {
+            setSplitSecondTimeOutError(true);
+        } else {
+            setSplitSecondTimeOutError(false);
+        }
+
+        if ( !firstLabel || !secondLabel || splitFirstTimeIn === null || splitFirstTimeOut === null || splitSecondTimeIn === null || splitSecondTimeOut === null ) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+        } else {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                title: "Are you sure?",
+                text: "You want to save this work shift?",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: 'Save',
+                confirmButtonColor: '#177604',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel',
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    saveInputSplit(event);
+                }
+            });
+        }
+    };
+
+    const saveInputRegular = (event) => {
+        event.preventDefault();
+
+        const data = {
+            shiftName: shiftName,
+            shiftType: shiftType,
+
+            firstLabel: "Attendance",
+            firstTimeIn: regularTimeIn.format('HH:mm:ss'),
+            firstTimeOut: regularTimeOut.format('HH:mm:ss'),
+
+            breakStart: breakStart.format('HH:mm:ss'),
+            breakEnd: breakEnd.format('HH:mm:ss'),
+
+            overTimeIn: overTimeIn.format('HH:mm:ss'),
+            overTimeOut: overTimeOut.format('HH:mm:ss'),
+        };
+
+        axiosInstance.post('/workshedule/saveRegularWorkShift', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Work Shift saved successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        navigate(`/admin/workshift/${response.data.link}`);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    };
+
+    const saveInputSplit = (event) => {
+        event.preventDefault();
+
+        const data = {
+            shiftName: shiftName,
+            shiftType: shiftType,
+
+            firstLabel: firstLabel,
+            firstTimeIn: splitFirstTimeIn.format('HH:mm:ss'),
+            firstTimeOut: splitFirstTimeOut.format('HH:mm:ss'),
+
+            secondLabel: secondLabel,
+            secondTimeIn: splitSecondTimeIn.format('HH:mm:ss'),
+            secondTimeOut: splitSecondTimeOut.format('HH:mm:ss'),
+
+            breakStart: breakStart.format('HH:mm:ss'),
+            breakEnd: breakEnd.format('HH:mm:ss'),
+
+            overTimeIn: overTimeIn.format('HH:mm:ss'),
+            overTimeOut: overTimeOut.format('HH:mm:ss'),
+        };
+
+        axiosInstance.post('/workshedule/saveSplitWorkShift', data, { headers })
+            .then(response => {
+                if (response.data.status === 200) {
+                    Swal.fire({
+                        customClass: { container: 'my-swal' },
+                        text: "Work Shift saved successfully!",
+                        icon: "success",
+                        timer: 1000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Proceed',
+                        confirmButtonColor: '#177604',
+                    }).then(() => {
+                        navigate(`/admin/workshift/${response.data.link}`);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    };
 
     return (
         <Layout title={"AddWorkShift"}>
@@ -48,7 +403,7 @@ const WorkshiftAdd = () => {
                                     label="Shift Name"
                                     variant="outlined"
                                     value={shiftName}
-                                    error={!!errors.shiftName}
+                                    error={shiftNameError}
                                     onChange={(e) => setShiftName(e.target.value)}
                                 />
                             </FormControl>
@@ -62,7 +417,7 @@ const WorkshiftAdd = () => {
                                     id="shiftType"
                                     label="Shift Type"
                                     value={shiftType}
-                                    onChange={(e) => handleShiftTypeChange(e.target.value)}
+                                    onChange={(event) => handleShiftTypeChange(event.target.value)}
                                 >
                                     <MenuItem key="regular" value="regular"> Regular Hours </MenuItem>
                                     <MenuItem key="split" value="split"> Split Hours </MenuItem>
@@ -105,8 +460,8 @@ const WorkshiftAdd = () => {
                                                     label="Time In"
                                                     views={['hours', 'minutes']}
                                                     value={regularTimeIn}
-                                                    onChange={(val) => setRegularTimeIn(val)}
-                                                    slotProps={{ textField: { error: !!errors.regularTimeIn, required: true } }}
+                                                    onChange={handleRegularTimeInChange}
+                                                    slotProps={{ textField: { error: regularTimeInError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -124,8 +479,8 @@ const WorkshiftAdd = () => {
                                                     label="Time Out"
                                                     views={['hours', 'minutes']}
                                                     value={regularTimeOut}
-                                                    onChange={(val) => setRegularTimeOut(val)}
-                                                    slotProps={{ textField: { error: !!errors.regularTimeOut, required: true } }}
+                                                    onChange={handleRegularTimeOutChange}
+                                                    slotProps={{ textField: { error: regularTimeOutError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -164,8 +519,8 @@ const WorkshiftAdd = () => {
                                                     label="Break Start"
                                                     views={['hours', 'minutes']}
                                                     value={breakStart}
-                                                    onChange={(val) => setBreakStart(val)}
-                                                    slotProps={{ textField: { error: !!errors.breakStart, required: true } }}
+                                                    onChange={handleBreakStartChange}
+                                                    slotProps={{ textField: { error: breakStartError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -183,8 +538,8 @@ const WorkshiftAdd = () => {
                                                     label="Break End"
                                                     views={['hours', 'minutes']}
                                                     value={breakEnd}
-                                                    onChange={(val) => setBreakEnd(val)}
-                                                    slotProps={{ textField: { error: !!errors.breakEnd , required: true } }}
+                                                    onChange={handleBreakEndChange}
+                                                    slotProps={{ textField: { error: breakEndError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -213,7 +568,7 @@ const WorkshiftAdd = () => {
                                             label="First Label"
                                             variant="outlined"
                                             value={firstLabel}
-                                            error={!!errors.firstLabel}
+                                            error={firstLabelError}
                                             onChange={(e) => setFirstLabel(e.target.value)}
                                         />
                                     </FormControl>
@@ -230,8 +585,8 @@ const WorkshiftAdd = () => {
                                                     label="Time In"
                                                     views={['hours', 'minutes']}
                                                     value={splitFirstTimeIn}
-                                                    onChange={(val) => setSplitFirstTimeIn(val)}
-                                                    slotProps={{ textField: { error: !!errors.splitFirstTimeIn, required: true } }}
+                                                    onChange={handleSplitFirstTimeInChange}
+                                                    slotProps={{ textField: { error: splitFirstTimeInError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -250,7 +605,7 @@ const WorkshiftAdd = () => {
                                                     views={['hours', 'minutes']}
                                                     value={splitFirstTimeOut}
                                                     onChange={handleSplitFirstTimeOutChange}
-                                                    slotProps={{ textField: { error: !!errors.splitFirstTimeOut, required: true } }}
+                                                    slotProps={{ textField: { error: splitFirstTimeOutError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -274,7 +629,7 @@ const WorkshiftAdd = () => {
                                             label="Second Label"
                                             variant="outlined"
                                             value={secondLabel}
-                                            error={!!errors.secondLabel}
+                                            error={secondLabelError}
                                             onChange={(e) => setSecondLabel(e.target.value)}
                                         />
                                     </FormControl>
@@ -292,7 +647,7 @@ const WorkshiftAdd = () => {
                                                     views={['hours', 'minutes']}
                                                     value={splitSecondTimeIn}
                                                     onChange={handleSplitSecondTimeInChange}
-                                                    slotProps={{ textField: { error: !!errors.splitSecondTimeIn, required: true } }}
+                                                    slotProps={{ textField: { error: splitSecondTimeInError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -310,8 +665,8 @@ const WorkshiftAdd = () => {
                                                     label="Time Out"
                                                     views={['hours', 'minutes']}
                                                     value={splitSecondTimeOut}
-                                                    onChange={(val) => setSplitSecondTimeOut(val)}
-                                                    slotProps={{ textField: { error: !!errors.splitSecondTimeOut, required: true } }}
+                                                    onChange={handleSplitSecondTimeOutChange}
+                                                    slotProps={{ textField: { error: splitSecondTimeOutError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -353,8 +708,8 @@ const WorkshiftAdd = () => {
                                                     label="Time In"
                                                     views={['hours', 'minutes']}
                                                     value={overTimeIn}
-                                                    onChange={(val) => setOverTimeIn(val)}
-                                                    slotProps={{ textField: { error: !!errors.overTimeIn, required: true } }}
+                                                    onChange={handleOverTimeInChange}
+                                                    slotProps={{ textField: { error: overTimeInError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
@@ -371,39 +726,13 @@ const WorkshiftAdd = () => {
                                                     label="Time Out"
                                                     views={['hours', 'minutes']}
                                                     value={overTimeOut}
-                                                    onChange={(val) => setOverTimeOut(val)}
-                                                    slotProps={{ textField: { error: !!errors.overTimeOut, required: true } }}
+                                                    onChange={handleOverTimeOutChange}
+                                                    slotProps={{ textField: { error: overTimeOutError, required: true } }}
                                                 />
                                             </DemoContainer>
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
-                                <Typography>Set Work Days</Typography>
-
-                                <TableContainer>
-                                    <Table stickyHeader size='small'>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align='center'>Sunday</TableCell>
-                                                <TableCell align='center'>Monday</TableCell>
-                                                <TableCell align='center'>Tuesday</TableCell>
-                                                <TableCell align='center'>Wednesday</TableCell>
-                                                <TableCell align='center'>Thursday</TableCell>
-                                                <TableCell align='center'>Friday</TableCell>
-                                                <TableCell align='center'>Saturday</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            <TableRow>
-                                                {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
-                                                <TableCell align="center" key={day}>
-                                                    <Checkbox checked={workDays[day]} onChange={() => handleWorkDaysChanges(day)}/>
-                                                </TableCell>
-                                                ))}
-                                            </TableRow>
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
 
                                 <div className="d-flex justify-content-center" id="buttons" style={{ marginTop: '20px' }}>
                                     <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
@@ -413,12 +742,39 @@ const WorkshiftAdd = () => {
                             </>
                         )}
 
-                    </Box>
-                </div> 
+                        <Typography>Set Work Days</Typography>
 
-            </Box>
-        </Layout >
-    )
-}
+                        <TableContainer>
+                            <Table stickyHeader size='small'>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align='center'>Sunday</TableCell>
+                                        <TableCell align='center'>Monday</TableCell>
+                                        <TableCell align='center'>Tuesday</TableCell>
+                                        <TableCell align='center'>Wednesday</TableCell>
+                                        <TableCell align='center'>Thursday</TableCell>
+                                        <TableCell align='center'>Friday</TableCell>
+                                        <TableCell align='center'>Saturday</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    <TableRow>
+                                        {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                                        <TableCell align="center" key={day}>
+                                            <Checkbox checked={workDays[day]} disabled={!isEdit} onChange={() => handleWorkDaysChanges(day)}/>
+                                        </TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+
+                                            </Box>
+                                        </div> 
+
+                                    </Box>
+                                </Layout >
+                            )
+                        }
 
 export default WorkshiftAdd

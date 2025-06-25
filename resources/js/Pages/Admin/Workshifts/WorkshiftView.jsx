@@ -6,6 +6,7 @@ import { useManageWorkshift } from '../../../hooks/useWorkShifts';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import dayjs, { Dayjs } from 'dayjs';
 
 const WorkshiftView = () => {
     const { client, selectedShift } = useParams();
@@ -118,7 +119,7 @@ const WorkshiftView = () => {
                                                     required
                                                     label="Time In"
                                                     views={['hours', 'minutes']}
-                                                    value={regularTimeIn}
+                                                    value={regularTimeIn || dayjs('00:00:00', 'HH:mm:ss')}
                                                     onChange={(value) => setRegularTimeIn(value)}
                                                     slotProps={{ textField: { error: !!errors.regularTimeIn , required: true, InputProps: { readOnly: !isEdit } } }}
                                                 />
@@ -135,7 +136,7 @@ const WorkshiftView = () => {
                                                     required
                                                     label="Time Out"
                                                     views={['hours', 'minutes']}
-                                                    value={regularTimeOut}
+                                                    value={regularTimeOut || dayjs('00:00:00', 'HH:mm:ss')}
                                                     onChange={(value) => setRegularTimeOut(value)}
                                                     slotProps={{ textField: { error: !!errors.regularTimeOut , required: true, InputProps: { readOnly: !isEdit } } }}
                                                 />
@@ -174,7 +175,7 @@ const WorkshiftView = () => {
                                                     required
                                                     label="Break Start"
                                                     views={['hours', 'minutes']}
-                                                    value={breakStart}
+                                                    value={breakStart || dayjs('00:00:00', 'HH:mm:ss')}
                                                     onChange={(value) => setBreakStart(value)}
                                                     slotProps={{ textField: { error: !!errors.breakStart, required: true, InputProps: { readOnly: !isEdit } } }}
                                                 />
@@ -191,7 +192,7 @@ const WorkshiftView = () => {
                                                     requireds
                                                     label="Break End"
                                                     views={['hours', 'minutes']}
-                                                    value={breakEnd}
+                                                    value={breakEnd || dayjs('00:00:00', 'HH:mm:ss')}
                                                     onChange={(value) => setBreakEnd(value)}
                                                     slotProps={{ textField: { error: !!errors.breakEnd, required: true, InputProps: { readOnly: !isEdit } } }}
                                                 />
@@ -236,7 +237,7 @@ const WorkshiftView = () => {
                                                     required
                                                     label="Time In"
                                                     views={['hours', 'minutes']}
-                                                    value={splitFirstTimeIn}
+                                                    value={splitFirstTimeIn || dayjs('00:00:00', 'HH:mm:ss')}
                                                     onChange={(value) => setSplitFirstTimeIn(value)}
                                                     slotProps={{ textField: { error: !!errors.splitFirstTimeIn, required: true, InputProps: { readOnly: !isEdit } } }}
                                                 />
@@ -253,7 +254,7 @@ const WorkshiftView = () => {
                                                     required
                                                     label="Time Out"
                                                     views={['hours', 'minutes']}
-                                                    value={splitFirstTimeOut}
+                                                    value={splitFirstTimeOut || dayjs('00:00:00', 'HH:mm:ss')}
                                                     onChange={handleSplitFirstTimeOutChange}
                                                     slotProps={{ textField: { error: !!errors.splitFirstTimeOut, required: true, InputProps: { readOnly: !isEdit } } }}
                                                 />
@@ -294,7 +295,7 @@ const WorkshiftView = () => {
                                                     required
                                                     label="Time In"
                                                     views={['hours', 'minutes']}
-                                                    value={splitSecondTimeIn}
+                                                    value={splitSecondTimeIn || dayjs('00:00:00', 'HH:mm:ss')}
                                                     onChange={handleSplitSecondTimeInChange}
                                                     slotProps={{ textField: { error: !!errors.splitSecondTimeIn, required: true, InputProps: { readOnly: !isEdit } } }}
                                                 />
@@ -311,7 +312,7 @@ const WorkshiftView = () => {
                                                     required
                                                     label="Time Out"
                                                     views={['hours', 'minutes']}
-                                                    value={splitSecondTimeOut}
+                                                    value={splitSecondTimeOut || dayjs('00:00:00', 'HH:mm:ss')}
                                                     onChange={(value) => setSplitSecondTimeOut(value)}
                                                     slotProps={{ textField: { error: !!errors.splitSecondTimeOut, required: true, InputProps: { readOnly: !isEdit } } }}
                                                 />
@@ -353,7 +354,7 @@ const WorkshiftView = () => {
                                                 <TimePicker
                                                     label="Time In"
                                                     views={['hours', 'minutes']}
-                                                    value={overTimeIn}
+                                                    value={overTimeIn || dayjs('00:00:00', 'HH:mm:ss')}
                                                     onChange={(value) => setOverTimeIn(value)}
                                                     slotProps={{ textField: { error: !!errors.overTimeIn, required: true, InputProps: { readOnly: !isEdit } } }}
                                                 />
@@ -369,7 +370,7 @@ const WorkshiftView = () => {
                                                 <TimePicker
                                                     label="Time Out"
                                                     views={['hours', 'minutes']}
-                                                    value={overTimeOut}
+                                                    value={overTimeOut || dayjs('00:00:00', 'HH:mm:ss')}
                                                     onChange={(value) => setOverTimeOut(value)}
                                                     slotProps={{ textField: { error: !!errors.overTimeOut, required: true, InputProps: { readOnly: !isEdit } } }}
                                                 />
@@ -397,7 +398,15 @@ const WorkshiftView = () => {
                                         <TableRow>
                                             {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
                                             <TableCell align="center" key={day}>
-                                                <Checkbox checked={workDays[day]} disabled={!isEdit} onChange={() => handleWorkDaysChanges(day)}/>
+                                                <Checkbox checked={workDays[day]} 
+                                                disabled={!isEdit} onChange={() => handleWorkDaysChanges(day)}
+                                                sx={{
+                                                    color: !isEdit ? '#6c757d' : undefined, 
+                                                    '&.Mui-disabled': {
+                                                      color: '#6c757d', 
+                                                      opacity: 1,      
+                                                    },
+                                                }}/>
                                             </TableCell>
                                             ))}
                                         </TableRow>
