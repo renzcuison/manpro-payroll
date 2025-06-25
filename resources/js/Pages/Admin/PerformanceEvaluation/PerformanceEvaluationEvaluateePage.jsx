@@ -641,8 +641,8 @@ const PerformanceEvaluationEvaluateePage = () => {
                             >
                               <ScoreLinearBar
                                 variant="determinate"
-                                value={(score)}
-                                sx={{ width: '100%', minWidth: 550 }}
+                                value={score}
+                                sx={{ width: { xs: 200, sm: 300, md: 500 } }}
                               />
                               {hoveredSubcat === `bar-${id}` && !!description && (
                                 <Box
@@ -690,10 +690,10 @@ const PerformanceEvaluationEvaluateePage = () => {
                           <Typography sx={{ fontWeight: 700, color: "#262626" }}>Total Rating</Typography>
                         </Grid>
                         <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
-                          <ScoreLinearBar
+                         <ScoreLinearBar
                             variant="determinate"
-                            value={(sectionScore)}
-                            sx={{ width: '100%', minWidth: 550 }}
+                            value={sectionScore}
+                            sx={{ width: { xs: 200, sm: 300, md: 500 } }}
                           />
                         </Grid>
                         <Grid item xs={2}>
