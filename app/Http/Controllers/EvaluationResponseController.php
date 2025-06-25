@@ -2979,9 +2979,8 @@ class EvaluationResponseController extends Controller
 
             $evaluationTextAnswer = EvaluationTextAnswer
                 ::select()
-                ->where('response_id', $request->response_id)
-                ->where('subcategory_id', $request->subcategory_id)
-                ->whereNull('deleted_at')
+                ->where('response_id', Crypt::decrypt($request->response_id))
+                ->where('subcategory_id', Crypt::decrypt($request->subcategory_id))
                 ->first()
             ;
 
@@ -3005,10 +3004,18 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Text Answer successfully deleted',
-                'evaluationTextAnswer' => $evaluationTextAnswer
+                'evaluationTextAnswer' => $evaluationTextAnswer ? [
+                    'id' => Crypt::encrypt($evaluationTextAnswer->id),
+                    'response_id' => Crypt::encrypt($evaluationTextAnswer->response_id),
+                    'subcategory_id' => Crypt::encrypt($evaluationTextAnswer->subcategory_id),
+                    'answer' => $evaluationTextAnswer->answer,
+                    'created_at' => $evaluationTextAnswer->created_at,
+                    'updated_at' => $evaluationTextAnswer->updated_at,
+                    'deleted_at' => $evaluationTextAnswer->deleted_at
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -3057,8 +3064,8 @@ class EvaluationResponseController extends Controller
 
             $evaluationTextAnswer = EvaluationTextAnswer
                 ::select()
-                ->where('response_id', $request->response_id)
-                ->where('subcategory_id', $request->subcategory_id)
+                ->where('response_id', Crypt::decrypt($request->response_id))
+                ->where('subcategory_id', Crypt::decrypt($request->subcategory_id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3066,12 +3073,12 @@ class EvaluationResponseController extends Controller
             if(!$evaluationTextAnswer) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Text Answer not found!',
-                'evaluationTextAnswerID' => $request->id
+                'evaluationTextAnswerID' => $request->subcategory_id
             ]);
 
             $subcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type')
-                ->where('id', $request->subcategory_id)
+                ->where('id', Crypt::decrypt($request->subcategory_id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3080,7 +3087,7 @@ class EvaluationResponseController extends Controller
                 return response()->json([
                     'status' => 400,
                     'message' => 'This subcategory does not accept text answers!',
-                    'evaluationFormSubcategoryID' => $subcategory->id
+                    'evaluationFormSubcategoryID' => $request->subcategory_id
                 ]);
 
             $isEmptyAnswer = !$request->answer;
@@ -3094,9 +3101,17 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationTextAnswer' => $evaluationTextAnswer,
+                'evaluationTextAnswer' => $evaluationTextAnswer ? [
+                    'response_id' => Crypt::encrypt($evaluationTextAnswer->response_id),
+                    'subcategory_id' => Crypt::encrypt($evaluationTextAnswer->subcategory_id),
+                    'answer' => $evaluationTextAnswer->answer,
+                    'created_at' => $evaluationTextAnswer->created_at,
+                    'updated_at' => $evaluationTextAnswer->updated_at,
+                    'deleted_at' => $evaluationTextAnswer->deleted_at,
+                    'id' => Crypt::encrypt($evaluationTextAnswer->id)
+                ] : null,
                 'message' => 'Evaluation Text Answer successfully updated'
             ]);
 
@@ -3139,8 +3154,8 @@ class EvaluationResponseController extends Controller
                     'response_id', 'subcategory_id', 'answer',
                     'created_at', 'updated_at'
                 )
-                ->where('response_id', $request->response_id)
-                ->where('subcategory_id', $request->subcategory_id)
+                ->where('response_id', Crypt::decrypt($request->response_id))
+                ->where('subcategory_id', Crypt::decrypt($request->subcategory_id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3151,7 +3166,13 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Text Answer successfully retrieved.',
-                'evaluationTextAnswer' => $evaluationTextAnswer
+                'evaluationTextAnswer' => $evaluationTextAnswer ? [
+                    'response_id' => Crypt::encrypt($evaluationTextAnswer->response_id),
+                    'subcategory_id' => Crypt::encrypt($evaluationTextAnswer->subcategory_id),
+                    'answer' => $evaluationTextAnswer->answer,
+                    'created_at' => $evaluationTextAnswer->created_at,
+                    'updated_at' => $evaluationTextAnswer->updated_at
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -3195,7 +3216,7 @@ class EvaluationResponseController extends Controller
                     'response_id', 'subcategory_id', 'answer',
                     'created_at', 'updated_at'
                 )
-                ->where('subcategory_id', $request->subcategory_id)
+                ->where('subcategory_id', Crypt::decrypt($request->subcategory_id))
                 ->whereNull('deleted_at')
                 ->get()
             ;
@@ -3206,7 +3227,15 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Text Answers successfully retrieved.',
-                'evaluationTextAnswers' => $evaluationTextAnswers
+                'evaluationTextAnswers' => $evaluationTextAnswers->map(function ($evaluationTextAnswer) {
+                    return [
+                        'response_id' => Crypt::encrypt($evaluationTextAnswer->response_id),
+                        'subcategory_id' => Crypt::encrypt($evaluationTextAnswer->subcategory_id),
+                        'answer' => $evaluationTextAnswer->answer,
+                        'created_at' => $evaluationTextAnswer->created_at,
+                        'updated_at' => $evaluationTextAnswer->updated_at
+                    ];
+                })
             ]);
 
         } catch (\Exception $e) {
@@ -3252,7 +3281,7 @@ class EvaluationResponseController extends Controller
 
             $subcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type')
-                ->where('id', $request->subcategory_id)
+                ->where('id', Crypt::decrypt($request->subcategory_id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3265,8 +3294,8 @@ class EvaluationResponseController extends Controller
                 ]);
 
             $existingFormTextAnswer = EvaluationTextAnswer
-                ::where('response_id', $request->response_id)
-                ->where('subcategory_id', $request->subcategory_id)
+                ::where('response_id', Crypt::decrypt($request->response_id))
+                ->where('subcategory_id', Crypt::decrypt($request->subcategory_id))
                 ->first()
             ;
 
@@ -3286,8 +3315,8 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $newEvaluationTextAnswer = EvaluationTextAnswer::create([
-                'response_id' => $request->response_id,
-                'subcategory_id' => $request->subcategory_id,
+                'response_id' => Crypt::decrypt($request->response_id),
+                'subcategory_id' => Crypt::decrypt($request->subcategory_id),
                 'answer' => $request->answer
             ]);
 
