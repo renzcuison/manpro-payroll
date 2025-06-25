@@ -792,10 +792,11 @@ class EvaluationResponseController extends Controller
             }
             DB::commit();
 
+            $encryptedUserID = Crypt::encrypt($userID);
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Response successfully retrieved.',
-                'userID' => Crypt::encrypt($userID),
+                'userID' => $encryptedUserID,
                 'evaluationResponse' => $evaluationResponse ? [
                     'id' => Crypt::encrypt($evaluationResponse->id),
                     'evaluatee_id' => Crypt::encrypt($evaluationResponse->evaluatee_id),
@@ -826,9 +827,12 @@ class EvaluationResponseController extends Controller
                             ];
                         })
                     ] : null,
-                    'evaluators' => $evaluationResponse->evaluators->map(function ($evaluator) {
+                    'evaluators' => $evaluationResponse->evaluators->map(function ($evaluator) use($userID, $encryptedUserID) {
                         return [
-                            'evaluator_id' => Crypt::encrypt($evaluator->evaluator_id),
+                            'evaluator_id' =>
+                                ($evaluator->evaluator_id === $userID) ? $encryptedUserID
+                                : Crypt::encrypt($evaluator->evaluator_id)
+                            ,
                             'response_id' => Crypt::encrypt($evaluator->response_id),
                             'last_name' => $evaluator->last_name,
                             'first_name' => $evaluator->first_name,
@@ -849,10 +853,12 @@ class EvaluationResponseController extends Controller
                             'evaluator_signature' => $evaluator->evaluator_signature
                         ];
                     }),
-                    'commentors' => $evaluationResponse->commentors->map(function ($commentor) {
+                    'commentors' => $evaluationResponse->commentors->map(function ($commentor) use($userID, $encryptedUserID) {
                         return [
-                            'id' => Crypt::encrypt($commentor->id),
-                            'commentor_id' => Crypt::encrypt($commentor->commentor_id),
+                            'commentor_id' =>
+                                ($commentor->commentor_id === $userID) ? $encryptedUserID
+                                : Crypt::encrypt($commentor->commentor_id)
+                            ,
                             'response_id' => Crypt::encrypt($commentor->response_id),
                             'last_name' => $commentor->last_name,
                             'first_name' => $commentor->first_name,
