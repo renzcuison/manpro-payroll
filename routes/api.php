@@ -594,12 +594,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEvaluationTextAnswers', [EvaluationResponseController::class, 'getEvaluationTextAnswers']);
     Route::post('/saveEvaluationTextAnswer', [EvaluationResponseController::class, 'saveEvaluationTextAnswer']);
 
-    Route::post('/deleteEvaluationPercentageAnswer', [EvaluationResponseController::class, 'deleteEvaluationPercentageAnswer']);
-    Route::post('/editEvaluationPercentageAnswer', [EvaluationResponseController::class, 'editEvaluationPercentageAnswer']);
-    Route::get('/getEvaluationPercentageAnswer', [EvaluationResponseController::class, 'getEvaluationPercentageAnswer']);
-    Route::get('/getEvaluationPercentageAnswers', [EvaluationResponseController::class, 'getEvaluationPercentageAnswers']);
-    Route::post('/saveEvaluationPercentageAnswer', [EvaluationResponseController::class, 'saveEvaluationPercentageAnswer']);
-
     Route::post('/deleteEvaluationOptionAnswer', [EvaluationResponseController::class, 'deleteEvaluationOptionAnswer']);
     Route::post('/editEvaluationOptionAnswer', [EvaluationResponseController::class, 'editEvaluationOptionAnswer']);
     Route::get('/getEvaluationOptionAnswer', [EvaluationResponseController::class, 'getEvaluationOptionAnswer']);

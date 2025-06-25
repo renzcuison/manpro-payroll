@@ -2511,435 +2511,435 @@ class EvaluationResponseController extends Controller
         }
     }
 
-    // evaluation form percentage answer
+    // evaluation form percentage answer - unused
 
-    public function deleteEvaluationPercentageAnswer(Request $request)
-    {
-        // inputs:
-        /*
-            response_id: string,
-            subcategory_id: string
-        */
+    // public function deleteEvaluationPercentageAnswer(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         response_id: string,
+    //         subcategory_id: string
+    //     */
 
-        // returns:
-        /*
-            evaluationPercentageAnswer: {
-                response_id, subcategory_id, percentage, created_at, updated_at, deleted_at
-            }
-        */
+    //     // returns:
+    //     /*
+    //         evaluationPercentageAnswer: {
+    //             response_id, subcategory_id, percentage, created_at, updated_at, deleted_at
+    //         }
+    //     */
 
-        log::info('EvaluationResponseController::deleteEvaluationPercentageAnswer');
+    //     log::info('EvaluationResponseController::deleteEvaluationPercentageAnswer');
 
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
 
-        $user = DB::table('users')->select()->where('id', $userID)->first();
+    //     $user = DB::table('users')->select()->where('id', $userID)->first();
 
-        try {
+    //     try {
 
-            if( $user === null ) return response()->json([ 
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
 
-            DB::beginTransaction();
+    //         DB::beginTransaction();
 
-            $evaluationPercentageAnswer = EvaluationPercentageAnswer
-                ::select()
-                ->where('response_id', $request->response_id)
-                ->where('subcategory_id', $request->subcategory_id)
-                ->whereNull('deleted_at')
-                ->first()
-            ;
+    //         $evaluationPercentageAnswer = EvaluationPercentageAnswer
+    //             ::select()
+    //             ->where('response_id', $request->response_id)
+    //             ->where('subcategory_id', $request->subcategory_id)
+    //             ->whereNull('deleted_at')
+    //             ->first()
+    //         ;
 
-            if( !$evaluationPercentageAnswer ) return response()->json([ 
-                'status' => 404,
-                'message' => 'Evaluation Percentage Answer not found!',
-                'evaluationResponseID' => $request->response_id,
-                'evaluationSubcategoryID' => $request->subcategory_id
-            ]);
+    //         if( !$evaluationPercentageAnswer ) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'Evaluation Percentage Answer not found!',
+    //             'evaluationResponseID' => $request->response_id,
+    //             'evaluationSubcategoryID' => $request->subcategory_id
+    //         ]);
 
-            if( $evaluationPercentageAnswer->deleted_at ) return response()->json([ 
-                'status' => 405,
-                'message' => 'Evaluation Percentage Answer already deleted!',
-                'evaluationResponseID' => $request->response_id,
-                'evaluationSubcategoryID' => $request->subcategory_id
-            ]);
+    //         if( $evaluationPercentageAnswer->deleted_at ) return response()->json([ 
+    //             'status' => 405,
+    //             'message' => 'Evaluation Percentage Answer already deleted!',
+    //             'evaluationResponseID' => $request->response_id,
+    //             'evaluationSubcategoryID' => $request->subcategory_id
+    //         ]);
 
-            $now = date('Y-m-d H:i');
-            $evaluationPercentageAnswer->deleted_at = $now;
-            $evaluationPercentageAnswer->save();
+    //         $now = date('Y-m-d H:i');
+    //         $evaluationPercentageAnswer->deleted_at = $now;
+    //         $evaluationPercentageAnswer->save();
 
-            DB::commit();
+    //         DB::commit();
 
-            return response()->json([ 
-                'status' => 200,
-                'message' => 'Evaluation Percentage Answer successfully deleted',
-                'evaluationPercentageAnswer' => $evaluationPercentageAnswer
-            ]);
+    //         return response()->json([ 
+    //             'status' => 200,
+    //             'message' => 'Evaluation Percentage Answer successfully deleted',
+    //             'evaluationPercentageAnswer' => $evaluationPercentageAnswer
+    //         ]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
 
-            Log::error('Error saving work shift: ' . $e->getMessage());
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
 
-            throw $e;
-        }
-    }
+    //         throw $e;
+    //     }
+    // }
 
-    public function editEvaluationPercentageAnswer(Request $request)
-    {
-        // inputs:
-        /*
-            response_id: string,
-            subcategory_id: string,
-            percentage?: number,            // either percentage or value must be given
-            value?: number                  // value means percentage is auto-calculated
-        */
+    // public function editEvaluationPercentageAnswer(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         response_id: string,
+    //         subcategory_id: string,
+    //         percentage?: number,            // either percentage or value must be given
+    //         value?: number                  // value means percentage is auto-calculated
+    //     */
 
-        // returns:
-        /*
-            evaluationPercentageAnswer: {
-                response_id, subcategory_id, percentage, value, linear_scale_index,
-                created_at, updated_at, deleted_at
-            }
-        */
+    //     // returns:
+    //     /*
+    //         evaluationPercentageAnswer: {
+    //             response_id, subcategory_id, percentage, value, linear_scale_index,
+    //             created_at, updated_at, deleted_at
+    //         }
+    //     */
 
-        log::info('EvaluationResponseController::editEvaluationPercentageAnswer');
+    //     log::info('EvaluationResponseController::editEvaluationPercentageAnswer');
 
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
 
-        $user = DB::table('users')->select()->where('id', $userID)->first();
+    //     $user = DB::table('users')->select()->where('id', $userID)->first();
 
-        try {
+    //     try {
 
-            if( $user === null ) return response()->json([ 
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
 
-            DB::beginTransaction();
+    //         DB::beginTransaction();
 
-            $evaluationPercentageAnswer = EvaluationPercentageAnswer
-                ::join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
-                ->select('evaluation_percentage_answers.*')
-                ->addSelect(DB::raw(
-                    "round(evaluation_percentage_answers.percentage*"
-                    ."(evaluation_form_subcategories.linear_scale_end"
-                    ."-evaluation_form_subcategories.linear_scale_start)"
-                    ."+evaluation_form_subcategories.linear_scale_start)"
-                    ." as value"
-                ))
-                ->addSelect(DB::raw(
-                    "round(evaluation_percentage_answers.percentage*"
-                    ."(evaluation_form_subcategories.linear_scale_end"
-                    ."-evaluation_form_subcategories.linear_scale_start))"
-                    ." as linear_scale_index"
-                ))
-                ->where('evaluation_percentage_answers.response_id', $request->response_id)
-                ->where('evaluation_percentage_answers.subcategory_id', $request->subcategory_id)
-                ->whereNull('evaluation_percentage_answers.deleted_at')
-                ->first()
-            ;
+    //         $evaluationPercentageAnswer = EvaluationPercentageAnswer
+    //             ::join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+    //             ->select('evaluation_percentage_answers.*')
+    //             ->addSelect(DB::raw(
+    //                 "round(evaluation_percentage_answers.percentage*"
+    //                 ."(evaluation_form_subcategories.linear_scale_end"
+    //                 ."-evaluation_form_subcategories.linear_scale_start)"
+    //                 ."+evaluation_form_subcategories.linear_scale_start)"
+    //                 ." as value"
+    //             ))
+    //             ->addSelect(DB::raw(
+    //                 "round(evaluation_percentage_answers.percentage*"
+    //                 ."(evaluation_form_subcategories.linear_scale_end"
+    //                 ."-evaluation_form_subcategories.linear_scale_start))"
+    //                 ." as linear_scale_index"
+    //             ))
+    //             ->where('evaluation_percentage_answers.response_id', $request->response_id)
+    //             ->where('evaluation_percentage_answers.subcategory_id', $request->subcategory_id)
+    //             ->whereNull('evaluation_percentage_answers.deleted_at')
+    //             ->first()
+    //         ;
 
-            if(!$evaluationPercentageAnswer) return response()->json([ 
-                'status' => 404,
-                'message' => 'Evaluation Percentage Answer not found!',
-                'evaluationPercentageAnswerID' => $request->id
-            ]);
+    //         if(!$evaluationPercentageAnswer) return response()->json([ 
+    //             'status' => 404,
+    //             'message' => 'Evaluation Percentage Answer not found!',
+    //             'evaluationPercentageAnswerID' => $request->id
+    //         ]);
 
-            if($request->percentage === null && $request->value === null) return response()->json([
-                'status' => 400,
-                'message' => 'Either Percentage or Value must be given!'
-            ]);
+    //         if($request->percentage === null && $request->value === null) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Either Percentage or Value must be given!'
+    //         ]);
 
-            $subcategory = EvaluationFormSubcategory
-                ::select('id', 'subcategory_type', 'linear_scale_start', 'linear_scale_end')
-                ->where('id', $evaluationPercentageAnswer->subcategory_id)
-                ->whereNull('deleted_at')
-                ->first()
-            ;
+    //         $subcategory = EvaluationFormSubcategory
+    //             ::select('id', 'subcategory_type', 'linear_scale_start', 'linear_scale_end')
+    //             ->where('id', $evaluationPercentageAnswer->subcategory_id)
+    //             ->whereNull('deleted_at')
+    //             ->first()
+    //         ;
 
-            if($subcategory->subcategory_type != 'linear_scale') return response()->json([
-                'status' => 400,
-                'message' => 'This subcategory does not accept percentage answers!',
-                'evaluationFormSubcategoryID' => $subcategory->id,
-                'subcategoryType' => $subcategory->subcategory_type
-            ]);
+    //         if($subcategory->subcategory_type != 'linear_scale') return response()->json([
+    //             'status' => 400,
+    //             'message' => 'This subcategory does not accept percentage answers!',
+    //             'evaluationFormSubcategoryID' => $subcategory->id,
+    //             'subcategoryType' => $subcategory->subcategory_type
+    //         ]);
 
-            if(
-                $request->percentage === null
-                && (
-                    $request->value < $subcategory->linear_scale_start
-                    || $request->value > $subcategory->linear_scale_end
-                )
-            ) return response()->json([
-                'status' => 400,
-                'message' => 'Value is is not within linear scale!',
-                'evaluationFormSubcategoryID' => $subcategory->id,
-                'linear_scale_start' => $subcategory->linear_scale_start,
-                'linear_scale_end' => $subcategory->linear_scale_end
-            ]);
+    //         if(
+    //             $request->percentage === null
+    //             && (
+    //                 $request->value < $subcategory->linear_scale_start
+    //                 || $request->value > $subcategory->linear_scale_end
+    //             )
+    //         ) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Value is is not within linear scale!',
+    //             'evaluationFormSubcategoryID' => $subcategory->id,
+    //             'linear_scale_start' => $subcategory->linear_scale_start,
+    //             'linear_scale_end' => $subcategory->linear_scale_end
+    //         ]);
 
-            $percentage = (
-                $request->percentage
-                ?? (
-                    ($request->value - $subcategory->linear_scale_start)
-                    / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
-                )
-            );
+    //         $percentage = (
+    //             $request->percentage
+    //             ?? (
+    //                 ($request->value - $subcategory->linear_scale_start)
+    //                 / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
+    //             )
+    //         );
 
-            $evaluationPercentageAnswer->percentage = (double) $percentage;
-            $evaluationPercentageAnswer->save();
+    //         $evaluationPercentageAnswer->percentage = (double) $percentage;
+    //         $evaluationPercentageAnswer->save();
 
-            DB::commit();
+    //         DB::commit();
 
-            return response()->json([ 
-                'status' => 200,
-                'evaluationPercentageAnswer' => $evaluationPercentageAnswer,
-                'message' => 'Evaluation Percentage Answer successfully updated'
-            ]);
+    //         return response()->json([ 
+    //             'status' => 200,
+    //             'evaluationPercentageAnswer' => $evaluationPercentageAnswer,
+    //             'message' => 'Evaluation Percentage Answer successfully updated'
+    //         ]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
 
-            Log::error('Error saving work shift: ' . $e->getMessage());
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
 
-            throw $e;
-        }
-    }
+    //         throw $e;
+    //     }
+    // }
 
-    public function getEvaluationPercentageAnswer(Request $request)
-    {
-        // inputs:
-        /*
-            response_id: string,
-            subcategory_id: string,
-        */
+    // public function getEvaluationPercentageAnswer(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         response_id: string,
+    //         subcategory_id: string,
+    //     */
 
-        // returns:
-        /*
-            evaluationPercentageAnswer: {
-                response_id, subcategory_id, percentage, value, linear_scale_index,
-                created_at, updated_at
-            }
-        */
+    //     // returns:
+    //     /*
+    //         evaluationPercentageAnswer: {
+    //             response_id, subcategory_id, percentage, value, linear_scale_index,
+    //             created_at, updated_at
+    //         }
+    //     */
 
-        log::info('EvaluationResponseController::getEvaluationPercentageAnswer');
+    //     log::info('EvaluationResponseController::getEvaluationPercentageAnswer');
 
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
     
-        $user = DB::table('users')->where('id', $userID)->first();
+    //     $user = DB::table('users')->where('id', $userID)->first();
 
-        try {
+    //     try {
 
-            $evaluationPercentageAnswer = EvaluationPercentageAnswer
-                ::select(
-                    'response_id', 'subcategory_id', 'percentage',
-                    'created_at', 'updated_at'
-                )
-                ->where('response_id', $request->response_id)
-                ->where('subcategory_id', $request->subcategory_id)
-                ->whereNull('deleted_at')
-                ->first()
-            ;
-            if( !$evaluationPercentageAnswer ) return response()->json([
-                'status' => 404,
-                'message' => 'Evaluation Percentage Answer not found!'
-            ]);
-            return response()->json([
-                'status' => 200,
-                'message' => 'Evaluation Percentage Answer successfully retrieved.',
-                'evaluationPercentageAnswer' => $evaluationPercentageAnswer
-            ]);
+    //         $evaluationPercentageAnswer = EvaluationPercentageAnswer
+    //             ::select(
+    //                 'response_id', 'subcategory_id', 'percentage',
+    //                 'created_at', 'updated_at'
+    //             )
+    //             ->where('response_id', $request->response_id)
+    //             ->where('subcategory_id', $request->subcategory_id)
+    //             ->whereNull('deleted_at')
+    //             ->first()
+    //         ;
+    //         if( !$evaluationPercentageAnswer ) return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation Percentage Answer not found!'
+    //         ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Percentage Answer successfully retrieved.',
+    //             'evaluationPercentageAnswer' => $evaluationPercentageAnswer
+    //         ]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
 
-            Log::error('Error saving work shift: ' . $e->getMessage());
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
 
-            throw $e;
-        }
+    //         throw $e;
+    //     }
     
-    }
+    // }
 
-    public function getEvaluationPercentageAnswers(Request $request)
-    {
-        // inputs:
-        /*
-            subcategory_id: string
-        */
+    // public function getEvaluationPercentageAnswers(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         subcategory_id: string
+    //     */
 
-        // returns:
-        /*
-            evaluationPercentageAnswers: {
-                response_id, subcategory_id, percentage, value, linear_scale_index,
-                created_at, updated_at
-            }[]
-        */
+    //     // returns:
+    //     /*
+    //         evaluationPercentageAnswers: {
+    //             response_id, subcategory_id, percentage, value, linear_scale_index,
+    //             created_at, updated_at
+    //         }[]
+    //     */
 
-        log::info('EvaluationResponseController::getEvaluationPercentageAnswers');
+    //     log::info('EvaluationResponseController::getEvaluationPercentageAnswers');
 
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
     
-        $user = DB::table('users')->where('id', $userID)->first();
+    //     $user = DB::table('users')->where('id', $userID)->first();
 
-        try {
+    //     try {
 
-            $evaluationPercentageAnswers = EvaluationPercentageAnswer
-                ::select(
-                    'id', 'response_id', 'subcategory_id', 'percentage',
-                    'created_at', 'updated_at'
-                )
-                ->where('subcategory_id', $request->subcategory_id)
-                ->whereNull('deleted_at')
-                ->get()
-            ;
-            if( !$evaluationPercentageAnswers ) return response()->json([
-                'status' => 404,
-                'message' => 'Evaluation Percentage Answers not found!'
-            ]);
-            return response()->json([
-                'status' => 200,
-                'message' => 'Evaluation Percentage Answers successfully retrieved.',
-                'evaluationPercentageAnswers' => $evaluationPercentageAnswers
-            ]);
+    //         $evaluationPercentageAnswers = EvaluationPercentageAnswer
+    //             ::select(
+    //                 'id', 'response_id', 'subcategory_id', 'percentage',
+    //                 'created_at', 'updated_at'
+    //             )
+    //             ->where('subcategory_id', $request->subcategory_id)
+    //             ->whereNull('deleted_at')
+    //             ->get()
+    //         ;
+    //         if( !$evaluationPercentageAnswers ) return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluation Percentage Answers not found!'
+    //         ]);
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Evaluation Percentage Answers successfully retrieved.',
+    //             'evaluationPercentageAnswers' => $evaluationPercentageAnswers
+    //         ]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
 
-            Log::error('Error saving work shift: ' . $e->getMessage());
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
 
-            throw $e;
-        }
+    //         throw $e;
+    //     }
     
-    }
+    // }
 
-    public function saveEvaluationPercentageAnswer(Request $request)
-    {
-        // inputs:
-        /*
-            response_id: string,
-            subcategory_id: string,
-            percentage?: number,            // either percentage or value must be given
-            value?: number                  // value means percentage is auto-calculated
-        */
+    // public function saveEvaluationPercentageAnswer(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         response_id: string,
+    //         subcategory_id: string,
+    //         percentage?: number,            // either percentage or value must be given
+    //         value?: number                  // value means percentage is auto-calculated
+    //     */
 
-        // returns:
-        /*
-            evaluationPercentageAnswerID
-        */
+    //     // returns:
+    //     /*
+    //         evaluationPercentageAnswerID
+    //     */
 
-        log::info('EvaluationResponseController::saveEvaluationPercentageAnswer');
+    //     log::info('EvaluationResponseController::saveEvaluationPercentageAnswer');
 
-        if (Auth::check()) {
-            $userID = Auth::id();
-        } else {
-            $userID = null;
-        }
+    //     if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
 
-        $user = DB::table('users')->select()->where('id', $userID)->first();
+    //     $user = DB::table('users')->select()->where('id', $userID)->first();
 
-        try {
+    //     try {
 
-            if( $user === null ) return response()->json([ 
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
+    //         if( $user === null ) return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
 
-           if($request->percentage === null && $request->value === null) return response()->json([
-                'status' => 400,
-                'message' => 'Either Percentage or Value must be given!'
-            ]);
+    //        if($request->percentage === null && $request->value === null) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Either Percentage or Value must be given!'
+    //         ]);
 
-            $subcategory = EvaluationFormSubcategory
-                ::select('subcategory_type', 'linear_scale_start', 'linear_scale_end')
-                ->where('id', $request->subcategory_id)
-                ->whereNull('deleted_at')
-                ->first()
-            ;
+    //         $subcategory = EvaluationFormSubcategory
+    //             ::select('subcategory_type', 'linear_scale_start', 'linear_scale_end')
+    //             ->where('id', $request->subcategory_id)
+    //             ->whereNull('deleted_at')
+    //             ->first()
+    //         ;
 
-            if($subcategory->subcategory_type != 'linear_scale') return response()->json([
-                'status' => 400,
-                'message' => 'This subcategory does not accept percentage answers!',
-                'evaluationFormSubcategoryID' => $subcategory->id
-            ]);
+    //         if($subcategory->subcategory_type != 'linear_scale') return response()->json([
+    //             'status' => 400,
+    //             'message' => 'This subcategory does not accept percentage answers!',
+    //             'evaluationFormSubcategoryID' => $subcategory->id
+    //         ]);
             
-            $existingFormPercentageAnswer = EvaluationPercentageAnswer
-                ::where('response_id', $request->response_id)
-                ->where('subcategory_id', $request->subcategory_id)
-                ->first()
-            ;
+    //         $existingFormPercentageAnswer = EvaluationPercentageAnswer
+    //             ::where('response_id', $request->response_id)
+    //             ->where('subcategory_id', $request->subcategory_id)
+    //             ->first()
+    //         ;
 
-            if($existingFormPercentageAnswer) return response()->json([ 
-                'status' => 409,
-                'message' => 'A percentage answer was already created for this subcategory!',
-                'evaluationResponseID' => $request->response_id,
-                'evaluationFormSubcategoryID' => $request->subcategory_id
-            ]);
+    //         if($existingFormPercentageAnswer) return response()->json([ 
+    //             'status' => 409,
+    //             'message' => 'A percentage answer was already created for this subcategory!',
+    //             'evaluationResponseID' => $request->response_id,
+    //             'evaluationFormSubcategoryID' => $request->subcategory_id
+    //         ]);
 
-            if(
-                $request->percentage === null
-                && (
-                    $request->value < $subcategory->linear_scale_start
-                    || $request->value > $subcategory->linear_scale_end
-                )
-            ) return response()->json([
-                'status' => 400,
-                'message' => 'Value is is not within linear scale!',
-                'evaluationFormSubcategoryID' => $subcategory->id,
-                'linear_scale_start' => $subcategory->linear_scale_start,
-                'linear_scale_end' => $subcategory->linear_scale_end
-            ]);
+    //         if(
+    //             $request->percentage === null
+    //             && (
+    //                 $request->value < $subcategory->linear_scale_start
+    //                 || $request->value > $subcategory->linear_scale_end
+    //             )
+    //         ) return response()->json([
+    //             'status' => 400,
+    //             'message' => 'Value is is not within linear scale!',
+    //             'evaluationFormSubcategoryID' => $subcategory->id,
+    //             'linear_scale_start' => $subcategory->linear_scale_start,
+    //             'linear_scale_end' => $subcategory->linear_scale_end
+    //         ]);
 
-            DB::beginTransaction();
+    //         DB::beginTransaction();
 
-            $percentage = (
-                $request->percentage
-                ?? (
-                    ($request->value - $subcategory->linear_scale_start)
-                    / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
-                )
-            );
+    //         $percentage = (
+    //             $request->percentage
+    //             ?? (
+    //                 ($request->value - $subcategory->linear_scale_start)
+    //                 / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
+    //             )
+    //         );
 
-            $newEvaluationPercentageAnswer = EvaluationPercentageAnswer::create([
-                'response_id' => $request->response_id,
-                'subcategory_id' => $request->subcategory_id,
-                'percentage' => $percentage
-            ]);
+    //         $newEvaluationPercentageAnswer = EvaluationPercentageAnswer::create([
+    //             'response_id' => $request->response_id,
+    //             'subcategory_id' => $request->subcategory_id,
+    //             'percentage' => $percentage
+    //         ]);
 
-            DB::commit();
+    //         DB::commit();
 
-            return response()->json([ 
-                'status' => 201,
-                'message' => 'Evaluation Percentage Answer successfully created',
-                'evaluationResponseID' => $request->response_id,
-                'evaluationFormSubcategoryID' => $request->subcategory_id
-            ]);
+    //         return response()->json([ 
+    //             'status' => 201,
+    //             'message' => 'Evaluation Percentage Answer successfully created',
+    //             'evaluationResponseID' => $request->response_id,
+    //             'evaluationFormSubcategoryID' => $request->subcategory_id
+    //         ]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
 
-            Log::error('Error saving work shift: ' . $e->getMessage());
+    //         Log::error('Error saving work shift: ' . $e->getMessage());
 
-            throw $e;
-        }
-    }
+    //         throw $e;
+    //     }
+    // }
 
     // evaluation form text answer
 
