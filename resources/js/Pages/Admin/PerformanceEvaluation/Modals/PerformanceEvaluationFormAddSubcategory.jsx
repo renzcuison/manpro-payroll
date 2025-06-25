@@ -151,10 +151,34 @@ export default function PerformanceEvaluationFormAddSubcategory({ open, onClose,
                     />
                 </Box>
                 {(subcategoryType === 'multiple_choice' || subcategoryType === 'checkbox') && (
+                           <>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                color: 'black',
+                                fontStyle: 'italic',
+                                my: 1,
+                            }}
+                        >
+                            Note: The scoring is 100% based.
+                        </Typography>
                     <OptionsEditor/>
+                    </>
                 )}
                 {(subcategoryType === 'linear_scale') && (
+                        <>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                color: 'black',
+                                fontStyle: 'italic',
+                                my: 1,
+                            }}
+                        >
+                            Note: 1 is the lowest and {options.length} is the highest.
+                        </Typography>
                     <LinearScaleEditor/>
+                    </>
                 )}
                 <Box display="flex" justifyContent="space-between" sx={{ mt: 4 }}>
                     <Button

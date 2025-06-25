@@ -15,16 +15,6 @@ import Swal from 'sweetalert2';
 
 const STATUS_STYLES = {
     Pending: {
-        background: '#f8e414',
-        color: '#fff',
-        borderRadius: 20,
-        padding: '2px 22px',
-        fontSize: 13,
-        minWidth: 60,
-        display: 'inline-block',
-        textAlign: 'center'
-    },
-    Sent: {
         background: '#f89c14',
         color: '#fff',
         borderRadius: 20,
@@ -34,8 +24,18 @@ const STATUS_STYLES = {
         display: 'inline-block',
         textAlign: 'center'
     },
+    Sent: {
+        background: '#fba922',
+        color: '#fff',
+        borderRadius: 20,
+        padding: '2px 22px',
+        fontSize: 13,
+        minWidth: 60,
+        display: 'inline-block',
+        textAlign: 'center'
+    },
     New: {
-        background: '#ffcc14',
+        background: '#f06c1c',
         color: '#fff',
         borderRadius: 20,
         padding: '2px 22px',
@@ -45,17 +45,17 @@ const STATUS_STYLES = {
         textAlign: 'center'
     },
     Submitted: {
-        background: '#78b42c',
+        background: '#68c906',
         color: '#fff',
         borderRadius: 20,
         padding: '2px 22px',
         fontSize: 13,
-        minWidth: 60,
+        width: 100,
         display: 'inline-block',
         textAlign: 'center'
     },
     Done: {
-        background: '#209c3c',
+        background: '#2464ac',
         color: '#fff',
         borderRadius: 20,
         padding: '2px 22px',

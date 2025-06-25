@@ -998,22 +998,21 @@ class EvaluationResponseController extends Controller
                             : 'New'
                         );
                 }
-
             // 2. Searching
             if ($request->search) {
                 $searchTerm = strtolower(trim($request->search));
-                $evaluationResponses = $evaluationResponses->filter(function ($row) use ($searchTerm) {
-                    $formName = strtolower($row->form->name ?? '');
-                    $date = strtolower($row->date ?? '');
+                $evaluationResponses = $evaluationResponses->filter(function ($evaluationResponse) use ($searchTerm) {
+                    $formName = strtolower($evaluationResponse->form->name ?? '');
+                    $date = strtolower($evaluationResponse->date ?? '');
                     $fullName = strtolower(trim(
-                        ($row->evaluatee->last_name ?? '') . ', ' .
-                        ($row->evaluatee->first_name ?? '') . ' ' .
-                        ($row->evaluatee->middle_name ?? '') . ' ' .
-                        ($row->evaluatee->suffix ?? '')
+                        ($evaluationResponse->evaluatee->last_name ?? '') . ', ' .
+                        ($evaluationResponse->evaluatee->first_name ?? '') . ' ' .
+                        ($evaluationResponse->evaluatee->middle_name ?? '') . ' ' .
+                        ($evaluationResponse->evaluatee->suffix ?? '')
                     ));
-                    $department = strtolower($row->evaluatee->department->name ?? '');
-                    $branch = strtolower($row->evaluatee->branch->name ?? '');
-                    $status = strtolower($row->status ?? '');
+                    $department = strtolower($evaluationResponse->evaluatee->department->name ?? '');
+                    $branch = strtolower($evaluationResponse->evaluatee->branch->name ?? '');
+                    $status = strtolower($evaluationResponse->status ?? '');
 
                     return 
                         strpos($formName, $searchTerm) !== false ||
@@ -1024,14 +1023,12 @@ class EvaluationResponseController extends Controller
                         strpos($status, $searchTerm) !== false;
                 })->values();
             }
-
             // 3. Status filter
             if ($request->status && in_array($request->status, ['Sent', 'New', 'Pending', 'Submitted', 'Done'])) {
-                $evaluationResponses = $evaluationResponses->filter(function ($row) use ($request) {
-                    return $row->status === $request->status;
+                $evaluationResponses = $evaluationResponses->filter(function ($evaluationResponse) use ($request) {
+                    return $evaluationResponse->status === $request->status;
                 })->values();
             }
-
             // 4. Sorting (multi-column, supports front-end's order_by array)
             if ($request->order_by && is_array($request->order_by)) {
                 $orderByArray = $request->order_by;
@@ -1082,7 +1079,6 @@ class EvaluationResponseController extends Controller
                     return -1;
                 })->values();
             }
-
             // 5. Pagination
             $page = $request->page ?? 1;
             $limit = $request->limit ?? 10;
@@ -1091,10 +1087,37 @@ class EvaluationResponseController extends Controller
             $totalResponseCount = $evaluationResponses->count();
             $maxPageCount = ceil($totalResponseCount / $limit);
             $pageResponseCount = min($limit, max(0, $totalResponseCount - $skip));
-
+            // 6. Encryption
             $evaluationResponses = $evaluationResponses
                 ->slice($skip, $limit)
-                ->values();
+                ->values()
+                // ->map(function($evaluationResponse) {
+                //     return [
+                //         "id" => Crypt::encrypt($evaluationResponse->id),
+				// 		"role" => $evaluationResponse->role,
+				// 		"commentor_order" => $evaluationResponse->commentor_order,
+				// 		"opened_at" => $evaluationResponse->opened_at,
+				// 		"evaluatee_signature_filepath" => $evaluationResponse->evaluatee_signature_filepath,
+				// 		"creator_signature_filepath" => $evaluationResponse->creator_signature_filepath,
+				// 		"evaluators_unsigned_count" => $evaluationResponse->evaluators_unsigned_count,
+				// 		"commentors_unsigned_count" => $evaluationResponse->commentors_unsigned_count,
+				// 		"commentors_signed_count" => $evaluationResponse->commentors_signed_count,
+				// 		"date" => $evaluationResponse->date,
+				// 		"form_id" => $evaluationResponse->form_id,
+				// 		"evaluatee_id" => $evaluationResponse->evaluatee_id,
+				// 		"created_at" => $evaluationResponse->created_at,
+				// 		"updated_at" => $evaluationResponse->updated_at,
+				// 		"period_start_at" => $evaluationResponse->period_start_at,
+				// 		"period_end_at" => $evaluationResponse->period_end_at,
+				// 		"status" => $evaluationResponse->status,
+				// 		"form" => [
+                //             "id" => Crypt::encrypt($evaluationResponse->form->id),
+				// 		    "name" => $evaluationResponse->form->name
+                //         ],
+				// 		"evaluatee" => $evaluationResponse->evaluatee
+                //     ];
+                // })
+            ;
 
             return response()->json([
                 'status' => 200,
@@ -1293,11 +1316,11 @@ class EvaluationResponseController extends Controller
             // 1. Searching
             if ($request->search) {
                 $searchTerm = strtolower(trim($request->search));
-                $evaluationResponses = $evaluationResponses->filter(function ($row) use ($searchTerm) {
-                    $formName = strtolower($row->form->name ?? '');
-                    $date = strtolower($row->date ?? '');
-                    $department = strtolower($row->evaluatee->department->name ?? '');
-                    $branch = strtolower($row->evaluatee->branch->name ?? '');
+                $evaluationResponses = $evaluationResponses->filter(function ($evaluationResponse) use ($searchTerm) {
+                    $formName = strtolower($evaluationResponse->form->name ?? '');
+                    $date = strtolower($evaluationResponse->date ?? '');
+                    $department = strtolower($evaluationResponse->evaluatee->department->name ?? '');
+                    $branch = strtolower($evaluationResponse->evaluatee->branch->name ?? '');
 
                     return 
                         strpos($formName, $searchTerm) !== false ||

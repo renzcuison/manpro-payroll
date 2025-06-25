@@ -685,18 +685,18 @@ class EmployeesController extends Controller
 
     public function editMyProfilePicture(Request $request)
     {
-        Log::info("EmployeesController::editMyProfilePicture", $request->all());
+        // Log::info("EmployeesController::editMyProfilePicture");
 
-        $user = UsersModel::findOrFail($request->input('id'));
+        $user = UsersModel::where('user_name', $request->input('userName'))->first();
 
         try {
-            if ($request->hasFile('profile_picture')) {
+            if ($request->hasFile('profilePicture')) {
                 // Clear existing media
                 $user->clearMediaCollection('profile_pictures');
 
                 // Add new media without conversion references
-                $media = $user->addMedia($request->file('profile_picture'))
-                    ->usingName($request->file('profile_picture')->getClientOriginalName())
+                $media = $user->addMedia($request->file('profilePicture'))
+                    ->usingName($request->file('profilePicture')->getClientOriginalName())
                     ->toMediaCollection('profile_pictures', 'public');
                 
                 $mediaDetails = [
