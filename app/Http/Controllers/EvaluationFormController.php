@@ -16,10 +16,13 @@ use App\Models\EvaluationPercentageAnswer;
 use App\Models\EvaluationTextAnswer;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+
 class EvaluationFormController extends Controller
 {
 
@@ -27,7 +30,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id: number
+            id: string
         */
 
         // returns:
@@ -49,7 +52,7 @@ class EvaluationFormController extends Controller
         $user = DB::table('users')->select()->where('id', $userID)->first();
 
         if (!Auth::check()) {
-            return response()->json([ 
+            return response()->json([
                 'status' => 403,
                 'message' => 'Unauthorized access!'
             ]);
@@ -61,22 +64,11 @@ class EvaluationFormController extends Controller
             DB::beginTransaction();
 
             $evaluationForm = EvaluationForm::find($request->id);
-
-            if (!$evaluationForm) {
-                return response()->json([ 
-                    'status' => 404,
-                    'message' => 'Evaluation Form not found!',
-                    'evaluationFormID' => $request->id
-                ]);
-            }
-
-            if ($evaluationForm->deleted_at) {
-                return response()->json([ 
-                    'status' => 405,
-                    'message' => 'Evaluation Form already deleted!',
-                    'evaluationForm' => $evaluationForm
-                ]);
-            }
+            if (!$evaluationForm) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Form not found!',
+                'evaluationFormID' => $request->id
+            ]);
 
             $evaluationForm->deleted_at = now();
             $evaluationForm->save();
@@ -110,7 +102,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id: number,
+            id: string,
             name: string
         */
 
@@ -455,7 +447,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id: number
+            id: string
         */
 
         // returns:
@@ -484,23 +476,12 @@ class EvaluationFormController extends Controller
 
             DB::beginTransaction();
 
-            $evaluationFormSection = EvaluationFormSection
-                ::select()
-                ->where('id', $request->id)
-                ->whereNull('deleted_at')
-                ->first()
-            ;
+            $evaluationFormSection = EvaluationFormSection::find($request->id);
 
             if( !$evaluationFormSection ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Section not found!',
                 'evaluationFormSectionID' => $request->id
-            ]);
-
-            if( $evaluationFormSection->deleted_at ) return response()->json([ 
-                'status' => 405,
-                'message' => 'Evaluation Form Section already deleted!',
-                'evaluationFormSection' => $evaluationFormSection
             ]);
             
             $oldOrder = $evaluationFormSection->order;
@@ -551,7 +532,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id: number,
+            id: string,
             name?: string,
             category?: string,
             score?: number
@@ -630,7 +611,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id: number
+            id: string
         */
 
         // returns:
@@ -711,7 +692,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id: number,
+            id: string,
             order: number              // counting start at 1 
         */
 
@@ -818,7 +799,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            form_id: number,
+            form_id: string,
             name: string,
             category: string,
             score: number
@@ -908,23 +889,12 @@ class EvaluationFormController extends Controller
 
             DB::beginTransaction();
 
-            $evaluationFormSubcategory = EvaluationFormSubcategory
-                ::select()
-                ->where('id', $request->id)
-                ->whereNull('deleted_at')
-                ->first()
-            ;
+            $evaluationFormSubcategory = EvaluationFormSubcategory::find($request->id);
 
             if( !$evaluationFormSubcategory ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Subcategory not found!',
                 'evaluationFormSubcategoryID' => $request->id
-            ]);
-
-            if( $evaluationFormSubcategory->deleted_at ) return response()->json([ 
-                'status' => 405,
-                'message' => 'Evaluation Form Subcategory already deleted!',
-                'evaluationFormSubcategory' => $evaluationFormSubcategory
             ]);
 
             $oldOrder = $evaluationFormSubcategory->order;
@@ -1062,12 +1032,12 @@ class EvaluationFormController extends Controller
             //         'status' => 400,
             //         'message' => 'Evaluation Form Subcategory Linear Scale Start must be less than End!'
             //     ]);
-            $isEmptyLinearScaleStartLabel = $request->has('linear_scale_start_label') && $request->linear_scale_start_label === null;
+            // $isEmptyLinearScaleStartLabel = $request->has('linear_scale_start_label') && $request->linear_scale_start_label === null;
             // if( $isEmptyLinearScaleStartLabel ) return response()->json([ 
             //     'status' => 400,
             //     'message' => 'Evaluation Form Subcategory Linear Scale Start Label is required!'
             // ]);
-            $isEmptyLinearScaleEndLabel = $request->has('linear_scale_end_label') && $request->linear_scale_end_label === null;
+            // $isEmptyLinearScaleEndLabel = $request->has('linear_scale_end_label') && $request->linear_scale_end_label === null;
             // if( $isEmptyLinearScaleEndLabel ) return response()->json([ 
             //     'status' => 400,
             //     'message' => 'Evaluation Form Subcategory Linear Scale End Label is required!'
@@ -1153,7 +1123,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id: number,
+            id: string,
             order: number              // counting start at 1 
         */
 
@@ -1493,23 +1463,12 @@ class EvaluationFormController extends Controller
 
             DB::beginTransaction();
 
-            $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
-                ::select()
-                ->where('id', $request->id)
-                ->whereNull('deleted_at')
-                ->first()
-            ;
+            $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::find($request->id);
 
             if( !$evaluationFormSubcategoryOption ) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Subcategory Option not found!',
                 'evaluationFormSubcategoryOptionID' => $request->id
-            ]);
-
-            if( $evaluationFormSubcategoryOption->deleted_at ) return response()->json([ 
-                'status' => 405,
-                'message' => 'Evaluation Form Subcategory Option already deleted!',
-                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption
             ]);
 
             $oldOrder = $evaluationFormSubcategoryOption->order;
@@ -1678,7 +1637,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id: number,
+            id: string,
             order: number              // counting start at 1 
         */
 
@@ -1845,7 +1804,7 @@ class EvaluationFormController extends Controller
             DB::commit();
 
             return response()->json([
-                'status' => 200,
+                'status' => 201,
                 'evaluationSubcategoryOptionID' => $newEvaluationFormSubcategoryOption->id,
                 'message' => 'Evaluation Form Subcategory Option successfully created'
             ]);
