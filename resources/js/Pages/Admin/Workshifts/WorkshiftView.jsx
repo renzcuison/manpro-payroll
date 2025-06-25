@@ -415,11 +415,18 @@ const WorkshiftView = () => {
                             </TableContainer>
                             
                             <Box display='flex' justifyContent='center' sx={{mt: 2}}>
-                                {!isEdit && <Button variant='contained' onClick={() => setIsEdit(true)}>Edit</Button>}
+                                {!isEdit && 
+                                    <Button variant='contained' onClick={() => setIsEdit(true)}>
+                                        <p className='m-0'><i className="fa fa-pencil-square-o mr-2 mt-1"></i> Edit </p>
+                                    </Button>}
                                 {isEdit && 
                                     <>
-                                        <Button type="submit" variant='contained' onClick={(e) => checkInput(e)}>Save</Button>
-                                        <Button variant='contained' onClick={() => setIsEdit(false)}>Cancel</Button>
+                                        <Button type="submit" variant='contained' onClick={(e) => checkInput(e)} sx={{mr: 2}}>
+                                            <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>
+                                        </Button>
+                                        <Button variant='contained' onClick={() => setIsEdit(false)} sx={{backgroundColor: '#636c74'}}>
+                                            <p className='m-0'><i className="fa fa-times" ></i> Cancel </p>
+                                        </Button>
                                     </>
                                 } 
                             </Box>
