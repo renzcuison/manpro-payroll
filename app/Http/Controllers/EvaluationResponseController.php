@@ -290,14 +290,6 @@ class EvaluationResponseController extends Controller
                 ]);
             }
 
-            if ($evaluationResponse->deleted_at) {
-                return response()->json([ 
-                    'status' => 405,
-                    'message' => 'Evaluation Response already deleted!',
-                    'evaluationResponseID' => Crypt::encrypt($evaluationResponse->id)
-                ]);
-            }
-
             $evaluationResponse->deleted_at = now();
             $evaluationResponse->save();
 

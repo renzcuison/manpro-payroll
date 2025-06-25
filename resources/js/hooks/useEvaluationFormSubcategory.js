@@ -122,7 +122,7 @@ export function useEvaluationFormSubcategory(subcategoryInit) {
                         optResponse = await axiosInstance.post(
                             '/saveEvaluationFormSubcategoryOption', { ...option }, { headers }
                         );
-                        if(Number(optResponse.data.status) !== 200) throw optResponse.data;
+                        if(!optResponse.data.status.toString().startsWith(2)) throw optResponse.data;
                         option.id = optResponse.data.evaluationSubcategoryOptionID;
                         delete option.action;
                         break;
