@@ -1204,7 +1204,7 @@ class EvaluationResponseController extends Controller
                     case 'Evaluatee':
                         $evaluationResponse->status =
                             $evaluationResponse->evaluatee_signature_filepath ? 'Done'
-                            : ($evaluationResponse->evaluatee_opened_at ? 'Pending'
+                            : ($evaluationResponse->opened_at ? 'Pending'
                             : 'New'
                         );
                 }
