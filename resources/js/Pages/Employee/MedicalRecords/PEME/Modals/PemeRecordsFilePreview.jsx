@@ -19,15 +19,24 @@ const PemeRecordsFilePreview = ({ open, close, file }) => {
         setDocxHtml(null);
 
         if (file?.url && file.url.endsWith(".docx")) {
-            console.log("Fetching DOCX for preview:", file.file_name);
-            fetch(`http://192.168.79.33:8000/api/download/${file.file_name}`)
-                .then((res) => res.blob())
+            console.log("Fetching DOCX for preview:", file.file_name, file.id);
+            fetch(`http://192.168.79.33:8000/api/download/${file.id}`)
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error(`Network response was not ok: ${res.status} ${res.statusText}`);
+                    }
+                    console.log("Content-Type:", res.headers.get("content-type"));
+                    return res.blob();
+                })
                 .then((blob) => blob.arrayBuffer())
                 .then((arrayBuffer) =>
                     mammoth.convertToHtml({ arrayBuffer })
                 )
                 .then((result) => setDocxHtml(result.value))
-                .catch(() => setDocxHtml("<p>Unable to preview DOCX file.</p>"));
+                .catch((err) => {
+                    console.error("DOCX preview error:", err);
+                    setDocxHtml("<p>Unable to preview DOCX file.</p>");
+                });
         }
     }, [file, open]);
 
