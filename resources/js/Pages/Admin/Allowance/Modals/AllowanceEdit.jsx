@@ -1,73 +1,11 @@
 import { Box, Button, IconButton, Dialog, DialogTitle, DialogContent, Grid, TextField, Typography, CircularProgress, FormGroup, FormControl, InputLabel, FormControlLabel, Switch, Select, MenuItem, Checkbox, ListItemText,  } from '@mui/material';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
-
-import React, { useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
 import 'react-quill/dist/quill.snow.css';
-import { useUpdateAllowance } from '../../../../hooks/useAllowances';
+import { useManageAllowance } from '../../../../hooks/useAllowances';
 
 const AllowanceEdit = ({allowance, open, close }) => {
-    const updateAllowance = useUpdateAllowance();
-
-    const [allowanceNameError, setAllowanceNameError] = useState(false);
-    const [paymentScheduleError, setPaymentScheduleError] = useState(false);
-
-    const [allowanceName, setAllowanceName] = useState(allowance?.name);
-    const [paymentSchedule, setPaymentSchedule] = useState(allowance?.payment_schedule || 1);
-
-    const checkInput = (event) => {
-        event.preventDefault();
-
-        if (!allowanceName) {
-            setAllowanceNameError(true);
-        } else {
-            setAllowanceNameError(false);
-        }
-
-        if (!paymentSchedule) {
-            setPaymentScheduleError(true);
-        } else {
-            setPaymentScheduleError(false);
-        }
-
-        if ( allowanceNameError == true || paymentScheduleError == true ) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            new Swal({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "You want to Update this Allowance Type?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: 'Save',
-                confirmButtonColor: '#177604',
-                showCancelButton: true,
-                cancelButtonText: 'Cancel',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInput(event);
-                }
-            });
-        }
-    }
-
-    const saveInput  = (event) => {
-        event.preventDefault();
-
-        const data = {
-            allowance_id: allowance.id,
-            name: allowanceName,
-            payment_schedule: paymentSchedule,
-        };
-        updateAllowance.mutate({data: data, onSuccessCallback: () => close(true)});
-    };
+    const {allowanceName, paymentSchedule,
+        allowanceNameError, setAllowanceName, setPaymentSchedule, checkInput,
+    } = useManageAllowance({allowance: allowance, onSuccess: () => close(true)});
 
     return (
         <>
@@ -102,7 +40,6 @@ const AllowanceEdit = ({allowance, open, close }) => {
                                     id="paymentSchedule"
                                     label="Payment Schedule"
                                     value={paymentSchedule}
-                                    error={paymentScheduleError}
                                     onChange={(event) => setPaymentSchedule(event.target.value)}
                                 >
                                     <MenuItem key={1} value={1}> One Time - First Cutoff</MenuItem>
