@@ -88,11 +88,11 @@ const PemeResponses = () => {
         setOpenAddPemeRecordsModal,
     ] = React.useState(false);
 
-    const handleCloseAddPemeRecordsModal = (reload) => {
+    const handleCloseAddPemeRecordsModal = () => {
         setOpenAddPemeRecordsModal(false);
-        if (reload) {
-            // Reload the data or perform any action after closing the modal
-        }
+        axiosInstance.get("/peme-responses", { headers }).then((response) => {
+            setPemeResponses(response.data);
+        });
     };
 
     // Handle dropdown changes for due date filtering

@@ -16,15 +16,75 @@ const SalaryGradeAdd = ({ open, close, existingSalaryGrades = [] }) => {
     const [amountError, setAmountError] = useState(false);
 
     const [salary_grade, setSalaryGrade] = useState('');
+    const [salary_grade_version, setSalaryGradeVersion] = useState('');
+    const [salaryGradeInput, setSalaryGradeInput] = useState('');
     const [amount, setAmount] = useState('');
 
     const checkInput = (event) => {
         event.preventDefault();
 
-        // Check for duplicate salary grade (ignoring deleted rows)
-        const duplicate = existingSalaryGrades.some(
-            (grade) => String(grade) === String(salary_grade)
-        );
+        // If input contains a dash, both numbers must be present
+        if (
+            salaryGradeInput.includes('.') &&
+            (
+                salary_grade_version === '' ||
+                salary_grade_version === undefined
+            )
+        ) {
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "Please complete the fields.",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+            return;
+        }
+
+        // 1. If there is NO version, check if any row exists with the same salary_grade and NO version
+        if (!salary_grade_version) {
+            const baseExists = existingSalaryGrades.some((grade) =>
+                String(grade.salary_grade) === String(salary_grade) &&
+                (!grade.salary_grade_version || grade.salary_grade_version === '')
+            );
+            if (baseExists) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "That salary grade already exists.",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+        }
+
+        // 2. If there IS a version, check if any row exists with the same salary_grade AND salary_grade_version
+        if (salary_grade_version) {
+            const versionExists = existingSalaryGrades.some((grade) =>
+                String(grade.salary_grade) === String(salary_grade) &&
+                String(grade.salary_grade_version || '') === String(salary_grade_version)
+            );
+            if(salary_grade_version === '0') {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "That salary grade version cannot exist.",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            } else if (versionExists) {
+                Swal.fire({
+                    customClass: { container: 'my-swal' },
+                    text: "That salary grade already exists.",
+                    icon: "error",
+                    showConfirmButton: true,
+                    confirmButtonColor: '#177604',
+                });
+                return;
+            }
+        }
 
         setSalaryGradeError(!salary_grade);
         setAmountError(!amount);
@@ -33,14 +93,6 @@ const SalaryGradeAdd = ({ open, close, existingSalaryGrades = [] }) => {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else if (duplicate) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "That salary grade already exists.",
                 icon: "error",
                 showConfirmButton: true,
                 confirmButtonColor: '#177604',
@@ -73,6 +125,7 @@ const SalaryGradeAdd = ({ open, close, existingSalaryGrades = [] }) => {
 
         const data = {
             salary_grade: salary_grade,
+            salary_grade_version: salary_grade_version,
             amount: cleanedAmount
         };
 
@@ -161,9 +214,26 @@ const SalaryGradeAdd = ({ open, close, existingSalaryGrades = [] }) => {
                                     id="salary_grade"
                                     label="Salary Grade"
                                     variant="outlined"
-                                    value={salary_grade}
+                                    value={salaryGradeInput}
                                     error={salaryGradeError}
-                                    onChange={(e) => setSalaryGrade(e.target.value)}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+
+                                        // Allow only numbers or numbers-dash-numbers (e.g., 1, 2-1, 10-2)
+                                        const validPattern = /^(\d+|\d+.\d*)$/;
+                                        if (value === '' || validPattern.test(value)) {
+                                            setSalaryGradeInput(value);
+
+                                            if (value.includes('.')) {
+                                                const [main, version] = value.split('.');
+                                                setSalaryGrade(main.trim());
+                                                setSalaryGradeVersion(version !== undefined ? version.trim() : '');
+                                            } else {
+                                                setSalaryGrade(value.trim());
+                                                setSalaryGradeVersion('');
+                                            }
+                                        }
+                                    }}
                                 />
                             </FormControl>
 
@@ -183,6 +253,10 @@ const SalaryGradeAdd = ({ open, close, existingSalaryGrades = [] }) => {
                                 />
                             </FormControl>
                         </FormGroup>
+
+                        <Box display="flex" justifyContent="center">
+                                <p className='m-0'><i>Note: For new (but existing) salary grades, simply format as <strong>number.number</strong>, i.e. <strong>1.1, 1.2, 2.1</strong>, etc. </i></p>
+                        </Box>
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>
                             <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">

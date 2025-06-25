@@ -19,6 +19,7 @@ import {
     useTheme,
     Button,
     TablePagination,
+    Modal,
 } from "@mui/material";
 import moment from "moment";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -34,6 +35,7 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 
 import DateRangePicker from '../../../components/DateRangePicker';
 
+import AttendanceDateLog from "./Modals/AttendanceDateLog";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -60,6 +62,10 @@ const AttendanceLogs = () => {
     const [selectedRange, setSelectedRange] = useState("today");
     const [selectedAttendanceType, setSelectedAttendanceType] = useState("All");
 
+    // Modal States
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedLog, setSelectedLog] = useState(null);
+
     // Fetch Attendance Logs on Mount
     useEffect(() => {
         fetchAttendanceLogs();
@@ -78,6 +84,7 @@ const AttendanceLogs = () => {
         })
             .then((response) => {
                 console.log("Initial fetch:", response.data);
+                console.log("METHODS", response.data.attendances[0]?.method);
                 setAttendanceLogs(response.data.attendances || []);
                 setIsLoading(false);
             })
@@ -144,6 +151,19 @@ const AttendanceLogs = () => {
         }
     };
 
+    const setMethodType = (method) => {
+        switch (method) {
+            case 1:
+                return 'Web Application';
+            case 2:
+                return 'Mobile Application';
+            case 3:
+                return 'Biometric Device';
+            default:
+                return '-';
+        }
+    }
+
     const handleFilterChange = (type, newDate, rangeEnd = null, newSelectType = null) => {
         // Control variables
         let newFromDate = fromDate;
@@ -209,6 +229,17 @@ const AttendanceLogs = () => {
     };
 
     const paginatedAttendance = filteredAttendance.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+    const handleRowClick = (log) => {
+        console.log("CLICKED", log)
+        setSelectedLog(log);
+        setModalOpen(true);
+    }
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        setSelectedLog(null);
+    };
 
     return (
         <Layout title={"AttendanceLogs"}>
@@ -277,18 +308,22 @@ const AttendanceLogs = () => {
                                 <Table stickyHeader aria-label="simple table">
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell align="center" sx={{ width: "33%" }}> Date </TableCell>
-                                            <TableCell align="center" sx={{ width: "33%" }}> Time </TableCell>
-                                            <TableCell align="center" sx={{ width: "34%" }}> Action </TableCell>
+                                            <TableCell align="center" sx={{ width: "25%" }}> Date </TableCell>
+                                            <TableCell align="center" sx={{ width: "25%" }}> Method </TableCell>
+                                            <TableCell align="center" sx={{ width: "25%" }}> Time </TableCell>
+                                            <TableCell align="center" sx={{ width: "25%" }}> Action </TableCell>
                                         </TableRow>
                                     </TableHead>
 
                                     <TableBody>
                                         {paginatedAttendance.length > 0 ? (
                                             paginatedAttendance.map((log, index) => (
-                                                <TableRow key={index} sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff" }}>
+                                                <TableRow key={index} onClick={() => handleRowClick(log)} sx={{ backgroundColor: index % 2 === 0 ? "#f8f8f8" : "#ffffff", cursor: "pointer" }}>
                                                     <TableCell align="center">
                                                         {moment(log.timestamp, "YYYY-MM-DD HH:mm:ss").format("MMMM D, YYYY") || "-"}
+                                                    </TableCell>
+                                                    <TableCell align="center">
+                                                        {setMethodType(log.method || "-")}
                                                     </TableCell>
                                                     <TableCell align="center">
                                                         {moment(log.timestamp, "YYYY-MM-DD HH:mm:ss").format("hh:mm:ss A") || "-"}
@@ -299,10 +334,10 @@ const AttendanceLogs = () => {
                                                                 fontWeight: "bold",
                                                                 color:
                                                                     log.action === "Duty In" ? "#177604" :
-                                                                    log.action === "Duty Out" ? "#f44336" :
-                                                                    log.action === "Overtime In" ? "#e9ae20" :
-                                                                    log.action === "Overtime Out" ? "#f57c00" :
-                                                                    "#000000",
+                                                                        log.action === "Duty Out" ? "#f44336" :
+                                                                            log.action === "Overtime In" ? "#e9ae20" :
+                                                                                log.action === "Overtime Out" ? "#f57c00" :
+                                                                                    "#000000",
                                                             }}
                                                         >
                                                             {log.action || "-"}
@@ -312,7 +347,7 @@ const AttendanceLogs = () => {
                                             ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={3} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                                <TableCell colSpan={4} align="center" sx={{ color: "text.secondary", p: 1 }}>
                                                     No Attendance Data Found
                                                 </TableCell>
                                             </TableRow>
@@ -321,7 +356,7 @@ const AttendanceLogs = () => {
                                 </Table>
                             </TableContainer>
                         )}
-                         <TablePagination
+                        <TablePagination
                             rowsPerPageOptions={[5, 10, 25]}
                             component="div"
                             count={filteredAttendance.length}
@@ -339,6 +374,38 @@ const AttendanceLogs = () => {
                     </Box>
                 </Box>
             </Box>
+            <Modal
+                open={modalOpen}
+                onClose={handleCloseModal}
+                aria-labelledby="attendance-log-modal"
+                aria-describedby="attendance-log-details"
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <Box
+                    sx={{
+                        width: { xs: '90%', sm: '80%', md: '70%', lg: '60%' },
+                        maxWidth: '800px',
+                        maxHeight: '90vh',
+                        overflow: 'auto',
+                        bgcolor: 'background.paper',
+                        borderRadius: 2,
+                        boxShadow: 24,
+                        p: 0,
+                        outline: 'none'
+                    }}
+                >
+                    {selectedLog && (
+                        <AttendanceDateLog
+                            log={selectedLog}
+                            onClose={handleCloseModal}
+                        />
+                    )}
+                </Box>
+            </Modal>
         </Layout>
     );
 };

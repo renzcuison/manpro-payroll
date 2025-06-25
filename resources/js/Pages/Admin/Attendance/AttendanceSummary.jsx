@@ -77,7 +77,7 @@ const AttendanceSummary = () => {
     const getAttendanceSummary = () => {
 
          axiosInstance.get('/attendance/getAttendanceSummary', {
-            headers, 
+            headers,
             params :
             {
                 from_date: fromDate ? dayjs(fromDate).format("YYYY-MM-DD") : "",
@@ -187,7 +187,7 @@ const AttendanceSummary = () => {
         return matchesName && isInDateRange;
     });
 
-    
+
         const handleDateRangeChange = (start, end) => {
             if (!start && !end) {
                 setFromDate(dayjs("1900-01-01"));
@@ -199,7 +199,7 @@ const AttendanceSummary = () => {
                 setSelectedRange("custom");
             }
         };
-    
+
     return (
         <Layout title={"AttendanceLogs"}>
             <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >

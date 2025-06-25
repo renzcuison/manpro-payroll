@@ -366,7 +366,7 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                         : "Announcement published.",
                     icon: "success",
                     confirmButtonColor: '#177604'
-                }).then(() => handleClose());
+                }).then(() => handleClose()); window.location.reload();
             })
             .catch(() => {
                 setSaving(false); // Stop loading
@@ -695,13 +695,13 @@ const AnnouncementPublish = ({ open, close, announceInfo, employee }) => {
                         </Typography>
                     )}
                     <Box display="flex" justifyContent="center" sx={{ marginTop: 2 }}>
-                        <Button
+                        {/* <Button
                             variant="contained"
                             sx={{ backgroundColor: '#adb5bd', color: 'black', mr: 2 }}
                             onClick={() => setShowSchedule(true)}
                             >
                             <p className='m-0'><i className="fa fa-calendar mr-2 mt-1"></i> Schedule Post </p>
-                        </Button>
+                        </Button> */}
                         <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} >
                             <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Publish </p>
                         </Button>

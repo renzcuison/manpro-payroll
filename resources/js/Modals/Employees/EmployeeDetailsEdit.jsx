@@ -257,7 +257,13 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
 
     // Find the selected salary plan
     useEffect(() => {
-        const selectedPlan = salaryPlans.find(plan => String(plan.salary_grade) === String(selectedSalaryGrade));
+        // Find the selected plan by matching the combined grade and version
+        const selectedPlan = salaryPlans.find(plan => {
+            const planValue = plan.salary_grade_version
+                ? `${plan.salary_grade}.${plan.salary_grade_version}`
+                : `${plan.salary_grade}`;
+            return String(planValue) === String(selectedSalaryGrade);
+        });
         if (selectedPlan) {
             setSalary(selectedPlan.amount);
         } else {
@@ -638,7 +644,18 @@ const EmployeeDetailsEdit = ({ open, close, employee, userName}) => {
                                     onChange={(event) => setSelectedSalaryGrade(event.target.value)}
                                 >
                                     {salaryPlans.map((grade) => (
-                                        <MenuItem key={grade.id} value={grade.salary_grade}> {grade.salary_grade} </MenuItem>
+                                        <MenuItem
+                                            key={grade.id}
+                                            value={
+                                                grade.salary_grade_version
+                                                    ? `${grade.salary_grade}.${grade.salary_grade_version}`
+                                                    : `${grade.salary_grade}`
+                                            }
+                                        >
+                                            {grade.salary_grade_version
+                                                ? `${grade.salary_grade}.${grade.salary_grade_version}`
+                                                : `${grade.salary_grade}`}
+                                        </MenuItem>
                                     ))}
                                 </TextField>
                             </FormControl>
