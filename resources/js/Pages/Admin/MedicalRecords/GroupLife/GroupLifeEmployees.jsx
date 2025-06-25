@@ -100,9 +100,9 @@ const GroupLifeEmployees = () => {
         employee.employee_name,
         employee.dependents_count,
         employee.enroll_date,
-        employee.branch,
-        employee.department,
-        employee.role
+        employee.branch?.name,
+        employee.department?.name,
+        employee.role?.name
         ].some((field) =>
             (typeof field === "number"
                 ? field.toFixed(2)

@@ -113,24 +113,13 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search, loading, d
                                                 search)}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(
-                                            response.branch?.name,
-                                            search
-                                        )}
+                                        {highlightMatch(response.branch?.name, search)}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(
-                                            response.department?.name,
-                                            search
-                                        )}
-                                        
+                                        {highlightMatch(response.department?.name, search)}
                                         </TableCell>      
                                         <TableCell align="center">
-                                        {highlightMatch(
-                                            response.role?.name,
-                                            search
-                                        )}
-                                        
+                                        {highlightMatch(response.role?.name, search)}
                                         </TableCell>                                    
                                 </TableRow>
                             );

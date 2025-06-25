@@ -113,25 +113,14 @@ const HMOEmployeeTable = ({ employees = [], onRowClick, search, loading, data })
                                                 search)}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(
-                                            response.branch?.name,
-                                            search
-                                        )}
+                                        {highlightMatch(response.branch?.name, search)}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(
-                                            response.department?.name,
-                                            search
-                                        )}
-                                        
+                                        {highlightMatch(response.department?.name, search)}
                                         </TableCell>      
                                         <TableCell align="center">
-                                        {highlightMatch(
-                                            response.role?.name,
-                                            search
-                                        )}
-                                        
-                                        </TableCell>                                    
+                                        {highlightMatch(response.role?.name, search)}
+                                        </TableCell>                                             
                                 </TableRow>
                             );
                         })
