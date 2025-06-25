@@ -1678,7 +1678,6 @@ class EvaluationResponseController extends Controller
                 ::select()
                 ->where('response_id', Crypt::decrypt($request->response_id))
                 ->where('evaluator_id', Crypt::decrypt($request->evaluator_id))
-                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -1776,7 +1775,7 @@ class EvaluationResponseController extends Controller
 
             if(!$evaluationEvaluator) return response()->json([ 
                 'status' => 404,
-                'message' => 'Evaluation Evaluator not found!',
+                'message' => 'You are not an evaluator in this evaluation!',
                 'evaluationEvaluatorID' => $userID
             ]);
 
@@ -2106,9 +2105,8 @@ class EvaluationResponseController extends Controller
 
             $evaluationCommentor = EvaluationCommentor
                 ::select()
-                ->where('response_id', $request->response_id)
-                ->where('commentor_id', $request->commentor_id)
-                ->whereNull('deleted_at')
+                ->where('response_id', Crypt::decrypt($request->response_id))
+                ->where('commentor_id', Crypt::decrypt($request->commentor_id))
                 ->first()
             ;
 
@@ -2132,10 +2130,21 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Commentor successfully deleted',
-                'evaluationCommentor' => $evaluationCommentor
+                'evaluationCommentor' => $evaluationCommentor ? [
+                    'id' => Crypt::encrypt($evaluationCommentor->id),
+                    'response_id' => Crypt::encrypt($evaluationCommentor->response_id),
+                    'commentor_id' => Crypt::encrypt($evaluationCommentor->commentor_id),
+                    'comment' => $evaluationCommentor->comment,
+                    'signature_filepath' => $evaluationCommentor->signature_filepath,
+                    'order' => $evaluationCommentor->order,
+                    'opened_at' => $evaluationCommentor->opened_at,
+                    'created_at' => $evaluationCommentor->created_at,
+                    'updated_at' => $evaluationCommentor->updated_at,
+                    'deleted_at' => $evaluationCommentor->deleted_at
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -2187,7 +2196,7 @@ class EvaluationResponseController extends Controller
                     'id', 'response_id', 'commentor_id', 'comment', 'order',
                     'signature_filepath', 'created_at', 'updated_at'
                 )
-                ->where('response_id', $request->response_id)
+                ->where('response_id', Crypt::decrypt($request->response_id))
                 ->where('commentor_id', $userID)
                 ->whereNull('deleted_at')
                 ->first()
@@ -2195,7 +2204,7 @@ class EvaluationResponseController extends Controller
 
             if(!$evaluationCommentor) return response()->json([ 
                 'status' => 404,
-                'message' => 'Evaluation Commentor not found!',
+                'message' => 'You are not a commentor in this evaluation!',
                 'evaluationCommentorID' => $request->commentor_id
             ]);
 
@@ -2222,9 +2231,26 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationCommentor' => $evaluationCommentor,
+                'evaluationCommentor' => $evaluationCommentor ? [
+                    'id' => Crypt::encrypt($evaluationCommentor->id),
+                    'response_id' => Crypt::encrypt($evaluationCommentor->response_id),
+                    'commentor_id' => Crypt::encrypt($evaluationCommentor->commentor_id),
+                    'comment' => $evaluationCommentor->comment,
+                    'order' => $evaluationCommentor->order,
+                    'signature_filepath' => $evaluationCommentor->signature_filepath,
+                    'created_at' => $evaluationCommentor->created_at,
+                    'updated_at' => $evaluationCommentor->updated_at,
+                    'commentor_signature' => $evaluationCommentor->commentor_signature,
+                    'media' => $evaluationCommentor->media->map(function ($media) {
+                        return [
+                            'id' => Crypt::encrypt($media->id),
+                            'created_at' => $media->created_at,
+                            'updated_at' => $media->updated_at
+                        ];
+                    })
+                ] : null,
                 'message' => 'Evaluation Commentor successfully updated'
             ]);
 
@@ -2278,8 +2304,8 @@ class EvaluationResponseController extends Controller
                     'users.middle_name',
                     'users.suffix'
                 )
-                ->where('evaluation_commentors.response_id', $request->response_id)
-                ->where('evaluation_commentors.commentor_id', $request->commentor_id)
+                ->where('evaluation_commentors.response_id', Crypt::decrypt($request->response_id))
+                ->where('evaluation_commentors.commentor_id', Crypt::decrypt($request->commentor_id))
                 ->whereNull('evaluation_commentors.deleted_at')
                 ->first()
             ;
@@ -2290,7 +2316,17 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Commentor successfully retrieved.',
-                'evaluationCommentor' => $evaluationCommentor
+                'evaluationCommentor' => $evaluationCommentor ? [
+                    'response_id' => Crypt::encrypt($evaluationCommentor->response_id),
+                    'commentor_id' => Crypt::encrypt($evaluationCommentor->commentor_id),
+                    'comment' => $evaluationCommentor->comment,
+                    'order' => $evaluationCommentor->order,
+                    'signature_filepath' => $evaluationCommentor->signature_filepath,
+                    'last_name' => $evaluationCommentor->last_name,
+                    'first_name' => $evaluationCommentor->first_name,
+                    'middle_name' => $evaluationCommentor->middle_name,
+                    'suffix' => $evaluationCommentor->suffix
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -2339,7 +2375,7 @@ class EvaluationResponseController extends Controller
                     'users.middle_name',
                     'users.suffix'
                 )
-                ->where('evaluation_commentors.response_id', $request->response_id)
+                ->where('evaluation_commentors.response_id', Crypt::decrypt($request->response_id))
                 ->whereNull('evaluation_commentors.deleted_at')
                 ->get()
             ;
@@ -2350,7 +2386,16 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Commentors successfully retrieved.',
-                'evaluationCommentors' => $evaluationCommentors
+                'evaluationCommentors' => $evaluationCommentors->map(function ($evaluationCommentor) {
+                    return [
+                        'response_id' => Crypt::encrypt($evaluationCommentor->response_id),
+                        'commentor_id' => Crypt::encrypt($evaluationCommentor->commentor_id),
+                        'last_name' => $evaluationCommentor->last_name,
+                        'first_name' => $evaluationCommentor->first_name,
+                        'middle_name' => $evaluationCommentor->middle_name,
+                        'suffix' => $evaluationCommentor->suffix
+                    ];
+                })
             ]);
 
         } catch (\Exception $e) {
@@ -2394,7 +2439,7 @@ class EvaluationResponseController extends Controller
             ]);
 
             $evaluationResponse = EvaluationResponse
-                ::where('id', $request->response_id)
+                ::where('id', Crypt::decrypt($request->response_id))
                 ->first()
             ;
             if(!$evaluationResponse) return response()->json([ 
@@ -2410,8 +2455,8 @@ class EvaluationResponseController extends Controller
             ]);
             
             $existingFormCommentor = EvaluationCommentor
-                ::where('response_id', $request->response_id)
-                ->where('commentor_id', $request->commentor_id)
+                ::where('response_id', Crypt::decrypt($request->response_id))
+                ->where('commentor_id', Crypt::decrypt($request->commentor_id))
                 ->first()
             ;
             if($existingFormCommentor) return response()->json([
@@ -2422,8 +2467,8 @@ class EvaluationResponseController extends Controller
             ]);
 
             $existingFormEvaluator = EvaluationEvaluator
-                ::where('response_id', $request->response_id)
-                ->where('evaluator_id', $request->commentor_id)
+                ::where('response_id', Crypt::decrypt($request->response_id))
+                ->where('evaluator_id', Crypt::decrypt($request->commentor_id))
                 ->first()
             ;
             if($existingFormEvaluator) return response()->json([
@@ -2436,13 +2481,15 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $order = (
-                EvaluationCommentor::where('response_id', $request->response_id)->max('order')
-                ?? 0
+                EvaluationCommentor::where(
+                    'response_id',
+                    Crypt::decrypt($request->response_id)
+                )->max('order') ?? 0
             ) + 1;
 
             $newEvaluationCommentor = EvaluationCommentor::create([
-                'response_id' => $request->response_id,
-                'commentor_id' => $request->commentor_id,
+                'response_id' => Crypt::decrypt($request->response_id),
+                'commentor_id' => Crypt::decrypt($request->commentor_id),
                 'order' => $order
             ]);
 
