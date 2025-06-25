@@ -427,7 +427,7 @@ const PerformanceEvaluationAnswerPage = () => {
                         <Box sx={{ mb: 2 }}>
                           <RadioGroup
                             value={getMultipleChoiceOptionId(subCategory.id) || ''}
-                            onChange={e => handleOptionChange(+e.target.value)}
+                            onChange={e => handleOptionChange(e.target.value)}
                           >
                             {(subCategory.options || []).map(opt => (
                               <FormControlLabel

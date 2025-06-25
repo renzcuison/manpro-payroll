@@ -16,7 +16,10 @@ export function useEvaluationResponse(responseId) {
     }, {}) ?? {};
     const options = Object.keys(subcategories).reduce((options, subcategoryId) => {
         const subcategory = subcategories[subcategoryId];
-        for(let option of subcategory.options) options[option.id] = option;
+        for(let option of subcategory.options) {
+            options[option.id] = option;
+            option.subcategory_id = subcategoryId;
+        }
         return options;
     }, {});
     const evaluateeSignatureFilePath = signatureFilePaths[evaluationResponse?.evaluatee_id];
