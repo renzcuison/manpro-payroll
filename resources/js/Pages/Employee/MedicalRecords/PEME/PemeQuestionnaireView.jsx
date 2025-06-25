@@ -155,6 +155,7 @@ const UploadForm = ({
                 <input
                     type="file"
                     multiple
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     style={{ display: "none" }}
                     ref={fileInputRef}
                     onChange={handleFileChange}
@@ -182,8 +183,8 @@ const PassOrFail = ({ value, onChange }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-            ? "Fail"
-            : "";
+                ? "Fail"
+                : "";
 
     return (
         <Box
@@ -212,8 +213,8 @@ const PostiveOrNegative = ({ value, onChange }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-            ? "Negative"
-            : "";
+                ? "Negative"
+                : "";
 
     return (
         <Box
@@ -556,13 +557,27 @@ const PemeQuestionnaireView = () => {
             }
 
             // Append new files
-            if (Array.isArray(item.files) && item.files[0] instanceof File) {
-                item.files.forEach((file, fileIndex) => {
-                    formData.append(
-                        `responses[${index}][files][${fileIndex}]`,
-                        file
-                    );
-                });
+            // if (Array.isArray(item.files) && item.files[0] instanceof File) {
+            //     item.files.forEach((file, fileIndex) => {
+            //         formData.append(
+            //             `responses[${index}][files][${fileIndex}]`,
+            //             file
+            //         );
+            //     });
+            // }
+            if (
+                Array.isArray(item.files) &&
+                item.files.length > 0 &&
+                item.files.some(f => f instanceof File)
+            ) {
+                item.files
+                    .filter(f => f instanceof File)
+                    .forEach((file, fileIndex) => {
+                        formData.append(
+                            `responses[${index}][files][${fileIndex}]`,
+                            file
+                        );
+                    });
             }
 
             // For non-attachments
@@ -652,13 +667,13 @@ const PemeQuestionnaireView = () => {
             const updatedDetails = prev.details.map((form) =>
                 form.question_id === questionId
                     ? {
-                          ...form,
-                          media: Array.isArray(form.media)
-                              ? form.media.filter(
-                                    (file) => file.id !== fileToRemove.id
-                                )
-                              : [],
-                      }
+                        ...form,
+                        media: Array.isArray(form.media)
+                            ? form.media.filter(
+                                (file) => file.id !== fileToRemove.id
+                            )
+                            : [],
+                    }
                     : form
             );
             // Log the existing file IDs for this question after removal
@@ -770,7 +785,7 @@ const PemeQuestionnaireView = () => {
                                         form.input_type.map((type, i) => {
                                             const value =
                                                 answers[form.question_id]?.[
-                                                    type.input_type
+                                                type.input_type
                                                 ] || "";
 
                                             // const attachmentValue =

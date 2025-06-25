@@ -227,12 +227,11 @@ class PemeResponseDetailsController extends Controller
             ], 422);
         }
 
-
         $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
         $maxKilobytes = $fileSizeLimitMb ? intval($fileSizeLimitMb * 1024) : null;
 
         foreach ($files as $file) {
-            $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
+            $rules = ['file' => 'required|file|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/octet-stream,image/jpeg,image/png'];
             if ($maxKilobytes) {
                 $rules['file'] .= "|max:$maxKilobytes";
             }

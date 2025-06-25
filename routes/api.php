@@ -819,6 +819,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
 
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
+    Route::get('/peme-responses/{id}/all', [PemeResponseController::class, 'showAll']);
     Route::patch('/peme-responses/{id}/status', [PemeResponseController::class, 'updateResponse']);
     Route::post('/peme-responses', [PemeResponseController::class, 'store']);
     Route::get('/peme-responses/summary/{pemeId}', [PemeResponseController::class, 'summary']);

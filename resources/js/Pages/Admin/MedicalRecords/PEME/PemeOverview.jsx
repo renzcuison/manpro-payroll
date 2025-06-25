@@ -39,7 +39,7 @@ const PemeOverview = ({ records }) => {
                 responsive: true,
                 layout: {
                     padding: {
-                        bottom: 20,
+                        bottom: 30,
                     },
                 },
                 plugins: {
@@ -70,7 +70,7 @@ const PemeOverview = ({ records }) => {
     return (
         <Box>
             <h6>Exam Respondents</h6>
-            <Box sx={{ mt: 4, mb: -2}}>
+            <Box sx={{ mt: 4, mb: 6}}>
                 <canvas ref={canvasRef}></canvas>
             </Box>
         </Box>
