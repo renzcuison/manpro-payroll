@@ -58,7 +58,7 @@ const RESPONSE_TYPE_OPTIONS = [
 const SubcategoryContext = createContext();
 
 export default function PerformanceEvaluationFormSubcategory({
-    subcategory: subcategoryInit, draggedId, expandedSubcategoryId, setExpandedSubcategoryId
+    subcategory: subcategoryInit, deleteSubcategory, draggedId, expandedSubcategoryId, setExpandedSubcategoryId
 }) {
     const {
         subcategory, subcategoryId,
@@ -202,7 +202,7 @@ export default function PerformanceEvaluationFormSubcategory({
                         
                         <Box justifyContent="flex-end" display="flex" gap={1}>
                             <Button
-                            onClick={(e) => {e.stopPropagation()}}
+                            onClick={(e) => {e.stopPropagation(); deleteSubcategory(subcategoryId); }}
                             variant="contained"
                             sx={{
                                 backgroundColor: '#727F91',

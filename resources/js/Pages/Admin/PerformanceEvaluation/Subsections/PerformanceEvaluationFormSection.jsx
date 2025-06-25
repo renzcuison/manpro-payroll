@@ -480,6 +480,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                     >
                                         <PerformanceEvaluationFormSubcategory
                                             subcategory={ subcategory }
+                                            deleteSubcategory={ deleteSubcategory }
                                             draggedId={ draggedSubcategoryId }
                                             expandedSubcategoryId={ expandedSubcategory }
                                             setExpandedSubcategoryId={ setExpandedSubcategory }
