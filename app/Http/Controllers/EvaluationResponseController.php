@@ -3377,9 +3377,8 @@ class EvaluationResponseController extends Controller
 
             $evaluationOptionAnswer = EvaluationOptionAnswer
                 ::select()
-                ->where('response_id', $request->response_id)
-                ->where('option_id', $request->option_id)
-                ->whereNull('deleted_at')
+                ->where('response_id', Crypt::decrypt($request->response_id))
+                ->where('option_id', Crypt::decrypt($request->option_id))
                 ->first()
             ;
 
@@ -3393,7 +3392,8 @@ class EvaluationResponseController extends Controller
             if( $evaluationOptionAnswer->deleted_at ) return response()->json([ 
                 'status' => 405,
                 'message' => 'Evaluation Option Answer already deleted!',
-                'evaluationOptionAnswer' => $evaluationOptionAnswer
+                'evaluationResponseID' => $request->response_id,
+                'evaluationSubcategoryOptionID' => $request->option_id
             ]);
 
             $now = date('Y-m-d H:i');
@@ -3402,13 +3402,18 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationOptionAnswer' => $evaluationOptionAnswer,
+                'evaluationOptionAnswer' => $evaluationOptionAnswer ? [
+                    'id' => Crypt::encrypt($evaluationOptionAnswer->id),
+                    'response_id' => Crypt::encrypt($evaluationOptionAnswer->response_id),
+                    'option_id' => Crypt::encrypt($evaluationOptionAnswer->option_id),
+                    'created_at' => $evaluationOptionAnswer->created_at,
+                    'updated_at' => $evaluationOptionAnswer->updated_at,
+                    'deleted_at' => $evaluationOptionAnswer->deleted_at
+                ] : null,
                 'message' => 'Evaluation Option Answer successfully deleted'
             ]);
-
-
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -3455,8 +3460,8 @@ class EvaluationResponseController extends Controller
 
             $evaluationOptionAnswer = EvaluationOptionAnswer
                 ::select()
-                ->where('response_id', $request->response_id)
-                ->where('option_id', $request->option_id)
+                ->where('response_id', Crypt::decrypt($request->response_id))
+                ->where('option_id', Crypt::decrypt($request->option_id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3481,7 +3486,7 @@ class EvaluationResponseController extends Controller
                     return response()->json([
                         'status' => 400,
                         'message' => 'This subcategory does not accept choice answers!',
-                        'evaluationFormSubcategoryID' => $evaluationFormSubcategory->id
+                        'evaluationFormSubcategoryID' => Crypt::decrypt($evaluationFormSubcategory->id)
                     ]);
                     break;
                 case "checkbox":
@@ -3489,8 +3494,8 @@ class EvaluationResponseController extends Controller
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::select('response_id', 'option_id')
-                        ->where('response_id', '=', $request->response_id)
-                        ->where('option_id', '=', $request->new_option_id)
+                        ->where('response_id', '=', Crypt::decrypt($request->response_id))
+                        ->where('option_id', '=', Crypt::decrypt($request->new_option_id))
                         ->whereNull('deleted_at')
                         ->first()
                     ;
@@ -3502,14 +3507,21 @@ class EvaluationResponseController extends Controller
                     ]);
             }
 
-            $evaluationOptionAnswer->option_id  = $request->new_option_id;
+            $evaluationOptionAnswer->option_id = Crypt::decrypt($request->new_option_id);
             $evaluationOptionAnswer->save();
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationOptionAnswer' => $evaluationOptionAnswer,
+                'evaluationOptionAnswer' => $evaluationOptionAnswer ? [
+                    'id' => Crypt::encrypt($evaluationOptionAnswer->id),
+                    'response_id' => Crypt::encrypt($evaluationOptionAnswer->response_id),
+                    'option_id' => Crypt::encrypt($evaluationOptionAnswer->option_id),
+                    'created_at' => $evaluationOptionAnswer->created_at,
+                    'updated_at' => $evaluationOptionAnswer->updated_at,
+                    'deleted_at' => $evaluationOptionAnswer->deleted_at
+                ] : null,
                 'message' => 'Evaluation Option Answer successfully updated'
             ]);
 
@@ -3549,8 +3561,8 @@ class EvaluationResponseController extends Controller
 
             $evaluationOptionAnswer = EvaluationOptionAnswer
                 ::select('response_id', 'option_id', 'created_at', 'updated_at')
-                ->where('response_id', $request->response_id)
-                ->where('option_id', $request->option_id)
+                ->where('response_id', Crypt::decrypt($request->response_id))
+                ->where('option_id', Crypt::decrypt($request->option_id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3561,7 +3573,12 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Option Answer successfully retrieved.',
-                'evaluationOptionAnswer' => $evaluationOptionAnswer
+                'evaluationOptionAnswer' => $evaluationOptionAnswer ? [
+                    'response_id' => Crypt::encrypt($evaluationOptionAnswer->response_id),
+                    'option_id' => Crypt::encrypt($evaluationOptionAnswer->option_id),
+                    'created_at' => $evaluationOptionAnswer->created_at,
+                    'updated_at' => $evaluationOptionAnswer->updated_at
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -3623,15 +3640,15 @@ class EvaluationResponseController extends Controller
             
             if($request->response_id)
                 $evaluationOptionAnswers = $evaluationOptionAnswers->where(
-                    'evaluation_option_answers.response_id', $request->response_id
+                    'evaluation_option_answers.response_id', Crypt::decrypt($request->response_id)
                 );
             if($request->subcategory_id)
                 $evaluationOptionAnswers = $evaluationOptionAnswers->where(
-                    'evaluation_form_subcategories.id', $request->subcategory_id
+                    'evaluation_form_subcategories.id', Crypt::decrypt($request->subcategory_id)
                 );
             if($request->option_id)
                 $evaluationOptionAnswers = $evaluationOptionAnswers->where(
-                    'evaluation_option_answers.option_id', $request->option_id
+                    'evaluation_option_answers.option_id', Crypt::decrypt($request->option_id)
                 );
             $evaluationOptionAnswers = $evaluationOptionAnswers->get();
 
@@ -3642,7 +3659,15 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Option Answers successfully retrieved.',
-                'evaluationOptionAnswers' => $evaluationOptionAnswers
+                'evaluationOptionAnswers' => $evaluationOptionAnswers->map(function ($evaluationOptionAnswer) {
+                    return [
+                        'response_id' => Crypt::encrypt($evaluationOptionAnswer->response_id),
+                        'subcategory_id' => Crypt::encrypt($evaluationOptionAnswer->subcategory_id),
+                        'option_id' => Crypt::encrypt($evaluationOptionAnswer->option_id),
+                        'created_at' => $evaluationOptionAnswer->created_at,
+                        'updated_at' => $evaluationOptionAnswer->updated_at
+                    ];
+                })
             ]);
 
         } catch (\Exception $e) {
@@ -3751,7 +3776,7 @@ class EvaluationResponseController extends Controller
                     'evaluation_form_subcategories.id',
                     'evaluation_form_subcategories.subcategory_type'
                 )
-                ->where('evaluation_form_subcategory_options.id', $request->option_id)
+                ->where('evaluation_form_subcategory_options.id', Crypt::decrypt($request->option_id))
                 ->whereNull('evaluation_form_subcategory_options.deleted_at')
                 ->first()
             ;
@@ -3762,7 +3787,7 @@ class EvaluationResponseController extends Controller
                     return response()->json([
                         'status' => 400,
                         'message' => 'This subcategory does not accept choice answers!',
-                        'evaluationFormSubcategoryID' => $subcategory->id
+                        'evaluationFormSubcategoryID' => Crypt::encrypt($subcategory->id)
                     ]);
                     break;
                 case "checkbox":
@@ -3770,8 +3795,8 @@ class EvaluationResponseController extends Controller
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                         ->select('evaluation_option_answers.option_id')
-                        ->where('evaluation_option_answers.option_id', '=', $request->option_id)
-                        ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                        ->where('evaluation_option_answers.option_id', '=', Crypt::decrypt($request->option_id))
+                        ->where('evaluation_option_answers.response_id', '=', Crypt::decrypt($request->response_id))
                         ->where('evaluation_form_subcategories.id', '=', $subcategory->id)
                         ->whereNull('evaluation_option_answers.deleted_at')
                         ->first()
@@ -3779,8 +3804,8 @@ class EvaluationResponseController extends Controller
                     if($existingOptionAnswer) return response()->json([ 
                         'status' => 409,
                         'message' => 'The same option answer was already created for this subcategory!',
-                        'evaluationResponseID' =>  $request->response_id,
-                        'evaluationOptionID' => $existingOptionAnswer->option_id
+                        'evaluationResponseID' =>  Crypt::encrypt($request->response_id),
+                        'evaluationOptionID' => Crypt::encrypt($existingOptionAnswer->option_id)
                     ]);
                     break;
                 case "linear_scale":
@@ -3789,7 +3814,7 @@ class EvaluationResponseController extends Controller
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                         ->select('evaluation_option_answers.option_id')
-                        ->where('evaluation_option_answers.response_id', '=', $request->response_id)
+                        ->where('evaluation_option_answers.response_id', '=', Crypt::decrypt($request->response_id))
                         ->where('evaluation_form_subcategories.id', '=', $subcategory->id)
                         ->whereNull('evaluation_option_answers.deleted_at')
                         ->first()
@@ -3798,7 +3823,7 @@ class EvaluationResponseController extends Controller
                         'status' => 409,
                         'message' => 'An option answer was already created for this subcategory!',
                         'evaluationResponseID' =>  $request->response_id,
-                        'evaluationOptionID' => $existingOptionAnswer->option_id
+                        'evaluationOptionID' => $request->option_id
                     ]);
                     break;
                                 
@@ -3807,8 +3832,8 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $newEvaluationOptionAnswer = EvaluationOptionAnswer::create([
-                'response_id' => $request->response_id,
-                'option_id' => $request->option_id
+                'response_id' => Crypt::decrypt($request->response_id),
+                'option_id' => Crypt::decrypt($request->option_id)
             ]);
 
             DB::commit();
