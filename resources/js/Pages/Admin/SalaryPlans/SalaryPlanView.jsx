@@ -12,6 +12,7 @@ import SalaryGradeEdit from './Modals/SalaryGradeEdit';
 
 const SalaryPlanView = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
     const { gradeParam } = useParams(); 
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
@@ -31,12 +32,6 @@ const SalaryPlanView = () => {
     }, []);
 
     const [isLoading, setIsLoading] = useState(true);
-
-    let salary_grade = gradeParam;
-    let salary_grade_version = '';
-    if (gradeParam.includes('.')) {
-        [salary_grade, salary_grade_version] = gradeParam.split('.');
-    }
 
     const [salaryPlan, setSalaryPlan] = useState(null);
 
@@ -102,35 +97,34 @@ const SalaryPlanView = () => {
         });
     };
 
-    useEffect(() => {
-        axiosInstance.get('/getSalaryPlan', {
-            params: {
-                salary_grade,
-                salary_grade_version
-            },
-            headers
-        }).then(response => {
-            console.log('API response:', response.data);
-            setSalaryPlan(response.data.salaryPlan);
-            setIsLoading(false);
-        });
-    }, [salary_grade, salary_grade_version]);
-
     const [employees, setEmployees] = useState([]);
 
     useEffect(() => {
-        if (salary_grade) {
+        if (salaryPlan) {
             axiosInstance.get('/getEmployeesBySalaryGrade', {
                 params: {
-                    salary_grade,
-                    salary_grade_version
+                    salary_grade: salaryPlan.salary_grade,
+                    salary_grade_version: salaryPlan.salary_grade_version
                 },
                 headers
             }).then(res => {
                 setEmployees(res.data.employees || []);
             });
         }
-    }, [salary_grade, salary_grade_version]);
+    }, [salaryPlan]);
+
+    useEffect(() => {
+        setIsLoading(true);
+        axiosInstance.get('/getSalaryPlanById', { headers, params: { id } })
+            .then(res => {
+                setSalaryPlan(res.data.salaryPlan);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                setIsLoading(false);
+                Swal.fire("Error", "Failed to fetch salary plan.", "error");
+            });
+    }, [id]);
 
     return (
         <Layout title={"Salary Plan View"}>

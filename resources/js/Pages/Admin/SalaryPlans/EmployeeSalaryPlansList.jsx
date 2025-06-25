@@ -195,7 +195,7 @@ const SalaryPlans = () => {
                                                             const gradeParam = salaryPlan.salary_grade_version
                                                                 ? `${salaryPlan.salary_grade}.${salaryPlan.salary_grade_version}`
                                                                 : `${salaryPlan.salary_grade}`;
-                                                            navigate(`/admin/compensation/salary-plans/${gradeParam}`);
+                                                            navigate(`/admin/compensation/salary-plans/${salaryPlan.id}`);
                                                         }}
                                                     >
                                                         <TableCell sx={{fontSize: 14}} align="center">
