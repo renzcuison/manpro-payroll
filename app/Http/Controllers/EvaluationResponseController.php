@@ -684,12 +684,6 @@ class EvaluationResponseController extends Controller
                 'status' => 404,
                 'message' => 'Evaluation Response not found!'
             ]);
-            if (!$evaluationResponse) {
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'Evaluation Response not found!'
-                ]);
-            }
             // 2. Fetching signatures and role
             $role = (
                 $evaluationResponse->evaluatee_id == $userID ? 'Evaluatee'
