@@ -60,6 +60,10 @@ const AnnouncementView = () => {
   const [imagePreviewSrc, setImagePreviewSrc] = useState("");
   const [imagePreviewName, setImagePreviewName] = useState("");
 
+  const [previewedIds, setPreviewedIds] = useState(new Set());
+  const allAttachmentIds = [...images, ...attachments].map(a => a.id);
+  const allPreviewed = allAttachmentIds.every(id => previewedIds.has(id));
+
   const handleCloseAttachmentsModal = () => {
     setAttachmentsModal((prev) => ({ ...prev, open: false }));
   };
@@ -560,8 +564,18 @@ const AnnouncementView = () => {
                     <Button
                       variant="contained"
                       color="primary"
-                      onClick={(event) => {
+                      disabled={!allPreviewed}
+                      onClick={event => {
                         event.stopPropagation();
+                        if (!allPreviewed) {
+                          Swal.fire({
+                            icon: "error",
+                            title: "You can't acknowledge yet.",
+                            text: "Please view all attachments first.",
+                            confirmButtonColor: "#177604",
+                          });
+                          return;
+                        }
                         handleAcknowledgeAnnouncement();
                         handleMenuClose();
                       }}
@@ -584,9 +598,16 @@ const AnnouncementView = () => {
           type={attachmentsModal.type}
           items={attachmentsModal.type === "images" ? images : attachments}
           handleFileDownload={handleFileDownload}
-          handlePreviewFile={handlePreviewFile}
-          handlePreviewImage={handlePreviewImage}
+          handlePreviewFile={(filename, id, mimeType) => {
+            setPreviewedIds(prev => new Set(prev).add(id));
+            handlePreviewFile(filename, id, mimeType);
+          }}
+          handlePreviewImage={img => {
+            setPreviewedIds(prev => new Set(prev).add(img.id));
+            handlePreviewImage(img);
+          }}
           renderImage={renderImage}
+          previewedIds={previewedIds}
         />
         <Dialog open={imagePreviewOpen} onClose={() => setImagePreviewOpen(false)} maxWidth="sm" fullWidth>
           <DialogTitle>
