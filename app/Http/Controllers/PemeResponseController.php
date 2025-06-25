@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BranchesModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -653,6 +654,9 @@ class PemeResponseController extends Controller
             $user = $response->user;
             $fullName = $user->first_name . ' ' . ($user->middle_name ? $user->middle_name . ' ' : '') . $user->last_name;
 
+            // $branch = BranchesModel::find($user->branch_id);
+            // $department = DepartmentsModel::find($user->department_id);
+
             return [
                 'response_id' => Crypt::encrypt($response->id),
                 'peme_id' => Crypt::encrypt($response->peme_id),
@@ -660,7 +664,9 @@ class PemeResponseController extends Controller
                 'user_id' => Crypt::encrypt($response->user_id),
                 'respondent' => $fullName,
                 'branch' => $response->peme->user->branch->name ?? 'null',
+                // 'branch' => $branch->name ?? 'null',
                 'department' => $response->peme->user->department->name ?? 'null',
+                // 'department' => $department->name ?? 'null',
                 'status' => ucfirst($response->status),
                 'isDraft' => $response->isDraft,
                 'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),

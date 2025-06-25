@@ -249,9 +249,12 @@ const PemeQuestionnaireView = () => {
     const navigator = useNavigate();
     const handleOnDeleteClick = () => {};
     const handleOnCancelClick = () => {
-        navigator(
-            `/admin/medical-records/peme-records/peme-responses/${PemeResponseID}`
-        );
+
+        // FIX
+        // navigator(
+        //     `/admin/medical-records/peme-records/peme-responses/${PemeResponseID}`
+        // );
+        navigator(-1);
     };
 
     const handleFileClick = (fileUrl, fileName = "File Preview") => {
