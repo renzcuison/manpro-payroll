@@ -25,7 +25,7 @@ const SalaryGradeAdd = ({ open, close, existingSalaryGrades = [] }) => {
 
         // If input contains a dash, both numbers must be present
         if (
-            salaryGradeInput.includes('-') &&
+            salaryGradeInput.includes('.') &&
             (
                 salary_grade_version === '' ||
                 salary_grade_version === undefined
@@ -220,12 +220,12 @@ const SalaryGradeAdd = ({ open, close, existingSalaryGrades = [] }) => {
                                         const value = e.target.value;
 
                                         // Allow only numbers or numbers-dash-numbers (e.g., 1, 2-1, 10-2)
-                                        const validPattern = /^(\d+|\d+-\d*)$/;
+                                        const validPattern = /^(\d+|\d+.\d*)$/;
                                         if (value === '' || validPattern.test(value)) {
                                             setSalaryGradeInput(value);
 
-                                            if (value.includes('-')) {
-                                                const [main, version] = value.split('-');
+                                            if (value.includes('.')) {
+                                                const [main, version] = value.split('.');
                                                 setSalaryGrade(main.trim());
                                                 setSalaryGradeVersion(version !== undefined ? version.trim() : '');
                                             } else {
@@ -255,7 +255,7 @@ const SalaryGradeAdd = ({ open, close, existingSalaryGrades = [] }) => {
                         </FormGroup>
 
                         <Box display="flex" justifyContent="center">
-                                <p className='m-0'><i>Note: For new (but existing) salary grades, simply format as <strong>number-number</strong>, i.e. <strong>1-1, 1-2, 2-1</strong>, etc. </i></p>
+                                <p className='m-0'><i>Note: For new (but existing) salary grades, simply format as <strong>number.number</strong>, i.e. <strong>1.1, 1.2, 2.1</strong>, etc. </i></p>
                         </Box>
 
                         <Box display="flex" justifyContent="center" sx={{ marginTop: '20px' }}>

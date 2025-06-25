@@ -308,7 +308,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
                     department_id: formValues.department,
                 };
                 const response = await axiosInstance.get('/getEvaluators', { params, headers });
-                if (response.data.status === 200) setAdmins(response.data.users);
+                if (response.data.status === 200) setAdmins(response.data.evaluators);
                 else setAdmins([]);
             } catch (error) {
                 setAdmins([]);

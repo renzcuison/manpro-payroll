@@ -8,8 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE peme_q_item MODIFY COLUMN max_files TINYINT UNSIGNED NOT NULL DEFAULT 3");
-        DB::table('peme_q_item')->update(['max_files' => 3]);
+        DB::statement("ALTER TABLE peme_q_item MODIFY COLUMN max_files TINYINT UNSIGNED NOT NULL DEFAULT 10");
+        DB::table('peme_q_item')->update(['max_files' => 10]);
     }
 
     public function down(): void

@@ -26,7 +26,7 @@ import dayjs from "dayjs";
 import { Bold } from "lucide-react";
 import Swal from "sweetalert2";
 
-const UploadForm = ({ fileSizeLimit, file, fileName, onFileClick }) => {
+const UploadForm = ({ fileSizeLimit, fileArray, fileName, onFileClick }) => {
     const limit = fileSizeLimit;
 
     return (
@@ -42,27 +42,35 @@ const UploadForm = ({ fileSizeLimit, file, fileName, onFileClick }) => {
                     backgroundColor: "#e6e6e6",
                 }}
             >
-                {file ? (
-                    <Typography
-                        color="primary"
-                        onClick={() => {
-                            if (onFileClick && file?.url) {
-                                onFileClick(file.url, file.file_name);
-                            }
-                        }}
-                        sx={{
-                            boxShadow: 1,
-                            padding: 1,
-                            borderRadius: 1,
-                            display: "inline-block",
-                            backgroundColor: "#fafafa",
-                            cursor: "pointer",
-                        }}
-                    >
-                        {file.file_name}
-                    </Typography>
-                ) : (
+                {fileArray.map((file, index) => {
+                    return (
+                        <Typography
+                            key={index}
+                            color="primary"
+                            onClick={() => {
+                                if (onFileClick && file?.url) {
+                                    onFileClick(file.url, file.file_name);
+                                }
+                            }}
+                            sx={{
+                                position: "relative",
+                                boxShadow: 1,
+                                padding: 1,
+                                borderRadius: 1,
+                                display: "inline-block",
+                                backgroundColor: "#fafafa",
+                                cursor: "pointer",
+                                mr: 2,
+                            }}
+                        >
+                            {file.file_name}
+                        </Typography>
+                    );
+                })}
+                {fileArray.length === 0 ? (
                     <Typography>No file uploaded</Typography>
+                ) : (
+                    ""
                 )}
             </Box>
         </>
@@ -172,7 +180,7 @@ const PemeQuestionnaireView = () => {
             })
             .then((response) => {
                 setEmployeeResponse(response.data);
-                console.log("RESPONSE.DATA", response.data);
+                setPemeResponses(response.data);
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -182,11 +190,10 @@ const PemeQuestionnaireView = () => {
     }, []);
 
     useEffect(() => {
-        if (pemeResponses && pemeResponses[0]) {
-            const res = pemeResponses[0];
-            if (res.expiry_date) setExpirationDate(dayjs(res.expiry_date));
-            if (res.next_schedule) setNextSchedule(dayjs(res.next_schedule));
-            if (res.status) setStatus(res.status);
+        if (pemeResponses) {
+            setExpirationDate(dayjs(pemeResponses.expiry_date));
+            setNextSchedule(dayjs(pemeResponses.next_schedule));
+            setStatus(pemeResponses.status);
         }
     }, [pemeResponses]);
 
@@ -251,78 +258,6 @@ const PemeQuestionnaireView = () => {
         setSelectedFile({ url: fileUrl, file_name: fileName });
         setFilePreviewOpen(true);
     };
-
-    // const handleSaveDraft = async () => {
-    //     const responses = [];
-    //     const attachedMedia = [];
-
-    //     if (Array.isArray(employeeResponse.details)) {
-    //         employeeResponse.details.forEach((form) => {
-    //             if (Array.isArray(form.input_type)) {
-    //                 form.input_type.forEach((type) => {
-    //                     // Get the value from answers state
-    //                     const value =
-    //                         answers[form.question_id]?.[type.input_type] ??
-    //                         null;
-
-    //                     // Handle attachments as comma-separated file names
-    //                     let answerValue = value;
-
-    //                     responses.push({
-    //                         peme_q_item_id: form.question_id,
-    //                         peme_q_type_id: type.id,
-    //                         value: answerValue,
-    //                     });
-
-    //                     // If value is a File
-    //                     if (value instanceof File) {
-    //                         attachedMedia.push({
-    //                             question_id: form.question_id,
-    //                             input_type: type.input_type,
-    //                             file: answerValue,
-    //                         });
-    //                     }
-
-    //                     // If value is an array of Files
-    //                     if (Array.isArray(value) && value[0] instanceof File) {
-    //                         value.forEach((file) => {
-    //                             attachedMedia.push({
-    //                                 question_id: form.question_id,
-    //                                 input_type: type.input_type,
-    //                                 file: file,
-    //                             });
-    //                         });
-    //                     }
-    //                 });
-    //             }
-    //         });
-    //     }
-
-    //     const payload = {
-    //         peme_response_id: PemeResponseID,
-    //         responses: responses,
-    //     };
-
-    //     const formData = new FormData();
-    //     attachedMedia.forEach((file, index) => {
-    //         formData.append("files", file);
-    //     });
-
-    //     try {
-    //         console.log("pressed");
-    //         axiosInstance
-    //             .post(
-    //                 `peme-response-details/${PemeResponseID}/attach-media`,
-    //                 formData,
-    //                 { headers }
-    //             )
-    //             .then((response) => {
-    //                 console.log("response", response.data);
-    //             });
-    //     } catch (error) {
-    //         console.log("error", error);
-    //     }
-    // };
 
     return (
         <Layout>
@@ -476,57 +411,53 @@ const PemeQuestionnaireView = () => {
                                                     );
                                                 case "attachment":
                                                     return (
-                                                        <Box
+                                                        <UploadForm
                                                             key={i}
-                                                            sx={{
-                                                                display: "flex",
-                                                                flexDirection:
-                                                                    "column",
-                                                                gap: 1,
-                                                            }}
-                                                        >
-                                                            {Array.isArray(
-                                                                form.media
-                                                            ) &&
-                                                            form.media.length >
-                                                                0 ? (
-                                                                form.media.map(
-                                                                    (
-                                                                        file,
-                                                                        j
-                                                                    ) => {
-                                                                        return (
-                                                                            <UploadForm
-                                                                                key={
-                                                                                    j
-                                                                                }
-                                                                                fileSizeLimit={
-                                                                                    type.file_size_limit
-                                                                                }
-                                                                                file={
-                                                                                    file
-                                                                                }
-                                                                                fileName={
-                                                                                    file.file_name
-                                                                                }
-                                                                                onFileClick={
-                                                                                    handleFileClick
-                                                                                }
-                                                                            />
-                                                                        );
-                                                                    }
+                                                            formID={
+                                                                form.question_id
+                                                            }
+                                                            fileArray={
+                                                                form.media || []
+                                                            } // existing files from backend
+                                                            files={
+                                                                answers[
+                                                                    form
+                                                                        .question_id
+                                                                ]?.attachment ||
+                                                                []
+                                                            } // new files
+                                                            fileSizeLimit={
+                                                                type.file_size_limit
+                                                            }
+                                                            onFileClick={
+                                                                handleFileClick
+                                                            }
+                                                            onRemoveFile={(
+                                                                file
+                                                            ) =>
+                                                                handleRemoveFile(
+                                                                    form.question_id,
+                                                                    file
                                                                 )
-                                                            ) : (
-                                                                <UploadForm
-                                                                    fileSizeLimit={
-                                                                        type.file_size_limit
-                                                                    }
-                                                                    onFileClick={
-                                                                        handleFileClick
-                                                                    }
-                                                                />
-                                                            )}
-                                                        </Box>
+                                                            }
+                                                            onChange={(
+                                                                newFiles
+                                                            ) => {
+                                                                handleInputChange(
+                                                                    form.question_id,
+                                                                    "attachment",
+                                                                    [
+                                                                        ...(answers[
+                                                                            form
+                                                                                .question_id
+                                                                        ]
+                                                                            ?.attachment ||
+                                                                            []),
+                                                                        ...newFiles,
+                                                                    ]
+                                                                );
+                                                            }}
+                                                        />
                                                     );
                                             }
                                         })}
