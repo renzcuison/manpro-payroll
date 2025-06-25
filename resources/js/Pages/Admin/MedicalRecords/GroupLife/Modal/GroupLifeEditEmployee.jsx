@@ -153,13 +153,23 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
             headers: { Authorization: `Bearer ${user.token}` },
         })
         .then((res) => {
-            Swal.fire({
-                icon: 'success',
-                title: "Success",
-                text: 'Group Life Employee deleted successfully.',
-                timer: 2000,
-                showConfirmButton: false
-            });
+            if (res.data.status === 200) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: "Success",
+                        text: 'Group Life Employee deleted successfully.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    close();
+                    refreshEmployees();
+                } else if (res.data.status === 400) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Cannot Delete',
+                        text: 'This employee has dependents assigned and cannot be deleted.',
+                    });
+                }
             refreshEmployees();
         })
         .catch((err) => {
