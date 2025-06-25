@@ -248,7 +248,11 @@ const PerformanceEvaluationList = () => {
 
 
     let filteredResponses = evaluationResponses;
-    if (statusFilter) {
+    if (statusFilter === 'Disabled') {
+        filteredResponses = evaluationResponses.filter(isRowDisabled);
+    } else if (statusFilter === '') { // "All"
+        filteredResponses = evaluationResponses.filter(row => !isRowDisabled(row));
+    } else {
         filteredResponses = evaluationResponses.filter(
             row => row.status === statusFilter && !isRowDisabled(row)
         );
