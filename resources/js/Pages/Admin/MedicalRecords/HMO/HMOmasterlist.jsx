@@ -98,7 +98,7 @@ const HMOMasterlist = () => {
                 setRows(
                     plans.map(row => ({
                         id: row.id,
-                        HMOName: row.hmo_company_name,
+                        hmoName: row.hmo_company_name,
                         planType: row.plan_name,
                         paymentType: row.type,
                         employerShare: row.employer_share,
