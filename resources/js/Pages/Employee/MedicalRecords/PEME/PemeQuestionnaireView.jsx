@@ -63,9 +63,14 @@ const UploadForm = ({
                         <Typography
                             key={index}
                             color="primary"
+                            // onClick={() => {
+                            //     if (onFileClick && file?.url) {
+                            //         onFileClick(file.url, file.file_name);
+                            //     }
+                            // }}
                             onClick={() => {
                                 if (onFileClick && file?.url) {
-                                    onFileClick(file.url, file.file_name);
+                                    onFileClick(file);
                                 }
                             }}
                             sx={{
@@ -119,9 +124,14 @@ const UploadForm = ({
                                 cursor: "pointer",
                                 mr: 2,
                             }}
+                            // onClick={() => {
+                            //     if (onFileClick && file?.url) {
+                            //         onFileClick(file.url, file.file_name);
+                            //     }
+                            // }}
                             onClick={() => {
                                 if (onFileClick && file?.url) {
-                                    onFileClick(file.url, file.file_name);
+                                    onFileClick(file);
                                 }
                             }}
                         >
@@ -617,8 +627,12 @@ const PemeQuestionnaireView = () => {
         }
     };
 
-    const handleFileClick = (fileUrl, fileName = "File Preview") => {
-        setSelectedFile({ url: fileUrl, file_name: fileName });
+    // const handleFileClick = (fileUrl, fileName = "File Preview") => {
+    //     setSelectedFile({ url: fileUrl, file_name: fileName });
+    //     setFilePreviewOpen(true);
+    // };
+    const handleFileClick = (fileObj) => {
+        setSelectedFile(fileObj);
         setFilePreviewOpen(true);
     };
 

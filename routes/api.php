@@ -829,6 +829,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
     Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
     Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
+    Route::get('/peme-response-details/download/{id}', [PemeResponseDetailsController::class, 'download']);
 
     Route::put('/public-event/{id}', [GoogleController::class, 'updatePublicEvent', ]);
     Route::delete('/public-event/{id}', [GoogleController::class, 'deletePublicEvent', ]);

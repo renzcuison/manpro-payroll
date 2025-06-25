@@ -6,7 +6,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
 import dayjs from "dayjs";
 
-export default function DateRangePicker({ onRangeChange, label = "Select Date", defaultRange = [dayjs(), dayjs()] }) {
+export default function DateRangePicker({ onRangeChange, label = "Select Date", defaultRange = [dayjs(), dayjs()], disabled }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [startDate, setStartDate] = useState(defaultRange[0]);
     const [endDate, setEndDate] = useState(defaultRange[1]);
@@ -103,7 +103,7 @@ export default function DateRangePicker({ onRangeChange, label = "Select Date", 
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <TextField label={label} value={formatDisplay()} onClick={handleClick} fullWidth readOnly InputLabelProps={{ shrink: true }} />
+            <TextField label={label} value={formatDisplay()} onClick={handleClick} fullWidth readOnly InputLabelProps={{ shrink: true }} disabled/>
 
             <Menu
                 key={earliestLogDate ? "withAll" : "noAll"}
