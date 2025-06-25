@@ -23,10 +23,10 @@ export function useWorkShiftDetails(client, selectedShift){
     }
 }
 
+export function useManageWorkshift ({ client, selectedShift } = {}) {
+    const navigate = useNavigate();
+    const { workShiftData, workShiftIsLoading, refetchWorkShifts } = useWorkShiftDetails(client, selectedShift);
 
-export function useManageWorkshift ({ client, selectedShift }) {
-    const { workShiftData, workShiftIsLoading } = useWorkShiftDetails(client, selectedShift);
-    
     const isUpdate = !!selectedShift;
 
     const defaultDays = {
@@ -61,39 +61,60 @@ export function useManageWorkshift ({ client, selectedShift }) {
     // Error states
     const [errors, setErrors] = useState({});
   
-    // Populate state once data is fetched
-    const shift = useMemo(() => workShiftData?.workShift || {}, [workShiftData]);
-    const hours = useMemo(() => workShiftData?.workHours || {}, [workShiftData]);
-    const days = useMemo(() => workShiftData?.workDays || defaultDays, [workShiftData]);
-    const parseTime = (value) => value ? dayjs(value, 'HH:mm:ss') : null;
+    // Populate state once data is fetches
+    const parseTime = (value) => {
+      const parsed = dayjs(value, 'HH:mm:ss', true); 
+      return parsed.isValid() ? parsed : null;
+    };
 
     useEffect(() => {
-      if (!workShiftData || workShiftIsLoading ||!isUpdate) return;
+      if (!workShiftData) return;
     
-      setShiftName(shift?.name || '');
+      const shift = workShiftData.workShift || {};
+      const hours = workShiftData.workHours || {};
+      const days = workShiftData.workDays || defaultDays;
+    
+      setShiftName(shift.name || '');
       const type = shift.shift_type?.toLowerCase() || '';
       setShiftType(type);
     
-      if (type === 'regular') {
-        setRegularTimeIn(parseTime(hours.first_time_in));
-        setRegularTimeOut(parseTime(hours.first_time_out));
-        setBreakStart(parseTime(hours.break_start));
-        setBreakEnd(parseTime(hours.break_end));
-      } else {
-        setFirstLabel(shift.firstLabel || '');
-        setSecondLabel(shift.secondLabel || '');
-        setSplitFirstTimeIn(parseTime(hours.first_time_in));
-        setSplitFirstTimeOut(parseTime(hours.first_time_out));
-        setSplitSecondTimeIn(parseTime(hours.second_time_in));
-        setSplitSecondTimeOut(parseTime(hours.second_time_out));
-      }
+      if (isUpdate) {
+        if (type === 'regular') {
+          setRegularTimeIn(hours.first_time_in ? parseTime(hours.first_time_in) : null);
+          setRegularTimeOut(hours.first_time_out ? parseTime(hours.first_time_out) : null);
+          setBreakStart(hours.break_start ? parseTime(hours.break_start) : null);
+          setBreakEnd(hours.break_end ? parseTime(hours.break_end) : null);
+        } else {
+          setFirstLabel(shift.first_label || '');
+          setSecondLabel(shift.second_label || '');
+          setSplitFirstTimeIn(hours.first_time_in ? parseTime(hours.first_time_in) : null);
+          setSplitFirstTimeOut(hours.first_time_out ? parseTime(hours.first_time_out) : null);
+          setSplitSecondTimeIn(hours.second_time_in ? parseTime(hours.second_time_in) : null);
+          setSplitSecondTimeOut(hours.second_time_out ? parseTime(hours.second_time_out) : null);
+        }
     
-      setOverTimeIn(parseTime(hours.over_time_in));
-      setOverTimeOut(parseTime(hours.over_time_out));
-      setWorkDays(days);
-    }, [workShiftData?.workShift?.id]);
+        setOverTimeIn(hours.over_time_in ? parseTime(hours.over_time_in) : null);
+        setOverTimeOut(hours.over_time_out ? parseTime(hours.over_time_out) : null);
+        setWorkDays(days);
+      } else {
+        // Reset for new shift
+        setRegularTimeIn(null);
+        setRegularTimeOut(null);
+        setBreakStart(null);
+        setBreakEnd(null);
+        setOverTimeIn(null);
+        setOverTimeOut(null);
+        setSplitFirstTimeIn(null);
+        setSplitFirstTimeOut(null);
+        setSplitSecondTimeIn(null);
+        setSplitSecondTimeOut(null);
+        setFirstLabel('');
+        setSecondLabel('');
+        setWorkDays(defaultDays);
+      }
+    }, [workShiftData, isUpdate]);
   
-    // Reset on shift type change on edit mode
+    // Resets all values when shifting to new types
     const handleShiftTypeChange = (value) => {
       setShiftType(value);
       setErrors({});
@@ -135,7 +156,7 @@ export function useManageWorkshift ({ client, selectedShift }) {
       }));
     }
 
-    // Validation for error detection (now stores any errors in an object instead of creating a whole useStates of error validations for each field)
+    // Validation for error detection (now stores any errors in an object instead of creating a whole separate useStates of error validations for each field)
     const validate = () => {
       const errors = {};
       if (!shiftName) errors.shiftName = true;
@@ -182,7 +203,7 @@ export function useManageWorkshift ({ client, selectedShift }) {
     }
   
     const save = async () => {
-        const navigate = useNavigate();
+        
         const data = {
             shiftName,
             shiftType,
@@ -209,6 +230,7 @@ export function useManageWorkshift ({ client, selectedShift }) {
             secondTimeOut: splitSecondTimeOut?.format('HH:mm:ss'),
             });
         }
+        //for update purposes
         if (isUpdate) {
           data.shiftId = selectedShift; 
         }
@@ -221,8 +243,10 @@ export function useManageWorkshift ({ client, selectedShift }) {
             const res = await axiosInstance.post(endpoint, data, { headers });
 
             if (res.data.status === 200) {
-                Swal.fire({ icon: 'success', text: 'Work Shift saved successfully!', timer: 1000 });
-                navigate(`/admin/workshift/${res.data.link}`);
+                Swal.fire({ icon: 'success', text: 'Work Shift saved successfully!' }).then(() => {
+                  refetchWorkShifts();
+                  // navigate(`/admin/workshift/${res.data.client_id}/${res.data.shift_id}`);
+                });
             }
         } catch (error) {
             console.error(error);
