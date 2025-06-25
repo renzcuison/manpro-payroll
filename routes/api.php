@@ -844,6 +844,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/deleteSalaryGrade', [SalaryPlansController::class, 'deleteSalaryGrade']);
     Route::get('/getSalaryLogs', [SalaryPlansController::class, 'getSalaryLogs']);
     Route::get('/getEmployeesBySalaryGrade', [SalaryPlansController::class, 'getEmployeesBySalaryGrade']);
+    Route::get('/getSalaryPlanById', [SalaryPlansController::class, 'getSalaryPlanById']);
     Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent', ]);
 });
 

@@ -148,7 +148,7 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="compensation">
                 <Route path="salary-plans" element={<ProtectedRoute element={<EmployeeSalaryPlansList />} user={user} />} />
-                <Route path="salary-plans/:gradeParam" element={<ProtectedRoute element={<SalaryPlanView />} user={user} />} />
+                <Route path="salary-plans/:id" element={<ProtectedRoute element={<SalaryPlanView />} user={user} />} />
 
                 <Route path="allowance" element={<ProtectedRoute element={<EmployeesAllowanceList />} user={user} />} />
                 <Route path="allowance-types" element={<ProtectedRoute element={<AllowanceTypes />} user={user} />} />
