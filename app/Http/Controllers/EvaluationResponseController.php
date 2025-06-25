@@ -1330,9 +1330,9 @@ class EvaluationResponseController extends Controller
                         ] : null
                     ];
                 }),
-                'pageResponseCount' => 6,
-                'totalResponseCount' => 6,
-                'maxPageCount' => 1
+                'pageResponseCount' => $pageResponseCount,
+                'totalResponseCount' => $totalResponseCount,
+                'maxPageCount' => $maxPageCount
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1392,7 +1392,6 @@ class EvaluationResponseController extends Controller
                     'message' => 'Evaluation Period Start Date cannot be more than Period End Date!'
                 ]);
             }
-
             DB::beginTransaction();
 
             // $conflictingEvaluationResponse = EvaluationResponse::where('evaluatee_id', $request->evaluatee_id)
@@ -1414,11 +1413,10 @@ class EvaluationResponseController extends Controller
             $newEvaluationResponse = EvaluationResponse::create([
                 'evaluatee_id' => Crypt::decrypt($request->evaluatee_id),
                 'form_id' => $request->form_id,
-                'creator_id' => Crypt::decrypt($userID),
+                'creator_id' => $userID,
                 'period_start_at' => $request->period_start_at,
                 'period_end_at' => $request->period_end_at
             ]);
-
             foreach ($request->evaluators as $index => $evaluator_id) {
                 EvaluationEvaluator::create([
                     'response_id' => $newEvaluationResponse->id,
