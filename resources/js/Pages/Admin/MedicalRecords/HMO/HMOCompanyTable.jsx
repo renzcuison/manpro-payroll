@@ -37,7 +37,7 @@ const highlightMatch = (text, keyword) => {
     );
 };
 
-const GroupLifeCompanyTable = ({ rows, onRowClick, search, loading }) => {
+const HMOCompanyTable = ({ rows, onRowClick, search, loading }) => {
     
     return (
         <TableContainer
@@ -92,7 +92,7 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search, loading }) => {
                                 >
                                         <TableCell align="center">
                                         {highlightMatch(
-                                            row.groupLifeName, 
+                                            row.HMOName, 
                                             search)}
                                     </TableCell>
                                     <TableCell align="center">
@@ -115,7 +115,6 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search, loading }) => {
                                         {highlightMatch(Number(row.employeeShare).toFixed(2), search)}
                                     </TableCell>
 
-                                    
                                     <TableCell align="center">
                                         {highlightMatch(row.employeesAssignedCount, search)}
                                     </TableCell>
@@ -129,4 +128,4 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search, loading }) => {
     );
 };
 
-export default GroupLifeCompanyTable;
+export default HMOCompanyTable;

@@ -103,6 +103,7 @@ import PemeQuestionnairePreview from "../Pages/Admin/MedicalRecords/PEME/PemeQue
 import GroupLifeMasterlist from "../Pages/Admin/MedicalRecords/GroupLife/GroupLifeMasterlist";
 import GroupLifeEmployees from "../Pages/Admin/MedicalRecords/GroupLife/GroupLifeEmployees";
 import HMOMasterlist from "../Pages/Admin/MedicalRecords/HMO/HMOMasterlist";
+import HMOEmployees from "../Pages/Admin/MedicalRecords/HMO/HMOEmployees";
 
 import PerformanceEvaluationPreview from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationPreview'
 import PerformanceEvaluationResponsePage from '../Pages/Admin/PerformanceEvaluation/PerformanceEvaluationResponsePage';
@@ -587,6 +588,17 @@ const AdminRoutes = ({ user }) => {
                     <ProtectedRoute element={<HMOMasterlist />} user={user} />
                 }
             />
+
+            <Route
+                path="medical-records/hmo-masterlist/hmo-employees/:id"
+                element={
+                    <ProtectedRoute
+                        element={<HMOEmployees />}
+                        user={user}
+                    />
+                }
+            />
+
             <Route
                 path="loan-management"
                 element={<ProtectedRoute element={<LoanList />} user={user} />}
