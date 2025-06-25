@@ -894,9 +894,10 @@ class EvaluationResponseController extends Controller
                                 'score' => $section->score,
                                 'achieved_score' => $section->achieved_score,
                                 'subcategories' => $section->subcategories->map(function ($subcategory) {
+                                    $encryptedSubcategoryID = Crypt::encrypt($subcategory->id);
                                     return [
                                         'section_id' => Crypt::encrypt($subcategory->section_id),
-                                        'id' => Crypt::encrypt($subcategory->id),
+                                        'id' => $encryptedSubcategoryID,
                                         'name' => $subcategory->name,
                                         'subcategory_type' => $subcategory->subcategory_type,
                                         'description' => $subcategory->description,
@@ -910,9 +911,10 @@ class EvaluationResponseController extends Controller
                                         'score' => $subcategory->score,
                                         'achieved_score' => $subcategory->achieved_score,
                                         'options' => $subcategory->options->map(function ($option) {
+                                            $encryptedOptionID = Crypt::encrypt($option->id);
                                             return [
-                                                'subcategory_id' => Crypt::encrypt($option->subcategory_id),
-                                                'id' => Crypt::encrypt($option->id),
+                                                'subcategory_id' => $encryptedSubcategoryId,
+                                                'id' => $encryptedOptionID,
                                                 'label' => $option->label,
                                                 'score' => $option->score,
                                                 'order' => $option->order,
@@ -921,7 +923,7 @@ class EvaluationResponseController extends Controller
                                                 'option_answer' => $option->optionAnswer ? [
                                                     'id' => Crypt::encrypt($option->optionAnswer->id),
                                                     'response_id' => Crypt::encrypt($option->optionAnswer->response_id),
-                                                    'option_id' => Crypt::encrypt($option->optionAnswer->option_id)
+                                                    'option_id' => $encryptedOptionID
                                                 ] : null
                                             ];
                                         }),
