@@ -63,7 +63,7 @@ class EvaluationFormController extends Controller
         try {
             DB::beginTransaction();
 
-            $evaluationForm = EvaluationForm::find($request->id);
+            $evaluationForm = EvaluationForm::find(Crypt::decrypt($request->id));
             if (!$evaluationForm) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form not found!',
@@ -78,17 +78,17 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationForm' => [
-                    'id' => $evaluationForm->id,
+                'evaluationForm' => $evaluationForm ? [
+                    'id' => Crypt::encrypt($evaluationForm->id),
                     'name' => $evaluationForm->name,
-                    'creator_id' => $evaluationForm->creator_id,
-                    'creator_user_name' => $creator ? $creator->user_name : null,
+                    'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
+                    'creator_user_name' => $evaluationForm->creator_user_name,
                     'created_at' => $evaluationForm->created_at,
                     'updated_at' => $evaluationForm->updated_at,
-                    'deleted_at' => $evaluationForm->deleted_at,
-                ],
+                    'deleted_at' => $evaluationForm->deleted_at
+                ] : null,
                 'message' => 'Evaluation Form successfully deleted'
             ]);
         } catch (\Exception $e) {
@@ -143,7 +143,7 @@ class EvaluationFormController extends Controller
                     'evaluation_forms.created_at',
                     'evaluation_forms.updated_at'
                 )
-                ->where('evaluation_forms.id', $request->id)
+                ->where('evaluation_forms.id', Crypt::decrypt($request->id))
                 ->whereNull('evaluation_forms.deleted_at')
                 ->first()
             ;
@@ -161,8 +161,10 @@ class EvaluationFormController extends Controller
                 'message' => 'Evaluation Form Name is required!'
             ]);
 
-            $existingEvaluationForm =
-                EvaluationForm::where('name', $request->name)->where('id', '!=', $request->id)->first()
+            $existingEvaluationForm = EvaluationForm
+                ::where('name', $request->name)
+                ->where('id', '!=', Crypt::decrypt($request->id))
+                ->first()
             ;
 
             if( $existingEvaluationForm ) return response()->json([ 
@@ -176,9 +178,16 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationForm' => $evaluationForm,
+                'evaluationForm' => $evaluationForm ? [
+                    'id' => Crypt::encrypt($evaluationForm->id),
+                    'name' => $evaluationForm->name,
+                    'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
+                    'creator_user_name' => $evaluationForm->creator_user_name,
+                    'created_at' => $evaluationForm->created_at,
+                    'updated_at' => $evaluationForm->updated_at
+                ] : null,
                 'message' => 'Evaluation Form successfully updated'
             ]);
 
@@ -196,7 +205,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id?: number,                        // either id or name must be given
+            id?: string,                        // either id or name must be given
             name?: string
         */
 
@@ -248,7 +257,7 @@ class EvaluationFormController extends Controller
                 )
                 ->where(
                     $getById ? 'evaluation_forms.id' : 'evaluation_forms.name',
-                    $getById ? $request->id : $request->name
+                    $getById ? Crypt::decrypt($request->id) : $request->name
                 )
                 ->whereNull('evaluation_forms.deleted_at')
                 ->with(['sections' => fn ($section) =>
@@ -280,14 +289,56 @@ class EvaluationFormController extends Controller
                 ])
                 ->first()
             ;
-            if( !$evaluationForm ) return response()->json([
+            if(!$evaluationForm) return response()->json([
                 'status' => 404,
                 'message' => 'Evaluation Form not found!'
             ]);
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Form successfully retrieved.',
-                'evaluationForm' => $evaluationForm
+                'evaluationForm' => $evaluationForm ? [
+                    'id' => Crypt::encrypt($evaluationForm->id),
+                    'name' => $evaluationForm->name,
+                    'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
+                    'creator_user_name' => $evaluationForm->creator_user_name,
+                    'created_at' => $evaluationForm->created_at,
+                    'updated_at' => $evaluationForm->updated_at,
+                    'sections' => $evaluationForm->sections->map(function ($section) {
+                        return [
+                            'form_id' => Crypt::encrypt($section->form_id),
+                            'id' => Crypt::encrypt($section->id),
+                            'name' => $section->name,
+                            'category' => $section->category,
+                            'score' => $section->score,
+                            'order' => $section->order,
+                            'description' => $section->description,
+                            'subcategories' => $section->subcategories->map(function ($subcategory) {
+                                return [
+                                    'section_id' => Crypt::encrypt($subcategory->section_id),
+                                    'id' => Crypt::encrypt($subcategory->id),
+                                    'name' => $subcategory->name,
+                                    'subcategory_type' => $subcategory->subcategory_type,
+                                    'description' => $subcategory->description,
+                                    'required' => $subcategory->required,
+                                    'allow_other_option' => $subcategory->allow_other_option,
+                                    'linear_scale_start' => $subcategory->linear_scale_start,
+                                    'linear_scale_end' => $subcategory->linear_scale_end,
+                                    'order' => $subcategory->order,
+                                    'options' => $subcategory->options->map(function ($option) {
+                                        return [
+                                            'subcategory_id' => Crypt::encrypt($option->subcategory_id),
+                                            'id' => Crypt::encrypt($option->id),
+                                            'label' => $option->label,
+                                            'score' => $option->score,
+                                            'order' => $option->order,
+                                            'description' => $option->description
+                                        ];
+                                    })
+                                ];
+                            })
+                        ];
+                    })
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -304,7 +355,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            creator_id?: number
+            creator_id?: string
         */
 
         // returns:
@@ -339,15 +390,20 @@ class EvaluationFormController extends Controller
                 ->whereNull('evaluation_forms.deleted_at')
             ;
             if( $request->creator_id ) {
-
-                $creator = DB::table('users')->select()->where('id', $request->creator_id)->first();
+                $creator = DB
+                    ::table('users')
+                    ->select()
+                    ->where('id', Crypt::decrypt($request->creator_id))
+                    ->first()
+                ;
                 if( !$creator ) return response()->json([ 
                     'status' => 404,
                     'message' => 'User creator not found!',
                     'creatorID' => $request->creator_id
                 ]);
-                $evaluationForms->where('evaluation_forms.creator_id', $request->creator_id);
-
+                $evaluationForms = $evaluationForms
+                    ->where('evaluation_forms.creator_id', Crypt::decrypt($request->creator_id))
+                ;
             }
             $evaluationForms = $evaluationForms->orderBy('name')->get();
             if( !$evaluationForms->count() ) return response()->json([
@@ -358,7 +414,16 @@ class EvaluationFormController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Forms successfully retrieved.',
-                'evaluationForms' => $evaluationForms
+                'evaluationForms' => $evaluationForms->map(function ($evaluationForm) {
+                    return [
+                        'id' => Crypt::encrypt($evaluationForm->id),
+                        'name' => $evaluationForm->name,
+                        'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
+                        'creator_user_name' => $evaluationForm->creator_user_name,
+                        'created_at' => $evaluationForm->created_at,
+                        'updated_at' => $evaluationForm->updated_at
+                    ];
+                })
             ]);
 
         } catch (\Exception $e) {
@@ -426,9 +491,9 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 201,
-                'evaluationID' => $newEvaluationForm->id,
+                'evaluationFormID' => Crypt::encrypt($newEvaluationForm->id),
                 'message' => 'Evaluation Form successfully created'
             ]);
 
