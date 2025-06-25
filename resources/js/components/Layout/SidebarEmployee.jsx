@@ -52,7 +52,7 @@ const medicalRecords = [
                 icon: "fa fa-cogs",
             },
             {
-                href: `/employee/medical-records/group-life-masterlist-records`,
+                href: `/employee/medical-records/group-life-employee-masterlist`,
                 text: "Group Life Masterlist",
                 icon: "fa fa-cogs",
             },
@@ -176,9 +176,9 @@ const Sidebar = ({ children, closeMini }) => {
                                 <i className="fa fa-pencil-square-o" style={{ color: "#2a800f" }}></i> <span id="navName" className="sidebar-mini-hide" > Applications </span>
                             </StyledNav>
 
-                            {/* {medicalRecords.map((items, index) => {
+                            {medicalRecords.map((items, index) => {
                                 return <SideItem key={index} items={items} />;
-                            })} */}
+                            })}
 
                             <StyledNav to={`/employee/payroll`}>
                                 <i className="fa fa-money" style={{ color: "#2a800f" }} ></i> <span id="navName" className="sidebar-mini-hide"> Payroll Details </span>

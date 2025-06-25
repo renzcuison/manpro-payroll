@@ -25,7 +25,7 @@ import ProfileEdit from "../Pages/Employee/Profile/ProfileEdit";
 import ContentView from "../Pages/Employee/Trainings/ContentView";
 
 import GroupLifeMasterlist from "../Pages/Employee/MedicalRecords/GroupLifeMasterlist";
-import HMOmasterlist from "../Pages/Employee/MedicalRecords/HMOmasterlist";
+import HMOMasterlist from "../Pages/Employee/MedicalRecords/HMOMasterlist";
 import PemeRecordsForm from "../Pages/Employee/MedicalRecords/PEME/Forms/PemeRecordsForm";
 import PemeResponses from "../Pages/Employee/MedicalRecords/PEME/PemeResponses";
 import PemeQuestionnaireView from "../Pages/Employee/MedicalRecords/PEME/PemeQuestionnaireView";
@@ -216,7 +216,7 @@ const EmployeeRoutes = ({ user }) => {
             <Route
                 path="medical-records/hmo-masterlist-records"
                 element={
-                    <ProtectedRoute element={<HMOmasterlist />} user={user} />
+                    <ProtectedRoute element={<HMOMasterlist />} user={user} />
                 }
             />
             <Route
@@ -247,6 +247,7 @@ const EmployeeRoutes = ({ user }) => {
                     <ProtectedRoute element={<GroupLifeEmployeePlanView />} user={user} />
                 }
             />
+            
 
         </Routes>
     );

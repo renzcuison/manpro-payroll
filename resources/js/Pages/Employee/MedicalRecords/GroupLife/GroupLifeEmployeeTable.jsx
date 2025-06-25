@@ -57,6 +57,7 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search, loading, d
             <Table stickyHeader aria-label="simple table">
                 <TableHead>
                     <TableRow>
+                        <TableCell align="center"> Company </TableCell>
                         <TableCell align="center"> Plan </TableCell>
                         <TableCell align="center"> Number of Dependents</TableCell>
                         <TableCell align="center"> Enroll Date</TableCell>
@@ -82,36 +83,39 @@ const GroupLifeEmployeeTable = ({ employees = [], onRowClick, search, loading, d
                             </TableCell>
                         </TableRow>
                     ) : (
-employees.map((response) => (
-  <TableRow
-    key={response.id}
-    onClick={() => onRowClick(response)}
-    sx={{
-      cursor: "pointer",
-      transition: ".15s",
-      "&:hover": { backgroundColor: "#e0e0e0" },
-    }}
-  >
-    <TableCell align="center">
-      {highlightMatch(response.plan_name ?? "Unknown", search)}
-    </TableCell>
-    <TableCell align="center">
-      {highlightMatch(String(response.dependents_count ?? 0), search)}
-    </TableCell>
-    <TableCell align="center">
-      {highlightMatch(response.enroll_date ?? "N/A", search)}
-    </TableCell>
-    <TableCell align="center">
-      {highlightMatch(response.branch?.name ?? "", search)}
-    </TableCell>
-    <TableCell align="center">
-      {highlightMatch(response.department?.name ?? "", search)}
-    </TableCell>
-    <TableCell align="center">
-      {highlightMatch(response.role?.name ?? "", search)}
-    </TableCell>
-  </TableRow>
-))
+                    employees.map((response) => (
+                      <TableRow
+                        key={response.id}
+                        onClick={() => onRowClick(response)}
+                        sx={{
+                          cursor: "pointer",
+                          transition: ".15s",
+                          "&:hover": { backgroundColor: "#e0e0e0" },
+                        }}
+                      >
+                        <TableCell align="center">
+                          {highlightMatch(response.group_life_company_name ?? "Unknown", search)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {highlightMatch(response.plan_name ?? "Unknown", search)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {highlightMatch(String(response.dependents_count ?? 0), search)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {highlightMatch(response.enroll_date ?? "N/A", search)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {highlightMatch(response.branch?.name ?? "", search)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {highlightMatch(response.department?.name ?? "", search)}
+                        </TableCell>
+                        <TableCell align="center">
+                          {highlightMatch(response.role?.name ?? "", search)}
+                        </TableCell>
+                      </TableRow>
+                    ))
                     )}
                 </TableBody>
             </Table>
