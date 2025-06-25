@@ -418,12 +418,6 @@ const PemeQuestionnaireView = () => {
                 }
             });
 
-            console.log("About to log FormData...");
-            console.log("FORMDATA PAYLOAD:");
-            for (const pair of formData.entries()) {
-                console.log(pair[0], pair[1]);
-            }
-
             try {
                 await axiosInstance.post(`/peme-responses/storeAll`, formData, {
                     headers,
@@ -962,20 +956,28 @@ const PemeQuestionnaireView = () => {
                                 </Button>
                             </Box>
 
-                            <Box sx={{ display: "flex", gap: 2 }}>
-                                <Button
-                                    variant="contained"
-                                    onClick={() => handleSaveDraft(1)}
-                                >
-                                    Save Draft
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    onClick={() => handleOnConfirmClick(0)}
-                                >
-                                    Submit
-                                </Button>
-                            </Box>
+                            {employeeResponse.isDraft === 1 ? (
+                                <>
+                                    <Box sx={{ display: "flex", gap: 2 }}>
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => handleSaveDraft(1)}
+                                        >
+                                            Save Draft
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            onClick={() =>
+                                                handleOnConfirmClick(0)
+                                            }
+                                        >
+                                            Submit
+                                        </Button>
+                                    </Box>
+                                </>
+                            ) : (
+                                ""
+                            )}
                         </Box>
                     </Box>
                     <PemeRecordsFilePreview

@@ -43,12 +43,17 @@ const PemeResponses = () => {
     const navigator = useNavigate();
     const [pemeRecords, setPemeRecords] = useState([]);
     const [pemeResponses, setPemeResponses] = useState([]);
+    const [respondents, setRespondents] = useState([]);
+
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     const [dueDate, setDueDate] = useState(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [visible, setVisible] = useState(true);
+    const [multiple, setMultiple] = useState(true);
+    const [editable, setEditable] = useState(true);
 
     // FETCH THE QUESTIONNAIRE STRUCTURE FOR THE GIVEN PEME ID
     useEffect(() => {
@@ -65,7 +70,7 @@ const PemeResponses = () => {
                 console.error("Error fetching PEME records:", error);
                 setIsLoading(false);
             });
-    }, []);
+    }, [visible, editable, multiple]);
 
     // FETCH PEME RESPONSES FOR THE GIVEN PEME ID
     useEffect(() => {
@@ -82,9 +87,18 @@ const PemeResponses = () => {
             });
     }, []);
 
-    const [visible, setVisible] = useState(true);
-    const [multiple, setMultiple] = useState(true);
-    const [editable, setEditable] = useState(true);
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme-responses/${PemeID}/all`, { headers })
+            .then((response) => {
+                setRespondents([response.data]);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching PEME records:", error);
+                setIsLoading(false);
+            });
+    }, []);
 
     const handleOnRowClick = (responseID) => {
         navigator(
@@ -203,9 +217,7 @@ const PemeResponses = () => {
         navigator("/admin/medical-records/peme-records");
     };
 
-    // Route::patch('/updatePemeSettings/{id}', [PemeController::class, 'updatePemeSettings']);
-    // const hasRespondents = pemeResponses.length > 0;
-    const hasRespondents = filteredRecords?.[0]?.length > 0;
+    const hasRespondents = respondents?.[0]?.length > 0;
 
     return (
         <Layout title="Pre-Employment Medical Exam Type Responses">

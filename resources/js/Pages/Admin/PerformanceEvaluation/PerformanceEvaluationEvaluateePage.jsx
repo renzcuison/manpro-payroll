@@ -42,18 +42,30 @@ const getSectionScore = (section) => {
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'linear_scale') {
-      if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
-        const start = Number(subcat.linear_scale_start) || 1;
-        const end = Number(subcat.linear_scale_end) || 5;
-        const value = Number(subcat.percentage_answer.value);
-        if (end > start) {
-          subScore = ((value - start) / (end - start)) * 100;
-        }
-      }
-      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
-      scoreTotal += subScore;
-      counted++;
+    // Find the lowest and highest score in options
+    const scores = subcat.options.map(opt => Number(opt.score));
+    const start = Math.min(...scores);
+    const end = Math.max(...scores);
+
+    // Find selected value (from percentage_answer or fallback to option_answer)
+    let value = null;
+    if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
+      value = Number(subcat.percentage_answer.value);
+    } else {
+      // fallback: try to find by option_answer (for other types/future-proofing)
+      const selectedOpt = subcat.options.find(opt => opt.option_answer);
+      if (selectedOpt) value = Number(selectedOpt.score);
     }
+
+
+    if (value !== null && end > start) {
+      subScore = ((value - start) / (end - start)) * 100;
+    }
+
+    subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
+    scoreTotal += subScore;
+    counted++;
+  }
   });
 
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;
@@ -346,7 +358,11 @@ const PerformanceEvaluationEvaluateePage = () => {
 
     const signatureBlocks = [];
     if (creatorSignatureFilePath) {
-      let creatorName = form?.creator_user_name ? `${ form.creator_user_name } (Creator)` : "Creator";
+      let creatorName = responseMeta?.creator
+        ? `${getFullName(responseMeta.creator)} (Creator)`
+        : (form?.creator_user_name 
+            ? `${form.creator_user_name} (Creator)` 
+            : "Creator");
       let creatorDate = responseMeta?.media[0]?.created_at.split('T')[0] ?? '';
       signatureBlocks.push({
         url: creatorSignatureFilePath,
@@ -625,8 +641,8 @@ const PerformanceEvaluationEvaluateePage = () => {
                             >
                               <ScoreLinearBar
                                 variant="determinate"
-                                value={(score)}
-                                sx={{ width: '100%', minWidth: 550 }}
+                                value={score}
+                                sx={{ width: { xs: 200, sm: 300, md: 500 } }}
                               />
                               {hoveredSubcat === `bar-${id}` && !!description && (
                                 <Box
@@ -674,10 +690,10 @@ const PerformanceEvaluationEvaluateePage = () => {
                           <Typography sx={{ fontWeight: 700, color: "#262626" }}>Total Rating</Typography>
                         </Grid>
                         <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
-                          <ScoreLinearBar
+                         <ScoreLinearBar
                             variant="determinate"
-                            value={(sectionScore)}
-                            sx={{ width: '100%', minWidth: 550 }}
+                            value={sectionScore}
+                            sx={{ width: { xs: 200, sm: 300, md: 500 } }}
                           />
                         </Grid>
                         <Grid item xs={2}>
