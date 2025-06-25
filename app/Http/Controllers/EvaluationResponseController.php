@@ -1383,7 +1383,7 @@ class EvaluationResponseController extends Controller
 
             $periodStartAtSec = strtotime($request->period_start_at);
             $periodEndAtSec = strtotime($request->period_end_at);
-            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 86400 - 28800);
+            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 86400 + 57600);
             $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec - $periodEndAtSec % 86400 + 57600);
 
             if ($periodStartAtSec > $periodEndAtSec) {
