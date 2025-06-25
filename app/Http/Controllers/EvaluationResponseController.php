@@ -32,8 +32,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            department_id?: string,
-            branch_id?: string,
+            department_id?: number,
+            branch_id?: number,
             exclude?: number[]
         */
 
@@ -326,8 +326,8 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             id: string,
-            evaluatee_id?: string,
-            form_id?: string,
+            evaluatee_id?: number,
+            form_id?: number,
             period_start_at?: string,
             period_end_at?: string,
         */
@@ -3583,9 +3583,9 @@ class EvaluationResponseController extends Controller
 
         // inputs:
         /*
-            response_id?: string,      // either response_id, subcategory_id, or option_id must be given
-            subcategory_id?: string,
-            option_id?: string
+            response_id?: number,      // either response_id, subcategory_id, or option_id must be given
+            subcategory_id?: number,
+            option_id?: number
         */
 
         // returns:
