@@ -48,7 +48,7 @@ class SalaryPlansController extends Controller {
            $salaryPlansWithEmployeeCount = $salaryPlans->map(function($plan) use ($user) {
                 $planGradeString = $plan->salary_grade;
                 if (!empty($plan->salary_grade_version)) {
-                    $planGradeString .= '-' . $plan->salary_grade_version;
+                    $planGradeString .= '.' . $plan->salary_grade_version;
                 }
                 $employeeCount = \DB::table('users')
                     ->where('client_id', $user->client_id)
@@ -57,8 +57,8 @@ class SalaryPlansController extends Controller {
                     ->count();
 
                 return [
-                    'id' => encrypt($plan->id),
-                    'client_id' => encrypt($plan->client_id),
+                    'id' => Crypt::encrypt($plan->id),
+                    'client_id' => Crypt::encrypt($plan->client_id),
                     'salary_grade' => $plan->salary_grade,
                     'salary_grade_version' => $plan->salary_grade_version,
                     'amount' => $plan->amount,
@@ -103,8 +103,8 @@ class SalaryPlansController extends Controller {
                 return response()->json([
                     'status' => 200,
                     'salaryPlan' => [
-                        'id' => encrypt($salaryPlan->id),
-                        'client_id' => encrypt($salaryPlan->client_id),
+                        'id' => Crypt::encrypt($salaryPlan->id),
+                        'client_id' => Crypt::encrypt($salaryPlan->client_id),
                         'salary_grade' => $salaryPlan->salary_grade,
                         'salary_grade_version' => $salaryPlan->salary_grade_version,
                         'amount' => $salaryPlan->amount,
@@ -132,7 +132,7 @@ class SalaryPlansController extends Controller {
 
         if ($this->checkUser() && $validated) {
             $user = Auth::user();
-            $salaryGrade = SalaryPlansModel::find(decrypt($id)); // Decrypt the route param
+            $salaryGrade = SalaryPlansModel::find(Crypt::decrypt($id)); // Decrypt the route param
 
             if (!$salaryGrade) {
                 return response()->json(['status' => 404, 'message' => 'Salary grade not found.'], 404);
@@ -147,8 +147,8 @@ class SalaryPlansController extends Controller {
             return response()->json([
                 'status' => 200,
                 'salaryPlan' => [
-                    'id' => encrypt($salaryGrade->id),
-                    'client_id' => encrypt($salaryGrade->client_id),
+                    'id' => Crypt::encrypt($salaryGrade->id),
+                    'client_id' => Crypt::encrypt($salaryGrade->client_id),
                     'salary_grade' => $salaryGrade->salary_grade,
                     'salary_grade_version' => $salaryGrade->salary_grade_version,
                     'amount' => $salaryGrade->amount,
@@ -167,7 +167,7 @@ class SalaryPlansController extends Controller {
             $salaryPlan->delete();
             return response()->json([
                 'message' => 'Salary grade soft deleted successfully.',
-                'id' => encrypt($salaryPlan->id)
+                'id' => Crypt::encrypt($salaryPlan->id)
             ]);
         } else {
             return response()->json(['message' => 'Salary grade not found.'], 404);
@@ -198,7 +198,7 @@ class SalaryPlansController extends Controller {
                 $adminLastName = $admin ? ($admin->last_name ?? $admin->user_name ?? '-') : '-';
 
                 $salaryLogs[] = [
-                    'salaryLog' => encrypt($rawSalaryLog->id),
+                    'salaryLog' => Crypt::encrypt($rawSalaryLog->id),
                     'adminFirstName' => $adminFirstName,
                     'adminLastName' => $adminLastName,
                     'oldSalaryGrade' => $rawSalaryLog->old_salary_grade ?? '-',
@@ -239,7 +239,7 @@ class SalaryPlansController extends Controller {
                 // Add this block to count employees for this grade/version
                 $planGradeString = $plan->salary_grade;
                 if (!empty($plan->salary_grade_version)) {
-                    $planGradeString .= '-' . $plan->salary_grade_version;
+                    $planGradeString .= '.' . $plan->salary_grade_version;
                 }
                 $employeeCount = \DB::table('users')
                     ->where('client_id', $user->client_id)
@@ -250,8 +250,8 @@ class SalaryPlansController extends Controller {
                 return response()->json([
                     'status' => 200,
                     'salaryPlan' => [
-                        'id' => encrypt($plan->id),
-                        'client_id' => encrypt($plan->client_id),
+                        'id' => Crypt::encrypt($plan->id),
+                        'client_id' => Crypt::encrypt($plan->client_id),
                         'salary_grade' => $plan->salary_grade,
                         'salary_grade_version' => $plan->salary_grade_version,
                         'amount' => $plan->amount,
@@ -275,7 +275,7 @@ class SalaryPlansController extends Controller {
             $salary_grade_version = $request->input('salary_grade_version');
             $gradeString = $salary_grade;
             if (!empty($salary_grade_version)) {
-                $gradeString .= '-' . $salary_grade_version;
+                $gradeString .= '.' . $salary_grade_version;
             }
 
             $employees = \DB::table('users')
