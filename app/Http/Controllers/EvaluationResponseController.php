@@ -1420,7 +1420,7 @@ class EvaluationResponseController extends Controller
 
             $newEvaluationResponse = EvaluationResponse::create([
                 'evaluatee_id' => Crypt::decrypt($request->evaluatee_id),
-                'form_id' => $request->form_id,
+                'form_id' => Crypt::decrypt($request->form_id),
                 'creator_id' => $userID,
                 'period_start_at' => $request->period_start_at,
                 'period_end_at' => $request->period_end_at
