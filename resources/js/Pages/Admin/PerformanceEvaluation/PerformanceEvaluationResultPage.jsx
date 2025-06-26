@@ -75,7 +75,7 @@ const PerformanceEvaluationResultPage = () => {
 
   const [loading, setLoading] = useState(true);
 
-  // Ref for the download section
+  // Ref for the download section - wrap the WHOLE white card area
   const resultsRef = useRef();
 
   useEffect(() => {
@@ -130,13 +130,20 @@ const PerformanceEvaluationResultPage = () => {
     // eslint-disable-next-line
   }, [compareResultId]);
 
-  // PDF Download - simple screenshot version
+  // PDF Download - screenshot the whole card area with header and dropdowns
   const handleDownload = async () => {
     if (!resultsRef.current) return;
+
+    // Hide all elements with .no-export class (download button, X button, etc)
+    const toHide = resultsRef.current.querySelectorAll('.no-export');
+    toHide.forEach(el => (el.style.display = 'none'));
+
     const margin = 20;
-    const pdfWidth = 841.89;
-    const pdfHeight = 595.28;
-    const canvas = await html2canvas(resultsRef.current, { scale: 2, useCORS: true });
+    const pdfWidth = 841.89;   // A4 landscape width in points
+    const pdfHeight = 595.28;  // A4 landscape height in points
+
+    // Capture with white background for consistency
+    const canvas = await html2canvas(resultsRef.current, { scale: 2, useCORS: true, backgroundColor: '#fff' });
     const imgData = canvas.toDataURL('image/png');
     const contentWidth = canvas.width;
     const contentHeight = canvas.height;
@@ -147,13 +154,18 @@ const PerformanceEvaluationResultPage = () => {
     const imgHeight = contentHeight * scale;
     const x = (pdfWidth - imgWidth) / 2;
     const y = Math.max(margin, (pdfHeight - imgHeight) / 2);
+
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'pt',
       format: [pdfWidth, pdfHeight]
     });
+
     pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
     pdf.save('Performance_Evaluation_Result.pdf');
+
+    // Restore hidden elements
+    toHide.forEach(el => (el.style.display = ''));
   };
 
   function renderResultPanel(result, title = "Evaluation Result") {
@@ -292,135 +304,137 @@ const PerformanceEvaluationResultPage = () => {
   }
 
   return (
-      <Layout title="Performance Evaluation Results">
-        <Box
+    <Layout title="Performance Evaluation Results">
+      {/* Wrap the ENTIRE exportable area in resultsRef */}
+      <Box
+        ref={resultsRef}
+        sx={{
+          mt: 4,
+          p: 4,
+          bgcolor: 'white',
+          borderRadius: 2,
+          maxWidth: '1400px',
+          mx: 'auto',
+          boxShadow: 3,
+          position: 'relative',
+          px: { xs: 2, md: 6, lg: 8 }
+        }}
+      >
+        {/* X (Close) Button */}
+        <IconButton
+          onClick={() => navigate(-1)}
           sx={{
-            mt: 4,
-            p: 4,
-            bgcolor: 'white',
-            borderRadius: 2,
-            maxWidth: '1400px',
-            mx: 'auto',
-            boxShadow: 3,
-            position: 'relative',
-            px: { xs: 2, md: 6, lg: 8 }
+            position: 'absolute',
+            top: 25,
+            right: 30,
+            border: '1px solid #BEBEBE',
+            borderRadius: '50%',
+            padding: '5px',
+            color: '#BEBEBE',
           }}
+          className="no-export"
         >
-          {/* X (Close) Button */}
-          <IconButton
-            onClick={() => navigate(-1)}
+          <CloseIcon sx={{ fontSize: '1.2rem' }} />
+        </IconButton>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>Performance Evaluation Result</Typography>
+        {/* Download button */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            onClick={handleDownload}
+            disabled={loading || (!selectedResult && !compareResult)}
             sx={{
-              position: 'absolute',
-              top: 25,
-              right: 30,
-              border: '1px solid #BEBEBE',
-              borderRadius: '50%',
-              padding: '5px',
-              color: '#BEBEBE',
-            }}
-          >
-            <CloseIcon sx={{ fontSize: '1.2rem' }} />
-          </IconButton>
-          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>Performance Evaluation Result</Typography>
-          {/* Download button */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={<DownloadIcon />}
-              onClick={handleDownload}
-              disabled={loading || (!selectedResult && !compareResult)}
-              sx={{
+              borderColor: '#f5c242',
+              color: '#f5c242',
+              '&:hover': {
                 borderColor: '#f5c242',
-                color: '#f5c242',
-                '&:hover': {
-                  borderColor: '#f5c242',
-                  bgcolor: '#fffbe6'
-                }
-              }}
-            >
-              Download
-            </Button>
-          </Box>
-          <div ref={resultsRef}>
-            {loading && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-                <CircularProgress />
-              </Box>
-            )}
-            {!loading && results.length === 0 && (
-              <Typography variant="body1" color="gray" sx={{ mt: 4 }}>
-                You have no evaluation results.
-              </Typography>
-            )}
-
-            {!loading && results.length > 0 && (
-              <Box sx={{
-                display: { xs: 'block', md: 'flex' },
-                gap: 3,
-                width: '100%',
-                mx: { xs: 0, md: 0 },
-              }}>
-                <Box sx={{ flex: 1, minWidth: 0, maxWidth: compareResult ? { md: '46%' } : { md: '900px' }, mx: compareResult ? 0 : 'auto' }}>
-                  <FormControl sx={{ minWidth: 280, mb: 3, width: '100%' }}>
-                    <InputLabel>Select Evaluation</InputLabel>
-                    <Select
-                      value={selectedResultId}
-                      label="Select Evaluation"
-                      onChange={e => setSelectedResultId(e.target.value)}
-                    >
-                      <MenuItem value="" disabled>Select Evaluation Result</MenuItem>
-                      {results.map(r => (
-                        <MenuItem value={r.id} key={r.id}>
-                          {r.form?.name} — {r.date}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  {selectedResult && renderResultPanel(selectedResult, "Evaluation Result")}
-                </Box>
-                {compareResult && (
-                  <Box sx={{
-                    display: { xs: 'none', md: 'flex' },
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    px: 2,
-                    fontSize: 40,
-                    color: '#BEBEBE'
-                  }}>
-                    &rarr;
-                  </Box>
-                )}
-                <Box sx={{ flex: 1, minWidth: 0, maxWidth: compareResult ? { md: '46%' } : { md: '900px' }, mx: compareResult ? 0 : 'auto' }}>
-                  <FormControl sx={{ minWidth: 280, mb: 3, width: '100%' }}>
-                    <InputLabel>Compare to</InputLabel>
-                    <Select
-                      value={compareResultId}
-                      label="Compare to"
-                      onChange={e => setCompareResultId(e.target.value)}
-                    >
-                      <MenuItem value="">None</MenuItem>
-                      {results
-                        .filter(r => r.id !== selectedResultId)
-                        .map(r => (
-                          <MenuItem value={r.id} key={r.id}>
-                            {r.form?.name} — {r.date}
-                          </MenuItem>
-                        ))}
-                    </Select>
-                  </FormControl>
-                  {compareResult && renderResultPanel(compareResult, "Comparison Result")}
-                </Box>
-              </Box>
-            )}
-            {!loading && results.length > 0 && !selectedResultId && (
-              <Typography variant="body1" color="gray" sx={{ mt: 4 }}>
-                Select a result above to view your evaluation.
-              </Typography>
-            )}
-          </div>
+                bgcolor: '#fffbe6'
+              }
+            }}
+            className="no-export" // Hide during export if desired
+          >
+            Download
+          </Button>
         </Box>
-      </Layout>
-    );
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+        {!loading && results.length === 0 && (
+          <Typography variant="body1" color="gray" sx={{ mt: 4 }}>
+            You have no evaluation results.
+          </Typography>
+        )}
+
+        {!loading && results.length > 0 && (
+          <Box sx={{
+            display: { xs: 'block', md: 'flex' },
+            gap: 3,
+            width: '100%',
+            mx: { xs: 0, md: 0 },
+          }}>
+            <Box sx={{ flex: 1, minWidth: 0, maxWidth: compareResult ? { md: '46%' } : { md: '900px' }, mx: compareResult ? 0 : 'auto' }}>
+              <FormControl sx={{ minWidth: 280, mb: 3, width: '100%' }}>
+                <InputLabel>Select Evaluation</InputLabel>
+                <Select
+                  value={selectedResultId}
+                  label="Select Evaluation"
+                  onChange={e => setSelectedResultId(e.target.value)}
+                >
+                  <MenuItem value="" disabled>Select Evaluation Result</MenuItem>
+                  {results.map(r => (
+                    <MenuItem value={r.id} key={r.id}>
+                      {r.form?.name} — {r.date}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {selectedResult && renderResultPanel(selectedResult, "Evaluation Result")}
+            </Box>
+            {compareResult && (
+              <Box sx={{
+                display: { xs: 'none', md: 'flex' },
+                alignItems: 'center',
+                justifyContent: 'center',
+                px: 2,
+                fontSize: 40,
+                color: '#BEBEBE'
+              }}>
+                &rarr;
+              </Box>
+            )}
+            <Box sx={{ flex: 1, minWidth: 0, maxWidth: compareResult ? { md: '46%' } : { md: '900px' }, mx: compareResult ? 0 : 'auto' }}>
+              <FormControl sx={{ minWidth: 280, mb: 3, width: '100%' }}>
+                <InputLabel>Compare to</InputLabel>
+                <Select
+                  value={compareResultId}
+                  label="Compare to"
+                  onChange={e => setCompareResultId(e.target.value)}
+                >
+                  <MenuItem value="">None</MenuItem>
+                  {results
+                    .filter(r => r.id !== selectedResultId)
+                    .map(r => (
+                      <MenuItem value={r.id} key={r.id}>
+                        {r.form?.name} — {r.date}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+              {compareResult && renderResultPanel(compareResult, "Comparison Result")}
+            </Box>
+          </Box>
+        )}
+        {!loading && results.length > 0 && !selectedResultId && (
+          <Typography variant="body1" color="gray" sx={{ mt: 4 }}>
+            Select a result above to view your evaluation.
+          </Typography>
+        )}
+      </Box>
+    </Layout>
+  );
 };
 
 export default PerformanceEvaluationResultPage;
