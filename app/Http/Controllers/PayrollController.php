@@ -1140,6 +1140,8 @@ class PayrollController extends Controller
                 }
             }
 
+            log::info($payrollData['allowances']);
+
             foreach ($payrollData['allowances'] as $allowance) {
                 if ($allowance['name'] != "Total Benefits") {
                     $newAllowance = PayslipAllowancesModel::create(["payslip_id" => $payslip->id, "employee_allowance_id" => decrypt($allowance['allowance']), "amount" => $allowance['amount']]);
@@ -1287,7 +1289,7 @@ class PayrollController extends Controller
             foreach ($record->allowances as $allowance) {
                 $allowances[] = [
                     'name' => $allowance->employeeAllowance->allowance->name,
-                    'amount' => $allowance->employeeAllowance->allowance->amount,
+                    'amount' => $allowance->amount,
                 ];
             }
 
@@ -1332,6 +1334,12 @@ class PayrollController extends Controller
                         break;
                     case 4:
                         $name = 'Holiday OT Pay';
+                        break;
+                    case 5:
+                        $name = 'Rest Day Pay';
+                        break;
+                    case 6:
+                        $name = 'Rest Day OT Pay';
                         break;
                     default:
                         $name = '-';
