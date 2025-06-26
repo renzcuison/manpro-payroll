@@ -1159,6 +1159,11 @@ class AttendanceController extends Controller
         }
     }
 
+    public function getAttendanceRestDay()
+    {
+        
+    }
+
     // Misc
     public function getNagerHolidays($year)
     {
