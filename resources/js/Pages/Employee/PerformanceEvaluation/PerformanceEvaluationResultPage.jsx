@@ -11,6 +11,54 @@ import DownloadIcon from '@mui/icons-material/Download';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
+// Utility: Section and weighted scores (copied from your Evaluatee page for consistency)
+const getSectionScore = (section) => {
+  if (!section || !section.subcategories) return { sectionScore: 0, subcatScores: [], weightedScore: 0 };
+  let scoreTotal = 0;
+  let counted = 0;
+  const subcatScores = [];
+
+  section.subcategories.forEach(subcat => {
+    let subScore = 0;
+    if (subcat.subcategory_type === 'multiple_choice') {
+      const selected = subcat.options.find(opt => opt.option_answer);
+      if (selected) {
+        subScore = Number(selected.score) || 0;
+      }
+      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
+      scoreTotal += subScore;
+      counted++;
+    } else if (subcat.subcategory_type === 'checkbox') {
+      const selected = subcat.options.filter(opt => opt.option_answer);
+      const selectedSum = selected.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
+      const allSum = subcat.options.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
+      if (allSum > 0) {
+        subScore = (selectedSum / allSum) * 100;
+      }
+      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
+      scoreTotal += subScore;
+      counted++;
+    } else if (subcat.subcategory_type === 'linear_scale') {
+      const scores = subcat.options.map(opt => Number(opt.score));
+      const start = Math.min(...scores);
+      const end = Math.max(...scores);
+      const selectedOpt = subcat.options.find(opt => opt.option_answer != null);
+      const value = selectedOpt ? Number(selectedOpt.score) : null;
+      let subScore = 0;
+      if (value !== null && end > start) {
+        subScore = ((value - start) / (end - start)) * 100;
+      }
+      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
+      scoreTotal += subScore;
+      counted++;
+    }
+  });
+
+  const sectionScore = counted > 0 ? scoreTotal / counted : 0;
+  const weightedScore = ((sectionScore / 100) * (section.score || 0));
+  return { sectionScore, subcatScores, weightedScore };
+};
+
 const PerformanceEvaluationResultPage = () => {
   const storedUser = localStorage.getItem("nasya_user");
   const user = JSON.parse(storedUser);
@@ -37,7 +85,6 @@ const PerformanceEvaluationResultPage = () => {
         const filtered = (res.data.evaluationResponses || []).filter(
           r =>
             r.role === 'Evaluatee' &&
-            r.evaluatee?.id === user.id &&
             r.status === 'Done'
         );
         setResults(filtered);
@@ -68,7 +115,6 @@ const PerformanceEvaluationResultPage = () => {
     // eslint-disable-next-line
   }, [selectedResultId]);
 
-  // Fetch compare result
   useEffect(() => {
     if (!compareResultId) {
       setCompareResult(null);
@@ -85,83 +131,35 @@ const PerformanceEvaluationResultPage = () => {
     // eslint-disable-next-line
   }, [compareResultId]);
 
-  // Scoring utils (same as before)
-  function getSubcategoryScore(subcat) {
-    let subScore = 0;
-    if (subcat.subcategory_type === 'multiple_choice') {
-      const selected = (subcat.options || []).find(opt => opt.option_answer);
-      if (selected) subScore = Number(selected.score) || 0;
-      return subScore;
-    }
-    if (subcat.subcategory_type === 'checkbox') {
-      const selected = (subcat.options || []).filter(opt => opt.option_answer);
-      const selectedSum = selected.reduce((sum, o) => sum + (Number(o.score) || 1), 0);
-      const allSum = (subcat.options || []).reduce((sum, o) => sum + (Number(o.score) || 1), 0);
-      if (allSum > 0) subScore = (selectedSum / allSum) * 100;
-      return subScore;
-    }
-    if (subcat.subcategory_type === 'linear_scale') {
-      if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
-        const start = Number(subcat.linear_scale_start) || 1;
-        const end = Number(subcat.linear_scale_end) || 5;
-        const value = Number(subcat.percentage_answer.value);
-        if (end > start) subScore = ((value - start) / (end - start)) * 100;
-      }
-      return subScore;
-    }
-    if (subcat.score && subcat.achieved_score) {
-      return Math.min(100, (subcat.achieved_score / subcat.score) * 100);
-    }
-    return 0;
-  }
-
-  function computeSectionAverage(section) {
-    const scorableSubcats = section.subcategories.filter(
-      sub => ['multiple_choice', 'checkbox', 'linear_scale'].includes(sub.subcategory_type)
-    );
-    if (scorableSubcats.length === 0) return null;
-    const avg = scorableSubcats.reduce(
-      (sum, sub) => sum + getSubcategoryScore(sub),
-      0
-    ) / scorableSubcats.length;
-    return avg;
-  }
-
-  function getSectionWeights(sections) {
-    const totalScore = sections.reduce((sum, sec) => sum + (Number(sec.score) || 0), 0);
-    return sections.reduce((acc, sec) => {
-      acc[sec.id] = totalScore > 0 ? (Number(sec.score) || 0) / totalScore : 0;
-      return acc;
-    }, {});
-  }
-
-  function computeWeightedScores(sections) {
-    const sectionWeights = getSectionWeights(sections);
-    let weightedRows = [];
-    let totalWeighted = 0;
-
-    sections.forEach(section => {
-      const avg = computeSectionAverage(section);
-      const weight = sectionWeights[section.id] || 0;
-      const weighted = avg != null ? (avg * weight) : 0;
-      weightedRows.push({
-        section: section.name,
-        weight: weight,
-        avg: avg,
-        weighted: weighted
-      });
-      totalWeighted += weighted;
+  // PDF Download - simple screenshot version
+  const handleDownload = async () => {
+    if (!resultsRef.current) return;
+    const margin = 20;
+    const pdfWidth = 841.89;
+    const pdfHeight = 595.28;
+    const canvas = await html2canvas(resultsRef.current, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+    const contentWidth = canvas.width;
+    const contentHeight = canvas.height;
+    const targetWidth = pdfWidth - 2 * margin;
+    const targetHeight = pdfHeight - 2 * margin;
+    const scale = Math.min(targetWidth / contentWidth, targetHeight / contentHeight, 1);
+    const imgWidth = contentWidth * scale;
+    const imgHeight = contentHeight * scale;
+    const x = (pdfWidth - imgWidth) / 2;
+    const y = Math.max(margin, (pdfHeight - imgHeight) / 2);
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'pt',
+      format: [pdfWidth, pdfHeight]
     });
+    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+    pdf.save('Performance_Evaluation_Result.pdf');
+  };
 
-    return {
-      rows: weightedRows,
-      grandTotal: totalWeighted,
-    };
-  }
-
-  // Helper to render a single result panel (for original or comparison)
   function renderResultPanel(result, title = "Evaluation Result") {
     if (!result) return null;
+    const form = result.form;
     return (
       <Paper
         sx={{
@@ -178,53 +176,51 @@ const PerformanceEvaluationResultPage = () => {
         className="export-result-panel"
       >
         <Typography variant="h6" sx={{ mb: 1 }}>
-          {title}: <b>{result.form?.name}</b>
+          {title}: <b>{form?.name}</b>
         </Typography>
         <Typography>Evaluatee: {getFullName(result.evaluatee)}</Typography>
-        <Typography>Evaluator: {result.evaluators?.[0] ? getFullName(result.evaluators[0]) : ''}</Typography>
+        <Typography>Evaluator: {Array.isArray(result.evaluators) ? result.evaluators.map(getFullName).join(', ') : ''}</Typography>
         <Typography>Period: {result.period_start_date} - {result.period_end_date}</Typography>
         <Divider sx={{ my: 2 }} />
 
-        {/* Per-section breakdown */}
-        {result.form.sections.map((section, idx) => (
-          <Box key={section.id || idx} sx={{ mb: 3 }}>
-            <Typography sx={{
-              fontWeight: 'bold',
-              color: '#fff',
-              bgcolor: '#f5c242',
-              p: 1,
-              borderRadius: 1,
-              fontSize: 16,
-              mb: 1
-            }}>
-              {section.name}
-            </Typography>
-            <Table size="small" sx={{ my: 1 }}>
-              <TableBody>
-                {section.subcategories.map(subcat => (
-                  <TableRow key={subcat.id}>
-                    <TableCell>{subcat.name}</TableCell>
-                    <TableCell align="right">
-                      {['multiple_choice', 'checkbox', 'linear_scale'].includes(subcat.subcategory_type)
-                        ? `${getSubcategoryScore(subcat).toFixed(1)} %`
-                        : 'N/A'
-                      }
+        {/* Per-section breakdown (hide if total rating is 0%) */}
+        {form.sections.map((section, idx) => {
+          const { sectionScore, subcatScores } = getSectionScore(section);
+          if (sectionScore === 0) return null;
+          return (
+            <Box key={section.id || idx} sx={{ mb: 3 }}>
+              <Typography sx={{
+                fontWeight: 'bold',
+                color: '#fff',
+                bgcolor: '#f5c242',
+                p: 1,
+                borderRadius: 1,
+                fontSize: 16,
+                mb: 1
+              }}>
+                {section.name}
+              </Typography>
+              <Table size="small" sx={{ my: 1 }}>
+                <TableBody>
+                  {subcatScores.map(subcat => (
+                    <TableRow key={subcat.id}>
+                      <TableCell>{subcat.name}</TableCell>
+                      <TableCell align="right">
+                        {`${subcat.score.toFixed(1)} %`}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Total Rating</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                      {`${sectionScore.toFixed(2)} %`}
                     </TableCell>
                   </TableRow>
-                ))}
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Total Rating</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                    {(() => {
-                      const avg = computeSectionAverage(section);
-                      return avg != null ? `${avg.toFixed(2)} %` : 'N/A';
-                    })()}
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </Box>
-        ))}
+                </TableBody>
+              </Table>
+            </Box>
+          );
+        })}
 
         {/* Weighted Scores Table */}
         <Divider sx={{ my: 2 }} />
@@ -249,73 +245,52 @@ const PerformanceEvaluationResultPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(() => {
-                const { rows, grandTotal } = computeWeightedScores(result.form.sections);
+              {form.sections.filter(section =>
+                section.subcategories.some(sc =>
+                  sc.subcategory_type === 'multiple_choice' ||
+                  sc.subcategory_type === 'checkbox' ||
+                  sc.subcategory_type === 'linear_scale'
+                )
+              )
+              .map(section => {
+                const { sectionScore, weightedScore } = getSectionScore(section);
+                if (sectionScore === 0) return null;
                 return (
-                  <>
-                    {rows.map(row => (
-                      <TableRow key={row.section}>
-                        <TableCell>{row.section + ' - ' + (row.weight * 100).toFixed(0) + ' %'}</TableCell>
-                        <TableCell align="right">{row.avg !== null && !isNaN(row.avg) ? row.avg.toFixed(2) + ' %' : 'N/A'}</TableCell>
-                        <TableCell align="right">{row.avg !== null && !isNaN(row.avg) ? (row.avg * row.weight / 100).toFixed(2) + ' %' : 'N/A'}</TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
-                      <TableCell />
-                      <TableCell align="right" sx={{ fontWeight: 'bold', color: 'green' }}>
-                        {grandTotal.toFixed(2)} %
-                      </TableCell>
-                    </TableRow>
-                  </>
+                  <TableRow key={section.id}>
+                    <TableCell>
+                      {section.name} - <b>{section.score || 0} %</b>
+                    </TableCell>
+                    <TableCell align="right">{sectionScore.toFixed(2)} %</TableCell>
+                    <TableCell align="right">{weightedScore.toFixed(2)} %</TableCell>
+                  </TableRow>
                 );
-              })()}
+              })}
+              <TableRow>
+                <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                <TableCell />
+                <TableCell align="right" sx={{ fontWeight: 'bold', color: 'green' }}>
+                  {form.sections
+                    .filter(section =>
+                      section.subcategories.some(sc =>
+                        sc.subcategory_type === 'multiple_choice' ||
+                        sc.subcategory_type === 'checkbox' ||
+                        sc.subcategory_type === 'linear_scale'
+                      )
+                    )
+                    .reduce((sum, section) => {
+                      const { sectionScore, weightedScore } = getSectionScore(section);
+                      return sectionScore === 0 ? sum : sum + weightedScore;
+                    }, 0)
+                    .toFixed(2)
+                  } %
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </Box>
       </Paper>
     );
   }
-
-  // Download handler with dynamic scaling to fit PDF
-  const handleDownload = async () => {
-    if (!resultsRef.current) return;
-
-    // Margin in points
-    const margin = 32; // 32pt ≈ 0.44 inches
-    // Standard A4 landscape in pt
-    const pdfWidth = 841.89;
-    const pdfHeight = 595.28;
-
-    // Capture canvas at 2x for clarity
-    const canvas = await html2canvas(resultsRef.current, { scale: 2, useCORS: true });
-
-    const imgData = canvas.toDataURL('image/png');
-    const contentWidth = canvas.width;
-    const contentHeight = canvas.height;
-
-    // Target area inside margins
-    const targetWidth = pdfWidth - 2 * margin;
-    const targetHeight = pdfHeight - 2 * margin;
-
-    // Calculate scale factor to fit both width and height
-    const scale = Math.min(targetWidth / contentWidth, targetHeight / contentHeight, 1);
-
-    const imgWidth = contentWidth * scale;
-    const imgHeight = contentHeight * scale;
-
-    const x = (pdfWidth - imgWidth) / 2;
-    const y = Math.max(margin, (pdfHeight - imgHeight) / 2);
-
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'pt',
-      format: [pdfWidth, pdfHeight]
-    });
-
-    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-    pdf.save('Performance_Evaluation_Result.pdf');
-  };
 
   return (
       <Layout title="Performance Evaluation Results">
@@ -329,7 +304,7 @@ const PerformanceEvaluationResultPage = () => {
             mx: 'auto',
             boxShadow: 3,
             position: 'relative',
-            px: { xs: 2, md: 6, lg: 8 } // responsive left/right margin for page
+            px: { xs: 2, md: 6, lg: 8 }
           }}
         >
           {/* X (Close) Button */}
@@ -384,7 +359,7 @@ const PerformanceEvaluationResultPage = () => {
                 display: { xs: 'block', md: 'flex' },
                 gap: 3,
                 width: '100%',
-                mx: { xs: 0, md: 0 }, // no extra margin inside PDF content
+                mx: { xs: 0, md: 0 },
               }}>
                 <Box sx={{ flex: 1, minWidth: 0, maxWidth: compareResult ? { md: '46%' } : { md: '900px' }, mx: compareResult ? 0 : 'auto' }}>
                   <FormControl sx={{ minWidth: 280, mb: 3, width: '100%' }}>
@@ -404,7 +379,6 @@ const PerformanceEvaluationResultPage = () => {
                   </FormControl>
                   {selectedResult && renderResultPanel(selectedResult, "Evaluation Result")}
                 </Box>
-                {/* ARROW in the middle if both selected */}
                 {compareResult && (
                   <Box sx={{
                     display: { xs: 'none', md: 'flex' },
@@ -439,7 +413,6 @@ const PerformanceEvaluationResultPage = () => {
                 </Box>
               </Box>
             )}
-            {/* Only show this if there are results but no selection */}
             {!loading && results.length > 0 && !selectedResultId && (
               <Typography variant="body1" color="gray" sx={{ mt: 4 }}>
                 Select a result above to view your evaluation.
