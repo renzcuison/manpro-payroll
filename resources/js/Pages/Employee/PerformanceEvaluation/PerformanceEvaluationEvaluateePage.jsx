@@ -60,8 +60,9 @@ const getSectionScore = (section) => {
   counted++;
 }
   });
-
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;
+  console.log(section.subcategories);
+
   const weightedScore = ((sectionScore / 100) * (section.score || 0));
   return { sectionScore, subcatScores, weightedScore };
 };

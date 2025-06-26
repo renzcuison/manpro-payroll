@@ -73,7 +73,7 @@ const PerformanceEvaluationEvaluatorSign = ({ open, onClose, onProceed }) => {
                         <SignatureCanvas
                             ref={sigPadRef}
                             penColor="black"
-                            canvasProps={{ width: 700, height: 120, className: 'sigCanvas' }}
+                            canvasProps={{ width: 700, height: 200, className: 'sigCanvas' }}
                         />
                         <Typography
                             variant="body2"
