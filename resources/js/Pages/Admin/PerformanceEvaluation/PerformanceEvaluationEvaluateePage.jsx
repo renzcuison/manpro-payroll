@@ -45,16 +45,16 @@ const getSectionScore = (section) => {
   const scores = subcat.options.map(opt => Number(opt.score));
   const start = Math.min(...scores);
   const end = Math.max(...scores);
-
+ 
   // Find the selected option (option_answer not null)
   const selectedOpt = subcat.options.find(opt => opt.option_answer != null);
   const value = selectedOpt ? Number(selectedOpt.score) : null;
-
+ 
   let subScore = 0;
   if (value !== null && end > start) {
     subScore = ((value - start) / (end - start)) * 100;
   }
-
+ 
   subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
   scoreTotal += subScore;
   counted++;
