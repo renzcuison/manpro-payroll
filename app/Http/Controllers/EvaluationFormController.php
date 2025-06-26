@@ -293,20 +293,21 @@ class EvaluationFormController extends Controller
                 'status' => 404,
                 'message' => 'Evaluation Form not found!'
             ]);
+            $encryptedFormID = Crypt::encrypt($evaluationForm->id);
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Form successfully retrieved.',
                 'evaluationForm' => $evaluationForm ? [
-                    'id' => Crypt::encrypt($evaluationForm->id),
+                    'id' => $encryptedFormID,
                     'name' => $evaluationForm->name,
                     'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
                     'creator_user_name' => $evaluationForm->creator_user_name,
                     'created_at' => $evaluationForm->created_at,
                     'updated_at' => $evaluationForm->updated_at,
-                    'sections' => $evaluationForm->sections->map(function ($section) {
+                    'sections' => $evaluationForm->sections->map(function ($section) use ($encryptedFormID) {
                         $encryptedSectionID = Crypt::encrypt($section->id);
                         return [
-                            'form_id' => Crypt::encrypt($section->form_id),
+                            'form_id' => $encryptedFormID,
                             'id' => $encryptedSectionID,
                             'name' => $section->name,
                             'category' => $section->category,
@@ -757,20 +758,22 @@ class EvaluationFormController extends Controller
                 'status' => 404,
                 'message' => 'Evaluation Form Section not found!'
             ]);
+            $encryptedSectionID = Crypt::encrypt($evaluationFormSection->id);
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Form Section successfully retrieved.',
                 'evaluationFormSection' => $evaluationFormSection ? [
                     'form_id' => Crypt::encrypt($evaluationFormSection->form_id),
-                    'id' => Crypt::encrypt($evaluationFormSection->id),
+                    'id' => $encryptedSectionID,
                     'name' => $evaluationFormSection->name,
                     'category' => $evaluationFormSection->category,
                     'score' => $evaluationFormSection->score,
                     'order' => $evaluationFormSection->order,
-                    'subcategories' => $evaluationFormSection->subcategories->map(function ($subcategory) {
+                    'subcategories' => $evaluationFormSection->subcategories->map(function ($subcategory) use ($encryptedSectionID) {
+                        $encryptedSubcategoryID = Crypt::encrypt($subcategory->id);
                         return [
-                            'section_id' => Crypt::encrypt($subcategory->section_id),
-                            'id' => Crypt::encrypt($subcategory->id),
+                            'section_id' => $encryptedSectionID,
+                            'id' => $encryptedSubcategoryID,
                             'name' => $subcategory->name,
                             'subcategory_type' => $subcategory->subcategory_type,
                             'description' => $subcategory->description,
@@ -779,9 +782,9 @@ class EvaluationFormController extends Controller
                             'linear_scale_start' => $subcategory->linear_scale_start,
                             'linear_scale_end' => $subcategory->linear_scale_end,
                             'order' => $subcategory->order,
-                            'options' => $subcategory->options->map(function ($option) {
+                            'options' => $subcategory->options->map(function ($option) use ($encryptedSubcategoryID) {
                                 return [
-                                    'subcategory_id' => Crypt::encrypt($option->subcategory_id),
+                                    'subcategory_id' => $encryptedSubcategoryID,
                                     'id' => Crypt::encrypt($option->id),
                                     'label' => $option->label,
                                     'score' => $option->score,

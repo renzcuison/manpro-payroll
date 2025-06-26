@@ -792,13 +792,14 @@ class EvaluationResponseController extends Controller
             }
             DB::commit();
 
+            $encryptedResponseID = Crypt::encrypt($evaluationResponse->id);
             $encryptedUserID = Crypt::encrypt($userID);
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Response successfully retrieved.',
                 'userID' => $encryptedUserID,
                 'evaluationResponse' => $evaluationResponse ? [
-                    'id' => Crypt::encrypt($evaluationResponse->id),
+                    'id' => $encryptedResponseID,
                     'evaluatee_id' => Crypt::encrypt($evaluationResponse->evaluatee_id),
                     'creator_id' => Crypt::encrypt($evaluationResponse->creator_id),
                     'period_start_date' => $evaluationResponse->period_start_date,
@@ -827,13 +828,13 @@ class EvaluationResponseController extends Controller
                             ];
                         })
                     ] : null,
-                    'evaluators' => $evaluationResponse->evaluators->map(function ($evaluator) use($userID, $encryptedUserID) {
+                    'evaluators' => $evaluationResponse->evaluators->map(function ($evaluator) use($userID, $encryptedResponseID, $encryptedUserID) {
                         return [
                             'evaluator_id' =>
                                 ($evaluator->evaluator_id === $userID) ? $encryptedUserID
                                 : Crypt::encrypt($evaluator->evaluator_id)
                             ,
-                            'response_id' => Crypt::encrypt($evaluator->response_id),
+                            'response_id' => $encryptedResponseID,
                             'last_name' => $evaluator->last_name,
                             'first_name' => $evaluator->first_name,
                             'middle_name' => $evaluator->middle_name,
@@ -853,13 +854,13 @@ class EvaluationResponseController extends Controller
                             'evaluator_signature' => $evaluator->evaluator_signature
                         ];
                     }),
-                    'commentors' => $evaluationResponse->commentors->map(function ($commentor) use($userID, $encryptedUserID) {
+                    'commentors' => $evaluationResponse->commentors->map(function ($commentor) use($userID, $encryptedResponseID, $encryptedUserID) {
                         return [
                             'commentor_id' =>
                                 ($commentor->commentor_id === $userID) ? $encryptedUserID
                                 : Crypt::encrypt($commentor->commentor_id)
                             ,
-                            'response_id' => Crypt::encrypt($commentor->response_id),
+                            'response_id' => $encryptedResponseID,
                             'last_name' => $commentor->last_name,
                             'first_name' => $commentor->first_name,
                             'middle_name' => $commentor->middle_name,
@@ -884,7 +885,7 @@ class EvaluationResponseController extends Controller
                         'name' => $evaluationResponse->form->name,
                         'creator_id' => Crypt::encrypt($evaluationResponse->form->creator_id),
                         'creator_user_name' => $evaluationResponse->form->creator_user_name,
-                        'sections' => $evaluationResponse->form->sections->map(function ($section) {
+                        'sections' => $evaluationResponse->form->sections->map(function ($section) use ($encryptedResponseID) {
                             return [
                                 'form_id' => Crypt::encrypt($section->form_id),
                                 'id' => Crypt::encrypt($section->id),
@@ -893,7 +894,7 @@ class EvaluationResponseController extends Controller
                                 'order' => $section->order,
                                 'score' => $section->score,
                                 'achieved_score' => $section->achieved_score,
-                                'subcategories' => $section->subcategories->map(function ($subcategory) {
+                                'subcategories' => $section->subcategories->map(function ($subcategory) use($encryptedResponseID) {
                                     $encryptedSubcategoryID = Crypt::encrypt($subcategory->id);
                                     return [
                                         'section_id' => Crypt::encrypt($subcategory->section_id),
@@ -910,7 +911,7 @@ class EvaluationResponseController extends Controller
                                         'order' => $subcategory->order,
                                         'score' => $subcategory->score,
                                         'achieved_score' => $subcategory->achieved_score,
-                                        'options' => $subcategory->options->map(function ($option) use ($encryptedSubcategoryID) {
+                                        'options' => $subcategory->options->map(function ($option) use ($encryptedSubcategoryID, $encryptedResponseID) {
                                             $encryptedOptionID = Crypt::encrypt($option->id);
                                             return [
                                                 'subcategory_id' => $encryptedSubcategoryID,
@@ -922,7 +923,7 @@ class EvaluationResponseController extends Controller
                                                 'option_answer_count' => $option->option_answer_count,
                                                 'option_answer' => $option->optionAnswer ? [
                                                     'id' => Crypt::encrypt($option->optionAnswer->id),
-                                                    'response_id' => Crypt::encrypt($option->optionAnswer->response_id),
+                                                    'response_id' => $encryptedResponseID,
                                                     'option_id' => $encryptedOptionID
                                                 ] : null
                                             ];
@@ -938,7 +939,7 @@ class EvaluationResponseController extends Controller
                                         // ] : null,
                                         'text_answer' => $subcategory->textAnswer ? [
                                             'id' => Crypt::encrypt($subcategory->textAnswer->id),
-                                            'response_id' => Crypt::encrypt($subcategory->textAnswer->response_id),
+                                            'response_id' => $encryptedResponseID,
                                             'subcategory_id' => Crypt::encrypt($subcategory->textAnswer->subcategory_id),
                                             'answer' => $subcategory->textAnswer->answer
                                         ] : null
