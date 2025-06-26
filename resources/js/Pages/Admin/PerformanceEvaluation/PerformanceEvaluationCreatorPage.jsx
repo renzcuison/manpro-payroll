@@ -151,21 +151,24 @@ const PerformanceEvaluationCreatorPage = () => {
                     <>
                       <Box sx={{ mt: 1 }}>
                         <Grid container justifyContent="center" spacing={6}>
-                          {subCategory.options.map((opt, idx) => (
+                        {subCategory.options.map((opt, idx) => {
+
+                          return (
                             <Grid item key={opt.id ?? idx} sx={{ textAlign: "center" }}>
                               <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                                 <Typography variant="body1" sx={{ mb: 0.5 }}>
                                   {opt.label}
                                 </Typography>
                                 <Radio
-                                  checked={subCategory.percentage_answer?.value === opt.score}
+                                  checked={!!opt.option_answer}
                                   value={opt.score}
                                   sx={{ mx: "auto" }}
-                                  disabled // Commentor page = view only, no selection
+                                  disabled 
                                 />
                               </Box>
                             </Grid>
-                          ))}
+                          );
+                        })}
                         </Grid>
                       </Box>
                       <Divider sx={{ my: 2 }} />
