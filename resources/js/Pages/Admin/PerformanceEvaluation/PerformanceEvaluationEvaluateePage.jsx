@@ -981,7 +981,7 @@ const PerformanceEvaluationEvaluateePage = () => {
                 px: 5,
                 py: 1.5,
                 fontWeight: 'bold',
-                fontSize: 18,
+                fontSize: 14,
                 borderRadius: 2
               }}
               onClick={() => setAckModalOpen(true)}
