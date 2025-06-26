@@ -354,7 +354,11 @@ const PerformanceEvaluationEvaluateePage = () => {
 
     const signatureBlocks = [];
     if (creatorSignatureFilePath) {
-      let creatorName = form?.creator_user_name ? `${ form.creator_user_name } (Creator)` : "Creator";
+      let creatorName = responseMeta?.creator
+        ? `${getFullName(responseMeta.creator)} (Creator)`
+        : (form?.creator_user_name 
+            ? `${form.creator_user_name} (Creator)` 
+            : "Creator");
       let creatorDate = responseMeta?.media[0]?.created_at.split('T')[0] ?? '';
       signatureBlocks.push({
         url: creatorSignatureFilePath,
@@ -516,7 +520,7 @@ const PerformanceEvaluationEvaluateePage = () => {
           Employee Name: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(evaluator => getFullName(evaluator)).join(' & ') : ''}
+          Evaluator: {responseMeta?.evaluators ? responseMeta.evaluators.map(evaluator => getFullName(evaluator)).join(' & ') : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
@@ -1015,7 +1019,7 @@ const PerformanceEvaluationEvaluateePage = () => {
                 px: 5,
                 py: 1.5,
                 fontWeight: 'bold',
-                fontSize: 18,
+                fontSize: 14,
                 borderRadius: 2
               }}
               onClick={() => setAckModalOpen(true)}

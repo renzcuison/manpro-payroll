@@ -517,7 +517,7 @@ const PerformanceEvaluationEvaluateePage = () => {
           Employee Name: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(evaluator => getFullName(evaluator)).join(' & ') : ''}
+          Evaluator: {responseMeta?.evaluators ? responseMeta.evaluators.map(evaluator => getFullName(evaluator)).join(' & ') : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
@@ -981,7 +981,7 @@ const PerformanceEvaluationEvaluateePage = () => {
                 px: 5,
                 py: 1.5,
                 fontWeight: 'bold',
-                fontSize: 18,
+                fontSize: 14,
                 borderRadius: 2
               }}
               onClick={() => setAckModalOpen(true)}

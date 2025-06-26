@@ -374,7 +374,7 @@ const ModalReviewForm = ({ open, onClose, id }) => {
           Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 1 }}>
-          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
+          Evaluator: {responseMeta?.evaluators ? responseMeta.evaluators.map(
             evaluator => getFullName(evaluator)
           ).join(' & ') : ''}
         </Typography>
