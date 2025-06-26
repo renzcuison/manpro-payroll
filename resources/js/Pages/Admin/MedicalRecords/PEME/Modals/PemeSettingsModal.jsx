@@ -27,7 +27,6 @@ const PemeSettingsModal = ({
     headers,
     hasRespondents,
 }) => {
-    console.log("Modal received - hasRespondents:", hasRespondents);
     const handleMultipleToggle = async () => {
         const newValue = multiple ? 0 : 1;
 
@@ -40,7 +39,9 @@ const PemeSettingsModal = ({
             setMultiple(!!newValue);
             Swal.fire({
                 icon: "success",
-                text: `Multiple responses ${newValue ? "enabled" : "disabled"}.`,
+                text: `Multiple responses ${
+                    newValue ? "enabled" : "disabled"
+                }.`,
                 toast: true,
                 position: "top-end",
                 showConfirmButton: false,
@@ -55,7 +56,6 @@ const PemeSettingsModal = ({
             });
         }
     };
-
 
     const handleEditableToggle = async () => {
         const newValue = editable ? 0 : 1;
@@ -113,7 +113,6 @@ const PemeSettingsModal = ({
         }
     };
 
-
     return (
         <Dialog
             open={open}
@@ -168,7 +167,14 @@ const PemeSettingsModal = ({
                     />
                 </Box>
 
-                <Box sx={{ mt: 2 }}>
+                <Box
+                    sx={{
+                        mt: 2,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                    }}
+                >
                     <FormControlLabel
                         control={
                             <Switch
@@ -179,6 +185,14 @@ const PemeSettingsModal = ({
                         }
                         label={`Editable: ${editable ? "Yes" : "No"}`}
                     />
+                    <Typography
+                        sx={{
+                            color: "rgba(201, 42, 42, 1)",
+                            fontWeight: "bold",
+                        }}
+                    >
+                        {hasRespondents ? "Drafts currently exist" : ""}
+                    </Typography>
                 </Box>
             </DialogContent>
 

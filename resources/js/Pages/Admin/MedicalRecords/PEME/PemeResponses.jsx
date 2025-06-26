@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 
 // Axios config
 import axiosInstance, { getJWTHeader } from "../../../../utils/axiosConfig";
+import { FaChevronLeft } from "react-icons/fa";
 
 // Components
 import Layout from "../../../../components/Layout/Layout";
@@ -35,6 +36,7 @@ import Swal from "sweetalert2";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { Bold } from "lucide-react";
 
 const PemeResponses = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -43,12 +45,17 @@ const PemeResponses = () => {
     const navigator = useNavigate();
     const [pemeRecords, setPemeRecords] = useState([]);
     const [pemeResponses, setPemeResponses] = useState([]);
+    const [respondents, setRespondents] = useState([]);
+
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     const [dueDate, setDueDate] = useState(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [visible, setVisible] = useState(true);
+    const [multiple, setMultiple] = useState(true);
+    const [editable, setEditable] = useState(true);
 
     // FETCH THE QUESTIONNAIRE STRUCTURE FOR THE GIVEN PEME ID
     useEffect(() => {
@@ -65,7 +72,7 @@ const PemeResponses = () => {
                 console.error("Error fetching PEME records:", error);
                 setIsLoading(false);
             });
-    }, []);
+    }, [visible, editable, multiple]);
 
     // FETCH PEME RESPONSES FOR THE GIVEN PEME ID
     useEffect(() => {
@@ -82,9 +89,18 @@ const PemeResponses = () => {
             });
     }, []);
 
-    const [visible, setVisible] = useState(true);
-    const [multiple, setMultiple] = useState(true);
-    const [editable, setEditable] = useState(true);
+    useEffect(() => {
+        axiosInstance
+            .get(`/peme-responses/${PemeID}/all`, { headers })
+            .then((response) => {
+                setRespondents([response.data]);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching PEME records:", error);
+                setIsLoading(false);
+            });
+    }, []);
 
     const handleOnRowClick = (responseID) => {
         navigator(
@@ -203,9 +219,7 @@ const PemeResponses = () => {
         navigator("/admin/medical-records/peme-records");
     };
 
-    // Route::patch('/updatePemeSettings/{id}', [PemeController::class, 'updatePemeSettings']);
-    // const hasRespondents = pemeResponses.length > 0;
-    const hasRespondents = filteredRecords?.[0]?.length > 0;
+    const hasRespondents = respondents?.[0]?.length > 0;
 
     return (
         <Layout title="Pre-Employment Medical Exam Type Responses">
@@ -225,25 +239,29 @@ const PemeResponses = () => {
                             px: 1,
                         }}
                     >
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 2,
-                            }}
-                        >
-                            <Typography
-                                variant="h4"
-                                sx={{ fontWeight: "bold" }}
-                            >
-                                Respondents
-                            </Typography>
-                            <Typography
-                                variant="h5"
-                                sx={{ fontWeight: "bold" }}
-                            >
-                                {pemeRecords.peme}
-                            </Typography>
+                        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+
+                            {!isLoading && <>
+                                <i
+                                    onClick={() => handleOnReturn()}
+                                    className="fa fa-chevron-left" aria-hidden="true" style={{ fontSize: 24, color: "black", cursor: 'pointer' }}></i>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 2,
+                                    }}
+                                >
+                                    <Typography
+                                        variant="h4"
+                                        sx={{ fontWeight: "bold" }}
+                                    >
+                                        {pemeRecords.peme} - Respondents
+                                    </Typography>
+
+                                </Box></>}
+
+
                         </Box>
                         <Box
                             sx={{
@@ -252,13 +270,7 @@ const PemeResponses = () => {
                                 alignItems: "center",
                             }}
                         >
-                            <Button
-                                onClick={() => handleOnReturn()}
-                                variant="contained"
-                                sx={{ backgroundColor: "#8f8f8f" }}
-                            >
-                                Return
-                            </Button>
+
                             {editable === 1 ? (
                                 <>
                                     <Button
@@ -297,56 +309,72 @@ const PemeResponses = () => {
                     <Box
                         sx={{
                             mt: 6,
-                            p: 3,
+                            paddingTop: 0,
+                            paddingX: 3,
                             bgcolor: "#fff",
                             borderRadius: "8px",
                         }}
                     >
-                        <Grid container spacing={2} gap={2}>
-                            <Grid item>
-                                <DateRangePicker
-                                    onRangeChange={handleDateRangeChange}
-                                />
-                            </Grid>
-                            <Grid item>
+                        {/* disabled for staging */}
+                        {/* <Grid container spacing={2} gap={2}> */}
+
+
+                        {/* <Grid item>
                                 <PemeDueDatePicker
                                     dueDate={dueDate}
                                     setDueDate={setDueDate}
+
                                 />
-                            </Grid>
-                        </Grid>
+                            </Grid> */}
+                        {/* </Grid> */}
+
+                        {/* <Box>
+                                    <DateRangePicker
+                                        onRangeChange={handleDateRangeChange}
+                                    />
+                            </Box> */}
 
                         <Box sx={{ height: 24 }} />
-                        <FormControl
-                            variant="outlined"
-                            sx={{ width: 196, mb: 1 }}
-                        >
-                            <InputLabel htmlFor="custom-search">
-                                Search
-                            </InputLabel>
-                            <OutlinedInput
-                                id="custom-search"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                endAdornment={
-                                    search && (
-                                        <InputAdornment position="end">
-                                            <Typography
-                                                variant="body2"
-                                                sx={{ color: "gray" }}
-                                            >
-                                                {resultsCount}{" "}
-                                                {resultsCount === 1 ||
-                                                resultsCount === 0
-                                                    ? "Match"
-                                                    : "Matches"}
-                                            </Typography>
-                                        </InputAdornment>
-                                    )
-                                }
-                                label="Search"
-                            />
-                        </FormControl>
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+
+                            <FormControl
+                                variant="outlined"
+                                sx={{ width: 196, mb: 1 }}
+                            >
+                                <InputLabel htmlFor="custom-search">
+                                    Search
+                                </InputLabel>
+                                <OutlinedInput
+                                    id="custom-search"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    endAdornment={
+                                        search && (
+                                            <InputAdornment position="end">
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{ color: "gray" }}
+                                                >
+                                                    {resultsCount}{" "}
+                                                    {resultsCount === 1 ||
+                                                        resultsCount === 0
+                                                        ? "Match"
+                                                        : "Matches"}
+                                                </Typography>
+                                            </InputAdornment>
+                                        )
+                                    }
+                                    label="Search"
+                                />
+                            </FormControl>
+
+                            <Box>
+                                <DateRangePicker
+                                    onRangeChange={handleDateRangeChange}
+                                />
+                            </Box>
+                        </Box>
+
 
                         <Box sx={{ height: 24 }} />
                         <Divider />

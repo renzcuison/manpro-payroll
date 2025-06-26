@@ -2151,6 +2151,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
 
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
+    Route::get('/peme-responses/{id}/all', [
+        PemeResponseController::class,
+        'showAll',
+    ]);
     Route::patch('/peme-responses/{id}/status', [
         PemeResponseController::class,
         'updateResponse',
@@ -2199,6 +2203,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         PemeResponseDetailsController::class,
         'attachMedia',
     ]);
+    Route::get('/peme-response-details/download/{id}', [
+        PemeResponseDetailsController::class,
+        'download',
+    ]);
 
     Route::put('/public-event/{id}', [
         GoogleController::class,
@@ -2244,6 +2252,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEmployeesBySalaryGrade', [
         SalaryPlansController::class,
         'getEmployeesBySalaryGrade',
+    ]);
+    Route::get('/getSalaryPlanById', [
+        SalaryPlansController::class,
+        'getSalaryPlanById',
     ]);
     Route::delete('/google/event/{id}', [
         GoogleController::class,

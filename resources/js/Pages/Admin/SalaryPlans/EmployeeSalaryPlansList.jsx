@@ -165,10 +165,10 @@ const SalaryPlans = () => {
                                                 Salary Grade
                                                 </TableCell>    
                                                 <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '15%' }} align="center">
-                                                Amount
+                                                Employees
                                                 </TableCell>
                                                 <TableCell rowSpan={2} sx={{ fontWeight: 'bold', fontSize: 16, width: '15%' }} align="center">
-                                                Employees
+                                                Amount
                                                 </TableCell>
                                                 
                                             </TableRow>
@@ -195,7 +195,7 @@ const SalaryPlans = () => {
                                                             const gradeParam = salaryPlan.salary_grade_version
                                                                 ? `${salaryPlan.salary_grade}.${salaryPlan.salary_grade_version}`
                                                                 : `${salaryPlan.salary_grade}`;
-                                                            navigate(`/admin/compensation/salary-plans/${gradeParam}`);
+                                                            navigate(`/admin/compensation/salary-plans/${salaryPlan.id}`);
                                                         }}
                                                     >
                                                         <TableCell sx={{fontSize: 14}} align="center">
@@ -205,10 +205,10 @@ const SalaryPlans = () => {
                                                             : ''}
                                                         </TableCell>
                                                         <TableCell sx={{ fontSize: 14 }} align="center">
-                                                            ₱ {Number(salaryPlan.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            {salaryPlan.employee_count}
                                                         </TableCell>
                                                         <TableCell sx={{ fontSize: 14 }} align="center">
-                                                            {salaryPlan.employee_count}
+                                                            ₱ {Number(salaryPlan.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </TableCell>
                                                         {benefitsList[selectedBenefitIndex] && (
                                                         <>
