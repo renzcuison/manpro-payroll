@@ -551,7 +551,7 @@ class EvaluationResponseController extends Controller
         // returns:
         /*
             evaluationResponse: {
-                id, role, evaluatee_id, creator_id,
+                id, role, evaluatee_id, creator_id, creator,
                 period_start_date, period_end_date, evaluatee_opened_at,
                 created_at, updated_at,
                 evaluatee: { id, response_id, last_name, first_name, middle_name, suffix },
@@ -565,8 +565,8 @@ class EvaluationResponseController extends Controller
                     commentor_id, response_id, last_name, first_name, middle_name, suffix,
                     comment, order, commentor_signature, signature_filepath
                 }[],
-                form_id, creator_user_name, form: {
-                    id, name, creator_id, creator_user_name,
+                form_id, form: {
+                    id, name, creator_id, creator,
                     sections: {
                         form_id, id, name, category, order, score, achieved_score,
                         subcategories: {
@@ -622,6 +622,9 @@ class EvaluationResponseController extends Controller
                 ->with(['evaluatee' => fn ($evaluatee) =>
                     $evaluatee->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
                 ])
+                ->with(['creator' => fn ($creator) =>
+                    $creator->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
+                ])
                 ->with(['evaluators' => fn ($evaluator) =>
                     $evaluator
                         ->join('users', 'evaluation_evaluators.evaluator_id', '=', 'users.id')
@@ -653,16 +656,18 @@ class EvaluationResponseController extends Controller
                         )
                         ->orderBy('order')
                 ])
-                ->addSelect('evaluation_responses.form_id', 'users.user_name as creator_user_name')
+                ->addSelect('evaluation_responses.form_id')
                 ->with(['form' => fn ($evaluationForm) =>
                     $evaluationForm
                         ->join('users', 'evaluation_forms.creator_id', '=', 'users.id')
                         ->select(
                             'evaluation_forms.id',
                             'evaluation_forms.name', 
-                            'evaluation_forms.creator_id',
-                            'users.user_name as creator_user_name'
+                            'evaluation_forms.creator_id'
                         )
+                        ->with(['creator' => fn ($creator) =>
+                            $creator->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
+                        ])
                         ->with(['sections' => fn ($section) =>
                             $section
                                 ->select('form_id', 'id', 'name', 'category', 'order', 'score')
@@ -881,7 +886,6 @@ class EvaluationResponseController extends Controller
                     'created_at' => $evaluationResponse->created_at,
                     'updated_at' => $evaluationResponse->updated_at,
                     'form_id' => Crypt::encrypt($evaluationResponse->form_id),
-                    'creator_user_name' => $evaluationResponse->creator_user_name,
                     'evaluatee_signature' => $evaluationResponse->evaluatee_signature,
                     'creator_signature' => $evaluationResponse->creator_signature,
                     'role' => $evaluationResponse->role,
@@ -892,6 +896,20 @@ class EvaluationResponseController extends Controller
                         'middle_name' => $evaluationResponse->evaluatee->middle_name,
                         'suffix' => $evaluationResponse->evaluatee->suffix,
                         'media' => $evaluationResponse->evaluatee->media->map(function ($media) {
+                            return [
+                                'id' => Crypt::encrypt($media->id),
+                                'created_at' => $media->created_at,
+                                'updated_at' => $media->updated_at
+                            ];
+                        })
+                    ] : null,
+                    'creator' => $evaluationResponse->creator ? [
+                        'id' => Crypt::encrypt($evaluationResponse->creator->id),
+                        'last_name' => $evaluationResponse->creator->last_name,
+                        'first_name' => $evaluationResponse->creator->first_name,
+                        'middle_name' => $evaluationResponse->creator->middle_name,
+                        'suffix' => $evaluationResponse->creator->suffix,
+                        'media' => $evaluationResponse->creator->media->map(function ($media) {
                             return [
                                 'id' => Crypt::encrypt($media->id),
                                 'created_at' => $media->created_at,
@@ -955,7 +973,13 @@ class EvaluationResponseController extends Controller
                         'id' => Crypt::encrypt($evaluationResponse->form->id),
                         'name' => $evaluationResponse->form->name,
                         'creator_id' => Crypt::encrypt($evaluationResponse->form->creator_id),
-                        'creator_user_name' => $evaluationResponse->form->creator_user_name,
+                        'creator' => $evaluationResponse->form->creator ? [
+                            'id' => Crypt::encrypt($evaluationResponse->form->creator->id),
+                            'last_name' => $evaluationResponse->form->creator->last_name,
+                            'first_name' => $evaluationResponse->form->creator->first_name,
+                            'middle_name' => $evaluationResponse->form->creator->middle_name,
+                            'suffix' => $evaluationResponse->form->creator->suffix
+                        ] : null,
                         'sections' => $evaluationResponse->form->sections->map(function ($section) use ($encryptedResponseID) {
                             return [
                                 'form_id' => Crypt::encrypt($section->form_id),

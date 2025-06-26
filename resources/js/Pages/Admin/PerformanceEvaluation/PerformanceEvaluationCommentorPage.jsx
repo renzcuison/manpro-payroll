@@ -471,7 +471,7 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
           Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
+          Evaluator: {responseMeta?.evaluators ? responseMeta.evaluators.map(
             evaluator => getFullName(evaluator)
           ).join(' & ') : ''}
         </Typography>

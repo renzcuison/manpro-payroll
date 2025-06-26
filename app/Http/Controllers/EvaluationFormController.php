@@ -36,7 +36,7 @@ class EvaluationFormController extends Controller
         // returns:
         /*
             evaluationForm: {
-                id, name, creator_id, creator_user_name,
+                id, name, creator_id,
                 created_at, updated_at, deleted_at
             }
         */
@@ -84,7 +84,6 @@ class EvaluationFormController extends Controller
                     'id' => Crypt::encrypt($evaluationForm->id),
                     'name' => $evaluationForm->name,
                     'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
-                    'creator_user_name' => $evaluationForm->creator_user_name,
                     'created_at' => $evaluationForm->created_at,
                     'updated_at' => $evaluationForm->updated_at,
                     'deleted_at' => $evaluationForm->deleted_at
@@ -109,7 +108,7 @@ class EvaluationFormController extends Controller
         // returns:
         /*
             evaluationForm: {
-                id, name, creator_id, creator_user_name,
+                id, name, creator_id,
                 created_at, updated_at, deleted_at
             }
         */
@@ -134,15 +133,7 @@ class EvaluationFormController extends Controller
             DB::beginTransaction();
 
             $evaluationForm = EvaluationForm
-                ::join('users', 'evaluation_forms.id', '=', 'users.id')
-                ->select(
-                    'evaluation_forms.id',
-                    'evaluation_forms.name', 
-                    'evaluation_forms.creator_id',
-                    'users.user_name as creator_user_name',
-                    'evaluation_forms.created_at',
-                    'evaluation_forms.updated_at'
-                )
+                ::select('id', 'name', 'creator_id', 'created_at', 'updated_at')
                 ->where('evaluation_forms.id', Crypt::decrypt($request->id))
                 ->whereNull('evaluation_forms.deleted_at')
                 ->first()
@@ -155,7 +146,6 @@ class EvaluationFormController extends Controller
             ]);
 
             $isEmptyName = !$request->name;
-
             if( $isEmptyName ) return response()->json([ 
                 'status' => 400,
                 'message' => 'Evaluation Form Name is required!'
@@ -184,7 +174,6 @@ class EvaluationFormController extends Controller
                     'id' => Crypt::encrypt($evaluationForm->id),
                     'name' => $evaluationForm->name,
                     'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
-                    'creator_user_name' => $evaluationForm->creator_user_name,
                     'created_at' => $evaluationForm->created_at,
                     'updated_at' => $evaluationForm->updated_at
                 ] : null,
@@ -212,7 +201,7 @@ class EvaluationFormController extends Controller
         // returns:
         /*
             evaluationForm: {
-                id, name, creator_id, creator_user_name,
+                id, name, creator_id, creator,
                 created_at, updated_at,
                 sections: {
                     form_id, id, name, category, score, order,
@@ -245,21 +234,14 @@ class EvaluationFormController extends Controller
                 'message' => 'Either Evaluation Form ID or Name must be given!'
             ]);
 
-            $evaluationForm = EvaluationForm
-                ::join('users', 'evaluation_forms.creator_id', '=', 'users.id')                
-                ->select(
-                    'evaluation_forms.id',
-                    'evaluation_forms.name', 
-                    'evaluation_forms.creator_id',
-                    'users.user_name as creator_user_name',
-                    'evaluation_forms.created_at',
-                    'evaluation_forms.updated_at'
-                )
+            $evaluationForm = EvaluationForm               
+                ::select('id', 'name', 'creator_id', 'created_at', 'updated_at')
                 ->where(
-                    $getById ? 'evaluation_forms.id' : 'evaluation_forms.name',
+                    $getById ? 'id' : 'name',
                     $getById ? Crypt::decrypt($request->id) : $request->name
                 )
-                ->whereNull('evaluation_forms.deleted_at')
+                ->whereNull('deleted_at')
+                ->with('creator')
                 ->with(['sections' => fn ($section) =>
                     $section
                         ->select('form_id', 'id', 'name', 'category', 'score', 'order', 'description')
@@ -304,9 +286,12 @@ class EvaluationFormController extends Controller
                     'id' => $encryptedFormID,
                     'name' => $evaluationForm->name,
                     'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
-                    'creator_user_name' => $evaluationForm->creator_user_name,
-                    'created_at' => $evaluationForm->created_at,
-                    'updated_at' => $evaluationForm->updated_at,
+                    'creator' => [
+                        'last_name' => $evaluationForm->creator->last_name,
+                        'first_name' => $evaluationForm->creator->first_name,
+                        'middle_name' => $evaluationForm->creator->middle_name,
+                        'suffix' => $evaluationForm->suffix
+                    ],
                     'sections' => $evaluationForm->sections->map(function ($section) use ($encryptedFormID) {
                         $encryptedSectionID = Crypt::encrypt($section->id);
                         return [
@@ -343,7 +328,9 @@ class EvaluationFormController extends Controller
                                 ];
                             })
                         ];
-                    })
+                    }),
+                    'created_at' => $evaluationForm->created_at,
+                    'updated_at' => $evaluationForm->updated_at,
                 ] : null
             ]);
 
@@ -367,7 +354,7 @@ class EvaluationFormController extends Controller
         // returns:
         /*
             evaluationForms: {
-                id, name, creator_id, creator_user_name, created_at, updated_at
+                id, name, creator_id, created_at, updated_at
             }[]
         */
 
@@ -383,17 +370,9 @@ class EvaluationFormController extends Controller
 
         try {
 
-            $evaluationForms = EvaluationForm
-                ::join('users', 'evaluation_forms.creator_id', '=', 'users.id')                
-                ->select(
-                    'evaluation_forms.id',
-                    'evaluation_forms.name', 
-                    'evaluation_forms.creator_id',
-                    'users.user_name as creator_user_name',
-                    'evaluation_forms.created_at',
-                    'evaluation_forms.updated_at'
-                )
-                ->whereNull('evaluation_forms.deleted_at')
+            $evaluationForms = EvaluationForm           
+                ::select('id', 'name', 'creator_id', 'created_at', 'updated_at')
+                ->whereNull('deleted_at')
             ;
             if( $request->creator_id ) {
                 $creator = DB
@@ -425,7 +404,6 @@ class EvaluationFormController extends Controller
                         'id' => Crypt::encrypt($evaluationForm->id),
                         'name' => $evaluationForm->name,
                         'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
-                        'creator_user_name' => $evaluationForm->creator_user_name,
                         'created_at' => $evaluationForm->created_at,
                         'updated_at' => $evaluationForm->updated_at
                     ];
