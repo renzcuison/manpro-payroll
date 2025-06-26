@@ -42,30 +42,23 @@ const getSectionScore = (section) => {
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'linear_scale') {
-    // Find the lowest and highest score in options
-    const scores = subcat.options.map(opt => Number(opt.score));
-    const start = Math.min(...scores);
-    const end = Math.max(...scores);
+  const scores = subcat.options.map(opt => Number(opt.score));
+  const start = Math.min(...scores);
+  const end = Math.max(...scores);
 
-    // Find selected value (from percentage_answer or fallback to option_answer)
-    let value = null;
-    if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
-      value = Number(subcat.percentage_answer.value);
-    } else {
-      // fallback: try to find by option_answer (for other types/future-proofing)
-      const selectedOpt = subcat.options.find(opt => opt.option_answer);
-      if (selectedOpt) value = Number(selectedOpt.score);
-    }
+  // Find the selected option (option_answer not null)
+  const selectedOpt = subcat.options.find(opt => opt.option_answer != null);
+  const value = selectedOpt ? Number(selectedOpt.score) : null;
 
-
-    if (value !== null && end > start) {
-      subScore = ((value - start) / (end - start)) * 100;
-    }
-
-    subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
-    scoreTotal += subScore;
-    counted++;
+  let subScore = 0;
+  if (value !== null && end > start) {
+    subScore = ((value - start) / (end - start)) * 100;
   }
+
+  subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
+  scoreTotal += subScore;
+  counted++;
+}
   });
 
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;

@@ -42,18 +42,23 @@ const getSectionScore = (section) => {
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'linear_scale') {
-      if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
-        const start = Number(subcat.linear_scale_start) || 1;
-        const end = Number(subcat.linear_scale_end) || 5;
-        const value = Number(subcat.percentage_answer.value);
-        if (end > start) {
+        const scores = subcat.options.map(opt => Number(opt.score));
+        const start = Math.min(...scores);
+        const end = Math.max(...scores);
+
+        // Find the selected option (option_answer not null)
+        const selectedOpt = subcat.options.find(opt => opt.option_answer != null);
+        const value = selectedOpt ? Number(selectedOpt.score) : null;
+
+        let subScore = 0;
+        if (value !== null && end > start) {
           subScore = ((value - start) / (end - start)) * 100;
         }
+
+        subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
+        scoreTotal += subScore;
+        counted++;
       }
-      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
-      scoreTotal += subScore;
-      counted++;
-    }
   });
 
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;

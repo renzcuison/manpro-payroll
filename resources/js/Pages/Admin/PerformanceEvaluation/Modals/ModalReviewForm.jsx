@@ -203,21 +203,24 @@ const ModalReviewForm = ({ open, onClose, id }) => {
               <>
                 <Box sx={{ mt: 1 }}>
                   <Grid container justifyContent="center" spacing={6}>
-                    {subCategory.options.map((opt, idx) => (
-                      <Grid item key={opt.id ?? idx} sx={{ textAlign: "center" }}>
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                          <Typography variant="body1" sx={{ mb: 0.5 }}>
-                            {opt.label}
-                          </Typography>
-                          <Radio
-                            checked={subCategory.percentage_answer?.value === opt.score}
-                            value={opt.score}
-                            sx={{ mx: "auto" }}
-                            disabled // read-only
-                          />
-                        </Box>
-                      </Grid>
-                    ))}
+{subCategory.options.map((opt, idx) => {
+
+  return (
+    <Grid item key={opt.id ?? idx} sx={{ textAlign: "center" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <Typography variant="body1" sx={{ mb: 0.5 }}>
+          {opt.label}
+        </Typography>
+        <Radio
+          checked={!!opt.option_answer}
+          value={opt.score}
+          sx={{ mx: "auto" }}
+          disabled 
+        />
+      </Box>
+    </Grid>
+  );
+})}
                   </Grid>
                 </Box>
                 <Divider sx={{ my: 2 }} />
