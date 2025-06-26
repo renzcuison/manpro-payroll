@@ -28,8 +28,17 @@ class PemeResponseDetailsController extends Controller
     }
 
 
-    public function download(Media $media)
+    public function download($id)
     {
+        try {
+            $mediaId = Crypt::decrypt($id);
+            $media = Media::findOrFail($mediaId);
+        } catch (\Exception $e) {
+            \Log::error('Media download failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Invalid or missing media ID.'], 404);
+        }
+
+
         $path = $media->getPath();
 
         if (!file_exists($path)) {

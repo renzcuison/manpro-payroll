@@ -19,8 +19,8 @@ const PemeRecordsFilePreview = ({ open, close, file }) => {
         setDocxHtml(null);
 
         if (file?.url && file.url.endsWith(".docx")) {
-            console.log("Fetching DOCX for preview:", file.file_name, file.id);
-            fetch(`http://192.168.79.33:8000/api/download/${file.id}`)
+            console.log("Preview file object:", file);
+            fetch(file.url)
                 .then((res) => {
                     if (!res.ok) {
                         throw new Error(`Network response was not ok: ${res.status} ${res.statusText}`);

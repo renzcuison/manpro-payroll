@@ -332,7 +332,6 @@ class PemeResponseController extends Controller
                             !$file->isValid() ||
                             !$file->getClientOriginalName()
                         ) {
-                            // Skip empty or invalid files
                             continue;
                         }
 
@@ -344,7 +343,6 @@ class PemeResponseController extends Controller
                             'db_file_size_limit' => $fileSizeLimitMb,
                         ]);
 
-                        // Now validate and save
                         $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
                         $validator = Validator::make(['file' => $file], $rules);
 
@@ -914,7 +912,8 @@ class PemeResponseController extends Controller
 
         return response()->json([
             'peme' => $pemeResponse->peme->name,
-            'peme_id' => $pemeResponse->peme->id,
+            // 'peme_id' => $pemeResponse->peme->id,
+            'peme_id' => Crypt::encrypt($pemeResponse->peme->id),
             'peme_response_id' => Crypt::encrypt($pemeResponse->id),
             'user_id' => Crypt::encrypt($pemeResponse->user_id),
             'respondent' => $fullName,

@@ -149,7 +149,7 @@ const PemeRecords = () => {
                         <Box
                             sx={{
                                 width: "25%",
-                                minWidth: 280,
+                                minWidth: 383,
                                 backgroundColor: "white",
                                 borderRadius: 2,
                                 padding: 2,
@@ -198,7 +198,7 @@ const PemeRecords = () => {
                     close={setOpenAddPemeRecordsModal}
                 />
             )}
-        </Layout>   
+        </Layout>
     );
 };
 

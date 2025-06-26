@@ -548,7 +548,7 @@ const PemeRecordsForm = () => {
 
     const handleConfirmQuestionnaire = () => {
         navigator(
-            `/admin/medical-records/peme-records/peme-responses/${PemeID}`
+            `/admin/medical-records/peme-records`
         );
     };
 
