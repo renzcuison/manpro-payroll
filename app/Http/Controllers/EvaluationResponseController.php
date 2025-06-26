@@ -927,15 +927,15 @@ class EvaluationResponseController extends Controller
                                                 ] : null
                                             ];
                                         }),
-                                        'percentage_answer' => $subcategory->percentageAnswer ? [
-                                            'id' => Crypt::encrypt($subcategory->percentageAnswer->id),
-                                            'response_id' => Crypt::encrypt($subcategory->percentageAnswer->response_id),
-                                            'subcategory_id' => Crypt::encrypt($subcategory->percentageAnswer->subcategory_id),
-                                            'percentage' => $subcategory->percentageAnswer->percentage,
-                                            'subcategory_type' => $subcategory->percentageAnswer->subcategory_type,
-                                            'value' => $subcategory->percentageAnswer->value,
-                                            'linear_scale_index' => $subcategory->percentageAnswer->linear_scale_index
-                                        ] : null,
+                                        // 'percentage_answer' => $subcategory->percentageAnswer ? [
+                                        //     'id' => Crypt::encrypt($subcategory->percentageAnswer->id),
+                                        //     'response_id' => Crypt::encrypt($subcategory->percentageAnswer->response_id),
+                                        //     'subcategory_id' => Crypt::encrypt($subcategory->percentageAnswer->subcategory_id),
+                                        //     'percentage' => $subcategory->percentageAnswer->percentage,
+                                        //     'subcategory_type' => $subcategory->percentageAnswer->subcategory_type,
+                                        //     'value' => $subcategory->percentageAnswer->value,
+                                        //     'linear_scale_index' => $subcategory->percentageAnswer->linear_scale_index
+                                        // ] : null,
                                         'text_answer' => $subcategory->textAnswer ? [
                                             'id' => Crypt::encrypt($subcategory->textAnswer->id),
                                             'response_id' => Crypt::encrypt($subcategory->textAnswer->response_id),
