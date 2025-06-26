@@ -304,18 +304,20 @@ class EvaluationFormController extends Controller
                     'created_at' => $evaluationForm->created_at,
                     'updated_at' => $evaluationForm->updated_at,
                     'sections' => $evaluationForm->sections->map(function ($section) {
+                        $encryptedSectionID = Crypt::encrypt($section->id);
                         return [
                             'form_id' => Crypt::encrypt($section->form_id),
-                            'id' => Crypt::encrypt($section->id),
+                            'id' => $encryptedSectionID,
                             'name' => $section->name,
                             'category' => $section->category,
                             'score' => $section->score,
                             'order' => $section->order,
                             'description' => $section->description,
-                            'subcategories' => $section->subcategories->map(function ($subcategory) {
+                            'subcategories' => $section->subcategories->map(function ($subcategory) use ($encryptedSectionID) {
+                                $encryptedSubcategoryID = Crypt::encrypt($subcategory->id);
                                 return [
-                                    'section_id' => Crypt::encrypt($subcategory->section_id),
-                                    'id' => Crypt::encrypt($subcategory->id),
+                                    'section_id' => $encryptedSectionID,
+                                    'id' => $encryptedSubcategoryID,
                                     'name' => $subcategory->name,
                                     'subcategory_type' => $subcategory->subcategory_type,
                                     'description' => $subcategory->description,
@@ -324,9 +326,9 @@ class EvaluationFormController extends Controller
                                     'linear_scale_start' => $subcategory->linear_scale_start,
                                     'linear_scale_end' => $subcategory->linear_scale_end,
                                     'order' => $subcategory->order,
-                                    'options' => $subcategory->options->map(function ($option) {
+                                    'options' => $subcategory->options->map(function ($option) use($encryptedSubcategoryID) {
                                         return [
-                                            'subcategory_id' => Crypt::encrypt($option->subcategory_id),
+                                            'subcategory_id' => $encryptedSubcategoryID,
                                             'id' => Crypt::encrypt($option->id),
                                             'label' => $option->label,
                                             'score' => $option->score,

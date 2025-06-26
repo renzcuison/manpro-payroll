@@ -90,19 +90,19 @@ export function useEvaluationFormSection(section) {
         });
     }
 
-    function getSubcategory(subcategoryId) {
-        axiosInstance
-            .get(`/getEvaluationFormSubcategory`, {
+    async function getSubcategory(subcategoryId) {
+
+        try {
+            const response = await axiosInstance.get(`/getEvaluationFormSubcategory`, {
                 headers, params: { id: subcategoryId }
-            })
-            .then((response) => {
-                const { evaluationFormSubcategory } = response.data;
-                if(!evaluationFormSubcategory) return;
-                upsertSubcategory(evaluationFormSubcategory);
-            })
-            .catch(error => {
-                console.error('Error fetching subcategory data:', error);
-            })
+            });
+            const { evaluationFormSubcategory } = response.data;
+            if(!evaluationFormSubcategory) return;
+            upsertSubcategory(evaluationFormSubcategory);
+            return evaluationFormSubcategory;
+        } catch(error) {
+            console.error('Error fetching subcategory data:', error);
+        }
     }
 
     function moveSubcategory(oldOrder, newOrder) {
@@ -129,7 +129,7 @@ export function useEvaluationFormSection(section) {
         setSubcategories([...subcategories]);
     }
 
-    function saveSubcategory(subcategory) {
+    async function saveSubcategory(subcategory) {
         if(!sectionCategory) {
             Swal.fire({
                 text: "A category must first be made in this section",
@@ -140,50 +140,47 @@ export function useEvaluationFormSection(section) {
         }
         if(subcategory.subcategoryType == 'linear_scale') for(let option of subcategory.options)
             option.score = option.order;
-        axiosInstance
-            .post('/saveEvaluationFormSubcategory', {
+
+        try {
+            const response = await axiosInstance.post('/saveEvaluationFormSubcategory', {
                 ...subcategory,
                 section_id: sectionId,
                 subcategory_type: subcategory.subcategory_type
-            }, { headers })
-            .then((response) => {
-                if (response.data.status.toString().startsWith(2)) {
-                    const subcat = response.data.evaluationFormSubcategory;
-                    if(!subcat) {
-                        // fallback: old style, fetch by ID
-                        const { evaluationFormSubcategoryID } = response.data;
-                        if(evaluationFormSubcategoryID) getSubcategory(evaluationFormSubcategoryID);
-                        return;
-                    }
-                    upsertSubcategory(subcat);
-                } else if (response.data.status.toString().startsWith(4)) {
-                    Swal.fire({
-                        text: response.data.message,
-                        icon: "error",
-                        confirmButtonColor: '#177604',
-                        customClass: {
-                            popup: 'swal-popup-overlay'
-                        }
-                    });
+            }, { headers });
+            if (response.data.status.toString().startsWith(2)) {
+                const subcat = response.data.evaluationFormSubcategory;
+                if(!subcat) {
+                    // fallback: old style, fetch by ID
+                    const { evaluationFormSubcategoryID } = response.data;
+                    if(evaluationFormSubcategoryID) return getSubcategory(evaluationFormSubcategoryID);
                 }
-            })
-            .catch(error => {
-                console.error('Error saving subcategory:', error);
+                upsertSubcategory(subcat);
+            } else if (response.data.status.toString().startsWith(4)) {
                 Swal.fire({
-                    text: "Error saving subcategory",
+                    text: response.data.message,
                     icon: "error",
                     confirmButtonColor: '#177604',
+                    customClass: {
+                        popup: 'swal-popup-overlay'
+                    }
                 });
-            })
-        ;
+            }
+        } catch(error) {
+            console.error('Error saving subcategory:', error);
+            Swal.fire({
+                text: "Error saving subcategory",
+                icon: "error",
+                confirmButtonColor: '#177604',
+            });
+        }
     }
 
-    function deleteSubcategory(subcategoryId) {
+    async function deleteSubcategory(subcategoryId) {
         if (!subcategoryId) {
             Swal.fire("Error", "Invalid subcategory ID", "error");
             return;
         }
-        Swal.fire({
+        const result = await Swal.fire({
             title: "Are you sure?",
             text: "This will delete the subcategory.",
             icon: "warning",
@@ -191,22 +188,25 @@ export function useEvaluationFormSection(section) {
             confirmButtonColor: "#d33",
             cancelButtonColor: "#aaa",
             confirmButtonText: "Yes, delete it!"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                axiosInstance.post('/deleteEvaluationFormSubcategory', { id: subcategoryId }, { headers })
-                    .then(response => {
-                        if (response.data.status && response.data.status.toString().startsWith("2")) {
-                            setSubcategories(prev => prev.filter(sc => sc.id !== subcategoryId));
-                            Swal.fire("Deleted!", "Subcategory has been deleted.", "success");
-                        } else {
-                            Swal.fire("Error", response.data.message || "Error deleting subcategory", "error");
-                        }
-                    })
-                    .catch(error => {
-                        Swal.fire("Error", "Error deleting subcategory", "error");
-                    });
-            }
         });
+        if(!result.isConfirmed) return;
+        try {
+            const response = await axiosInstance.post(
+                '/deleteEvaluationFormSubcategory',
+                { id: subcategoryId }, { headers }
+            );
+            if (response.data.status && response.data.status.toString().startsWith(2)) {
+                const subcategoriesNew = subcategories.filter(sc => sc.id !== subcategoryId);
+                setSubcategories(subcategoriesNew);
+                Swal.fire("Deleted!", "Subcategory has been deleted.", "success");
+                return subcategoriesNew;
+            } else {
+                Swal.fire("Error", response.data.message || "Error deleting subcategory", "error");
+            }
+        } catch(error) {
+            console.log(72878278327)
+            Swal.fire("Error", "Error deleting subcategory", "error");
+        }
     }
 
     return {
