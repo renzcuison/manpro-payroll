@@ -599,6 +599,7 @@ class EvaluationResponseController extends Controller
                             $section
                                 ->select('form_id', 'id', 'name', 'category', 'order', 'score')
                                 ->whereNull('deleted_at')
+                                ->where('order', '>', 0)
                                 ->with(['subcategories' => fn ($subcategory) =>
                                     $subcategory
                                         ->select(
@@ -609,6 +610,7 @@ class EvaluationResponseController extends Controller
                                             'order'
                                         )
                                         ->whereNull('deleted_at')
+                                        ->where('order', '>', 0)
                                         ->with([
                                             'options' => fn ($option) =>
                                                 $option
@@ -616,6 +618,7 @@ class EvaluationResponseController extends Controller
                                                         'subcategory_id', 'id', 'label', 'score', 'order', 'description'
                                                     )
                                                     ->whereNull('deleted_at')
+                                                    ->where('order', '>', 0)
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
                                                             $optionAnswer
@@ -792,13 +795,14 @@ class EvaluationResponseController extends Controller
             }
             DB::commit();
 
+            $encryptedResponseID = Crypt::encrypt($evaluationResponse->id);
             $encryptedUserID = Crypt::encrypt($userID);
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Response successfully retrieved.',
                 'userID' => $encryptedUserID,
                 'evaluationResponse' => $evaluationResponse ? [
-                    'id' => Crypt::encrypt($evaluationResponse->id),
+                    'id' => $encryptedResponseID,
                     'evaluatee_id' => Crypt::encrypt($evaluationResponse->evaluatee_id),
                     'creator_id' => Crypt::encrypt($evaluationResponse->creator_id),
                     'period_start_date' => $evaluationResponse->period_start_date,
@@ -827,13 +831,13 @@ class EvaluationResponseController extends Controller
                             ];
                         })
                     ] : null,
-                    'evaluators' => $evaluationResponse->evaluators->map(function ($evaluator) use($userID, $encryptedUserID) {
+                    'evaluators' => $evaluationResponse->evaluators->map(function ($evaluator) use($userID, $encryptedResponseID, $encryptedUserID) {
                         return [
                             'evaluator_id' =>
                                 ($evaluator->evaluator_id === $userID) ? $encryptedUserID
                                 : Crypt::encrypt($evaluator->evaluator_id)
                             ,
-                            'response_id' => Crypt::encrypt($evaluator->response_id),
+                            'response_id' => $encryptedResponseID,
                             'last_name' => $evaluator->last_name,
                             'first_name' => $evaluator->first_name,
                             'middle_name' => $evaluator->middle_name,
@@ -853,13 +857,13 @@ class EvaluationResponseController extends Controller
                             'evaluator_signature' => $evaluator->evaluator_signature
                         ];
                     }),
-                    'commentors' => $evaluationResponse->commentors->map(function ($commentor) use($userID, $encryptedUserID) {
+                    'commentors' => $evaluationResponse->commentors->map(function ($commentor) use($userID, $encryptedResponseID, $encryptedUserID) {
                         return [
                             'commentor_id' =>
                                 ($commentor->commentor_id === $userID) ? $encryptedUserID
                                 : Crypt::encrypt($commentor->commentor_id)
                             ,
-                            'response_id' => Crypt::encrypt($commentor->response_id),
+                            'response_id' => $encryptedResponseID,
                             'last_name' => $commentor->last_name,
                             'first_name' => $commentor->first_name,
                             'middle_name' => $commentor->middle_name,
@@ -884,7 +888,7 @@ class EvaluationResponseController extends Controller
                         'name' => $evaluationResponse->form->name,
                         'creator_id' => Crypt::encrypt($evaluationResponse->form->creator_id),
                         'creator_user_name' => $evaluationResponse->form->creator_user_name,
-                        'sections' => $evaluationResponse->form->sections->map(function ($section) {
+                        'sections' => $evaluationResponse->form->sections->map(function ($section) use ($encryptedResponseID) {
                             return [
                                 'form_id' => Crypt::encrypt($section->form_id),
                                 'id' => Crypt::encrypt($section->id),
@@ -893,7 +897,7 @@ class EvaluationResponseController extends Controller
                                 'order' => $section->order,
                                 'score' => $section->score,
                                 'achieved_score' => $section->achieved_score,
-                                'subcategories' => $section->subcategories->map(function ($subcategory) {
+                                'subcategories' => $section->subcategories->map(function ($subcategory) use($encryptedResponseID) {
                                     $encryptedSubcategoryID = Crypt::encrypt($subcategory->id);
                                     return [
                                         'section_id' => Crypt::encrypt($subcategory->section_id),
@@ -910,7 +914,7 @@ class EvaluationResponseController extends Controller
                                         'order' => $subcategory->order,
                                         'score' => $subcategory->score,
                                         'achieved_score' => $subcategory->achieved_score,
-                                        'options' => $subcategory->options->map(function ($option) use ($encryptedSubcategoryID) {
+                                        'options' => $subcategory->options->map(function ($option) use ($encryptedSubcategoryID, $encryptedResponseID) {
                                             $encryptedOptionID = Crypt::encrypt($option->id);
                                             return [
                                                 'subcategory_id' => $encryptedSubcategoryID,
@@ -922,7 +926,7 @@ class EvaluationResponseController extends Controller
                                                 'option_answer_count' => $option->option_answer_count,
                                                 'option_answer' => $option->optionAnswer ? [
                                                     'id' => Crypt::encrypt($option->optionAnswer->id),
-                                                    'response_id' => Crypt::encrypt($option->optionAnswer->response_id),
+                                                    'response_id' => $encryptedResponseID,
                                                     'option_id' => $encryptedOptionID
                                                 ] : null
                                             ];
@@ -938,7 +942,7 @@ class EvaluationResponseController extends Controller
                                         // ] : null,
                                         'text_answer' => $subcategory->textAnswer ? [
                                             'id' => Crypt::encrypt($subcategory->textAnswer->id),
-                                            'response_id' => Crypt::encrypt($subcategory->textAnswer->response_id),
+                                            'response_id' => $encryptedResponseID,
                                             'subcategory_id' => Crypt::encrypt($subcategory->textAnswer->subcategory_id),
                                             'answer' => $subcategory->textAnswer->answer
                                         ] : null
@@ -1680,7 +1684,15 @@ class EvaluationResponseController extends Controller
                 'evaluationEvaluatorID' => $request->evaluator_id
             ]);
 
-            if( $evaluationEvaluator->deleted_at ) return response()->json([ 
+            $oldOrder = $evaluationEvaluator->order;
+            $newOrder = min(
+                EvaluationEvaluator
+                    ::where('response_id', $evaluationEvaluator->response_id)
+                    ->min('order')
+                , 1
+            ) - 1;
+
+            if($evaluationEvaluator->deleted_at) return response()->json([ 
                 'status' => 405,
                 'message' => 'Evaluation Evaluator already deleted!',
                 'evaluationResponseID' => $request->response_id,
@@ -1688,8 +1700,22 @@ class EvaluationResponseController extends Controller
             ]);
 
             $now = date('Y-m-d H:i');
+            $evaluationEvaluator->order = $newOrder;
             $evaluationEvaluator->deleted_at = $now;
             $evaluationEvaluator->save();
+
+            $evaluationEvaluatorsToMove = EvaluationEvaluator
+                ::where('response_id', $evaluationEvaluator->response_id)
+                ->where('order', '>', $oldOrder)
+                ->orderBy('order', 'asc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationEvaluatorsToMove as $evaluationEvaluatorToMove) {
+                $evaluationEvaluatorToMove->order = $curOrder;
+                $evaluationEvaluatorToMove->save();
+                $curOrder++;
+            }
 
             DB::commit();
 
@@ -2116,9 +2142,38 @@ class EvaluationResponseController extends Controller
                 'evaluationCommentorID' => $request->commentor_id
             ]);
 
+            $oldOrder = $evaluationCommentor->order;
+            $newOrder = min(
+                EvaluationCommentor
+                    ::where('response_id', $evaluationCommentor->response_id)
+                    ->min('order')
+                , 1
+            ) - 1;
+
+            if($evaluationCommentor->deleted_at) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation Commentor already deleted!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationCommentorID' => $request->evaluator_id
+            ]);
+
             $now = date('Y-m-d H:i');
+            $evaluationCommentor->order = $newOrder;
             $evaluationCommentor->deleted_at = $now;
             $evaluationCommentor->save();
+
+            $evaluationCommentorsToMove = EvaluationCommentor
+                ::where('response_id', $evaluationCommentor->response_id)
+                ->where('order', '>', $oldOrder)
+                ->orderBy('order', 'asc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationCommentorsToMove as $evaluationCommentorToMove) {
+                $evaluationCommentorToMove->order = $curOrder;
+                $evaluationCommentorToMove->save();
+                $curOrder++;
+            }
 
             DB::commit();
 
