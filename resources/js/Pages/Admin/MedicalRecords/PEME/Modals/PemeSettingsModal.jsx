@@ -197,9 +197,10 @@ const PemeSettingsModal = ({
                                 sx={{
                                     color: "rgba(201, 42, 42, 1)",
                                     fontWeight: "bold",
+                                    fontSize: "12px"
                                 }}
                             >
-                                {hasRespondents ? "Drafts currently exist" : ""}
+                                {hasRespondents ? "Responses currently exist" : ""}
                             </Typography>
                         </Box>
                     </>

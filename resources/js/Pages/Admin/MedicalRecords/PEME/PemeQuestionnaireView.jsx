@@ -49,7 +49,7 @@ const UploadForm = ({ fileSizeLimit, fileArray, fileName, onFileClick }) => {
                             color="primary"
                             onClick={() => {
                                 if (onFileClick && file?.url) {
-                                    onFileClick(file.url, file.file_name);
+                                    onFileClick(file);
                                 }
                             }}
                             sx={{
@@ -82,8 +82,8 @@ const PassOrFail = ({ value }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-            ? "Fail"
-            : "";
+                ? "Fail"
+                : "";
 
     return (
         <Box
@@ -114,8 +114,8 @@ const PostiveOrNegative = ({ value }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-            ? "Negative"
-            : "";
+                ? "Negative"
+                : "";
 
     return (
         <Box
@@ -247,7 +247,7 @@ const PemeQuestionnaireView = () => {
     };
 
     const navigator = useNavigate();
-    const handleOnDeleteClick = () => {};
+    const handleOnDeleteClick = () => { };
     const handleOnCancelClick = () => {
 
         // FIX
@@ -257,9 +257,18 @@ const PemeQuestionnaireView = () => {
         navigator(-1);
     };
 
-    const handleFileClick = (fileUrl, fileName = "File Preview") => {
-        setSelectedFile({ url: fileUrl, file_name: fileName });
-        setFilePreviewOpen(true);
+    const handleFileClick = (fileObj) => {
+        if (fileObj?.file_name?.toLowerCase().endsWith(".docx") && fileObj.url) {
+            const link = document.createElement("a");
+            link.href = fileObj.url;
+            link.setAttribute("download", fileObj.file_name);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } else {
+            setSelectedFile(fileObj);
+            setFilePreviewOpen(true);
+        }
     };
 
     return (
@@ -353,7 +362,7 @@ const PemeQuestionnaireView = () => {
 
                                             {
                                                 Array.isArray(form.media) &&
-                                                form.media.length > 0 ? (
+                                                    form.media.length > 0 ? (
                                                     form.media.map(
                                                         (file, i) => (
                                                             <UploadForm

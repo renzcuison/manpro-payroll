@@ -182,7 +182,7 @@ const UploadForm = ({
                 </Button>
             </Box>
             <Typography variant="h7">
-                Max File Size: <strong>5 MB</strong>
+                Max File Size: <strong>25 MB</strong>
             </Typography>
         </>
     );
@@ -364,7 +364,9 @@ const PemeQuestionnaireView = () => {
                                     responseEntry.files = newFiles;
                                 }
 
-                                responses.push(responseEntry);
+                                if (newFiles.length > 0 || existingFiles.length > 0 || form.isRequired === 1) {
+                                    responses.push(responseEntry);
+                                }
                             } else {
                                 // Non-attachment types
                                 responses.push({
@@ -414,12 +416,14 @@ const PemeQuestionnaireView = () => {
                     Array.isArray(item.files) &&
                     item.files[0] instanceof File
                 ) {
-                    item.files.forEach((file, fileIndex) => {
-                        formData.append(
-                            `responses[${index}][files][${fileIndex}]`,
-                            file
-                        );
-                    });
+                    item.files
+                        .filter(f => f instanceof File)
+                        .forEach((file, fileIndex) => {
+                            formData.append(
+                                `responses[${index}][files][${fileIndex}]`,
+                                file
+                            );
+                        });
                 }
 
                 // For non-attachments
@@ -511,7 +515,10 @@ const PemeQuestionnaireView = () => {
                             if (newFiles.length > 0) {
                                 responseEntry.files = newFiles;
                             }
-                            responses.push(responseEntry);
+
+                            if (newFiles.length > 0 || existingFiles.length > 0 || form.isRequired === 1) {
+                                responses.push(responseEntry);
+                            }
                         }
                     } else {
                         if (
@@ -632,8 +639,18 @@ const PemeQuestionnaireView = () => {
     //     setFilePreviewOpen(true);
     // };
     const handleFileClick = (fileObj) => {
-        setSelectedFile(fileObj);
-        setFilePreviewOpen(true);
+        if (fileObj?.file_name?.toLowerCase().endsWith(".docx") && fileObj.url) {
+            // Download the DOCX file directly
+            const link = document.createElement("a");
+            link.href = fileObj.url;
+            link.setAttribute("download", fileObj.file_name);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } else {
+            setSelectedFile(fileObj);
+            setFilePreviewOpen(true);
+        }
     };
 
     const navigator = useNavigate();
@@ -966,7 +983,7 @@ const PemeQuestionnaireView = () => {
                                     }}
                                     onClick={handleOnCancelClick}
                                 >
-                                    Cancel
+                                    Return
                                 </Button>
                             </Box>
 

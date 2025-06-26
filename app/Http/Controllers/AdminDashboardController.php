@@ -22,7 +22,7 @@ class AdminDashboardController extends Controller
 
     public function index(): JsonResponse
     {
-        
+
         if (!Auth::check()) {
             return response()->json(["error" => 'Unautorized' ], 401);
         }
@@ -36,7 +36,7 @@ class AdminDashboardController extends Controller
         ->where('client_id', $clientId)->orderBy('created_at', 'DESC')->get();
 
         $apps = ApplicationsModel::where('client_id', $clientId)->where('status', 'Pending')->orderBy('created_at', 'asc')->get();
-        
+
         $attendances = AttendanceLogsModel::whereHas('user', function ($query) use ($clientId) {
             $query->where('client_id', $clientId)->where('user_type', "Employee")->where('employment_status', "Active");
         })->whereDate('timestamp', Carbon::now()->toDateString())->groupBy('user_id')->with('user', 'workHour')->get();
@@ -230,7 +230,7 @@ class AdminDashboardController extends Controller
             // Get Announcements
             $counter['announcement_count'] = AnnouncementsModel::where('client_id', $clientId)->where('status', "Published")->count();
 
-            // Get Trainings 
+            // Get Trainings
             $counter['training_count'] = TrainingsModel::where('client_id', $clientId)->where('status', 'Active')->count();
 
             // Average Age
@@ -285,7 +285,7 @@ class AdminDashboardController extends Controller
 
             $payRange1 = UsersModel::where('client_id', $clientId)
                 ->where('user_type', "Employee")
-                ->whereBetween(DB::raw('CASE 
+                ->whereBetween(DB::raw('CASE
                     WHEN salary_type = "Hourly" THEN salary * 160
                     WHEN salary_type = "Daily" THEN salary * 20
                     WHEN salary_type = "Weekly" THEN salary * 4
@@ -296,7 +296,7 @@ class AdminDashboardController extends Controller
 
             $payRange2 = UsersModel::where('client_id', $clientId)
                 ->where('user_type', "Employee")
-                ->whereBetween(DB::raw('CASE 
+                ->whereBetween(DB::raw('CASE
                     WHEN salary_type = "Hourly" THEN salary * 160
                     WHEN salary_type = "Daily" THEN salary * 20
                     WHEN salary_type = "Weekly" THEN salary * 4
@@ -307,7 +307,7 @@ class AdminDashboardController extends Controller
 
             $payRange3 = UsersModel::where('client_id', $clientId)
                 ->where('user_type', "Employee")
-                ->whereBetween(DB::raw('CASE 
+                ->whereBetween(DB::raw('CASE
                     WHEN salary_type = "Hourly" THEN salary * 160
                     WHEN salary_type = "Daily" THEN salary * 20
                     WHEN salary_type = "Weekly" THEN salary * 4
@@ -318,7 +318,7 @@ class AdminDashboardController extends Controller
 
             $payRange4 = UsersModel::where('client_id', $clientId)
                 ->where('user_type', "Employee")
-                ->whereBetween(DB::raw('CASE 
+                ->whereBetween(DB::raw('CASE
                     WHEN salary_type = "Hourly" THEN salary * 160
                     WHEN salary_type = "Daily" THEN salary * 20
                     WHEN salary_type = "Weekly" THEN salary * 4
@@ -329,7 +329,7 @@ class AdminDashboardController extends Controller
 
             $payRange5 = UsersModel::where('client_id', $clientId)
                 ->where('user_type', "Employee")
-                ->where(DB::raw('CASE 
+                ->where(DB::raw('CASE
                     WHEN salary_type = "Hourly" THEN salary * 160
                     WHEN salary_type = "Daily" THEN salary * 20
                     WHEN salary_type = "Weekly" THEN salary * 4
@@ -413,7 +413,7 @@ class AdminDashboardController extends Controller
                                 Carbon::parse($log->timestamp)->lt($secondOut);
                         });
 
-                        // First Shift -> Last Time Out 
+                        // First Shift -> Last Time Out
                         $firstTimeOut = $logs->last(function ($log) use ($secondTimeIn) {
                             return $log->action === 'Duty Out' && (!$secondTimeIn || Carbon::parse($log->timestamp)->lt($secondTimeIn->timestamp));
                         });
@@ -484,7 +484,7 @@ class AdminDashboardController extends Controller
                             return $log->action === 'Duty In' && Carbon::parse($log->timestamp)->gt($firstOut) && Carbon::parse($log->timestamp)->lt($secondOut);
                         });
 
-                        // First Shift -> Last Time Out 
+                        // First Shift -> Last Time Out
                         $firstTimeOut = $logs->last(function ($log) use ($secondTimeIn) {
                             return $log->action === 'Duty Out' && (!$secondTimeIn || Carbon::parse($log->timestamp)->lt($secondTimeIn->timestamp));
                         });

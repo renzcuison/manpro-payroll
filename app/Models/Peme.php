@@ -15,7 +15,6 @@ class Peme extends Model
     protected $fillable = [
         'client_id',
         'user_id',
-        'medical_record_id',
         'name',
         'respondents',
         'isVisible',
@@ -26,11 +25,6 @@ class Peme extends Model
     public function client()
     {
         return $this->belongsTo(ClientsModel::class);
-    }
-
-    public function medicalRecord()
-    {
-        return $this->belongsTo(MedicalRecords::class, 'medical_record_id', 'id');
     }
 
     public function questions()
