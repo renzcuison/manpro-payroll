@@ -264,6 +264,7 @@ class EvaluationFormController extends Controller
                     $section
                         ->select('form_id', 'id', 'name', 'category', 'score', 'order', 'description')
                         ->whereNull('deleted_at')
+                        ->where('order', '>', 0)
                         ->with(['subcategories' => fn ($subcategory) =>
                             $subcategory
                                 ->select(
@@ -273,6 +274,7 @@ class EvaluationFormController extends Controller
                                     'linear_scale_start', 'linear_scale_end',
                                     'order'
                                 )
+                                ->where('order', '>', 0)
                                 ->whereNull('deleted_at')
                                 ->with(['options' => fn ($option) =>
                                     $option
@@ -280,6 +282,7 @@ class EvaluationFormController extends Controller
                                             'subcategory_id', 'id',
                                             'label', 'score', 'order', 'description'
                                         )
+                                        ->where('order', '>', 0)
                                         ->whereNull('deleted_at')
                                         ->orderBy('order')
                                 ])
@@ -733,6 +736,7 @@ class EvaluationFormController extends Controller
                 ->with(['subcategories' => fn ($subcategory) =>
                     $subcategory
                         ->whereNull('deleted_at')
+                        ->where('order', '>', 0)
                         ->select(
                             'section_id', 'id',
                             'name', 'subcategory_type', 'description',
@@ -748,6 +752,7 @@ class EvaluationFormController extends Controller
                                     'label', 'score', 'order'
                                 )
                                 ->whereNull('deleted_at')
+                                ->where('order', '>', 0)
                                 ->orderBy('order')
                         ])
                         ->orderBy('order')
@@ -1250,6 +1255,7 @@ class EvaluationFormController extends Controller
                             'label', 'score', 'order', 'description'
                         )
                         ->whereNull('deleted_at')
+                        ->where('order', '>', 0)
                         ->orderBy('order');
                 }])
                 ->first();
