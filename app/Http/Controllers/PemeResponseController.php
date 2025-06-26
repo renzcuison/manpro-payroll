@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BranchesModel;
 use Illuminate\Http\Request;
-USE Illuminate\Http\UploadedFile;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
@@ -339,6 +339,14 @@ class PemeResponseController extends Controller
                     $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
                     $maxKilobytes = $fileSizeLimitMb ? intval($fileSizeLimitMb * 1024) : null;
 
+                    \Log::info('File size limit for upload', [
+                        'fileSizeLimitMb' => $fileSizeLimitMb,
+                        'maxKilobytes' => $maxKilobytes,
+                        'question_id' => $detail->peme_q_item_id,
+                        'type_id' => $detail->peme_q_type_id,
+                        'question' => $detail->question->question ?? null,
+                    ]);
+
                     foreach ($files as $file) {
                         if (
                             !$file instanceof UploadedFile ||
@@ -348,26 +356,8 @@ class PemeResponseController extends Controller
                             continue;
                         }
 
-                        // \Log::info('File size validation', [
-                        //     'file_name' => $file->getClientOriginalName(),
-                        //     'file_size_bytes' => $file->getSize(),
-                        //     'file_size_kb' => round($file->getSize() / 1024, 2),
-                        //     'max_kilobytes' => $maxKilobytes,
-                        //     'db_file_size_limit' => $fileSizeLimitMb,
-                        // ]);
-
                         $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
                         $validator = Validator::make(['file' => $file], $rules);
-
-                        if ($validator->fails()) {
-                            \Log::error('File validation failed', [
-                                'errors' => $validator->errors(),
-                                'file_name' => $file->getClientOriginalName(),
-                                'mime_type' => $file->getMimeType(),
-                            ]);
-
-                            continue;
-                        }
 
                         try {
                             $media = $detail->addMedia($file)->toMediaCollection('attachments');

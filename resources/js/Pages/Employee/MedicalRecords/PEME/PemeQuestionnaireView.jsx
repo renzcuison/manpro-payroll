@@ -182,7 +182,7 @@ const UploadForm = ({
                 </Button>
             </Box>
             <Typography variant="h7">
-                Max File Size: <strong>25 MB</strong>
+                Max File Size: <strong>10 MB</strong>
             </Typography>
         </>
     );
