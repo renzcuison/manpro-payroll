@@ -346,13 +346,19 @@ const PerformanceEvaluationList = () => {
                                 >
                                     Forms <i className="fa fa-caret-down ml-2"></i>
                                 </Button>
-                                <Menu
+                            <Menu
                                     id="perf-eval-menu"
                                     anchorEl={anchorEl}
                                     open={open}
                                     onClose={handleMenuClose}
                                     MenuListProps={{
                                         'aria-labelledby': 'performance-evaluation-menu',
+                                    }}
+                                    PaperProps={{
+                                        style: {
+                                            maxHeight: 400, // or any height you want
+                                            overflowY: 'auto'
+                                        }
                                     }}
                                 >
                                     {performanceEvaluations.map(({ name }) => (
