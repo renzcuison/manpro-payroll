@@ -990,23 +990,26 @@ class PayrollController extends Controller
         foreach ( $rawAllowance as $allowance ) {
 
             $schedule = $allowance->allowance->payment_schedule;
+            $amount = $allowance->amount;
+
+            log::info($amount);
 
             if ($request->cutOff == "First" && $schedule == 1 ) {
-                $allowanceAmount = $allowance->allowance->amount;
+                $allowanceAmount = $amount;
                 $totalAllowance = $totalAllowance + $allowanceAmount;
 
                 $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
             }
 
             if ($request->cutOff == "Second" && $schedule == 2 ) {
-                $allowanceAmount = $allowance->allowance->amount;
+                $allowanceAmount = $amount;
                 $totalAllowance = $totalAllowance + $allowanceAmount;
 
                 $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
             }
 
             if ( $schedule == 3 ) {
-                $allowanceAmount = $allowance->allowance->amount / 2;
+                $allowanceAmount = $amount / 2;
                 $totalAllowance = $totalAllowance + $allowanceAmount;
 
                 $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
