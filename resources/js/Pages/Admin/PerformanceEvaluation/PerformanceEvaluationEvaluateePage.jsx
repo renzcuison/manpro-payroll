@@ -52,7 +52,7 @@ const getSectionScore = (section) => {
  
   let subScore = 0;
   if (value !== null && end > start) {
-    subScore = ((value - start) / (end - start)) * 100;
+    subScore = ((value - start + 1) / (end - start + 1)) * 100;
   }
  
   subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
