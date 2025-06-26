@@ -28,13 +28,226 @@ class EvaluationResponseController extends Controller
 
     // evaluatees, evaluators, commentors
 
-    public function getCommentors(Request $request)
+    // public function getCommentors(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         department_id?: string,
+    //         branch_id?: string,
+    //         exclude?: string[]
+    //     */
+
+    //     // returns:
+    //     /*
+    //         users: {
+    //             id, last_name, first_name, middle_name, suffix
+    //         }
+    //     */
+
+    //      if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select()->where('id', $userID)->first();
+
+    //     if (!Auth::check()) {
+    //         return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+    //     }
+
+    //     $commentors = UsersModel
+    //         ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
+    //         ->where('client_id', $user->client_id)
+    //         ->whereNot('id', $user->id)
+    //         ->whereNull('deleted_at')
+    //     ;
+    //     if($request->department_id !== null)
+    //         $commentors = $commentors->where('department_id', $request->department_id);
+    //     if($request->branch_id !== null)
+    //         $commentors = $commentors->where('branch_id', $request->branch_id);
+    //     if($request->exclude)
+    //         $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
+    //     $commentors = $commentors
+    //         ->orderBy('last_name')
+    //         ->orderBy('first_name')
+    //         ->orderBy('middle_name')
+    //         ->orderBy('suffix')
+    //         ->get()
+    //     ;
+    //     if(!$commentors) return response()->json([ 
+    //         'status' => 404,
+    //         'message' => 'Commentors not found!'
+    //     ]);
+    //     return response()->json([
+    //         'status' => 200,
+    //         'message' => 'Commentors successfully retrieved.',
+    //         'commentors' => $commentors->map(function ($evaluatee) {
+    //             return [
+    //                 'id' => Crypt::encrypt($evaluatee->id),
+    //                 'user_name' => $evaluatee->user_name,
+    //                 'last_name' => $evaluatee->last_name,
+    //                 'first_name' => $evaluatee->first_name,
+    //                 'middle_name' => $evaluatee->middle_name,
+    //                 'suffix' => $evaluatee->suffix
+    //             ];
+    //         })
+    //     ]);
+    // }
+
+    // public function getEvaluatees(Request $request)
+    // {
+    //     // Ensure authentication
+    //     if (!\Auth::check()) {
+    //         return response()->json([
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+    //     }
+
+    //     $userID = \Auth::id();
+    //     $user = \DB::table('users')->select()->where('id', $userID)->first();
+
+    //     $evaluatees = \App\Models\UsersModel::select(
+    //             'id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix'
+    //         )
+    //         ->where('client_id', $user->client_id)
+    //         ->whereNull('deleted_at');
+
+    //     // Optional: filter by user_type(s) if provided
+    //     if ($request->has('user_type')) {
+    //         $userType = $request->user_type;
+    //         if (is_array($userType)) {
+    //             $evaluatees = $evaluatees->whereIn('user_type', $userType);
+    //         } elseif (is_string($userType)) {
+    //             $types = array_map('trim', explode(',', $userType));
+    //             $evaluatees = $evaluatees->whereIn('user_type', $types);
+    //         }
+    //     }
+
+    //     // Optional: filter by department and branch
+    //     if ($request->department_id !== null) {
+    //         $evaluatees = $evaluatees->where('department_id', $request->department_id);
+    //     }
+    //     if ($request->branch_id !== null) {
+    //         $evaluatees = $evaluatees->where('branch_id', $request->branch_id);
+    //     }
+    //     if ($request->exclude) {
+    //         $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
+    //     }
+
+    //     $evaluatees = $evaluatees
+    //         ->orderBy('last_name')
+    //         ->orderBy('first_name')
+    //         ->orderBy('middle_name')
+    //         ->orderBy('suffix')
+    //         ->get();
+
+    //     if ($evaluatees->isEmpty()) {
+    //         return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluatees not found!',
+    //             'evaluatees' => []
+    //         ]);
+    //     }
+    //     return response()->json([
+    //         'status' => 200,
+    //         'message' => 'Evaluatees successfully retrieved.',
+    //         'evaluatees' => $evaluatees->map(function ($evaluatee) {
+    //             return [
+    //                 'id' => Crypt::encrypt($evaluatee->id),
+    //                 'user_name' => $evaluatee->user_name,
+    //                 'last_name' => $evaluatee->last_name,
+    //                 'first_name' => $evaluatee->first_name,
+    //                 'middle_name' => $evaluatee->middle_name,
+    //                 'suffix' => $evaluatee->suffix
+    //             ];
+    //         })
+    //     ]);
+    // }
+
+    // public function getEvaluators(Request $request)
+    // {
+    //     if (!Auth::check()) {
+    //         return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+    //     }
+    //     $userID = Auth::id();
+    //     $user = DB::table('users')->select()->where('id', $userID)->first();
+
+    //     $evaluators = UsersModel
+    //         ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
+    //         ->whereNot('id', $user->id)
+    //         ->where('client_id', $user->client_id)
+    //         ->whereNull('deleted_at');
+
+    //     if($request->department_id !== null)
+    //         $evaluators = $evaluators->where('department_id', $request->department_id);
+
+    //     if($request->branch_id !== null)
+    //         $evaluators = $evaluators->where('branch_id', $request->branch_id);
+
+    //     // Support for flexible user_type filtering
+    //     if ($request->has('user_type')) {
+    //         $userType = $request->user_type;
+    //         // Accepts either array or comma-separated string
+    //         if (is_array($userType)) {
+    //             $evaluators = $evaluators->whereIn('user_type', $userType);
+    //         } elseif (is_string($userType)) {
+    //             // Handles comma-separated string or single type
+    //             $types = array_map('trim', explode(',', $userType));
+    //             $evaluators = $evaluators->whereIn('user_type', $types);
+    //         } else {
+    //             // Fallback to both Admin and Employee if something unexpected
+    //             $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
+    //         }
+    //     } else {
+    //         // Default: both Admin and Employee
+    //         $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
+    //     }
+
+    //     if($request->exclude)
+    //         $evaluators = $evaluators->whereNotIn('id', $request->exclude);
+
+    //     $evaluators = $evaluators
+    //         ->orderBy('last_name')
+    //         ->orderBy('first_name')
+    //         ->orderBy('middle_name')
+    //         ->orderBy('suffix')
+    //         ->get();
+
+    //     if($evaluators->isEmpty()) return response()->json([ 
+    //         'status' => 404,
+    //         'message' => 'Evaluators not found!'
+    //     ]);
+    //     return response()->json([
+    //         'status' => 200,
+    //         'message' => 'Evaluators successfully retrieved.',
+    //         'evaluators' => $evaluators->map(function ($evaluator) {
+    //             return [
+    //                 'id' => Crypt::encrypt($evaluator->id),
+    //                 'user_name' => $evaluator->user_name,
+    //                 'last_name' => $evaluator->last_name,
+    //                 'first_name' => $evaluator->first_name,
+    //                 'middle_name' => $evaluator->middle_name,
+    //                 'suffix' => $evaluator->suffix
+    //             ];
+    //         })
+    //     ]);
+    // }
+
+    public function getEvaluationResponseUsers(Request $request)
     {
         // inputs:
         /*
-            department_id?: number,
-            branch_id?: number,
-            exclude?: number[]
+            department_id?: string,
+            branch_id?: string,
+            exclude?: string[]
         */
 
         // returns:
@@ -53,189 +266,44 @@ class EvaluationResponseController extends Controller
         $user = DB::table('users')->select()->where('id', $userID)->first();
 
         if (!Auth::check()) {
-            return response()->json([ 
+            return response()->json([
                 'status' => 403,
                 'message' => 'Unauthorized access!'
             ]);
         }
 
-        $commentors = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
+        $users = UsersModel
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'user_type')
             ->where('client_id', $user->client_id)
             ->whereNot('id', $user->id)
+            ->whereNot('user_type', 'SuperAdmin')
             ->whereNull('deleted_at')
         ;
         if($request->department_id !== null)
-            $commentors = $commentors->where('department_id', $request->department_id);
+            $users = $users->where('department_id', $request->department_id);
         if($request->branch_id !== null)
-            $commentors = $commentors->where('branch_id', $request->branch_id);
+            $users = $users->where('branch_id', $request->branch_id);
         if($request->exclude)
-            $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
-        $commentors = $commentors
+            $users = $users->whereNotIn('id', $request->exclude);
+        $users = $users
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->orderBy('middle_name')
             ->orderBy('suffix')
             ->get()
         ;
-        if(!$commentors) return response()->json([ 
-            'status' => 404,
-            'message' => 'Commentors not found!'
-        ]);
         return response()->json([
             'status' => 200,
-            'message' => 'Commentors successfully retrieved.',
-            'commentors' => $commentors->map(function ($evaluatee) {
+            'message' => 'Users successfully retrieved.',
+            'users' => $users->map(function ($user) {
                 return [
-                    'id' => Crypt::encrypt($evaluatee->id),
-                    'user_name' => $evaluatee->user_name,
-                    'last_name' => $evaluatee->last_name,
-                    'first_name' => $evaluatee->first_name,
-                    'middle_name' => $evaluatee->middle_name,
-                    'suffix' => $evaluatee->suffix
-                ];
-            })
-        ]);
-    }
-
-    public function getEvaluatees(Request $request)
-    {
-        // Ensure authentication
-        if (!\Auth::check()) {
-            return response()->json([
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
-        }
-
-        $userID = \Auth::id();
-        $user = \DB::table('users')->select()->where('id', $userID)->first();
-
-        $evaluatees = \App\Models\UsersModel::select(
-                'id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix'
-            )
-            ->where('client_id', $user->client_id)
-            ->whereNull('deleted_at');
-
-        // Optional: filter by user_type(s) if provided
-        if ($request->has('user_type')) {
-            $userType = $request->user_type;
-            if (is_array($userType)) {
-                $evaluatees = $evaluatees->whereIn('user_type', $userType);
-            } elseif (is_string($userType)) {
-                $types = array_map('trim', explode(',', $userType));
-                $evaluatees = $evaluatees->whereIn('user_type', $types);
-            }
-        }
-
-        // Optional: filter by department and branch
-        if ($request->department_id !== null) {
-            $evaluatees = $evaluatees->where('department_id', $request->department_id);
-        }
-        if ($request->branch_id !== null) {
-            $evaluatees = $evaluatees->where('branch_id', $request->branch_id);
-        }
-        if ($request->exclude) {
-            $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
-        }
-
-        $evaluatees = $evaluatees
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->orderBy('middle_name')
-            ->orderBy('suffix')
-            ->get();
-
-        if ($evaluatees->isEmpty()) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'Evaluatees not found!',
-                'evaluatees' => []
-            ]);
-        }
-        return response()->json([
-            'status' => 200,
-            'message' => 'Evaluatees successfully retrieved.',
-            'evaluatees' => $evaluatees->map(function ($evaluatee) {
-                return [
-                    'id' => Crypt::encrypt($evaluatee->id),
-                    'user_name' => $evaluatee->user_name,
-                    'last_name' => $evaluatee->last_name,
-                    'first_name' => $evaluatee->first_name,
-                    'middle_name' => $evaluatee->middle_name,
-                    'suffix' => $evaluatee->suffix
-                ];
-            })
-        ]);
-    }
-
-    public function getEvaluators(Request $request)
-    {
-        if (!Auth::check()) {
-            return response()->json([ 
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
-        }
-        $userID = Auth::id();
-        $user = DB::table('users')->select()->where('id', $userID)->first();
-
-        $evaluators = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
-            ->whereNot('id', $user->id)
-            ->where('client_id', $user->client_id)
-            ->whereNull('deleted_at');
-
-        if($request->department_id !== null)
-            $evaluators = $evaluators->where('department_id', $request->department_id);
-
-        if($request->branch_id !== null)
-            $evaluators = $evaluators->where('branch_id', $request->branch_id);
-
-        // Support for flexible user_type filtering
-        if ($request->has('user_type')) {
-            $userType = $request->user_type;
-            // Accepts either array or comma-separated string
-            if (is_array($userType)) {
-                $evaluators = $evaluators->whereIn('user_type', $userType);
-            } elseif (is_string($userType)) {
-                // Handles comma-separated string or single type
-                $types = array_map('trim', explode(',', $userType));
-                $evaluators = $evaluators->whereIn('user_type', $types);
-            } else {
-                // Fallback to both Admin and Employee if something unexpected
-                $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
-            }
-        } else {
-            // Default: both Admin and Employee
-            $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
-        }
-
-        if($request->exclude)
-            $evaluators = $evaluators->whereNotIn('id', $request->exclude);
-
-        $evaluators = $evaluators
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->orderBy('middle_name')
-            ->orderBy('suffix')
-            ->get();
-
-        if($evaluators->isEmpty()) return response()->json([ 
-            'status' => 404,
-            'message' => 'Evaluators not found!'
-        ]);
-        return response()->json([
-            'status' => 200,
-            'message' => 'Evaluators successfully retrieved.',
-            'evaluators' => $evaluators->map(function ($evaluator) {
-                return [
-                    'id' => Crypt::encrypt($evaluator->id),
-                    'user_name' => $evaluator->user_name,
-                    'last_name' => $evaluator->last_name,
-                    'first_name' => $evaluator->first_name,
-                    'middle_name' => $evaluator->middle_name,
-                    'suffix' => $evaluator->suffix
+                    'id' => Crypt::encrypt($user->id),
+                    'user_name' => $user->user_name,
+                    'last_name' => $user->last_name,
+                    'first_name' => $user->first_name,
+                    'middle_name' => $user->middle_name,
+                    'suffix' => $user->suffix,
+                    'user_type' => $user->user_type
                 ];
             })
         ]);
@@ -326,8 +394,8 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             id: string,
-            evaluatee_id?: number,
-            form_id?: number,
+            evaluatee_id?: string,
+            form_id?: string,
             period_start_at?: string,
             period_end_at?: string,
         */
@@ -3644,9 +3712,9 @@ class EvaluationResponseController extends Controller
 
         // inputs:
         /*
-            response_id?: number,      // either response_id, subcategory_id, or option_id must be given
-            subcategory_id?: number,
-            option_id?: number
+            response_id?: string,      // either response_id, subcategory_id, or option_id must be given
+            subcategory_id?: string,
+            option_id?: string
         */
 
         // returns:

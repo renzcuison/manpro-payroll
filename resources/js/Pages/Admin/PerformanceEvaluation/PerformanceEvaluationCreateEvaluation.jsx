@@ -1,5 +1,5 @@
 import Layout from '../../../components/Layout/Layout';
-import { Box, TextField, Button, Grid, FormControl, Typography, IconButton, Divider } from '@mui/material';
+import { Box, TextField, Button, Grid, Typography, IconButton, Divider } from '@mui/material';
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
@@ -10,7 +10,6 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
 import { getFullName } from '../../../utils/user-utils';
-import { Create } from '@mui/icons-material';
 import CreateEvaluationReviewModal from './Modals/CreateEvaluationReviewModal';
 
 const PerformanceEvaluationCreateEvaluation = () => {
@@ -18,7 +17,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
 
     // Form state
     const [formValues, setFormValues] = useState({
-        employeeName: '',
+        evaluatee: '',
         branch: '',
         department: '',
         evaluator: '',
@@ -44,6 +43,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
     const [loadingAdmins, setLoadingAdmins] = useState(false);
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [pendingPayload, setPendingPayload] = useState(null);
+    const [chosenList, setChosenList] = useState([]);
 
     // Auth
     const storedUser = localStorage.getItem("nasya_user");
@@ -53,17 +53,17 @@ const PerformanceEvaluationCreateEvaluation = () => {
     const filter = createFilterOptions();
 
     // Filtering functions for people fields
-    const { evaluator, primaryCommentor, secondaryCommentor } = formValues;
+    const { evaluatee, evaluator, primaryCommentor, secondaryCommentor } = formValues;
     const allCommentorIds = [
-        formValues.primaryCommentor,
-        formValues.secondaryCommentor,
+        primaryCommentor,
+        secondaryCommentor,
         ...extraCommentors
     ].filter(Boolean);
 
     const evaluatorOptions = admins.filter(
         admin =>
             !allCommentorIds.includes(admin.id) &&
-            admin.id !== formValues.employeeName
+            admin.id !== evaluatee
     );
 
     const primaryCommentorOptions = admins.filter(
@@ -71,7 +71,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
             admin.id !== evaluator &&
             admin.id !== formValues.secondaryCommentor &&
             !extraCommentors.includes(admin.id) &&
-            admin.id !== formValues.employeeName
+            admin.id !== evaluatee
     );
 
     const secondaryCommentorOptions = admins.filter(
@@ -79,15 +79,12 @@ const PerformanceEvaluationCreateEvaluation = () => {
             admin.id !== evaluator &&
             admin.id !== formValues.primaryCommentor &&
             !extraCommentors.includes(admin.id) &&
-            admin.id !== formValues.employeeName
+            admin.id !== evaluatee
     );
 
     const getExtraCommentorOptions = (currentIdx) => {
         const excludedIds = [
-            formValues.employeeName,
-            formValues.evaluator,
-            formValues.primaryCommentor,
-            formValues.secondaryCommentor,
+            evaluatee, evaluator, primaryCommentor, secondaryCommentor,
             ...extraCommentors.filter((id, idx) => idx !== currentIdx)
         ].filter(Boolean);
         return admins.filter(
@@ -106,7 +103,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
         ].filter(Boolean);
 
         const payload = {
-            evaluatee_id: formValues.employeeName,
+            evaluatee_id: formValues.evaluatee,
             form_id: formValues.evaluationForm,
             evaluators,
             commentors,
@@ -167,14 +164,14 @@ const PerformanceEvaluationCreateEvaluation = () => {
         // Reset dependent fields if needed
         if (name === 'branch') {
             updatedValues.department = '';
-            updatedValues.employeeName = '';
+            updatedValues.evaluatee = '';
             updatedValues.evaluator = '';
             updatedValues.primaryCommentor = '';
             updatedValues.secondaryCommentor = '';
             setExtraCommentors([]);
         }
         if (name === 'department') {
-            updatedValues.employeeName = '';
+            updatedValues.evaluatee = '';
             updatedValues.evaluator = '';
             updatedValues.primaryCommentor = '';
             updatedValues.secondaryCommentor = '';
@@ -196,7 +193,6 @@ const PerformanceEvaluationCreateEvaluation = () => {
             if (updatedValues.primaryCommentor === value) updatedValues.primaryCommentor = '';
             setExtraCommentors(prev => prev.map(id => id === value ? '' : id));
         }
-
         setFormValues(updatedValues);
     };
 
@@ -250,80 +246,52 @@ const PerformanceEvaluationCreateEvaluation = () => {
         };
         fetchDepartments(formValues.branch);
     }, [formValues.branch]);
-
-
-    // Change the confition so that it can fetch the evaluatee regardless of user_type
+    
     useEffect(() => {
-        const fetchEmployees = async () => {
-            setIsLoading(true);
-            try {
-                // Get the logged-in user's ID
-                const storedUser = localStorage.getItem("nasya_user");
-                const currentUser = storedUser ? JSON.parse(storedUser) : null;
-                const currentUserId = currentUser?.id;
-
-                const params = {
-                    branch_id: formValues.branch,
-                    department_id: formValues.department,
-                    exclude: currentUserId ? [currentUserId] : undefined, // Exclude the current user
-                };
-                const response = await axiosInstance.get('/getEvaluatees', { params, headers });
-                if (response.data.status === 200) {
-                    setEmployees(response.data.evaluatees);
-                } else {
-                    setEmployees([]);
-                }
-            } catch (error) {
-                setEmployees([]);
-                console.error('Error fetching evaluatees:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        if (formValues.branch && formValues.department) {
-            fetchEmployees();
-        } else {
-            setEmployees([]);
-            setFormValues(prev => ({ ...prev, employeeName: '' }));
-        }
-    }, [formValues.branch, formValues.department]);
-        useEffect(() => {
-            setIsLoading(true);
-            axiosInstance.get('/getEvaluationForms', { headers })
-                .then((response) => {
-                    setEvaluationForm(response.data.evaluationForms || []);
-                })
-                .catch(() => {
-                    setEvaluationForm([]);
-                })
-                .finally(() => setIsLoading(false));
-        }, []);
+        setIsLoading(true);
+        axiosInstance.get('/getEvaluationForms', { headers })
+            .then((response) => {
+                setEvaluationForm(response.data.evaluationForms || []);
+            })
+            .catch(() => {
+                setEvaluationForm([]);
+            })
+            .finally(() => setIsLoading(false));
+    }, []);
 
     useEffect(() => {
-        const fetchAdmins = async () => {
+        const fetchUsers = async () => {
+            setIsLoading(true);
             setLoadingAdmins(true);
             try {
                 const params = {
                     branch_id: formValues.branch,
                     department_id: formValues.department,
                 };
-                const response = await axiosInstance.get('/getEvaluators', { params, headers });
-                if (response.data.status === 200) setAdmins(response.data.evaluators);
-                else setAdmins([]);
+                const response = await axiosInstance.get('/getEvaluationResponseUsers', { params, headers });
+                if (response.data.status === 200) {
+                    setEmployees(response.data.users);
+                    setAdmins(response.data.users);
+                } else {
+                    setEmployees([]);
+                    setAdmins([]);
+                }
             } catch (error) {
+                setEmployees([]);
                 setAdmins([]);
-                console.error('Error fetching evaluators:', error);
+                console.error('Error fetching users:', error);
             } finally {
+                setIsLoading(false);
                 setLoadingAdmins(false);
             }
         };
         if (formValues.branch && formValues.department) {
-            fetchAdmins();
+            fetchUsers();
         } else {
             setAdmins([]);
+            setFormValues(prev => ({ ...prev, evaluatee: '' }));
         }
     }, [formValues.branch, formValues.department]);
-
 
     // Render
     return (
@@ -409,9 +377,9 @@ const PerformanceEvaluationCreateEvaluation = () => {
                             <Autocomplete
                                 options={employees}
                                 getOptionLabel={option => getFullName(option) || ""}
-                                value={employees.find(b => b.id === formValues.employeeName) || null}
+                                value={employees.find(b => b.id === formValues.evaluatee) || null}
                                 onChange={(_, newValue) =>
-                                    handleChange({ name: 'employeeName' }, newValue ? newValue.id : "")
+                                    handleChange({ name: 'evaluatee' }, newValue ? newValue.id : "")
                                 }
                                 filterOptions={(options, { inputValue }) =>
                                     options.filter(
@@ -422,7 +390,7 @@ const PerformanceEvaluationCreateEvaluation = () => {
                                     <TextField {...params} label="Employee Name" variant="outlined" required />
                                 )}
                                 isOptionEqualToValue={(option, value) => option.id === value.id}
-                                loading={employees.length === 0 && formValues.department}
+                                loading={Boolean(employees.length === 0 && formValues.department)}
                             />
                         </Grid>
                     </Grid>
