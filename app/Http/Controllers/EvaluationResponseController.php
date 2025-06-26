@@ -1684,7 +1684,15 @@ class EvaluationResponseController extends Controller
                 'evaluationEvaluatorID' => $request->evaluator_id
             ]);
 
-            if( $evaluationEvaluator->deleted_at ) return response()->json([ 
+            $oldOrder = $evaluationEvaluator->order;
+            $newOrder = min(
+                EvaluationEvaluator
+                    ::where('response_id', $evaluationEvaluator->response_id)
+                    ->min('order')
+                , 1
+            ) - 1;
+
+            if($evaluationEvaluator->deleted_at) return response()->json([ 
                 'status' => 405,
                 'message' => 'Evaluation Evaluator already deleted!',
                 'evaluationResponseID' => $request->response_id,
@@ -1692,8 +1700,22 @@ class EvaluationResponseController extends Controller
             ]);
 
             $now = date('Y-m-d H:i');
+            $evaluationEvaluator->order = $newOrder;
             $evaluationEvaluator->deleted_at = $now;
             $evaluationEvaluator->save();
+
+            $evaluationEvaluatorsToMove = EvaluationEvaluator
+                ::where('response_id', $evaluationEvaluator->response_id)
+                ->where('order', '>', $oldOrder)
+                ->orderBy('order', 'asc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationEvaluatorsToMove as $evaluationEvaluatorToMove) {
+                $evaluationEvaluatorToMove->order = $curOrder;
+                $evaluationEvaluatorToMove->save();
+                $curOrder++;
+            }
 
             DB::commit();
 
@@ -2120,9 +2142,38 @@ class EvaluationResponseController extends Controller
                 'evaluationCommentorID' => $request->commentor_id
             ]);
 
+            $oldOrder = $evaluationCommentor->order;
+            $newOrder = min(
+                EvaluationCommentor
+                    ::where('response_id', $evaluationCommentor->response_id)
+                    ->min('order')
+                , 1
+            ) - 1;
+
+            if($evaluationCommentor->deleted_at) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation Commentor already deleted!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationCommentorID' => $request->evaluator_id
+            ]);
+
             $now = date('Y-m-d H:i');
+            $evaluationCommentor->order = $newOrder;
             $evaluationCommentor->deleted_at = $now;
             $evaluationCommentor->save();
+
+            $evaluationCommentorsToMove = EvaluationCommentor
+                ::where('response_id', $evaluationCommentor->response_id)
+                ->where('order', '>', $oldOrder)
+                ->orderBy('order', 'asc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationCommentorsToMove as $evaluationCommentorToMove) {
+                $evaluationCommentorToMove->order = $curOrder;
+                $evaluationCommentorToMove->save();
+                $curOrder++;
+            }
 
             DB::commit();
 
