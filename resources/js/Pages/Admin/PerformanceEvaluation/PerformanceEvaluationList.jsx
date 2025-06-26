@@ -266,7 +266,7 @@ const PerformanceEvaluationList = () => {
 
     return (
         <Layout title={"PerformanceEvaluation"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
+            <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: '100%', maxWidth: '1200px' }}>
                     {/* Title */}
                     <Box sx={{ mt: 5 }}>
