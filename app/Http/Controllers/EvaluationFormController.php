@@ -63,7 +63,7 @@ class EvaluationFormController extends Controller
         try {
             DB::beginTransaction();
 
-            $evaluationForm = EvaluationForm::find($request->id);
+            $evaluationForm = EvaluationForm::find(Crypt::decrypt($request->id));
             if (!$evaluationForm) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form not found!',
@@ -78,17 +78,17 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationForm' => [
-                    'id' => $evaluationForm->id,
+                'evaluationForm' => $evaluationForm ? [
+                    'id' => Crypt::encrypt($evaluationForm->id),
                     'name' => $evaluationForm->name,
-                    'creator_id' => $evaluationForm->creator_id,
-                    'creator_user_name' => $creator ? $creator->user_name : null,
+                    'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
+                    'creator_user_name' => $evaluationForm->creator_user_name,
                     'created_at' => $evaluationForm->created_at,
                     'updated_at' => $evaluationForm->updated_at,
-                    'deleted_at' => $evaluationForm->deleted_at,
-                ],
+                    'deleted_at' => $evaluationForm->deleted_at
+                ] : null,
                 'message' => 'Evaluation Form successfully deleted'
             ]);
         } catch (\Exception $e) {
@@ -143,7 +143,7 @@ class EvaluationFormController extends Controller
                     'evaluation_forms.created_at',
                     'evaluation_forms.updated_at'
                 )
-                ->where('evaluation_forms.id', $request->id)
+                ->where('evaluation_forms.id', Crypt::decrypt($request->id))
                 ->whereNull('evaluation_forms.deleted_at')
                 ->first()
             ;
@@ -161,8 +161,10 @@ class EvaluationFormController extends Controller
                 'message' => 'Evaluation Form Name is required!'
             ]);
 
-            $existingEvaluationForm =
-                EvaluationForm::where('name', $request->name)->where('id', '!=', $request->id)->first()
+            $existingEvaluationForm = EvaluationForm
+                ::where('name', $request->name)
+                ->where('id', '!=', Crypt::decrypt($request->id))
+                ->first()
             ;
 
             if( $existingEvaluationForm ) return response()->json([ 
@@ -176,9 +178,16 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationForm' => $evaluationForm,
+                'evaluationForm' => $evaluationForm ? [
+                    'id' => Crypt::encrypt($evaluationForm->id),
+                    'name' => $evaluationForm->name,
+                    'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
+                    'creator_user_name' => $evaluationForm->creator_user_name,
+                    'created_at' => $evaluationForm->created_at,
+                    'updated_at' => $evaluationForm->updated_at
+                ] : null,
                 'message' => 'Evaluation Form successfully updated'
             ]);
 
@@ -196,7 +205,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            id?: number,                        // either id or name must be given
+            id?: string,                        // either id or name must be given
             name?: string
         */
 
@@ -248,7 +257,7 @@ class EvaluationFormController extends Controller
                 )
                 ->where(
                     $getById ? 'evaluation_forms.id' : 'evaluation_forms.name',
-                    $getById ? $request->id : $request->name
+                    $getById ? Crypt::decrypt($request->id) : $request->name
                 )
                 ->whereNull('evaluation_forms.deleted_at')
                 ->with(['sections' => fn ($section) =>
@@ -280,14 +289,56 @@ class EvaluationFormController extends Controller
                 ])
                 ->first()
             ;
-            if( !$evaluationForm ) return response()->json([
+            if(!$evaluationForm) return response()->json([
                 'status' => 404,
                 'message' => 'Evaluation Form not found!'
             ]);
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Form successfully retrieved.',
-                'evaluationForm' => $evaluationForm
+                'evaluationForm' => $evaluationForm ? [
+                    'id' => Crypt::encrypt($evaluationForm->id),
+                    'name' => $evaluationForm->name,
+                    'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
+                    'creator_user_name' => $evaluationForm->creator_user_name,
+                    'created_at' => $evaluationForm->created_at,
+                    'updated_at' => $evaluationForm->updated_at,
+                    'sections' => $evaluationForm->sections->map(function ($section) {
+                        return [
+                            'form_id' => Crypt::encrypt($section->form_id),
+                            'id' => Crypt::encrypt($section->id),
+                            'name' => $section->name,
+                            'category' => $section->category,
+                            'score' => $section->score,
+                            'order' => $section->order,
+                            'description' => $section->description,
+                            'subcategories' => $section->subcategories->map(function ($subcategory) {
+                                return [
+                                    'section_id' => Crypt::encrypt($subcategory->section_id),
+                                    'id' => Crypt::encrypt($subcategory->id),
+                                    'name' => $subcategory->name,
+                                    'subcategory_type' => $subcategory->subcategory_type,
+                                    'description' => $subcategory->description,
+                                    'required' => $subcategory->required,
+                                    'allow_other_option' => $subcategory->allow_other_option,
+                                    'linear_scale_start' => $subcategory->linear_scale_start,
+                                    'linear_scale_end' => $subcategory->linear_scale_end,
+                                    'order' => $subcategory->order,
+                                    'options' => $subcategory->options->map(function ($option) {
+                                        return [
+                                            'subcategory_id' => Crypt::encrypt($option->subcategory_id),
+                                            'id' => Crypt::encrypt($option->id),
+                                            'label' => $option->label,
+                                            'score' => $option->score,
+                                            'order' => $option->order,
+                                            'description' => $option->description
+                                        ];
+                                    })
+                                ];
+                            })
+                        ];
+                    })
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -304,7 +355,7 @@ class EvaluationFormController extends Controller
     {
         // inputs:
         /*
-            creator_id?: number
+            creator_id?: string
         */
 
         // returns:
@@ -339,15 +390,20 @@ class EvaluationFormController extends Controller
                 ->whereNull('evaluation_forms.deleted_at')
             ;
             if( $request->creator_id ) {
-
-                $creator = DB::table('users')->select()->where('id', $request->creator_id)->first();
+                $creator = DB
+                    ::table('users')
+                    ->select()
+                    ->where('id', Crypt::decrypt($request->creator_id))
+                    ->first()
+                ;
                 if( !$creator ) return response()->json([ 
                     'status' => 404,
                     'message' => 'User creator not found!',
                     'creatorID' => $request->creator_id
                 ]);
-                $evaluationForms->where('evaluation_forms.creator_id', $request->creator_id);
-
+                $evaluationForms = $evaluationForms
+                    ->where('evaluation_forms.creator_id', Crypt::decrypt($request->creator_id))
+                ;
             }
             $evaluationForms = $evaluationForms->orderBy('name')->get();
             if( !$evaluationForms->count() ) return response()->json([
@@ -358,7 +414,16 @@ class EvaluationFormController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Forms successfully retrieved.',
-                'evaluationForms' => $evaluationForms
+                'evaluationForms' => $evaluationForms->map(function ($evaluationForm) {
+                    return [
+                        'id' => Crypt::encrypt($evaluationForm->id),
+                        'name' => $evaluationForm->name,
+                        'creator_id' => Crypt::encrypt($evaluationForm->creator_id),
+                        'creator_user_name' => $evaluationForm->creator_user_name,
+                        'created_at' => $evaluationForm->created_at,
+                        'updated_at' => $evaluationForm->updated_at
+                    ];
+                })
             ]);
 
         } catch (\Exception $e) {
@@ -426,9 +491,9 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 201,
-                'evaluationID' => $newEvaluationForm->id,
+                'evaluationFormID' => Crypt::encrypt($newEvaluationForm->id),
                 'message' => 'Evaluation Form successfully created'
             ]);
 
@@ -476,9 +541,9 @@ class EvaluationFormController extends Controller
 
             DB::beginTransaction();
 
-            $evaluationFormSection = EvaluationFormSection::find($request->id);
+            $evaluationFormSection = EvaluationFormSection::find(Crypt::decrypt($request->id));
 
-            if( !$evaluationFormSection ) return response()->json([ 
+            if(!$evaluationFormSection) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Section not found!',
                 'evaluationFormSectionID' => $request->id
@@ -488,7 +553,6 @@ class EvaluationFormController extends Controller
             $newOrder = min(
                 EvaluationFormSection
                     ::where('form_id', $evaluationFormSection->form_id)
-                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
@@ -513,9 +577,20 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationFormSection' => $evaluationFormSection,
+                'evaluationFormSection' => $evaluationFormSection ? [
+                    'id' => Crypt::encrypt($evaluationFormSection->id),
+                    'form_id' => Crypt::encrypt($evaluationFormSection->form_id),
+                    'order' => $evaluationFormSection->order,
+                    'score' => $evaluationFormSection->score,
+                    'name' => $evaluationFormSection->name,
+                    'description' => $evaluationFormSection->description,
+                    'created_at' => $evaluationFormSection->created_at,
+                    'updated_at' => $evaluationFormSection->updated_at,
+                    'deleted_at' => $evaluationFormSection->deleted_at,
+                    'category' => $evaluationFormSection->category
+                ] : null,
                 'message' => 'Evaluation Form Section successfully deleted'
             ]);
 
@@ -570,7 +645,7 @@ class EvaluationFormController extends Controller
                     'id', 'form_id', 'name', 'category', 'order', 'created_at',
                     'updated_at'
                 )
-                ->where('id', $request->id)
+                ->where('id', Crypt::decrypt($request->id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -592,9 +667,17 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationFormSection' => $evaluationFormSection,
+                'evaluationFormSection' => $evaluationFormSection ? [
+                    'id' => Crypt::encrypt($evaluationFormSection->id),
+                    'form_id' => Crypt::encrypt($evaluationFormSection->form_id),
+                    'name' => $evaluationFormSection->name,
+                    'category' => $evaluationFormSection->category,
+                    'order' => $evaluationFormSection->order,
+                    'created_at' => $evaluationFormSection->created_at,
+                    'updated_at' => $evaluationFormSection->updated_at
+                ] : null,
                 'message' => 'Evaluation Form Section successfully updated'
             ]);
 
@@ -643,7 +726,7 @@ class EvaluationFormController extends Controller
 
             $evaluationFormSection = EvaluationFormSection
                 ::select('form_id', 'id', 'name', 'category', 'score', 'order')
-                ->where('id', $request->id)
+                ->where('id', Crypt::decrypt($request->id))
                 ->with(['subcategories' => fn ($subcategory) =>
                     $subcategory
                         ->whereNull('deleted_at')
@@ -666,7 +749,6 @@ class EvaluationFormController extends Controller
                         ])
                         ->orderBy('order')
                 ])
-                ->orderBy('order')
                 ->first()
             ;
             if( !$evaluationFormSection ) return response()->json([
@@ -676,7 +758,37 @@ class EvaluationFormController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Form Section successfully retrieved.',
-                'evaluationFormSection' => $evaluationFormSection
+                'evaluationFormSection' => $evaluationFormSection ? [
+                    'form_id' => Crypt::encrypt($evaluationFormSection->form_id),
+                    'id' => Crypt::encrypt($evaluationFormSection->id),
+                    'name' => $evaluationFormSection->name,
+                    'category' => $evaluationFormSection->category,
+                    'score' => $evaluationFormSection->score,
+                    'order' => $evaluationFormSection->order,
+                    'subcategories' => $evaluationFormSection->subcategories->map(function ($subcategory) {
+                        return [
+                            'section_id' => Crypt::encrypt($subcategory->section_id),
+                            'id' => Crypt::encrypt($subcategory->id),
+                            'name' => $subcategory->name,
+                            'subcategory_type' => $subcategory->subcategory_type,
+                            'description' => $subcategory->description,
+                            'required' => $subcategory->required,
+                            'allow_other_option' => $subcategory->allow_other_option,
+                            'linear_scale_start' => $subcategory->linear_scale_start,
+                            'linear_scale_end' => $subcategory->linear_scale_end,
+                            'order' => $subcategory->order,
+                            'options' => $subcategory->options->map(function ($option) {
+                                return [
+                                    'subcategory_id' => Crypt::encrypt($option->subcategory_id),
+                                    'id' => Crypt::encrypt($option->id),
+                                    'label' => $option->label,
+                                    'score' => $option->score,
+                                    'order' => $option->order
+                                ];
+                            })
+                        ];
+                    })
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -725,7 +837,7 @@ class EvaluationFormController extends Controller
 
             $evaluationFormSection = EvaluationFormSection
                 ::select( 'id', 'form_id', 'name', 'order', 'created_at', 'updated_at' )
-                ->where('id', $request->id)
+                ->where('id', Crypt::decrypt($request->id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -740,9 +852,8 @@ class EvaluationFormController extends Controller
             $newOrder = $request->order;
             if($oldOrder === $newOrder) return response()->json([ 
                 'status' => 204,
-                'evaluationFormSection' => $evaluationFormSection,
-                'oldOrder' => $oldOrder,
-                'newOrder' => $newOrder,
+                'evaluationFormSectionID' => $request->id,
+                'order' => $newOrder,
                 'message' => 'Current order and new order input are the same!'
             ]);
             $tempOrder = (
@@ -751,7 +862,7 @@ class EvaluationFormController extends Controller
                     ->max('order')
                 ?? 0
             ) + 1;
-            if( $newOrder >= $tempOrder || $newOrder < 0 ) return response()->json([ 
+            if( $newOrder >= $tempOrder || $newOrder < 1 ) return response()->json([ 
                 'status' => 400,
                 'message' => 'Evaluation Form Section Order is not within valid range!',
                 'evaluationFormSectionID' => $request->id
@@ -780,13 +891,18 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationFormSection' => $evaluationFormSection,
+                'evaluationFormSection' => $evaluationFormSection ? [
+                    'id' => $request->id,
+                    'form_id' => $request->form_id,
+                    'name' => $evaluationFormSection->name,
+                    'order' => $evaluationFormSection->order,
+                    'created_at' => $evaluationFormSection->created_at,
+                    'updated_at' => $evaluationFormSection->updated_at
+                ] : null,
                 'message' => 'Evaluation Form Section successfully moved'
             ]);
-
-
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -831,19 +947,20 @@ class EvaluationFormController extends Controller
             DB::beginTransaction();
 
             $isEmptyName = !$request->name;
-
             if( $isEmptyName ) return response()->json([ 
                 'status' => 400,
                 'message' => 'Evaluation Form Section Name is required!'
             ]);
 
             $order = (
-                EvaluationFormSection::where('form_id', $request->form_id)->max('order')
+                EvaluationFormSection
+                    ::where('form_id', Crypt::decrypt($request->form_id))
+                    ->max('order')
                 ?? 0
             ) + 1;
 
             $newEvaluationFormSection = EvaluationFormSection::create([
-                'form_id' => $request->form_id,
+                'form_id' => Crypt::decrypt($request->form_id),
                 'name' => $request->name,
                 'category' => $request->category,
                 'order' => $order,
@@ -854,7 +971,7 @@ class EvaluationFormController extends Controller
 
             return response()->json([ 
                 'status' => 201,
-                'evaluationFormSectionID' => $newEvaluationFormSection->id,
+                'evaluationFormSectionID' => Crypt::encrypt($newEvaluationFormSection->id),
                 'message' => 'Evaluation Form Section successfully created'
             ]);
 
@@ -890,7 +1007,7 @@ class EvaluationFormController extends Controller
 
             DB::beginTransaction();
 
-            $evaluationFormSubcategory = EvaluationFormSubcategory::find($request->id);
+            $evaluationFormSubcategory = EvaluationFormSubcategory::find(Crypt::decrypt($request->id));
 
             if( !$evaluationFormSubcategory ) return response()->json([ 
                 'status' => 404,
@@ -902,7 +1019,6 @@ class EvaluationFormController extends Controller
             $newOrder = min(
                 EvaluationFormSubcategory
                     ::where('section_id', $evaluationFormSubcategory->section_id)
-                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
@@ -927,9 +1043,25 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationFormSubcategory' => $evaluationFormSubcategory,
+                'evaluationFormSubcategory' => $evaluationFormSubcategory ? [
+                    'id' => Crypt::encrypt($evaluationFormSubcategory->id),
+                    'order' => $evaluationFormSubcategory->order,
+                    'name' => $evaluationFormSubcategory->name,
+                    'subcategory_type' => $evaluationFormSubcategory->subcategory_type,
+                    'description' => $evaluationFormSubcategory->description,
+                    'required' => $evaluationFormSubcategory->required,
+                    'allow_other_option' => $evaluationFormSubcategory->allow_other_option,
+                    'linear_scale_start' => $evaluationFormSubcategory->linear_scale_start,
+                    'linear_scale_end' => $evaluationFormSubcategory->linear_scale_end,
+                    'linear_scale_start_label' => $evaluationFormSubcategory->linear_scale_start_label,
+                    'linear_scale_end_label' => $evaluationFormSubcategory->linear_scale_end_label,
+                    'created_at' => $evaluationFormSubcategory->created_at,
+                    'updated_at' => $evaluationFormSubcategory->updated_at,
+                    'deleted_at' => $evaluationFormSubcategory->deleted_at,
+                    'section_id' => Crypt::encrypt($evaluationFormSubcategory->section_id)
+                ] : null,
                 'message' => 'Evaluation Form Subcategory successfully deleted'
             ]);
 
@@ -971,12 +1103,12 @@ class EvaluationFormController extends Controller
                     'linear_scale_start', 'linear_scale_end', 'order', 'created_at',
                     'updated_at'
                 )
-                ->where('id', $request->id)
+                ->where('id', Crypt::decrypt($request->id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
 
-            if( !$evaluationFormSubcategory ) return response()->json([ 
+            if(!$evaluationFormSubcategory) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Subcategory not found!',
                 'evaluationFormSubcategoryID' => $request->id
@@ -1051,9 +1183,24 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationFormSubcategory' => $evaluationFormSubcategory,
+                'evaluationFormSubcategory' => $evaluationFormSubcategory ? [
+                    'id' => Crypt::encrypt($evaluationFormSubcategory->id),
+                    'section_id' => Crypt::encrypt($evaluationFormSubcategory->section_id),
+                    'name' => $evaluationFormSubcategory->name,
+                    'description' => $evaluationFormSubcategory->description,
+                    'subcategory_type' => $evaluationFormSubcategory->subcategory_type,
+                    'required' => $evaluationFormSubcategory->required,
+                    'allow_other_option' => $evaluationFormSubcategory->allow_other_option,
+                    'linear_scale_start' => $evaluationFormSubcategory->linear_scale_start,
+                    'linear_scale_end' => $evaluationFormSubcategory->linear_scale_end,
+                    'order' => $evaluationFormSubcategory->order,
+                    'created_at' => $evaluationFormSubcategory->created_at,
+                    'updated_at' => $evaluationFormSubcategory->updated_at,
+                    'linear_scale_start_label' => $evaluationFormSubcategory->linear_scale_start_label,
+                    'linear_scale_end_label' => $evaluationFormSubcategory->linear_scale_end_label
+                ] : null,
                 'message' => 'Evaluation Form Subcategory successfully updated'
             ]);
 
@@ -1089,7 +1236,7 @@ class EvaluationFormController extends Controller
                     'linear_scale_start_label', 'linear_scale_end_label',
                     'order'
                 )
-                ->where('id', $request->id)
+                ->where('id', Crypt::decrypt($request->id))
                 ->whereNull('deleted_at')
                 ->with(['options' => function ($option) {
                     $option
@@ -1108,10 +1255,34 @@ class EvaluationFormController extends Controller
                     'message' => 'Evaluation Form Subcategory not found!'
                 ]);
             }
+            $encryptedSubcategoryID = Crypt::encrypt($evaluationFormSubcategory->id);
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Form Subcategory successfully retrieved.',
-                'evaluationFormSubcategory' => $evaluationFormSubcategory
+                'evaluationFormSubcategory' => $evaluationFormSubcategory ? [
+                    'section_id' => Crypt::encrypt($evaluationFormSubcategory->section_id),
+                    'id' => $encryptedSubcategoryID,
+                    'name' => $evaluationFormSubcategory->name,
+                    'subcategory_type' => $evaluationFormSubcategory->subcategory_type,
+                    'description' => $evaluationFormSubcategory->description,
+                    'required' => $evaluationFormSubcategory->required,
+                    'allow_other_option' => $evaluationFormSubcategory->allow_other_option,
+                    'linear_scale_start' => $evaluationFormSubcategory->linear_scale_start,
+                    'linear_scale_end' => $evaluationFormSubcategory->linear_scale_end,
+                    'linear_scale_start_label' => $evaluationFormSubcategory->linear_scale_start_label,
+                    'linear_scale_end_label' => $evaluationFormSubcategory->linear_scale_end_label,
+                    'order' => $evaluationFormSubcategory->order,
+                    'options' => $evaluationFormSubcategory->options->map(function ($option) use($encryptedSubcategoryID) {
+                        return [
+                            'subcategory_id' => $encryptedSubcategoryID,
+                            'id' => Crypt::encrypt($option->id),
+                            'label' => $option->label,
+                            'score' => $option->score,
+                            'order' => $option->order,
+                            'description' => $option->description
+                        ];
+                    })
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -1157,7 +1328,7 @@ class EvaluationFormController extends Controller
 
             $evaluationFormSubcategory = EvaluationFormSubcategory
                 ::select( 'id', 'section_id', 'name', 'order', 'created_at', 'updated_at' )
-                ->where('id', $request->id)
+                ->where('id', Crypt::decrypt($request->id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -1172,9 +1343,8 @@ class EvaluationFormController extends Controller
             $newOrder = $request->order;
             if($oldOrder === $newOrder) return response()->json([ 
                 'status' => 204,
-                'evaluationFormSubcategory' => $evaluationFormSubcategory,
-                'oldOrder' => $oldOrder,
-                'newOrder' => $newOrder,
+                'evaluationFormSubcategoryID' => $request->id,
+                'order' => $oldOrder,
                 'message' => 'Current order and new order input are the same!'
             ]);
             $tempOrder = (
@@ -1183,7 +1353,7 @@ class EvaluationFormController extends Controller
                     ->max('order')
                 ?? 0
             ) + 1;
-            if( $newOrder >= $tempOrder || $newOrder < 0 ) return response()->json([ 
+            if( $newOrder >= $tempOrder || $newOrder < 1 ) return response()->json([ 
                 'status' => 400,
                 'message' => 'Evaluation Form Subcategory Order is not within valid range!',
                 'evaluationFormSubcategoryID' => $request->id
@@ -1212,9 +1382,16 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationFormSubcategory' => $evaluationFormSubcategory,
+                'evaluationFormSubcategory' => $evaluationFormSubcategory ? [
+                    'id' => Crypt::encrypt($evaluationFormSubcategory->id),
+                    'section_id' => Crypt::encrypt($evaluationFormSubcategory->section_id),
+                    'name' => $evaluationFormSubcategory->name,
+                    'order' => $evaluationFormSubcategory->order,
+                    'created_at' => $evaluationFormSubcategory->created_at,
+                    'updated_at' => $evaluationFormSubcategory->updated_at
+                ] : null,
                 'oldOrder' => $oldOrder,
                 'newOrder' => $newOrder,
                 'message' => 'Evaluation Form Subcategory successfully moved'
@@ -1248,18 +1425,14 @@ class EvaluationFormController extends Controller
             DB::beginTransaction();
 
             // Validate required fields
-            if (!$request->name) {
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'Evaluation Form Subcategory Name is required!'
-                ]);
-            }
-            if (!$request->description) {
-                return response()->json([
-                    'status' => 400,
-                    'message' => 'Evaluation Form Subcategory Description is required!'
-                ]);
-            }
+            if (!$request->name) return response()->json([
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Name is required!'
+            ]);
+            if (!$request->description) return response()->json([
+                'status' => 400,
+                'message' => 'Evaluation Form Subcategory Description is required!'
+            ]);
 
             $subcategoryTypes = [
                 'short_answer', 'long_answer', 'multiple_choice', 'checkbox', 'linear_scale'
@@ -1272,119 +1445,122 @@ class EvaluationFormController extends Controller
             }
 
             // ---- UPDATE LOGIC ----
-            if ($request->id) {
-                $subcategory = \App\Models\EvaluationFormSubcategory::find($request->id);
-                if (!$subcategory) {
-                    return response()->json([
-                        'status' => 404,
-                        'message' => 'Subcategory not found!'
-                    ]);
-                }
-                $subcategory->name = $request->name;
-                $subcategory->subcategory_type = $request->subcategory_type;
-                $subcategory->description = $request->description;
-                $subcategory->required = 1;
-                $subcategory->allow_other_option = $request->allow_other_option ?? 0;
+            // if ($request->id) {
+            //     $subcategory = EvaluationFormSubcategory::find($request->id);
+            //     if (!$subcategory) {
+            //         return response()->json([
+            //             'status' => 404,
+            //             'message' => 'Subcategory not found!'
+            //         ]);
+            //     }
+            //     $subcategory->name = $request->name;
+            //     $subcategory->subcategory_type = $request->subcategory_type;
+            //     $subcategory->description = $request->description;
+            //     $subcategory->required = 1;
+            //     $subcategory->allow_other_option = $request->allow_other_option ?? 0;
 
-                // Only handle linear scale fields if type is linear_scale
-                // if ($request->subcategory_type === 'linear_scale') {
-                //     if ($request->linear_scale_start < 0 || $request->linear_scale_end < 0) {
-                //         return response()->json([
-                //             'status' => 400,
-                //             'message' => 'Linear Scale Value cannot be negative!'
-                //         ]);
-                //     }
-                //     if (
-                //         is_numeric($request->linear_scale_start)
-                //         && is_numeric($request->linear_scale_end)
-                //         && $request->linear_scale_start >= $request->linear_scale_end
-                //     ) {
-                //         return response()->json([
-                //             'status' => 400,
-                //             'message' => 'Linear Scale Start must be less than End!'
-                //         ]);
-                //     }
-                //     if (!$request->linear_scale_start_label) {
-                //         return response()->json([
-                //             'status' => 400,
-                //             'message' => 'Linear Scale Start Label is required!'
-                //         ]);
-                //     }
-                //     if (!$request->linear_scale_end_label) {
-                //         return response()->json([
-                //             'status' => 400,
-                //             'message' => 'Linear Scale End Label is required!'
-                //         ]);
-                //     }
-                //     $subcategory->linear_scale_start = $request->linear_scale_start;
-                //     $subcategory->linear_scale_end = $request->linear_scale_end;
-                //     $subcategory->linear_scale_start_label = $request->linear_scale_start_label;
-                //     $subcategory->linear_scale_end_label = $request->linear_scale_end_label;
-                // } else {
-                //     $subcategory->linear_scale_start = null;
-                //     $subcategory->linear_scale_end = null;
-                //     $subcategory->linear_scale_start_label = null;
-                //     $subcategory->linear_scale_end_label = null;
-                // }
+            //     // Only handle linear scale fields if type is linear_scale
+            //     // if ($request->subcategory_type === 'linear_scale') {
+            //     //     if ($request->linear_scale_start < 0 || $request->linear_scale_end < 0) {
+            //     //         return response()->json([
+            //     //             'status' => 400,
+            //     //             'message' => 'Linear Scale Value cannot be negative!'
+            //     //         ]);
+            //     //     }
+            //     //     if (
+            //     //         is_numeric($request->linear_scale_start)
+            //     //         && is_numeric($request->linear_scale_end)
+            //     //         && $request->linear_scale_start >= $request->linear_scale_end
+            //     //     ) {
+            //     //         return response()->json([
+            //     //             'status' => 400,
+            //     //             'message' => 'Linear Scale Start must be less than End!'
+            //     //         ]);
+            //     //     }
+            //     //     if (!$request->linear_scale_start_label) {
+            //     //         return response()->json([
+            //     //             'status' => 400,
+            //     //             'message' => 'Linear Scale Start Label is required!'
+            //     //         ]);
+            //     //     }
+            //     //     if (!$request->linear_scale_end_label) {
+            //     //         return response()->json([
+            //     //             'status' => 400,
+            //     //             'message' => 'Linear Scale End Label is required!'
+            //     //         ]);
+            //     //     }
+            //     //     $subcategory->linear_scale_start = $request->linear_scale_start;
+            //     //     $subcategory->linear_scale_end = $request->linear_scale_end;
+            //     //     $subcategory->linear_scale_start_label = $request->linear_scale_start_label;
+            //     //     $subcategory->linear_scale_end_label = $request->linear_scale_end_label;
+            //     // } else {
+            //     //     $subcategory->linear_scale_start = null;
+            //     //     $subcategory->linear_scale_end = null;
+            //     //     $subcategory->linear_scale_start_label = null;
+            //     //     $subcategory->linear_scale_end_label = null;
+            //     // }
 
-                $subcategory->save();
+            //     $subcategory->save();
 
-                // ---- BATCH REPLACE OPTIONS ----
-                if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear_scale'])) {
-                    // Remove ALL existing options
-                    \App\Models\EvaluationFormSubcategoryOption::where('subcategory_id', $subcategory->id)->delete();
-                    // Add all new options
-                    if ($request->options && is_array($request->options)) {
-                        $labels = [];
-                        foreach ($request->options as $optionOrder => $option) {
-                            $label = $option["label"] ?? null;
-                            if (!$label) {
-                                return response()->json([
-                                    'status' => 400,
-                                    'message' => 'Option Labels are required!'
-                                ]);
-                            }
-                            if (in_array($label, $labels)) {
-                                return response()->json([
-                                    'status' => 409,
-                                    'message' => 'Option Labels must be unique!'
-                                ]);
-                            }
-                            $labels[] = $label;
-                            \App\Models\EvaluationFormSubcategoryOption::create([
-                                'subcategory_id' => $subcategory->id,
-                                'label' => $label,
-                                'score' => (isset($option['score']) && is_numeric($option['score'])
-                                ? (double) $option['score']
-                                : ($request->subcategory_type === 'linear_scale' ? $optionOrder + 1 : 1)
-                            ),
-                                'order' => $optionOrder + 1,
-                                'description' => $option['description'] ?? null,
+            //     // ---- BATCH REPLACE OPTIONS ----
+            //     if (in_array($request->subcategory_type, ['multiple_choice', 'checkbox', 'linear_scale'])) {
+            //         // Remove ALL existing options
+            //         \App\Models\EvaluationFormSubcategoryOption::where('subcategory_id', $subcategory->id)->delete();
+            //         // Add all new options
+            //         if ($request->options && is_array($request->options)) {
+            //             $labels = [];
+            //             foreach ($request->options as $optionOrder => $option) {
+            //                 $label = $option["label"] ?? null;
+            //                 if (!$label) {
+            //                     return response()->json([
+            //                         'status' => 400,
+            //                         'message' => 'Option Labels are required!'
+            //                     ]);
+            //                 }
+            //                 if (in_array($label, $labels)) {
+            //                     return response()->json([
+            //                         'status' => 409,
+            //                         'message' => 'Option Labels must be unique!'
+            //                     ]);
+            //                 }
+            //                 $labels[] = $label;
+            //                 \App\Models\EvaluationFormSubcategoryOption::create([
+            //                     'subcategory_id' => $subcategory->id,
+            //                     'label' => $label,
+            //                     'score' => (isset($option['score']) && is_numeric($option['score'])
+            //                     ? (double) $option['score']
+            //                     : ($request->subcategory_type === 'linear_scale' ? $optionOrder + 1 : 1)
+            //                 ),
+            //                     'order' => $optionOrder + 1,
+            //                     'description' => $option['description'] ?? null,
                                 
-                            ]);
-                        }
-                    }
-                } else {
-                    // For other types, ensure all options are removed
-                    \App\Models\EvaluationFormSubcategoryOption::where('subcategory_id', $subcategory->id)->delete();
-                }
+            //                 ]);
+            //             }
+            //         }
+            //     } else {
+            //         // For other types, ensure all options are removed
+            //         \App\Models\EvaluationFormSubcategoryOption::where('subcategory_id', $subcategory->id)->delete();
+            //     }
 
-                DB::commit();
+            //     DB::commit();
 
-                return response()->json([
-                    'status' => 200,
-                    'evaluationFormSubcategoryID' => $subcategory->id,
-                    'message' => 'Evaluation Form Subcategory successfully updated'
-                ]);
-            }
+            //     return response()->json([
+            //         'status' => 200,
+            //         'evaluationFormSubcategoryID' => $subcategory->id,
+            //         'message' => 'Evaluation Form Subcategory successfully updated'
+            //     ]);
+            // }
 
             // ---- CREATE LOGIC (your original code, unchanged) ----
 
             $order = (
-                \App\Models\EvaluationFormSubcategory::where('section_id', $request->section_id)->max('order') ?? 0
+                EvaluationFormSubcategory
+                    ::where('section_id', Crypt::decrypt($request->section_id)
+                    )->max('order')
+                ?? 0
             ) + 1;
             $data = [
-                'section_id' => $request->section_id,
+                'section_id' => Crypt::decrypt($request->section_id),
                 'name' => $request->name,
                 'subcategory_type' => $request->subcategory_type,
                 'description' => $request->description,
@@ -1434,7 +1610,7 @@ class EvaluationFormController extends Controller
 
             return response()->json([
                 'status' => 201,
-                'evaluationFormSubcategoryID' => $newEvaluationFormSubcategory->id,
+                'evaluationFormSubcategoryID' => Crypt::encrypt($newEvaluationFormSubcategory->id),
                 'message' => 'Evaluation Form Subcategory successfully created'
             ]);
         } catch (\Exception $e) {
@@ -1465,9 +1641,11 @@ class EvaluationFormController extends Controller
 
             DB::beginTransaction();
 
-            $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::find($request->id);
+            $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
+                ::find(Crypt::decrypt($request->id))
+            ;
 
-            if( !$evaluationFormSubcategoryOption ) return response()->json([ 
+            if(!$evaluationFormSubcategoryOption) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Subcategory Option not found!',
                 'evaluationFormSubcategoryOptionID' => $request->id
@@ -1477,16 +1655,15 @@ class EvaluationFormController extends Controller
             $newOrder = min(
                 EvaluationFormSubcategoryOption
                     ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
-                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
-            
+
             $now = date('Y-m-d H:i');
             $evaluationFormSubcategoryOption->order = $newOrder;
             $evaluationFormSubcategoryOption->deleted_at = $now;
             $evaluationFormSubcategoryOption->save();
-            
+
             $evaluationFormSubcategoryOptionsToMove = EvaluationFormSubcategoryOption
                 ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
                 ->where('order', '>', $oldOrder)
@@ -1502,9 +1679,19 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
+            return response()->json([
                 'status' => 200,
-                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption,
+                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption ? [
+                    'id' => Crypt::encrypt($evaluationFormSubcategoryOption->id),
+                    'subcategory_id' => Crypt::encrypt($evaluationFormSubcategoryOption->subcategory_id),
+                    'order' => $evaluationFormSubcategoryOption->order,
+                    'score' => $evaluationFormSubcategoryOption->score,
+                    'label' => $evaluationFormSubcategoryOption->label,
+                    'description' => $evaluationFormSubcategoryOption->description,
+                    'created_at' => $evaluationFormSubcategoryOption->created_at,
+                    'updated_at' => $evaluationFormSubcategoryOption->updated_at,
+                    'deleted_at' => $evaluationFormSubcategoryOption->deleted_at
+                ] : null,
                 'message' => 'Evaluation Form Subcategory Option successfully deleted'
             ]);
 
@@ -1541,12 +1728,12 @@ class EvaluationFormController extends Controller
 
             $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
                 ::select('id', 'subcategory_id', 'label', 'description', 'score', 'order', 'created_at', 'updated_at')
-                ->where('id', $request->id)
+                ->where('id', Crypt::decrypt($request->id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
 
-            if( !$evaluationFormSubcategoryOption ) return response()->json([ 
+            if(!$evaluationFormSubcategoryOption) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Form Subcategory Option not found!',
                 'evaluationFormSubcategoryOptionID' => $request->id
@@ -1577,7 +1764,16 @@ class EvaluationFormController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption,
+                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption ? [
+                    'id' => Crypt::encrypt($evaluationFormSubcategoryOption->id),
+                    'subcategory_id' => Crypt::encrypt($evaluationFormSubcategoryOption->subcategory_id),
+                    'label' => $evaluationFormSubcategoryOption->label,
+                    'description' => $evaluationFormSubcategoryOption->description,
+                    'score' => $evaluationFormSubcategoryOption->score,
+                    'order' => $evaluationFormSubcategoryOption->order,
+                    'created_at' => $evaluationFormSubcategoryOption->created_at,
+                    'updated_at' => $evaluationFormSubcategoryOption->updated_at
+                ] : null,
                 'message' => 'Evaluation Form Subcategory Option successfully updated'
             ]);
 
@@ -1611,7 +1807,7 @@ class EvaluationFormController extends Controller
                     'subcategory_id', 'id',
                     'label', 'score', 'order', 'description'
                 )
-                ->where('id', $request->id)
+                ->where('id', Crypt::decrypt($request->id))
                 ->whereNull('deleted_at')
                 ->orderBy('order')
                 ->first()
@@ -1623,7 +1819,14 @@ class EvaluationFormController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Form Subcategory Option successfully retrieved.',
-                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption
+                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption ? [
+                    'subcategory_id' => Crypt::encrypt($evaluationFormSubcategoryOption->subcategory_id),
+                    'id' => Crypt::encrypt($evaluationFormSubcategoryOption->id),
+                    'label' => $evaluationFormSubcategoryOption->label,
+                    'score' => $evaluationFormSubcategoryOption->score,
+                    'order' => $evaluationFormSubcategoryOption->order,
+                    'description' => $evaluationFormSubcategoryOption->description
+                ] : null
             ]);
 
         } catch (\Exception $e) {
@@ -1672,7 +1875,7 @@ class EvaluationFormController extends Controller
 
             $evaluationFormSubcategoryOption = EvaluationFormSubcategoryOption
                 ::select('id', 'subcategory_id', 'label', 'score', 'order', 'created_at', 'updated_at')
-                ->where('id', $request->id)
+                ->where('id', Crypt::decrypt($request->id))
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -1687,9 +1890,8 @@ class EvaluationFormController extends Controller
             $newOrder = $request->order;
             if($oldOrder === $newOrder) return response()->json([ 
                 'status' => 204,
-                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption,
-                'oldOrder' => $oldOrder,
-                'newOrder' => $newOrder,
+                'evaluationFormSubcategoryOptionID' => $request->id,
+                'order' => $oldOrder,
                 'message' => 'Current order and new order input are the same!'
             ]);
             $tempOrder = (
@@ -1727,9 +1929,17 @@ class EvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json([ 
-                'status' => 200,
-                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption,
+            return response()->json([
+		        'status' => 200,
+                'evaluationFormSubcategoryOption' => $evaluationFormSubcategoryOption ? [
+                    'id' => Crypt::encrypt($evaluationFormSubcategoryOption->id),
+                    'subcategory_id' => Crypt::encrypt($evaluationFormSubcategoryOption->subcategory_id),
+                    'label' => $evaluationFormSubcategoryOption->label,
+                    'score' => $evaluationFormSubcategoryOption->score,
+                    'order' => $evaluationFormSubcategoryOption->order,
+                    'created_at' => $evaluationFormSubcategoryOption->created_at,
+                    'updated_at' => $evaluationFormSubcategoryOption->updated_at
+                ] : null,
                 'oldOrder' => $oldOrder,
                 'newOrder' => $newOrder,
                 'message' => 'Evaluation Form Subcategory Option successfully moved'
@@ -1771,7 +1981,10 @@ class EvaluationFormController extends Controller
             ]);
 
             // Fetch the subcategory to check its type
-            $subcategory = EvaluationFormSubcategory::where('id', $request->subcategory_id)->first();
+            $subcategory = EvaluationFormSubcategory
+                ::where('id', Crypt::decrypt($request->subcategory_id))
+                ->first()
+            ;
             if (!$subcategory) return response()->json([
                 'status' => 404,
                 'message' => 'Evaluation Form Subcategory not found!'
@@ -1792,12 +2005,14 @@ class EvaluationFormController extends Controller
             ]);
 
             $order = (
-                EvaluationFormSubcategoryOption::where('subcategory_id', $request->subcategory_id)->max('order')
+                EvaluationFormSubcategoryOption
+                    ::where('subcategory_id', Crypt::decrypt($request->subcategory_id))
+                    ->max('order')
                 ?? 0
             ) + 1;
 
             $newEvaluationFormSubcategoryOption = EvaluationFormSubcategoryOption::create([
-                'subcategory_id' => $request->subcategory_id,
+                'subcategory_id' => Crypt::decrypt($request->subcategory_id),
                 'label' => $request->label,
                 'score' => (is_numeric($request->score) ? (double) $request->score : 1),
                 'order' => $order,
@@ -1808,7 +2023,7 @@ class EvaluationFormController extends Controller
 
             return response()->json([
                 'status' => 201,
-                'evaluationSubcategoryOptionID' => $newEvaluationFormSubcategoryOption->id,
+                'evaluationSubcategoryOptionID' => Crypt::encrypt($newEvaluationFormSubcategoryOption->id),
                 'message' => 'Evaluation Form Subcategory Option successfully created'
             ]);
 
