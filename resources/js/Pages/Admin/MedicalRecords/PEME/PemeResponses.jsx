@@ -47,18 +47,26 @@ const PemeResponses = () => {
     const [pemeResponses, setPemeResponses] = useState([]);
     const [respondents, setRespondents] = useState([]);
 
+    const [loadingSettings, setLoadingSettings] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
     const [dueDate, setDueDate] = useState(null);
     const [settingsOpen, setSettingsOpen] = useState(false);
-    const [visible, setVisible] = useState(true);
-    const [multiple, setMultiple] = useState(true);
-    const [editable, setEditable] = useState(true);
+    const [visible, setVisible] = useState(null);
+    const [multiple, setMultiple] = useState(null);
+    const [editable, setEditable] = useState(null);
 
     // FETCH THE QUESTIONNAIRE STRUCTURE FOR THE GIVEN PEME ID
     useEffect(() => {
+        if (!settingsOpen) return;
+
+        setVisible(null);
+        setEditable(null);
+        setMultiple(null);
+        setLoadingSettings(true);
+
         axiosInstance
             .get(`/peme/${PemeID}/questionnaire`, { headers })
             .then((response) => {
@@ -71,8 +79,31 @@ const PemeResponses = () => {
             .catch((error) => {
                 console.error("Error fetching PEME records:", error);
                 setIsLoading(false);
+            })
+            .finally(() => {
+                setLoadingSettings(false);
             });
-    }, [visible, editable, multiple]);
+    }, [settingsOpen]);
+
+    useEffect(() => {
+        setLoadingSettings(true);
+
+        axiosInstance
+            .get(`/peme/${PemeID}/questionnaire`, { headers })
+            .then((response) => {
+                setPemeRecords(response.data);
+                setVisible(response.data.isVisible);
+                setEditable(response.data.isEditable);
+                setMultiple(response.data.isMultiple);
+                setLoadingSettings(false);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching PEME records:", error);
+                setLoadingSettings(false);
+                setIsLoading(false);
+            });
+    }, []);
 
     // FETCH PEME RESPONSES FOR THE GIVEN PEME ID
     useEffect(() => {
@@ -415,6 +446,7 @@ const PemeResponses = () => {
                 hasRespondents={hasRespondents}
                 pemeRecords={pemeRecords}
                 headers={headers}
+                loading={loadingSettings}
             />
         </Layout>
     );

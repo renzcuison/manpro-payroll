@@ -816,10 +816,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // PEME Responses
     Route::post('/peme-responses/storeAll', [PemeResponseController::class, 'storeAll']);
-
     Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
-
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
     Route::get('/peme-responses/{id}/all', [PemeResponseController::class, 'showAll']);
     Route::patch('/peme-responses/{id}/status', [PemeResponseController::class, 'updateResponse']);
@@ -832,12 +830,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
     Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
     Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
-    // Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
     Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);
     Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
     Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
     Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
     Route::get('/peme-response-details/download/{id}', [PemeResponseDetailsController::class, 'download']);
+
 
     Route::put('/public-event/{id}', [GoogleController::class, 'updatePublicEvent', ]);
     Route::delete('/public-event/{id}', [GoogleController::class, 'deletePublicEvent', ]);
