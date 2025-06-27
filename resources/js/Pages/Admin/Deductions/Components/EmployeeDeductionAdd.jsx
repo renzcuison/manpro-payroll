@@ -17,7 +17,7 @@ const EmployeeDeductionAdd = ({ userName, onClose }) => {
         event.preventDefault();
         setDeductionError(!deduction || deduction == '' ? true : false);
 
-        if (deductionError) {
+        if (!deduction || deduction == '') {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "Select a deduction!",

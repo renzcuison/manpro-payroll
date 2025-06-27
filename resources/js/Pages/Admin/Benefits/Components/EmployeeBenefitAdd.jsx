@@ -19,8 +19,9 @@ const EmployeeBenefitAdd = ({ userName, onClose }) => {
         event.preventDefault();
         setBenefitError(!benefit || benefit == '' ? true : false);
         setNumberError(!number || number == '' ? true : false);
+        const isFieldsEmpty = (!benefit || benefit == ''|| !number || number == '');
 
-        if ( benefitError || numberError ) {
+        if (isFieldsEmpty) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",

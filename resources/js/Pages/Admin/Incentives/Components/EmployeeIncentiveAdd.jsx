@@ -20,8 +20,9 @@ const EmployeeIncentiveAdd = ({ userName, onClose }) => {
 
         setIncentiveError(!incentive || incentive == '' ? true : false);
         setNumberError(!number || number == '' ? true : false);
+        const isFieldsEmpty = (!incentive || incentive == '' || !number || number == '');
 
-        if (incentiveError || numberError) {
+        if ( isFieldsEmpty ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",

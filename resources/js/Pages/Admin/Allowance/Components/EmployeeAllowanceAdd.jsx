@@ -15,7 +15,7 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
     const checkInput = (event) => {
         event.preventDefault();
         setAllowanceError(!allowance || allowance == '' ? true : false);
-        if(allowanceError){
+        if(!allowance || allowance == ''){
             Swal.fire({
                 customClass: { container: "my-swal" },
                 text: "All fields must be filled!",
