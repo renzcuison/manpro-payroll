@@ -1781,6 +1781,7 @@ class EvaluationResponseController extends Controller
             $newOrder = min(
                 EvaluationEvaluator
                     ::where('response_id', $evaluationEvaluator->response_id)
+                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
@@ -2208,6 +2209,7 @@ class EvaluationResponseController extends Controller
             $newOrder = min(
                 EvaluationCommentor
                     ::where('response_id', $evaluationCommentor->response_id)
+                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
