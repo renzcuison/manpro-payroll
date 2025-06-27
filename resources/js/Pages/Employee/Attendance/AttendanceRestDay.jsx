@@ -18,7 +18,7 @@ const AttendanceRestDay = () => {
     const navigate = useNavigate();
 
     const [isLoading, setIsLoading] = useState(true);
-    const [overtimeData, setOvertimeData] = useState([]);
+    const [attendances, setAttendances] = useState([]);
 
     useEffect(() => {
         getAttendanceOvertime();
@@ -27,7 +27,10 @@ const AttendanceRestDay = () => {
     const getAttendanceOvertime = () => {
         axiosInstance.get('/attendance/getAttendanceRestDay', { headers })
             .then((response) => {
-                setOvertimeData(response.data.overtime);
+                // Fetch Return here:
+
+            setAttendances(response.data.attendances);
+
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -78,71 +81,37 @@ const AttendanceRestDay = () => {
                                     <Table stickyHeader aria-label="attendance summary table">
                                         <TableHead>
                                             <TableRow>
+                                                <TableCell align="left">Day Type</TableCell>
                                                 <TableCell align="left">Date</TableCell>
-                                                <TableCell align="center">Overtime In</TableCell>
-                                                <TableCell align="center">Overtime Out</TableCell>
-                                                <TableCell align="center">Total Overtime</TableCell>
-                                                <TableCell align="center">Status</TableCell>
+                                                <TableCell align="left">Time In</TableCell>
+                                                <TableCell align="left">Time Out</TableCell>
+                                                <TableCell align="left">Total Hours</TableCell>
+                                                <TableCell align="left">OT In</TableCell>
+                                                <TableCell align="left">OT Out</TableCell>
+                                                <TableCell align="left">Total OT</TableCell>
+                                                <TableCell align="left">Status</TableCell>
                                             </TableRow>
                                         </TableHead>
-                                        <TableBody>
-                                            {overtimeData.length > 0 ? (
-                                                overtimeData.map((overtime, index) => (
-                                                    <TableRow
-                                                        key={index}
-                                                        onClick={() => handleOpenOTAppModal(overtime)}
-                                                        sx={{
-                                                            backgroundColor:
-                                                                index % 2 === 0
-                                                                    ? "#f8f8f8"
-                                                                    : "#ffffff",
-                                                            "&:hover": {
-                                                                backgroundColor: "rgba(0, 0, 0, 0.1)",
-                                                                cursor: "pointer",
-                                                            },
-                                                        }}
-                                                    >
-                                                        <TableCell align="left">
-                                                            {dayjs(overtime.date).format('MMMM D, YYYY')}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {dayjs(`${overtime.date}T${overtime.timeIn}`).format('hh:mm:ss A')}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {dayjs(`${overtime.date}T${overtime.timeOut}`).format('hh:mm:ss A')}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            {formatMinutes(overtime.minutes)}
-                                                        </TableCell>
-                                                        <TableCell align="center">
-                                                            <Typography
-                                                                sx={{
-                                                                    fontWeight:
-                                                                        "bold",
-                                                                    color:
-                                                                        ["Approved", "Paid"].includes(overtime.status)
-                                                                            ? "#177604"
-                                                                            : overtime.status === "Declined"
-                                                                                ? "#f44336"
-                                                                                : overtime.status === "Pending"
-                                                                                    ? "#e9ae20"
-                                                                                    : ["Cancelled", "Unapplied"].includes(overtime.status)
-                                                                                        ? "#f57c00"
-                                                                                        : "#000000",
-                                                                }}
-                                                            >
-                                                                {overtime.status.toUpperCase() || "-"}
-                                                            </Typography>
-                                                        </TableCell>
+                                       <TableBody>
+                                            {attendances.length > 0 ? (
+                                                attendances.map((attendance, index) => (
+                                                    <TableRow key={attendance.id} onClick={() => handleOpenOTAppModal(attendance)}>
+                                                        <TableCell align="left">{attendance.day_type}</TableCell>
+                                                        <TableCell align="left">{dayjs(attendance.date).format('MMM D, YYYY')}</TableCell>
+                                                        <TableCell align="left">{attendance.time_in ? dayjs(attendance.time_in).format('hh:mm A') : 'N/A'}</TableCell>
+                                                        <TableCell align="left">{attendance.time_out ? dayjs(attendance.time_out).format('hh:mm A') : 'N/A'}</TableCell>
+                                                        <TableCell align="left">{attendance.total_hours ? formatMinutes(attendance.total_hours) : 'N/A'}</TableCell>
+                                                        <TableCell align="left">{attendance.ot_in ? dayjs(attendance.ot_in).format('hh:mm A') : 'N/A'}</TableCell>
+                                                        <TableCell align="left">{attendance.ot_out ? dayjs(attendance.ot_out).format('hh:mm A') : 'N/A'}</TableCell>
+                                                        <TableCell align="left">{attendance.total_ot ? formatMinutes(attendance.total_ot) : 'N/A'}</TableCell>
+                                                        <TableCell align="left">{attendance.status}</TableCell>
                                                     </TableRow>
+                                                    
                                                 ))
                                             ) : (
-                                                <TableRow>
-                                                    <TableCell
-                                                        colSpan={5}
-                                                        align="center"
-                                                        sx={{ color: "text.secondary", p: 1, }}>
-                                                        No Overtime Found
+                                              <TableRow>
+                                                    <TableCell colSpan={9} align="center" sx={{ color: "text.secondary", p: 1 }}>
+                                                        No Rest Day Attendance Found
                                                     </TableCell>
                                                 </TableRow>
                                             )}

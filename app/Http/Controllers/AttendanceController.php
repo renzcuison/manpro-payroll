@@ -1159,9 +1159,33 @@ class AttendanceController extends Controller
         }
     }
 
+    // RestDay
     public function getAttendanceRestDay()
     {
-        
+        Log::info("AttendanceController::getAttendanceRestDay");
+
+        $user = Auth::user();
+        $rawAttendances = AttendanceSummary::where('user_id', $user->id)
+            ->where('day_type', "Rest Day")
+            ->get();
+
+        Log::info($user->id);
+
+        $attendances = [];
+
+        foreach ( $rawAttendances as $rawAttendance )
+        {
+            Log::info($rawAttendance);
+
+            $attendances[] = [
+                'date' => $rawAttendance->date
+            ];
+
+        }
+
+        log::info($attendances);
+
+        return response()->json(['status' => 200, 'attendances' => $attendances]);
     }
 
     // Misc
