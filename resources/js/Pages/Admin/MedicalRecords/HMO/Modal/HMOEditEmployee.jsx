@@ -262,7 +262,8 @@ const HMOEditEmployee = ({ open, close, employeePlanId, refreshEmployees }) => {
                 console.error("Error fetching HMO Employee", err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error fetching HMO Employee.',
+                    title: "Error",
+                    text: 'Error fetching Group Life Employee.',
                 });
             })
     };
@@ -328,11 +329,12 @@ const HMOEditEmployee = ({ open, close, employeePlanId, refreshEmployees }) => {
                                                     onClick={() => {
                                                         if (!newDependent.name.trim() || !newDependent.relationship.trim()) {
                                                             Swal.fire({
+                                                                title: "Error",
+                                                                text: "Please fill in both dependent name and relationship.",
                                                                 icon: "error",
-                                                                title: "Delete failed",
-                                                                text: "Please fill in the previous dependent's name and relationship before adding another."
-                                                            }
-                                                            );
+                                                                showCancelButton: true,
+                                                                confirmButtonText: "Delete",
+                                                            })
                                                             return;
                                                         }
 
@@ -484,37 +486,28 @@ const HMOEditEmployee = ({ open, close, employeePlanId, refreshEmployees }) => {
                                                     Add Dependent
                                                 </Button>
                                             </Grid>
+                                        </Grid>
+                                        <Grid container spacing={2} justifyContent="space-between" sx={{ mt: 2 }}>
                                             <Grid item>
                                                 <Button variant="contained" color="error" onClick={() => handleDeleteEmployee(employeePlanId)}>
                                                     Delete
                                                 </Button>
                                             </Grid>
+                                            <Grid item>
+                                                {showSaveButton && (
+                                                    <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={handleSubmit}
+                                                    >
+                                                        Save Changes
+                                                    </Button>
+                                                )}
+                                            </Grid>
                                         </Grid>
                                     </>
                                 )}
-                                <Grid container spacing={2} justifyContent="center" sx={{ mt: 2 }}>
-                                    {/* <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit}
-                sx={{ mt: 2 }}
-                >
-                Save Changes
-                </Button> */}
 
-
-
-                                    {showSaveButton && (
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            onClick={handleSubmit}
-                                            sx={{ mt: 2 }}
-                                        >
-                                            Save Changes
-                                        </Button>
-                                    )}
-                                </Grid>
                             </Box>
                         )}</DialogContent>
                 </DialogTitle>

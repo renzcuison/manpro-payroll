@@ -252,7 +252,8 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
                 console.error("Error fetching Group Life Employee", err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error fetching Group Life Employee.',
+                    title: "Error",
+                    text: 'Error fetching Group Life Employee.',
                 });
             })
     };
@@ -319,7 +320,7 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
                                                         if (!newDependent.name.trim() || !newDependent.relationship.trim()) {
                                                             Swal.fire({
                                                                 title: "Error",
-                                                                text: "Please fill in both name and relationship.",
+                                                                text: "Please fill in both dependent name and relationship.",
                                                                 icon: "error",
                                                                 showCancelButton: true,
                                                                 confirmButtonText: "Delete",
@@ -447,11 +448,6 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
                                                                     <>
                                                                         <TableCell>{dep.name}</TableCell>
                                                                         <TableCell>{dep.relationship}</TableCell>
-                                                                        {/* <TableCell>
-                                    <IconButton onClick={() => setEditingIndex(index)}>
-                                        <i className="fa fa-pencil-square-o" />
-                                    </IconButton>
-                                    </TableCell> */}
                                                                     </>
                                                                 )}
                                                             </TableRow>
@@ -475,36 +471,27 @@ const GroupLifeEditEmployee = ({ open, close, employeePlanId, refreshEmployees }
                                                     Add Dependent
                                                 </Button>
                                             </Grid>
-                                            <Grid item>
-                                                <Button variant="contained" color="error" onClick={() => handleDeleteEmployee(employeePlanId)}>
-                                                    Delete
-                                                </Button>
-                                            </Grid>
+
                                         </Grid>
                                     </>
                                 )}
-                                <Grid container spacing={2} justifyContent="center" sx={{ mt: 2 }}>
-                                    {/* <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit}
-                sx={{ mt: 2 }}
-                >
-                Save Changes
-                </Button> */}
-
-
-
-                                    {showSaveButton && (
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            onClick={handleSubmit}
-                                            sx={{ mt: 2 }}
-                                        >
-                                            Save Changes
+                                <Grid container spacing={2} justifyContent="space-between" sx={{ mt: 2 }}>
+                                    <Grid item>
+                                        <Button variant="contained" color="error" onClick={() => handleDeleteEmployee(employeePlanId)}>
+                                            Delete
                                         </Button>
-                                    )}
+                                    </Grid>
+                                    <Grid item>
+                                        {showSaveButton && (
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                onClick={handleSubmit}
+                                            >
+                                                Save Changes
+                                            </Button>
+                                        )}
+                                    </Grid>
                                 </Grid>
                             </Box>
                         )}</DialogContent>
