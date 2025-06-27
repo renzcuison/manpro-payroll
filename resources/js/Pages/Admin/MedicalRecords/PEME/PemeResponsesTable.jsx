@@ -25,13 +25,15 @@ const GradientProgressBar = ({ percentage, status }) => {
         status === "Rejected"
             ? "linear-gradient(to right, #b71c1c, #ff5252)" // red gradient
             : status === "Clear"
-            ? "green"
-            : "linear-gradient(to right, #177604, #E9AE20)"; // default
+                ? "green"
+                : "linear-gradient(to right, #177604, #E9AE20)"; // default
 
     const progress = Number(percentage);
 
     return (
-        <Box sx={{ width: "100%" }}>
+        <Box sx={{
+            width: "100%",
+        }}>
             <LinearProgress
                 variant="determinate"
                 value={progress}
@@ -88,9 +90,8 @@ const getDueStatus = (dueDateString) => {
         let message = "";
 
         if (overdueDays < 7)
-            message = `Overdue by ${overdueDays} day${
-                overdueDays > 1 ? "s" : ""
-            }`;
+            message = `Overdue by ${overdueDays} day${overdueDays > 1 ? "s" : ""
+                }`;
         else if (overdueDays < 30) {
             const weeks = Math.floor(overdueDays / 7);
             message = `Overdue by ${weeks} week${weeks > 1 ? "s" : ""}`;
@@ -185,18 +186,26 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                             )}
                                         </TableCell>
                                         <TableCell align="center">
-                                            {dayjs(detail.expiry_date).format(
-                                                "MMMM D, YYYY"
-                                            )}{" "}
-                                            <p></p>{" "}
-                                            {getDueStatus(detail.expiry_date)}
+                                            {dayjs(detail.expiry_date).isValid() ? (
+                                                <>
+                                                    {dayjs(detail.expiry_date).format("MMMM D, YYYY")}
+                                                    <p></p>
+                                                    {getDueStatus(detail.expiry_date)}
+                                                </>
+                                            ) : (
+                                                "Pending"
+                                            )}
                                         </TableCell>
                                         <TableCell align="center">
-                                            {dayjs(detail.next_schedule).format(
-                                                "MMMM D, YYYY"
-                                            )}{" "}
-                                            <p></p>{" "}
-                                            {getDueStatus(detail.next_schedule)}
+                                            {dayjs(detail.next_schedule).isValid() ? (
+                                                <>
+                                                    {dayjs(detail.next_schedule).format("MMMM D, YYYY")}
+                                                    <p></p>
+                                                    {getDueStatus(detail.next_schedule)}
+                                                </>
+                                            ) : (
+                                                "Pending"
+                                            )}
                                         </TableCell>
                                         <TableCell align="center">
                                             {highlightMatch(

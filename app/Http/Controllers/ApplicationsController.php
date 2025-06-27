@@ -10,7 +10,6 @@ use App\Models\LeaveCreditsModel;
 use App\Models\LogsLeaveCreditsModel;
 use App\Models\UsersModel;
 
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -48,7 +47,9 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
             $clientId = $user->client_id;
-            $apps = ApplicationsModel::where('client_id', $clientId)->orderBy('created_at', 'desc')->get();
+            $apps = ApplicationsModel::where('client_id', $clientId)
+                ->orderBy('created_at', 'desc')
+                ->get();
 
             $applications = [];
 
@@ -67,7 +68,14 @@ class ApplicationsController extends Controller
                     'app_date_requested' => $app->created_at,
                     'app_status' => $app->status,
                     'emp_user_name' => $employee->user_name,
-                    'emp_name' => $employee->first_name . ' ' . $employee->middle_name . ' ' . $employee->last_name . ' ' . $employee->suffix,
+                    'emp_name' =>
+                        $employee->first_name .
+                        ' ' .
+                        $employee->middle_name .
+                        ' ' .
+                        $employee->last_name .
+                        ' ' .
+                        $employee->suffix,
                     'emp_first_name' => $employee->first_name,
                     'emp_middle_name' => $employee->middle_name,
                     'emp_last_name' => $employee->last_name,
@@ -77,7 +85,10 @@ class ApplicationsController extends Controller
                 ];
             }
 
-            return response()->json(['status' => 200, 'applications' => $applications]);
+            return response()->json([
+                'status' => 200,
+                'applications' => $applications,
+            ]);
         } else {
             return response()->json(['status' => 200, 'applications' => null]);
         }
@@ -94,7 +105,10 @@ class ApplicationsController extends Controller
             ->where('user_id', $user->id)
             ->get();
 
-        return response()->json(['status' => 200, 'applications' => $applications]);
+        return response()->json([
+            'status' => 200,
+            'applications' => $applications,
+        ]);
     }
 
     public function getDashboardApplications()
@@ -121,7 +135,10 @@ class ApplicationsController extends Controller
             ];
         }
 
-        return response()->json(['status' => 200, 'applications' => $applications]);
+        return response()->json([
+            'status' => 200,
+            'applications' => $applications,
+        ]);
     }
 
     // Details
@@ -132,9 +149,15 @@ class ApplicationsController extends Controller
 
         $user = Auth::user();
 
-        $app = ApplicationsModel::with(['user', 'type', 'branch', 'department', 'jobTitle'])->find($id);
+        $app = ApplicationsModel::with([
+            'user',
+            'type',
+            'branch',
+            'department',
+            'jobTitle',
+        ])->find($id);
 
-        if ($this->checkUser() && ($user->client_id == $app->client_id)) {
+        if ($this->checkUser() && $user->client_id == $app->client_id) {
             $appUser = $app->user;
             $appType = $app->type;
             $branch = $app->branch;
@@ -151,9 +174,16 @@ class ApplicationsController extends Controller
             $app->emp_branch = $branch->name ?? '';
             $app->emp_department = $department->name ?? '';
             $app->emp_job_title = $job_title->name ?? '';
-            if ($appUser->profile_pic && Storage::disk('public')->exists($appUser->profile_pic)) {
-                $app->avatar = base64_encode(Storage::disk('public')->get($appUser->profile_pic));
-                $app->avatar_mime = mime_content_type(storage_path('app/public/' . $appUser->profile_pic));
+            if (
+                $appUser->profile_pic &&
+                Storage::disk('public')->exists($appUser->profile_pic)
+            ) {
+                $app->avatar = base64_encode(
+                    Storage::disk('public')->get($appUser->profile_pic)
+                );
+                $app->avatar_mime = mime_content_type(
+                    storage_path('app/public/' . $appUser->profile_pic)
+                );
             } else {
                 $app->avatar = null;
                 $app->avatar_mime = null;
@@ -180,9 +210,17 @@ class ApplicationsController extends Controller
                 $app->branch,
                 $app->jobTitle
             );
-            return response()->json(['status' => 200, 'application' => $app, 'files' => $filenames ?: null]);
+            return response()->json([
+                'status' => 200,
+                'application' => $app,
+                'files' => $filenames ?: null,
+            ]);
         } else {
-            return response()->json(['status' => 200, 'application' => null, 'files' => null]);
+            return response()->json([
+                'status' => 200,
+                'application' => null,
+                'files' => null,
+            ]);
         }
     }
 
@@ -194,7 +232,9 @@ class ApplicationsController extends Controller
         $user = Auth::user();
         $clientId = $user->client_id;
 
-        $types = ApplicationTypesModel::where('client_id', $clientId)->where('deleted_at', NULL)->get();
+        $types = ApplicationTypesModel::where('client_id', $clientId)
+            ->where('deleted_at', null)
+            ->get();
 
         return response()->json(['status' => 200, 'types' => $types]);
     }
@@ -206,7 +246,9 @@ class ApplicationsController extends Controller
         try {
             DB::beginTransaction();
 
-            $applicationType = ApplicationTypesModel::find($request->applicationType);
+            $applicationType = ApplicationTypesModel::find(
+                $request->applicationType
+            );
 
             $applicationType->name = $request->name;
             $applicationType->is_paid_leave = $request->paidLeave;
@@ -249,7 +291,8 @@ class ApplicationsController extends Controller
             // Adding Files - Documents
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file) {
-                    $application->addMedia($file)
+                    $application
+                        ->addMedia($file)
                         ->withCustomProperties(['type' => 'Document'])
                         ->toMediaCollection('documents');
                 }
@@ -258,7 +301,8 @@ class ApplicationsController extends Controller
             // Adding Files - Images
             if ($request->hasFile('image')) {
                 foreach ($request->file('image') as $file) {
-                    $application->addMedia($file)
+                    $application
+                        ->addMedia($file)
                         ->withCustomProperties(['type' => 'Image'])
                         ->toMediaCollection('images');
                 }
@@ -301,7 +345,9 @@ class ApplicationsController extends Controller
 
             // Remove Files
             if (!empty($deleteFiles)) {
-                $mediaItems = $application->getMedia('*')->whereIn('id', $deleteFiles);
+                $mediaItems = $application
+                    ->getMedia('*')
+                    ->whereIn('id', $deleteFiles);
                 foreach ($mediaItems as $media) {
                     $media->delete();
                 }
@@ -310,7 +356,8 @@ class ApplicationsController extends Controller
             // Adding Files - Documents
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file) {
-                    $application->addMedia($file)
+                    $application
+                        ->addMedia($file)
                         ->withCustomProperties(['type' => 'Document'])
                         ->toMediaCollection('documents');
                 }
@@ -319,7 +366,8 @@ class ApplicationsController extends Controller
             // Adding Files - Images
             if ($request->hasFile('image')) {
                 foreach ($request->file('image') as $file) {
-                    $application->addMedia($file)
+                    $application
+                        ->addMedia($file)
                         ->withCustomProperties(['type' => 'Image'])
                         ->toMediaCollection('images');
                 }
@@ -342,17 +390,32 @@ class ApplicationsController extends Controller
         $application = ApplicationsModel::find($id);
 
         if (!$application) {
-            return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
+            return response()->json(
+                ['status' => 404, 'message' => 'Application not found'],
+                404
+            );
         }
 
         if ($application->status !== 'Pending') {
-            return response()->json(['status' => 400, 'message' => 'Only pending applications can be cancelled'], 400);
+            return response()->json(
+                [
+                    'status' => 400,
+                    'message' => 'Only pending applications can be cancelled',
+                ],
+                400
+            );
         }
 
         $application->status = 'Cancelled';
         $application->save();
 
-        return response()->json(['status' => 200, 'message' => 'Application successfully cancelled!'], 200);
+        return response()->json(
+            [
+                'status' => 200,
+                'message' => 'Application successfully cancelled!',
+            ],
+            200
+        );
     }
 
     public function manageApplication(Request $request)
@@ -363,31 +426,61 @@ class ApplicationsController extends Controller
 
         $application = ApplicationsModel::find($request->input('app_id'));
 
-        if ($this->checkUser() && ($user->client_id == $application->client_id)) {
+        if ($this->checkUser() && $user->client_id == $application->client_id) {
             try {
                 DB::beginTransaction();
-                
+
                 if (!$application) {
                     //Log::error('Application not found for ID: ' . $id);
-                    return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
+                    return response()->json(
+                        ['status' => 404, 'message' => 'Application not found'],
+                        404
+                    );
                 }
-                
+
                 switch ($request->input('app_response')) {
                     case 'Approve':
-                        $emp = UsersModel::where('user_name', $request->input('app_emp_username'))->first();
-                        $leave = LeaveCreditsModel::where('user_id', $emp->id)->where('application_type_id', $request->input('app_type_id'))->first();
+                        $emp = UsersModel::where(
+                            'user_name',
+                            $request->input('app_emp_username')
+                        )->first();
+                        $leave = LeaveCreditsModel::where('user_id', $emp->id)
+                            ->where(
+                                'application_type_id',
+                                $request->input('app_type_id')
+                            )
+                            ->first();
 
                         $oldLeaveUsed = $leave->used;
-                        $usedCredits = number_format($request->input('app_leave_used'), 2, '.', '');
+                        $usedCredits = number_format(
+                            $request->input('app_leave_used'),
+                            2,
+                            '.',
+                            ''
+                        );
                         $leave->used = $leave->used + $usedCredits;
                         $leave->save();
 
-                        $newLeaveUsed = number_format($oldLeaveUsed + $usedCredits, 2, '.', '');
+                        $newLeaveUsed = number_format(
+                            $oldLeaveUsed + $usedCredits,
+                            2,
+                            '.',
+                            ''
+                        );
 
                         LogsLeaveCreditsModel::create([
                             'user_id' => $user->id,
                             'leave_credit_id' => $leave->id,
-                            'action' => 'Approved ' . $usedCredits . ' Credits. ID: ' . $leave->id . ', Prev: ' . $oldLeaveUsed . ', New: ' . $newLeaveUsed . '.',
+                            'action' =>
+                                'Approved ' .
+                                $usedCredits .
+                                ' Credits. ID: ' .
+                                $leave->id .
+                                ', Prev: ' .
+                                $oldLeaveUsed .
+                                ', New: ' .
+                                $newLeaveUsed .
+                                '.',
                         ]);
 
                         $application->status = "Approved";
@@ -402,15 +495,28 @@ class ApplicationsController extends Controller
 
                 DB::commit();
 
-                return response()->json(['status' => 200, 'message' => $message], 200);
+                return response()->json(
+                    ['status' => 200, 'message' => $message],
+                    200
+                );
             } catch (\Exception $e) {
                 DB::rollBack();
                 //Log::error("Error managing application: " . $e->getMessage());
-                return response()->json(['status' => 500, 'message' => 'An error occurred while managing the application'], 500);
+                return response()->json(
+                    [
+                        'status' => 500,
+                        'message' =>
+                            'An error occurred while managing the application',
+                    ],
+                    500
+                );
                 throw $e;
             }
         } else {
-            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+            return response()->json(
+                ['status' => 403, 'message' => 'Unauthorized'],
+                403
+            );
         }
     }
 
@@ -422,7 +528,10 @@ class ApplicationsController extends Controller
 
         $application = ApplicationsModel::find($id);
         if (!$application) {
-            return response()->json(['status' => 404, 'message' => 'Application not found'], 404);
+            return response()->json(
+                ['status' => 404, 'message' => 'Application not found'],
+                404
+            );
         }
 
         $filenames = [];
@@ -436,21 +545,30 @@ class ApplicationsController extends Controller
             ];
         }
 
-        return response()->json(['status' => 200, 'filenames' => $filenames ?: null]);
+        return response()->json([
+            'status' => 200,
+            'filenames' => $filenames ?: null,
+        ]);
     }
 
     public function downloadFile($id)
     {
         //Log::info('ApplicationsController::downloadFile');
-        $media  = Media::find($id);
+        $media = Media::find($id);
 
         if (!$media) {
-            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
+            return response()->json(
+                ['status' => 404, 'message' => 'File not found'],
+                404
+            );
         }
 
         $filePath = $media->getPath();
         if (!file_exists($filePath)) {
-            return response()->json(['status' => 404, 'message' => 'File not found'], 404);
+            return response()->json(
+                ['status' => 404, 'message' => 'File not found'],
+                404
+            );
         }
 
         return response()->download($filePath, $media->file_name);
@@ -467,7 +585,9 @@ class ApplicationsController extends Controller
             $clientId = $user->client_id;
 
             $emp = UsersModel::where('user_name', $userName)->first();
-            $leaves = LeaveCreditsModel::where('client_id', $clientId)->where('user_id', $emp->id)->get();
+            $leaves = LeaveCreditsModel::where('client_id', $clientId)
+                ->where('user_id', $emp->id)
+                ->get();
 
             $leaveCredits = [];
 
@@ -485,7 +605,10 @@ class ApplicationsController extends Controller
                 ];
             }
 
-            return response()->json(['status' => 200, 'leave_credits' => $leaveCredits]);
+            return response()->json([
+                'status' => 200,
+                'leave_credits' => $leaveCredits,
+            ]);
         } else {
             return response()->json(['status' => 200, 'leave_credits' => null]);
         }
@@ -517,7 +640,10 @@ class ApplicationsController extends Controller
             ];
         }
 
-        return response()->json(['status' => 200, 'leave_credits' => $leaveCredits]);
+        return response()->json([
+            'status' => 200,
+            'leave_credits' => $leaveCredits,
+        ]);
     }
 
     public function saveLeaveCredits(Request $request)
@@ -530,14 +656,17 @@ class ApplicationsController extends Controller
             try {
                 DB::beginTransaction();
 
-                $employee = UsersModel::where('user_name', $request->input('emp_id'))->first();
+                $employee = UsersModel::where(
+                    'user_name',
+                    $request->input('emp_id')
+                )->first();
 
                 $leave = LeaveCreditsModel::create([
                     'client_id' => $user->client_id,
                     'user_id' => $employee->id,
                     'application_type_id' => $request->input('app_type_id'),
                     'number' => $request->input('credit_count'),
-                    'used' => 0
+                    'used' => 0,
                 ]);
 
                 $leaveName = $leave->type->name;
@@ -545,7 +674,12 @@ class ApplicationsController extends Controller
                 LogsLeaveCreditsModel::create([
                     'user_id' => $user->id,
                     'leave_credit_id' => $leave->id,
-                    'action' => 'Added ' . number_format($request->input('credit_count'), 2) . ' ' . $leaveName . ' credits.',
+                    'action' =>
+                        'Added ' .
+                        number_format($request->input('credit_count'), 2) .
+                        ' ' .
+                        $leaveName .
+                        ' credits.',
                 ]);
 
                 DB::commit();
@@ -568,17 +702,30 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
             try {
-
-                $leaveCredit = LeaveCreditsModel::find($request->input('app_id'));
+                $leaveCredit = LeaveCreditsModel::find(
+                    $request->input('app_id')
+                );
                 $oldLeaveNumber = $leaveCredit->number;
 
-                $leaveCredit->number  = number_format($request->input('credit_count'), 2, '.', '');
+                $leaveCredit->number = number_format(
+                    $request->input('credit_count'),
+                    2,
+                    '.',
+                    ''
+                );
                 $leaveCredit->save();
 
                 LogsLeaveCreditsModel::create([
                     'user_id' => $user->id,
                     'leave_credit_id' => $leaveCredit->id,
-                    'action' => 'Updated Credit ' . $leaveCredit->id . ' from ' . $oldLeaveNumber . ' to ' . $leaveCredit->number . '.',
+                    'action' =>
+                        'Updated Credit ' .
+                        $leaveCredit->id .
+                        ' from ' .
+                        $oldLeaveNumber .
+                        ' to ' .
+                        $leaveCredit->number .
+                        '.',
                 ]);
 
                 return response()->json(['status' => 200]);
@@ -595,8 +742,9 @@ class ApplicationsController extends Controller
 
         if ($this->checkUser()) {
             try {
-
-                $leaveCredit = LeaveCreditsModel::find($request->input('leaveCredit'));
+                $leaveCredit = LeaveCreditsModel::find(
+                    $request->input('leaveCredit')
+                );
 
                 if ($leaveCredit) {
                     $leaveCredit->delete();
@@ -620,9 +768,14 @@ class ApplicationsController extends Controller
         if ($this->checkUser()) {
             try {
                 $emp = UsersModel::where('user_name', $userName)->first();
-                $logs = LogsLeaveCreditsModel::whereHas('leaveCredit', function ($query) use ($emp) {
-                    $query->where('user_id', $emp->id);
-                })->orderBy('created_at', 'desc')->get();
+                $logs = LogsLeaveCreditsModel::whereHas(
+                    'leaveCredit',
+                    function ($query) use ($emp) {
+                        $query->where('user_id', $emp->id);
+                    }
+                )
+                    ->orderBy('created_at', 'desc')
+                    ->get();
 
                 $logData = [];
 
@@ -675,16 +828,25 @@ class ApplicationsController extends Controller
                 'client_id' => $user->client_id,
                 'time_in_id' => $timeIn->id,
                 'time_out_id' => $timeOut->id,
-                'reason' => $request->input('reason')
+                'reason' => $request->input('reason'),
             ]);
 
             DB::commit();
 
-            return response()->json(['status' => 200, 'message' => 'overtime submitted successfully']);
+            return response()->json([
+                'status' => 200,
+                'message' => 'overtime submitted successfully',
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             //Log::error("Error saving: " . $e->getMessage());
-            return response()->json(['status' => 500, 'message' => 'error saving overtime application'], 500);
+            return response()->json(
+                [
+                    'status' => 500,
+                    'message' => 'error saving overtime application',
+                ],
+                500
+            );
             throw $e;
         }
     }
@@ -692,41 +854,19 @@ class ApplicationsController extends Controller
     public function getOvertimeApplications()
     {
         // Log::info("ApplicationsController::getOvertimeApplications");
+
         $user = Auth::user();
-
         if ($this->checkUser()) {
-
-            $rawApplications = ApplicationsOvertimeModel::where('client_id', $user->client_id)
-                ->with(['user', 'timeIn', 'timeOut'])
-                ->join('attendance_logs', 'applications_overtime.time_in_id', '=', 'attendance_logs.id')
-                ->orderBy('attendance_logs.timestamp', 'desc')
-                ->select('applications_overtime.*')
-                ->get();
-
-            $applications = [];
-            foreach ($rawApplications as $app) {
-                $employee = $app->employee;
-                $timeIn = $app->timeIn;
-                $timeOut = $app->timeOut;
-
-                if ( $timeIn && $timeOut ) {
-                    $applications[] = [
-                        'application' => encrypt($app->id),
-                        'time_in' => $timeIn->timestamp,
-                        'time_out' => $timeOut->timestamp,
-                        'reason' => $app->reason ?? '',
-                        'requested' => $app->created_at,
-                        'status' => $app->status,
-                        'emp_name' => ($employee->first_name ?? '') . ' ' . ($employee->middle_name ?? '') . ' ' . ($employee->last_name ?? '') . ' ' . ($employee->suffix ?? ''),
-                        'emp_branch' => $employee->branch->name,
-                        'emp_department' => $employee->department->name,
-                        'emp_job_title' => $employee->jobTitle->name,
-                    ];
-                }
-            }
-            return response()->json(['status' => 200, 'applications' => $applications]);
+            $applications = $this->get_ot_applications($user);
+            return response()->json([
+                'status' => 200,
+                'applications' => $applications,
+            ]);
         } else {
-            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+            return response()->json(
+                ['status' => 403, 'message' => 'Unauthorized'],
+                403
+            );
         }
     }
 
@@ -740,14 +880,16 @@ class ApplicationsController extends Controller
         $id = decrypt($request->input('app_id'));
         $overtime = ApplicationsOvertimeModel::find($id);
 
-        if ($this->checkUser() && ($user->client_id == $overtime->client_id)) {
+        if ($this->checkUser() && $user->client_id == $overtime->client_id) {
             $status = $request->input('app_response');
             $message = null;
 
             switch ($status) {
                 case "Approve":
                     $overtime->status = "Approved";
-                    $overtime->approved_minutes = $request->input('totalMinutes');
+                    $overtime->approved_minutes = $request->input(
+                        'totalMinutes'
+                    );
                     $overtime->date = $request->input('date');
                     $message = "Overtime approved successfully";
                     break;
@@ -756,9 +898,15 @@ class ApplicationsController extends Controller
                     $message = "Overtime declined successfully";
             }
             $overtime->save();
-            return response()->json(['status' => 200, 'message' => $message], 200);
+            return response()->json(
+                ['status' => 200, 'message' => $message],
+                200
+            );
         } else {
-            return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+            return response()->json(
+                ['status' => 403, 'message' => 'Unauthorized'],
+                403
+            );
         }
     }
 
@@ -775,7 +923,10 @@ class ApplicationsController extends Controller
 
         $tenureshipMonths = $startDate->diffInMonths($currentDate);
 
-        return response()->json(['status' => 200, 'tenureship' => $tenureshipMonths]);
+        return response()->json([
+            'status' => 200,
+            'tenureship' => $tenureshipMonths,
+        ]);
     }
 
     public function getFullLeaveDays()
@@ -791,20 +942,32 @@ class ApplicationsController extends Controller
         $branchId = $branch->id;
         $branchLimit = $branch->leave_limit;
 
-        $deptFullDates = $this->getFullDayCount("department_id", $deptId, $deptLimit); // Gets Department Capped Dates
-        $branchFullDates = $this->getFullDayCount("branch_id", $branchId, $branchLimit); // Gets Branch Capped Dates
+        $deptFullDates = $this->getFullDayCount(
+            "department_id",
+            $deptId,
+            $deptLimit
+        ); // Gets Department Capped Dates
+        $branchFullDates = $this->getFullDayCount(
+            "branch_id",
+            $branchId,
+            $branchLimit
+        ); // Gets Branch Capped Dates
 
-        $fullDates = array_values(array_unique(array_merge($deptFullDates, $branchFullDates)));
+        $fullDates = array_values(
+            array_unique(array_merge($deptFullDates, $branchFullDates))
+        );
 
         return response()->json(['status' => 200, 'fullDates' => $fullDates]);
     }
 
-    public function getFullDayCount(String $column, $id, $limit)
+    public function getFullDayCount(string $column, $id, $limit)
     {
         // Log::info("ApplicationsController::getFullDayCount");
 
         $date = Carbon::now();
-        $applications = ApplicationsModel::whereHas('user', function ($query) use ($column, $id) {
+        $applications = ApplicationsModel::whereHas('user', function (
+            $query
+        ) use ($column, $id) {
             $query->where($column, $id);
         })
             ->whereNotIn('status', ['Cancelled', 'Declined'])
@@ -859,22 +1022,36 @@ class ApplicationsController extends Controller
 
                 if (is_array($data)) {
                     foreach ($data as $holiday) {
-                        $holidayDates[] = Carbon::parse($holiday['date'])->format('Y-m-d');
+                        $holidayDates[] = Carbon::parse(
+                            $holiday['date']
+                        )->format('Y-m-d');
                         $holidayNames[] = $holiday['name'];
                     }
                 } else {
-                    Log::error("Nager.Date API returned invalid data for year {$year}: " . json_encode($data));
+                    Log::error(
+                        "Nager.Date API returned invalid data for year {$year}: " .
+                            json_encode($data)
+                    );
                 }
             } else {
-                Log::error("Failed to fetch holidays from Nager.Date API for year {$year}: " . $response->status());
+                Log::error(
+                    "Failed to fetch holidays from Nager.Date API for year {$year}: " .
+                        $response->status()
+                );
                 Log::error($response->body());
             }
         }
-        return response()->json(['status' => 200, 'holiday_dates' => $holidayDates, 'holiday_names' => $holidayNames]);
+        return response()->json([
+            'status' => 200,
+            'holiday_dates' => $holidayDates,
+            'holiday_names' => $holidayNames,
+        ]);
     }
 
-    public function getGoogleCalendarHolidays(Carbon $startDate, Carbon $endDate)
-    {
+    public function getGoogleCalendarHolidays(
+        Carbon $startDate,
+        Carbon $endDate
+    ) {
         //log::info("ApplicationsController::getGoogleCalendarHolidays");
 
         $apiKey = 'AIzaSyAPJ1Ua6xjhqwbjsucXeUCYYGUnObnJPU8';
@@ -896,13 +1073,18 @@ class ApplicationsController extends Controller
 
             foreach ($events as $event) {
                 // Extract the date of the holiday and add to the holidays array
-                $holidayDate = Carbon::parse($event['start']['date'])->format('Y-m-d');
+                $holidayDate = Carbon::parse($event['start']['date'])->format(
+                    'Y-m-d'
+                );
                 $holidays[] = $holidayDate;
             }
 
             return $holidays;
         } else {
-            Log::error("Failed to fetch Google Calendar holidays: " . $response->status());
+            Log::error(
+                "Failed to fetch Google Calendar holidays: " .
+                    $response->status()
+            );
             log::error($response);
             return [];
         }
@@ -911,56 +1093,139 @@ class ApplicationsController extends Controller
     //TEST VVVV
 
     public function updateLeaveCredits(Request $request)
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    if ($this->checkUser()) {
-        try {
-            // Validate input (optional but recommended)
-            $request->validate([
-                'emp_id' => 'required|string',
-                'app_type_id' => 'required|integer',
-                'credit_count' => 'required|numeric|min:0',
-            ]);
+        if ($this->checkUser()) {
+            try {
+                // Validate input (optional but recommended)
+                $request->validate([
+                    'emp_id' => 'required|string',
+                    'app_type_id' => 'required|integer',
+                    'credit_count' => 'required|numeric|min:0',
+                ]);
 
-            // Find the employee
-            $employee = UsersModel::where('user_name', $request->input('emp_id'))->first();
-            if (!$employee) {
-                return response()->json(['status' => 404, 'message' => 'Employee not found.']);
+                // Find the employee
+                $employee = UsersModel::where(
+                    'user_name',
+                    $request->input('emp_id')
+                )->first();
+                if (!$employee) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Employee not found.',
+                    ]);
+                }
+
+                // Find the leave credit by employee and leave type
+                $leaveCredit = LeaveCreditsModel::where(
+                    'user_id',
+                    $employee->id
+                )
+                    ->where(
+                        'application_type_id',
+                        $request->input('app_type_id')
+                    )
+                    ->first();
+
+                if (!$leaveCredit) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Leave credit not found.',
+                    ]);
+                }
+
+                $oldLeaveNumber = $leaveCredit->number;
+                $newLeaveNumber = number_format(
+                    $request->input('credit_count'),
+                    2,
+                    '.',
+                    ''
+                );
+
+                // Update leave credit
+                $leaveCredit->number = $newLeaveNumber;
+                $leaveCredit->save();
+
+                // Log the update
+                LogsLeaveCreditsModel::create([
+                    'user_id' => $user->id,
+                    'leave_credit_id' => $leaveCredit->id,
+                    'action' =>
+                        'Updated Credit ' .
+                        $leaveCredit->id .
+                        ' from ' .
+                        $oldLeaveNumber .
+                        ' to ' .
+                        $newLeaveNumber .
+                        '.',
+                ]);
+
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Leave credit updated successfully.',
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 500,
+                    'message' => 'An error occurred.',
+                    'error' => $e->getMessage(),
+                ]);
             }
-
-            // Find the leave credit by employee and leave type
-            $leaveCredit = LeaveCreditsModel::where('user_id', $employee->id)
-                ->where('application_type_id', $request->input('app_type_id'))
-                ->first();
-
-            if (!$leaveCredit) {
-                return response()->json(['status' => 404, 'message' => 'Leave credit not found.']);
-            }
-
-            $oldLeaveNumber = $leaveCredit->number;
-            $newLeaveNumber = number_format($request->input('credit_count'), 2, '.', '');
-
-            // Update leave credit
-            $leaveCredit->number = $newLeaveNumber;
-            $leaveCredit->save();
-
-            // Log the update
-            LogsLeaveCreditsModel::create([
-                'user_id' => $user->id,
-                'leave_credit_id' => $leaveCredit->id,
-                'action' => 'Updated Credit ' . $leaveCredit->id . ' from ' . $oldLeaveNumber . ' to ' . $newLeaveNumber . '.',
-            ]);
-
-            return response()->json(['status' => 200, 'message' => 'Leave credit updated successfully.']);
-
-        } catch (\Exception $e) {
-            return response()->json(['status' => 500, 'message' => 'An error occurred.', 'error' => $e->getMessage()]);
         }
+
+        return response()->json([
+            'status' => 403,
+            'message' => 'Unauthorized.',
+        ]);
     }
 
-    return response()->json(['status' => 403, 'message' => 'Unauthorized.']);
-}
+    private function get_ot_applications($user)
+    {
+        $rawApplications = ApplicationsOvertimeModel::where(
+            'client_id',
+            $user->client_id
+        )
+            ->with(['user', 'timeIn', 'timeOut'])
+            ->join(
+                'attendance_logs',
+                'applications_overtime.time_in_id',
+                '=',
+                'attendance_logs.id'
+            )
+            ->orderBy('attendance_logs.timestamp', 'desc')
+            ->select('applications_overtime.*')
+            ->get();
 
+        $applications = [];
+        foreach ($rawApplications as $app) {
+            $employee = $app->employee;
+            $timeIn = $app->timeIn;
+            $timeOut = $app->timeOut;
 
+            if ($timeIn && $timeOut) {
+                $applications[] = [
+                    'application' => encrypt($app->id),
+                    'time_in' => $timeIn->timestamp,
+                    'time_out' => $timeOut->timestamp,
+                    'reason' => $app->reason ?? '',
+                    'requested' => $app->created_at,
+                    'status' => $app->status,
+                    'emp_name' =>
+                        ($employee->first_name ?? '') .
+                        ' ' .
+                        ($employee->middle_name ?? '') .
+                        ' ' .
+                        ($employee->last_name ?? '') .
+                        ' ' .
+                        ($employee->suffix ?? ''),
+                    'emp_branch' => $employee->branch->name,
+                    'emp_department' => $employee->department->name,
+                    'emp_job_title' => $employee->jobTitle->name,
+                ];
+            }
+        }
+
+        return $applications;
+    }
 }

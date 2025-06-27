@@ -382,7 +382,7 @@ const PerformanceEvaluationCreatorPage = () => {
           Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluators: {allEvaluators.map(evaluator => getFullName(evaluator)).join(' & ')}
+          Evaluator: {allEvaluators.map(evaluator => getFullName(evaluator)).join(' & ')}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}

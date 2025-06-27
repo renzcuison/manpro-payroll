@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import { useIncentive, useSaveEmployeeIncentives } from "../../../../hooks/useIncentives";
+import { useSaveEmployeeIncentives, useAssignableIncentives } from "../../../../hooks/useIncentives";
+import LoadingSpinner from "../../../../components/LoadingStates/LoadingSpinner";   
 
 const EmployeeIncentiveAdd = ({ userName, onClose }) => {
-    const {incentivesData} = useIncentive();
+    const {incentivesData, isIncentivesLoading} = useAssignableIncentives(userName);
     const saveEmployeeIncentives = useSaveEmployeeIncentives();
     const incentives = incentivesData?.incentives || [];
 
-    const [incentiveEerror, setIncentiveError] = useState(false);
+    const [incentiveError, setIncentiveError] = useState(false);
     const [numberError, setNumberError] = useState(false);
 
     const [incentive, setIncentive] = useState('');
@@ -17,19 +18,11 @@ const EmployeeIncentiveAdd = ({ userName, onClose }) => {
     const checkInput = (event) => {
         event.preventDefault();
 
-        if (!incentive) {
-            setIncentiveError(true);
-        } else {
-            setIncentiveError(false);
-        }
+        setIncentiveError(!incentive || incentive == '' ? true : false);
+        setNumberError(!number || number == '' ? true : false);
+        const isFieldsEmpty = (!incentive || incentive == '' || !number || number == '');
 
-        if (!number) {
-            setNumberError(true);
-        } else {
-            setNumberError(false);
-        }
-
-        if (incentive == '' || number == '') {
+        if ( isFieldsEmpty ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -62,6 +55,10 @@ const EmployeeIncentiveAdd = ({ userName, onClose }) => {
         saveEmployeeIncentives.mutate({data: data, onSuccessCallback: () => onClose(true)});
     };
 
+    if(isIncentivesLoading){
+        return <Box display='flex' width='100%' justifyContent='center'> <LoadingSpinner/> </Box>
+    }
+
     return (
         <Box component="form" sx={{ mt: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
             <FormGroup row={true} className="d-flex justify-content-between">
@@ -74,11 +71,15 @@ const EmployeeIncentiveAdd = ({ userName, onClose }) => {
                         id="incentives"
                         label="Incentives"
                         value={incentive}
-                        error={incentiveEerror}
+                        error={incentiveError}
                         onChange={(event) => setIncentive(event.target.value)}
                     >
                         {incentives.map((incentive) => (
-                            <MenuItem key={incentive.id} value={incentive.id}> {incentive.name} </MenuItem>
+                            <MenuItem key={incentive.id} value={incentive.id}
+                                disabled={Boolean(incentive.disabled)} 
+                                sx={Boolean(incentive.disabled) ? { opacity: 0.5 } : {}}>
+                                    {incentive.name} 
+                            </MenuItem>
                         ))}
                     </TextField>
                 </FormControl>
