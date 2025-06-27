@@ -48,26 +48,8 @@ class CompensationManagementController extends Controller
         }
         return false;
     }
-    //#---------------->[endregion AUTH CHECKERS]
-
-
-    //#---------------->[region general utility function]
-
-    // public function filterEmployeesWithPagination($client, $filterName, $filterBranchId,
-    //  $filterDepartmentId, $qualifyingEmployeeIds){
-    //     $query = UsersModel::with(['branch', 'department'])
-    //     ->where('client_id', $client->id)
-    //     ->whereHas('branch')
-    //     ->whereHas('department')
-    //     ->whereIn('id', $qualifyingEmployeeIds)
-    //     ->when($filterName, fn($q) => $q->whereRaw("LOWER(CONCAT(last_name, ', ', first_name)) LIKE ?", ["%$filterName%"]))
-    //     ->when($filterBranchId, fn($q) => $q->where('branch_id', $filterBranchId))
-    //     ->when($filterDepartmentId, fn($q) => $q->where('department_id', $filterDepartmentId));
-    //     return $query;
-    // }
     
-    //#---------------->[endregion general utility function]
-
+    //#---------------->[endregion AUTH CHECKERS]
 
     //#---------------->[region INCENTIVES CONTROLLERS]
 
@@ -220,6 +202,27 @@ class CompensationManagementController extends Controller
                 'payment_schedule' => $incentive->payment_schedule,
             ];
         }
+        return response()->json(['status' => 200, 'incentives' => $incentives]);
+    }
+
+    public function getAssignableincentives(Request $request)
+    {
+        if (!$this->checkUserAdmin()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized']);
+        }
+        $username = $request->input('username');
+        $employee = UsersModel::with('incentives')->where('user_name', $username)->firstOrFail();
+        $client = ClientsModel::with('incentives')->findOrFail($employee->client_id);
+    
+        $assignedIds = $employee->incentives->pluck('incentive_id');
+    
+        $incentives = $client->incentives->map(function ($incentive) use ($assignedIds) {
+            return [
+                'id' => Crypt::encrypt($incentive->id),
+                'name' => $incentive->name,
+                'disabled' => $assignedIds->contains($incentive->id),
+            ];
+        });
         return response()->json(['status' => 200, 'incentives' => $incentives]);
     }
 
@@ -536,6 +539,7 @@ class CompensationManagementController extends Controller
 
             $benefits[] = [
                 'id' => Crypt::encrypt($benefit->id),
+                'benefit_id' => Crypt::encrypt($benefit->benefit->id),
                 'name' => $benefit->benefit->name,
                 'type' => $benefit->benefit->type,
                 'number' => $benefit->number,
@@ -606,6 +610,28 @@ class CompensationManagementController extends Controller
             ];
         }
         
+        return response()->json(['status' => 200, 'benefits' => $benefits]);
+    }
+
+    //for dropdown menu purposes 
+    public function getAssignableBenefits(Request $request)
+    {
+        if (!$this->checkUserAdmin()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized']);
+        }
+        $username = $request->input('username');
+        $employee = UsersModel::with('benefits')->where('user_name', $username)->firstOrFail();
+        $client = ClientsModel::with('benefits')->findOrFail($employee->client_id);
+    
+        $assignedIds = $employee->benefits->pluck('benefit_id');
+    
+        $benefits = $client->benefits->map(function ($benefit) use ($assignedIds) {
+            return [
+                'id' => Crypt::encrypt($benefit->id),
+                'name' => $benefit->name,
+                'disabled' => $assignedIds->contains($benefit->id),
+            ];
+        });
         return response()->json(['status' => 200, 'benefits' => $benefits]);
     }
 
@@ -820,6 +846,27 @@ class CompensationManagementController extends Controller
         }
 
         return response()->json(['status' => 200, 'allowances' => null]);
+    }
+
+    public function getAssignableAllowances(Request $request)
+    {
+        if (!$this->checkUserAdmin()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized']);
+        }
+        $username = $request->input('username');
+        $employee = UsersModel::with('allowances')->where('user_name', $username)->firstOrFail();
+        $client = ClientsModel::with('allowances')->findOrFail($employee->client_id);
+    
+        $assignedIds = $employee->allowances->pluck('allowance_id');
+            
+        $allowances = $client->allowances->map(function ($allowance) use ($assignedIds) {
+            return [
+                'id' => Crypt::encrypt($allowance->id),
+                'name' => $allowance->name,
+                'disabled' => $assignedIds->contains($allowance->id),
+            ];
+        });
+        return response()->json(['status' => 200, 'allowances' => $allowances]);
     }
 
     public function saveAllowance(Request $request)
@@ -1106,6 +1153,27 @@ class CompensationManagementController extends Controller
             return response()->json(['status' => 200, 'deductions' => $deductions]);
         }
         return response()->json(['status' => 200, 'deductions' => null]);
+    }
+
+    public function getAssignableDeductions(Request $request)
+    {
+        if (!$this->checkUserAdmin()) {
+            return response()->json(['status' => 403, 'message' => 'Unauthorized']);
+        }
+        $username = $request->input('username');
+        $employee = UsersModel::with('deductions')->where('user_name', $username)->firstOrFail();
+        $client = ClientsModel::with('deductions')->findOrFail($employee->client_id);
+    
+        $assignedIds = $employee->deductions->pluck('deduction_id');
+    
+        $deductions = $client->deductions->map(function ($deduction) use ($assignedIds) {
+            return [
+                'id' => Crypt::encrypt($deduction->id),
+                'name' => $deduction->name,
+                'disabled' => $assignedIds->contains($deduction->id),
+            ];
+        });
+        return response()->json(['status' => 200, 'deductions' => $deductions]);
     }
 
     public function saveDeductions(Request $request)

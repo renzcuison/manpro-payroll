@@ -7,13 +7,31 @@ const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 import Swal from "sweetalert2";
 
 //<-------------------[HOOK FUNCTION SECTION]------------------>
-export function useBenefit(enabled = true){
+export function useBenefit(enabled = true, username = null){
+    const isEnabled = Boolean(enabled);
     const query = useQuery(["benefits"], async () => {
         const { data } = await axiosInstance.get("compensation/getBenefits", {
             headers,
         });
         return data;
-    }, {enabled});
+    }, {enabled: isEnabled});
+
+    return{
+        benefitsData: query.data,
+        isBenefitsLoading: query.isLoading,
+        isBenefitsError: query.isError,
+        refetchBenefits: query.refetch,
+    }
+}
+
+export function useAssignableBenefits(userName = null){
+    const query = useQuery(["assignableBenefits", userName], async () => {
+        const { data } = await axiosInstance.get("compensation/getAssignableBenefits", {
+            headers, params: {username: userName}
+        });
+        return data;
+    }, {enabled: !!userName});
+
     return{
         benefitsData: query.data,
         isBenefitsLoading: query.isLoading,
@@ -55,7 +73,6 @@ export function useEmployeeBenefits(userName, benefitId = null){
 
 //#handles the adding or updating of benefits type
 export function useManageBenefits({benefit, onSuccess} = {}) {
-
     const [benefitName, setBenefitName] = useState(benefit?.name || '');
     const [benefitType, setBenefitType] = useState(benefit?.type || '');
     const [employeeAmountShare, setEmployeeAmountShare] = useState(benefit?.employee_amount || '');
@@ -260,6 +277,7 @@ export function useManageBenefits({benefit, onSuccess} = {}) {
         event.preventDefault();
         let convertedBrackets = []
         if((benefitType === "Bracket Amount" || benefitType === "Bracket Percentage")){
+            //since the brackets are stored as strings, it must be converted to float values first
             convertedBrackets = bracketsList.map(item => {
                 const newItem = {};
                 for (const key in item) {
@@ -302,8 +320,10 @@ export function useManageBenefits({benefit, onSuccess} = {}) {
         benefitName, benefitType, 
         employeeAmountShare, employerAmountShare, 
         employeePercentageShare, employerPercentageShare, 
-        paymentSchedule, benefitNameError,
-        employeeAmountShareError, employerAmountShareError,
+        paymentSchedule, 
+        
+        //errors
+        benefitNameError,employeeAmountShareError, employerAmountShareError,
         employeePercentageShareError, employerPercentageShareError, bracketsList, bracketListErrors,
 
         //functions

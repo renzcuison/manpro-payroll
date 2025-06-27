@@ -209,6 +209,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('compensation')->group(function () {
         //allowances
         Route::get('/getAllowances', [CompensationManagementController::class, 'getAllowances']);
+        Route::get('/getAssignableAllowances', [CompensationManagementController::class, 'getAssignableAllowances', ]);
         Route::post('/saveAllowance', [CompensationManagementController::class, 'saveAllowance']);
         Route::post('/updateAllowance', [CompensationManagementController::class, 'updateAllowance']);
 
@@ -219,6 +220,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         //incentives
         Route::get('/getIncentives', [CompensationManagementController::class, 'getIncentives', ]);
+        Route::get('/getAssignableIncentives', [CompensationManagementController::class, 'getAssignableIncentives', ]);
         Route::post('saveIncentives', [CompensationManagementController::class, 'saveIncentives', ]);
         Route::post('/updateIncentives', [CompensationManagementController::class, 'updateIncentives']);
 
@@ -229,6 +231,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         //benefits
         Route::get('/getBenefits', [CompensationManagementController::class, 'getBenefits', ]);
+        Route::get('/getAssignableBenefits', [CompensationManagementController::class, 'getAssignableBenefits', ]);
         Route::post('/saveBenefits', [CompensationManagementController::class, 'saveBenefits', ]);
         Route::post('/updateBenefits', [CompensationManagementController::class, 'updateBenefits']);
 
@@ -239,6 +242,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         //deductions
         Route::get('/getDeductions', [CompensationManagementController::class, 'getDeductions']);
+        Route::get('/getAssignableDeductions', [CompensationManagementController::class, 'getAssignableDeductions', ]);
         Route::post('/saveDeductions', [CompensationManagementController::class, 'saveDeductions']);
         Route::post('/updateDeductions', [CompensationManagementController::class, 'updateDeductions']);
 
