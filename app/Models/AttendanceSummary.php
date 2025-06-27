@@ -30,4 +30,9 @@ class AttendanceSummary extends Model
 
         'latest_log_id',
     ];
+
+    public function logs()
+    {
+        return $this->hasMany(AttendanceLogsModel::class, 'attendance_summary_id');
+    }
 }

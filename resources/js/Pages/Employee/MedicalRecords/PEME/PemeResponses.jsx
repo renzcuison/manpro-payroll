@@ -227,9 +227,7 @@ const PemeResponses = () => {
 
     return (
         <Layout title={"Pre-Employment Medical Exam Type Responses"}>
-            <Box
-                sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}
-            >
+            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
                 <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     {/* Header */}
                     <Box
@@ -262,57 +260,71 @@ const PemeResponses = () => {
                             borderRadius: "8px",
                         }}
                     >
-                        {/* Filters */}
-                        <Grid
-                            container
-                            spacing={2}
-                            alignItems="center"
-                            justifyContent="flex-start"
-                            gap={2}
+                        {/* Horizontal Filters: Search + From/To */}
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                flexWrap: "wrap",
+                                gap: 2,
+                                mb: 2,
+                            }}
                         >
-                            <Grid item>
-                                <LocalizationProvider
-                                    dateAdapter={AdapterDayjs}
-                                >
+                            {/* Search */}
+                            <FormControl variant="outlined" sx={{ width: 652 }}>
+                                <InputLabel htmlFor="custom-search">
+                                    Search Date, Type of Exam, Due Date, or Status
+                                </InputLabel>
+                                <OutlinedInput
+                                    id="custom-search"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    endAdornment={
+                                        search && (
+                                            <InputAdornment position="end">
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{ color: "gray" }}
+                                                >
+                                                    {resultsCount}{" "}
+                                                    {resultsCount === 1 || resultsCount === 0
+                                                        ? "Result"
+                                                        : "Results"}
+                                                </Typography>
+                                            </InputAdornment>
+                                        )
+                                    }
+                                    label="Search Date, Type of Exam, Due Date, or Status"
+                                />
+                            </FormControl>
+
+                            <Box sx={{ display: "flex", gap: 2 }}>
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
                                         label="From"
                                         value={fromDate}
-                                        onChange={(newValue) =>
-                                            setFromDate(newValue)
-                                        }
+                                        onChange={(newValue) => setFromDate(newValue)}
                                         slotProps={{
                                             textField: { sx: { width: 200 } },
                                         }}
                                     />
                                 </LocalizationProvider>
-                            </Grid>
 
-                            <Grid item>
-                                <LocalizationProvider
-                                    dateAdapter={AdapterDayjs}
-                                >
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
                                         label="To"
                                         value={toDate}
-                                        onChange={(newValue) =>
-                                            setToDate(newValue)
-                                        }
+                                        onChange={(newValue) => setToDate(newValue)}
                                         slotProps={{
-                                            textField: {
-                                                sx: { width: 200 },
-                                            },
+                                            textField: { sx: { width: 200 } },
                                         }}
                                     />
                                 </LocalizationProvider>
-                            </Grid>
+                            </Box>
+                        </Box>
 
-                            <Grid item>
-                                <PemeDueDatePicker
-                                    dueDate={dueDate}
-                                    setDueDate={setDueDate}
-                                />
-                            </Grid>
-                        </Grid>
+                        {/* Add Modal */}
                         {openAddPemeRecordsModal && (
                             <PemeRecordsAddModal
                                 open={openAddPemeRecordsModal}
@@ -320,44 +332,12 @@ const PemeResponses = () => {
                                 records={pemeRecords}
                             />
                         )}
-                        {/* Spacing after date pickers */}
+
                         <Box sx={{ height: 24 }} />
 
-                        <FormControl
-                            variant="outlined"
-                            sx={{ width: 652, mb: 1 }}
-                        >
-                            <InputLabel htmlFor="custom-search">
-                                Search Date, Type of Exam, Due Date, or Status
-                            </InputLabel>
-                            <OutlinedInput
-                                id="custom-search"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                endAdornment={
-                                    search && (
-                                        <InputAdornment position="end">
-                                            <Typography
-                                                variant="body2"
-                                                sx={{ color: "gray" }}
-                                            >
-                                                {resultsCount}{" "}
-                                                {resultsCount === 1 ||
-                                                resultsCount === 0
-                                                    ? "Result"
-                                                    : "Results"}
-                                            </Typography>
-                                        </InputAdornment>
-                                    )
-                                }
-                                label="Search Date, Type of Exam, Due Date, or Status"
-                            />
-                        </FormControl>
-
-                        {/* Spacing after search bar */}
-                        <Box sx={{ height: 24 }} />
                         <Divider />
-                        {/* Table */}
+
+                        {/* Table Section */}
                         {isLoading ? (
                             <Box
                                 sx={{
@@ -367,7 +347,7 @@ const PemeResponses = () => {
                                     minHeight: 400,
                                 }}
                             >
-                                <CircularProgress></CircularProgress>
+                                <CircularProgress />
                             </Box>
                         ) : (
                             <PemeResponsesTable
@@ -380,6 +360,7 @@ const PemeResponses = () => {
                 </Box>
             </Box>
         </Layout>
+
     );
 };
 

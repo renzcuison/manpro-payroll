@@ -25,8 +25,8 @@ const GradientProgressBar = ({ percentage, status }) => {
         status === "Rejected"
             ? "linear-gradient(to right, #b71c1c, #ff5252)" // red gradient
             : status === "Clear"
-            ? "green"
-            : "linear-gradient(to right, #177604, #E9AE20)"; // default
+                ? "green"
+                : "linear-gradient(to right, #177604, #E9AE20)"; // default
 
     const progress = Number(percentage);
 
@@ -88,9 +88,8 @@ const getDueStatus = (dueDateString) => {
         let message = "";
 
         if (overdueDays < 7)
-            message = `Overdue by ${overdueDays} day${
-                overdueDays > 1 ? "s" : ""
-            }`;
+            message = `Overdue by ${overdueDays} day${overdueDays > 1 ? "s" : ""
+                }`;
         else if (overdueDays < 30) {
             const weeks = Math.floor(overdueDays / 7);
             message = `Overdue by ${weeks} week${weeks > 1 ? "s" : ""}`;
@@ -184,18 +183,22 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                         {response.peme}
                                     </TableCell>
                                     <TableCell align="center">
-                                        {dayjs(response.expiry_date).format(
-                                            "MMMM D, YYYY"
-                                        )}{" "}
-                                        <p></p>{" "}
-                                        {getDueStatus(response.expiry_date)}
+                                        {dayjs(response.expiry_date).isValid()
+                                            ? dayjs(response.expiry_date).format("MMMM D, YYYY")
+                                            : "Pending"}
+                                        <p></p>
+                                        {dayjs(response.expiry_date).isValid()
+                                            ? getDueStatus(response.expiry_date)
+                                            : ""}
                                     </TableCell>
                                     <TableCell align="center">
-                                        {dayjs(response.next_schedule).format(
-                                            "MMMM D, YYYY"
-                                        )}{" "}
-                                        <p></p>{" "}
-                                        {getDueStatus(response.next_schedule)}
+                                        {dayjs(response.next_schedule).isValid()
+                                            ? dayjs(response.next_schedule).format("MMMM D, YYYY")
+                                            : "Pending"}
+                                        <p></p>
+                                        {dayjs(response.next_schedule).isValid()
+                                            ? getDueStatus(response.next_schedule)
+                                            : ""}
                                     </TableCell>
 
                                     <TableCell align="center">

@@ -19,10 +19,13 @@ class WorkShiftsModel extends Model
 
         'first_label',
         'second_label',
-
         'work_hour_id',
         'client_id',
 
         'deleted_at',
     ];
+
+    public function workDays () {
+        return $this->hasMany(WorkDays::class, 'work_shift_id');
+    }
 }

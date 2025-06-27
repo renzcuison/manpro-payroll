@@ -504,7 +504,6 @@ class EmployeesController extends Controller
     public function getMyAvatar()
     {
         $authUser = Auth::user();
-        Log::info("Getting avatar for user", ['id' => $authUser->id]);
 
         $avatar = [
             'image' => null,
@@ -535,22 +534,12 @@ class EmployeesController extends Controller
                     }
                     $avatar['url'] = $mediaUrl;
                 } else {
-                    Log::warning("Media record exists but file not found", [
-                        'path' => $media->getPath(),
-                        'disk' => $media->disk
-                    ]);
+                    Log::warning("Media record exists but file not found", [ 'path' => $media->getPath(), 'disk' => $media->disk ]);
                     
-                    return response()->json([
-                        'status' => 404,
-                        'message' => 'Avatar file not found'
-                    ], 404);
+                    return response()->json([ 'status' => 404, 'message' => 'Avatar file not found' ], 404);
                 }
             } else {
-                Log::info("No media found in profile_pictures collection");
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'No avatar found'
-                ], 404);
+                return response()->json([ 'status' => 404, 'message' => 'No avatar found' ], 404);
             }
         } catch (\Exception $e) {
             Log::error("Avatar fetch error", [
@@ -745,7 +734,7 @@ class EmployeesController extends Controller
                 DB::beginTransaction();
 
                 $old_salary_grade = $employee->salary_grade;
-                $old_salary = $employee->salary;
+                $old_salary = $employee->salary ?? 0;
 
                 $employee->first_name = $request->firstName;
                 $employee->middle_name = $request->middleName;
@@ -756,7 +745,7 @@ class EmployeesController extends Controller
                 $employee->contact_number = $request->phoneNumber;
                 $employee->address = $request->address;
 
-                $employee->salary = $request->salary;
+                $employee->salary = $request->salary ?? 0;
                 $employee->is_fixed_salary = $request->fixedSalary;
                 $employee->salary_type = $request->salaryType;
 
@@ -783,7 +772,7 @@ class EmployeesController extends Controller
                         'old_salary_grade' => $old_salary_grade,
                         'old_amount' => $old_salary,
                         'new_salary_grade' => $request->selectedSalaryGrade,
-                        'new_amount' => $request->salary,
+                        'new_amount' => $request->salary ?? 0,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);

@@ -197,7 +197,7 @@ const PemeRecordsForm = () => {
     const [questionnaireForms, setQuestionnaireForms] = useState([]);
     const [formName, setFormName] = useState("");
     const [formType, setFormType] = useState([]);
-    const [fileSize, setFileSize] = useState(25);
+    const [fileSize, setFileSize] = useState(10);
     const [isLoading, setIsLoading] = useState(true);
     const [pemeForms, setPemeForms] = useState({ questions: [] });
     const [initialForms, setInitialForms] = useState([]);
@@ -321,7 +321,7 @@ const PemeRecordsForm = () => {
             input_types: formType,
             file_size_limit:
                 fileSize === "" || Number(fileSize) === 0
-                    ? 25
+                    ? 10
                     : Number(fileSize),
             isRequired: isRequired ? 1 : 0
         };
@@ -417,7 +417,7 @@ const PemeRecordsForm = () => {
         setEditFileSize(
             form.input_types.find(
                 (item) => (item.input_type ?? item) === "attachment"
-            )?.file_size_limit ?? 25
+            )?.file_size_limit ?? 10
         );
     };
 
@@ -457,7 +457,7 @@ const PemeRecordsForm = () => {
         setEditSavedFormType(form.input_types.map((item) => item.input_type));
         setEditSavedFileSize(
             form.input_types.find((item) => item.input_type === "attachment")
-                ?.file_size_limit ?? 25
+                ?.file_size_limit ?? 10
         );
         setEditSavedIsRequired(form.isRequired);
     };
@@ -548,7 +548,7 @@ const PemeRecordsForm = () => {
 
     const handleConfirmQuestionnaire = () => {
         navigator(
-            `/admin/medical-records/peme-records/peme-responses/${PemeID}`
+            `/admin/medical-records/peme-records`
         );
     };
 
@@ -705,7 +705,7 @@ const PemeRecordsForm = () => {
                                                               (item.input_type ??
                                                                   item) ===
                                                               "attachment"
-                                                      )?.file_size_limit ?? 25
+                                                      )?.file_size_limit ?? 10
                                             }
                                             setFileSize={
                                                 isEditing
@@ -847,7 +847,7 @@ const PemeRecordsForm = () => {
                                                           (item) =>
                                                               item.input_type ===
                                                               "attachment"
-                                                      )?.file_size_limit ?? 25
+                                                      )?.file_size_limit ?? 10
                                             }
                                             setFileSize={
                                                 isEditing

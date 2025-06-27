@@ -303,5 +303,51 @@ class SalaryPlansController extends Controller {
         }
         return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
     }
+
+    public function getSalaryPlanById(Request $request)
+    {
+        $user = Auth::user();
+        if ($this->checkUser()) {
+            try {
+                $planId = Crypt::decrypt($request->id);
+            } catch (\Exception $e) {
+                return response()->json(['status' => 400, 'message' => 'Invalid ID'], 400);
+            }
+
+            $plan = SalaryPlansModel::where('client_id', $user->client_id)
+                ->where('id', $planId)
+                ->first();
+
+            if ($plan) {
+                // Count employees for this grade/version
+                $planGradeString = $plan->salary_grade;
+                if (!empty($plan->salary_grade_version)) {
+                    $planGradeString .= '.' . $plan->salary_grade_version;
+                }
+                $employeeCount = \DB::table('users')
+                    ->where('client_id', $user->client_id)
+                    ->where('salary_grade', $planGradeString)
+                    ->whereNull('deleted_at')
+                    ->count();
+
+                return response()->json([
+                    'status' => 200,
+                    'salaryPlan' => [
+                        'id' => Crypt::encrypt($plan->id),
+                        'client_id' => Crypt::encrypt($plan->client_id),
+                        'salary_grade' => $plan->salary_grade,
+                        'salary_grade_version' => $plan->salary_grade_version,
+                        'amount' => $plan->amount,
+                        'employee_count' => $employeeCount,
+                        'created_at' => $plan->created_at,
+                        'updated_at' => $plan->updated_at,
+                    ]
+                ]);
+            } else {
+                return response()->json(['status' => 404, 'salaryPlan' => null]);
+            }
+        }
+        return response()->json(['status' => 403, 'message' => 'Unauthorized'], 403);
+    }
 }
 

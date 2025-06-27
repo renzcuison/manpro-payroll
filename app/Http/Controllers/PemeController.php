@@ -43,7 +43,6 @@ class PemeController extends Controller
         $validatedData["isVisible"] = $validatedData["isVisible"] ?? 0;
         $validatedData["isEditable"] = $validatedData["isEditable"] ?? 0;
         $validatedData["isMultiple"] = $validatedData["isMultiple"] ?? 0;
-        $validatedData["medical_record_id"] = 1;
         $validatedData["response_date"] = Carbon::now()->toDateString();
 
         $user = Auth::user();
@@ -58,7 +57,6 @@ class PemeController extends Controller
         $validatedData["client_id"] = $user->client_id;
 
         $exists = Peme::where("name", $validatedData["name"])
-            ->where("medical_record_id", $validatedData["medical_record_id"])
             ->where("client_id", $validatedData["client_id"])
             ->exists();
 
@@ -93,7 +91,6 @@ class PemeController extends Controller
             "id",
             "client_id",
             "user_id",
-            "medical_record_id",
             "name",
             "respondents",
             "isVisible",
@@ -119,7 +116,6 @@ class PemeController extends Controller
                     "id" => Crypt::encrypt($peme->id),
                     "client_id" => Crypt::encrypt($peme->client_id),
                     "user_id" => Crypt::encrypt($peme->user_id),
-                    "medical_record_id" => Crypt::encrypt($peme->medical_record_id),
                     "name" => $peme->name,
                     "respondents" => $peme->respondents,
                     "isVisible" => $peme->isVisible,

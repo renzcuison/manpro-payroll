@@ -12,7 +12,8 @@ const AnnouncementAttachments = ({
   handleFileDownload, // from AnnouncementManage
   handlePreviewFile,  // from AnnouncementManage
   handlePreviewImage,
-  renderImage,        // from AnnouncementManage (optional)
+  renderImage,
+  previewedIds
 }) => (
   <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
     <DialogTitle
@@ -96,7 +97,7 @@ const AnnouncementAttachments = ({
                   }
                   sx={{ ml: 1 }}
                 >
-                  <VisibilityIcon />
+                  <VisibilityIcon sx={{ color: previewedIds.has(img.id) ? "#177604" : undefined }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Download">
@@ -150,7 +151,7 @@ const AnnouncementAttachments = ({
                   }
                   sx={{ ml: 1 }}
                 >
-                  <VisibilityIcon />
+                  <VisibilityIcon sx={{ color: previewedIds.has(doc.id) ? "#177604" : undefined }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Download">

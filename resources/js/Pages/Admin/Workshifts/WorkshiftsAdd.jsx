@@ -1,386 +1,36 @@
-import React, {  useState, useEffect } from 'react'
-import { Box, Button, Typography, FormGroup, TextField, FormControl, Menu, MenuItem, InputLabel } from '@mui/material';
+import React from 'react'
+import { Box, Button, Typography, FormGroup, TextField, FormControl, Menu, MenuItem, InputLabel,
+TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Checkbox } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
-import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { useUser } from '../../../hooks/useUser';
-import Swal from "sweetalert2";
-
-import dayjs, { Dayjs } from 'dayjs';
+import { useManageWorkshift } from '../../../hooks/useWorkShifts';
+import WorkDaySelector from '../Workshifts/WorkDaySelector';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Padding } from '@mui/icons-material';
 
 const WorkshiftAdd = () => {
-    const { user } = useUser();
-    const navigate = useNavigate();
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+    const {
+        //values
+        shiftName,shiftType,firstLabel,secondLabel, 
+        regularTimeIn, regularTimeOut,splitFirstTimeIn, splitFirstTimeOut,
+        splitSecondTimeIn, splitSecondTimeOut,
+        breakStart, breakEnd, overTimeIn,overTimeOut, workDays,
+        //error object
+        errors,
+        //functions
+        setShiftName, handleShiftTypeChange, setFirstLabel,
+        setSecondLabel, setRegularTimeIn, setRegularTimeOut, setSplitFirstTimeIn,
+        setSplitSecondTimeOut,
+        setBreakStart, setBreakEnd, setOverTimeIn, setOverTimeOut, checkInput,
+        handleSplitFirstTimeOutChange, handleSplitSecondTimeInChange, handleWorkDaysChanges,
 
-    const [shiftNameError, setShiftNameError] = useState(false);
-    const [firstLabelError, setFirstLabelError] = useState(false);
-    const [secondLabelError, setSecondLabelError] = useState(false);
-    const [regularTimeInError, setRegularTimeInError] = useState(false);
-    const [regularTimeOutError, setRegularTimeOutError] = useState(false);
-    const [splitFirstTimeInError, setSplitFirstTimeInError] = useState(false);
-    const [splitFirstTimeOutError, setSplitFirstTimeOutError] = useState(false);
-    const [splitSecondTimeInError, setSplitSecondTimeInError] = useState(false);
-    const [splitSecondTimeOutError, setSplitSecondTimeOutError] = useState(false);
+    } = useManageWorkshift();
 
-    const [overTimeInError, setOverTimeInError] = useState(false);
-    const [overTimeOutError, setOverTimeOutError] = useState(false);
-    const [breakStartError, setBreakStartError] = useState(false);
-    const [breakEndError, setBreakEndError] = useState(false);
-
-    const [shiftName, setShiftName] = useState('');
-    const [shiftType, setShiftType] = useState('');
-
-    const [firstLabel, setFirstLabel] = useState('');
-    const [secondLabel, setSecondLabel] = useState('');
-
-    const [regularTimeIn, setRegularTimeIn] = useState(null);
-    const [regularTimeOut, setRegularTimeOut] = useState(null);
-
-    const [splitFirstTimeIn, setSplitFirstTimeIn] = useState(null);
-    const [splitFirstTimeOut, setSplitFirstTimeOut] = useState(null);
-    const [splitSecondTimeIn, setSplitSecondTimeIn] = useState(null);
-    const [splitSecondTimeOut, setSplitSecondTimeOut] = useState(null);
-
-    const [breakStart, setBreakStart] = useState(null);
-    const [breakEnd, setBreakEnd] = useState(null);
-    
-    const [overTimeIn, setOverTimeIn] = useState(null);
-    const [overTimeOut, setOverTimeOut] = useState(null);
-
-    const handleRegularTimeInChange = (newValue) => {
-        setRegularTimeIn(newValue);
-    };
-
-    const handleRegularTimeOutChange = (newValue) => {
-        setRegularTimeOut(newValue);
-    };
-
-    const handleSplitFirstTimeInChange = (newValue) => {
-        setSplitFirstTimeIn(newValue);
-    };
-
-    const handleSplitFirstTimeOutChange = (newValue) => {
-        setSplitFirstTimeOut(newValue);
-
-        if (shiftType == "split" ) {
-            handleBreakStartChange(newValue);
-        }
-    };
-
-    const handleSplitSecondTimeInChange = (newValue) => {
-        setSplitSecondTimeIn(newValue);
-
-        if (shiftType == "split" ) {
-            handleBreakEndChange(newValue);
-        }
-    };
-
-    const handleSplitSecondTimeOutChange = (newValue) => {
-        setSplitSecondTimeOut(newValue);
-    };
-
-    const handleOverTimeInChange = (newValue) => {
-        setOverTimeIn(newValue);
-    };
-
-    const handleOverTimeOutChange = (newValue) => {
-        setOverTimeOut(newValue);
-    };
-
-    const handleBreakStartChange = (newValue) => {
-        setBreakStart(newValue);
-    };
-
-    const handleBreakEndChange = (newValue) => {
-        setBreakEnd(newValue);
-    };
-
-    const handleShiftTypeChange = (newValue) => {
-        
-        setFirstLabelError(false);
-        setSecondLabelError(false);
-
-        setRegularTimeInError(false);
-        setRegularTimeOutError(false);
-
-        setSplitFirstTimeInError(false);
-        setSplitFirstTimeOutError(false);
-        setSplitSecondTimeInError(false);
-        setSplitSecondTimeOutError(false);
-
-        setFirstLabel('');
-        setSecondLabel('');
-
-        setRegularTimeIn(null);
-        setRegularTimeOut(null);
-        
-        setSplitFirstTimeIn(null);
-        setSplitFirstTimeOut(null);
-        setSplitSecondTimeIn(null);
-        setSplitSecondTimeOut(null);
-
-        setBreakStart(null);
-        setBreakEnd(null);
-
-        setOverTimeIn(null);
-        setOverTimeOut(null);
-
-        setShiftType(newValue);
-    };
-
-
-    const checkInput = (event) => {
-        event.preventDefault();
-
-        if (!shiftName) {
-            setShiftNameError(true);
-        } else {
-            setShiftNameError(false);
-        }
-
-        if (overTimeIn === null) {
-            setOverTimeInError(true);
-        } else {
-            setOverTimeInError(false);
-        }
-
-        if (overTimeOut === null) {
-            setOverTimeOutError(true);
-        } else {
-            setOverTimeOutError(false);
-        }
-
-        if ( shiftType == 'regular' ) {
-            checkInputRegular(event);
-        }
-
-        if ( shiftType == 'split' ) {
-            checkInputSplit(event);
-        }
-    };
-
-    const checkInputRegular = (event) => {
-        event.preventDefault();
-
-        if (regularTimeIn === null) {
-            setRegularTimeInError(true);
-        } else {
-            setRegularTimeInError(false);
-        }
-    
-        if (regularTimeOut === null) {
-            setRegularTimeOutError(true);
-        } else {
-            setRegularTimeOutError(false);
-        }
-
-        if (breakStart === null) {
-            setBreakStartError(true);
-        } else {
-            setBreakStartError(false);
-        }
-    
-        if (breakEnd === null) {
-            setBreakEndError(true);
-        } else {
-            setBreakEndError(false);
-        }
-
-        if (overTimeIn === null) {
-            setOverTimeInError(true);
-        } else {
-            setOverTimeInError(false);
-        }
-
-        if (overTimeOut === null) {
-            setOverTimeOutError(true);
-        } else {
-            setOverTimeOutError(false);
-        }
-
-        if ( regularTimeIn === null || regularTimeOut === null || breakStart === null || breakEnd === null || overTimeIn === null || overTimeOut === null ) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "You want to save this work shift?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: 'Save',
-                confirmButtonColor: '#177604',
-                showCancelButton: true,
-                cancelButtonText: 'Cancel',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInputRegular(event);
-                }
-            });
-        }
-    };
-
-    const checkInputSplit = (event) => {
-        event.preventDefault();
-
-        if (!firstLabel) {
-            setFirstLabelError(true);
-        } else {
-            setFirstLabelError(false);
-        }
-
-        if (!secondLabel) {
-            setSecondLabelError(true);
-        } else {
-            setSecondLabelError(false);
-        }
-
-        if (splitFirstTimeIn === null) {
-            setSplitFirstTimeInError(true);
-        } else {
-            setSplitFirstTimeInError(false);
-        }
-    
-        if (splitFirstTimeOut === null) {
-            setSplitFirstTimeOutError(true);
-        } else {
-            setSplitFirstTimeOutError(false);
-        }
-
-        if (splitSecondTimeIn === null) {
-            setSplitSecondTimeInError(true);
-        } else {
-            setSplitSecondTimeInError(false);
-        }
-    
-        if (splitSecondTimeOut === null) {
-            setSplitSecondTimeOutError(true);
-        } else {
-            setSplitSecondTimeOutError(false);
-        }
-
-        if ( !firstLabel || !secondLabel || splitFirstTimeIn === null || splitFirstTimeOut === null || splitSecondTimeIn === null || splitSecondTimeOut === null ) {
-            Swal.fire({
-                customClass: { container: 'my-swal' },
-                text: "All fields must be filled!",
-                icon: "error",
-                showConfirmButton: true,
-                confirmButtonColor: '#177604',
-            });
-        } else {
-            Swal.fire({
-                customClass: { container: "my-swal" },
-                title: "Are you sure?",
-                text: "You want to save this work shift?",
-                icon: "warning",
-                showConfirmButton: true,
-                confirmButtonText: 'Save',
-                confirmButtonColor: '#177604',
-                showCancelButton: true,
-                cancelButtonText: 'Cancel',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    saveInputSplit(event);
-                }
-            });
-        }
-    };
-
-    const saveInputRegular = (event) => {
-        event.preventDefault();
-
-        const data = {
-            shiftName: shiftName,
-            shiftType: shiftType,
-
-            firstLabel: "Attendance",
-            firstTimeIn: regularTimeIn.format('HH:mm:ss'),
-            firstTimeOut: regularTimeOut.format('HH:mm:ss'),
-
-            breakStart: breakStart.format('HH:mm:ss'),
-            breakEnd: breakEnd.format('HH:mm:ss'),
-
-            overTimeIn: overTimeIn.format('HH:mm:ss'),
-            overTimeOut: overTimeOut.format('HH:mm:ss'),
-        };
-
-        axiosInstance.post('/workshedule/saveRegularWorkShift', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Work Shift saved successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        navigate(`/admin/workshift/${response.data.link}`);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    };
-
-    const saveInputSplit = (event) => {
-        event.preventDefault();
-
-        const data = {
-            shiftName: shiftName,
-            shiftType: shiftType,
-
-            firstLabel: firstLabel,
-            firstTimeIn: splitFirstTimeIn.format('HH:mm:ss'),
-            firstTimeOut: splitFirstTimeOut.format('HH:mm:ss'),
-
-            secondLabel: secondLabel,
-            secondTimeIn: splitSecondTimeIn.format('HH:mm:ss'),
-            secondTimeOut: splitSecondTimeOut.format('HH:mm:ss'),
-
-            breakStart: breakStart.format('HH:mm:ss'),
-            breakEnd: breakEnd.format('HH:mm:ss'),
-
-            overTimeIn: overTimeIn.format('HH:mm:ss'),
-            overTimeOut: overTimeOut.format('HH:mm:ss'),
-        };
-
-        axiosInstance.post('/workshedule/saveSplitWorkShift', data, { headers })
-            .then(response => {
-                if (response.data.status === 200) {
-                    Swal.fire({
-                        customClass: { container: 'my-swal' },
-                        text: "Work Shift saved successfully!",
-                        icon: "success",
-                        timer: 1000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Proceed',
-                        confirmButtonColor: '#177604',
-                    }).then(() => {
-                        navigate(`/admin/workshift/${response.data.link}`);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    };
+    const setFieldColor = () => {
+        return null
+    }
 
     return (
         <Layout title={"AddWorkShift"}>
@@ -390,12 +40,9 @@ const WorkshiftAdd = () => {
 
                         <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }}>Add Work Shift</Typography>
 
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
-                        }}>
-                            <FormControl sx={{ marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            <FormControl sx={{ marginBottom: 3, width: {lg:'50%', md:'100%', xs:'100%'},
+                                marginRight: {md:0, lg: 3},
                             }}>
                                 <TextField
                                     required
@@ -403,21 +50,19 @@ const WorkshiftAdd = () => {
                                     label="Shift Name"
                                     variant="outlined"
                                     value={shiftName}
-                                    error={shiftNameError}
+                                    error={!!errors.shiftName}
                                     onChange={(e) => setShiftName(e.target.value)}
                                 />
                             </FormControl>
 
-                           <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
+                            <FormControl sx={{ marginBottom: 3, width: {lg:'45.5%', md:'100%', xs:'100%'}}}>
                                 <TextField
                                     select
                                     required
                                     id="shiftType"
                                     label="Shift Type"
                                     value={shiftType}
-                                    onChange={(event) => handleShiftTypeChange(event.target.value)}
+                                    onChange={(e) => handleShiftTypeChange(e.target.value)}
                                 >
                                     <MenuItem key="regular" value="regular"> Regular Hours </MenuItem>
                                     <MenuItem key="split" value="split"> Split Hours </MenuItem>
@@ -428,17 +73,8 @@ const WorkshiftAdd = () => {
                         {shiftType === "regular" && (
                             <>
                                 <Typography>Work Hours</Typography>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                         <TextField
                                             required
                                             id="firstLabel"
@@ -448,56 +84,35 @@ const WorkshiftAdd = () => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Time In"
-                                                    views={['hours', 'minutes']}
-                                                    value={regularTimeIn}
-                                                    onChange={handleRegularTimeInChange}
-                                                    slotProps={{ textField: { error: regularTimeInError, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Time In"
+                                                views={['hours', 'minutes']}
+                                                value={regularTimeIn}
+                                                onChange={(val) => setRegularTimeIn(val)}
+                                                slotProps={{ textField: { error: !!errors.regularTimeIn, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
+                                            <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     required
                                                     label="Time Out"
                                                     views={['hours', 'minutes']}
                                                     value={regularTimeOut}
-                                                    onChange={handleRegularTimeOutChange}
-                                                    slotProps={{ textField: { error: regularTimeOutError, required: true } }}
+                                                    onChange={(val) => setRegularTimeOut(val)}
+                                                    slotProps={{ textField: { error: !!errors.regularTimeOut , required: true } }}
                                                 />
-                                            </DemoContainer>
-                                        </LocalizationProvider>
-                                    </FormControl>
-                                </FormGroup>
+                                            </LocalizationProvider>
+                                        </FormControl>
+                                    </FormGroup>
 
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                         <TextField
                                             required
                                             id="breakTimeLabel"
@@ -507,41 +122,29 @@ const WorkshiftAdd = () => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Break Start"
-                                                    views={['hours', 'minutes']}
-                                                    value={breakStart}
-                                                    onChange={handleBreakStartChange}
-                                                    slotProps={{ textField: { error: breakStartError, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Break Start"
+                                                views={['hours', 'minutes']}
+                                                value={breakStart}
+                                                onChange={(value) => setBreakStart(value)}
+                                                slotProps={{ textField: { error: !!errors.breakStart, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    requireds
-                                                    label="Break End"
-                                                    views={['hours', 'minutes']}
-                                                    value={breakEnd}
-                                                    onChange={handleBreakEndChange}
-                                                    slotProps={{ textField: { error: breakEndError, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                requireds
+                                                label="Break End"
+                                                views={['hours', 'minutes']}
+                                                value={breakEnd}
+                                                onChange={(val) => setBreakEnd(val)}
+                                                slotProps={{ textField: { error: !!errors.breakEnd , required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
@@ -551,124 +154,82 @@ const WorkshiftAdd = () => {
                         {shiftType === "split" && (
                             <>
                                 <Typography>Work Hours</Typography>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                         <TextField
                                             required
                                             id="firstLabel"
                                             label="First Label"
                                             variant="outlined"
                                             value={firstLabel}
-                                            error={firstLabelError}
+                                            error={!!errors.firstLabel}
                                             onChange={(e) => setFirstLabel(e.target.value)}
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Time In"
-                                                    views={['hours', 'minutes']}
-                                                    value={splitFirstTimeIn}
-                                                    onChange={handleSplitFirstTimeInChange}
-                                                    slotProps={{ textField: { error: splitFirstTimeInError, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Time In"
+                                                views={['hours', 'minutes']}
+                                                value={splitFirstTimeIn}
+                                                onChange={(val) => setSplitFirstTimeIn(val)}
+                                                slotProps={{ textField: { error: !!errors.splitFirstTimeIn, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Time Out"
-                                                    views={['hours', 'minutes']}
-                                                    value={splitFirstTimeOut}
-                                                    onChange={handleSplitFirstTimeOutChange}
-                                                    slotProps={{ textField: { error: splitFirstTimeOutError, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Time Out"
+                                                views={['hours', 'minutes']}
+                                                value={splitFirstTimeOut}
+                                                onChange={handleSplitFirstTimeOutChange}
+                                                slotProps={{ textField: { error: !!errors.splitFirstTimeOut, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
 
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                         <TextField
                                             required
                                             id="secondLabel"
                                             label="Second Label"
                                             variant="outlined"
                                             value={secondLabel}
-                                            error={secondLabelError}
+                                            error={!!errors.secondLabel}
                                             onChange={(e) => setSecondLabel(e.target.value)}
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Time In"
-                                                    views={['hours', 'minutes']}
-                                                    value={splitSecondTimeIn}
-                                                    onChange={handleSplitSecondTimeInChange}
-                                                    slotProps={{ textField: { error: splitSecondTimeInError, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Time In"
+                                                views={['hours', 'minutes']}
+                                                value={splitSecondTimeIn}
+                                                onChange={handleSplitSecondTimeInChange}
+                                                slotProps={{ textField: { error: !!errors.splitSecondTimeIn, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Time Out"
-                                                    views={['hours', 'minutes']}
-                                                    value={splitSecondTimeOut}
-                                                    onChange={handleSplitSecondTimeOutChange}
-                                                    slotProps={{ textField: { error: splitSecondTimeOutError, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Time Out"
+                                                views={['hours', 'minutes']}
+                                                value={splitSecondTimeOut}
+                                                onChange={(val) => setSplitSecondTimeOut(val)}
+                                                slotProps={{ textField: { error: !!errors.splitSecondTimeOut, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
@@ -677,17 +238,8 @@ const WorkshiftAdd = () => {
 
                         {shiftType && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                         <TextField
                                             required
                                             id="overTimeLabel"
@@ -697,43 +249,34 @@ const WorkshiftAdd = () => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    label="Time In"
-                                                    views={['hours', 'minutes']}
-                                                    value={overTimeIn}
-                                                    onChange={handleOverTimeInChange}
-                                                    slotProps={{ textField: { error: overTimeInError, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                label="Time In"
+                                                views={['hours', 'minutes']}
+                                                value={overTimeIn}
+                                                onChange={(val) => setOverTimeIn(val)}
+                                                slotProps={{ textField: { error: !!errors.overTimeIn, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    label="Time Out"
-                                                    views={['hours', 'minutes']}
-                                                    value={overTimeOut}
-                                                    onChange={handleOverTimeOutChange}
-                                                    slotProps={{ textField: { error: overTimeOutError, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                label="Time Out"
+                                                views={['hours', 'minutes']}
+                                                value={overTimeOut}
+                                                onChange={(val) => setOverTimeOut(val)}
+                                                slotProps={{ textField: { error: !!errors.overTimeOut, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
 
+                                <WorkDaySelector workDays={workDays} isEdit={true} onChange={handleWorkDaysChanges}/>
+            
+            
                                 <div className="d-flex justify-content-center" id="buttons" style={{ marginTop: '20px' }}>
                                     <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
                                         <p className='m-0'><i className="fa fa-plus mr-2 mt-1"></i>Save Shift</p>

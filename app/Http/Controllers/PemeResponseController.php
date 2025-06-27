@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BranchesModel;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
@@ -168,17 +170,33 @@ class PemeResponseController extends Controller
 
     public function storeAll(Request $request)
     {
-        $validated = $request->validate([
-            'peme_response_id' => 'required|string',
-            'responses' => 'required|array',
-            'responses.*.peme_q_item_id' => 'required|string',
-            'responses.*.peme_q_type_id' => 'required|string',
-            'responses.*.value' => 'nullable|string|max:512',
-            'responses.*.files' => 'nullable|array',
-            'responses.*.files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png',
-            'responses.*.existing_file_ids' => 'nullable|array',
-            'isDraft' => 'required|boolean',
-        ]);
+
+        // \Log::info("INCOMING FILE KEYS", [
+        //     'all' => $request->all(),
+        //     'allFiles' => $request->allFiles(),
+        //     'hasFile' => $request->hasFile('responses'),
+        // ]);
+        // \Log::info('storeAll called', ['input' => $request->all()]);
+
+        try {
+            $validated = $request->validate([
+                'peme_response_id' => 'required|string',
+                'responses' => 'required|array',
+                'responses.*.peme_q_item_id' => 'required|string',
+                'responses.*.peme_q_type_id' => 'required|string',
+                'responses.*.value' => 'nullable|string|max:512',
+                'responses.*.files' => 'nullable|array',
+                // 'responses.*.files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png',
+                // 'responses.*.files.*' => 'file|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/octet-stream,image/jpeg,image/png',
+                'responses.*.existing_file_ids' => 'nullable|array',
+                'isDraft' => 'required|boolean',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed', [
+                'errors' => $e->errors(),
+                'input' => $request->all(),
+            ]);
+        }
 
         // foreach ($request->input('responses', []) as $index => $response) {
         //     $files = data_get($request->allFiles(), "responses.$index.files", []);
@@ -269,7 +287,6 @@ class PemeResponseController extends Controller
                 }
 
                 if (array_key_exists('existing_file_ids', $response)) {
-                    // Decrypt all IDs from the request
                     $existingIds = array_map(function ($id) {
                         try {
                             return Crypt::decrypt($id);
@@ -277,7 +294,7 @@ class PemeResponseController extends Controller
                             return null;
                         }
                     }, $response['existing_file_ids'] ?? []);
-                    $existingIds = array_filter($existingIds); // Remove nulls
+                    $existingIds = array_filter($existingIds);
 
                     $mediaItems = $detail->getMedia('attachments');
 
@@ -293,6 +310,21 @@ class PemeResponseController extends Controller
                     $files = [$files];
                 }
 
+                $files = array_filter($files, function ($file) {
+                    return $file instanceof UploadedFile && $file->isValid() && $file->getClientOriginalName();
+                });
+
+                // \Log::info('Received files for response', [
+                //     'index' => $index,
+                //     'files' => array_map(function ($f) {
+                //         return [
+                //             'name' => $f->getClientOriginalName(),
+                //             'mime' => $f->getMimeType(),
+                //             'valid' => $f->isValid(),
+                //         ];
+                //     }, $files)
+                // ]);
+
                 if (count($files)) {
                     $maxFiles = $detail->question->max_files;
                     $existingCount = $detail->getMedia('attachments')->count();
@@ -307,14 +339,34 @@ class PemeResponseController extends Controller
                     $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
                     $maxKilobytes = $fileSizeLimitMb ? intval($fileSizeLimitMb * 1024) : null;
 
-                    foreach ($files as $file) {
-                        $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
-                        if ($maxKilobytes) {
-                            $rules['file'] .= "|max:$maxKilobytes";
-                        }
-                        Validator::make(['file' => $file], $rules)->validate();
+                    \Log::info('File size limit for upload', [
+                        'fileSizeLimitMb' => $fileSizeLimitMb,
+                        'maxKilobytes' => $maxKilobytes,
+                        'question_id' => $detail->peme_q_item_id,
+                        'type_id' => $detail->peme_q_type_id,
+                        'question' => $detail->question->question ?? null,
+                    ]);
 
-                        $media = $detail->addMedia($file)->toMediaCollection('attachments');
+                    foreach ($files as $file) {
+                        if (
+                            !$file instanceof UploadedFile ||
+                            !$file->isValid() ||
+                            !$file->getClientOriginalName()
+                        ) {
+                            continue;
+                        }
+
+                        $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
+                        $validator = Validator::make(['file' => $file], $rules);
+
+                        try {
+                            $media = $detail->addMedia($file)->toMediaCollection('attachments');
+                        } catch (\Exception $e) {
+                            \Log::error('MediaLibrary error', [
+                                'error' => $e->getMessage(),
+                                'file_name' => $file->getClientOriginalName(),
+                            ]);
+                        }
                     }
                 }
 
@@ -499,8 +551,124 @@ class PemeResponseController extends Controller
                 // 'peme_id' => $response->peme_id,
                 'user_id' => Crypt::encrypt($response->user_id),
                 'respondent' => $fullName,
+                'branch' => $response->user->branch->name ?? 'null',
+                'department' => $response->user->department->name ?? 'null',
+                'status' => ucfirst($response->status),
+                'isDraft' => $response->isDraft,
+                'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),
+                'next_schedule' => optional($response->next_schedule)->format('Y-m-d H:i:s'),
+                'response_details_id' => $response->details->pluck('id'),
+                'progress' => [
+                    'completed' => $answeredQuestions,
+                    'total' => $totalQuestions,
+                    'percent' => $totalQuestions > 0 ? round(($answeredQuestions / $totalQuestions) * 100) : 0,
+                ],
+                'questions' => $questionsOutput,
+            ];
+        });
+
+        return response()->json($result);
+    }
+
+    public function showAll($id)
+    {
+        $id = Crypt::decrypt($id);
+
+        $responses = PemeResponse::where('peme_id', $id)
+            ->with([
+                'peme.questions.types',
+                'peme.user.branch',
+                'peme.user.department',
+                'user',
+                'details'
+            ])
+            ->latest()
+            ->get();
+
+        $allDetails = PemeResponseDetails::whereHas('response', function ($query) use ($id) {
+            $query->where('peme_id', $id);
+        })->with(['media', 'response'])->get();
+
+        $detailMap = [];
+        foreach ($allDetails as $detail) {
+            $responseId = $detail->peme_response_id;
+            $qID = (int) $detail->peme_q_item_id;
+            $tID = (int) $detail->peme_q_type_id;
+            $detailMap[$responseId][$qID][$tID] = $detail;
+        }
+
+        $result = $responses->map(function ($response) use ($detailMap) {
+            $questions = $response->peme->questions;
+            $details = $detailMap[$response->id] ?? [];
+
+            $questionsOutput = $questions->map(function ($question) use ($details) {
+                $inputTypesWithValues = $question->types->map(function ($type) use ($question, $details) {
+                    $matchedDetail = $details[$question->id][$type->id] ?? null;
+
+                    return [
+                        'id' => Crypt::encrypt($type->id),
+                        'input_type' => $type->input_type,
+                        'value' => $matchedDetail->value ?? null,
+                    ];
+                });
+
+                $media = collect([]);
+                if (isset($details[$question->id])) {
+                    foreach ($details[$question->id] as $detail) {
+                        if ($detail->media->count() > 0) {
+                            $media = $detail->media->map(function ($media) {
+                                return [
+                                    'id' => Crypt::encrypt($media->id),
+                                    'file_name' => $media->file_name,
+                                    'url' => $media->getUrl(),
+                                    'size' => $media->size,
+                                ];
+                            });
+                            break;
+                        }
+                    }
+                }
+
+                return [
+                    'question_id' => Crypt::encrypt($question->id),
+                    'question_text' => $question->question,
+                    'input_type' => $inputTypesWithValues,
+                    'media' => $media,
+                ];
+            });
+
+            $totalQuestions = $questionsOutput->count();
+            $answeredQuestions = 0;
+
+            foreach ($questionsOutput as $q) {
+                $anyAnswered = collect($q['input_type'])->some(function ($input) use ($q) {
+                    if ($input['input_type'] === 'attachment') {
+                        return isset($q['media']) && is_iterable($q['media']) && $q['media']->count() > 0;
+                    }
+                    return $input['value'] !== null && trim($input['value']) !== '';
+                });
+
+                if ($anyAnswered) {
+                    $answeredQuestions++;
+                }
+            }
+
+            $user = $response->user;
+            $fullName = $user->first_name . ' ' . ($user->middle_name ? $user->middle_name . ' ' : '') . $user->last_name;
+
+            // $branch = BranchesModel::find($user->branch_id);
+            // $department = DepartmentsModel::find($user->department_id);
+
+            return [
+                'response_id' => Crypt::encrypt($response->id),
+                'peme_id' => Crypt::encrypt($response->peme_id),
+                // 'peme_id' => $response->peme_id,
+                'user_id' => Crypt::encrypt($response->user_id),
+                'respondent' => $fullName,
                 'branch' => $response->peme->user->branch->name ?? 'null',
+                // 'branch' => $branch->name ?? 'null',
                 'department' => $response->peme->user->department->name ?? 'null',
+                // 'department' => $department->name ?? 'null',
                 'status' => ucfirst($response->status),
                 'isDraft' => $response->isDraft,
                 'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),
@@ -752,7 +920,8 @@ class PemeResponseController extends Controller
 
         return response()->json([
             'peme' => $pemeResponse->peme->name,
-            'peme_id' => $pemeResponse->peme->id,
+            // 'peme_id' => $pemeResponse->peme->id,
+            'peme_id' => Crypt::encrypt($pemeResponse->peme->id),
             'peme_response_id' => Crypt::encrypt($pemeResponse->id),
             'user_id' => Crypt::encrypt($pemeResponse->user_id),
             'respondent' => $fullName,

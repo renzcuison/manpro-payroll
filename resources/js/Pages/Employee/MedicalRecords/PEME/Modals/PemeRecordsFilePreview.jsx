@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
     Dialog,
     Typography,
@@ -8,13 +9,13 @@ import {
     IconButton,
     Tooltip,
 } from "@mui/material";
-import React from "react";
 import DownloadIcon from "@mui/icons-material/Download";
 
 const PemeRecordsFilePreview = ({ open, close, file }) => {
     const downloadFile = async (filename) => {
         try {
-            const response = await fetch(`http://192.168.79.33:8000/api/download/${filename}`, {
+            // const response = await fetch(`http://192.168.79.33:8000/api/download/${filename}`, {
+            const response = await fetch(`http://localhost:8000/api/download/${filename}`, {
                 method: "GET",
             });
 
@@ -104,7 +105,7 @@ const PemeRecordsFilePreview = ({ open, close, file }) => {
                             flex: 1,
                             border: "1px solid #ccc",
                             borderRadius: 2,
-                            overflow: "hidden",
+                            overflow: "auto",
                             backgroundColor: "#fff",
                         }}
                     >
