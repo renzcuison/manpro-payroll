@@ -29,7 +29,8 @@ class VerifyCodeMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('ManPro OTP Verification Code')
-            ->view('mail.verify-code-mail');
+        return $this->subject(
+            'ManPro OTP Verification (Code: ' . ($this->details['verifyCode'] . ")" ?? '')
+        )->view('mail.verify-code-mail');
     }
 }

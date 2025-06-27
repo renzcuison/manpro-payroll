@@ -63,9 +63,14 @@ const UploadForm = ({
                         <Typography
                             key={index}
                             color="primary"
+                            // onClick={() => {
+                            //     if (onFileClick && file?.url) {
+                            //         onFileClick(file.url, file.file_name);
+                            //     }
+                            // }}
                             onClick={() => {
                                 if (onFileClick && file?.url) {
-                                    onFileClick(file.url, file.file_name);
+                                    onFileClick(file);
                                 }
                             }}
                             sx={{
@@ -119,9 +124,14 @@ const UploadForm = ({
                                 cursor: "pointer",
                                 mr: 2,
                             }}
+                            // onClick={() => {
+                            //     if (onFileClick && file?.url) {
+                            //         onFileClick(file.url, file.file_name);
+                            //     }
+                            // }}
                             onClick={() => {
                                 if (onFileClick && file?.url) {
-                                    onFileClick(file.url, file.file_name);
+                                    onFileClick(file);
                                 }
                             }}
                         >
@@ -155,6 +165,7 @@ const UploadForm = ({
                 <input
                     type="file"
                     multiple
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                     style={{ display: "none" }}
                     ref={fileInputRef}
                     onChange={handleFileChange}
@@ -182,8 +193,8 @@ const PassOrFail = ({ value, onChange }) => {
         value?.toLowerCase() === "pass"
             ? "Pass"
             : value?.toLowerCase() === "fail"
-            ? "Fail"
-            : "";
+                ? "Fail"
+                : "";
 
     return (
         <Box
@@ -212,8 +223,8 @@ const PostiveOrNegative = ({ value, onChange }) => {
         value?.toLowerCase() === "positive"
             ? "Positive"
             : value?.toLowerCase() === "negative"
-            ? "Negative"
-            : "";
+                ? "Negative"
+                : "";
 
     return (
         <Box
@@ -417,12 +428,6 @@ const PemeQuestionnaireView = () => {
                 }
             });
 
-            console.log("About to log FormData...");
-            console.log("FORMDATA PAYLOAD:");
-            for (const pair of formData.entries()) {
-                console.log(pair[0], pair[1]);
-            }
-
             try {
                 await axiosInstance.post(`/peme-responses/storeAll`, formData, {
                     headers,
@@ -556,13 +561,27 @@ const PemeQuestionnaireView = () => {
             }
 
             // Append new files
-            if (Array.isArray(item.files) && item.files[0] instanceof File) {
-                item.files.forEach((file, fileIndex) => {
-                    formData.append(
-                        `responses[${index}][files][${fileIndex}]`,
-                        file
-                    );
-                });
+            // if (Array.isArray(item.files) && item.files[0] instanceof File) {
+            //     item.files.forEach((file, fileIndex) => {
+            //         formData.append(
+            //             `responses[${index}][files][${fileIndex}]`,
+            //             file
+            //         );
+            //     });
+            // }
+            if (
+                Array.isArray(item.files) &&
+                item.files.length > 0 &&
+                item.files.some(f => f instanceof File)
+            ) {
+                item.files
+                    .filter(f => f instanceof File)
+                    .forEach((file, fileIndex) => {
+                        formData.append(
+                            `responses[${index}][files][${fileIndex}]`,
+                            file
+                        );
+                    });
             }
 
             // For non-attachments
@@ -608,8 +627,12 @@ const PemeQuestionnaireView = () => {
         }
     };
 
-    const handleFileClick = (fileUrl, fileName = "File Preview") => {
-        setSelectedFile({ url: fileUrl, file_name: fileName });
+    // const handleFileClick = (fileUrl, fileName = "File Preview") => {
+    //     setSelectedFile({ url: fileUrl, file_name: fileName });
+    //     setFilePreviewOpen(true);
+    // };
+    const handleFileClick = (fileObj) => {
+        setSelectedFile(fileObj);
         setFilePreviewOpen(true);
     };
 
@@ -652,13 +675,13 @@ const PemeQuestionnaireView = () => {
             const updatedDetails = prev.details.map((form) =>
                 form.question_id === questionId
                     ? {
-                          ...form,
-                          media: Array.isArray(form.media)
-                              ? form.media.filter(
-                                    (file) => file.id !== fileToRemove.id
-                                )
-                              : [],
-                      }
+                        ...form,
+                        media: Array.isArray(form.media)
+                            ? form.media.filter(
+                                (file) => file.id !== fileToRemove.id
+                            )
+                            : [],
+                    }
                     : form
             );
             // Log the existing file IDs for this question after removal
@@ -770,7 +793,7 @@ const PemeQuestionnaireView = () => {
                                         form.input_type.map((type, i) => {
                                             const value =
                                                 answers[form.question_id]?.[
-                                                    type.input_type
+                                                type.input_type
                                                 ] || "";
 
                                             // const attachmentValue =
@@ -947,20 +970,28 @@ const PemeQuestionnaireView = () => {
                                 </Button>
                             </Box>
 
-                            <Box sx={{ display: "flex", gap: 2 }}>
-                                <Button
-                                    variant="contained"
-                                    onClick={() => handleSaveDraft(1)}
-                                >
-                                    Save Draft
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    onClick={() => handleOnConfirmClick(0)}
-                                >
-                                    Submit
-                                </Button>
-                            </Box>
+                            {employeeResponse.isDraft === 1 ? (
+                                <>
+                                    <Box sx={{ display: "flex", gap: 2 }}>
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => handleSaveDraft(1)}
+                                        >
+                                            Save Draft
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            onClick={() =>
+                                                handleOnConfirmClick(0)
+                                            }
+                                        >
+                                            Submit
+                                        </Button>
+                                    </Box>
+                                </>
+                            ) : (
+                                ""
+                            )}
                         </Box>
                     </Box>
                     <PemeRecordsFilePreview
