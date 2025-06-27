@@ -57,7 +57,7 @@ const CreateEvaluationReviewModal = ({
             <Box sx={sectionStyle}>
                 <Typography sx={labelStyle}>Employee:</Typography>
                 <Typography sx={valueStyle} component="span">
-                    {getFullName(employees.find(e => e.id === data.employeeName) || {}) || <em>—</em>}
+                    {getFullName(employees.find(e => e.id === data.evaluatee) || {}) || <em>—</em>}
                 </Typography>
             </Box>
             <Box sx={sectionStyle}>

@@ -1372,9 +1372,10 @@ class CompensationManagementController extends Controller
                 'branch_id' => $employee->branch_id,
                 'department_id' => $employee->department_id,
                 'amount' => $amount,
-            ]);      
+            ]);    
+            $total_amount += $amount;  
         }
-        $total_amount += $amount;
+        
 
         return response()->json([
             'status' => 200,
