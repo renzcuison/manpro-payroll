@@ -707,32 +707,32 @@ class EvaluationResponseController extends Controller
                                                     ])
                                                     ->orderBy('order')
                                             ,
-                                            'percentageAnswer' => fn ($percentageAnswer) =>
-                                                $percentageAnswer
-                                                    ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
-                                                    ->select(
-                                                        'evaluation_percentage_answers.id',
-                                                        'evaluation_percentage_answers.response_id',
-                                                        'evaluation_percentage_answers.subcategory_id',
-                                                        'evaluation_percentage_answers.percentage',
-                                                        'evaluation_form_subcategories.subcategory_type'
-                                                    )
-                                                    ->addSelect(DB::raw(
-                                                        "round(evaluation_percentage_answers.percentage*"
-                                                        ."(evaluation_form_subcategories.linear_scale_end"
-                                                        ."-evaluation_form_subcategories.linear_scale_start)"
-                                                        ."+evaluation_form_subcategories.linear_scale_start)"
-                                                        ." as value"
-                                                    ))
-                                                    ->addSelect(DB::raw(
-                                                        "round(evaluation_percentage_answers.percentage*"
-                                                        ."(evaluation_form_subcategories.linear_scale_end"
-                                                        ."-evaluation_form_subcategories.linear_scale_start))"
-                                                        ." as linear_scale_index"
-                                                    ))
-                                                    ->whereNull('evaluation_percentage_answers.deleted_at')
-                                                    ->where('response_id', $request->id)
-                                            ,
+                                            // 'percentageAnswer' => fn ($percentageAnswer) =>
+                                            //     $percentageAnswer
+                                            //         ->join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+                                            //         ->select(
+                                            //             'evaluation_percentage_answers.id',
+                                            //             'evaluation_percentage_answers.response_id',
+                                            //             'evaluation_percentage_answers.subcategory_id',
+                                            //             'evaluation_percentage_answers.percentage',
+                                            //             'evaluation_form_subcategories.subcategory_type'
+                                            //         )
+                                            //         ->addSelect(DB::raw(
+                                            //             "round(evaluation_percentage_answers.percentage*"
+                                            //             ."(evaluation_form_subcategories.linear_scale_end"
+                                            //             ."-evaluation_form_subcategories.linear_scale_start)"
+                                            //             ."+evaluation_form_subcategories.linear_scale_start)"
+                                            //             ." as value"
+                                            //         ))
+                                            //         ->addSelect(DB::raw(
+                                            //             "round(evaluation_percentage_answers.percentage*"
+                                            //             ."(evaluation_form_subcategories.linear_scale_end"
+                                            //             ."-evaluation_form_subcategories.linear_scale_start))"
+                                            //             ." as linear_scale_index"
+                                            //         ))
+                                            //         ->whereNull('evaluation_percentage_answers.deleted_at')
+                                            //         ->where('response_id', $request->id)
+                                            // ,
                                             'textAnswer' => fn ($textAnswer) =>
                                                 $textAnswer
                                                     ->select('id', 'response_id', 'subcategory_id', 'answer')
@@ -1421,8 +1421,6 @@ class EvaluationResponseController extends Controller
                             'first_name' => $evaluationResponse->evaluatee->first_name,
                             'middle_name' => $evaluationResponse->evaluatee->middle_name,
                             'suffix' => $evaluationResponse->evaluatee->suffix,
-                            'branch_id' => Crypt::encrypt($evaluationResponse->evaluatee->branch_id),
-                            'department_id' => Crypt::encrypt($evaluationResponse->evaluatee->department_id),
                             'branch' => $evaluationResponse->evaluatee->branch ? [
                                 'id' => Crypt::encrypt($evaluationResponse->evaluatee->branch->id),
                                 'name' => $evaluationResponse->evaluatee->branch->name
