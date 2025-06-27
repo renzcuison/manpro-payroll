@@ -537,6 +537,7 @@ class EvaluationFormController extends Controller
             $newOrder = min(
                 EvaluationFormSection
                     ::where('form_id', $evaluationFormSection->form_id)
+                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
@@ -1007,6 +1008,7 @@ class EvaluationFormController extends Controller
             $newOrder = min(
                 EvaluationFormSubcategory
                     ::where('section_id', $evaluationFormSubcategory->section_id)
+                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
@@ -1644,6 +1646,7 @@ class EvaluationFormController extends Controller
             $newOrder = min(
                 EvaluationFormSubcategoryOption
                     ::where('subcategory_id', $evaluationFormSubcategoryOption->subcategory_id)
+                    ->withTrashed()
                     ->min('order')
                 , 1
             ) - 1;
