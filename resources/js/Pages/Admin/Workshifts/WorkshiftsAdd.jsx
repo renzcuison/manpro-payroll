@@ -3,11 +3,12 @@ import { Box, Button, Typography, FormGroup, TextField, FormControl, Menu, MenuI
 TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Checkbox } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import { useManageWorkshift } from '../../../hooks/useWorkShifts';
-
+import WorkDaySelector from '../Workshifts/WorkDaySelector';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+
 
 const WorkshiftAdd = () => {
     const {
@@ -27,6 +28,10 @@ const WorkshiftAdd = () => {
 
     } = useManageWorkshift();
 
+    const setFieldColor = () => {
+        return null
+    }
+
     return (
         <Layout title={"AddWorkShift"}>
             <Box sx={{ mx: 10, pt: 12 }}>
@@ -35,12 +40,9 @@ const WorkshiftAdd = () => {
 
                         <Typography variant="h4" sx={{ mt: 3, mb: 6, fontWeight: 'bold' }}>Add Work Shift</Typography>
 
-                        <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                            '& label.Mui-focused': {color: '#97a5ba'},
-                            '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
-                        }}>
-                            <FormControl sx={{ marginBottom: 3, width: '66%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                        <FormGroup row={true} className="d-flex justify-content-between">
+                            <FormControl sx={{ marginBottom: 3, width: {lg:'50%', md:'100%', xs:'100%'},
+                                marginRight: {md:0, lg: 3},
                             }}>
                                 <TextField
                                     required
@@ -53,9 +55,7 @@ const WorkshiftAdd = () => {
                                 />
                             </FormControl>
 
-                           <FormControl sx={{ marginBottom: 3, width: '32%', '& label.Mui-focused': { color: '#97a5ba' },
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                            }}>
+                            <FormControl sx={{ marginBottom: 3, width: {lg:'45.5%', md:'100%', xs:'100%'}}}>
                                 <TextField
                                     select
                                     required
@@ -73,17 +73,8 @@ const WorkshiftAdd = () => {
                         {shiftType === "regular" && (
                             <>
                                 <Typography>Work Hours</Typography>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                         <TextField
                                             required
                                             id="firstLabel"
@@ -93,56 +84,35 @@ const WorkshiftAdd = () => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Time In"
-                                                    views={['hours', 'minutes']}
-                                                    value={regularTimeIn}
-                                                    onChange={(val) => setRegularTimeIn(val)}
-                                                    slotProps={{ textField: { error: !!errors.regularTimeIn, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Time In"
+                                                views={['hours', 'minutes']}
+                                                value={regularTimeIn}
+                                                onChange={(val) => setRegularTimeIn(val)}
+                                                slotProps={{ textField: { error: !!errors.regularTimeIn, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
-                                        <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
+                                            <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     required
                                                     label="Time Out"
                                                     views={['hours', 'minutes']}
                                                     value={regularTimeOut}
                                                     onChange={(val) => setRegularTimeOut(val)}
-                                                    slotProps={{ textField: { error: !!errors.regularTimeOut, required: true } }}
+                                                    slotProps={{ textField: { error: !!errors.regularTimeOut , required: true } }}
                                                 />
-                                            </DemoContainer>
-                                        </LocalizationProvider>
-                                    </FormControl>
-                                </FormGroup>
+                                            </LocalizationProvider>
+                                        </FormControl>
+                                    </FormGroup>
 
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                         <TextField
                                             required
                                             id="breakTimeLabel"
@@ -152,41 +122,29 @@ const WorkshiftAdd = () => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Break Start"
-                                                    views={['hours', 'minutes']}
-                                                    value={breakStart}
-                                                    onChange={(val) => setBreakStart(val)}
-                                                    slotProps={{ textField: { error: !!errors.breakStart, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Break Start"
+                                                views={['hours', 'minutes']}
+                                                value={breakStart}
+                                                onChange={(value) => setBreakStart(value)}
+                                                slotProps={{ textField: { error: !!errors.breakStart, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    requireds
-                                                    label="Break End"
-                                                    views={['hours', 'minutes']}
-                                                    value={breakEnd}
-                                                    onChange={(val) => setBreakEnd(val)}
-                                                    slotProps={{ textField: { error: !!errors.breakEnd , required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                requireds
+                                                label="Break End"
+                                                views={['hours', 'minutes']}
+                                                value={breakEnd}
+                                                onChange={(val) => setBreakEnd(val)}
+                                                slotProps={{ textField: { error: !!errors.breakEnd , required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
@@ -196,17 +154,8 @@ const WorkshiftAdd = () => {
                         {shiftType === "split" && (
                             <>
                                 <Typography>Work Hours</Typography>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                         <TextField
                                             required
                                             id="firstLabel"
@@ -218,56 +167,35 @@ const WorkshiftAdd = () => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Time In"
-                                                    views={['hours', 'minutes']}
-                                                    value={splitFirstTimeIn}
-                                                    onChange={(val) => setSplitFirstTimeIn(val)}
-                                                    slotProps={{ textField: { error: !!errors.splitFirstTimeIn, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Time In"
+                                                views={['hours', 'minutes']}
+                                                value={splitFirstTimeIn}
+                                                onChange={(val) => setSplitFirstTimeIn(val)}
+                                                slotProps={{ textField: { error: !!errors.splitFirstTimeIn, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Time Out"
-                                                    views={['hours', 'minutes']}
-                                                    value={splitFirstTimeOut}
-                                                    onChange={handleSplitFirstTimeOutChange}
-                                                    slotProps={{ textField: { error: !!errors.splitFirstTimeOut, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Time Out"
+                                                views={['hours', 'minutes']}
+                                                value={splitFirstTimeOut}
+                                                onChange={handleSplitFirstTimeOutChange}
+                                                slotProps={{ textField: { error: !!errors.splitFirstTimeOut, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
 
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                         <TextField
                                             required
                                             id="secondLabel"
@@ -279,41 +207,29 @@ const WorkshiftAdd = () => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Time In"
-                                                    views={['hours', 'minutes']}
-                                                    value={splitSecondTimeIn}
-                                                    onChange={handleSplitSecondTimeInChange}
-                                                    slotProps={{ textField: { error: !!errors.splitSecondTimeIn, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Time In"
+                                                views={['hours', 'minutes']}
+                                                value={splitSecondTimeIn}
+                                                onChange={handleSplitSecondTimeInChange}
+                                                slotProps={{ textField: { error: !!errors.splitSecondTimeIn, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    required
-                                                    label="Time Out"
-                                                    views={['hours', 'minutes']}
-                                                    value={splitSecondTimeOut}
-                                                    onChange={(val) => setSplitSecondTimeOut(val)}
-                                                    slotProps={{ textField: { error: !!errors.splitSecondTimeOut, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                required
+                                                label="Time Out"
+                                                views={['hours', 'minutes']}
+                                                value={splitSecondTimeOut}
+                                                onChange={(val) => setSplitSecondTimeOut(val)}
+                                                slotProps={{ textField: { error: !!errors.splitSecondTimeOut, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
@@ -322,17 +238,8 @@ const WorkshiftAdd = () => {
 
                         {shiftType && (
                             <>
-                                <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                    '& label.Mui-focused': {color: '#97a5ba'},
-                                    '& .MuiOutlinedInput-root': {
-                                        '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
-                                    },
-                                }}>
-                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, width: '40%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                <FormGroup row={true} className="d-flex justify-content-between">
+                                    <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                         <TextField
                                             required
                                             id="overTimeLabel"
@@ -342,69 +249,34 @@ const WorkshiftAdd = () => {
                                         />
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    label="Time In"
-                                                    views={['hours', 'minutes']}
-                                                    value={overTimeIn}
-                                                    onChange={(val) => setOverTimeIn(val)}
-                                                    slotProps={{ textField: { error: !!errors.overTimeIn, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                label="Time In"
+                                                views={['hours', 'minutes']}
+                                                value={overTimeIn}
+                                                onChange={(val) => setOverTimeIn(val)}
+                                                slotProps={{ textField: { error: !!errors.overTimeIn, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
 
-                                    <FormControl sx={{ marginBottom: 3, width: '27%', '& label.Mui-focused': { color: '#97a5ba' },
-                                        '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                        },
-                                    }}>
+                                    <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
-                                            <DemoContainer components={['TimePicker']}>
-                                                <TimePicker
-                                                    label="Time Out"
-                                                    views={['hours', 'minutes']}
-                                                    value={overTimeOut}
-                                                    onChange={(val) => setOverTimeOut(val)}
-                                                    slotProps={{ textField: { error: !!errors.overTimeOut, required: true } }}
-                                                />
-                                            </DemoContainer>
+                                            <TimePicker
+                                                label="Time Out"
+                                                views={['hours', 'minutes']}
+                                                value={overTimeOut}
+                                                onChange={(val) => setOverTimeOut(val)}
+                                                slotProps={{ textField: { error: !!errors.overTimeOut, required: true } }}
+                                            />
                                         </LocalizationProvider>
                                     </FormControl>
                                 </FormGroup>
-                                <Typography>Set Work Days</Typography>
 
-                                <TableContainer>
-                                    <Table stickyHeader size='small'>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align='center'>Sunday</TableCell>
-                                                <TableCell align='center'>Monday</TableCell>
-                                                <TableCell align='center'>Tuesday</TableCell>
-                                                <TableCell align='center'>Wednesday</TableCell>
-                                                <TableCell align='center'>Thursday</TableCell>
-                                                <TableCell align='center'>Friday</TableCell>
-                                                <TableCell align='center'>Saturday</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            <TableRow>
-                                                {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
-                                                <TableCell align="center" key={day}>
-                                                    <Checkbox checked={workDays[day]} onChange={() => handleWorkDaysChanges(day)}/>
-                                                </TableCell>
-                                                ))}
-                                            </TableRow>
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-
+                                <WorkDaySelector workDays={workDays} isEdit={true} onChange={handleWorkDaysChanges}/>
+            
+            
                                 <div className="d-flex justify-content-center" id="buttons" style={{ marginTop: '20px' }}>
                                     <Button type="submit" variant="contained" sx={{ backgroundColor: '#177604', color: 'white' }} className="m-1">
                                         <p className='m-0'><i className="fa fa-plus mr-2 mt-1"></i>Save Shift</p>

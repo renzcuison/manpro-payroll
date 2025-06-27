@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BranchesModel;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
@@ -196,7 +198,6 @@ class PemeResponseController extends Controller
             ]);
         }
 
-
         // foreach ($request->input('responses', []) as $index => $response) {
         //     $files = data_get($request->allFiles(), "responses.$index.files", []);
         //     $files = is_array($files) ? $files : [$files];
@@ -286,7 +287,6 @@ class PemeResponseController extends Controller
                 }
 
                 if (array_key_exists('existing_file_ids', $response)) {
-                    // Decrypt all IDs from the request
                     $existingIds = array_map(function ($id) {
                         try {
                             return Crypt::decrypt($id);
@@ -294,7 +294,7 @@ class PemeResponseController extends Controller
                             return null;
                         }
                     }, $response['existing_file_ids'] ?? []);
-                    $existingIds = array_filter($existingIds); // Remove nulls
+                    $existingIds = array_filter($existingIds);
 
                     $mediaItems = $detail->getMedia('attachments');
 
@@ -310,6 +310,21 @@ class PemeResponseController extends Controller
                     $files = [$files];
                 }
 
+                $files = array_filter($files, function ($file) {
+                    return $file instanceof UploadedFile && $file->isValid() && $file->getClientOriginalName();
+                });
+
+                // \Log::info('Received files for response', [
+                //     'index' => $index,
+                //     'files' => array_map(function ($f) {
+                //         return [
+                //             'name' => $f->getClientOriginalName(),
+                //             'mime' => $f->getMimeType(),
+                //             'valid' => $f->isValid(),
+                //         ];
+                //     }, $files)
+                // ]);
+
                 if (count($files)) {
                     $maxFiles = $detail->question->max_files;
                     $existingCount = $detail->getMedia('attachments')->count();
@@ -324,37 +339,25 @@ class PemeResponseController extends Controller
                     $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
                     $maxKilobytes = $fileSizeLimitMb ? intval($fileSizeLimitMb * 1024) : null;
 
-
+                    \Log::info('File size limit for upload', [
+                        'fileSizeLimitMb' => $fileSizeLimitMb,
+                        'maxKilobytes' => $maxKilobytes,
+                        'question_id' => $detail->peme_q_item_id,
+                        'type_id' => $detail->peme_q_type_id,
+                        'question' => $detail->question->question ?? null,
+                    ]);
 
                     foreach ($files as $file) {
                         if (
-                            !$file instanceof \Illuminate\Http\UploadedFile ||
+                            !$file instanceof UploadedFile ||
                             !$file->isValid() ||
                             !$file->getClientOriginalName()
                         ) {
                             continue;
                         }
 
-                        \Log::info('File size validation', [
-                            'file_name' => $file->getClientOriginalName(),
-                            'file_size_bytes' => $file->getSize(),
-                            'file_size_kb' => round($file->getSize() / 1024, 2),
-                            'max_kilobytes' => $maxKilobytes,
-                            'db_file_size_limit' => $fileSizeLimitMb,
-                        ]);
-
                         $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
                         $validator = Validator::make(['file' => $file], $rules);
-
-                        if ($validator->fails()) {
-                            \Log::error('File validation failed', [
-                                'errors' => $validator->errors(),
-                                'file_name' => $file->getClientOriginalName(),
-                                'mime_type' => $file->getMimeType(),
-                            ]);
-
-                            continue;
-                        }
 
                         try {
                             $media = $detail->addMedia($file)->toMediaCollection('attachments');
@@ -548,8 +551,8 @@ class PemeResponseController extends Controller
                 // 'peme_id' => $response->peme_id,
                 'user_id' => Crypt::encrypt($response->user_id),
                 'respondent' => $fullName,
-                'branch' => $response->peme->user->branch->name ?? 'null',
-                'department' => $response->peme->user->department->name ?? 'null',
+                'branch' => $response->user->branch->name ?? 'null',
+                'department' => $response->user->department->name ?? 'null',
                 'status' => ucfirst($response->status),
                 'isDraft' => $response->isDraft,
                 'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),
@@ -653,6 +656,9 @@ class PemeResponseController extends Controller
             $user = $response->user;
             $fullName = $user->first_name . ' ' . ($user->middle_name ? $user->middle_name . ' ' : '') . $user->last_name;
 
+            // $branch = BranchesModel::find($user->branch_id);
+            // $department = DepartmentsModel::find($user->department_id);
+
             return [
                 'response_id' => Crypt::encrypt($response->id),
                 'peme_id' => Crypt::encrypt($response->peme_id),
@@ -660,7 +666,9 @@ class PemeResponseController extends Controller
                 'user_id' => Crypt::encrypt($response->user_id),
                 'respondent' => $fullName,
                 'branch' => $response->peme->user->branch->name ?? 'null',
+                // 'branch' => $branch->name ?? 'null',
                 'department' => $response->peme->user->department->name ?? 'null',
+                // 'department' => $department->name ?? 'null',
                 'status' => ucfirst($response->status),
                 'isDraft' => $response->isDraft,
                 'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),
