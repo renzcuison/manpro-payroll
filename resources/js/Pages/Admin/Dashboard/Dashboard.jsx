@@ -51,6 +51,8 @@ const Dashboard = () => {
         isLoading,
     } = useDashboard();
 
+    console.log(dashboard);
+
     // const {
     //     data: milestones,
     //     isLoading: isLoadingMilestones,

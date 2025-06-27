@@ -28,13 +28,226 @@ class EvaluationResponseController extends Controller
 
     // evaluatees, evaluators, commentors
 
-    public function getCommentors(Request $request)
+    // public function getCommentors(Request $request)
+    // {
+    //     // inputs:
+    //     /*
+    //         department_id?: string,
+    //         branch_id?: string,
+    //         exclude?: string[]
+    //     */
+
+    //     // returns:
+    //     /*
+    //         users: {
+    //             id, last_name, first_name, middle_name, suffix
+    //         }
+    //     */
+
+    //      if (Auth::check()) {
+    //         $userID = Auth::id();
+    //     } else {
+    //         $userID = null;
+    //     }
+
+    //     $user = DB::table('users')->select()->where('id', $userID)->first();
+
+    //     if (!Auth::check()) {
+    //         return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+    //     }
+
+    //     $commentors = UsersModel
+    //         ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
+    //         ->where('client_id', $user->client_id)
+    //         ->whereNot('id', $user->id)
+    //         ->whereNull('deleted_at')
+    //     ;
+    //     if($request->department_id !== null)
+    //         $commentors = $commentors->where('department_id', $request->department_id);
+    //     if($request->branch_id !== null)
+    //         $commentors = $commentors->where('branch_id', $request->branch_id);
+    //     if($request->exclude)
+    //         $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
+    //     $commentors = $commentors
+    //         ->orderBy('last_name')
+    //         ->orderBy('first_name')
+    //         ->orderBy('middle_name')
+    //         ->orderBy('suffix')
+    //         ->get()
+    //     ;
+    //     if(!$commentors) return response()->json([ 
+    //         'status' => 404,
+    //         'message' => 'Commentors not found!'
+    //     ]);
+    //     return response()->json([
+    //         'status' => 200,
+    //         'message' => 'Commentors successfully retrieved.',
+    //         'commentors' => $commentors->map(function ($evaluatee) {
+    //             return [
+    //                 'id' => Crypt::encrypt($evaluatee->id),
+    //                 'user_name' => $evaluatee->user_name,
+    //                 'last_name' => $evaluatee->last_name,
+    //                 'first_name' => $evaluatee->first_name,
+    //                 'middle_name' => $evaluatee->middle_name,
+    //                 'suffix' => $evaluatee->suffix
+    //             ];
+    //         })
+    //     ]);
+    // }
+
+    // public function getEvaluatees(Request $request)
+    // {
+    //     // Ensure authentication
+    //     if (!\Auth::check()) {
+    //         return response()->json([
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+    //     }
+
+    //     $userID = \Auth::id();
+    //     $user = \DB::table('users')->select()->where('id', $userID)->first();
+
+    //     $evaluatees = \App\Models\UsersModel::select(
+    //             'id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix'
+    //         )
+    //         ->where('client_id', $user->client_id)
+    //         ->whereNull('deleted_at');
+
+    //     // Optional: filter by user_type(s) if provided
+    //     if ($request->has('user_type')) {
+    //         $userType = $request->user_type;
+    //         if (is_array($userType)) {
+    //             $evaluatees = $evaluatees->whereIn('user_type', $userType);
+    //         } elseif (is_string($userType)) {
+    //             $types = array_map('trim', explode(',', $userType));
+    //             $evaluatees = $evaluatees->whereIn('user_type', $types);
+    //         }
+    //     }
+
+    //     // Optional: filter by department and branch
+    //     if ($request->department_id !== null) {
+    //         $evaluatees = $evaluatees->where('department_id', $request->department_id);
+    //     }
+    //     if ($request->branch_id !== null) {
+    //         $evaluatees = $evaluatees->where('branch_id', $request->branch_id);
+    //     }
+    //     if ($request->exclude) {
+    //         $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
+    //     }
+
+    //     $evaluatees = $evaluatees
+    //         ->orderBy('last_name')
+    //         ->orderBy('first_name')
+    //         ->orderBy('middle_name')
+    //         ->orderBy('suffix')
+    //         ->get();
+
+    //     if ($evaluatees->isEmpty()) {
+    //         return response()->json([
+    //             'status' => 404,
+    //             'message' => 'Evaluatees not found!',
+    //             'evaluatees' => []
+    //         ]);
+    //     }
+    //     return response()->json([
+    //         'status' => 200,
+    //         'message' => 'Evaluatees successfully retrieved.',
+    //         'evaluatees' => $evaluatees->map(function ($evaluatee) {
+    //             return [
+    //                 'id' => Crypt::encrypt($evaluatee->id),
+    //                 'user_name' => $evaluatee->user_name,
+    //                 'last_name' => $evaluatee->last_name,
+    //                 'first_name' => $evaluatee->first_name,
+    //                 'middle_name' => $evaluatee->middle_name,
+    //                 'suffix' => $evaluatee->suffix
+    //             ];
+    //         })
+    //     ]);
+    // }
+
+    // public function getEvaluators(Request $request)
+    // {
+    //     if (!Auth::check()) {
+    //         return response()->json([ 
+    //             'status' => 403,
+    //             'message' => 'Unauthorized access!'
+    //         ]);
+    //     }
+    //     $userID = Auth::id();
+    //     $user = DB::table('users')->select()->where('id', $userID)->first();
+
+    //     $evaluators = UsersModel
+    //         ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
+    //         ->whereNot('id', $user->id)
+    //         ->where('client_id', $user->client_id)
+    //         ->whereNull('deleted_at');
+
+    //     if($request->department_id !== null)
+    //         $evaluators = $evaluators->where('department_id', $request->department_id);
+
+    //     if($request->branch_id !== null)
+    //         $evaluators = $evaluators->where('branch_id', $request->branch_id);
+
+    //     // Support for flexible user_type filtering
+    //     if ($request->has('user_type')) {
+    //         $userType = $request->user_type;
+    //         // Accepts either array or comma-separated string
+    //         if (is_array($userType)) {
+    //             $evaluators = $evaluators->whereIn('user_type', $userType);
+    //         } elseif (is_string($userType)) {
+    //             // Handles comma-separated string or single type
+    //             $types = array_map('trim', explode(',', $userType));
+    //             $evaluators = $evaluators->whereIn('user_type', $types);
+    //         } else {
+    //             // Fallback to both Admin and Employee if something unexpected
+    //             $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
+    //         }
+    //     } else {
+    //         // Default: both Admin and Employee
+    //         $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
+    //     }
+
+    //     if($request->exclude)
+    //         $evaluators = $evaluators->whereNotIn('id', $request->exclude);
+
+    //     $evaluators = $evaluators
+    //         ->orderBy('last_name')
+    //         ->orderBy('first_name')
+    //         ->orderBy('middle_name')
+    //         ->orderBy('suffix')
+    //         ->get();
+
+    //     if($evaluators->isEmpty()) return response()->json([ 
+    //         'status' => 404,
+    //         'message' => 'Evaluators not found!'
+    //     ]);
+    //     return response()->json([
+    //         'status' => 200,
+    //         'message' => 'Evaluators successfully retrieved.',
+    //         'evaluators' => $evaluators->map(function ($evaluator) {
+    //             return [
+    //                 'id' => Crypt::encrypt($evaluator->id),
+    //                 'user_name' => $evaluator->user_name,
+    //                 'last_name' => $evaluator->last_name,
+    //                 'first_name' => $evaluator->first_name,
+    //                 'middle_name' => $evaluator->middle_name,
+    //                 'suffix' => $evaluator->suffix
+    //             ];
+    //         })
+    //     ]);
+    // }
+
+    public function getEvaluationResponseUsers(Request $request)
     {
         // inputs:
         /*
-            department_id?: number,
-            branch_id?: number,
-            exclude?: number[]
+            department_id?: string,
+            branch_id?: string,
+            exclude?: string[]
         */
 
         // returns:
@@ -53,189 +266,44 @@ class EvaluationResponseController extends Controller
         $user = DB::table('users')->select()->where('id', $userID)->first();
 
         if (!Auth::check()) {
-            return response()->json([ 
+            return response()->json([
                 'status' => 403,
                 'message' => 'Unauthorized access!'
             ]);
         }
 
-        $commentors = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
+        $users = UsersModel
+            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix', 'user_type')
             ->where('client_id', $user->client_id)
             ->whereNot('id', $user->id)
+            ->whereNot('user_type', 'SuperAdmin')
             ->whereNull('deleted_at')
         ;
         if($request->department_id !== null)
-            $commentors = $commentors->where('department_id', $request->department_id);
+            $users = $users->where('department_id', $request->department_id);
         if($request->branch_id !== null)
-            $commentors = $commentors->where('branch_id', $request->branch_id);
+            $users = $users->where('branch_id', $request->branch_id);
         if($request->exclude)
-            $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
-        $commentors = $commentors
+            $users = $users->whereNotIn('id', $request->exclude);
+        $users = $users
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->orderBy('middle_name')
             ->orderBy('suffix')
             ->get()
         ;
-        if(!$commentors) return response()->json([ 
-            'status' => 404,
-            'message' => 'Commentors not found!'
-        ]);
         return response()->json([
             'status' => 200,
-            'message' => 'Commentors successfully retrieved.',
-            'commentors' => $commentors->map(function ($evaluatee) {
+            'message' => 'Users successfully retrieved.',
+            'users' => $users->map(function ($user) {
                 return [
-                    'id' => Crypt::encrypt($evaluatee->id),
-                    'user_name' => $evaluatee->user_name,
-                    'last_name' => $evaluatee->last_name,
-                    'first_name' => $evaluatee->first_name,
-                    'middle_name' => $evaluatee->middle_name,
-                    'suffix' => $evaluatee->suffix
-                ];
-            })
-        ]);
-    }
-
-    public function getEvaluatees(Request $request)
-    {
-        // Ensure authentication
-        if (!\Auth::check()) {
-            return response()->json([
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
-        }
-
-        $userID = \Auth::id();
-        $user = \DB::table('users')->select()->where('id', $userID)->first();
-
-        $evaluatees = \App\Models\UsersModel::select(
-                'id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix'
-            )
-            ->where('client_id', $user->client_id)
-            ->whereNull('deleted_at');
-
-        // Optional: filter by user_type(s) if provided
-        if ($request->has('user_type')) {
-            $userType = $request->user_type;
-            if (is_array($userType)) {
-                $evaluatees = $evaluatees->whereIn('user_type', $userType);
-            } elseif (is_string($userType)) {
-                $types = array_map('trim', explode(',', $userType));
-                $evaluatees = $evaluatees->whereIn('user_type', $types);
-            }
-        }
-
-        // Optional: filter by department and branch
-        if ($request->department_id !== null) {
-            $evaluatees = $evaluatees->where('department_id', $request->department_id);
-        }
-        if ($request->branch_id !== null) {
-            $evaluatees = $evaluatees->where('branch_id', $request->branch_id);
-        }
-        if ($request->exclude) {
-            $evaluatees = $evaluatees->whereNotIn('id', $request->exclude);
-        }
-
-        $evaluatees = $evaluatees
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->orderBy('middle_name')
-            ->orderBy('suffix')
-            ->get();
-
-        if ($evaluatees->isEmpty()) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'Evaluatees not found!',
-                'evaluatees' => []
-            ]);
-        }
-        return response()->json([
-            'status' => 200,
-            'message' => 'Evaluatees successfully retrieved.',
-            'evaluatees' => $evaluatees->map(function ($evaluatee) {
-                return [
-                    'id' => Crypt::encrypt($evaluatee->id),
-                    'user_name' => $evaluatee->user_name,
-                    'last_name' => $evaluatee->last_name,
-                    'first_name' => $evaluatee->first_name,
-                    'middle_name' => $evaluatee->middle_name,
-                    'suffix' => $evaluatee->suffix
-                ];
-            })
-        ]);
-    }
-
-    public function getEvaluators(Request $request)
-    {
-        if (!Auth::check()) {
-            return response()->json([ 
-                'status' => 403,
-                'message' => 'Unauthorized access!'
-            ]);
-        }
-        $userID = Auth::id();
-        $user = DB::table('users')->select()->where('id', $userID)->first();
-
-        $evaluators = UsersModel
-            ::select('id', 'user_name', 'last_name', 'first_name', 'middle_name', 'suffix')
-            ->whereNot('id', $user->id)
-            ->where('client_id', $user->client_id)
-            ->whereNull('deleted_at');
-
-        if($request->department_id !== null)
-            $evaluators = $evaluators->where('department_id', $request->department_id);
-
-        if($request->branch_id !== null)
-            $evaluators = $evaluators->where('branch_id', $request->branch_id);
-
-        // Support for flexible user_type filtering
-        if ($request->has('user_type')) {
-            $userType = $request->user_type;
-            // Accepts either array or comma-separated string
-            if (is_array($userType)) {
-                $evaluators = $evaluators->whereIn('user_type', $userType);
-            } elseif (is_string($userType)) {
-                // Handles comma-separated string or single type
-                $types = array_map('trim', explode(',', $userType));
-                $evaluators = $evaluators->whereIn('user_type', $types);
-            } else {
-                // Fallback to both Admin and Employee if something unexpected
-                $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
-            }
-        } else {
-            // Default: both Admin and Employee
-            $evaluators = $evaluators->whereIn('user_type', ['Admin', 'Employee']);
-        }
-
-        if($request->exclude)
-            $evaluators = $evaluators->whereNotIn('id', $request->exclude);
-
-        $evaluators = $evaluators
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->orderBy('middle_name')
-            ->orderBy('suffix')
-            ->get();
-
-        if($evaluators->isEmpty()) return response()->json([ 
-            'status' => 404,
-            'message' => 'Evaluators not found!'
-        ]);
-        return response()->json([
-            'status' => 200,
-            'message' => 'Evaluators successfully retrieved.',
-            'evaluators' => $evaluators->map(function ($evaluator) {
-                return [
-                    'id' => Crypt::encrypt($evaluator->id),
-                    'user_name' => $evaluator->user_name,
-                    'last_name' => $evaluator->last_name,
-                    'first_name' => $evaluator->first_name,
-                    'middle_name' => $evaluator->middle_name,
-                    'suffix' => $evaluator->suffix
+                    'id' => Crypt::encrypt($user->id),
+                    'user_name' => $user->user_name,
+                    'last_name' => $user->last_name,
+                    'first_name' => $user->first_name,
+                    'middle_name' => $user->middle_name,
+                    'suffix' => $user->suffix,
+                    'user_type' => $user->user_type
                 ];
             })
         ]);
@@ -247,7 +315,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: string
+            id: number
         */
 
         // returns:
@@ -280,7 +348,7 @@ class EvaluationResponseController extends Controller
         try {
             DB::beginTransaction();
 
-            $evaluationResponse = EvaluationResponse::find(Crypt::decrypt($request->id));
+            $evaluationResponse = EvaluationResponse::find($request->id);
 
             if (!$evaluationResponse) {
                 return response()->json([ 
@@ -290,27 +358,22 @@ class EvaluationResponseController extends Controller
                 ]);
             }
 
+            if ($evaluationResponse->deleted_at) {
+                return response()->json([ 
+                    'status' => 405,
+                    'message' => 'Evaluation Response already deleted!',
+                    'evaluationResponse' => $evaluationResponse
+                ]);
+            }
+
             $evaluationResponse->deleted_at = now();
             $evaluationResponse->save();
 
             DB::commit();
 
-            return response()->json([
+            return response()->json([ 
                 'status' => 200,
-                'evaluationResponse' => $evaluationResponse ? [
-                    'id' => Crypt::encrypt($evaluationResponse->id),
-                    'creator_id' => Crypt::encrypt($evaluationResponse->creator_id),
-                    'updated_at' => $evaluationResponse->updated_at,
-                    'created_at' => $evaluationResponse->created_at,
-                    'evaluatee_id' => Crypt::encrypt($evaluationResponse->evaluatee_id),
-                    'form_id' => Crypt::encrypt($evaluationResponse->form_id),
-                    'evaluatee_opened_at' => $evaluationResponse->evaluatee_opened_at,
-                    'creator_signature_filepath' => $evaluationResponse->creator_signature_filepath,
-                    'evaluatee_signature_filepath' => $evaluationResponse->evaluatee_signature_filepath,
-                    'period_start_at' => $evaluationResponse->period_start_at,
-                    'period_end_at' => $evaluationResponse->period_end_at,
-                    'deleted_at' => $evaluationResponse->deleted_at
-                ] : null,
+                'evaluationResponse' => $evaluationResponse,
                 'message' => 'Evaluation Response successfully deleted'
             ]);
         } catch (\Exception $e) {
@@ -326,8 +389,8 @@ class EvaluationResponseController extends Controller
         // inputs:
         /*
             id: string,
-            evaluatee_id?: number,
-            form_id?: number,
+            evaluatee_id?: string,
+            form_id?: string,
             period_start_at?: string,
             period_end_at?: string,
         */
@@ -358,7 +421,6 @@ class EvaluationResponseController extends Controller
 
             DB::beginTransaction();
 
-            $request->id = Crypt::decrypt($request->id);
             $evaluationResponse = EvaluationResponse
                 ::select(
                     'id', 'evaluatee_id', 'form_id', 'period_start_at', 'period_end_at',
@@ -404,9 +466,9 @@ class EvaluationResponseController extends Controller
             // }
 
             if($request->evaluatee_id !== null)
-                $evaluationResponse->evaluatee_id = Crypt::decrypt($request->evaluatee_id);
+                $evaluationResponse->evaluatee_id = $request->evaluatee_id;
             if($request->form_id !== null)
-                $evaluationResponse->form_id = Crypt::decrypt($request->form_id);
+                $evaluationResponse->form_id = $request->form_id;
             $evaluationResponse->period_end_at = $request->period_end_at;
             $evaluationResponse->period_start_at = $request->period_start_at;
             
@@ -447,25 +509,8 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 201,
                 'message' => 'Evaluation Response successfully updated',
-                'evaluationResponse' => $evaluationResponse ? [
-                    'id' => Crypt::encrypt($evaluationResponse->id),
-                    'evaluatee_id' => Crypt::encrypt($evaluationResponse->evaluatee_id),
-                    'form_id' => Crypt::encrypt($evaluationResponse->form_id),
-                    'period_start_at' => $evaluationResponse->period_start_at,
-                    'period_end_at' => $evaluationResponse->period_end_at,
-                    'creator_signature_filepath' => $evaluationResponse->creator_signature_filepath,
-                    'evaluatee_signature_filepath' => $evaluationResponse->evaluatee_signature_filepath,
-                    'created_at' => $evaluationResponse->created_at,
-                    'updated_at' => $evaluationResponse->updated_at,
-                    'media' => $evaluationResponse->media->map(function ($media) {
-                        return [
-                            'id' => Crypt::encrypt($media->id),
-                            'created_at' => $media->created_at,
-                            'updated_at' => $media->updated_at
-                        ];
-                    })
-                ] : null
-            ]);
+                'evaluationResponse' => $evaluationResponse
+            ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error saving evaluation response: ' . $e->getMessage());
@@ -477,13 +522,13 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            id: string
+            id: number
         */
 
         // returns:
         /*
             evaluationResponse: {
-                id, role, evaluatee_id, creator_id,
+                id, role, evaluatee_id, creator_id, creator,
                 period_start_date, period_end_date, evaluatee_opened_at,
                 created_at, updated_at,
                 evaluatee: { id, response_id, last_name, first_name, middle_name, suffix },
@@ -497,8 +542,8 @@ class EvaluationResponseController extends Controller
                     commentor_id, response_id, last_name, first_name, middle_name, suffix,
                     comment, order, commentor_signature, signature_filepath
                 }[],
-                form_id, creator_user_name, form: {
-                    id, name, creator_id, creator_user_name,
+                form_id, form: {
+                    id, name, creator_id, creator,
                     sections: {
                         form_id, id, name, category, order, score, achieved_score,
                         subcategories: {
@@ -537,7 +582,6 @@ class EvaluationResponseController extends Controller
         try {
 
             // 1. Fetching response raw details
-            $request->id = Crypt::decrypt($request->id);
             $evaluationResponse = EvaluationResponse
                 ::join('evaluation_forms', 'evaluation_forms.id', '=', 'evaluation_responses.form_id')
                 ->join('users', 'users.id', '=', 'evaluation_forms.creator_id')
@@ -553,6 +597,9 @@ class EvaluationResponseController extends Controller
                 )
                 ->with(['evaluatee' => fn ($evaluatee) =>
                     $evaluatee->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
+                ])
+                ->with(['creator' => fn ($creator) =>
+                    $creator->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
                 ])
                 ->with(['evaluators' => fn ($evaluator) =>
                     $evaluator
@@ -585,20 +632,23 @@ class EvaluationResponseController extends Controller
                         )
                         ->orderBy('order')
                 ])
-                ->addSelect('evaluation_responses.form_id', 'users.user_name as creator_user_name')
+                ->addSelect('evaluation_responses.form_id')
                 ->with(['form' => fn ($evaluationForm) =>
                     $evaluationForm
                         ->join('users', 'evaluation_forms.creator_id', '=', 'users.id')
                         ->select(
                             'evaluation_forms.id',
                             'evaluation_forms.name', 
-                            'evaluation_forms.creator_id',
-                            'users.user_name as creator_user_name'
+                            'evaluation_forms.creator_id'
                         )
+                        ->with(['creator' => fn ($creator) =>
+                            $creator->select('id', 'last_name', 'first_name', 'middle_name', 'suffix')
+                        ])
                         ->with(['sections' => fn ($section) =>
                             $section
                                 ->select('form_id', 'id', 'name', 'category', 'order', 'score')
                                 ->whereNull('deleted_at')
+                                ->where('order', '>', 0)
                                 ->with(['subcategories' => fn ($subcategory) =>
                                     $subcategory
                                         ->select(
@@ -609,6 +659,7 @@ class EvaluationResponseController extends Controller
                                             'order'
                                         )
                                         ->whereNull('deleted_at')
+                                        ->where('order', '>', 0)
                                         ->with([
                                             'options' => fn ($option) =>
                                                 $option
@@ -616,6 +667,7 @@ class EvaluationResponseController extends Controller
                                                         'subcategory_id', 'id', 'label', 'score', 'order', 'description'
                                                     )
                                                     ->whereNull('deleted_at')
+                                                    ->where('order', '>', 0)
                                                     ->with([
                                                         'optionAnswer' => fn ($optionAnswer) =>
                                                             $optionAnswer
@@ -676,6 +728,12 @@ class EvaluationResponseController extends Controller
                 'status' => 404,
                 'message' => 'Evaluation Response not found!'
             ]);
+            if (!$evaluationResponse) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Evaluation Response not found!'
+                ]);
+            }
             // 2. Fetching signatures and role
             $role = (
                 $evaluationResponse->evaluatee_id == $userID ? 'Evaluatee'
@@ -791,13 +849,18 @@ class EvaluationResponseController extends Controller
                     $evaluationResponse->evaluatee_opened_at = $now;
             }
             DB::commit();
+            // 5. ID encryption
+            // $evaluationResponseClone = clone $evaluationResponse;
+            // $evaluationResponseClone->id = Crypt::encrypt($evaluationResponse->id);
 
+            $encryptedResponseID = Crypt::encrypt($evaluationResponse->id);
+            $encryptedUserID = Crypt::encrypt($userID);
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Response successfully retrieved.',
-                'userID' => Crypt::encrypt($userID),
+                'userID' => $encryptedUserID,
                 'evaluationResponse' => $evaluationResponse ? [
-                    'id' => Crypt::encrypt($evaluationResponse->id),
+                    'id' => $encryptedResponseID,
                     'evaluatee_id' => Crypt::encrypt($evaluationResponse->evaluatee_id),
                     'creator_id' => Crypt::encrypt($evaluationResponse->creator_id),
                     'period_start_date' => $evaluationResponse->period_start_date,
@@ -808,7 +871,6 @@ class EvaluationResponseController extends Controller
                     'created_at' => $evaluationResponse->created_at,
                     'updated_at' => $evaluationResponse->updated_at,
                     'form_id' => Crypt::encrypt($evaluationResponse->form_id),
-                    'creator_user_name' => $evaluationResponse->creator_user_name,
                     'evaluatee_signature' => $evaluationResponse->evaluatee_signature,
                     'creator_signature' => $evaluationResponse->creator_signature,
                     'role' => $evaluationResponse->role,
@@ -826,10 +888,27 @@ class EvaluationResponseController extends Controller
                             ];
                         })
                     ] : null,
-                    'evaluators' => $evaluationResponse->evaluators->map(function ($evaluator) {
+                    'creator' => $evaluationResponse->creator ? [
+                        'id' => Crypt::encrypt($evaluationResponse->creator->id),
+                        'last_name' => $evaluationResponse->creator->last_name,
+                        'first_name' => $evaluationResponse->creator->first_name,
+                        'middle_name' => $evaluationResponse->creator->middle_name,
+                        'suffix' => $evaluationResponse->creator->suffix,
+                        'media' => $evaluationResponse->creator->media->map(function ($media) {
+                            return [
+                                'id' => Crypt::encrypt($media->id),
+                                'created_at' => $media->created_at,
+                                'updated_at' => $media->updated_at
+                            ];
+                        })
+                    ] : null,
+                    'evaluators' => $evaluationResponse->evaluators->map(function ($evaluator) use($userID, $encryptedResponseID, $encryptedUserID) {
                         return [
-                            'evaluator_id' => Crypt::encrypt($evaluator->evaluator_id),
-                            'response_id' => Crypt::encrypt($evaluator->response_id),
+                            'evaluator_id' =>
+                                ($evaluator->evaluator_id === $userID) ? $encryptedUserID
+                                : Crypt::encrypt($evaluator->evaluator_id)
+                            ,
+                            'response_id' => $encryptedResponseID,
                             'last_name' => $evaluator->last_name,
                             'first_name' => $evaluator->first_name,
                             'middle_name' => $evaluator->middle_name,
@@ -849,11 +928,13 @@ class EvaluationResponseController extends Controller
                             'evaluator_signature' => $evaluator->evaluator_signature
                         ];
                     }),
-                    'commentors' => $evaluationResponse->commentors->map(function ($commentor) {
+                    'commentors' => $evaluationResponse->commentors->map(function ($commentor) use($userID, $encryptedResponseID, $encryptedUserID) {
                         return [
-                            'id' => Crypt::encrypt($commentor->id),
-                            'commentor_id' => Crypt::encrypt($commentor->commentor_id),
-                            'response_id' => Crypt::encrypt($commentor->response_id),
+                            'commentor_id' =>
+                                ($commentor->commentor_id === $userID) ? $encryptedUserID
+                                : Crypt::encrypt($commentor->commentor_id)
+                            ,
+                            'response_id' => $encryptedResponseID,
                             'last_name' => $commentor->last_name,
                             'first_name' => $commentor->first_name,
                             'middle_name' => $commentor->middle_name,
@@ -877,8 +958,14 @@ class EvaluationResponseController extends Controller
                         'id' => Crypt::encrypt($evaluationResponse->form->id),
                         'name' => $evaluationResponse->form->name,
                         'creator_id' => Crypt::encrypt($evaluationResponse->form->creator_id),
-                        'creator_user_name' => $evaluationResponse->form->creator_user_name,
-                        'sections' => $evaluationResponse->form->sections->map(function ($section) {
+                        'creator' => $evaluationResponse->form->creator ? [
+                            'id' => Crypt::encrypt($evaluationResponse->form->creator->id),
+                            'last_name' => $evaluationResponse->form->creator->last_name,
+                            'first_name' => $evaluationResponse->form->creator->first_name,
+                            'middle_name' => $evaluationResponse->form->creator->middle_name,
+                            'suffix' => $evaluationResponse->form->creator->suffix
+                        ] : null,
+                        'sections' => $evaluationResponse->form->sections->map(function ($section) use ($encryptedResponseID) {
                             return [
                                 'form_id' => Crypt::encrypt($section->form_id),
                                 'id' => Crypt::encrypt($section->id),
@@ -887,10 +974,11 @@ class EvaluationResponseController extends Controller
                                 'order' => $section->order,
                                 'score' => $section->score,
                                 'achieved_score' => $section->achieved_score,
-                                'subcategories' => $section->subcategories->map(function ($subcategory) {
+                                'subcategories' => $section->subcategories->map(function ($subcategory) use($encryptedResponseID) {
+                                    $encryptedSubcategoryID = Crypt::encrypt($subcategory->id);
                                     return [
                                         'section_id' => Crypt::encrypt($subcategory->section_id),
-                                        'id' => Crypt::encrypt($subcategory->id),
+                                        'id' => $encryptedSubcategoryID,
                                         'name' => $subcategory->name,
                                         'subcategory_type' => $subcategory->subcategory_type,
                                         'description' => $subcategory->description,
@@ -903,10 +991,11 @@ class EvaluationResponseController extends Controller
                                         'order' => $subcategory->order,
                                         'score' => $subcategory->score,
                                         'achieved_score' => $subcategory->achieved_score,
-                                        'options' => $subcategory->options->map(function ($option) {
+                                        'options' => $subcategory->options->map(function ($option) use ($encryptedSubcategoryID, $encryptedResponseID) {
+                                            $encryptedOptionID = Crypt::encrypt($option->id);
                                             return [
-                                                'subcategory_id' => Crypt::encrypt($option->subcategory_id),
-                                                'id' => Crypt::encrypt($option->id),
+                                                'subcategory_id' => $encryptedSubcategoryID,
+                                                'id' => $encryptedOptionID,
                                                 'label' => $option->label,
                                                 'score' => $option->score,
                                                 'order' => $option->order,
@@ -914,23 +1003,23 @@ class EvaluationResponseController extends Controller
                                                 'option_answer_count' => $option->option_answer_count,
                                                 'option_answer' => $option->optionAnswer ? [
                                                     'id' => Crypt::encrypt($option->optionAnswer->id),
-                                                    'response_id' => Crypt::encrypt($option->optionAnswer->response_id),
-                                                    'option_id' => Crypt::encrypt($option->optionAnswer->option_id)
+                                                    'response_id' => $encryptedResponseID,
+                                                    'option_id' => $encryptedOptionID
                                                 ] : null
                                             ];
                                         }),
-                                        'percentage_answer' => $subcategory->percentageAnswer ? [
-                                            'id' => Crypt::encrypt($subcategory->percentageAnswer->id),
-                                            'response_id' => Crypt::encrypt($subcategory->percentageAnswer->response_id),
-                                            'subcategory_id' => Crypt::encrypt($subcategory->percentageAnswer->subcategory_id),
-                                            'percentage' => $subcategory->percentageAnswer->percentage,
-                                            'subcategory_type' => $subcategory->percentageAnswer->subcategory_type,
-                                            'value' => $subcategory->percentageAnswer->value,
-                                            'linear_scale_index' => $subcategory->percentageAnswer->linear_scale_index
-                                        ] : null,
+                                        // 'percentage_answer' => $subcategory->percentageAnswer ? [
+                                        //     'id' => Crypt::encrypt($subcategory->percentageAnswer->id),
+                                        //     'response_id' => Crypt::encrypt($subcategory->percentageAnswer->response_id),
+                                        //     'subcategory_id' => Crypt::encrypt($subcategory->percentageAnswer->subcategory_id),
+                                        //     'percentage' => $subcategory->percentageAnswer->percentage,
+                                        //     'subcategory_type' => $subcategory->percentageAnswer->subcategory_type,
+                                        //     'value' => $subcategory->percentageAnswer->value,
+                                        //     'linear_scale_index' => $subcategory->percentageAnswer->linear_scale_index
+                                        // ] : null,
                                         'text_answer' => $subcategory->textAnswer ? [
                                             'id' => Crypt::encrypt($subcategory->textAnswer->id),
-                                            'response_id' => Crypt::encrypt($subcategory->textAnswer->response_id),
+                                            'response_id' => $encryptedResponseID,
                                             'subcategory_id' => Crypt::encrypt($subcategory->textAnswer->subcategory_id),
                                             'answer' => $subcategory->textAnswer->answer
                                         ] : null
@@ -1149,10 +1238,7 @@ class EvaluationResponseController extends Controller
                 }])
             ;
             if ($request->form_id !== null)
-                $evaluationResponses = $evaluationResponses->where(
-                    'evaluation_responses.form_id',
-                    Crypt::decrypt($request->form_id)
-                );
+                $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
             $evaluationResponses = $evaluationResponses->get();
 
             // 1. Assign status
@@ -1190,7 +1276,7 @@ class EvaluationResponseController extends Controller
                     case 'Evaluatee':
                         $evaluationResponse->status =
                             $evaluationResponse->evaluatee_signature_filepath ? 'Done'
-                            : ($evaluationResponse->opened_at ? 'Pending'
+                            : ($evaluationResponse->evaluatee_opened_at ? 'Pending'
                             : 'New'
                         );
                 }
@@ -1283,7 +1369,37 @@ class EvaluationResponseController extends Controller
             $totalResponseCount = $evaluationResponses->count();
             $maxPageCount = ceil($totalResponseCount / $limit);
             $pageResponseCount = min($limit, max(0, $totalResponseCount - $skip));
-            $evaluationResponses = $evaluationResponses->slice($skip, $limit)->values();
+            // 6. Encryption
+            $evaluationResponses = $evaluationResponses
+                ->slice($skip, $limit)
+                ->values()
+                // ->map(function($evaluationResponse) {
+                //     return [
+                //         "id" => Crypt::encrypt($evaluationResponse->id),
+				// 		"role" => $evaluationResponse->role,
+				// 		"commentor_order" => $evaluationResponse->commentor_order,
+				// 		"opened_at" => $evaluationResponse->opened_at,
+				// 		"evaluatee_signature_filepath" => $evaluationResponse->evaluatee_signature_filepath,
+				// 		"creator_signature_filepath" => $evaluationResponse->creator_signature_filepath,
+				// 		"evaluators_unsigned_count" => $evaluationResponse->evaluators_unsigned_count,
+				// 		"commentors_unsigned_count" => $evaluationResponse->commentors_unsigned_count,
+				// 		"commentors_signed_count" => $evaluationResponse->commentors_signed_count,
+				// 		"date" => $evaluationResponse->date,
+				// 		"form_id" => $evaluationResponse->form_id,
+				// 		"evaluatee_id" => $evaluationResponse->evaluatee_id,
+				// 		"created_at" => $evaluationResponse->created_at,
+				// 		"updated_at" => $evaluationResponse->updated_at,
+				// 		"period_start_at" => $evaluationResponse->period_start_at,
+				// 		"period_end_at" => $evaluationResponse->period_end_at,
+				// 		"status" => $evaluationResponse->status,
+				// 		"form" => [
+                //             "id" => Crypt::encrypt($evaluationResponse->form->id),
+				// 		    "name" => $evaluationResponse->form->name
+                //         ],
+				// 		"evaluatee" => $evaluationResponse->evaluatee
+                //     ];
+                // })
+            ;
 
             return response()->json([
                 'status' => 200,
@@ -1330,9 +1446,9 @@ class EvaluationResponseController extends Controller
                         ] : null
                     ];
                 }),
-                'pageResponseCount' => 6,
-                'totalResponseCount' => 6,
-                'maxPageCount' => 1
+                'pageResponseCount' => $pageResponseCount,
+                'totalResponseCount' => $totalResponseCount,
+                'maxPageCount' => $maxPageCount
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1345,8 +1461,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            evaluatee_id: string,
-            form_id: string,
+            evaluatee_id: number,
+            form_id: number,
             evaluators: number[],
             commentors: number[],
             period_start_at: string,
@@ -1383,7 +1499,7 @@ class EvaluationResponseController extends Controller
 
             $periodStartAtSec = strtotime($request->period_start_at);
             $periodEndAtSec = strtotime($request->period_end_at);
-            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 86400 - 28800);
+            $request->period_start_at = date('Y-m-d H:i:s', $periodStartAtSec - $periodStartAtSec % 86400 + 57600);
             $request->period_end_at = date('Y-m-d H:i:s', $periodEndAtSec - $periodEndAtSec % 86400 + 57600);
 
             if ($periodStartAtSec > $periodEndAtSec) {
@@ -1392,7 +1508,6 @@ class EvaluationResponseController extends Controller
                     'message' => 'Evaluation Period Start Date cannot be more than Period End Date!'
                 ]);
             }
-
             DB::beginTransaction();
 
             // $conflictingEvaluationResponse = EvaluationResponse::where('evaluatee_id', $request->evaluatee_id)
@@ -1414,15 +1529,14 @@ class EvaluationResponseController extends Controller
             $newEvaluationResponse = EvaluationResponse::create([
                 'evaluatee_id' => Crypt::decrypt($request->evaluatee_id),
                 'form_id' => Crypt::decrypt($request->form_id),
-                'creator_id' => Crypt::decrypt($userID),
+                'creator_id' => $userID,
                 'period_start_at' => $request->period_start_at,
                 'period_end_at' => $request->period_end_at
             ]);
-
             foreach ($request->evaluators as $index => $evaluator_id) {
                 EvaluationEvaluator::create([
                     'response_id' => $newEvaluationResponse->id,
-                    'evaluator_id' => Crypt::decrypt($evaluator_id),
+                    'evaluator_id' => $evaluator_id,
                     'order' => $index + 1
                 ]);
             }
@@ -1430,7 +1544,7 @@ class EvaluationResponseController extends Controller
             foreach ($request->commentors as $index => $commentor_id) {
                 EvaluationCommentor::create([
                     'response_id' => $newEvaluationResponse->id,
-                    'commentor_id' => Crypt::decrypt($commentor_id),
+                    'commentor_id' => $commentor_id,
                     'order' => $index + 1
                 ]);
             }
@@ -1439,7 +1553,7 @@ class EvaluationResponseController extends Controller
 
             return response()->json([
                 'status' => 201,
-                'evaluationResponseID' => Crypt::encrypt($newEvaluationResponse->id),
+                'evaluationResponseID' => $newEvaluationResponse->id,
                 'message' => 'Evaluation Response successfully created'
             ]);
         } catch (\Exception $e) {
@@ -1515,10 +1629,7 @@ class EvaluationResponseController extends Controller
             ;
 
             if ($request->form_id !== null)
-                $evaluationResponses = $evaluationResponses->where(
-                    'evaluation_responses.form_id',
-                    Crypt::decrypt($request->form_id)
-                );
+                $evaluationResponses = $evaluationResponses->where('evaluation_responses.form_id', $request->form_id);
 
             $evaluationResponses = $evaluationResponses->get();
 
@@ -1598,20 +1709,11 @@ class EvaluationResponseController extends Controller
                 ->slice($skip, $limit)
                 ->values()
             ;
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Responses successfully retrieved.',
-                'evaluationResponses' => $evaluationResponses->map(function ($evaluationResponse) {
-                    return [
-                        'id' => Crypt::encrypt($evaluationResponse->id),
-                        'evaluators_unsigned_count' => $evaluationResponse->evaluators_unsigned_count,
-                        'commentors_unsigned_count' => $evaluationResponse->commentors_unsigned_count,
-                        'date' => $evaluationResponse->date,
-                        'form_id' => Crypt::encrypt($evaluationResponse->form_id),
-                        'created_at' => $evaluationResponse->created_at,
-                        'updated_at' => $evaluationResponse->updated_at
-                    ];
-                }),
+                'evaluationResponses' => $evaluationResponses,
                 'pageResponseCount' => $pageResponseCount,
                 'totalResponseCount' => $totalResponseCount,
                 'maxPageCount' => $maxPageCount
@@ -1629,8 +1731,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            evaluator_id: string
+            response_id: number,
+            evaluator_id: number
         */
 
         // returns:
@@ -1662,8 +1764,9 @@ class EvaluationResponseController extends Controller
 
             $evaluationEvaluator = EvaluationEvaluator
                 ::select()
-                ->where('response_id', Crypt::decrypt($request->response_id))
-                ->where('evaluator_id', Crypt::decrypt($request->evaluator_id))
+                ->where('response_id', $request->response_id)
+                ->where('evaluator_id', $request->evaluator_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -1674,7 +1777,15 @@ class EvaluationResponseController extends Controller
                 'evaluationEvaluatorID' => $request->evaluator_id
             ]);
 
-            if( $evaluationEvaluator->deleted_at ) return response()->json([ 
+            $oldOrder = $evaluationEvaluator->order;
+            $newOrder = min(
+                EvaluationEvaluator
+                    ::where('response_id', $evaluationEvaluator->response_id)
+                    ->min('order')
+                , 1
+            ) - 1;
+
+            if($evaluationEvaluator->deleted_at) return response()->json([ 
                 'status' => 405,
                 'message' => 'Evaluation Evaluator already deleted!',
                 'evaluationResponseID' => $request->response_id,
@@ -1682,26 +1793,29 @@ class EvaluationResponseController extends Controller
             ]);
 
             $now = date('Y-m-d H:i');
+            $evaluationEvaluator->order = $newOrder;
             $evaluationEvaluator->deleted_at = $now;
             $evaluationEvaluator->save();
 
+            $evaluationEvaluatorsToMove = EvaluationEvaluator
+                ::where('response_id', $evaluationEvaluator->response_id)
+                ->where('order', '>', $oldOrder)
+                ->orderBy('order', 'asc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationEvaluatorsToMove as $evaluationEvaluatorToMove) {
+                $evaluationEvaluatorToMove->order = $curOrder;
+                $evaluationEvaluatorToMove->save();
+                $curOrder++;
+            }
+
             DB::commit();
 
-            return response()->json([
+            return response()->json([ 
                 'status' => 200,
                 'message' => 'Evaluation Evaluator successfully deleted',
-                'evaluationEvaluator' => $evaluationEvaluator ? [
-                    'response_id' => Crypt::encrypt($evaluationEvaluator->response_id),
-                    'evaluator_id' => Crypt::encrypt($evaluationEvaluator->evaluator_id),
-                    'comment' => $evaluationEvaluator->comment,
-                    'order' => $evaluationEvaluator->order,
-                    'opened_at' => $evaluationEvaluator->opened_at,
-                    'signature_filepath' => $evaluationEvaluator->signature_filepath,
-                    'created_at' => $evaluationEvaluator->created_at,
-                    'updated_at' => $evaluationEvaluator->updated_at,
-                    'deleted_at' => $evaluationEvaluator->deleted_at,
-                    'id' => Crypt::encrypt($evaluationEvaluator->id)
-                ] : null
+                'evaluationEvaluator' => $evaluationEvaluator
             ]);
 
         } catch (\Exception $e) {
@@ -1717,7 +1831,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
+            response_id: number,
             comment?: string,
             signature_filepath?: string
         */
@@ -1753,7 +1867,7 @@ class EvaluationResponseController extends Controller
                     'id', 'response_id', 'evaluator_id', 'comment', 'order',
                     'signature_filepath', 'created_at', 'updated_at'
                 )
-                ->where('response_id', Crypt::decrypt($request->response_id))
+                ->where('response_id', $request->response_id)
                 ->where('evaluator_id', $userID)
                 ->whereNull('deleted_at')
                 ->first()
@@ -1761,7 +1875,7 @@ class EvaluationResponseController extends Controller
 
             if(!$evaluationEvaluator) return response()->json([ 
                 'status' => 404,
-                'message' => 'You are not an evaluator in this evaluation!',
+                'message' => 'Evaluation Evaluator not found!',
                 'evaluationEvaluatorID' => $userID
             ]);
 
@@ -1808,8 +1922,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            evaluator_id: string,
+            response_id: number,
+            evaluator_id: number,
         */
 
         // returns:
@@ -1845,8 +1959,8 @@ class EvaluationResponseController extends Controller
                     'users.middle_name',
                     'users.suffix'
                 )
-                ->where('evaluation_evaluators.response_id', Crypt::decrypt($request->response_id))
-                ->where('evaluation_evaluators.evaluator_id', Crypt::decrypt($request->evaluator_id))
+                ->where('evaluation_evaluators.response_id', $request->response_id)
+                ->where('evaluation_evaluators.evaluator_id', $request->evaluator_id)
                 ->whereNull('evaluation_evaluators.deleted_at')
                 ->first()
             ;
@@ -1857,17 +1971,7 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Evaluator successfully retrieved.',
-                'evaluationEvaluator' => $evaluationEvaluator ? [
-                    'response_id' => Crypt::encrypt($evaluationEvaluator->response_id),
-                    'evaluator_id' => Crypt::encrypt($evaluationEvaluator->evaluator_id),
-                    'comment' => $evaluationEvaluator->comment,
-                    'order' => $evaluationEvaluator->order,
-                    'signature_filepath' => $evaluationEvaluator->signature_filepath,
-                    'last_name' => $evaluationEvaluator->last_name,
-                    'first_name' => $evaluationEvaluator->first_name,
-                    'middle_name' => $evaluationEvaluator->middle_name,
-                    'suffix' => $evaluationEvaluator->suffix
-                ] : null
+                'evaluationEvaluator' => $evaluationEvaluator
             ]);
 
         } catch (\Exception $e) {
@@ -1884,7 +1988,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string
+            response_id: number
         */
 
         // returns:
@@ -1916,7 +2020,7 @@ class EvaluationResponseController extends Controller
                     'users.middle_name',
                     'users.suffix'
                 )
-                ->where('evaluation_evaluators.response_id', Crypt::decrypt($request->response_id))
+                ->where('evaluation_evaluators.response_id', $request->response_id)
                 ->whereNull('evaluation_evaluators.deleted_at')
                 ->get()
             ;
@@ -1927,16 +2031,7 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Evaluators successfully retrieved.',
-                'evaluationEvaluators' => $evaluationEvaluators->map(function ($evaluationEvaluator) {
-                    return [
-                        'response_id' => Crypt::encrypt($evaluationEvaluator->response_id),
-                        'evaluator_id' => Crypt::encrypt($evaluationEvaluator->evaluator_id),
-                        'last_name' => $evaluationEvaluator->last_name,
-                        'first_name' => $evaluationEvaluator->first_name,
-                        'middle_name' => $evaluationEvaluator->middle_name,
-                        'suffix' => $evaluationEvaluator->suffix
-                    ];
-                })
+                'evaluationEvaluators' => $evaluationEvaluators
             ]);
 
         } catch (\Exception $e) {
@@ -1953,8 +2048,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            evaluator_id: string
+            response_id: number,
+            evaluator_id: number
         */
 
         // returns:
@@ -1980,7 +2075,7 @@ class EvaluationResponseController extends Controller
             ]);
 
             $evaluationResponse = EvaluationResponse
-                ::where('id', Crypt::decrypt($request->response_id))
+                ::where('id', $request->response_id)
                 ->first()
             ;
             if(!$evaluationResponse) return response()->json([ 
@@ -1988,17 +2083,16 @@ class EvaluationResponseController extends Controller
                 'message' => 'Evaluation Response not found!',
                 'evaluationResponseID' => $request->response_id
             ]);
-            if($evaluationResponse->evaluatee_id === Crypt::decrypt($request->evaluator_id))
-                return response()->json([ 
-                    'status' => 400,
-                    'message' => 'This user has already been assigned as the evaluatee here!',
-                    'evaluationResponseID' => $request->response_id,
-                    'evaluationEvaluateeID' => $request->evaluator_id
-                ]);
+            if($evaluationResponse->evaluatee_id === $request->evaluator_id) return response()->json([ 
+                'status' => 400,
+                'message' => 'This user has already been assigned as the evaluatee here!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationEvaluateeID' => $request->evaluator_id
+            ]);
             
             $existingFormEvaluator = EvaluationEvaluator
-                ::where('response_id', Crypt::decrypt($request->response_id))
-                ->where('evaluator_id', Crypt::decrypt($request->evaluator_id))
+                ::where('response_id', $request->response_id)
+                ->where('evaluator_id', $request->evaluator_id)
                 ->first()
             ;
             if($existingFormEvaluator) return response()->json([
@@ -2009,8 +2103,8 @@ class EvaluationResponseController extends Controller
             ]);
 
             $existingFormCommentor = EvaluationCommentor
-                ::where('response_id', Crypt::decrypt($request->response_id))
-                ->where('commentor_id', Crypt::decrypt($request->evaluator_id))
+                ::where('response_id', $request->response_id)
+                ->where('commentor_id', $request->evaluator_id)
                 ->first()
             ;
             if($existingFormCommentor) return response()->json([
@@ -2023,14 +2117,13 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $order = (
-                EvaluationEvaluator::where(
-                    'response_id', Crypt::decrypt($request->response_id)
-                )->max('order') ?? 0
+                EvaluationEvaluator::where('response_id', $request->response_id)->max('order')
+                ?? 0
             ) + 1;
 
             $newEvaluationEvaluator = EvaluationEvaluator::create([
-                'response_id' => Crypt::decrypt($request->response_id),
-                'evaluator_id' => Crypt::decrypt($request->evaluator_id),
+                'response_id' => $request->response_id,
+                'evaluator_id' => $request->evaluator_id,
                 'order' => $order
             ]);
 
@@ -2058,8 +2151,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            commentor_id: string
+            response_id: number,
+            commentor_id: number
         */
 
         // returns:
@@ -2091,8 +2184,9 @@ class EvaluationResponseController extends Controller
 
             $evaluationCommentor = EvaluationCommentor
                 ::select()
-                ->where('response_id', Crypt::decrypt($request->response_id))
-                ->where('commentor_id', Crypt::decrypt($request->commentor_id))
+                ->where('response_id', $request->response_id)
+                ->where('commentor_id', $request->commentor_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -2110,27 +2204,45 @@ class EvaluationResponseController extends Controller
                 'evaluationCommentorID' => $request->commentor_id
             ]);
 
+            $oldOrder = $evaluationCommentor->order;
+            $newOrder = min(
+                EvaluationCommentor
+                    ::where('response_id', $evaluationCommentor->response_id)
+                    ->min('order')
+                , 1
+            ) - 1;
+
+            if($evaluationCommentor->deleted_at) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation Commentor already deleted!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationCommentorID' => $request->evaluator_id
+            ]);
+
             $now = date('Y-m-d H:i');
+            $evaluationCommentor->order = $newOrder;
             $evaluationCommentor->deleted_at = $now;
             $evaluationCommentor->save();
 
+            $evaluationCommentorsToMove = EvaluationCommentor
+                ::where('response_id', $evaluationCommentor->response_id)
+                ->where('order', '>', $oldOrder)
+                ->orderBy('order', 'asc')
+                ->get()
+            ;
+            $curOrder = $oldOrder;
+            foreach($evaluationCommentorsToMove as $evaluationCommentorToMove) {
+                $evaluationCommentorToMove->order = $curOrder;
+                $evaluationCommentorToMove->save();
+                $curOrder++;
+            }
+
             DB::commit();
 
-            return response()->json([
+            return response()->json([ 
                 'status' => 200,
                 'message' => 'Evaluation Commentor successfully deleted',
-                'evaluationCommentor' => $evaluationCommentor ? [
-                    'id' => Crypt::encrypt($evaluationCommentor->id),
-                    'response_id' => Crypt::encrypt($evaluationCommentor->response_id),
-                    'commentor_id' => Crypt::encrypt($evaluationCommentor->commentor_id),
-                    'comment' => $evaluationCommentor->comment,
-                    'signature_filepath' => $evaluationCommentor->signature_filepath,
-                    'order' => $evaluationCommentor->order,
-                    'opened_at' => $evaluationCommentor->opened_at,
-                    'created_at' => $evaluationCommentor->created_at,
-                    'updated_at' => $evaluationCommentor->updated_at,
-                    'deleted_at' => $evaluationCommentor->deleted_at
-                ] : null
+                'evaluationCommentor' => $evaluationCommentor
             ]);
 
         } catch (\Exception $e) {
@@ -2146,7 +2258,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
+            response_id: number,
             comment?: string,
             signature_filepath?: string
         */
@@ -2182,7 +2294,7 @@ class EvaluationResponseController extends Controller
                     'id', 'response_id', 'commentor_id', 'comment', 'order',
                     'signature_filepath', 'created_at', 'updated_at'
                 )
-                ->where('response_id', Crypt::decrypt($request->response_id))
+                ->where('response_id', $request->response_id)
                 ->where('commentor_id', $userID)
                 ->whereNull('deleted_at')
                 ->first()
@@ -2190,7 +2302,7 @@ class EvaluationResponseController extends Controller
 
             if(!$evaluationCommentor) return response()->json([ 
                 'status' => 404,
-                'message' => 'You are not a commentor in this evaluation!',
+                'message' => 'Evaluation Commentor not found!',
                 'evaluationCommentorID' => $request->commentor_id
             ]);
 
@@ -2217,26 +2329,9 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([
+            return response()->json([ 
                 'status' => 200,
-                'evaluationCommentor' => $evaluationCommentor ? [
-                    'id' => Crypt::encrypt($evaluationCommentor->id),
-                    'response_id' => Crypt::encrypt($evaluationCommentor->response_id),
-                    'commentor_id' => Crypt::encrypt($evaluationCommentor->commentor_id),
-                    'comment' => $evaluationCommentor->comment,
-                    'order' => $evaluationCommentor->order,
-                    'signature_filepath' => $evaluationCommentor->signature_filepath,
-                    'created_at' => $evaluationCommentor->created_at,
-                    'updated_at' => $evaluationCommentor->updated_at,
-                    'commentor_signature' => $evaluationCommentor->commentor_signature,
-                    'media' => $evaluationCommentor->media->map(function ($media) {
-                        return [
-                            'id' => Crypt::encrypt($media->id),
-                            'created_at' => $media->created_at,
-                            'updated_at' => $media->updated_at
-                        ];
-                    })
-                ] : null,
+                'evaluationCommentor' => $evaluationCommentor,
                 'message' => 'Evaluation Commentor successfully updated'
             ]);
 
@@ -2253,8 +2348,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            commentor_id: string,
+            response_id: number,
+            commentor_id: number,
         */
 
         // returns:
@@ -2290,8 +2385,8 @@ class EvaluationResponseController extends Controller
                     'users.middle_name',
                     'users.suffix'
                 )
-                ->where('evaluation_commentors.response_id', Crypt::decrypt($request->response_id))
-                ->where('evaluation_commentors.commentor_id', Crypt::decrypt($request->commentor_id))
+                ->where('evaluation_commentors.response_id', $request->response_id)
+                ->where('evaluation_commentors.commentor_id', $request->commentor_id)
                 ->whereNull('evaluation_commentors.deleted_at')
                 ->first()
             ;
@@ -2302,17 +2397,7 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Commentor successfully retrieved.',
-                'evaluationCommentor' => $evaluationCommentor ? [
-                    'response_id' => Crypt::encrypt($evaluationCommentor->response_id),
-                    'commentor_id' => Crypt::encrypt($evaluationCommentor->commentor_id),
-                    'comment' => $evaluationCommentor->comment,
-                    'order' => $evaluationCommentor->order,
-                    'signature_filepath' => $evaluationCommentor->signature_filepath,
-                    'last_name' => $evaluationCommentor->last_name,
-                    'first_name' => $evaluationCommentor->first_name,
-                    'middle_name' => $evaluationCommentor->middle_name,
-                    'suffix' => $evaluationCommentor->suffix
-                ] : null
+                'evaluationCommentor' => $evaluationCommentor
             ]);
 
         } catch (\Exception $e) {
@@ -2329,7 +2414,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string
+            response_id: number
         */
 
         // returns:
@@ -2361,7 +2446,7 @@ class EvaluationResponseController extends Controller
                     'users.middle_name',
                     'users.suffix'
                 )
-                ->where('evaluation_commentors.response_id', Crypt::decrypt($request->response_id))
+                ->where('evaluation_commentors.response_id', $request->response_id)
                 ->whereNull('evaluation_commentors.deleted_at')
                 ->get()
             ;
@@ -2372,16 +2457,7 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Commentors successfully retrieved.',
-                'evaluationCommentors' => $evaluationCommentors->map(function ($evaluationCommentor) {
-                    return [
-                        'response_id' => Crypt::encrypt($evaluationCommentor->response_id),
-                        'commentor_id' => Crypt::encrypt($evaluationCommentor->commentor_id),
-                        'last_name' => $evaluationCommentor->last_name,
-                        'first_name' => $evaluationCommentor->first_name,
-                        'middle_name' => $evaluationCommentor->middle_name,
-                        'suffix' => $evaluationCommentor->suffix
-                    ];
-                })
+                'evaluationCommentors' => $evaluationCommentors
             ]);
 
         } catch (\Exception $e) {
@@ -2398,8 +2474,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            commentor_id: string
+            response_id: number,
+            commentor_id: number
         */
 
         // returns:
@@ -2425,7 +2501,7 @@ class EvaluationResponseController extends Controller
             ]);
 
             $evaluationResponse = EvaluationResponse
-                ::where('id', Crypt::decrypt($request->response_id))
+                ::where('id', $request->response_id)
                 ->first()
             ;
             if(!$evaluationResponse) return response()->json([ 
@@ -2441,8 +2517,8 @@ class EvaluationResponseController extends Controller
             ]);
             
             $existingFormCommentor = EvaluationCommentor
-                ::where('response_id', Crypt::decrypt($request->response_id))
-                ->where('commentor_id', Crypt::decrypt($request->commentor_id))
+                ::where('response_id', $request->response_id)
+                ->where('commentor_id', $request->commentor_id)
                 ->first()
             ;
             if($existingFormCommentor) return response()->json([
@@ -2453,8 +2529,8 @@ class EvaluationResponseController extends Controller
             ]);
 
             $existingFormEvaluator = EvaluationEvaluator
-                ::where('response_id', Crypt::decrypt($request->response_id))
-                ->where('evaluator_id', Crypt::decrypt($request->commentor_id))
+                ::where('response_id', $request->response_id)
+                ->where('evaluator_id', $request->commentor_id)
                 ->first()
             ;
             if($existingFormEvaluator) return response()->json([
@@ -2467,15 +2543,13 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $order = (
-                EvaluationCommentor::where(
-                    'response_id',
-                    Crypt::decrypt($request->response_id)
-                )->max('order') ?? 0
+                EvaluationCommentor::where('response_id', $request->response_id)->max('order')
+                ?? 0
             ) + 1;
 
             $newEvaluationCommentor = EvaluationCommentor::create([
-                'response_id' => Crypt::decrypt($request->response_id),
-                'commentor_id' => Crypt::decrypt($request->commentor_id),
+                'response_id' => $request->response_id,
+                'commentor_id' => $request->commentor_id,
                 'order' => $order
             ]);
 
@@ -2497,435 +2571,435 @@ class EvaluationResponseController extends Controller
         }
     }
 
-    // evaluation form percentage answer - unused
+    // evaluation form percentage answer
 
-    // public function deleteEvaluationPercentageAnswer(Request $request)
-    // {
-    //     // inputs:
-    //     /*
-    //         response_id: string,
-    //         subcategory_id: string
-    //     */
+    public function deleteEvaluationPercentageAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            subcategory_id: number
+        */
 
-    //     // returns:
-    //     /*
-    //         evaluationPercentageAnswer: {
-    //             response_id, subcategory_id, percentage, created_at, updated_at, deleted_at
-    //         }
-    //     */
+        // returns:
+        /*
+            evaluationPercentageAnswer: {
+                response_id, subcategory_id, percentage, created_at, updated_at, deleted_at
+            }
+        */
 
-    //     log::info('EvaluationResponseController::deleteEvaluationPercentageAnswer');
+        log::info('EvaluationResponseController::deleteEvaluationPercentageAnswer');
 
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
 
-    //     $user = DB::table('users')->select()->where('id', $userID)->first();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
-    //     try {
+        try {
 
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
 
-    //         DB::beginTransaction();
+            DB::beginTransaction();
 
-    //         $evaluationPercentageAnswer = EvaluationPercentageAnswer
-    //             ::select()
-    //             ->where('response_id', $request->response_id)
-    //             ->where('subcategory_id', $request->subcategory_id)
-    //             ->whereNull('deleted_at')
-    //             ->first()
-    //         ;
+            $evaluationPercentageAnswer = EvaluationPercentageAnswer
+                ::select()
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
+                ->first()
+            ;
 
-    //         if( !$evaluationPercentageAnswer ) return response()->json([ 
-    //             'status' => 404,
-    //             'message' => 'Evaluation Percentage Answer not found!',
-    //             'evaluationResponseID' => $request->response_id,
-    //             'evaluationSubcategoryID' => $request->subcategory_id
-    //         ]);
+            if( !$evaluationPercentageAnswer ) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Percentage Answer not found!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationSubcategoryID' => $request->subcategory_id
+            ]);
 
-    //         if( $evaluationPercentageAnswer->deleted_at ) return response()->json([ 
-    //             'status' => 405,
-    //             'message' => 'Evaluation Percentage Answer already deleted!',
-    //             'evaluationResponseID' => $request->response_id,
-    //             'evaluationSubcategoryID' => $request->subcategory_id
-    //         ]);
+            if( $evaluationPercentageAnswer->deleted_at ) return response()->json([ 
+                'status' => 405,
+                'message' => 'Evaluation Percentage Answer already deleted!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationSubcategoryID' => $request->subcategory_id
+            ]);
 
-    //         $now = date('Y-m-d H:i');
-    //         $evaluationPercentageAnswer->deleted_at = $now;
-    //         $evaluationPercentageAnswer->save();
+            $now = date('Y-m-d H:i');
+            $evaluationPercentageAnswer->deleted_at = $now;
+            $evaluationPercentageAnswer->save();
 
-    //         DB::commit();
+            DB::commit();
 
-    //         return response()->json([ 
-    //             'status' => 200,
-    //             'message' => 'Evaluation Percentage Answer successfully deleted',
-    //             'evaluationPercentageAnswer' => $evaluationPercentageAnswer
-    //         ]);
+            return response()->json([ 
+                'status' => 200,
+                'message' => 'Evaluation Percentage Answer successfully deleted',
+                'evaluationPercentageAnswer' => $evaluationPercentageAnswer
+            ]);
 
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
+            Log::error('Error saving work shift: ' . $e->getMessage());
 
-    //         throw $e;
-    //     }
-    // }
+            throw $e;
+        }
+    }
 
-    // public function editEvaluationPercentageAnswer(Request $request)
-    // {
-    //     // inputs:
-    //     /*
-    //         response_id: string,
-    //         subcategory_id: string,
-    //         percentage?: number,            // either percentage or value must be given
-    //         value?: number                  // value means percentage is auto-calculated
-    //     */
+    public function editEvaluationPercentageAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            subcategory_id: number,
+            percentage?: number,            // either percentage or value must be given
+            value?: number                  // value means percentage is auto-calculated
+        */
 
-    //     // returns:
-    //     /*
-    //         evaluationPercentageAnswer: {
-    //             response_id, subcategory_id, percentage, value, linear_scale_index,
-    //             created_at, updated_at, deleted_at
-    //         }
-    //     */
+        // returns:
+        /*
+            evaluationPercentageAnswer: {
+                response_id, subcategory_id, percentage, value, linear_scale_index,
+                created_at, updated_at, deleted_at
+            }
+        */
 
-    //     log::info('EvaluationResponseController::editEvaluationPercentageAnswer');
+        log::info('EvaluationResponseController::editEvaluationPercentageAnswer');
 
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
 
-    //     $user = DB::table('users')->select()->where('id', $userID)->first();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
-    //     try {
+        try {
 
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
 
-    //         DB::beginTransaction();
+            DB::beginTransaction();
 
-    //         $evaluationPercentageAnswer = EvaluationPercentageAnswer
-    //             ::join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
-    //             ->select('evaluation_percentage_answers.*')
-    //             ->addSelect(DB::raw(
-    //                 "round(evaluation_percentage_answers.percentage*"
-    //                 ."(evaluation_form_subcategories.linear_scale_end"
-    //                 ."-evaluation_form_subcategories.linear_scale_start)"
-    //                 ."+evaluation_form_subcategories.linear_scale_start)"
-    //                 ." as value"
-    //             ))
-    //             ->addSelect(DB::raw(
-    //                 "round(evaluation_percentage_answers.percentage*"
-    //                 ."(evaluation_form_subcategories.linear_scale_end"
-    //                 ."-evaluation_form_subcategories.linear_scale_start))"
-    //                 ." as linear_scale_index"
-    //             ))
-    //             ->where('evaluation_percentage_answers.response_id', $request->response_id)
-    //             ->where('evaluation_percentage_answers.subcategory_id', $request->subcategory_id)
-    //             ->whereNull('evaluation_percentage_answers.deleted_at')
-    //             ->first()
-    //         ;
+            $evaluationPercentageAnswer = EvaluationPercentageAnswer
+                ::join('evaluation_form_subcategories', 'evaluation_percentage_answers.subcategory_id', '=', 'evaluation_form_subcategories.id')
+                ->select('evaluation_percentage_answers.*')
+                ->addSelect(DB::raw(
+                    "round(evaluation_percentage_answers.percentage*"
+                    ."(evaluation_form_subcategories.linear_scale_end"
+                    ."-evaluation_form_subcategories.linear_scale_start)"
+                    ."+evaluation_form_subcategories.linear_scale_start)"
+                    ." as value"
+                ))
+                ->addSelect(DB::raw(
+                    "round(evaluation_percentage_answers.percentage*"
+                    ."(evaluation_form_subcategories.linear_scale_end"
+                    ."-evaluation_form_subcategories.linear_scale_start))"
+                    ." as linear_scale_index"
+                ))
+                ->where('evaluation_percentage_answers.response_id', $request->response_id)
+                ->where('evaluation_percentage_answers.subcategory_id', $request->subcategory_id)
+                ->whereNull('evaluation_percentage_answers.deleted_at')
+                ->first()
+            ;
 
-    //         if(!$evaluationPercentageAnswer) return response()->json([ 
-    //             'status' => 404,
-    //             'message' => 'Evaluation Percentage Answer not found!',
-    //             'evaluationPercentageAnswerID' => $request->id
-    //         ]);
+            if(!$evaluationPercentageAnswer) return response()->json([ 
+                'status' => 404,
+                'message' => 'Evaluation Percentage Answer not found!',
+                'evaluationPercentageAnswerID' => $request->id
+            ]);
 
-    //         if($request->percentage === null && $request->value === null) return response()->json([
-    //             'status' => 400,
-    //             'message' => 'Either Percentage or Value must be given!'
-    //         ]);
+            if($request->percentage === null && $request->value === null) return response()->json([
+                'status' => 400,
+                'message' => 'Either Percentage or Value must be given!'
+            ]);
 
-    //         $subcategory = EvaluationFormSubcategory
-    //             ::select('id', 'subcategory_type', 'linear_scale_start', 'linear_scale_end')
-    //             ->where('id', $evaluationPercentageAnswer->subcategory_id)
-    //             ->whereNull('deleted_at')
-    //             ->first()
-    //         ;
+            $subcategory = EvaluationFormSubcategory
+                ::select('id', 'subcategory_type', 'linear_scale_start', 'linear_scale_end')
+                ->where('id', $evaluationPercentageAnswer->subcategory_id)
+                ->whereNull('deleted_at')
+                ->first()
+            ;
 
-    //         if($subcategory->subcategory_type != 'linear_scale') return response()->json([
-    //             'status' => 400,
-    //             'message' => 'This subcategory does not accept percentage answers!',
-    //             'evaluationFormSubcategoryID' => $subcategory->id,
-    //             'subcategoryType' => $subcategory->subcategory_type
-    //         ]);
+            if($subcategory->subcategory_type != 'linear_scale') return response()->json([
+                'status' => 400,
+                'message' => 'This subcategory does not accept percentage answers!',
+                'evaluationFormSubcategoryID' => $subcategory->id,
+                'subcategoryType' => $subcategory->subcategory_type
+            ]);
 
-    //         if(
-    //             $request->percentage === null
-    //             && (
-    //                 $request->value < $subcategory->linear_scale_start
-    //                 || $request->value > $subcategory->linear_scale_end
-    //             )
-    //         ) return response()->json([
-    //             'status' => 400,
-    //             'message' => 'Value is is not within linear scale!',
-    //             'evaluationFormSubcategoryID' => $subcategory->id,
-    //             'linear_scale_start' => $subcategory->linear_scale_start,
-    //             'linear_scale_end' => $subcategory->linear_scale_end
-    //         ]);
+            if(
+                $request->percentage === null
+                && (
+                    $request->value < $subcategory->linear_scale_start
+                    || $request->value > $subcategory->linear_scale_end
+                )
+            ) return response()->json([
+                'status' => 400,
+                'message' => 'Value is is not within linear scale!',
+                'evaluationFormSubcategoryID' => $subcategory->id,
+                'linear_scale_start' => $subcategory->linear_scale_start,
+                'linear_scale_end' => $subcategory->linear_scale_end
+            ]);
 
-    //         $percentage = (
-    //             $request->percentage
-    //             ?? (
-    //                 ($request->value - $subcategory->linear_scale_start)
-    //                 / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
-    //             )
-    //         );
+            $percentage = (
+                $request->percentage
+                ?? (
+                    ($request->value - $subcategory->linear_scale_start)
+                    / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
+                )
+            );
 
-    //         $evaluationPercentageAnswer->percentage = (double) $percentage;
-    //         $evaluationPercentageAnswer->save();
+            $evaluationPercentageAnswer->percentage = (double) $percentage;
+            $evaluationPercentageAnswer->save();
 
-    //         DB::commit();
+            DB::commit();
 
-    //         return response()->json([ 
-    //             'status' => 200,
-    //             'evaluationPercentageAnswer' => $evaluationPercentageAnswer,
-    //             'message' => 'Evaluation Percentage Answer successfully updated'
-    //         ]);
+            return response()->json([ 
+                'status' => 200,
+                'evaluationPercentageAnswer' => $evaluationPercentageAnswer,
+                'message' => 'Evaluation Percentage Answer successfully updated'
+            ]);
 
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
+            Log::error('Error saving work shift: ' . $e->getMessage());
 
-    //         throw $e;
-    //     }
-    // }
+            throw $e;
+        }
+    }
 
-    // public function getEvaluationPercentageAnswer(Request $request)
-    // {
-    //     // inputs:
-    //     /*
-    //         response_id: string,
-    //         subcategory_id: string,
-    //     */
+    public function getEvaluationPercentageAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            subcategory_id: number,
+        */
 
-    //     // returns:
-    //     /*
-    //         evaluationPercentageAnswer: {
-    //             response_id, subcategory_id, percentage, value, linear_scale_index,
-    //             created_at, updated_at
-    //         }
-    //     */
+        // returns:
+        /*
+            evaluationPercentageAnswer: {
+                response_id, subcategory_id, percentage, value, linear_scale_index,
+                created_at, updated_at
+            }
+        */
 
-    //     log::info('EvaluationResponseController::getEvaluationPercentageAnswer');
+        log::info('EvaluationResponseController::getEvaluationPercentageAnswer');
 
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
     
-    //     $user = DB::table('users')->where('id', $userID)->first();
+        $user = DB::table('users')->where('id', $userID)->first();
 
-    //     try {
+        try {
 
-    //         $evaluationPercentageAnswer = EvaluationPercentageAnswer
-    //             ::select(
-    //                 'response_id', 'subcategory_id', 'percentage',
-    //                 'created_at', 'updated_at'
-    //             )
-    //             ->where('response_id', $request->response_id)
-    //             ->where('subcategory_id', $request->subcategory_id)
-    //             ->whereNull('deleted_at')
-    //             ->first()
-    //         ;
-    //         if( !$evaluationPercentageAnswer ) return response()->json([
-    //             'status' => 404,
-    //             'message' => 'Evaluation Percentage Answer not found!'
-    //         ]);
-    //         return response()->json([
-    //             'status' => 200,
-    //             'message' => 'Evaluation Percentage Answer successfully retrieved.',
-    //             'evaluationPercentageAnswer' => $evaluationPercentageAnswer
-    //         ]);
+            $evaluationPercentageAnswer = EvaluationPercentageAnswer
+                ::select(
+                    'response_id', 'subcategory_id', 'percentage',
+                    'created_at', 'updated_at'
+                )
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
+                ->first()
+            ;
+            if( !$evaluationPercentageAnswer ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Percentage Answer not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Percentage Answer successfully retrieved.',
+                'evaluationPercentageAnswer' => $evaluationPercentageAnswer
+            ]);
 
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
+            Log::error('Error saving work shift: ' . $e->getMessage());
 
-    //         throw $e;
-    //     }
+            throw $e;
+        }
     
-    // }
+    }
 
-    // public function getEvaluationPercentageAnswers(Request $request)
-    // {
-    //     // inputs:
-    //     /*
-    //         subcategory_id: string
-    //     */
+    public function getEvaluationPercentageAnswers(Request $request)
+    {
+        // inputs:
+        /*
+            subcategory_id: number
+        */
 
-    //     // returns:
-    //     /*
-    //         evaluationPercentageAnswers: {
-    //             response_id, subcategory_id, percentage, value, linear_scale_index,
-    //             created_at, updated_at
-    //         }[]
-    //     */
+        // returns:
+        /*
+            evaluationPercentageAnswers: {
+                response_id, subcategory_id, percentage, value, linear_scale_index,
+                created_at, updated_at
+            }[]
+        */
 
-    //     log::info('EvaluationResponseController::getEvaluationPercentageAnswers');
+        log::info('EvaluationResponseController::getEvaluationPercentageAnswers');
 
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
     
-    //     $user = DB::table('users')->where('id', $userID)->first();
+        $user = DB::table('users')->where('id', $userID)->first();
 
-    //     try {
+        try {
 
-    //         $evaluationPercentageAnswers = EvaluationPercentageAnswer
-    //             ::select(
-    //                 'id', 'response_id', 'subcategory_id', 'percentage',
-    //                 'created_at', 'updated_at'
-    //             )
-    //             ->where('subcategory_id', $request->subcategory_id)
-    //             ->whereNull('deleted_at')
-    //             ->get()
-    //         ;
-    //         if( !$evaluationPercentageAnswers ) return response()->json([
-    //             'status' => 404,
-    //             'message' => 'Evaluation Percentage Answers not found!'
-    //         ]);
-    //         return response()->json([
-    //             'status' => 200,
-    //             'message' => 'Evaluation Percentage Answers successfully retrieved.',
-    //             'evaluationPercentageAnswers' => $evaluationPercentageAnswers
-    //         ]);
+            $evaluationPercentageAnswers = EvaluationPercentageAnswer
+                ::select(
+                    'id', 'response_id', 'subcategory_id', 'percentage',
+                    'created_at', 'updated_at'
+                )
+                ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
+                ->get()
+            ;
+            if( !$evaluationPercentageAnswers ) return response()->json([
+                'status' => 404,
+                'message' => 'Evaluation Percentage Answers not found!'
+            ]);
+            return response()->json([
+                'status' => 200,
+                'message' => 'Evaluation Percentage Answers successfully retrieved.',
+                'evaluationPercentageAnswers' => $evaluationPercentageAnswers
+            ]);
 
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
+            Log::error('Error saving work shift: ' . $e->getMessage());
 
-    //         throw $e;
-    //     }
+            throw $e;
+        }
     
-    // }
+    }
 
-    // public function saveEvaluationPercentageAnswer(Request $request)
-    // {
-    //     // inputs:
-    //     /*
-    //         response_id: string,
-    //         subcategory_id: string,
-    //         percentage?: number,            // either percentage or value must be given
-    //         value?: number                  // value means percentage is auto-calculated
-    //     */
+    public function saveEvaluationPercentageAnswer(Request $request)
+    {
+        // inputs:
+        /*
+            response_id: number,
+            subcategory_id: number,
+            percentage?: number,            // either percentage or value must be given
+            value?: number                  // value means percentage is auto-calculated
+        */
 
-    //     // returns:
-    //     /*
-    //         evaluationPercentageAnswerID
-    //     */
+        // returns:
+        /*
+            evaluationPercentageAnswerID
+        */
 
-    //     log::info('EvaluationResponseController::saveEvaluationPercentageAnswer');
+        log::info('EvaluationResponseController::saveEvaluationPercentageAnswer');
 
-    //     if (Auth::check()) {
-    //         $userID = Auth::id();
-    //     } else {
-    //         $userID = null;
-    //     }
+        if (Auth::check()) {
+            $userID = Auth::id();
+        } else {
+            $userID = null;
+        }
 
-    //     $user = DB::table('users')->select()->where('id', $userID)->first();
+        $user = DB::table('users')->select()->where('id', $userID)->first();
 
-    //     try {
+        try {
 
-    //         if( $user === null ) return response()->json([ 
-    //             'status' => 403,
-    //             'message' => 'Unauthorized access!'
-    //         ]);
+            if( $user === null ) return response()->json([ 
+                'status' => 403,
+                'message' => 'Unauthorized access!'
+            ]);
 
-    //        if($request->percentage === null && $request->value === null) return response()->json([
-    //             'status' => 400,
-    //             'message' => 'Either Percentage or Value must be given!'
-    //         ]);
+           if($request->percentage === null && $request->value === null) return response()->json([
+                'status' => 400,
+                'message' => 'Either Percentage or Value must be given!'
+            ]);
 
-    //         $subcategory = EvaluationFormSubcategory
-    //             ::select('subcategory_type', 'linear_scale_start', 'linear_scale_end')
-    //             ->where('id', $request->subcategory_id)
-    //             ->whereNull('deleted_at')
-    //             ->first()
-    //         ;
+            $subcategory = EvaluationFormSubcategory
+                ::select('subcategory_type', 'linear_scale_start', 'linear_scale_end')
+                ->where('id', $request->subcategory_id)
+                ->whereNull('deleted_at')
+                ->first()
+            ;
 
-    //         if($subcategory->subcategory_type != 'linear_scale') return response()->json([
-    //             'status' => 400,
-    //             'message' => 'This subcategory does not accept percentage answers!',
-    //             'evaluationFormSubcategoryID' => $subcategory->id
-    //         ]);
+            if($subcategory->subcategory_type != 'linear_scale') return response()->json([
+                'status' => 400,
+                'message' => 'This subcategory does not accept percentage answers!',
+                'evaluationFormSubcategoryID' => $subcategory->id
+            ]);
             
-    //         $existingFormPercentageAnswer = EvaluationPercentageAnswer
-    //             ::where('response_id', $request->response_id)
-    //             ->where('subcategory_id', $request->subcategory_id)
-    //             ->first()
-    //         ;
+            $existingFormPercentageAnswer = EvaluationPercentageAnswer
+                ::where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
+                ->first()
+            ;
 
-    //         if($existingFormPercentageAnswer) return response()->json([ 
-    //             'status' => 409,
-    //             'message' => 'A percentage answer was already created for this subcategory!',
-    //             'evaluationResponseID' => $request->response_id,
-    //             'evaluationFormSubcategoryID' => $request->subcategory_id
-    //         ]);
+            if($existingFormPercentageAnswer) return response()->json([ 
+                'status' => 409,
+                'message' => 'A percentage answer was already created for this subcategory!',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id
+            ]);
 
-    //         if(
-    //             $request->percentage === null
-    //             && (
-    //                 $request->value < $subcategory->linear_scale_start
-    //                 || $request->value > $subcategory->linear_scale_end
-    //             )
-    //         ) return response()->json([
-    //             'status' => 400,
-    //             'message' => 'Value is is not within linear scale!',
-    //             'evaluationFormSubcategoryID' => $subcategory->id,
-    //             'linear_scale_start' => $subcategory->linear_scale_start,
-    //             'linear_scale_end' => $subcategory->linear_scale_end
-    //         ]);
+            if(
+                $request->percentage === null
+                && (
+                    $request->value < $subcategory->linear_scale_start
+                    || $request->value > $subcategory->linear_scale_end
+                )
+            ) return response()->json([
+                'status' => 400,
+                'message' => 'Value is is not within linear scale!',
+                'evaluationFormSubcategoryID' => $subcategory->id,
+                'linear_scale_start' => $subcategory->linear_scale_start,
+                'linear_scale_end' => $subcategory->linear_scale_end
+            ]);
 
-    //         DB::beginTransaction();
+            DB::beginTransaction();
 
-    //         $percentage = (
-    //             $request->percentage
-    //             ?? (
-    //                 ($request->value - $subcategory->linear_scale_start)
-    //                 / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
-    //             )
-    //         );
+            $percentage = (
+                $request->percentage
+                ?? (
+                    ($request->value - $subcategory->linear_scale_start)
+                    / ($subcategory->linear_scale_end - $subcategory->linear_scale_start)
+                )
+            );
 
-    //         $newEvaluationPercentageAnswer = EvaluationPercentageAnswer::create([
-    //             'response_id' => $request->response_id,
-    //             'subcategory_id' => $request->subcategory_id,
-    //             'percentage' => $percentage
-    //         ]);
+            $newEvaluationPercentageAnswer = EvaluationPercentageAnswer::create([
+                'response_id' => $request->response_id,
+                'subcategory_id' => $request->subcategory_id,
+                'percentage' => $percentage
+            ]);
 
-    //         DB::commit();
+            DB::commit();
 
-    //         return response()->json([ 
-    //             'status' => 201,
-    //             'message' => 'Evaluation Percentage Answer successfully created',
-    //             'evaluationResponseID' => $request->response_id,
-    //             'evaluationFormSubcategoryID' => $request->subcategory_id
-    //         ]);
+            return response()->json([ 
+                'status' => 201,
+                'message' => 'Evaluation Percentage Answer successfully created',
+                'evaluationResponseID' => $request->response_id,
+                'evaluationFormSubcategoryID' => $request->subcategory_id
+            ]);
 
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-    //         Log::error('Error saving work shift: ' . $e->getMessage());
+            Log::error('Error saving work shift: ' . $e->getMessage());
 
-    //         throw $e;
-    //     }
-    // }
+            throw $e;
+        }
+    }
 
     // evaluation form text answer
 
@@ -2933,8 +3007,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            subcategory_id: string
+            response_id: number,
+            subcategory_id: number
         */
 
         // returns:
@@ -2965,8 +3039,9 @@ class EvaluationResponseController extends Controller
 
             $evaluationTextAnswer = EvaluationTextAnswer
                 ::select()
-                ->where('response_id', Crypt::decrypt($request->response_id))
-                ->where('subcategory_id', Crypt::decrypt($request->subcategory_id))
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -2990,18 +3065,10 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([
+            return response()->json([ 
                 'status' => 200,
                 'message' => 'Evaluation Text Answer successfully deleted',
-                'evaluationTextAnswer' => $evaluationTextAnswer ? [
-                    'id' => Crypt::encrypt($evaluationTextAnswer->id),
-                    'response_id' => Crypt::encrypt($evaluationTextAnswer->response_id),
-                    'subcategory_id' => Crypt::encrypt($evaluationTextAnswer->subcategory_id),
-                    'answer' => $evaluationTextAnswer->answer,
-                    'created_at' => $evaluationTextAnswer->created_at,
-                    'updated_at' => $evaluationTextAnswer->updated_at,
-                    'deleted_at' => $evaluationTextAnswer->deleted_at
-                ] : null
+                'evaluationTextAnswer' => $evaluationTextAnswer
             ]);
 
         } catch (\Exception $e) {
@@ -3017,8 +3084,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            subcategory_id: string,
+            response_id: number,
+            subcategory_id: number,
             answer: string
         */
 
@@ -3050,8 +3117,8 @@ class EvaluationResponseController extends Controller
 
             $evaluationTextAnswer = EvaluationTextAnswer
                 ::select()
-                ->where('response_id', Crypt::decrypt($request->response_id))
-                ->where('subcategory_id', Crypt::decrypt($request->subcategory_id))
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3059,12 +3126,12 @@ class EvaluationResponseController extends Controller
             if(!$evaluationTextAnswer) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Text Answer not found!',
-                'evaluationTextAnswerID' => $request->subcategory_id
+                'evaluationTextAnswerID' => $request->id
             ]);
 
             $subcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type')
-                ->where('id', Crypt::decrypt($request->subcategory_id))
+                ->where('id', $request->subcategory_id)
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3073,7 +3140,7 @@ class EvaluationResponseController extends Controller
                 return response()->json([
                     'status' => 400,
                     'message' => 'This subcategory does not accept text answers!',
-                    'evaluationFormSubcategoryID' => $request->subcategory_id
+                    'evaluationFormSubcategoryID' => $subcategory->id
                 ]);
 
             $isEmptyAnswer = !$request->answer;
@@ -3087,17 +3154,9 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([
+            return response()->json([ 
                 'status' => 200,
-                'evaluationTextAnswer' => $evaluationTextAnswer ? [
-                    'response_id' => Crypt::encrypt($evaluationTextAnswer->response_id),
-                    'subcategory_id' => Crypt::encrypt($evaluationTextAnswer->subcategory_id),
-                    'answer' => $evaluationTextAnswer->answer,
-                    'created_at' => $evaluationTextAnswer->created_at,
-                    'updated_at' => $evaluationTextAnswer->updated_at,
-                    'deleted_at' => $evaluationTextAnswer->deleted_at,
-                    'id' => Crypt::encrypt($evaluationTextAnswer->id)
-                ] : null,
+                'evaluationTextAnswer' => $evaluationTextAnswer,
                 'message' => 'Evaluation Text Answer successfully updated'
             ]);
 
@@ -3114,8 +3173,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            subcategory_id: string
+            response_id: number,
+            subcategory_id: number
         */
 
         // returns:
@@ -3140,8 +3199,8 @@ class EvaluationResponseController extends Controller
                     'response_id', 'subcategory_id', 'answer',
                     'created_at', 'updated_at'
                 )
-                ->where('response_id', Crypt::decrypt($request->response_id))
-                ->where('subcategory_id', Crypt::decrypt($request->subcategory_id))
+                ->where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3152,13 +3211,7 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Text Answer successfully retrieved.',
-                'evaluationTextAnswer' => $evaluationTextAnswer ? [
-                    'response_id' => Crypt::encrypt($evaluationTextAnswer->response_id),
-                    'subcategory_id' => Crypt::encrypt($evaluationTextAnswer->subcategory_id),
-                    'answer' => $evaluationTextAnswer->answer,
-                    'created_at' => $evaluationTextAnswer->created_at,
-                    'updated_at' => $evaluationTextAnswer->updated_at
-                ] : null
+                'evaluationTextAnswer' => $evaluationTextAnswer
             ]);
 
         } catch (\Exception $e) {
@@ -3175,7 +3228,7 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            subcategory_id: string
+            subcategory_id: number
         */
 
         // returns:
@@ -3202,7 +3255,7 @@ class EvaluationResponseController extends Controller
                     'response_id', 'subcategory_id', 'answer',
                     'created_at', 'updated_at'
                 )
-                ->where('subcategory_id', Crypt::decrypt($request->subcategory_id))
+                ->where('subcategory_id', $request->subcategory_id)
                 ->whereNull('deleted_at')
                 ->get()
             ;
@@ -3213,15 +3266,7 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Text Answers successfully retrieved.',
-                'evaluationTextAnswers' => $evaluationTextAnswers->map(function ($evaluationTextAnswer) {
-                    return [
-                        'response_id' => Crypt::encrypt($evaluationTextAnswer->response_id),
-                        'subcategory_id' => Crypt::encrypt($evaluationTextAnswer->subcategory_id),
-                        'answer' => $evaluationTextAnswer->answer,
-                        'created_at' => $evaluationTextAnswer->created_at,
-                        'updated_at' => $evaluationTextAnswer->updated_at
-                    ];
-                })
+                'evaluationTextAnswers' => $evaluationTextAnswers
             ]);
 
         } catch (\Exception $e) {
@@ -3238,8 +3283,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            subcategory_id: string,
+            response_id: number,
+            subcategory_id: number,
             answer: string
         */
 
@@ -3267,7 +3312,7 @@ class EvaluationResponseController extends Controller
 
             $subcategory = EvaluationFormSubcategory
                 ::select('id', 'subcategory_type')
-                ->where('id', Crypt::decrypt($request->subcategory_id))
+                ->where('id', $request->subcategory_id)
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3280,8 +3325,8 @@ class EvaluationResponseController extends Controller
                 ]);
 
             $existingFormTextAnswer = EvaluationTextAnswer
-                ::where('response_id', Crypt::decrypt($request->response_id))
-                ->where('subcategory_id', Crypt::decrypt($request->subcategory_id))
+                ::where('response_id', $request->response_id)
+                ->where('subcategory_id', $request->subcategory_id)
                 ->first()
             ;
 
@@ -3301,8 +3346,8 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $newEvaluationTextAnswer = EvaluationTextAnswer::create([
-                'response_id' => Crypt::decrypt($request->response_id),
-                'subcategory_id' => Crypt::decrypt($request->subcategory_id),
+                'response_id' => $request->response_id,
+                'subcategory_id' => $request->subcategory_id,
                 'answer' => $request->answer
             ]);
 
@@ -3330,8 +3375,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            option_id: string
+            response_id: number,
+            option_id: number
         */
 
         // returns:
@@ -3363,8 +3408,9 @@ class EvaluationResponseController extends Controller
 
             $evaluationOptionAnswer = EvaluationOptionAnswer
                 ::select()
-                ->where('response_id', Crypt::decrypt($request->response_id))
-                ->where('option_id', Crypt::decrypt($request->option_id))
+                ->where('response_id', $request->response_id)
+                ->where('option_id', $request->option_id)
+                ->whereNull('deleted_at')
                 ->first()
             ;
 
@@ -3378,8 +3424,7 @@ class EvaluationResponseController extends Controller
             if( $evaluationOptionAnswer->deleted_at ) return response()->json([ 
                 'status' => 405,
                 'message' => 'Evaluation Option Answer already deleted!',
-                'evaluationResponseID' => $request->response_id,
-                'evaluationSubcategoryOptionID' => $request->option_id
+                'evaluationOptionAnswer' => $evaluationOptionAnswer
             ]);
 
             $now = date('Y-m-d H:i');
@@ -3388,18 +3433,13 @@ class EvaluationResponseController extends Controller
 
             DB::commit();
 
-            return response()->json([
+            return response()->json([ 
                 'status' => 200,
-                'evaluationOptionAnswer' => $evaluationOptionAnswer ? [
-                    'id' => Crypt::encrypt($evaluationOptionAnswer->id),
-                    'response_id' => Crypt::encrypt($evaluationOptionAnswer->response_id),
-                    'option_id' => Crypt::encrypt($evaluationOptionAnswer->option_id),
-                    'created_at' => $evaluationOptionAnswer->created_at,
-                    'updated_at' => $evaluationOptionAnswer->updated_at,
-                    'deleted_at' => $evaluationOptionAnswer->deleted_at
-                ] : null,
+                'evaluationOptionAnswer' => $evaluationOptionAnswer,
                 'message' => 'Evaluation Option Answer successfully deleted'
             ]);
+
+
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -3413,9 +3453,9 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            option_id: string,
-            new_option_id: string
+            response_id: number,
+            option_id: number,
+            new_option_id: number
         */
 
         // returns:
@@ -3446,33 +3486,33 @@ class EvaluationResponseController extends Controller
 
             $evaluationOptionAnswer = EvaluationOptionAnswer
                 ::select()
-                ->where('response_id', Crypt::decrypt($request->response_id))
-                ->where('option_id', Crypt::decrypt($request->option_id))
+                ->where('response_id', $request->response_id)
+                ->where('option_id', $request->option_id)
                 ->whereNull('deleted_at')
                 ->first()
             ;
-
+            
             if(!$evaluationOptionAnswer) return response()->json([ 
                 'status' => 404,
                 'message' => 'Evaluation Option Answer not found!',
                 'evaluationFormResponseID' => $request->response_id,
                 'evaluationFormOptionID' => $request->option_id
             ]);
-
+            
             $evaluationFormSubcategory = EvaluationFormSubcategoryOption
                 ::join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                 ->select('evaluation_form_subcategories.id', 'evaluation_form_subcategories.subcategory_type')
+                ->where('evaluation_form_subcategory_options.id', Crypt::decrypt($request->option_id))
                 ->whereNull('evaluation_form_subcategory_options.deleted_at')
                 ->first()
             ;
-
             switch($evaluationFormSubcategory->subcategory_type) {
                 case "long_answer":
                 case "short_answer":
                     return response()->json([
                         'status' => 400,
                         'message' => 'This subcategory does not accept choice answers!',
-                        'evaluationFormSubcategoryID' => Crypt::decrypt($evaluationFormSubcategory->id)
+                        'evaluationFormSubcategoryID' => Crypt::encrypt($evaluationFormSubcategory->id)
                     ]);
                     break;
                 case "checkbox":
@@ -3480,8 +3520,8 @@ class EvaluationResponseController extends Controller
                 case "multiple_choice":
                     $existingOptionAnswer = EvaluationOptionAnswer
                         ::select('response_id', 'option_id')
-                        ->where('response_id', '=', Crypt::decrypt($request->response_id))
-                        ->where('option_id', '=', Crypt::decrypt($request->new_option_id))
+                        ->where('response_id', '=', $request->response_id)
+                        ->where('option_id', '=', $request->new_option_id)
                         ->whereNull('deleted_at')
                         ->first()
                     ;
@@ -3493,21 +3533,14 @@ class EvaluationResponseController extends Controller
                     ]);
             }
 
-            $evaluationOptionAnswer->option_id = Crypt::decrypt($request->new_option_id);
+            $evaluationOptionAnswer->option_id  = $request->new_option_id;
             $evaluationOptionAnswer->save();
 
             DB::commit();
 
-            return response()->json([
+            return response()->json([ 
                 'status' => 200,
-                'evaluationOptionAnswer' => $evaluationOptionAnswer ? [
-                    'id' => Crypt::encrypt($evaluationOptionAnswer->id),
-                    'response_id' => Crypt::encrypt($evaluationOptionAnswer->response_id),
-                    'option_id' => Crypt::encrypt($evaluationOptionAnswer->option_id),
-                    'created_at' => $evaluationOptionAnswer->created_at,
-                    'updated_at' => $evaluationOptionAnswer->updated_at,
-                    'deleted_at' => $evaluationOptionAnswer->deleted_at
-                ] : null,
+                'evaluationOptionAnswer' => $evaluationOptionAnswer,
                 'message' => 'Evaluation Option Answer successfully updated'
             ]);
 
@@ -3524,8 +3557,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            option_id: string
+            response_id: number,
+            option_id: number
         */
 
         // returns:
@@ -3547,8 +3580,8 @@ class EvaluationResponseController extends Controller
 
             $evaluationOptionAnswer = EvaluationOptionAnswer
                 ::select('response_id', 'option_id', 'created_at', 'updated_at')
-                ->where('response_id', Crypt::decrypt($request->response_id))
-                ->where('option_id', Crypt::decrypt($request->option_id))
+                ->where('response_id', $request->response_id)
+                ->where('option_id', $request->option_id)
                 ->whereNull('deleted_at')
                 ->first()
             ;
@@ -3559,12 +3592,7 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Option Answer successfully retrieved.',
-                'evaluationOptionAnswer' => $evaluationOptionAnswer ? [
-                    'response_id' => Crypt::encrypt($evaluationOptionAnswer->response_id),
-                    'option_id' => Crypt::encrypt($evaluationOptionAnswer->option_id),
-                    'created_at' => $evaluationOptionAnswer->created_at,
-                    'updated_at' => $evaluationOptionAnswer->updated_at
-                ] : null
+                'evaluationOptionAnswer' => $evaluationOptionAnswer
             ]);
 
         } catch (\Exception $e) {
@@ -3583,9 +3611,9 @@ class EvaluationResponseController extends Controller
 
         // inputs:
         /*
-            response_id?: number,      // either response_id, subcategory_id, or option_id must be given
-            subcategory_id?: number,
-            option_id?: number
+            response_id?: string,      // either response_id, subcategory_id, or option_id must be given
+            subcategory_id?: string,
+            option_id?: string
         */
 
         // returns:
@@ -3626,15 +3654,15 @@ class EvaluationResponseController extends Controller
             
             if($request->response_id)
                 $evaluationOptionAnswers = $evaluationOptionAnswers->where(
-                    'evaluation_option_answers.response_id', Crypt::decrypt($request->response_id)
+                    'evaluation_option_answers.response_id', $request->response_id
                 );
             if($request->subcategory_id)
                 $evaluationOptionAnswers = $evaluationOptionAnswers->where(
-                    'evaluation_form_subcategories.id', Crypt::decrypt($request->subcategory_id)
+                    'evaluation_form_subcategories.id', $request->subcategory_id
                 );
             if($request->option_id)
                 $evaluationOptionAnswers = $evaluationOptionAnswers->where(
-                    'evaluation_option_answers.option_id', Crypt::decrypt($request->option_id)
+                    'evaluation_option_answers.option_id', $request->option_id
                 );
             $evaluationOptionAnswers = $evaluationOptionAnswers->get();
 
@@ -3645,15 +3673,7 @@ class EvaluationResponseController extends Controller
             return response()->json([
                 'status' => 200,
                 'message' => 'Evaluation Option Answers successfully retrieved.',
-                'evaluationOptionAnswers' => $evaluationOptionAnswers->map(function ($evaluationOptionAnswer) {
-                    return [
-                        'response_id' => Crypt::encrypt($evaluationOptionAnswer->response_id),
-                        'subcategory_id' => Crypt::encrypt($evaluationOptionAnswer->subcategory_id),
-                        'option_id' => Crypt::encrypt($evaluationOptionAnswer->option_id),
-                        'created_at' => $evaluationOptionAnswer->created_at,
-                        'updated_at' => $evaluationOptionAnswer->updated_at
-                    ];
-                })
+                'evaluationOptionAnswers' => $evaluationOptionAnswers
             ]);
 
         } catch (\Exception $e) {
@@ -3730,8 +3750,8 @@ class EvaluationResponseController extends Controller
     {
         // inputs:
         /*
-            response_id: string,
-            option_id: string
+            response_id: number,
+            option_id: number
         */
 
         // returns:
@@ -3762,7 +3782,7 @@ class EvaluationResponseController extends Controller
                     'evaluation_form_subcategories.id',
                     'evaluation_form_subcategories.subcategory_type'
                 )
-                ->where('evaluation_form_subcategory_options.id', Crypt::decrypt($request->option_id))
+                ->where('evaluation_form_subcategory_options.id', $request->option_id)
                 ->whereNull('evaluation_form_subcategory_options.deleted_at')
                 ->first()
             ;
@@ -3773,7 +3793,7 @@ class EvaluationResponseController extends Controller
                     return response()->json([
                         'status' => 400,
                         'message' => 'This subcategory does not accept choice answers!',
-                        'evaluationFormSubcategoryID' => Crypt::encrypt($subcategory->id)
+                        'evaluationFormSubcategoryID' => $subcategory->id
                     ]);
                     break;
                 case "checkbox":
@@ -3781,8 +3801,8 @@ class EvaluationResponseController extends Controller
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                         ->select('evaluation_option_answers.option_id')
-                        ->where('evaluation_option_answers.option_id', '=', Crypt::decrypt($request->option_id))
-                        ->where('evaluation_option_answers.response_id', '=', Crypt::decrypt($request->response_id))
+                        ->where('evaluation_option_answers.option_id', '=', $request->option_id)
+                        ->where('evaluation_option_answers.response_id', '=', $request->response_id)
                         ->where('evaluation_form_subcategories.id', '=', $subcategory->id)
                         ->whereNull('evaluation_option_answers.deleted_at')
                         ->first()
@@ -3790,8 +3810,8 @@ class EvaluationResponseController extends Controller
                     if($existingOptionAnswer) return response()->json([ 
                         'status' => 409,
                         'message' => 'The same option answer was already created for this subcategory!',
-                        'evaluationResponseID' =>  Crypt::encrypt($request->response_id),
-                        'evaluationOptionID' => Crypt::encrypt($existingOptionAnswer->option_id)
+                        'evaluationResponseID' =>  $request->response_id,
+                        'evaluationOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
                 case "linear_scale":
@@ -3800,7 +3820,7 @@ class EvaluationResponseController extends Controller
                         ::join('evaluation_form_subcategory_options', 'evaluation_form_subcategory_options.id', '=', 'evaluation_option_answers.option_id')
                         ->join('evaluation_form_subcategories', 'evaluation_form_subcategories.id', '=', 'evaluation_form_subcategory_options.subcategory_id')
                         ->select('evaluation_option_answers.option_id')
-                        ->where('evaluation_option_answers.response_id', '=', Crypt::decrypt($request->response_id))
+                        ->where('evaluation_option_answers.response_id', '=', $request->response_id)
                         ->where('evaluation_form_subcategories.id', '=', $subcategory->id)
                         ->whereNull('evaluation_option_answers.deleted_at')
                         ->first()
@@ -3809,7 +3829,7 @@ class EvaluationResponseController extends Controller
                         'status' => 409,
                         'message' => 'An option answer was already created for this subcategory!',
                         'evaluationResponseID' =>  $request->response_id,
-                        'evaluationOptionID' => $request->option_id
+                        'evaluationOptionID' => $existingOptionAnswer->option_id
                     ]);
                     break;
                                 
@@ -3818,8 +3838,8 @@ class EvaluationResponseController extends Controller
             DB::beginTransaction();
 
             $newEvaluationOptionAnswer = EvaluationOptionAnswer::create([
-                'response_id' => Crypt::decrypt($request->response_id),
-                'option_id' => Crypt::decrypt($request->option_id)
+                'response_id' => $request->response_id,
+                'option_id' => $request->option_id
             ]);
 
             DB::commit();

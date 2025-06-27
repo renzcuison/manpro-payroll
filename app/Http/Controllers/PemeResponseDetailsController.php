@@ -27,15 +27,33 @@ class PemeResponseDetailsController extends Controller
         return false;
     }
 
-    public function download(Media $media)
+
+    public function download($id)
     {
+        try {
+            $mediaId = Crypt::decrypt($id);
+            $media = Media::findOrFail($mediaId);
+        } catch (\Exception $e) {
+            \Log::error('Media download failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Invalid or missing media ID.'], 404);
+        }
+
+
         $path = $media->getPath();
 
         if (!file_exists($path)) {
             return response()->json(['message' => 'File not found on disk.'], 404);
         }
 
-        return response()->download($path, $media->file_name);
+        $mimeType = $media->mime_type ?? mime_content_type($path) ?? 'application/octet-stream';
+
+        if (str_ends_with(strtolower($media->file_name), '.docx')) {
+            $mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        }
+
+        return response()->download($path, $media->file_name, [
+            'Content-Type' => $mimeType
+        ]);
     }
 
     public function index()
@@ -227,12 +245,11 @@ class PemeResponseDetailsController extends Controller
             ], 422);
         }
 
-
         $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
         $maxKilobytes = $fileSizeLimitMb ? intval($fileSizeLimitMb * 1024) : null;
 
         foreach ($files as $file) {
-            $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
+            $rules = ['file' => 'required|file|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/octet-stream,image/jpeg,image/png'];
             if ($maxKilobytes) {
                 $rules['file'] .= "|max:$maxKilobytes";
             }

@@ -42,21 +42,27 @@ const getSectionScore = (section) => {
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'linear_scale') {
-      if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
-        const start = Number(subcat.linear_scale_start) || 1;
-        const end = Number(subcat.linear_scale_end) || 5;
-        const value = Number(subcat.percentage_answer.value);
-        if (end > start) {
-          subScore = ((value - start) / (end - start)) * 100;
-        }
-      }
-      subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
-      scoreTotal += subScore;
-      counted++;
-    }
+  const scores = subcat.options.map(opt => Number(opt.score));
+  const start = Math.min(...scores);
+  const end = Math.max(...scores);
+ 
+  // Find the selected option (option_answer not null)
+  const selectedOpt = subcat.options.find(opt => opt.option_answer != null);
+  const value = selectedOpt ? Number(selectedOpt.score) : null;
+ 
+  let subScore = 0;
+  if (value !== null && end > start) {
+    subScore = ((value - start + 1) / (end - start+ 1)) * 100;
+  }
+ 
+  subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
+  scoreTotal += subScore;
+  counted++;
+}
   });
-
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;
+  console.log(section.subcategories);
+
   const weightedScore = ((sectionScore / 100) * (section.score || 0));
   return { sectionScore, subcatScores, weightedScore };
 };
@@ -123,7 +129,7 @@ const PerformanceEvaluationEvaluateePage = () => {
 
 
 
- const handleDownloadPDFClick = async () => {
+const handleDownloadPDFClick = async () => {
     const doc = new jsPDF("p", "pt", "a4");
     const margin = 40;
     const cardWidth = 520;
@@ -133,7 +139,7 @@ const PerformanceEvaluationEvaluateePage = () => {
     const form = evaluationResponse.form;
     const responseMeta = evaluationResponse;
 
-    // HEADER (Single form name, not repeated)
+    // HEADER
     doc.setFontSize(18);
     doc.setTextColor(34, 34, 34);
     doc.setFont(undefined, "bold");
@@ -159,6 +165,9 @@ const PerformanceEvaluationEvaluateePage = () => {
 
     // --- SECTIONS ---
     form.sections.forEach((section, idx) => {
+      // Check for page overflow
+      if (y > 700) { doc.addPage(); y = margin; }
+
       // Compact Gold Bar Header
       const barHeight = 28;
       const barRadius = 5;
@@ -209,7 +218,7 @@ const PerformanceEvaluationEvaluateePage = () => {
     y += weightedBarHeight;
     y += 18;
 
-    // Table Header (aligned columns)
+    // Table Header
     doc.setFontSize(12);
     doc.setFont(undefined, "bold");
     doc.setTextColor(51, 51, 51);
@@ -232,6 +241,8 @@ const PerformanceEvaluationEvaluateePage = () => {
       )
     );
     weightedSections.forEach(section => {
+      // Check for page overflow
+      if (y > 770) { doc.addPage(); y = margin; }
       const { sectionScore, weightedScore } = getSectionScore(section);
       totalWeighted += weightedScore;
       doc.text(`${section.name} - ${section.score || 0}%`, margin + 20, y);
@@ -268,9 +279,9 @@ const PerformanceEvaluationEvaluateePage = () => {
       doc.setFont(undefined, "bold");
       doc.setTextColor(51, 51, 51);
       doc.text("Evaluator:", margin + 20, y);
-      y += 20; // LESS space here
+      y += 20;
       responseMeta.evaluators.forEach((evaluator) => {
-        if (y > 700) { doc.addPage(); y = margin; }
+        if (y > 770) { doc.addPage(); y = margin; }
         doc.setFont(undefined, "bold");
         doc.setFontSize(11);
         doc.setTextColor(34,34,34);
@@ -295,13 +306,13 @@ const PerformanceEvaluationEvaluateePage = () => {
       doc.setDrawColor(220, 220, 220);
       doc.setLineWidth(1.2);
       doc.line(margin, y, margin + cardWidth, y);
-      y += 30; // <<-- Add more space here (try 30 or more)
+      y += 30;
     }
 
     // Commentors
     if (Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0) {
       responseMeta.commentors.forEach((commentor, idx) => {
-        if (y > 700) { doc.addPage(); y = margin; }
+        if (y > 770) { doc.addPage(); y = margin; }
         doc.setFont(undefined, "bold");
         doc.setFontSize(12);
         doc.setTextColor(51, 51, 51);
@@ -334,7 +345,7 @@ const PerformanceEvaluationEvaluateePage = () => {
     }
     y += 18;
 
-    // --- Signatures grid (3 per row, white rounded cards) ---
+    // --- Signatures grid (2 per row, white rounded cards, with page break) ---
     const signatureBarHeight = 28;
     doc.setFillColor(...gold);
     doc.roundedRect(margin, y, cardWidth, weightedBarHeight, 5, 5, "F");
@@ -348,7 +359,11 @@ const PerformanceEvaluationEvaluateePage = () => {
 
     const signatureBlocks = [];
     if (creatorSignatureFilePath) {
-      let creatorName = form?.creator_user_name ? `${ form.creator_user_name } (Creator)` : "Creator";
+      let creatorName = responseMeta?.creator
+        ? `${getFullName(responseMeta.creator)} (Creator)`
+        : (form?.creator_user_name 
+            ? `${form.creator_user_name} (Creator)` 
+            : "Creator");
       let creatorDate = responseMeta?.media[0]?.created_at.split('T')[0] ?? '';
       signatureBlocks.push({
         url: creatorSignatureFilePath,
@@ -391,12 +406,26 @@ const PerformanceEvaluationEvaluateePage = () => {
       }
     }
 
-    const colWidth = 155, sigImgHeight = 36, sigImgWidth = 100;
+    const colWidth = 250, sigImgHeight = 36, sigImgWidth = 100;
+    const gap = 16;
     let col = 0, row = 0, startY = y;
+
+    // Get page height (A4 is 842pt, but may differ, so use jsPDF api)
+    const pageHeight = doc.internal.pageSize.height || 842;
     for (let i = 0; i < signatureBlocks.length; ++i) {
       const sig = signatureBlocks[i];
-      const x = margin + col * (colWidth + 8);
-      const y0 = startY + row * 70;
+      const x = margin + col * (colWidth + gap);
+      let y0 = startY + row * 70;
+
+      // Check if next row would overflow page
+      if (y0 + 70 > pageHeight - margin) {
+        doc.addPage();
+        // Reset row, col, startY, y0 for new page
+        row = 0;
+        col = 0;
+        startY = margin;
+        y0 = startY;
+      }
 
       try {
         if (!sig.url || sig.url === "data:image/png;base64,")
@@ -429,12 +458,11 @@ const PerformanceEvaluationEvaluateePage = () => {
       }
 
       col++;
-      if (col === 3) { col = 0; row++; }
+      if (col === 2) { col = 0; row++; }
     }
 
     doc.save(`evaluation_${form.name.replace(/\s+/g, '_')}.pdf`);
-  };
-
+};
   const form = evaluationResponse.form;
   const responseMeta = evaluationResponse;
   if (loading) {
@@ -510,7 +538,7 @@ const PerformanceEvaluationEvaluateePage = () => {
           Employee Name: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(evaluator => getFullName(evaluator)).join(' & ') : ''}
+          Evaluator: {responseMeta?.evaluators ? responseMeta.evaluators.map(evaluator => getFullName(evaluator)).join(' & ') : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
@@ -1009,7 +1037,7 @@ const PerformanceEvaluationEvaluateePage = () => {
                 px: 5,
                 py: 1.5,
                 fontWeight: 'bold',
-                fontSize: 18,
+                fontSize: 14,
                 borderRadius: 2
               }}
               onClick={() => setAckModalOpen(true)}

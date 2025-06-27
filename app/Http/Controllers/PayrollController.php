@@ -990,23 +990,26 @@ class PayrollController extends Controller
         foreach ( $rawAllowance as $allowance ) {
 
             $schedule = $allowance->allowance->payment_schedule;
+            $amount = $allowance->amount;
+
+            log::info($amount);
 
             if ($request->cutOff == "First" && $schedule == 1 ) {
-                $allowanceAmount = $allowance->allowance->amount;
+                $allowanceAmount = $amount;
                 $totalAllowance = $totalAllowance + $allowanceAmount;
 
                 $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
             }
 
             if ($request->cutOff == "Second" && $schedule == 2 ) {
-                $allowanceAmount = $allowance->allowance->amount;
+                $allowanceAmount = $amount;
                 $totalAllowance = $totalAllowance + $allowanceAmount;
 
                 $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
             }
 
             if ( $schedule == 3 ) {
-                $allowanceAmount = $allowance->allowance->amount / 2;
+                $allowanceAmount = $amount / 2;
                 $totalAllowance = $totalAllowance + $allowanceAmount;
 
                 $allowances[] = [ 'allowance' => encrypt($allowance->id), 'name' => $allowance->allowance->name, 'amount' => $allowanceAmount ];
@@ -1139,6 +1142,8 @@ class PayrollController extends Controller
                     $newBenefit = PayslipBenefitsModel::create(["payslip_id" => $payslip->id, "benefit_id" => decrypt($benefit['benefit']), "employee_amount" => $benefit['employeeAmount'], "employer_amount" => $benefit['employerAmount']]);
                 }
             }
+
+            log::info($payrollData['allowances']);
 
             foreach ($payrollData['allowances'] as $allowance) {
                 if ($allowance['name'] != "Total Benefits") {
@@ -1287,7 +1292,7 @@ class PayrollController extends Controller
             foreach ($record->allowances as $allowance) {
                 $allowances[] = [
                     'name' => $allowance->employeeAllowance->allowance->name,
-                    'amount' => $allowance->employeeAllowance->allowance->amount,
+                    'amount' => $allowance->amount,
                 ];
             }
 
@@ -1332,6 +1337,12 @@ class PayrollController extends Controller
                         break;
                     case 4:
                         $name = 'Holiday OT Pay';
+                        break;
+                    case 5:
+                        $name = 'Rest Day Pay';
+                        break;
+                    case 6:
+                        $name = 'Rest Day OT Pay';
                         break;
                     default:
                         $name = '-';

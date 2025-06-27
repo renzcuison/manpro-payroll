@@ -578,9 +578,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEvaluationResponses', [EvaluationResponseController::class, 'getEvaluationResponses']);
     Route::post('/saveEvaluationResponse', [EvaluationResponseController::class, 'saveEvaluationResponse']);
 
-    Route::get('/getEvaluatees', [EvaluationResponseController::class, 'getEvaluatees']);
-    Route::get('/getEvaluators', [EvaluationResponseController::class, 'getEvaluators']);
-    Route::get('/getCommentors', [EvaluationResponseController::class, 'getCommentors']);
+    // Route::get('/getEvaluatees', [EvaluationResponseController::class, 'getEvaluatees']);
+    // Route::get('/getEvaluators', [EvaluationResponseController::class, 'getEvaluators']);
+    // Route::get('/getCommentors', [EvaluationResponseController::class, 'getCommentors']);
+    Route::get('/getEvaluationResponseUsers', [EvaluationResponseController::class, 'getEvaluationResponseUsers']);
     Route::post('/deleteEvaluationEvaluator', [EvaluationResponseController::class, 'deleteEvaluationEvaluator']);
     Route::post('/editEvaluationEvaluator', [EvaluationResponseController::class, 'editEvaluationEvaluator']);
     Route::get('/getEvaluationEvaluator', [EvaluationResponseController::class, 'getEvaluationEvaluator']);
@@ -817,6 +818,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
 
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
+    Route::get('/peme-responses/{id}/all', [PemeResponseController::class, 'showAll']);
     Route::patch('/peme-responses/{id}/status', [PemeResponseController::class, 'updateResponse']);
     Route::post('/peme-responses', [PemeResponseController::class, 'store']);
     Route::get('/peme-responses/summary/{pemeId}', [PemeResponseController::class, 'summary']);
@@ -832,6 +834,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
     Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
     Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
+    Route::get('/peme-response-details/download/{id}', [PemeResponseDetailsController::class, 'download']);
 
     Route::put('/public-event/{id}', [GoogleController::class, 'updatePublicEvent', ]);
     Route::delete('/public-event/{id}', [GoogleController::class, 'deletePublicEvent', ]);
@@ -848,6 +851,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/deleteSalaryGrade', [SalaryPlansController::class, 'deleteSalaryGrade']);
     Route::get('/getSalaryLogs', [SalaryPlansController::class, 'getSalaryLogs']);
     Route::get('/getEmployeesBySalaryGrade', [SalaryPlansController::class, 'getEmployeesBySalaryGrade']);
+    Route::get('/getSalaryPlanById', [SalaryPlansController::class, 'getSalaryPlanById']);
     Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent', ]);
 });
 

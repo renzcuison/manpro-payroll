@@ -10,6 +10,7 @@ import {
     Divider
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import UndoIcon from '@mui/icons-material/Undo';
 import SignatureCanvas from 'react-signature-canvas';
 
 const PerformanceEvaluationCreatorSign = ({ open, onClose, onProceed }) => {
@@ -21,6 +22,12 @@ const PerformanceEvaluationCreatorSign = ({ open, onClose, onProceed }) => {
                 const file = new File([blob], 'creatorSignature.png', { type: 'image/png' });
                 if (onProceed) onProceed(file);
             }, 'image/png');
+        }
+    };
+
+    const handleClear = () => {
+        if (sigPadRef.current) {
+            sigPadRef.current.clear();
         }
     };
 
@@ -73,7 +80,7 @@ const PerformanceEvaluationCreatorSign = ({ open, onClose, onProceed }) => {
                         <SignatureCanvas
                             ref={sigPadRef}
                             penColor="black"
-                            canvasProps={{ width: 700, height: 120, className: 'sigCanvas' }}
+                            canvasProps={{ width: 700, height: 200, className: 'sigCanvas' }}
                         />
                         <Typography
                             variant="body2"
@@ -81,6 +88,22 @@ const PerformanceEvaluationCreatorSign = ({ open, onClose, onProceed }) => {
                         >
                             {new Date().toLocaleDateString()}
                         </Typography>
+                        {/* Undo/Clear Button */}
+                        <IconButton
+                            onClick={handleClear}
+                            sx={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                bgcolor: '#fff',
+                                border: '1px solid #ced4da',
+                                zIndex: 2,
+                                '&:hover': { bgcolor: '#f5f5f5' }
+                            }}
+                            aria-label="Clear signature"
+                        >
+                            <UndoIcon />
+                        </IconButton>
                     </Box>
                 </Box>
             </DialogContent>

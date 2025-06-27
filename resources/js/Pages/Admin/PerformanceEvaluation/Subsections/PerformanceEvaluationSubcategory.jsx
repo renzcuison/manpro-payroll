@@ -58,7 +58,7 @@ const RESPONSE_TYPE_OPTIONS = [
 const SubcategoryContext = createContext();
 
 export default function PerformanceEvaluationFormSubcategory({
-    subcategory: subcategoryInit, draggedId, expandedSubcategoryId, setExpandedSubcategoryId
+    subcategory: subcategoryInit, deleteSubcategory, draggedId, expandedSubcategoryId, setExpandedSubcategoryId
 }) {
     const {
         subcategory, subcategoryId,
@@ -202,7 +202,7 @@ export default function PerformanceEvaluationFormSubcategory({
                         
                         <Box justifyContent="flex-end" display="flex" gap={1}>
                             <Button
-                            onClick={(e) => {e.stopPropagation()}}
+                            onClick={(e) => {e.stopPropagation(); deleteSubcategory(subcategoryId); }}
                             variant="contained"
                             sx={{
                                 backgroundColor: '#727F91',
@@ -329,7 +329,7 @@ function OptionsEditor() {
                                         inputProps={{ min: 0, step: 1 }}
                                     />
                                 </Grid>
-                                <Grid item xs={4} sx={{width: '50%'}}>
+                                <Grid item xs={4} sx={{width: '40%'}}>
                                     <TextField
                                         variant="outlined"
                                         label="Description"
@@ -338,7 +338,7 @@ function OptionsEditor() {
                                         onChange={e => handleChangeDescription(option, e)}
                                         fullWidth
                                         inputProps={{
-                                            maxLength: 250,
+                                            maxLength: 150,
                                             style: {
                                                 whiteSpace: 'nowrap',
                                                 overflow: 'hidden',
@@ -426,7 +426,7 @@ function LinearScaleEditor() {
                                 }
                             }}
                             sx={{
-                                minWidth: 500,
+                                minWidth: 400,
                                 maxWidth: "100%"
                             }}
                         />
