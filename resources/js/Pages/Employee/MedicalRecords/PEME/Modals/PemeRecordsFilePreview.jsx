@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
     Dialog,
     Typography,
@@ -8,10 +9,37 @@ import {
     IconButton,
     Tooltip,
 } from "@mui/material";
-import React from "react";
 import DownloadIcon from "@mui/icons-material/Download";
+import mammoth from "mammoth";
 
 const PemeRecordsFilePreview = ({ open, close, file }) => {
+    const [docxHtml, setDocxHtml] = useState(null);
+
+    useEffect(() => {
+        setDocxHtml(null);
+
+        if (file?.url && file.url.endsWith(".docx")) {
+            console.log("Preview file object:", file);
+            fetch(file.url)
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error(`Network response was not ok: ${res.status} ${res.statusText}`);
+                    }
+                    console.log("Content-Type:", res.headers.get("content-type"));
+                    return res.blob();
+                })
+                .then((blob) => blob.arrayBuffer())
+                .then((arrayBuffer) =>
+                    mammoth.convertToHtml({ arrayBuffer })
+                )
+                .then((result) => setDocxHtml(result.value))
+                .catch((err) => {
+                    console.error("DOCX preview error:", err);
+                    setDocxHtml("<p>Unable to preview DOCX file.</p>");
+                });
+        }
+    }, [file, open]);
+
     const downloadFile = async (filename) => {
         try {
             const response = await fetch(`http://192.168.79.33:8000/api/download/${filename}`, {
@@ -104,7 +132,7 @@ const PemeRecordsFilePreview = ({ open, close, file }) => {
                             flex: 1,
                             border: "1px solid #ccc",
                             borderRadius: 2,
-                            overflow: "hidden",
+                            overflow: "auto",
                             backgroundColor: "#fff",
                         }}
                     >
@@ -119,6 +147,15 @@ const PemeRecordsFilePreview = ({ open, close, file }) => {
                                     height: "100%",
                                 }}
                             />
+                        ) : file.url.endsWith(".docx") ? (
+                            docxHtml ? (
+                                <div
+                                    style={{ padding: 16, height: "100%", overflow: "auto" }}
+                                    dangerouslySetInnerHTML={{ __html: docxHtml }}
+                                />
+                            ) : (
+                                <Typography>Loading DOCX preview...</Typography>
+                            )
                         ) : (
                             <img
                                 src={file.url}

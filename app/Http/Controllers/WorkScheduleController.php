@@ -8,6 +8,7 @@ use App\Models\WorkDaysModel;
 use App\Models\WorkHoursModel;
 use App\Models\WorkGroupsModel;
 use App\Models\WorkShiftsModel;
+use App\Models\WorkDays;
 use App\Models\BranchesModel;
 use App\Models\JobTitlesModel;
 use App\Models\DepartmentsModel;
@@ -216,62 +217,91 @@ class WorkScheduleController extends Controller
         if ($this->checkUser()) {
             $workShift = WorkShiftsModel::where('id', $request->selectedShift)->where('client_id', $request->client)->first();
             $workHours = WorkHoursModel::find($workShift->work_hour_id);
+            $workDays = $workShift->workDays()->get();
 
-            return response()->json(['status' => 200, 'workShift' => $workShift, 'workHours' => $workHours]);
+            //to be used for the checkbox
+            $workDaysBool = [
+                'Sunday' => false,
+                'Monday' => false,
+                'Tuesday' => false,
+                'Wednesday' => false,
+                'Thursday' => false,
+                'Friday' => false,
+                'Saturday' => false,
+            ];
+            //check if the results contain that certain work day, in which it will convert the key value of the workDaysBool array into true
+            if($workDays){
+                foreach($workDays as $day){
+                    $dayName = $day->work_day;
+                    if(array_key_exists($dayName, $workDaysBool)){
+                        $workDaysBool[$dayName] = true;
+                    }
+                }
+            }
+
+            return response()->json(['status' => 200, 'workShift' => $workShift, 'workHours' => $workHours, "workDays" => $workDaysBool]);
         }
 
-        return response()->json(['status' => 200, 'workShift' => null, 'workHours' => null]);
+        return response()->json(['status' => 200, 'workShift' => null, 'workHours' => null,'workDays' => null]);
     }
 
     public function saveSplitWorkShift(Request $request)
     {
-        // log::info("WorkScheduleController::saveSplitWorkShift");
-
         $validated = $request->validate([
+            'shiftId' => 'nullable|exists:work_shifts,id', // update support
             'shiftName' => 'required',
             'shiftType' => 'required',
-
             'firstLabel' => 'required',
             'firstTimeIn' => 'required',
             'firstTimeOut' => 'required',
-
             'secondLabel' => 'required',
             'secondTimeIn' => 'required',
             'secondTimeOut' => 'required',
-
             'overTimeIn' => 'required',
             'overTimeOut' => 'required',
         ]);
 
-        $workHour  = $this->checkWorkHour($request);
+        $workHour = $this->checkWorkHour($request);
+        $workDays = $request->input('workDays', []);
 
         if ($this->checkUser() && $validated && $workHour) {
-
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
             try {
                 DB::beginTransaction();
 
-                $shift = WorkShiftsModel::create([
-                    "name" => $request->shiftName,
-                    "shift_type" => $request->shiftType,
-                    "first_label" => $request->firstLabel,
-                    "second_label" => $request->secondLabel,
-                    "work_hour_id" => $workHour->id,
-                    "client_id" => $client->id,
-                ]);
-
+                if (!empty($request->shiftId)) {
+                    $shift = WorkShiftsModel::findOrFail($request->shiftId);
+                    $shift->update([
+                        "name" => $request->shiftName,
+                        "shift_type" => $request->shiftType,
+                        "first_label" => $request->firstLabel,
+                        "second_label" => $request->secondLabel,
+                        "work_hour_id" => $workHour->id,
+                        "client_id" => $client->id,
+                    ]);
+                } else {
+                    $shift = WorkShiftsModel::create([
+                        "name" => $request->shiftName,
+                        "shift_type" => $request->shiftType,
+                        "first_label" => $request->firstLabel,
+                        "second_label" => $request->secondLabel,
+                        "work_hour_id" => $workHour->id,
+                        "client_id" => $client->id,
+                    ]);
+                }
+                $this->handleSaveWorkDays($workDays, $shift->id);
                 DB::commit();
-
-                $link = str_replace(' ', '_', $shift->name);
-
-                return response()->json(['status' => 200, 'shift' => $shift, 'link' => $link]);
+                return response()->json([
+                    'status' => 200, 'shift' => $shift,
+                    'client_id' => $client->id, 
+                    'link' => $client->id . '/' . $shift->id,
+                    
+                ]);
             } catch (\Exception $e) {
                 DB::rollBack();
-
-                Log::error("Error saving: " . $e->getMessage());
-
+                Log::error("Error saving split shift: " . $e->getMessage());
                 throw $e;
             }
         }
@@ -279,53 +309,83 @@ class WorkScheduleController extends Controller
 
     public function saveRegularWorkShift(Request $request)
     {
-        log::info("WorkScheduleController::saveRegularWorkShift");
-
-        log::info($request);
-
         $validated = $request->validate([
+            'shiftId' => 'nullable|exists:work_shifts,id', // update support
             'shiftName' => 'required',
             'shiftType' => 'required',
-
             'firstLabel' => 'required',
             'firstTimeIn' => 'required',
             'firstTimeOut' => 'required',
-
             'breakStart' => 'required',
             'breakEnd' => 'required',
             'overTimeIn' => 'required',
             'overTimeOut' => 'required',
         ]);
 
-        $workHour  = $this->checkWorkHour($request);
+        $workHour = $this->checkWorkHour($request);
+        $workDays = $request->input('workDays', []);
 
         if ($this->checkUser() && $validated && $workHour) {
-
             $user = Auth::user();
             $client = ClientsModel::find($user->client_id);
 
             try {
                 DB::beginTransaction();
 
-                $shift = WorkShiftsModel::create([
-                    "name" => $request->shiftName,
-                    "shift_type" => $request->shiftType,
-                    "first_label" => "Attendance",
-                    "work_hour_id" => $workHour->id,
-                    "client_id" => $client->id,
+                if (!empty($request->shiftId)) {
+                    $shift = WorkShiftsModel::findOrFail($request->shiftId);
+                    $shift->update([
+                        "name" => $request->shiftName,
+                        "shift_type" => $request->shiftType,
+                        "first_label" => $request->firstLabel ?? 'Attendance',
+                        "work_hour_id" => $workHour->id,
+                        "client_id" => $client->id,
+                    ]);
+                } else {
+                    $shift = WorkShiftsModel::create([
+                        "name" => $request->shiftName,
+                        "shift_type" => $request->shiftType,
+                        "first_label" => $request->firstLabel ?? 'Attendance',
+                        "work_hour_id" => $workHour->id,
+                        "client_id" => $client->id,
+                    ]);
+                }
+
+                $this->handleSaveWorkDays($workDays, $shift->id);
+                DB::commit();
+                
+                return response()->json([
+                    'status' => 200, 'shift' => $shift,
+                    'client_id' => $client->id, 
+                    'link' => $client->id . '/' . $shift->id,
                 ]);
 
-                $link = str_replace(' ', '_', $shift->name);
-
-                DB::commit();
-
-                return response()->json(['status' => 200, 'shift' => $shift, 'link' => $link]);
             } catch (\Exception $e) {
                 DB::rollBack();
-
-                Log::error("Error saving: " . $e->getMessage());
-
+                Log::error("Error saving regular shift: " . $e->getMessage());
                 throw $e;
+            }
+        }
+    }
+
+    //separate function to handle the work days saving
+    public function handleSaveWorkDays(array $workDays, int $shiftId)
+    {
+        $existingWorkDays = WorkDays::where('work_shift_id', $shiftId)->get()->keyBy('work_day');
+
+        foreach ($workDays as $dayName => $isActive) {
+            if ($existingWorkDays->has($dayName)) {
+                if (!$isActive) {
+                    $existingWorkDays[$dayName]->delete();
+                }
+                // else: active and exists = no change needed
+            } else {
+                if ($isActive) {
+                    WorkDays::create([
+                        'work_shift_id' => $shiftId,
+                        'work_day' => $dayName,
+                    ]);
+                }
             }
         }
     }

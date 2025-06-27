@@ -471,7 +471,9 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                             No category yet.
                         </Box>
                         )}
+                        
                     {/* SUBCATEGORIES */}
+                    
                     <DndContext
                         sensors={ subcategorySensors }
                         collisionDetection={ closestCenter }
