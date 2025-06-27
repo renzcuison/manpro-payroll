@@ -79,14 +79,16 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
 
     // Subcategory editing state
     const [expandedSubcategory, setExpandedSubcategory] = useState(null);
-    const [editingSubcategoryId, setEditingSubcategoryId] = useState(null);
-    const [subcategoryDraft, setSubcategoryDraft] = useState({});
-    const [subcategoryOptions, setSubcategoryOptions] = useState([]);
-    const subcategoryInputRef = useRef(null);
+    // const [editingSubcategoryId, setEditingSubcategoryId] = useState(null);
+    // const [subcategoryDraft, setSubcategoryDraft] = useState({});
+    // const [subcategoryOptions, setSubcategoryOptions] = useState([]);
+    // const subcategoryInputRef = useRef(null);
 
     function handleExitEditMode() {
-        if (sectionName?.trim()) {
+        let sectionNameTrimmed = sectionName?.trim();
+        if (sectionNameTrimmed) {
             toggleEditableSection();
+            editSection({ name: sectionNameTrimmed });
         } else {
             Swal.fire({
                 text: "Section Name is required!",
@@ -152,7 +154,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     };
 
     // Save subcategory from modal
-    const handleSaveSubcategory = (subcategory) => {
+    const handleSaveSubcategory = async (subcategory) => {
         if (!subcategory?.name?.trim()) {
             Swal.fire({
                 text: "Subcategory Name is required!",
@@ -161,133 +163,139 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
             });
             return;
         }
-        saveSubcategory(subcategory);
+        subcategory = await saveSubcategory(subcategory);
+        section.subcategories.push(subcategory);
     };
-
-    const getSubcategoryTypeDisplay = (type) => {
-        const map = {
-            short_answer: "Short Text",
-            long_answer: "Long Text",
-            checkbox: "Checkbox",
-            linear_scale: "Linear Scale",
-            multiple_choice: "Multiple Choice",
-            rating: "Rating",
-            comment: "Comment",
-        };
-        return map[type] || type;
-    };
-
-    // Subcategory: show edit UI when expanded
-    const handleSubcategoryToggle = (id, subcategory) => (event, isExpanded) => {
-        setExpandedSubcategory(isExpanded ? id : null);
-        if (isExpanded) {
-            setEditingSubcategoryId(id);
-            // Clone all values for editing
-            setSubcategoryDraft({ ...subcategory });
-            setSubcategoryOptions(subcategory.options ? subcategory.options.map(opt => ({ ...opt })) : []);
-        } else {
-            setEditingSubcategoryId(null);
-            setSubcategoryDraft({});
-            setSubcategoryOptions([]);
-        }
-    };
-
-    // Option editing
-    const handleOptionChange = (index, event) => {
-        const newOptions = [...subcategoryOptions];
-        newOptions[index].label = event.target.value;
-        setSubcategoryOptions(newOptions);
-    };
-
-    const handleAddOption = () => {
-        setSubcategoryOptions([...subcategoryOptions, { label: "", extra: "", description: "" }]);
-    };
-
-    const handleRemoveOption = (index) => {
-        const newOptions = [...subcategoryOptions];
-        newOptions.splice(index, 1);
-        setSubcategoryOptions(newOptions);
-    };
-
-    const handleOptionExtraChange = (index, event) => {
-        const newOptions = [...subcategoryOptions];
-        newOptions[index].extra = event.target.value;
-        setSubcategoryOptions(newOptions);
-    };
-
-    const handleSaveEditSubcategory = () => {
-        // Ensure the subcategory name is not empty
-        if (!subcategoryDraft.name?.trim()) {
-            Swal.fire({
-                text: "Subcategory Name is required!",
-                icon: "error",
-                confirmButtonColor: '#177604',
-            });
-            return;
-        }
-
-        // Validate for linear scale fields if needed
-        if (subcategoryDraft.subcategory_type === "linear_scale") {
-            if (
-                subcategoryDraft.linear_scale_start == null ||
-                subcategoryDraft.linear_scale_end == null ||
-                subcategoryDraft.linear_scale_start_label?.trim() === "" ||
-                subcategoryDraft.linear_scale_end_label?.trim() === ""
-            ) {
-                Swal.fire({
-                    text: "All linear scale fields are required!",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                });
-                return;
-            }
-            if (+subcategoryDraft.linear_scale_start >= +subcategoryDraft.linear_scale_end) {
-                Swal.fire({
-                    text: "Linear Scale Start must be less than End!",
-                    icon: "error",
-                    confirmButtonColor: '#177604',
-                });
-                return;
-            }
-        }
-
-        // If it's an existing subcategory (has an ID), update it
-        if (subcategoryDraft.id) {
-        let updatedSubcategory = { ...subcategoryDraft };
-
-        if (
-            subcategoryDraft.subcategory_type === "multiple_choice" ||
-            subcategoryDraft.subcategory_type === "checkbox"
-        ) {
-            updatedSubcategory.options = subcategoryOptions;
-        } else if (subcategoryDraft.subcategory_type === "linear_scale") {
-            updatedSubcategory.options = subcategoryOptions.map((opt, idx) => ({
-                label: opt.label,
-                description: opt.description,
-                score: idx + 1,
-                order: idx + 1
-            }));
-        }
-
-        saveSubcategory(updatedSubcategory, "update");
-    } else {
-        saveSubcategory(subcategoryDraft, "create");
+    // here
+    const handleDeleteSubcategory = async (subcategoryId) => {
+        const subcategories = await deleteSubcategory(subcategoryId);
+        section.subcategories = subcategories;
     }
 
-        // Clear the form after saving
-        setEditingSubcategoryId(null);
-        setSubcategoryDraft({});
-        setSubcategoryOptions([]);
-        setExpandedSubcategory(null);
-    };
+    // const getSubcategoryTypeDisplay = (type) => {
+    //     const map = {
+    //         short_answer: "Short Text",
+    //         long_answer: "Long Text",
+    //         checkbox: "Checkbox",
+    //         linear_scale: "Linear Scale",
+    //         multiple_choice: "Multiple Choice",
+    //         rating: "Rating",
+    //         comment: "Comment",
+    //     };
+    //     return map[type] || type;
+    // };
+
+    // Subcategory: show edit UI when expanded
+    // const handleSubcategoryToggle = (id, subcategory) => (event, isExpanded) => {
+    //     setExpandedSubcategory(isExpanded ? id : null);
+    //     if (isExpanded) {
+    //         setEditingSubcategoryId(id);
+    //         // Clone all values for editing
+    //         setSubcategoryDraft({ ...subcategory });
+    //         setSubcategoryOptions(subcategory.options ? subcategory.options.map(opt => ({ ...opt })) : []);
+    //     } else {
+    //         setEditingSubcategoryId(null);
+    //         setSubcategoryDraft({});
+    //         setSubcategoryOptions([]);
+    //     }
+    // };
+
+    // Option editing
+    // const handleOptionChange = (index, event) => {
+    //     const newOptions = [...subcategoryOptions];
+    //     newOptions[index].label = event.target.value;
+    //     setSubcategoryOptions(newOptions);
+    // };
+
+    // const handleAddOption = () => {
+    //     setSubcategoryOptions([...subcategoryOptions, { label: "", extra: "", description: "" }]);
+    // };
+
+    // const handleRemoveOption = (index) => {
+    //     const newOptions = [...subcategoryOptions];
+    //     newOptions.splice(index, 1);
+    //     setSubcategoryOptions(newOptions);
+    // };
+
+    // const handleOptionExtraChange = (index, event) => {
+    //     const newOptions = [...subcategoryOptions];
+    //     newOptions[index].extra = event.target.value;
+    //     setSubcategoryOptions(newOptions);
+    // };
+
+    // const handleSaveEditSubcategory = () => {
+    //     // Ensure the subcategory name is not empty
+    //     if (!subcategoryDraft.name?.trim()) {
+    //         Swal.fire({
+    //             text: "Subcategory Name is required!",
+    //             icon: "error",
+    //             confirmButtonColor: '#177604',
+    //         });
+    //         return;
+    //     }
+
+    //     // Validate for linear scale fields if needed
+    //     if (subcategoryDraft.subcategory_type === "linear_scale") {
+    //         if (
+    //             subcategoryDraft.linear_scale_start == null ||
+    //             subcategoryDraft.linear_scale_end == null ||
+    //             subcategoryDraft.linear_scale_start_label?.trim() === "" ||
+    //             subcategoryDraft.linear_scale_end_label?.trim() === ""
+    //         ) {
+    //             Swal.fire({
+    //                 text: "All linear scale fields are required!",
+    //                 icon: "error",
+    //                 confirmButtonColor: '#177604',
+    //             });
+    //             return;
+    //         }
+    //         if (+subcategoryDraft.linear_scale_start >= +subcategoryDraft.linear_scale_end) {
+    //             Swal.fire({
+    //                 text: "Linear Scale Start must be less than End!",
+    //                 icon: "error",
+    //                 confirmButtonColor: '#177604',
+    //             });
+    //             return;
+    //         }
+    //     }
+
+    //     // If it's an existing subcategory (has an ID), update it
+    //     if (subcategoryDraft.id) {
+    //     let updatedSubcategory = { ...subcategoryDraft };
+
+    //     if (
+    //         subcategoryDraft.subcategory_type === "multiple_choice" ||
+    //         subcategoryDraft.subcategory_type === "checkbox"
+    //     ) {
+    //         updatedSubcategory.options = subcategoryOptions;
+    //     } else if (subcategoryDraft.subcategory_type === "linear_scale") {
+    //         updatedSubcategory.options = subcategoryOptions.map((opt, idx) => ({
+    //             label: opt.label,
+    //             description: opt.description,
+    //             score: idx + 1,
+    //             order: idx + 1
+    //         }));
+    //     }
+
+    //     saveSubcategory(updatedSubcategory, "update");
+    // } else {
+    //     saveSubcategory(subcategoryDraft, "create");
+    // }
+
+    //     // Clear the form after saving
+    //     setEditingSubcategoryId(null);
+    //     setSubcategoryDraft({});
+    //     setSubcategoryOptions([]);
+    //     setExpandedSubcategory(null);
+    // };
 
 
-    const handleCancelEditSubcategory = () => {
-        setEditingSubcategoryId(null);
-        setSubcategoryDraft({});
-        setSubcategoryOptions([]);
-        setExpandedSubcategory(null);
-    };
+    // const handleCancelEditSubcategory = () => {
+    //     setEditingSubcategoryId(null);
+    //     setSubcategoryDraft({});
+    //     setSubcategoryOptions([]);
+    //     setExpandedSubcategory(null);
+    // };
 
     return <>
         <Accordion
@@ -357,6 +365,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                         onChange={ (e) => setSectionName(e.target.value) }
                         onClick={ (e) => e.stopPropagation() }
                         onBlur={ handleExitEditMode }
+                        onKeyDown={ (e) => {if(e.key === "Enter") e.target.blur()} }
                         onKeyUp={ (e) => e.preventDefault() }
                         ref={inputRef}
                         sx={{
@@ -482,6 +491,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                                     >
                                         <PerformanceEvaluationFormSubcategory
                                             subcategory={ subcategory }
+                                            deleteSubcategory={ handleDeleteSubcategory }
                                             draggedId={ draggedSubcategoryId }
                                             expandedSubcategoryId={ expandedSubcategory }
                                             setExpandedSubcategoryId={ setExpandedSubcategory }
