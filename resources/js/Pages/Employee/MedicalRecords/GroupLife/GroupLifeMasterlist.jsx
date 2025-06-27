@@ -33,6 +33,10 @@ const GroupLifeMasterlist = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [openModal, setOpenModal] = useState(false);
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+
   useEffect(() => {
     axiosInstance
       .get("/medicalRecords/getEmployeeGroupLifePlan", {
@@ -80,29 +84,17 @@ const GroupLifeMasterlist = () => {
     )
     )
 
+  const paginatedRows = filteredRecords.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   const resultsCount = filteredRecords.length;
 
   const handleRowClick = (plan) => {
     console.log("🔍 Clicked Plan ID:", plan);
     setSelectedEmployeePlanId(plan.id);
     setOpenModal(true);
-  };
-
-  const refreshPlans = () => {
-
-    setLoading(true);
-
-    axiosInstance
-      .get("/medicalRecords/getEmployeeGroupLifePlan", {
-        headers: { Authorization: `Bearer ${user.token}` },
-        // params: { plan_id: id },
-      })
-      .then(res => {
-        const fetched = res.data.employees || [];
-        setPlan(fetched);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
   };
 
 
@@ -139,10 +131,24 @@ const GroupLifeMasterlist = () => {
           </Box>
           <Box sx={{ backgroundColor: "white", borderRadius: 2, padding: 2, mt: 3 }}>
             <GroupLifeEmployeeTable
-              employees={plan}
+              employees={paginatedRows}
               search={search}
               onRowClick={handleRowClick}
+              loading={loading}
             />
+            <TablePagination
+              component="div"
+              count={filteredRecords.length}
+              page={page}
+              onPageChange={(e, newPage) => setPage(newPage)}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(e) => {
+                setRowsPerPage(parseInt(e.target.value, 10));
+                setPage(0);
+              }}
+              rowsPerPageOptions={[5, 10, 25]}
+            />
+
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
               <GroupLifePlanEdit
                 open={openModal}

@@ -22,23 +22,23 @@ import {
 const highlightMatch = (text, keyword) => {
     if (!keyword) return text;
 
-    const strText = text?.toString?.() ?? ""; 
+    const strText = text?.toString?.() ?? "";
     const regex = new RegExp(`(${keyword})`, "gi");
     const parts = strText.split(regex);
 
     return parts.map((part, index) =>
         part.toLowerCase() === keyword.toLowerCase() ? (
-        <mark key={index} style={{ backgroundColor: "#E9AE20" }}>
-            {part}
-        </mark>
+            <mark key={index} style={{ backgroundColor: "#E9AE20" }}>
+                {part}
+            </mark>
         ) : (
-        part
+            part
         )
     );
 };
 
 const HMOCompanyTable = ({ rows, onRowClick, search, loading }) => {
-    
+
     return (
         <TableContainer
             sx={{
@@ -90,9 +90,9 @@ const HMOCompanyTable = ({ rows, onRowClick, search, loading }) => {
                                         },
                                     }}
                                 >
-                                        <TableCell align="center">
+                                    <TableCell align="center">
                                         {highlightMatch(
-                                            row.HMOName, 
+                                            row.hmoName,
                                             search)}
                                     </TableCell>
                                     <TableCell align="center">

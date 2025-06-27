@@ -21,6 +21,7 @@ import axiosInstance, { getJWTHeader } from "@/utils/axiosConfig";
 import { useState, useEffect } from 'react';
 import 'react-quill/dist/quill.snow.css';
 import Swal from 'sweetalert2';
+import dayjs from "dayjs";
 
 const HMOEditEmployee = ({ open, close, employeePlanId, refreshEmployees }) => {
 
@@ -287,7 +288,7 @@ const HMOEditEmployee = ({ open, close, employeePlanId, refreshEmployees }) => {
                                 <Typography variant="body1"><strong>Employee Name:</strong> {formData.employee_name || '-'}</Typography>
                                 <Typography variant="body1"><strong>Branch:</strong> {formData.branch_name || '-'}</Typography>
                                 <Typography variant="body1"><strong>Department:</strong> {formData.department_name || '-'}</Typography>
-                                <Typography variant="body1"><strong>Enroll Date:</strong> {formData.enroll_date || '-'}</Typography>
+                                <Typography variant="body1"><strong>Enroll Date:</strong> {formData.enroll_date ? dayjs(formData.enroll_date).format("MMMM DD, YYYY") : "N/A"}</Typography>
 
                                 {showAddForm && (
                                     <Box sx={{ mb: 2, mt: 2 }}>
@@ -379,7 +380,7 @@ const HMOEditEmployee = ({ open, close, employeePlanId, refreshEmployees }) => {
                                                 <Table stickyHeader aria-label="simple table">
                                                     <TableHead>
                                                         <TableRow>
-                                                            <TableCell align="center"><strong>Name</strong></TableCell>
+                                                            <TableCell align="center"><strong>Dependent Name</strong></TableCell>
                                                             <TableCell align="center"><strong>Relationship</strong></TableCell>
                                                             {editingIndex !== null && editingIndex < dependents.length && (
                                                                 <TableCell align="center"><strong>Action</strong></TableCell>

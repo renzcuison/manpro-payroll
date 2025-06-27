@@ -71,7 +71,7 @@ const GroupLifeEmployeeTable = ({ employees, onRowClick, search, loading, data }
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={6} align="center">
+              <TableCell colSpan={7} align="center">
                 <Box display="flex" justifyContent="center" alignItems="center" height={200}>
                   <CircularProgress />
                 </Box>
@@ -105,7 +105,7 @@ const GroupLifeEmployeeTable = ({ employees, onRowClick, search, loading, data }
                     {highlightMatch(String(plan.dependents_count ?? 0), search)}
                   </TableCell>
                   <TableCell align="center">
-                    {highlightMatch(plan.enroll_date ?? "N/A", search)}
+                    {highlightMatch(plan.enroll_date ? new Date(plan.enroll_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "2-digit", }) : "N/A", search)}
                   </TableCell>
                   <TableCell align="center">
                     {highlightMatch(plan.plan_type ?? "", search)}

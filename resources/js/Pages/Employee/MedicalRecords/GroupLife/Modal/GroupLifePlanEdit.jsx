@@ -112,7 +112,7 @@ const GroupLifePlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId
           ) : planDetails ? (
             <Box sx={{ mb: 2, textAlign: 'left' }}>
               <Typography><strong>Name:</strong> {planDetails.employee_name || '-'}</Typography>
-              <Typography><strong>Enroll Date:</strong> {planDetails.enroll_date || '-'}</Typography>
+              <Typography><strong>Enroll Date:</strong> {planDetails.enroll_date ? new Date(planDetails.enroll_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "2-digit", }) : "-"}</Typography>
               <Typography><strong>Plan Name:</strong> {planDetails.plan_name || '-'}</Typography>
               <Typography><strong>Plan Type:</strong> {planDetails.plan_type || '-'}</Typography>
               <Typography><strong>Company:</strong> {planDetails.company_name || '-'}</Typography>
@@ -121,13 +121,10 @@ const GroupLifePlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId
 
               {planDetails.dependents && planDetails.dependents.length > 0 && (
                 <Box sx={{ mt: 3 }}>
-                  <Typography variant="h6">
-                    Dependents
-                  </Typography>
                   <Table stickyHeader aria-label="simple table">
                     <TableHead>
                       <TableRow>
-                        <TableCell><strong>Name</strong></TableCell>
+                        <TableCell><strong>Dependent Name</strong></TableCell>
                         <TableCell><strong>Relationship</strong></TableCell>
                       </TableRow>
                     </TableHead>
@@ -144,7 +141,7 @@ const GroupLifePlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId
               )}
 
 
-              <Box sx={{ mb: 2, mt: 2 }}>
+              {/* <Box sx={{ mb: 2, mt: 2 }}>
                 <Grid container spacing={2}>
                   <Grid size={6} item xs={5}>
                     <TextField
@@ -170,7 +167,8 @@ const GroupLifePlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId
                     />
 
 
-                  </Grid>                    <Button
+                  </Grid>
+                  <Button
                     variant="contained"
                     onClick={() => {
                       setShowAddForm(true);
@@ -181,9 +179,9 @@ const GroupLifePlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId
                     Add Dependent
                   </Button>
                 </Grid>
-              </Box>
+              </Box> */}
 
-              <Grid container spacing={2} justifyContent="center" sx={{ mt: 2 }}>
+              {/* <Grid container spacing={2} justifyContent="center" sx={{ mt: 2 }}>
                 <Grid item>
                   <Button
                     variant="contained"
@@ -194,7 +192,7 @@ const GroupLifePlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId
                     Save Plan
                   </Button>
                 </Grid>
-              </Grid>
+              </Grid> */}
             </Box>
           ) : (
             <Typography>No details found.</Typography>

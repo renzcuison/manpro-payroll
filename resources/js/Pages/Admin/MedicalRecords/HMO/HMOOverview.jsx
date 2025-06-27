@@ -7,7 +7,7 @@ const HMOOverview = ({ records }) => {
     const lastRecordHashRef = useRef(null);
 
     const generateDataHash = (records) =>
-    records.map(r => `${r.HMOName}-${r.planType}-${r.employeesAssignedCount || 0}`).sort().join(",");
+        records.map(r => `${r.hmoName}-${r.planType}-${r.employeesAssignedCount || 0}`).sort().join(",");
 
     useEffect(() => {
 
@@ -20,7 +20,7 @@ const HMOOverview = ({ records }) => {
         lastRecordHashRef.current = currentHash;
 
         const counts = records.reduce((acc, rec) => {
-            const label = `${rec.HMOName} - ${rec.planType}`;
+            const label = `${rec.hmoName} - ${rec.planType}`;
             acc[label] = (acc[label] || 0) + (rec.employeesAssignedCount || 0);;
             return acc;
         }, {});
@@ -38,24 +38,24 @@ const HMOOverview = ({ records }) => {
         if (chartInstanceRef.current) {
             chartInstanceRef.current.data = data;
             chartInstanceRef.current.update();
-        } 
-        
+        }
+
         else {
             chartInstanceRef.current = new Chart(context, {
                 type: "pie",
                 data,
                 options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: "bottom",
-                        align: "start",
-                        labels: {
-                            usePointStyle: true,
-                            pointStyle: "circle",
-                            font: {
-                                size: 12,
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: "bottom",
+                            align: "start",
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: "circle",
+                                font: {
+                                    size: 12,
                                 },
                             },
                         },

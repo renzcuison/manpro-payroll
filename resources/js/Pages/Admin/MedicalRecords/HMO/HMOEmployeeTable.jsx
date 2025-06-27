@@ -29,11 +29,11 @@ const highlightMatch = (text, keyword) => {
 
     return parts.map((part, index) =>
         part.toLowerCase() === keyword.toLowerCase() ? (
-        <mark key={index} style={{ backgroundColor: "#E9AE20" }}>
-            {part}
-        </mark>
+            <mark key={index} style={{ backgroundColor: "#E9AE20" }}>
+                {part}
+            </mark>
         ) : (
-        part
+            part
         )
     );
 };
@@ -67,35 +67,35 @@ const HMOEmployeeTable = ({ employees = [], onRowClick, search, loading, data })
                 </TableHead>
                 <TableBody>
                     {loading ? (
-                    <TableRow>
-                        <TableCell colSpan={6} align="center">
-                            <Box display="flex" justifyContent="center" alignItems="center" height={200}>
-                                <CircularProgress />
-                            </Box>
-                        </TableCell>
-                    </TableRow>
-                    ) :
-                    employees.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={10} align="center">
-                                <Typography>No Result Found</Typography>
+                            <TableCell colSpan={6} align="center">
+                                <Box display="flex" justifyContent="center" alignItems="center" height={200}>
+                                    <CircularProgress />
+                                </Box>
                             </TableCell>
                         </TableRow>
-                    ) : (
-                        employees.map((response) => {
+                    ) :
+                        employees.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={10} align="center">
+                                    <Typography>No Result Found</Typography>
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            employees.map((response) => {
 
-                            return (
-                                <TableRow
-                                    key={response.employee_id}
-                                    onClick={() => onRowClick(response)}
-                                    sx={{
-                                        cursor: "pointer",
-                                        transition: ".15s",
-                                        "&:hover": {
-                                            backgroundColor: "#e0e0e0",
-                                        },
-                                    }}
-                                >
+                                return (
+                                    <TableRow
+                                        key={response.employee_id}
+                                        onClick={() => onRowClick(response)}
+                                        sx={{
+                                            cursor: "pointer",
+                                            transition: ".15s",
+                                            "&:hover": {
+                                                backgroundColor: "#e0e0e0",
+                                            },
+                                        }}
+                                    >
                                         <TableCell align="center">
                                             {highlightMatch(
                                                 response.employee_name ?? "Unknown",
@@ -105,26 +105,24 @@ const HMOEmployeeTable = ({ employees = [], onRowClick, search, loading, data })
                                             {highlightMatch(
                                                 String(
                                                     response.dependents_count ?? 0),
-                                                    search)}
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            {highlightMatch(
-                                                response.enroll_date ?? "N/A", 
                                                 search)}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(response.branch?.name, search)}
+                                            {highlightMatch(response.enroll_date ? dayjs(response.enroll_date).format("MMMM DD, YYYY") : "N/A", search)}
                                         </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(response.department?.name, search)}
-                                        </TableCell>      
+                                            {highlightMatch(response.branch?.name, search)}
+                                        </TableCell>
                                         <TableCell align="center">
-                                        {highlightMatch(response.role?.name, search)}
-                                        </TableCell>                                             
-                                </TableRow>
-                            );
-                        })
-                    )}
+                                            {highlightMatch(response.department?.name, search)}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {highlightMatch(response.role?.name, search)}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
                 </TableBody>
             </Table>
         </TableContainer>

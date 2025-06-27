@@ -20,6 +20,7 @@ import HMOEditEmployee from "./Modal/HMOEditEmployee";
 import HMOEditPlanModal from "./Modal/HMOEditPlanModal";
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
 import Swal from 'sweetalert2';
+import dayjs from "dayjs";
 
 const HMOEmployees = () => {
     const location = useLocation(); // CHECK
@@ -27,7 +28,7 @@ const HMOEmployees = () => {
 
     const { id } = useParams();
     const [plan, setPlan] = useState(null); // CHECK
-    const hasError = useRef(false); 
+    const hasError = useRef(false);
 
     const justDeleted = location.state?.justDeleted || false;
 
@@ -48,27 +49,27 @@ const HMOEmployees = () => {
 
     const [selectedEmployeePlanId, setSelectedEmployeePlanId] = useState(null);
     const [hasHandledError, setHasHandledError] = useState(false);
-  
+
     // Fetch Plan Details
     useEffect(() => {
-    if (!id || !user) return;
+        if (!id || !user) return;
 
-    axiosInstance
-        .get(`/medicalRecords/getHMOPlan/${id}`, {
-        headers: { Authorization: `Bearer ${user.token}` },
-        })
-        .then((res) => {
-        setPlan(res.data.plan);
-        
-        }
-    )
-    .catch((err) => {
-        if (err.response?.status === 404) {
-            navigator("/admin/medical-records/hmo-masterlist-records", { replace: true });
-        } else {
-            console.error("Unexpected error:", err);
-        }
-        });
+        axiosInstance
+            .get(`/medicalRecords/getHMOPlan/${id}`, {
+                headers: { Authorization: `Bearer ${user.token}` },
+            })
+            .then((res) => {
+                setPlan(res.data.plan);
+
+            }
+            )
+            .catch((err) => {
+                if (err.response?.status === 404) {
+                    navigator("/admin/medical-records/hmo-masterlist-records", { replace: true });
+                } else {
+                    console.error("Unexpected error:", err);
+                }
+            });
     }, [id]);
 
     // Fetch Employees 
@@ -77,18 +78,18 @@ const HMOEmployees = () => {
 
         setLoading(true);
         axiosInstance
-        .get(`/medicalRecords/getHMOEmployees`, {
-            headers: { Authorization: `Bearer ${user.token}` },
-            params: { plan_id: id },
-        })
-        .then((res) => {
-            setEmployees(res.data.employees || []);
-        })
-        .catch((err) => {
-            setEmployees([]);
-            console.error("Failed to fetch employees", err);
-        })
-        .finally(() => setLoading(false));
+            .get(`/medicalRecords/getHMOEmployees`, {
+                headers: { Authorization: `Bearer ${user.token}` },
+                params: { plan_id: id },
+            })
+            .then((res) => {
+                setEmployees(res.data.employees || []);
+            })
+            .catch((err) => {
+                setEmployees([]);
+                console.error("Failed to fetch employees", err);
+            })
+            .finally(() => setLoading(false));
     }, [id]);
 
     const handleOnBackClick = () => {
@@ -97,12 +98,12 @@ const HMOEmployees = () => {
 
     const filteredRecords = employees.filter((employee) => {
         const matchesSearch = [
-        employee.employee_name,
-        employee.dependents_count,
-        employee.enroll_date,
-        employee.branch?.name,
-        employee.department?.name,
-        employee.role?.name
+            employee.employee_name,
+            employee.dependents_count,
+            employee.enroll_date ? dayjs(employee.enroll_date).format("MMMM DD, YYYY") : "",
+            employee.branch?.name,
+            employee.department?.name,
+            employee.role?.name
         ].some((field) =>
             (typeof field === "number"
                 ? field.toFixed(2)
@@ -163,20 +164,20 @@ const HMOEmployees = () => {
             confirmButtonText: "Delete",
         }).then((result) => {
             if (result.isConfirmed) {
-            axiosInstance
-                .delete(`/medicalRecords/deleteHMOPlan/${id}`, {
-                headers: { Authorization: `Bearer ${user.token}` },
-                })
-                .then((res) => {
-                Swal.fire("Deleted!", "HMO Plan deleted successfully", "success").then(() => {
-                    navigator("/admin/medical-records/hmo-masterlist-records");
-                });
-                })
-                .catch((err) => {
-                Swal.fire(
-                    "Delete failed", "Something went wrong", "error"
-                );
-                });
+                axiosInstance
+                    .delete(`/medicalRecords/deleteHMOPlan/${id}`, {
+                        headers: { Authorization: `Bearer ${user.token}` },
+                    })
+                    .then((res) => {
+                        Swal.fire("Deleted!", "HMO Plan deleted successfully", "success").then(() => {
+                            navigator("/admin/medical-records/hmo-masterlist-records");
+                        });
+                    })
+                    .catch((err) => {
+                        Swal.fire(
+                            "Delete failed", "Something went wrong", "error"
+                        );
+                    });
             }
         });
     };
@@ -213,16 +214,16 @@ const HMOEmployees = () => {
                         plan={plan}
                         user={user}
                         onSave={(updatedPlan) => {
-                            setPlan(updatedPlan); 
+                            setPlan(updatedPlan);
                             setOpenEditModal(false);
                             Swal.fire("Success", "Plan updated successfully.", "success");
                         }}
                     />
 
                     <Grid container spacing={3}>
-                        <Grid item xs={12} md={4} sx={{ width: '100%'}}>
+                        <Grid item xs={12} md={4} sx={{ width: '100%' }}>
                             <Box sx={{ p: 4, bgcolor: '#ffffff', borderRadius: '8px', height: '100%' }}>
-                                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>Group Life Details</Typography>
+                                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>HMO Details</Typography>
                                 <Grid container spacing={2} sx={{ display: 'flex', justifyContent: 'space-around' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
                                         <Grid item xs={6} sm={4}>
@@ -231,7 +232,7 @@ const HMOEmployees = () => {
                                         <Grid item xs={6} sm={8}>
                                             <Typography variant="body1">
                                                 {plan?.type || 'N/A'}
-                                                </Typography>
+                                            </Typography>
                                         </Grid>
                                     </Box>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }} >
@@ -240,9 +241,9 @@ const HMOEmployees = () => {
                                         </Grid>
                                         <Grid item xs={6} sm={8}>
                                             <Typography variant="body1">
-                                                    {plan?.employer_share !== undefined
-                                                        ? `₱${parseFloat(plan.employer_share).toFixed(2)}`
-                                                        : 'Unassigned'}
+                                                {plan?.employer_share !== undefined
+                                                    ? `₱${parseFloat(plan.employer_share).toFixed(2)}`
+                                                    : 'Unassigned'}
                                             </Typography>
                                         </Grid>
                                     </Box>
@@ -252,9 +253,9 @@ const HMOEmployees = () => {
                                         </Grid>
                                         <Grid item xs={6} sm={8}>
                                             <Typography variant="body1">
-                                                    {plan?.employee_share !== undefined
-                                                        ? `₱${parseFloat(plan.employee_share).toFixed(2)}`
-                                                        : 'N/A'}
+                                                {plan?.employee_share !== undefined
+                                                    ? `₱${parseFloat(plan.employee_share).toFixed(2)}`
+                                                    : 'N/A'}
                                             </Typography>
                                         </Grid>
                                     </Box>
@@ -263,12 +264,12 @@ const HMOEmployees = () => {
                         </Grid>
                     </Grid>
 
-                    <Grid item md={4} xs={12} sx={{ mt: 3, p: 3, bgcolor: "#fff", borderRadius: "8px"}}>
+                    <Grid item md={4} xs={12} sx={{ mt: 3, p: 3, bgcolor: "#fff", borderRadius: "8px" }}>
                         <Box sx={{ bgcolor: "#ffffff", borderRadius: "8px" }} >
-                        <Grid
-                            container
-                            spacing={2}
-                            sx={{ pl:1, pr: 1, mt: 3, bgcolor: "#fff", borderRadius: "8px", flexWrap: 'wrap', }}
+                            <Grid
+                                container
+                                spacing={2}
+                                sx={{ pl: 1, pr: 1, mt: 3, bgcolor: "#fff", borderRadius: "8px", flexWrap: 'wrap', }}
                             >
                                 <Grid size={3}>
                                     <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
@@ -290,27 +291,27 @@ const HMOEmployees = () => {
                                                 )
                                             }
                                             label="Search"
-                                            />
-                                        </FormControl>
+                                        />
+                                    </FormControl>
                                 </Grid>
-                                <Grid size={3}  sx={{ml:42, justifyContent: 'flex-end'}}>
-                                {/* Branch Filter */}
+                                <Grid size={3} sx={{ ml: 42, justifyContent: 'flex-end' }}>
+                                    {/* Branch Filter */}
                                     <TextField
                                         select
                                         label="Filter by Branch"
                                         value={filterByBranch}
                                         onChange={(e) => setFilterByBranch(e.target.value)}
                                         sx={{ width: "100%" }}
-                                        >
+                                    >
                                         <MenuItem value="">All Branches</MenuItem>
                                         {uniqueBranches.map((branchName) => (
                                             <MenuItem key={branchName} value={branchName}>
-                                            {branchName}
+                                                {branchName}
                                             </MenuItem>
-                                    ))}
+                                        ))}
                                     </TextField>
                                 </Grid>
-                                <Grid size={3} sx={{justifyContent: 'flex-end'}}>
+                                <Grid size={3} sx={{ justifyContent: 'flex-end' }}>
                                     {/* Department Filter */}
                                     <TextField
                                         select
@@ -318,13 +319,13 @@ const HMOEmployees = () => {
                                         value={filterByDepartment}
                                         onChange={(e) => setFilterByDepartment(e.target.value)}
                                         sx={{ width: "100%" }}
-                                        >
+                                    >
                                         <MenuItem value="">All Departments</MenuItem>
                                         {uniqueDepartments.map((deptName) => (
                                             <MenuItem key={deptName} value={deptName}>
-                                            {deptName}
-                                        </MenuItem>
-                                    ))}
+                                                {deptName}
+                                            </MenuItem>
+                                        ))}
                                     </TextField>
                                 </Grid>
                             </Grid>
@@ -335,8 +336,8 @@ const HMOEmployees = () => {
                                 <HMOEmployeeTable
                                     employees={filteredRecords}
                                     onRowClick={(row) => {
-                                    setSelectedEmployeePlanId(row.id);
-                                    setOpenEditEmployeeModal(true);
+                                        setSelectedEmployeePlanId(row.id);
+                                        setOpenEditEmployeeModal(true);
                                     }}
                                     search={search}
                                     loading={loading}
@@ -362,7 +363,7 @@ const HMOEmployees = () => {
                                         width: "fit-content",
                                         mt: 2
                                     }}
-                                    />
+                                />
                             </Box>
                         </Grid>
                     </Grid>
@@ -384,7 +385,7 @@ const HMOEmployees = () => {
                             refreshEmployees={refreshEmployees}
                         />
                     )}
-                </Box>    
+                </Box>
             </Box>
         </Layout>
     );

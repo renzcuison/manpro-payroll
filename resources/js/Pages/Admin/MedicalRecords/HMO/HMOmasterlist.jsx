@@ -28,9 +28,9 @@ const HMOMasterlist = () => {
     const storedUser = useMemo(() => {
         const item = localStorage.getItem("nasya_user");
         return item ? JSON.parse(item) : null;
-    }, []);   
+    }, []);
     const user = storedUser;
-    const [rows, setRows] = useState([]);    
+    const [rows, setRows] = useState([]);
 
     useEffect(() => {
         if (!user) return;
@@ -47,33 +47,34 @@ const HMOMasterlist = () => {
             })
             .catch(console.error)
             .finally(() => setLoading(false));
-    }, [user]);    
+    }, [user]);
 
     useEffect(() => {
-        
+
         if (!user) return;
         setLoading(true);
         axiosInstance
             .get("/medicalRecords/getHMOPlans", { headers: { Authorization: `Bearer ${user.token}` } })
-            .then(res => {const plans = res.data.plans || [];
-            setRows(
-                plans.map(row => ({
-                id: row.id,
-                HMOName: row.hmo_company_name,
-                planType: row.plan_name,
-                paymentType: row.type,
-                employerShare: row.employer_share,
-                employeeShare: row.employee_share,
-                employeesAssignedCount: row.employees_assigned_count
-            }))
-            );
+            .then(res => {
+                const plans = res.data.plans || [];
+                setRows(
+                    plans.map(row => ({
+                        id: row.id,
+                        hmoName: row.hmo_company_name,
+                        planType: row.plan_name,
+                        paymentType: row.type,
+                        employerShare: row.employer_share,
+                        employeeShare: row.employee_share,
+                        employeesAssignedCount: row.employees_assigned_count
+                    }))
+                );
             })
             .catch(console.error);
-        }, [user]);
+    }, [user]);
 
-        const refreshCompanies = () => {
-            if (!user) return;
-            setLoading(true);
+    const refreshCompanies = () => {
+        if (!user) return;
+        setLoading(true);
         axiosInstance.get('/group-life-companies', { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
                 setListOfCompanies(
@@ -85,7 +86,7 @@ const HMOMasterlist = () => {
             })
             .catch(console.error)
             .finally(() => setLoading(false));
-        };
+    };
 
     const refreshPlans = () => {
         setLoading(true);
@@ -103,7 +104,7 @@ const HMOMasterlist = () => {
                         paymentType: row.type,
                         employerShare: row.employer_share,
                         employeeShare: row.employee_share,
-                        employeesAssignedCount: row.employees_assigned_count 
+                        employeesAssignedCount: row.employees_assigned_count
                     }))
                 );
             })
@@ -112,21 +113,22 @@ const HMOMasterlist = () => {
     };
 
     const filteredRecords = rows
-    .filter((row) => [
-        row.id,
-        row.HMOName,
-        row.planType,
-        row.paymentType,
-        row.employerShare,
-        row.employeeShare
+        .filter((row) => [
+            row.id,
+            row.hmoName,
+            row.planType,
+            row.paymentType,
+            row.enroll_date,
+            row.employerShare,
+            row.employeeShare
         ].some((field) =>
             (typeof field === "number"
-            ? field.toFixed(2)
-            : (field ?? "").toString()
+                ? field.toFixed(2)
+                : (field ?? "").toString()
             )
-            .toLowerCase()
-            .includes(search.toLowerCase())
-            )
+                .toLowerCase()
+                .includes(search.toLowerCase())
+        )
         )
 
     const resultsCount = filteredRecords.length;
@@ -147,31 +149,31 @@ const HMOMasterlist = () => {
     }, [filteredRecords, currentPage, rowsPerPage]);
 
     return (
-    <Layout title={"Pre-Employment Medical Exam Records"}>
-        <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
-            <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
+        <Layout title={"Pre-Employment Medical Exam Records"}>
+            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
+                <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}> HMO Masterlist </Typography>
-                            <Grid container spacing={2} gap={2}>
-                                <Button
-                                    onClick={() => setOpenAddCompanyModal(true)}
-                                    variant="contained"
-                                    style={{ color: "#e8f1e6" }}
-                                    >
-                                     Companies
-                                </Button>
-                                <Button
-                                    onClick={() => setOpenAddHMOModal(true)}
-                                    variant="contained"
-                                    style={{ color: "#e8f1e6" }}
-                                    >
-                                    Add Plan
-                                </Button>
-                            </Grid>
+                        <Grid container spacing={2} gap={2}>
+                            <Button
+                                onClick={() => setOpenAddCompanyModal(true)}
+                                variant="contained"
+                                style={{ color: "#e8f1e6" }}
+                            >
+                                Companies
+                            </Button>
+                            <Button
+                                onClick={() => setOpenAddHMOModal(true)}
+                                variant="contained"
+                                style={{ color: "#e8f1e6" }}
+                            >
+                                Add Plan
+                            </Button>
+                        </Grid>
                     </Box>
 
                     <Box>
-                        <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px'}}>
+                        <Box sx={{ mt: 6, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
                             <FormControl variant="outlined" sx={{ width: 300, mb: 1 }}>
                                 <InputLabel htmlFor="custom-search">
                                     Search
@@ -181,16 +183,16 @@ const HMOMasterlist = () => {
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     endAdornment={
-                                    search && (
-                                        <InputAdornment position="end">
-                                        <Typography variant="body2" sx={{ color: "gray" }}>
-                                            {resultsCount}{" "}
-                                            {resultsCount === 1 || resultsCount === 0
-                                            ? "Match"
-                                            : "Matches"}
-                                        </Typography>
-                                        </InputAdornment>
-                                    )}
+                                        search && (
+                                            <InputAdornment position="end">
+                                                <Typography variant="body2" sx={{ color: "gray" }}>
+                                                    {resultsCount}{" "}
+                                                    {resultsCount === 1 || resultsCount === 0
+                                                        ? "Match"
+                                                        : "Matches"}
+                                                </Typography>
+                                            </InputAdornment>
+                                        )}
                                     label="Search"
                                 />
                             </FormControl>
@@ -198,7 +200,7 @@ const HMOMasterlist = () => {
                     </Box>
 
                     <Box sx={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "nowrap", justifyContent: "flex-start", alignItems: "flex-start" }}>
-                        <Box sx={{width: "25%", minWidth: 280, backgroundColor: "white", borderRadius: 2, padding: 2, flexShrink: 0 }}>
+                        <Box sx={{ width: "25%", minWidth: 280, backgroundColor: "white", borderRadius: 2, padding: 2, flexShrink: 0 }}>
                             <HMOOverview records={rows} />
                         </Box>
 
@@ -244,20 +246,20 @@ const HMOMasterlist = () => {
                     )}
 
                     {openAddCompanyModal && (
-                    <HMOAddCompanyModal
-                        open={true}
-                        close={() => setOpenAddCompanyModal(false)}
-                        onAddCompany={companyName => {
-                        refreshCompanies();
-                        }}
-                    />
+                        <HMOAddCompanyModal
+                            open={true}
+                            close={() => setOpenAddCompanyModal(false)}
+                            onAddCompany={companyName => {
+                                refreshCompanies();
+                            }}
+                        />
                     )}
 
                 </Box>
             </Box>
-    </Layout>
-    
-  );
+        </Layout>
+
+    );
 };
 
 export default HMOMasterlist;

@@ -12,7 +12,7 @@ import BranchList from "../Pages/Admin/Branches/BranchList";
 import BranchDetails from "../Pages/Admin/Branches/BranchDetails";
 
 import Roles from "../Pages/Admin/Roles/Roles";
-import RolesDetails from "../Pages/Admin/Roles/RolesDetails"; 
+import RolesDetails from "../Pages/Admin/Roles/RolesDetails";
 
 
 
@@ -127,10 +127,10 @@ const AdminRoutes = ({ user }) => {
     return (
         <Routes>
             <Route
-            path="performance-evaluation/results"
-            element={<ProtectedRoute element={<PerformanceEvaluationResultPage />} user={user} />}
+                path="performance-evaluation/results"
+                element={<ProtectedRoute element={<PerformanceEvaluationResultPage />} user={user} />}
             />
-            <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview/>} user={user} />} />
+            <Route path="performance-evaluation/preview" element={<ProtectedRoute element={< PerformanceEvaluationPreview />} user={user} />} />
             {/* <Route path="performance-evaluation/response/:id" element={<ProtectedRoute element={<PerformanceEvaluationResponsePage />} user={user} />} /> */}
             <Route path="performance-evaluation/answer/:id" element={<ProtectedRoute element={<PerformanceEvaluationAnswerPage />} user={user} />} />
             <Route path="performance-evaluation/commentor/:id" element={<ProtectedRoute element={<PerformanceEvaluationCommentorPage />} user={user} />} />
@@ -142,10 +142,10 @@ const AdminRoutes = ({ user }) => {
 
             <Route path="dashboard" element={<ProtectedRoute element={<Dashboard />} user={user} />} />
 
-            <Route path="employee/:user" element={ <ProtectedRoute element={<EmployeeView />} user={user} /> } />
-            <Route path="employees" element={ <ProtectedRoute element={<EmployeesList />} user={user} /> } />
-            <Route path="employees/add" element={ <ProtectedRoute element={<EmployeesAdd />} user={user} /> } />
-            <Route path="employees/formlinks" element={ <ProtectedRoute element={<EmployeeFormLinks />} user={user} /> } />
+            <Route path="employee/:user" element={<ProtectedRoute element={<EmployeeView />} user={user} />} />
+            <Route path="employees" element={<ProtectedRoute element={<EmployeesList />} user={user} />} />
+            <Route path="employees/add" element={<ProtectedRoute element={<EmployeesAdd />} user={user} />} />
+            <Route path="employees/formlinks" element={<ProtectedRoute element={<EmployeeFormLinks />} user={user} />} />
 
             <Route path="compensation">
                 <Route path="salary-plans" element={<ProtectedRoute element={<EmployeeSalaryPlansList />} user={user} />} />
@@ -164,7 +164,7 @@ const AdminRoutes = ({ user }) => {
                 <Route path="benefits-types" element={<ProtectedRoute element={<BenefitsTypes />} user={user} />} />
             </Route>
 
-            <Route path="employees/benefits/:benefitID" element={<ProtectedRoute element={<BenefitView />} user={user} /> } />
+            <Route path="employees/benefits/:benefitID" element={<ProtectedRoute element={<BenefitView />} user={user} />} />
 
             <Route
                 path="department/departmentlist"
