@@ -636,33 +636,132 @@ class PayrollController extends Controller
 
         foreach ($employeeBenefits as $employeeBenefit) {
             $benefit = $employeeBenefit->benefit;
+            $salary = $employee->salary;
+            $schedule = $benefit->payment_schedule;
+            $type = $benefit->type;
 
             $employeeAmount = 0;
             $employerAmount = 0;
 
-            if ($cutOff == "First" && $client->id != 4 && $benefit->type == "Percentage") {
-                $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
-                $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
-            }
+            if ($cutOff == "First" && $schedule == 1) {
+                if($type == "Amount"){
+                    $employeeAmount = $benefit->employee_amount;
+                    $employerAmount = $benefit->employer_amount;
+                }
 
-            if ($cutOff == "First" && $client->id != 4 && $benefit->type == "Amount") {
-                $employeeAmount = $benefit->employee_amount;
-                $employerAmount = $benefit->employer_amount;
-            }
+                if($type == "Percentage"){
+                    $employeeAmount = $salary * ($benefit->employee_percentage / 100);
+                    $employerAmount = $salary * ($benefit->employer_percentage / 100);
+                }
 
-            if ($cutOff == "Second" && $client->id == 4 && $benefit->type == "Percentage") {
-                $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
-                $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
+                if($type == "Bracket Amount"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; // if end is null, assume open-ended
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += floatval($bracket->employee_share);
+                            $employerAmount += floatval($bracket->employer_share);
+                            break; 
+                        }
+                    }
+                }
 
-                if ($benefit->id == 3) {
-                    $employerAmount += ($employee->salary < 15000) ? 10 : 30;
+                if($type == "Bracket Percentage"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; 
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += $salary * ($bracket->employee_share / 100);
+                            $employerAmount += $salary * ($bracket->employer_share / 100);
+                            break; 
+                        }
+                    }
                 }
             }
 
-            if ($cutOff == "Second" && $client->id == 4 && $benefit->type == "Amount") {
-                $employeeAmount = $benefit->employee_amount;
-                $employerAmount = $benefit->employer_amount;
+            if($cutOff == "Second" && $schedule == 2){
+
+                if($type == "Amount"){
+                    $employeeAmount = $benefit->employee_amount;
+                    $employerAmount = $benefit->employer_amount;
+                }
+                if($type == "Percentage"){
+                    $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
+                    $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
+                }
+                if($type == "Bracket Amount"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; // if end is null, assume open-ended
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += floatval($bracket->employee_share);
+                            $employerAmount += floatval($bracket->employer_share);
+                            break; 
+                        }
+                    }
+                }
+                if($type == "Bracket Percentage"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; 
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += $salary * ($bracket->employee_share / 100);
+                            $employerAmount += $salary * ($bracket->employer_share / 100);
+                            break; 
+                        }
+                    }
+                }
             }
+            if($schedule == 3){
+                if($type == "Amount"){
+                    $employeeAmount = $benefit->employee_amount / 2;
+                    $employerAmount = $benefit->employer_amount / 2;
+                }
+
+                if($type == "Percentage"){
+                    $employeeAmount = ($salary * ($benefit->employee_percentage / 100)) / 2;
+                    $employerAmount = $salary * (($benefit->employer_percentage / 100)) / 2;
+                }
+
+                if($type == "Bracket Amount"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; // if end is null, assume open-ended
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += (floatval($bracket->employee_share)) / 2;
+                            $employerAmount += (floatval($bracket->employer_share)) / 2;
+                            break; 
+                        }
+                    }
+                }
+                
+                if($type == "Bracket Percentage"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; 
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += ($salary * ($bracket->employee_share / 100)) / 2;
+                            $employerAmount += $salary * (($bracket->employer_share / 100)) / 2;
+                            break; 
+                        }
+                    }
+                }
+            }
+
+            // if ($cutOff == "Second" && $client->id == 4 && $benefit->type == "Percentage") {
+            //     $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
+            //     $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
+
+            //     if ($benefit->id == 3) {
+            //         $employerAmount += ($employee->salary < 15000) ? 10 : 30;
+            //     }
+            // }
 
             $employeeShare += $employeeAmount;
             $employerShare += $employerAmount;
