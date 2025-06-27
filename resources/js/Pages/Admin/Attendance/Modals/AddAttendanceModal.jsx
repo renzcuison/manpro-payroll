@@ -116,9 +116,10 @@ const AddAttendanceModal = ({ open, close, employee }) => {
             (requiresOvertime &&
                 overtimeIn &&
                 ((secondTimeOut && dayjs(overtimeIn).isBefore(dayjs(secondTimeOut))) ||
-                    (!secondTimeOut && firstTimeOut && dayjs(overtimeIn).isBefore(dayjs(firstTimeOut)))));
+                    (!secondTimeOut && firstTimeOut && dayjs(overtimeIn).isBefore(dayjs(firstTimeOut))))) ||
+            (requiresSecondShift && firstTimeOut && secondTimeIn && dayjs(secondTimeIn).isBefore(dayjs(firstTimeOut)));
 
-        setSelectedDateError( !selectedDate || (selectedDate && !dayjs(selectedDate).isValid()) );
+        setSelectedDateError( !selectedDate || (selectedDate && !dayjs(selectedDate).isValid()) || dayjs(selectedDate).isAfter(dayjs().startOf('day')) );
         setFirstTimeInError( !firstTimeIn || (firstTimeIn && !dayjs(firstTimeIn).isValid()) );
         setFirstTimeOutError( !firstTimeOut ||(firstTimeOut && !dayjs(firstTimeOut).isValid()) ||(firstTimeIn && firstTimeOut && dayjs(firstTimeOut).isBefore(dayjs(firstTimeIn))) );
         setSecondTimeInError( requiresSecondShift && (!secondTimeIn || (secondTimeIn && !dayjs(secondTimeIn).isValid()) || (firstTimeOut && secondTimeIn && dayjs(secondTimeIn).isBefore(dayjs(firstTimeOut)))) );
@@ -127,6 +128,16 @@ const AddAttendanceModal = ({ open, close, employee }) => {
         setOvertimeOutError( requiresOvertime && (!overtimeOut || (overtimeOut && !dayjs(overtimeOut).isValid()) || (overtimeIn && overtimeOut && dayjs(overtimeOut).isBefore(dayjs(overtimeIn)))) );
 
         document.activeElement.blur();
+
+        if (selectedDateError) {
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "Enter a valid date!",
+                icon: "error",
+                confirmButtonColor: "#177604",
+            });
+            return;
+        }
 
         if (emptyFields) {
             Swal.fire({
