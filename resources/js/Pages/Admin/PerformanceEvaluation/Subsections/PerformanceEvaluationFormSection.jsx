@@ -85,8 +85,10 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
     // const subcategoryInputRef = useRef(null);
 
     function handleExitEditMode() {
-        if (sectionName?.trim()) {
+        let sectionNameTrimmed = sectionName?.trim();
+        if (sectionNameTrimmed) {
             toggleEditableSection();
+            editSection({ name: sectionNameTrimmed });
         } else {
             Swal.fire({
                 text: "Section Name is required!",
@@ -363,6 +365,7 @@ const PerformanceEvaluationFormSection = ({ section, draggedId }) => {
                         onChange={ (e) => setSectionName(e.target.value) }
                         onClick={ (e) => e.stopPropagation() }
                         onBlur={ handleExitEditMode }
+                        onKeyDown={ (e) => {if(e.key === "Enter") e.target.blur()} }
                         onKeyUp={ (e) => e.preventDefault() }
                         ref={inputRef}
                         sx={{
