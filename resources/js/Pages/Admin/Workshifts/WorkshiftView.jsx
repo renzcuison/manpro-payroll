@@ -1,5 +1,6 @@
 import React, {  useState, useEffect } from 'react'
-import { Box, Button, Typography, FormGroup, TextField, FormControl, Menu, MenuItem,  Checkbox, CircularProgress, TableContainer, Table, TableHead, TableBody, TableRow, TableCell} from '@mui/material';
+import { Box, Button, Typography, FormGroup, TextField, FormControl, MenuItem,  Checkbox, CircularProgress, TableContainer, Table, TableHead, TableBody, TableRow, TableCell,
+ToggleButton, ToggleButtonGroup} from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import { useParams } from 'react-router-dom'
 import { useManageWorkshift } from '../../../hooks/useWorkShifts';
@@ -7,6 +8,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
+import WorkDaySelector from './WorkDaySelector';
 
 const WorkshiftView = () => {
     const { client, selectedShift } = useParams();
@@ -25,9 +27,13 @@ const WorkshiftView = () => {
         setSecondLabel, setRegularTimeIn, setRegularTimeOut, setSplitFirstTimeIn,
         setSplitSecondTimeOut,
         setBreakStart, setBreakEnd, setOverTimeIn, setOverTimeOut, checkInput,
-        handleSplitFirstTimeOutChange, handleSplitSecondTimeInChange, handleWorkDaysChanges,
+        handleSplitFirstTimeOutChange, handleSplitSecondTimeInChange, handleWorkDaysChanges, refetchWorkShiftDetails,
 
     } = useManageWorkshift({client: client, selectedShift: selectedShift});
+
+    const setFieldColor = () => {
+        return isEdit ? null : "#97a5ba" //null means the primary color being used by this app (green)
+    }
 
     return (
         <Layout title={"AddWorkShift"}>
@@ -37,7 +43,7 @@ const WorkshiftView = () => {
                     borderRadius: '20px', marginBottom: '5%', justifyContent:'center'}} onSubmit={checkInput} 
                     noValidate autoComplete="off" encType="multipart/form-data" 
                 >
-                    <Typography variant="h4" sx={{ mb: 10, fontWeight: 'bold' }}>View Work Shift</Typography>
+                    <Typography variant="h4" sx={{ mb: 8, fontWeight: 'bold' }}>View Work Shift</Typography>
                     {isLoading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
                             <CircularProgress />
@@ -47,12 +53,11 @@ const WorkshiftView = () => {
                             {/*Shift name and type section*/}
                             <FormGroup row={true} className="d-flex justify-content-between" sx={{
                                 mb:1,
-                                '& label.Mui-focused': {color: '#97a5ba'},
-                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: '#97a5ba'}},
+                                '& label.Mui-focused': {color: setFieldColor()},
+                                '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': {borderColor: setFieldColor()}},
                             }}>
                                 <FormControl sx={{ marginBottom: 3, width: {lg:'50%', md:'100%', xs:'100%'},
-                                 marginRight: {md:0, lg: 3},'& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' }},
+                                 marginRight: {md:0, lg: 3},
                                 }}>
                                     <TextField
                                         required
@@ -66,9 +71,7 @@ const WorkshiftView = () => {
                                     />
                                 </FormControl>
 
-                            <FormControl sx={{ marginBottom: 3, width: {lg:'45.5%', md:'100%', xs:'100%'}, '& label.Mui-focused': { color: '#97a5ba' },
-                                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                                }}>
+                                <FormControl sx={{ marginBottom: 3, width: {lg:'45.5%', md:'100%', xs:'100%'}}}>
                                     <TextField
                                         select
                                         required
@@ -89,16 +92,12 @@ const WorkshiftView = () => {
                             {shiftType === "regular" && (
                                 <>
                                     <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                        '& label.Mui-focused': {color: '#97a5ba'},
+                                        '& label.Mui-focused': {color: setFieldColor()},
                                         '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                            '&.Mui-focused fieldset': {borderColor: setFieldColor()},
                                         },
                                     }}>
-                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                             <TextField
                                                 required
                                                 id="firstLabel"
@@ -109,11 +108,7 @@ const WorkshiftView = () => {
                                             />
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     required
@@ -126,11 +121,7 @@ const WorkshiftView = () => {
                                             </LocalizationProvider>
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     required
@@ -145,16 +136,12 @@ const WorkshiftView = () => {
                                     </FormGroup>
 
                                     <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                        '& label.Mui-focused': {color: '#97a5ba'},
+                                        '& label.Mui-focused': {color: setFieldColor()},
                                         '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                            '&.Mui-focused fieldset': {borderColor: setFieldColor()},
                                         },
                                     }}>
-                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                             <TextField
                                                 required
                                                 id="breakTimeLabel"
@@ -165,11 +152,7 @@ const WorkshiftView = () => {
                                             />
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end',  '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     required
@@ -182,11 +165,7 @@ const WorkshiftView = () => {
                                             </LocalizationProvider>
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     requireds
@@ -205,16 +184,12 @@ const WorkshiftView = () => {
                             {shiftType === "split" && (
                                 <>           
                                     <FormGroup row={true} className="d-flex justify-content-between align-items-center" sx={{
-                                        '& label.Mui-focused': {color: '#97a5ba'},
+                                        '& label.Mui-focused': {color: setFieldColor()},
                                         '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                            '&.Mui-focused fieldset': {borderColor: setFieldColor()},
                                         },
                                     }}>
-                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                             <TextField
                                                 required
                                                 id="firstLabel"
@@ -227,11 +202,7 @@ const WorkshiftView = () => {
                                             />
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end','& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     required
@@ -244,11 +215,7 @@ const WorkshiftView = () => {
                                             </LocalizationProvider>
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end','& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     required
@@ -263,16 +230,12 @@ const WorkshiftView = () => {
                                     </FormGroup>
 
                                     <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                        '& label.Mui-focused': {color: '#97a5ba'},
+                                        '& label.Mui-focused': {color: setFieldColor()},
                                         '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                            '&.Mui-focused fieldset': {borderColor: setFieldColor()},
                                         },
                                     }}>
-                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                             <TextField
                                                 required
                                                 id="secondLabel"
@@ -285,11 +248,7 @@ const WorkshiftView = () => {
                                             />
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     required
@@ -302,11 +261,7 @@ const WorkshiftView = () => {
                                             </LocalizationProvider>
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     required
@@ -325,16 +280,12 @@ const WorkshiftView = () => {
                             {shiftType && (
                                 <>
                                     <FormGroup row={true} className="d-flex justify-content-between" sx={{
-                                        '& label.Mui-focused': {color: '#97a5ba'},
+                                        '& label.Mui-focused': {color: setFieldColor()},
                                         '& .MuiOutlinedInput-root': {
-                                            '&.Mui-focused fieldset': {borderColor: '#97a5ba'},
+                                            '&.Mui-focused fieldset': {borderColor: setFieldColor()},
                                         },
                                     }}>
-                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ paddingTop: 1, marginBottom: 3, marginRight: {md:0, lg: 3}, width: '50%'}}>
                                             <TextField
                                                 required
                                                 id="overTimeLabel"
@@ -345,11 +296,7 @@ const WorkshiftView = () => {
                                             />
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end',  '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     label="Time In"
@@ -361,11 +308,7 @@ const WorkshiftView = () => {
                                             </LocalizationProvider>
                                         </FormControl>
 
-                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end', '& label.Mui-focused': { color: '#97a5ba' },
-                                            '& .MuiOutlinedInput-root': {
-                                                '&.Mui-focused fieldset': { borderColor: '#97a5ba' },
-                                            },
-                                        }}>
+                                        <FormControl sx={{ marginBottom: 3, width: '22%', alignSelf:'flex-end'}}>
                                             <LocalizationProvider dateAdapter={AdapterDayjs} sx={{ paddingLeft: '0 !important' }}>
                                                 <TimePicker
                                                     label="Time Out"
@@ -379,9 +322,10 @@ const WorkshiftView = () => {
                                     </FormGroup>
                                 </>
                             )}
-                            <Typography>Set Work Days</Typography>
-
-                            <TableContainer>
+                            
+                                
+                            <WorkDaySelector workDays={workDays} isEdit={isEdit} onChange={handleWorkDaysChanges}/>
+                            {/* <TableContainer>
                                 <Table stickyHeader size='small'>
                                     <TableHead>
                                         <TableRow>
@@ -412,14 +356,21 @@ const WorkshiftView = () => {
                                         </TableRow>
                                     </TableBody>
                                 </Table>
-                            </TableContainer>
+                            </TableContainer> */}
                             
                             <Box display='flex' justifyContent='center' sx={{mt: 2}}>
-                                {!isEdit && <Button variant='contained' onClick={() => setIsEdit(true)}>Edit</Button>}
+                                {!isEdit && 
+                                    <Button variant='contained' onClick={() => setIsEdit(true)}>
+                                        <p className='m-0'><i className="fa fa-pencil-square-o mr-2 mt-1"></i> Edit </p>
+                                    </Button>}
                                 {isEdit && 
                                     <>
-                                        <Button type="submit" variant='contained' onClick={(e) => checkInput(e)}>Save</Button>
-                                        <Button variant='contained' onClick={() => setIsEdit(false)}>Cancel</Button>
+                                        <Button type="submit" variant='contained' onClick={(e) => checkInput(e)} sx={{mr: 2}}>
+                                            <p className='m-0'><i className="fa fa-floppy-o mr-2 mt-1"></i> Save </p>   
+                                        </Button>
+                                        <Button variant='contained' onClick={() => {setIsEdit(false); refetchWorkShiftDetails()}} sx={{backgroundColor: '#636c74'}}>
+                                            <p className='m-0'><i className="fa fa-times" ></i> Cancel </p>
+                                        </Button>
                                     </>
                                 } 
                             </Box>

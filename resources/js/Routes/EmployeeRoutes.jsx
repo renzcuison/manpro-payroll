@@ -8,6 +8,7 @@ import Dashboard from "../Pages/Employee/Dashboard/DashboardView";
 import AttendanceLogs from "../Pages/Employee/Attendance/AttendanceLogs";
 import AttendanceSummary from "../Pages/Employee/Attendance/AttendanceSummary";
 import AttendanceOvertime from "../Pages/Employee/Attendance/AttendanceOvertime";
+import AttendanceRestDay from "../Pages/Employee/Attendance/AttendanceRestDay";
 
 import ApplicationList from "../Pages/Employee/Applications/ApplicationList";
 
@@ -118,15 +119,9 @@ const EmployeeRoutes = ({ user }) => {
                     />
                 }
             />
-            <Route
-                path="attendance-overtime"
-                element={
-                    <ProtectedRoute
-                        element={<AttendanceOvertime />}
-                        user={user}
-                    />
-                }
-            />
+
+            <Route path="attendance-overtime" element={ <ProtectedRoute element={<AttendanceOvertime />} user={user} /> }/>
+            <Route path="attendance-rest-day" element={ <ProtectedRoute element={<AttendanceRestDay />} user={user} /> }/>
 
             {/* Application Routes ----------------------------------------- */}
             <Route

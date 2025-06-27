@@ -209,6 +209,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::prefix('compensation')->group(function () {
         //allowances
         Route::get('/getAllowances', [CompensationManagementController::class, 'getAllowances']);
+        Route::get('/getAssignableAllowances', [CompensationManagementController::class, 'getAssignableAllowances', ]);
         Route::post('/saveAllowance', [CompensationManagementController::class, 'saveAllowance']);
         Route::post('/updateAllowance', [CompensationManagementController::class, 'updateAllowance']);
 
@@ -219,6 +220,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         //incentives
         Route::get('/getIncentives', [CompensationManagementController::class, 'getIncentives', ]);
+        Route::get('/getAssignableIncentives', [CompensationManagementController::class, 'getAssignableIncentives', ]);
         Route::post('saveIncentives', [CompensationManagementController::class, 'saveIncentives', ]);
         Route::post('/updateIncentives', [CompensationManagementController::class, 'updateIncentives']);
 
@@ -229,6 +231,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         //benefits
         Route::get('/getBenefits', [CompensationManagementController::class, 'getBenefits', ]);
+        Route::get('/getAssignableBenefits', [CompensationManagementController::class, 'getAssignableBenefits', ]);
         Route::post('/saveBenefits', [CompensationManagementController::class, 'saveBenefits', ]);
         Route::post('/updateBenefits', [CompensationManagementController::class, 'updateBenefits']);
 
@@ -239,6 +242,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         //deductions
         Route::get('/getDeductions', [CompensationManagementController::class, 'getDeductions']);
+        Route::get('/getAssignableDeductions', [CompensationManagementController::class, 'getAssignableDeductions', ]);
         Route::post('/saveDeductions', [CompensationManagementController::class, 'saveDeductions']);
         Route::post('/updateDeductions', [CompensationManagementController::class, 'updateDeductions']);
 
@@ -277,6 +281,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getAttendanceLogs', [AttendanceController::class, 'getAttendanceLogs']);
         Route::get('/getAttendanceSummary', [AttendanceController::class, 'getAttendanceSummary']);
         Route::get('/getAttendanceOvertime', [AttendanceController::class, 'getAttendanceOvertime']);
+
+        Route::get('/getAttendanceRestDay', [AttendanceController::class, 'getAttendanceRestDay']);
+        
         Route::get('/getEmployeeAttendanceLogs', [AttendanceController::class, 'getEmployeeAttendanceLogs']);
         Route::get('/getEmployeeAttendanceSummary', [AttendanceController::class, 'getEmployeeAttendanceSummary']);
         Route::get('/getEmployeeDashboardAttendance', [AttendanceController::class, 'getEmployeeDashboardAttendance']);
@@ -611,9 +618,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEvaluationResponses', [EvaluationResponseController::class, 'getEvaluationResponses']);
     Route::post('/saveEvaluationResponse', [EvaluationResponseController::class, 'saveEvaluationResponse']);
 
-    Route::get('/getEvaluatees', [EvaluationResponseController::class, 'getEvaluatees']);
-    Route::get('/getEvaluators', [EvaluationResponseController::class, 'getEvaluators']);
-    Route::get('/getCommentors', [EvaluationResponseController::class, 'getCommentors']);
+    // Route::get('/getEvaluatees', [EvaluationResponseController::class, 'getEvaluatees']);
+    // Route::get('/getEvaluators', [EvaluationResponseController::class, 'getEvaluators']);
+    // Route::get('/getCommentors', [EvaluationResponseController::class, 'getCommentors']);
+    Route::get('/getEvaluationResponseUsers', [EvaluationResponseController::class, 'getEvaluationResponseUsers']);
     Route::post('/deleteEvaluationEvaluator', [EvaluationResponseController::class, 'deleteEvaluationEvaluator']);
     Route::post('/editEvaluationEvaluator', [EvaluationResponseController::class, 'editEvaluationEvaluator']);
     Route::get('/getEvaluationEvaluator', [EvaluationResponseController::class, 'getEvaluationEvaluator']);
@@ -845,10 +853,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // PEME Responses
     Route::post('/peme-responses/storeAll', [PemeResponseController::class, 'storeAll']);
-
     Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
     Route::get('/peme-responses', [PemeResponseController::class, 'index']);
-
     Route::get('/peme-responses/{id}', [PemeResponseController::class, 'show']);
     Route::patch('/peme-responses/{id}/status', [PemeResponseController::class, 'updateResponse']);
     Route::post('/peme-responses', [PemeResponseController::class, 'store']);
@@ -860,11 +866,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
     Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
     Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
-    // Route::post('/peme-response-details/bulk', [PemeResponseDetailsController::class, 'storeBulk']);
     Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);
     Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
     Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
     Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
+
 
     Route::put('/public-event/{id}', [GoogleController::class, 'updatePublicEvent', ]);
     Route::delete('/public-event/{id}', [GoogleController::class, 'deletePublicEvent', ]);

@@ -78,7 +78,7 @@ export default function PerformanceEvaluationFormAddSubcategory({ open, onClose,
             sx={{
                 '& .MuiPaper-root': {
                     width: '1100px', 
-                    height: '430px', 
+                    height: '423px', 
                     px: 4,
                 },
             }}
@@ -98,7 +98,7 @@ export default function PerformanceEvaluationFormAddSubcategory({ open, onClose,
             </DialogTitle>
             
             <DialogContent>
-                <Grid container spacing={3} sx={{ mb: 3 }} >
+                <Grid container spacing={3} sx={{ my: 2 }} >
                     <Grid item xs={6} sx={{ width: '100%' , maxWidth: '528px' }}>
                         <TextField
                             label="Sub-Category Name"
@@ -295,7 +295,7 @@ function OptionsEditor() {
                                         onChange={e => handleChangeLabel(option, e)}
                                     />
                                 </Grid>
-                                <Grid item xs={2} sx={{width: '10%'}}>
+                                <Grid item xs={2} sx={{width: '15%'}}>
                                     <TextField
                                         variant="outlined"
                                         placeholder="Score"
@@ -305,11 +305,10 @@ function OptionsEditor() {
                                         inputProps={{ min: 0, step: 1 }}
                                     />
                                 </Grid>
-                                <Grid item xs={4} sx={{width: '50%'}}>
+                                <Grid item xs={4} sx={{width: '40%'}}>
                                     <TextField
                                         variant="outlined"
-                                        label="Description"
-                                        placeholder="Why this score?"
+                                        placeholder="Description"
                                         value={option.description || ""}
                                         onChange={e => handleChangeDescription(option, e)}
                                         fullWidth
@@ -372,11 +371,11 @@ function LinearScaleEditor() {
         <Box sx={{ mb: 2 }}>
             {
                 options.map((option) => (
-                <Grid container spacing={2} key={option.id} alignItems="center" sx={{ mb: 1 }}>
+                <Grid container spacing={1} key={option.id} alignItems="center" sx={{ mb: 1 }}>
                     <Grid item xs={1}>
                         <Typography variant="body1">{option.order}.</Typography>
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={3}>
                     <TextField
                         variant="outlined"
                         label="Label"
@@ -385,7 +384,7 @@ function LinearScaleEditor() {
                         fullWidth
                     />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid item xs={7} sx={{width: '50%'}}>
                     <TextField
                         variant="outlined"
                         label="Description (optional)"
@@ -400,13 +399,13 @@ function LinearScaleEditor() {
                                 textOverflow: 'ellipsis'
                             }
                         }}
-                        sx={{
-                            minWidth: 500,
-                            maxWidth: "100%"
-                        }}
+                        // sx={{
+                        //     minWidth: 500,
+                        //     maxWidth: "100%"
+                        // }}
                     />
                     </Grid>
-                    <Grid item xs={1}>{
+                    <Grid item xs={1} sx={{ textAlign: 'right' }}>{
                         options.length > 2 && (
                             <IconButton
                             onClick={ () => deleteOption(option) }

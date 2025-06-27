@@ -296,8 +296,8 @@ class WorkScheduleController extends Controller
                 return response()->json([
                     'status' => 200, 'shift' => $shift,
                     'client_id' => $client->id, 
-                    'shift_id' => $shift->id,
-                    'group_id' => 5, //apparently this is the group link for workshift in the sidebar admin component
+                    'link' => $client->id . '/' . $shift->id,
+                    
                 ]);
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -357,7 +357,7 @@ class WorkScheduleController extends Controller
                 return response()->json([
                     'status' => 200, 'shift' => $shift,
                     'client_id' => $client->id, 
-                    'shift_id' => $shift->id,
+                    'link' => $client->id . '/' . $shift->id,
                 ]);
 
             } catch (\Exception $e) {

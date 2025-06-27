@@ -96,6 +96,8 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
     const medScreen = useMediaQuery(theme.breakpoints.up("md"));
     const xlScreen = useMediaQuery(theme.breakpoints.up("xl"));
 
+    const ot_applications = dashboardData?.ot_applications;
+
     return isLoading ? (
         <>
             <LoadingSpinner />
@@ -125,13 +127,16 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                 </Typography>
 
                 <Stack>
-                    {dashboardData?.requests?.length > 0 ? (
+                    {dashboardData?.requests?.length > 0 ||
+                    ot_applications.length > 0 ? (
                         <>
                             <Typography
                                 variant="subtitle1"
                                 sx={{ color: "#fff" }}
                             >
-                                You have {dashboardData?.requests?.length}{" "}
+                                You have{" "}
+                                {dashboardData?.requests?.length +
+                                    ot_applications.length}{" "}
                                 pending requests today! Let’s work on them and
                                 get everything done!
                             </Typography>
@@ -139,7 +144,11 @@ function MainSection({ infoCardsData, adminName, dashboardData, user }) {
                                 <Button
                                     variant="contained"
                                     LinkComponent={Link}
-                                    to={`/admin/applications`}
+                                    to={
+                                        dashboardData?.requests?.length > 0
+                                            ? `/admin/applications`
+                                            : `/admin/application/overtimes`
+                                    }
                                     color="primary"
                                 >
                                     Check Now

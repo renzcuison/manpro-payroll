@@ -5,19 +5,7 @@ const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 import { useState } from 'react';
 import Swal from "sweetalert2";
 
-const buildParams = (filters = {}, pagination = {}) => {
-    const {name, branchId, departmentId, allowanceId} = filters;
-    const {page = 1, per_page = 10} = pagination;
-    const params = {};
-    
-    if (name) params.name = name;
-    if (branchId) params.branch_id = branchId;
-    if (departmentId) params.department_id = departmentId;
-    if (allowanceId) params.allowance_id = allowanceId;
-    if (page) params.page = page;
-    if (per_page) params.per_page = per_page;
-    return params;
-}
+
 
 export function useAllowance(enabled = true){
     const query = useQuery(["allowances"], async () => {
@@ -26,6 +14,22 @@ export function useAllowance(enabled = true){
         });
         return data;
     }, {enabled});
+
+    return{
+        allowancesData: query.data,
+        isAllowancesLoading: query.isLoading,
+        isAllowancesError: query.isError,
+        refetchAllowances: query.refetch,
+    }
+}
+
+export function useAssignableAllowances(userName = null){
+    const query = useQuery(["assignableAllowances", userName], async () => {
+        const { data } = await axiosInstance.get("compensation/getAssignableAllowances", {
+            headers, params: {username: userName}
+        });
+        return data;
+    }, {enabled: !!userName});
 
     return{
         allowancesData: query.data,
@@ -182,6 +186,22 @@ export function useUpdateEmployeeAllowance () {
             });
         }
     });
+}
+
+//<-------------------[REGULAR & HELPER FUNCTIONS SECTION]------------------>
+
+const buildParams = (filters = {}, pagination = {}) => {
+    const {name, branchId, departmentId, allowanceId} = filters;
+    const {page = 1, per_page = 10} = pagination;
+    const params = {};
+    
+    if (name) params.name = name;
+    if (branchId) params.branch_id = branchId;
+    if (departmentId) params.department_id = departmentId;
+    if (allowanceId) params.allowance_id = allowanceId;
+    if (page) params.page = page;
+    if (per_page) params.per_page = per_page;
+    return params;
 }
 
 const saveAllowance = async ({data, onSuccess}) => {
