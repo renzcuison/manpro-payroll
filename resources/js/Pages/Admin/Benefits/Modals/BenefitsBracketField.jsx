@@ -1,6 +1,6 @@
 import React from 'react';
-import { Box, Button, Grid, TextField, Typography, FormControl, InputAdornment, TableContainer, Table,
-TableHead, TableBody, TableRow, TableCell, Tooltip} from '@mui/material';
+import { Box, Button,  TextField, Typography , InputAdornment, TableContainer, Table,
+TableHead, TableBody, TableRow, TableCell } from '@mui/material';
 import { CgAdd, CgTrash } from "react-icons/cg";  
 
 const BenefitsBracketField = ({type, bracketsList, onAdd, onChange, onRemove, bracketListErrors}) => {
@@ -24,11 +24,11 @@ const BenefitsBracketField = ({type, bracketsList, onAdd, onChange, onRemove, br
                     <TableBody>
                         {bracketsList.length > 0 && bracketsList.map((item, index) => (
                             <TableRow key={index}>
-                                <TableCell>
+                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
                                     <TextField
                                         size="small"
                                         variant="outlined"
-                                        error={bracketListErrors[index]}
+                                        error={bracketListErrors[index]?.range_start}
                                         InputProps={{
                                             startAdornment: <InputAdornment position="start">₱</InputAdornment>,
                                             readOnly: true,
@@ -38,11 +38,11 @@ const BenefitsBracketField = ({type, bracketsList, onAdd, onChange, onRemove, br
                                         onChange={(e) => onChange(index, 'range_start', e.target.value)}
                                     />
                                 </TableCell>
-                                <TableCell>
+                                <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
                                     <TextField
                                         size="small"
                                         variant="outlined"
-                                        error={bracketListErrors[index]}
+                                        error={bracketListErrors[index]?.range_end}
                                         placeholder={index === bracketsList.length - 1 ? 'and above' : ''}
                                         InputProps={{
                                             startAdornment: <InputAdornment position="start">₱</InputAdornment>,
@@ -55,7 +55,7 @@ const BenefitsBracketField = ({type, bracketsList, onAdd, onChange, onRemove, br
                                 </TableCell>
 
                                 <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
-                                    <TextField size='small' variant="outlined" error={bracketListErrors[index]}
+                                    <TextField size='small' variant="outlined" error={bracketListErrors[index]?.employer_share}
                                     InputProps={{
                                         startAdornment: (
                                           <InputAdornment position="start">{type === "Bracket Amount" ? "₱": "%"}</InputAdornment>
@@ -63,8 +63,9 @@ const BenefitsBracketField = ({type, bracketsList, onAdd, onChange, onRemove, br
                                     }}
                                     value={item.employer_share} onChange={(e)=>onChange(index, "employer_share", e.target.value)} />
                                 </TableCell>
+
                                 <TableCell sx={{ borderRight: '1px solid #e0e0e0' }}>
-                                    <TextField size='small' variant="outlined" error={bracketListErrors[index]}
+                                    <TextField size='small' variant="outlined" error={bracketListErrors[index]?.employee_share}
                                     InputProps={{
                                         startAdornment: (
                                           <InputAdornment position="start">{type === "Bracket Amount" ? "₱": "%"}</InputAdornment>
@@ -72,6 +73,7 @@ const BenefitsBracketField = ({type, bracketsList, onAdd, onChange, onRemove, br
                                     }}
                                     value={item.employee_share} onChange={(e)=>onChange(index, "employee_share", e.target.value)} />
                                 </TableCell>
+
                                 <TableCell>
                                     <Button onClick={() => onRemove(index)} variant="text" startIcon={<CgTrash style={{ color: 'red' }} />}/> 
                                 </TableCell>
