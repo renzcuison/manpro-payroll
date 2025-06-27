@@ -75,7 +75,6 @@ const STATUS_STYLES = {
     }
 };
 
-
 const getEvaluationRoleRoute = (row) => {
     switch (row.role) {
         case "Creator":
@@ -240,6 +239,10 @@ const PerformanceEvaluationList = () => {
         <span style={STATUS_STYLES[status] || STATUS_STYLES.Pending}>{status}</span>
     );
 
+    // --- MODIFIED RENDER BELOW ---
+
+    const noEvaluations = !isLoading && filteredResponses.length === 0;
+
     return (
         <Layout title={"PerformanceEvaluation"}>
             <Box sx={{ width: '100%' }}>
@@ -248,127 +251,135 @@ const PerformanceEvaluationList = () => {
                     <Box sx={{ mt: 5 }}>
                         <Typography variant="h4" sx={{ fontWeight: 'bold' }}> Performance Evaluation </Typography>
                     </Box>
-                    {/* White box and controls always visible */}
-                    <Box sx={{ mt: 2, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
-                        {/* Search and Status Filter */}
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
-                            {/* Search Field */}
-                            <Box
-                                component="form"
-                                onSubmit={handleSearchSubmit}
-                                sx={{ width: 220 }}
-                            >
-                                <TextField
-                                    placeholder="Search..."
-                                    value={searchInput}
-                                    onChange={handleSearchChange}
-                                    size="small"
-                                    fullWidth
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon />
-                                            </InputAdornment>
-                                        ),
-                                        endAdornment: (
-                                            searchInput && (
-                                                <InputAdornment position="end">
-                                                    <IconButton
-                                                        aria-label="clear search"
-                                                        onClick={handleClearSearch}
-                                                        edge="end"
-                                                        size="small"
-                                                    >
-                                                        <ClearIcon />
-                                                    </IconButton>
-                                                </InputAdornment>
-                                            )
-                                        )
-                                    }}
-                                />
-                            </Box>
-                            {/* Status Filter */}
-                            <FormControl size="small" sx={{ minWidth: 110, ml: 2 }}>
-                                <InputLabel>Status</InputLabel>
-                                <Select
-                                    value={statusFilter}
-                                    label="Status"
-                                    onChange={handleStatusChange}
-                                >
-                                    {STATUS_OPTIONS.map(opt => (
-                                        <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                    {/* If no evaluations, render only the text */}
+                    {noEvaluations ? (
+                        <Box sx={{ mt: 6, textAlign: 'center' }}>
+                            <Typography variant="body1" sx={{ fontSize: 18, color: 'text.secondary' }}>
+                                No evaluation responses found.
+                            </Typography>
                         </Box>
-                        {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
-                                <CircularProgress />
-                            </Box>
-                        ) : (
-                            <>
-                                <TableContainer sx={{ minHeight: 400 }}>
-                                    <Table aria-label="simple table" sx={{
-                                        '& .MuiTableCell-root': {
-                                            borderBottom: 'none',
-                                        },
-                                    }}>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell align="center">DATE</TableCell>
-                                                <TableCell align="center">NAME</TableCell>
-                                                <TableCell align="center">DEPARTMENT</TableCell>
-                                                <TableCell align="center">BRANCH</TableCell>
-                                                <TableCell align="center">ROLE</TableCell>
-                                                <TableCell align="center">STATUS</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {paginatedResponses.length === 0 ? (
-                                                <TableRow>
-                                                    <TableCell colSpan={6} align="center">
-                                                        No evaluation responses found.
-                                                    </TableCell>
-                                                </TableRow>
-                                            ) : (
-                                                paginatedResponses.map((row, idx) => (
-                                                    <TableRow
-                                                        key={row.id}
-                                                        hover
-                                                        style={{
-                                                            cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
-                                                            backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
-                                                            opacity: isRowDisabled(row) ? 0.5 : 1,
-                                                        }}
-                                                        onClick={() => handleRowClick(row)}
-                                                    >
-                                                        <TableCell align="center">{row.date}</TableCell>
-                                                        <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
-                                                        <TableCell align="center">{row.role}</TableCell>
-                                                        <TableCell align="center">{renderStatus(row.status)}</TableCell>
-                                                    </TableRow>
-                                                ))
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                                {/* Pagination controls */}
-                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <TablePagination
-                                        rowsPerPageOptions={[10, 25, 50]}
-                                        component="div"
-                                        count={filteredResponses.length}
-                                        rowsPerPage={rowsPerPage}
-                                        page={page}
-                                        onPageChange={handleChangePage}
-                                        onRowsPerPageChange={handleChangeRowsPerPage}
+                    ) : (
+                        <Box sx={{ mt: 2, p: 3, bgcolor: '#ffffff', borderRadius: '8px' }}>
+                            {/* Search and Status Filter */}
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
+                                {/* Search Field */}
+                                <Box
+                                    component="form"
+                                    onSubmit={handleSearchSubmit}
+                                    sx={{ width: 220 }}
+                                >
+                                    <TextField
+                                        placeholder="Search..."
+                                        value={searchInput}
+                                        onChange={handleSearchChange}
+                                        size="small"
+                                        fullWidth
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <SearchIcon />
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: (
+                                                searchInput && (
+                                                    <InputAdornment position="end">
+                                                        <IconButton
+                                                            aria-label="clear search"
+                                                            onClick={handleClearSearch}
+                                                            edge="end"
+                                                            size="small"
+                                                        >
+                                                            <ClearIcon />
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                )
+                                            )
+                                        }}
                                     />
                                 </Box>
-                            </>
-                        )}
-                    </Box>
+                                {/* Status Filter */}
+                                <FormControl size="small" sx={{ minWidth: 110, ml: 2 }}>
+                                    <InputLabel>Status</InputLabel>
+                                    <Select
+                                        value={statusFilter}
+                                        label="Status"
+                                        onChange={handleStatusChange}
+                                    >
+                                        {STATUS_OPTIONS.map(opt => (
+                                            <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                            {isLoading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }} >
+                                    <CircularProgress />
+                                </Box>
+                            ) : (
+                                <>
+                                    <TableContainer sx={{ minHeight: 400 }}>
+                                        <Table aria-label="simple table" sx={{
+                                            '& .MuiTableCell-root': {
+                                                borderBottom: 'none',
+                                            },
+                                        }}>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell align="center">DATE</TableCell>
+                                                    <TableCell align="center">NAME</TableCell>
+                                                    <TableCell align="center">DEPARTMENT</TableCell>
+                                                    <TableCell align="center">BRANCH</TableCell>
+                                                    <TableCell align="center">ROLE</TableCell>
+                                                    <TableCell align="center">STATUS</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {paginatedResponses.length === 0 ? (
+                                                    <TableRow>
+                                                        <TableCell colSpan={6} align="center">
+                                                            No evaluation responses found.
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ) : (
+                                                    paginatedResponses.map((row, idx) => (
+                                                        <TableRow
+                                                            key={row.id}
+                                                            hover
+                                                            style={{
+                                                                cursor: isRowDisabled(row) ? 'not-allowed' : 'pointer',
+                                                                backgroundColor: idx % 2 === 0 ? 'action.hover' : 'background.paper',
+                                                                opacity: isRowDisabled(row) ? 0.5 : 1,
+                                                            }}
+                                                            onClick={() => handleRowClick(row)}
+                                                        >
+                                                            <TableCell align="center">{row.date}</TableCell>
+                                                            <TableCell align="center">{getFullName(row.evaluatee)}</TableCell>
+                                                            <TableCell align="center">{row.evaluatee?.department?.name ?? '—'}</TableCell>
+                                                            <TableCell align="center">{row.evaluatee?.branch?.name ?? '—'}</TableCell>
+                                                            <TableCell align="center">{row.role}</TableCell>
+                                                            <TableCell align="center">{renderStatus(row.status)}</TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                    {/* Pagination controls */}
+                                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                                        <TablePagination
+                                            rowsPerPageOptions={[10, 25, 50]}
+                                            component="div"
+                                            count={filteredResponses.length}
+                                            rowsPerPage={rowsPerPage}
+                                            page={page}
+                                            onPageChange={handleChangePage}
+                                            onRowsPerPageChange={handleChangeRowsPerPage}
+                                        />
+                                    </Box>
+                                </>
+                            )}
+                        </Box>
+                    )}
                 </Box>
             </Box>
         </Layout>
