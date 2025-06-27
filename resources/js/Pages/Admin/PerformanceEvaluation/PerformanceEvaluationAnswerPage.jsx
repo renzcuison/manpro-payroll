@@ -256,7 +256,7 @@ const PerformanceEvaluationAnswerPage = () => {
                 sx={{
                   bgcolor: '#E9AE20',
                   borderBottom: '1px solid #ffe082',
-                  cursor: 'default',
+                  cursor: 'default!important',
                   minHeight: 0,
                   mt: 3,
                   borderTopLeftRadius: '8px',

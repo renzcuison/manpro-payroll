@@ -123,6 +123,15 @@ export function useManageBenefits({benefit, onSuccess} = {}) {
         const updatedList = last ? [...bracketsList] : []; 
         updatedList.push(newField);
         setBracketsList(updatedList);
+        setBracketListErrors(prev => [
+            ...prev,
+            {
+              range_start: false,
+              range_end: false,
+              employee_share: false,
+              employer_share: false,
+            }
+        ]);
     };
 
     const handleBracketChanges = (index, field, value) => {
@@ -178,49 +187,68 @@ export function useManageBenefits({benefit, onSuccess} = {}) {
         }).then((res) => {
             if(res.isConfirmed){
                 const updated = [...bracketsList];
+                const updatedErrors = [...bracketListErrors];
                 updated.splice(indxToRemove, 1);
+                updatedErrors.splice(indxToRemove, 1);
 
                 // Re-adjust previous range_end if deleted one was last
                 if (updated.length > 0 && indxToRemove === updated.length) {
                     updated[updated.length - 1].range_end = null;
                 }
                 setBracketsList(updated);
+                setBracketListErrors(updatedErrors);
             }
         });
     }
 
     //for Bracket types only (Checks for any empty values, aside from the last bracket)
     const validateBrackets = () => {
-        const errors = {}; 
-        if (benefitType === "Bracket Amount" || benefitType === "Bracket Percentage") {
-            bracketsList.forEach((bracket, index) => {
-                const hasEmpty = Object.entries(bracket).some(([key, val]) => {
-                    if (key === 'range_end' && index === bracketsList.length - 1) return false;
-                    return val === '' || val === null || val === undefined;
-                });
+        if (!(benefitType === "Bracket Amount" || benefitType === "Bracket Percentage")) {
+            setBracketListErrors([]);
+            return false;
+        }
     
-                if (hasEmpty) {
-                    errors[index] = true;
-                }
-            });
+        const errors = bracketsList.map((bracket, index) => {
+            return {
+                range_start: !bracket.range_start,
+                range_end: index !== bracketsList.length - 1 && !bracket.range_end,
+                employee_share: !bracket.employee_share,
+                employer_share: !bracket.employer_share,
+            };
+        });
+
+        //for checking the second to the last range end field for validation.
+        if (bracketsList.length >= 2) {
+            const secondToLastIndex = bracketsList.length - 2;
+            const secondToLastEnd = parseFloat(bracketsList[secondToLastIndex]?.range_end?.replace(/,/g, '') || 0);
+    
+            const precedingEndValues = bracketsList
+                .slice(0, secondToLastIndex)
+                .map(b => parseFloat(b.range_end?.replace(/,/g, '') || 0));
+            const hasInvalidReduction = precedingEndValues.some(prevEnd => secondToLastEnd < prevEnd);
+    
+            if (hasInvalidReduction) {
+                errors[secondToLastIndex].range_end = true;
+            }
         }
         setBracketListErrors(errors);
-        return Object.keys(errors).length > 0;
+    
+        // Return true if any field is invalid
+        return errors.some(row => Object.values(row).some(val => val));
     };
 
     const checkInput = (event) => {
         event.preventDefault();
         setBenefitNameError(!benefitName ? true: false);
-        setEmployeeAmountShareError((!benefitType === "Amount" && !employeeAmountShare)? true : false);
-        setEmployerAmountShareError((!benefitType === "Amount" && !employerAmountShare)? true : false);
-        setEmployeePercentageShareError((!benefitType === "Percentage" && !employeePercentageShare)? true : false);
-        setEmployerPercentageShareError((!benefitType === "Percentage" && !employerPercentageShare)? true : false); 
+        setEmployeeAmountShareError(benefitType === "Amount" && !employeeAmountShare);
+        setEmployerAmountShareError(benefitType === "Amount" && !employerAmountShare);
+        setEmployeePercentageShareError(benefitType === "Percentage" && !employeePercentageShare);
+        setEmployerPercentageShareError(benefitType === "Percentage" && !employerPercentageShare);
         const isSomeBracketFieldsEmpty = validateBrackets();
 
-        if(!benefitName
-        || employeeAmountShareError || employerAmountShareError
-        || employeePercentageShareError || employerPercentageShareError
-        || isSomeBracketFieldsEmpty)
+        if (!benefitName ||
+            (benefitType === "Amount" && (!employeeAmountShare || !employerAmountShare)) ||
+            (benefitType === "Percentage" && (!employeePercentageShare || !employerPercentageShare)))
         {
             Swal.fire({
                 customClass: { container: 'my-swal' },
@@ -231,30 +259,16 @@ export function useManageBenefits({benefit, onSuccess} = {}) {
             });
             return;
         }
-
-        //since the second-to-the-last range end field doesn't affect the preceding range end fields
-        if ((benefitType === "Bracket Amount" || benefitType === "Bracket Percentage") && bracketsList.length >= 2) {
-            const secondToLastIndex = bracketsList.length - 2;
-            const secondToLastEnd = parseFloat(bracketsList[secondToLastIndex]?.range_end?.replace(/,/g, '') || 0);
-        
-            const precedingEndValues = bracketsList
-                .slice(0, secondToLastIndex)
-                .map(b => parseFloat(b.range_end?.replace(/,/g, '') || 0));
-        
-            const hasInvalidReduction = precedingEndValues.some(prevEnd => secondToLastEnd < prevEnd);
-        
-            if (hasInvalidReduction) {
-                Swal.fire({
-                    customClass: { container: 'my-swal' },
-                    text: "The second-to-the-last bracket's range end cannot be less than any of the preceding range ends.",
-                    icon: "error",
-                    showConfirmButton: true,
-                    confirmButtonColor: '#177604',
-                });
-                return;
-            }
+        else if(isSomeBracketFieldsEmpty){
+            Swal.fire({
+                customClass: { container: 'my-swal' },
+                text: "One or more bracket fields is empty or invalid!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+            return;
         }
-
         const confirmText = (!benefit) ? "You want to add this benefit": "You want to update this benefit";
         Swal.fire({ 
             customClass: { container: "my-swal" },
