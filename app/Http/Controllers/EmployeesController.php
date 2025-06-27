@@ -78,6 +78,7 @@ class EmployeesController extends Controller
 
     private function enrichEmployeeDetails($employee)
     {
+        //Log::info("EmployeesController::enrichEmployeeDetails");
         $employee->name = $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name;
         $employee->role = "";
         $employee->jobTitle = "";
@@ -448,10 +449,11 @@ class EmployeesController extends Controller
 
     public function getMyDetails(Request $request)
     {
-        // log::info("EmployeesController::getMyDetails");
+        // Log::info("EmployeesController::getMyDetails");
 
         $user = Auth::user();
         $employee = UsersModel::find($user->id);
+        Log::info("Employee details fetched", ['id' => $employee->id, 'name' => $employee->name, 'user_name' => $employee->user_name]);
 
         $employee = $this->enrichEmployeeDetails($employee);
 
@@ -681,20 +683,20 @@ class EmployeesController extends Controller
 
     public function editMyProfilePicture(Request $request)
     {
-        Log::info("EmployeesController::editMyProfilePicture", $request->all());
-
-        $user = UsersModel::findOrFail($request->input('id'));
-
+        // Log::info("EmployeesController::editMyProfilePicture");
+ 
+        $user = UsersModel::where('user_name', $request->input('userName'))->first();
+ 
         try {
-            if ($request->hasFile('profile_picture')) {
+            if ($request->hasFile('profilePicture')) {
                 // Clear existing media
                 $user->clearMediaCollection('profile_pictures');
-
+ 
                 // Add new media without conversion references
-                $media = $user->addMedia($request->file('profile_picture'))
-                    ->usingName($request->file('profile_picture')->getClientOriginalName())
+                $media = $user->addMedia($request->file('profilePicture'))
+                    ->usingName($request->file('profilePicture')->getClientOriginalName())
                     ->toMediaCollection('profile_pictures', 'public');
-                
+               
                 $mediaDetails = [
                     'id' => $media->id,
                     'name' => $media->name,
@@ -703,7 +705,7 @@ class EmployeesController extends Controller
                     'size' => $media->size,
                     'url' => $media->getUrl()
                 ];
-
+ 
                 return response()->json([
                     'status' => 200,
                     'message' => 'Profile picture updated successfully',
@@ -711,12 +713,12 @@ class EmployeesController extends Controller
                     'user' => $user->load('media')
                 ]);
             }
-
+ 
             return response()->json([
                 'message' => 'No profile picture provided',
                 'status' => 422
             ]);
-
+ 
         } catch (\Exception $e) {
             Log::error("Error saving profile picture: " . $e->getMessage());
             return response()->json([

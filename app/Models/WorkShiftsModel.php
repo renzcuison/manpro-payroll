@@ -25,4 +25,9 @@ class WorkShiftsModel extends Model
 
         'deleted_at',
     ];
+
+    public function workHour()
+    {
+        return $this->belongsTo(WorkHoursModel::class, 'work_hour_id');
+    }
 }
