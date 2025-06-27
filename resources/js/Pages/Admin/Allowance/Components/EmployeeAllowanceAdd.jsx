@@ -1,44 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import {useAllowance, useSaveEmployeeAllowances } from "../../../../hooks/useAllowances";
+import { useSaveEmployeeAllowances, useAssignableAllowances } from "../../../../hooks/useAllowances";
+import LoadingSpinner from "../../../../components/LoadingStates/LoadingSpinner";
 
 const EmployeeAllowanceAdd = ({ userName, onClose }) => {
-    const {allowancesData} = useAllowance();
+    const {allowancesData, isAllowancesLoading } = useAssignableAllowances(userName);
     const saveEmployeeAllowances = useSaveEmployeeAllowances();
     const allowances = allowancesData?.allowances || [];
 
     const [allowanceError, setAllowanceError] = useState(false);
-    // const [numberError, setNumberError] = useState(false);
     const [allowance, setAllowance] = useState('');
-    // const [number, setNumber] = useState('');
 
     const checkInput = (event) => {
         event.preventDefault();
-
-        if (!allowance) {
-            setAllowanceError(true);
-        } else {
-            setAllowanceError(false);
+        setAllowanceError(!allowance || allowance == '' ? true : false);
+        if(allowanceError){
+            Swal.fire({
+                customClass: { container: "my-swal" },
+                text: "All fields must be filled!",
+                icon: "error",
+                showConfirmButton: true,
+                confirmButtonColor: '#177604',
+            });
+            return;
         }
-
-        // if (!number) {
-        //     setNumberError(true);
-        // } else {
-        //     setNumberError(false);
-        // }
-
-        // if (allowance == '' || number == '') {
-        //     Swal.fire({
-        //         customClass: { container: 'my-swal' },
-        //         text: "All fields must be filled!",
-        //         icon: "error",
-        //         showConfirmButton: true,
-        //         confirmButtonColor: '#177604',
-        //     });
-        // // } else {
-            
-        // }
+        
         Swal.fire({
             customClass: { container: "my-swal" },
             title: "Are you sure?",
@@ -62,6 +49,10 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
         saveEmployeeAllowances.mutate({data: data, onSuccessCallback: () => onClose(true)});
     };
 
+    if(isAllowancesLoading){
+        return <Box display='flex' width='100%' justifyContent='center'> <LoadingSpinner/> </Box>
+    }
+
     return (
         <Box component="form" sx={{ mt: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
             <FormGroup row={true} className="d-flex justify-content-between">
@@ -77,25 +68,15 @@ const EmployeeAllowanceAdd = ({ userName, onClose }) => {
                         onChange={(event) => setAllowance(event.target.value)}
                     >
                         {allowances.map((allowance) => (
-                            <MenuItem key={allowance.id} value={allowance.id}> {allowance.name} </MenuItem>
+                            <MenuItem key={allowance.id} value={allowance.id}
+                                disabled={Boolean(allowance.disabled)} 
+                                sx={Boolean(allowance.disabled) ? { opacity: 0.5 } : {}}>
+                                    {allowance.name} 
+                            </MenuItem>
                         ))}
                     </TextField>
                 </FormControl>
 
-                {/* <FormControl sx={{
-                    marginBottom: 3, width: '69%', '& label.Mui-focused': { color: '#97a5ba' },
-                    '& .MuiOutlinedInput-root': { '&.Mui-focused fieldset': { borderColor: '#97a5ba' } },
-                }}>
-                    <TextField
-                        required
-                        id="number"
-                        label="Number"
-                        variant="outlined"
-                        value={number}
-                        error={numberError}
-                        onChange={(e) => setNumber(e.target.value)}
-                    />
-                </FormControl> */}
             </FormGroup>
 
             <Box display="flex" justifyContent="center">

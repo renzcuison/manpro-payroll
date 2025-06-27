@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import { useDeduction, useSaveEmployeeDeductions } from "../../../../hooks/useDeductions";
+import { useSaveEmployeeDeductions, useAssignableDeductions} from "../../../../hooks/useDeductions";
+import LoadingSpinner from "../../../../components/LoadingStates/LoadingSpinner";
 
 const EmployeeDeductionAdd = ({ userName, onClose }) => {
-    const {deductionsData} = useDeduction();
+    const {deductionsData, isDeductionsLoading} = useAssignableDeductions(userName);
     const saveEmployeeDeductions = useSaveEmployeeDeductions();
     const [deductionError, setDeductionError] = useState(false);
 
@@ -14,13 +15,9 @@ const EmployeeDeductionAdd = ({ userName, onClose }) => {
     
     const checkInput = (event) => {
         event.preventDefault();
+        setDeductionError(!deduction || deduction == '' ? true : false);
 
-        if (!deduction) {
-            setDeductionError(true);
-        } else {
-            setDeductionError(false);
-        }
-        if (deduction == '') {
+        if (deductionError) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "Select a deduction!",
@@ -53,6 +50,10 @@ const EmployeeDeductionAdd = ({ userName, onClose }) => {
         saveEmployeeDeductions.mutate({data: data, onSuccessCallback: () => onClose(true)});
     };
 
+    if(isDeductionsLoading){
+        return <Box display='flex' width='100%' justifyContent='center'> <LoadingSpinner/> </Box>
+    }
+
     return (
         <Box component="form" sx={{ mt: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
             <FormGroup row={true} className="d-flex justify-content-between">
@@ -68,7 +69,11 @@ const EmployeeDeductionAdd = ({ userName, onClose }) => {
                         onChange={(event) => setDeduction(event.target.value)}
                     >
                         {deductions.map((deduction) => (
-                            <MenuItem key={deduction.id} value={deduction.id}> {deduction.name} </MenuItem>
+                            <MenuItem key={deduction.id} value={deduction.id}
+                                disabled={Boolean(deduction.disabled)} 
+                                sx={Boolean(deduction.disabled) ? { opacity: 0.5 } : {}}>
+                                    {deduction.name} 
+                            </MenuItem>
                         ))}
                     </TextField>
                 </FormControl>

@@ -1,35 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, TableContainer, Table, TableHead, TableRow, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
+import { Box, Button, MenuItem, TextField, FormControl, FormGroup } from "@mui/material";
 import Swal from 'sweetalert2';
-import { useBenefit, useSaveEmployeeBenefits } from "../../../../hooks/useBenefits";
+import { useSaveEmployeeBenefits, useAssignableBenefits } from "../../../../hooks/useBenefits";
+import LoadingSpinner from "../../../../components/LoadingStates/LoadingSpinner";
 
 const EmployeeBenefitAdd = ({ userName, onClose }) => {
-    const {benefitsData} = useBenefit();
+    const { benefitsData, isBenefitsLoading } = useAssignableBenefits(userName);
     const saveEmployeeBenefits = useSaveEmployeeBenefits();
 
     const [benefitError, setBenefitError] = useState(false);
     const [numberError, setNumberError] = useState(false);
 
-    const benefits = benefitsData?.benefits || []; 
+    const benefits = benefitsData?.benefits || [];    
     const [benefit, setBenefit] = useState('');
     const [number, setNumber] = useState('');
     
     const checkInput = (event) => {
         event.preventDefault();
+        setBenefitError(!benefit || benefit == '' ? true : false);
+        setNumberError(!number || number == '' ? true : false);
 
-        if (!benefit) {
-            setBenefitError(true);
-        } else {
-            setBenefitError(false);
-        }
-
-        if (!number) {
-            setNumberError(true);
-        } else {
-            setNumberError(false);
-        }
-
-        if (benefit == '' || number == '') {
+        if ( benefitError || numberError ) {
             Swal.fire({
                 customClass: { container: 'my-swal' },
                 text: "All fields must be filled!",
@@ -55,12 +46,15 @@ const EmployeeBenefitAdd = ({ userName, onClose }) => {
             });
         }
     };
-
     const saveInput = (event) => {
         event.preventDefault();
         const data = { userName: userName, benefit: benefit, number: number };
         saveEmployeeBenefits.mutate({data: data, onSuccessCallback: () => onClose(true)})
     };
+
+    if(isBenefitsLoading){
+        return <Box display='flex' width='100%' justifyContent='center'> <LoadingSpinner/> </Box>
+    }
 
     return (
         <Box component="form" sx={{ mt: 3 }} onSubmit={checkInput} noValidate autoComplete="off" encType="multipart/form-data">
@@ -76,8 +70,12 @@ const EmployeeBenefitAdd = ({ userName, onClose }) => {
                         onChange={(event) => setBenefit(event.target.value)}
                     >
                         {benefits.map((benefit) => (
-                            <MenuItem key={benefit.id} value={benefit.id}> {benefit.name} </MenuItem>
+                            <MenuItem key={benefit.id} value={benefit.id}
+                            disabled={Boolean(benefit.disabled)} 
+                            sx={Boolean(benefit.disabled) ? { opacity: 0.5 } : {}}>
+                                {benefit.name} </MenuItem>
                         ))}
+                        
                     </TextField>
                 </FormControl>
 
