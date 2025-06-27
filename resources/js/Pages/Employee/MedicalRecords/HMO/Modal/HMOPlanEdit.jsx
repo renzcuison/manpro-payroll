@@ -35,59 +35,58 @@ const HMOPlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId, refr
     const [newDependent, setNewDependent] = useState({ name: "", relationship: "" });
     const [newDependents, setNewDependents] = useState([]);
 
-    // useEffect(() => {
-    //     console.log("🧪 selectedEmployeePlanId:", selectedEmployeePlanId);
-    // }, [selectedEmployeePlanId]);
+    useEffect(() => {
+    }, [selectedEmployeePlanId]);
 
-    // useEffect(() => {
-    //     if (!employeePlanId || !open) return;
+    useEffect(() => {
+        if (!employeePlanId || !open) return;
 
-    //     setLoading(true);
-    //     setError("");
+        setLoading(true);
+        setError("");
 
-    //     axiosInstance
-    //         .get(`/medicalRecords/getEmployeeGroupLifePlanById/${employeePlanId}`, {
-    //             headers: {
-    //                 Authorization: `Bearer ${user?.token}`,
-    //             },
-    //         })
-    //         .then((res) => {
-    //             setPlanDetails(res.data);
-    //         })
-    //         .catch((err) => {
-    //             if (err.response?.status === 403) {
-    //                 setError("Unauthorized");
-    //             } else {
-    //                 setError("Plan not found or error occurred");
-    //             }
-    //         })
-    //         .finally(() => {
-    //             setLoading(false);
-    //         });
-    // }, [employeePlanId, open]);
+        axiosInstance
+            .get(`/medicalRecords/getEmployeeHMOPlanById/${employeePlanId}`, {
+                headers: {
+                    Authorization: `Bearer ${user?.token}`,
+                },
+            })
+            .then((res) => {
+                setPlanDetails(res.data);
+            })
+            .catch((err) => {
+                if (err.response?.status === 403) {
+                    setError("Unauthorized");
+                } else {
+                    setError("Plan not found or error occurred");
+                }
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [employeePlanId, open]);
 
-    // const handleSave = () => {
-    //     if (!planDetails) return;
+    const handleSave = () => {
+        if (!planDetails) return;
 
-    //     const payload = {
-    //         enroll_date: planDetails.enroll_date,
-    //         dependents: newDependents,
-    //     };
+        const payload = {
+            enroll_date: planDetails.enroll_date,
+            dependents: newDependents,
+        };
 
-    //     axiosInstance
-    //         .put(`/medicalRecords/editEmployeeGroupLifePlan/${employeePlanId}`, payload, {
-    //             headers: {
-    //                 Authorization: `Bearer ${user?.token}`,
-    //             },
-    //         })
-    //         .then((res) => {
-    //             close(false);
-    //         })
-    //         .catch((err) => {
-    //             console.error(err);
-    //             setError("Failed to update plan.");
-    //         });
-    // };
+        axiosInstance
+            .put(`/medicalRecords/editEmployeeHMOPlan/${employeePlanId}`, payload, {
+                headers: {
+                    Authorization: `Bearer ${user?.token}`,
+                },
+            })
+            .then((res) => {
+                close(false);
+            })
+            .catch((err) => {
+                console.error(err);
+                setError("Failed to update plan.");
+            });
+    };
 
 
 
@@ -96,7 +95,7 @@ const HMOPlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId, refr
             <DialogTitle sx={{ padding: 4, paddingBottom: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h4" sx={{ marginLeft: 1, fontWeight: 'bold' }}>
-                        Edit Group Life Plan
+                        Edit HMO Plan
                     </Typography>
                     <IconButton onClick={() => close(false)}>
                         <i className="si si-close"></i>
@@ -125,7 +124,7 @@ const HMOPlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId, refr
                                     <Typography variant="h6">
                                         Dependents
                                     </Typography>
-                                    <Table>
+                                    <Table stickyHeader aria-label="simple table">
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell><strong>Name</strong></TableCell>
@@ -171,7 +170,8 @@ const HMOPlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId, refr
                                         />
 
 
-                                    </Grid>                    <Button
+                                    </Grid>
+                                    <Button
                                         variant="contained"
                                         onClick={() => {
                                             setShowAddForm(true);

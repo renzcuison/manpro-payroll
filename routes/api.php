@@ -531,6 +531,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::put('' . '/editHMOEmployeePlan/{id}', [ InsurancesController::class, 'editHMOEmployeePlan', ]);
         Route::delete('/deleteHMOEmployee/{id}', [ InsurancesController::class, 'deleteHMOEmployee', ]);
         Route::delete('/deleteHMODependent/{id}', [ InsurancesController::class, 'deleteHMODependent', ]);
+
+        // HMO Employee
+        Route::get('/getEmployeeHMOPlan', [ InsurancesController::class, 'getEmployeeHMOPlan', ]);
+        Route::get('/getEmployeeHMOPlanById/{id}', [ InsurancesController::class, 'getEmployeeHMOPlanById', ]);
+        Route::put('/editEmployeeHMOPlan/{id}', [ InsurancesController::class, 'editEmployeeHMOPlan', ]);
     });
 
 

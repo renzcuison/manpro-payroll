@@ -36,7 +36,6 @@ const GroupLifePlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId
   const [newDependents, setNewDependents] = useState([]);
 
   useEffect(() => {
-    console.log("🧪 selectedEmployeePlanId:", selectedEmployeePlanId);
   }, [selectedEmployeePlanId]);
 
   useEffect(() => {
@@ -125,7 +124,7 @@ const GroupLifePlanEdit = ({ open, close, employeePlanId, selectedEmployeePlanId
                   <Typography variant="h6">
                     Dependents
                   </Typography>
-                  <Table>
+                  <Table stickyHeader aria-label="simple table">
                     <TableHead>
                       <TableRow>
                         <TableCell><strong>Name</strong></TableCell>
