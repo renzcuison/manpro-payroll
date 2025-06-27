@@ -513,6 +513,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             WorkScheduleController::class,
             'getHolidays',
         ]);
+
+        route::get('/getWorkSchedByUser', [
+            WorkScheduleController::class,
+            'getWorkSchedByUser',
+        ]);
     });
 
     Route::prefix('attendance')->group(function () {
