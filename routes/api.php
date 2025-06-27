@@ -277,6 +277,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getAttendanceLogs', [AttendanceController::class, 'getAttendanceLogs']);
         Route::get('/getAttendanceSummary', [AttendanceController::class, 'getAttendanceSummary']);
         Route::get('/getAttendanceOvertime', [AttendanceController::class, 'getAttendanceOvertime']);
+
+        Route::get('/getAttendanceRestDay', [AttendanceController::class, 'getAttendanceRestDay']);
+        
         Route::get('/getEmployeeAttendanceLogs', [AttendanceController::class, 'getEmployeeAttendanceLogs']);
         Route::get('/getEmployeeAttendanceSummary', [AttendanceController::class, 'getEmployeeAttendanceSummary']);
         Route::get('/getEmployeeDashboardAttendance', [AttendanceController::class, 'getEmployeeDashboardAttendance']);

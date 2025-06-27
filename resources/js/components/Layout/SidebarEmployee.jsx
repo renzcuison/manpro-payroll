@@ -33,6 +33,10 @@ const AttendanceItems = [
                 text: "Overtime",
             },
             {
+                href: `/employee/attendance-rest-day`,
+                text: "Rest Day",
+            },
+            {
                 href: `/employee/attendance-summary`,
                 text: "Summary",
             },
