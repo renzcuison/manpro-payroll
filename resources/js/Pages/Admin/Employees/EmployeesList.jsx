@@ -9,6 +9,13 @@ import { getComparator, stableSort, } from "../../../components/utils/tableUtils
 
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
 import { useEmployees } from "./hooks/useEmployees";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import duration from "dayjs/plugin/duration";
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
+dayjs.extend(duration);
 
 const EmployeesList = () => {
     const storedUser = localStorage.getItem("nasya_user");
@@ -22,6 +29,77 @@ const EmployeesList = () => {
     const [searchName, setSearchName] = useState("");
     const [filterByBranch, setFilterByBranch] = useState("");
     const [filterByDepartment, setFilterByDepartment] = useState("");
+
+    //Export Employees CSV
+    const handleExportCSV = () => {
+        if (!employees || employees.length === 0) return;
+
+        // Define headers
+        const headers = [
+            "User Name",
+            "Last Name",
+            "First Name",
+            "Middle Name",
+            "Suffix",
+            "Birthday",
+            "Gender",
+            "Address",
+            "Contact Number",
+            "Email",
+            "Salary Type",
+            "Salary Grade",
+            "Salary",
+            "Branch",
+            "Department",
+            "Role",
+            "Status",
+            "Type",
+            "Job Title",
+            "Work Group",
+            "Date Start"
+        ];
+
+        // Map data
+        const rows = employees.map(emp => [
+            emp.user_name || "",
+            emp.last_name || "",
+            emp.first_name || "",
+            emp.middle_name || "",
+            emp.suffix || "",
+            dayjs(emp.birth_date).format('MM/DD/YYYY') || "",
+            emp.gender || "",
+            emp.address || "",
+            emp.contact_number ? `'${emp.contact_number}` : "", 
+            emp.email || "",
+            emp.salary_type || "",
+            emp.salary_grade || "",
+            emp.salary || "",
+            emp.branch || "",
+            emp.department || "",
+            emp.role || "",
+            emp.employment_status || "",
+            emp.employment_type || "",
+            emp.jobTitle || "",
+            emp.work_group || "",
+            dayjs(emp.date_start).format('MM/DD/YYYY') || "",
+        ]);
+
+        // Combine headers and rows
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(r => r.map(field => `"${(field + "").replace(/"/g, '""')}"`).join(","))
+        ].join("\r\n");
+
+        // Trigger download
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "employees.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     useEffect(() => {
         axiosInstance.get("/employee/getEmployees", { headers })
@@ -79,7 +157,7 @@ const EmployeesList = () => {
                         </Typography>
 
                         <Box>
-                            <Button id="employee-menu" variant="contained" color="primary" sx={{ mr: 1 }} aria-controls={open ? "emp-menu" : undefined} aria-haspopup="true" aria-expanded={open ? "true" : undefined} onClick={handleMenuOpen} >
+                            <Button onClick={handleExportCSV} variant="contained" color="primary">
                                 <p className="m-0"><i className="fa fa-file-excel-o"></i> {" "}Export{" "}</p>
                             </Button>
                             <Button id="employee-menu" variant="contained" color="primary" sx={{ ml: 1 }} aria-controls={open ? "emp-menu" : undefined} aria-haspopup="true" aria-expanded={open ? "true" : undefined} onClick={handleMenuOpen} >
