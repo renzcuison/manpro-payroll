@@ -94,8 +94,7 @@ const PerformanceEvaluationResultPage = () => {
           setSelectedResultId(filtered[0].id);
         }
       })
-      .catch(() => setResults([]))
-      .finally(() => setLoading(false));
+      .catch(() => setResults([]));
     // eslint-disable-next-line
   }, []);
 
