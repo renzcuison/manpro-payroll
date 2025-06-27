@@ -196,7 +196,13 @@ export function useEvaluationFormSection(section) {
                 { id: subcategoryId }, { headers }
             );
             if (response.data.status && response.data.status.toString().startsWith(2)) {
-                const subcategoriesNew = subcategories.filter(sc => sc.id !== subcategoryId);
+                let index = 0;
+                for(; index < subcategories.length; index++)
+                    if(subcategories[index].id === subcategoryId) break;
+                subcategories.splice(index, 1);
+                const subcategoriesNew = [...subcategories];
+                for(; index < subcategories.length; index++)
+                    subcategories[index].order--;
                 setSubcategories(subcategoriesNew);
                 Swal.fire("Deleted!", "Subcategory has been deleted.", "success");
                 return subcategoriesNew;
