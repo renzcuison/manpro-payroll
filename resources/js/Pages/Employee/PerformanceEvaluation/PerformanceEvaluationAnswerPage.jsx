@@ -331,68 +331,69 @@ const PerformanceEvaluationAnswerPage = () => {
                       </Typography>
                       <Typography variant="body2">Type: {responseTypeMap[subCategory.subcategory_type] || 'Unknown'}</Typography>
                       <Typography variant="body2" >Description: {subCategory.description}</Typography>
-{subCategory.subcategory_type === 'linear_scale' && (
- <Box sx={{ mb: 2 }}>
-  <Grid container justifyContent="center" spacing={7}>
-    {subCategory.options?.map((opt, idx) => (
-      <Grid item key={opt.id ?? idx} sx={{ textAlign: "center" }}>
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <Typography variant="body1" sx={{ mb: 0.5 }}>
-            {opt.label}
-          </Typography>
-          <Radio
-            checked={Boolean(opt.option_answer && opt.option_answer?.action !== 'deleted')}
-            onChange={() => handleOptionChange(opt.id)}
-            value={opt.score}
-            sx={{ mx: "auto" }}
-          />
-        </Box>
-      </Grid>
-    ))}
-  </Grid>
-  {/* Legend and Description below as before */}
-  <Divider sx={{ my: 2 }} />
-  <Box sx={{ mb: 1, mt: 1 }}>
-    <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
-      Legend:
-    </Typography>
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-      {subCategory.options?.map((opt, index) => (
-        <Typography
-          key={opt.id}
-          variant="body2"
-          sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}
-        >
-          {opt.label} - {opt.score ?? 1}{index !== subCategory.options.length - 1 && ','}
-        </Typography>
-      ))}
-    </Box>
-    <Divider sx={{ my: 2 }} />
-    <Box sx={{ mt: 2 }}>
-      <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
-        Description:
-      </Typography>
-      <Box>
-        {subCategory.options?.map((opt, index) =>
-          opt.description ? (
-            <Typography
-              key={opt.id + "_desc"}
-              variant="body2"
-              sx={{fontSize: '0.8rem'}}
-            >
-              {opt.score} - {opt.description}
-            </Typography>
-          ) : null
-        )}
-      </Box>
-    </Box>
-  </Box>
-</Box>
-)}
-
+                      {subCategory.subcategory_type === 'linear_scale' && (
+                      <Box sx={{ mb: 2 }}>
+                        <Grid container justifyContent="center" spacing={7}>
+                          {subCategory.options?.map((opt, idx) => (
+                            <Grid item key={opt.id ?? idx} sx={{ textAlign: "center" }}>
+                              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                <Typography variant="body1" sx={{ mb: 0.5 }}>
+                                  {opt.label}
+                                </Typography>
+                                <Radio
+                                  disabled={hasEvaluatorSigned}
+                                  checked={Boolean(opt.option_answer && opt.option_answer?.action !== 'deleted')}
+                                  onChange={() => handleOptionChange(opt.id)}
+                                  value={opt.score}
+                                  sx={{ mx: "auto" }}
+                                />
+                              </Box>
+                            </Grid>
+                          ))}
+                        </Grid>
+                        {/* Legend and Description below as before */}
+                        <Divider sx={{ my: 2 }} />
+                        <Box sx={{ mb: 1, mt: 1 }}>
+                          <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                            Legend:
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                            {subCategory.options?.map((opt, index) => (
+                              <Typography
+                                key={opt.id}
+                                variant="body2"
+                                sx={{ fontStyle: 'italic', fontSize: '0.8rem' }}
+                              >
+                                {opt.label} - {opt.score ?? 1}{index !== subCategory.options.length - 1 && ','}
+                              </Typography>
+                            ))}
+                          </Box>
+                          <Divider sx={{ my: 2 }} />
+                          <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" sx={{ fontStyle: 'italic', fontSize: '0.92rem', fontWeight:'bold' }}>
+                              Description:
+                            </Typography>
+                            <Box>
+                              {subCategory.options?.map((opt, index) =>
+                                opt.description ? (
+                                  <Typography
+                                    key={opt.id + "_desc"}
+                                    variant="body2"
+                                    sx={{fontSize: '0.8rem'}}
+                                  >
+                                    {opt.score} - {opt.description}
+                                  </Typography>
+                                ) : null
+                              )}
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+                      )}
                       {subCategory.subcategory_type === 'short_answer' && (
                         <Box sx={{ mb: 2 }}>
                           <TextField
+                            disabled={hasEvaluatorSigned}
                             label="Short Text"
                             variant="outlined"
                             fullWidth
@@ -403,10 +404,10 @@ const PerformanceEvaluationAnswerPage = () => {
                           />
                         </Box>
                       )}
-
                       {subCategory.subcategory_type === 'long_answer' && (
                         <Box sx={{ mb: 2 }}>
                           <TextField
+                            disabled={hasEvaluatorSigned}
                             label="Long Text"
                             variant="outlined"
                             fullWidth
@@ -417,7 +418,6 @@ const PerformanceEvaluationAnswerPage = () => {
                           />
                         </Box>
                       )}
-
                       {subCategory.subcategory_type === 'multiple_choice' && (
                         <Box sx={{ mb: 2 }}>
                           <RadioGroup
@@ -426,6 +426,7 @@ const PerformanceEvaluationAnswerPage = () => {
                           >
                             {(subCategory.options || []).map(opt => (
                               <FormControlLabel
+                                disabled={hasEvaluatorSigned}
                                 key={opt.id}
                                 value={opt.id}
                                 control={<Radio />}
@@ -435,12 +436,12 @@ const PerformanceEvaluationAnswerPage = () => {
                           </RadioGroup>
                         </Box>
                       )}
-
                       {subCategory.subcategory_type === 'checkbox' && (
                         <Box sx={{ mb: 2 }}>
                           <FormGroup>
                             {(subCategory.options || []).map(opt => (
                               <FormControlLabel
+                                disabled={hasEvaluatorSigned}
                                 key={opt.id}
                                 control={
                                   <Checkbox
@@ -455,9 +456,7 @@ const PerformanceEvaluationAnswerPage = () => {
                             ))}
                           </FormGroup>
                         </Box>
-                      )}
-
-                                            
+                      )}              
                       {(subCategory.subcategory_type === 'multiple_choice' || subCategory.subcategory_type === 'checkbox') && (
                         <>
                           <Divider sx={{ my: 2 }} />
@@ -494,14 +493,10 @@ const PerformanceEvaluationAnswerPage = () => {
                                       ) : null
                                     )}
                                 </Box>
-                                
-
                             </Box>
                           </Box>
-                          
                         </>
                       )}
-
                     </Box>
                   ))
                 )}
@@ -560,6 +555,7 @@ const PerformanceEvaluationAnswerPage = () => {
                         }}
                       >
                         <TextField
+                          disabled={hasEvaluatorSigned}
                           variant="standard"
                           InputProps={{
                             disableUnderline: true,

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
     Table, TableHead, TableBody, TableCell, TableContainer, TableRow,
     TablePagination, Box, Typography, Button, Menu, MenuItem, CircularProgress,
-    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel, Chip
+    Divider, TextField, InputAdornment, IconButton, Select, FormControl, InputLabel,
 } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import axiosInstance, { getJWTHeader } from '../../../utils/axiosConfig';
@@ -266,7 +266,7 @@ const PerformanceEvaluationList = () => {
 
     return (
         <Layout title={"PerformanceEvaluation"}>
-            <Box sx={{ overflowX: 'scroll', width: '100%', whiteSpace: 'nowrap' }}>
+            <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: '100%', maxWidth: '1200px' }}>
                     {/* Title */}
                     <Box sx={{ mt: 5 }}>

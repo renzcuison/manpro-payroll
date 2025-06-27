@@ -92,7 +92,6 @@ const getEvaluationRoleRoute = (row) => {
 
 const STATUS_OPTIONS = [
     { value: '', label: "All" },
-    { value: 'Sent', label: "Sent" },
     { value: 'New', label: "New" },
     { value: 'Pending', label: "Pending" },
     { value: 'Submitted', label: "Submitted" },
@@ -245,7 +244,7 @@ const PerformanceEvaluationList = () => {
 
     return (
         <Layout title={"PerformanceEvaluation"}>
-            <Box sx={{ width: '100%' }}>
+            <Box sx={{ overflowX: 'auto', width: '100%', whiteSpace: 'nowrap' }}>
                 <Box sx={{ mx: 'auto', width: '100%', maxWidth: '1200px' }}>
                     {/* Title */}
                     <Box sx={{ mt: 5 }}>
