@@ -277,6 +277,7 @@ export function useManageBenefits({benefit, onSuccess} = {}) {
         event.preventDefault();
         let convertedBrackets = []
         if((benefitType === "Bracket Amount" || benefitType === "Bracket Percentage")){
+            //since the brackets are stored as strings, it must be converted to float values first
             convertedBrackets = bracketsList.map(item => {
                 const newItem = {};
                 for (const key in item) {
@@ -319,8 +320,10 @@ export function useManageBenefits({benefit, onSuccess} = {}) {
         benefitName, benefitType, 
         employeeAmountShare, employerAmountShare, 
         employeePercentageShare, employerPercentageShare, 
-        paymentSchedule, benefitNameError,
-        employeeAmountShareError, employerAmountShareError,
+        paymentSchedule, 
+        
+        //errors
+        benefitNameError,employeeAmountShareError, employerAmountShareError,
         employeePercentageShareError, employerPercentageShareError, bracketsList, bracketListErrors,
 
         //functions

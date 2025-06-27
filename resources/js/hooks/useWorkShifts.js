@@ -73,29 +73,29 @@ export function useManageWorkshift ({ client, selectedShift } = {}) {
             setShiftName(shift.name);
 
             if (shift.shift_type === 'Regular') {
-            setShiftType("regular");
-            setFirstLabel('Attendance');
-            setSecondLabel('');
-            setRegularTimeIn(dayjs(hours.first_time_in, 'HH:mm:ss'));
-            setRegularTimeOut(dayjs(hours.first_time_out, 'HH:mm:ss'));
-            setBreakStart(dayjs(hours.break_start, 'HH:mm:ss'));
-            setBreakEnd(dayjs(hours.break_end, 'HH:mm:ss'));
-            setSplitFirstTimeIn(null);
-            setSplitFirstTimeOut(null);
-            setSplitSecondTimeIn(null);
-            setSplitSecondTimeOut(null);
+                setShiftType("regular");
+                setFirstLabel('Attendance');
+                setSecondLabel('');
+                setRegularTimeIn(dayjs(hours.first_time_in, 'HH:mm:ss'));
+                setRegularTimeOut(dayjs(hours.first_time_out, 'HH:mm:ss'));
+                setBreakStart(dayjs(hours.break_start, 'HH:mm:ss'));
+                setBreakEnd(dayjs(hours.break_end, 'HH:mm:ss'));
+                setSplitFirstTimeIn(null);
+                setSplitFirstTimeOut(null);
+                setSplitSecondTimeIn(null);
+                setSplitSecondTimeOut(null);
             } else {
-            setShiftType("split");
-            setFirstLabel(shift.first_label);
-            setSecondLabel(shift.second_label);
-            setSplitFirstTimeIn(dayjs(hours.first_time_in, 'HH:mm:ss'));
-            setSplitFirstTimeOut(dayjs(hours.first_time_out, 'HH:mm:ss'));
-            setSplitSecondTimeIn(dayjs(hours.second_time_in, 'HH:mm:ss'));
-            setSplitSecondTimeOut(dayjs(hours.second_time_out, 'HH:mm:ss'));
-            setRegularTimeIn(null);
-            setRegularTimeOut(null);
-            setBreakStart(null);
-            setBreakEnd(null);
+                setShiftType("split");
+                setFirstLabel(shift.first_label);
+                setSecondLabel(shift.second_label);
+                setSplitFirstTimeIn(dayjs(hours.first_time_in, 'HH:mm:ss'));
+                setSplitFirstTimeOut(dayjs(hours.first_time_out, 'HH:mm:ss'));
+                setSplitSecondTimeIn(dayjs(hours.second_time_in, 'HH:mm:ss'));
+                setSplitSecondTimeOut(dayjs(hours.second_time_out, 'HH:mm:ss'));
+                setRegularTimeIn(null);
+                setRegularTimeOut(null);
+                setBreakStart(null);
+                setBreakEnd(null);
             }
 
             setOverTimeIn(dayjs(hours.over_time_in, 'HH:mm:ss'));

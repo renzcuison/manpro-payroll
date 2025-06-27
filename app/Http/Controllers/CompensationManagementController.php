@@ -48,26 +48,8 @@ class CompensationManagementController extends Controller
         }
         return false;
     }
-    //#---------------->[endregion AUTH CHECKERS]
-
-
-    //#---------------->[region general utility function]
-
-    // public function filterEmployeesWithPagination($client, $filterName, $filterBranchId,
-    //  $filterDepartmentId, $qualifyingEmployeeIds){
-    //     $query = UsersModel::with(['branch', 'department'])
-    //     ->where('client_id', $client->id)
-    //     ->whereHas('branch')
-    //     ->whereHas('department')
-    //     ->whereIn('id', $qualifyingEmployeeIds)
-    //     ->when($filterName, fn($q) => $q->whereRaw("LOWER(CONCAT(last_name, ', ', first_name)) LIKE ?", ["%$filterName%"]))
-    //     ->when($filterBranchId, fn($q) => $q->where('branch_id', $filterBranchId))
-    //     ->when($filterDepartmentId, fn($q) => $q->where('department_id', $filterDepartmentId));
-    //     return $query;
-    // }
     
-    //#---------------->[endregion general utility function]
-
+    //#---------------->[endregion AUTH CHECKERS]
 
     //#---------------->[region INCENTIVES CONTROLLERS]
 
