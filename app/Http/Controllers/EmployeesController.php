@@ -504,7 +504,6 @@ class EmployeesController extends Controller
     public function getMyAvatar()
     {
         $authUser = Auth::user();
-        Log::info("Getting avatar for user", ['id' => $authUser->id]);
 
         $avatar = [
             'image' => null,
@@ -535,22 +534,12 @@ class EmployeesController extends Controller
                     }
                     $avatar['url'] = $mediaUrl;
                 } else {
-                    Log::warning("Media record exists but file not found", [
-                        'path' => $media->getPath(),
-                        'disk' => $media->disk
-                    ]);
+                    Log::warning("Media record exists but file not found", [ 'path' => $media->getPath(), 'disk' => $media->disk ]);
                     
-                    return response()->json([
-                        'status' => 404,
-                        'message' => 'Avatar file not found'
-                    ], 404);
+                    return response()->json([ 'status' => 404, 'message' => 'Avatar file not found' ], 404);
                 }
             } else {
-                Log::info("No media found in profile_pictures collection");
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'No avatar found'
-                ], 404);
+                return response()->json([ 'status' => 404, 'message' => 'No avatar found' ], 404);
             }
         } catch (\Exception $e) {
             Log::error("Avatar fetch error", [

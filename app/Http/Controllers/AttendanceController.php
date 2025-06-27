@@ -1165,11 +1165,7 @@ class AttendanceController extends Controller
         Log::info("AttendanceController::getAttendanceRestDay");
 
         $user = Auth::user();
-        $rawAttendances = AttendanceSummary::where('user_id', $user->id)
-            ->where('day_type', "Rest Day")
-            ->get();
-
-        Log::info($user->id);
+        $rawAttendances = AttendanceSummary::where('user_id', $user->id)->where('day_type', "Rest Day")->get();
 
         $attendances = [];
 
@@ -1177,8 +1173,21 @@ class AttendanceController extends Controller
         {
             Log::info($rawAttendance);
 
+            $firstTimeIn = AttendanceLogsModel::where('attendance_summary_id', $rawAttendance->id)->where('action', 'Duty In')->orderBy('timestamp', 'asc')->first();
+            $firstTimeOut = AttendanceLogsModel::where('attendance_summary_id', $rawAttendance->id)->where('action', 'Duty Out')->orderBy('timestamp', 'desc')->first();
+
+            $OverTimeIn = AttendanceLogsModel::where('attendance_summary_id', $rawAttendance->id)->where('action', 'Overtime In')->orderBy('timestamp', 'asc')->first();
+            $OverTimeOut = AttendanceLogsModel::where('attendance_summary_id', $rawAttendance->id)->where('action', 'Overtime Out')->orderBy('timestamp', 'asc')->first();
+
             $attendances[] = [
-                'date' => $rawAttendance->date
+                'date' => $rawAttendance->date,
+                'time_in' => $firstTimeIn->timestamp ?? '-',
+                'time_out' => $firstTimeOut->timestamp ?? '-',
+                'minutes_rendered' => $rawAttendance->minutes_rendered,
+                'overtime_in' => $OverTimeIn->timestamp ?? '-',
+                'overtime_out' => $OverTimeOut->timestamp ?? '-',
+                'minuted_overtime' => $rawAttendance->minutes_overtime,
+                'status' => "Unapplied",
             ];
 
         }
