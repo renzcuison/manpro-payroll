@@ -1592,7 +1592,7 @@ class PayrollController extends Controller
                     'holidayOvertime' => $holidayOvertime,
 
                     // Paid Leave
-                    'paidLeaveDays' => round($paidLeaveDays),
+                    'paidLeaveDays' => $paidLeaveDays,
                     'paidLeaveAmount' => $paidLeaveAmount,
 
                     // Allowance
