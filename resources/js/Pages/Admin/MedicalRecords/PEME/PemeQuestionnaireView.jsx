@@ -61,9 +61,36 @@ const UploadForm = ({ fileSizeLimit, fileArray, fileName, onFileClick }) => {
                                 backgroundColor: "#fafafa",
                                 cursor: "pointer",
                                 mr: 2,
+                                width: 150,
                             }}
                         >
-                            {file.file_name}
+                             {(() => {
+                                const name = file.file_name || "";
+                                const lastDot = name.lastIndexOf(".");
+                                let base = name;
+                                let ext = "";
+                                if (lastDot !== -1) {
+                                    base = name.substring(0, lastDot);
+                                    ext = name.substring(lastDot);
+                                }
+
+                                const maxBaseLength = 10
+                                const displayBase = base.length > maxBaseLength ? base.substring(0, maxBaseLength) + "..." : base;
+                                return (
+                                    <span
+                                        style={{
+                                            display: "inline-block",
+                                            verticalAlign: "middle",
+                                            maxWidth: "100%",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap"
+                                        }}
+                                    >
+                                        {displayBase}{ext}
+                                    </span>
+                                );
+                            })()}
                         </Typography>
                     );
                 })}
@@ -501,18 +528,18 @@ const PemeQuestionnaireView = () => {
                                     dateAdapter={AdapterDayjs}
                                 >
                                     <DatePicker
-                                        label="Expiration Date"
-                                        value={expirationDate}
-                                        onChange={setExpirationDate}
+                                        label="Next Schedule"
+                                        value={nextSchedule}
+                                        onChange={setNextSchedule}
                                     />
                                 </LocalizationProvider>
                                 <LocalizationProvider
                                     dateAdapter={AdapterDayjs}
                                 >
                                     <DatePicker
-                                        label="Next Schedule"
-                                        value={nextSchedule}
-                                        onChange={setNextSchedule}
+                                        label="Expiration Date"
+                                        value={expirationDate}
+                                        onChange={setExpirationDate}
                                     />
                                 </LocalizationProvider>
                                 <FormControl sx={{ width: 200 }}>

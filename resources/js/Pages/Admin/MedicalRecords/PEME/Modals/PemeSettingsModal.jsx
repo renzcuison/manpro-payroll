@@ -1,4 +1,5 @@
 import React from "react";
+import { useEffect } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -29,6 +30,20 @@ const PemeSettingsModal = ({
     hasRespondents,
     loading,
 }) => {
+    useEffect(() => {
+        if (hasRespondents && editable === 1) {
+            axiosInstance.patch(
+                `/updatePemeSettings/${PemeID}`,
+                { isEditable: 0 },
+                { headers }
+            ).then(() => {
+                setEditable(0);
+            }).catch((error) => {
+                console.error("error", error);
+            });
+        }
+    }, [hasRespondents, editable, PemeID, headers, setEditable]);
+
     const handleMultipleToggle = async () => {
         const newValue = multiple ? 0 : 1;
 
@@ -67,7 +82,7 @@ const PemeSettingsModal = ({
                 { isEditable: newValue },
                 { headers }
             );
-            setEditable(!!newValue);
+            setEditable(newValue ? 1 : 0);
             Swal.fire({
                 icon: "success",
                 text: `Editing has been ${newValue ? "enabled" : "disabled"}.`,
@@ -132,7 +147,7 @@ const PemeSettingsModal = ({
         >
             <DialogTitle sx={{ pb: 0 }}>
                 <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                    Exam Settings
+                    Settings
                 </Typography>
             </DialogTitle>
 
@@ -151,15 +166,23 @@ const PemeSettingsModal = ({
                     </Box>
                 ) : (
                     <>
-                        <Box sx={{ mt: 2 }}>
+                        <Box sx={{ mt: 3 }}>
                             <FormControlLabel
                                 control={
                                     <Switch
                                         checked={visible}
                                         onClick={handleVisibilityToggle}
+                                        sx={{ transform: "scale(1.2)" }}
                                     />
                                 }
-                                label={`Visibility: ${visible ? "Public" : "Hidden"}`}
+                                label={`Visibility`}
+                                labelPlacement="start"
+                                sx={{
+                                    columnGap: 1,
+                                    "& .MuiFormControlLabel-label": {
+                                        fontSize: "1.1rem",
+                                    }
+                                }}
                             />
                         </Box>
 
@@ -169,9 +192,17 @@ const PemeSettingsModal = ({
                                     <Switch
                                         checked={multiple}
                                         onClick={handleMultipleToggle}
+                                        sx={{ transform: "scale(1.2)" }}
                                     />
                                 }
-                                label={`Response: ${multiple ? "Multiple" : "Single"}`}
+                                label={`Multiple`}
+                                labelPlacement="start"
+                                sx={{
+                                    columnGap: 1.3,
+                                    "& .MuiFormControlLabel-label": {
+                                        fontSize: "1.1rem",
+                                    }
+                                }}
                             />
                         </Box>
 
@@ -189,9 +220,17 @@ const PemeSettingsModal = ({
                                         checked={editable}
                                         onClick={handleEditableToggle}
                                         disabled={hasRespondents}
+                                        sx={{ transform: "scale(1.2)" }}
                                     />
                                 }
-                                label={`Editable: ${editable ? "Yes" : "No"}`}
+                                label={`Editable`}
+                                labelPlacement="start"
+                                sx={{
+                                    columnGap: 1,
+                                    "& .MuiFormControlLabel-label": {
+                                        fontSize: "1.1rem",
+                                    }
+                                }}
                             />
                             <Typography
                                 sx={{

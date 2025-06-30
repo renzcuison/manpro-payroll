@@ -2,6 +2,9 @@ import Layout from "../../../../components/Layout/Layout";
 import React, { useState, useEffect, useRef } from "react";
 import PemeRecordsFilePreview from "./Modals/PemeRecordsFilePreview";
 import CancelIcon from "@mui/icons-material/Cancel";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import ArticleIcon from "@mui/icons-material/Article";
+import ImageIcon from "@mui/icons-material/Image";
 
 import {
     Box,
@@ -35,7 +38,6 @@ const UploadForm = ({
     onFileClick,
     onRemoveFile,
     formID,
-
 }) => {
     const fileInputRef = useRef();
 
@@ -80,38 +82,35 @@ const UploadForm = ({
                                 boxShadow: 1,
                                 padding: 1,
                                 borderRadius: 1,
-                                display: "inline-block",
+                                display: "flex",
+                                alignItems: "center",
                                 backgroundColor: "#fafafa",
                                 cursor: "pointer",
                                 mr: 2,
-                                width: 170,
+                                width: 150,
                             }}
                         >
-                            <FileUploadIcon sx={{ mr: 1, verticalAlign: "middle" }} />
                             {(() => {
-                                const name = file.file_name || "";
-                                const lastDot = name.lastIndexOf(".");
-                                let base = name;
-                                let ext = "";
-                                if (lastDot !== -1) {
-                                    base = name.substring(0, lastDot);
-                                    ext = name.substring(lastDot);
-                                }
-
-                                const maxBaseLength = 11;
-                                const displayBase = base.length > maxBaseLength ? base.substring(0, maxBaseLength) + "..." : base;
+                                const name = file.file_name || file.name || "";
+                                const ext = name.split('.').pop().toLowerCase();
+                                if (ext === "pdf") return <PictureAsPdfIcon sx={{ mr: 1, color: "#388e3c" }} />;
+                                if (["doc", "docx"].includes(ext)) return <ArticleIcon sx={{ mr: 1, color: "#388e3c" }} />;
+                                if (["jpg", "jpeg", "png"].includes(ext)) return <ImageIcon sx={{ mr: 1, color: "#388e3c" }} />;
+                                return <ArticleIcon sx={{ mr: 1, color: "#388e3c" }} />;
+                            })()}                            {(() => {
+                                const name = file.file_name || file.name || "Unknown file";
                                 return (
                                     <span
                                         style={{
                                             display: "inline-block",
                                             verticalAlign: "middle",
-                                            maxWidth: 120,
+                                            maxWidth: "100%",
                                             overflow: "hidden",
                                             textOverflow: "ellipsis",
                                             whiteSpace: "nowrap"
                                         }}
                                     >
-                                        {displayBase}{ext}
+                                        {name}
                                     </span>
                                 );
                             })()}
@@ -146,11 +145,12 @@ const UploadForm = ({
                                 boxShadow: 1,
                                 padding: 1,
                                 borderRadius: 1,
-                                display: "inline-block",
+                                display: "flex",
+                                alignItems: "center",
                                 backgroundColor: "#fafafa",
                                 cursor: "pointer",
                                 mr: 2,
-                                width: 200,
+                                width: 150,
                             }}
                             // onClick={() => {
                             //     if (onFileClick && file?.url) {
@@ -163,10 +163,31 @@ const UploadForm = ({
                                 }
                             }}
                         >
-                            <FileUploadIcon
-                                sx={{ mr: 1, verticalAlign: "middle" }}
-                            />
-                            {file.name || file.file_name || "Unknown file"}
+                            {(() => {
+                                const name = file.file_name || file.name || "";
+                                const ext = name.split('.').pop().toLowerCase();
+                                if (ext === "pdf") return <PictureAsPdfIcon sx={{ mr: 1, color: "#388e3c" }} />;
+                                if (["doc", "docx"].includes(ext)) return <ArticleIcon sx={{ mr: 1, color: "#388e3c" }} />;
+                                if (["jpg", "jpeg", "png"].includes(ext)) return <ImageIcon sx={{ mr: 1, color: "#388e3c" }} />;
+                                return <ArticleIcon sx={{ mr: 1, color: "#388e3c" }} />; // fallback
+                            })()}
+                            {(() => {
+                                const name = file.file_name || file.name || "Unknown file";
+                                return (
+                                    <span
+                                        style={{
+                                            display: "inline-block",
+                                            verticalAlign: "middle",
+                                            maxWidth: "100%",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap"
+                                        }}
+                                    >
+                                        {name}
+                                    </span>
+                                );
+                            })()}
                             <Button
                                 sx={{
                                     zIndex: 10,
@@ -179,7 +200,7 @@ const UploadForm = ({
                                 }}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    onRemoveFile && onRemoveFile(file); // Pass the file object
+                                    onRemoveFile && onRemoveFile(file);
                                 }}
                             >
                                 <CancelIcon />
@@ -540,6 +561,7 @@ const PemeQuestionnaireView = () => {
             customClass: { container: "my-swal" },
             title: "Saving draft.",
             text: "Please wait.",
+            icon: "info",
             allowOutsideClick: false,
             showConfirmButton: false,
             showCancelButton: false,
@@ -683,16 +705,12 @@ const PemeQuestionnaireView = () => {
 
             Swal.close();
 
-            if (uploadLoading === false) {
-
-                Swal.fire({
-                    icon: "success",
-                    text: "Draft saved successfully.",
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            }
-
+            Swal.fire({
+                icon: "success",
+                text: "Draft saved successfully.",
+                showConfirmButton: false,
+                timer: 1500
+            });
 
         } catch (error) {
             Swal.close();
@@ -708,13 +726,8 @@ const PemeQuestionnaireView = () => {
         }
     };
 
-    // const handleFileClick = (fileUrl, fileName = "File Preview") => {
-    //     setSelectedFile({ url: fileUrl, file_name: fileName });
-    //     setFilePreviewOpen(true);
-    // };
     const handleFileClick = (fileObj) => {
         if (fileObj?.file_name?.toLowerCase().endsWith(".docx") && fileObj.url) {
-            // Download the DOCX file directly
             const link = document.createElement("a");
             link.href = fileObj.url;
             link.setAttribute("download", fileObj.file_name);
