@@ -29,7 +29,7 @@ class PemeResponseController extends Controller
         return false;
     }
 
-    public function index()
+    public function showResponses()
     {
         $user = Auth::user();
 
@@ -100,7 +100,7 @@ class PemeResponseController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function createResponse(Request $request)
     {
 
         $request->merge([
@@ -168,7 +168,7 @@ class PemeResponseController extends Controller
         );
     }
 
-    public function storeAll(Request $request)
+    public function submitResponse(Request $request)
     {
 
         // \Log::info("INCOMING FILE KEYS", [
@@ -458,7 +458,7 @@ class PemeResponseController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function getUserResponse($id)
     {
         $id = Crypt::decrypt($id);
 
