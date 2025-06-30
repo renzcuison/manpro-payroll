@@ -205,7 +205,7 @@ const PemeRecordsForm = () => {
 
     useEffect(() => {
         axiosInstance
-            .get(`/peme/${PemeID}/questionnaire`, { headers })
+            .get(`/peme/${PemeID}/getQuestionnaire`, { headers })
             .then((response) => {
                 setPemeForms(response.data);
                 setIsLoading(false);
@@ -253,7 +253,7 @@ const PemeRecordsForm = () => {
             }).then(async (res) => {
                 if (res.isConfirmed) {
                     const response = await axiosInstance.post(
-                        "/peme/questionnaire",
+                        "/peme/createQuestionnaire",
                         payload,
                         { headers }
                     );
@@ -267,7 +267,7 @@ const PemeRecordsForm = () => {
                     // Fetch updated forms
                     try {
                         const refreshed = await axiosInstance.get(
-                            `/peme/${PemeID}/questionnaire`,
+                            `/peme/${PemeID}/getQuestionnaire`,
                             { headers }
                         );
                         setPemeForms(refreshed.data);
@@ -365,7 +365,7 @@ const PemeRecordsForm = () => {
 
                     try {
                         await axiosInstance.delete(
-                            `/questionnaire/${questionId}`,
+                            `/peme/${questionId}/deleteQuestionnaire`,
                             { headers }
                         );
 
@@ -491,13 +491,13 @@ const PemeRecordsForm = () => {
                     console.log("PAYLOAD", payload);
 
                     await axiosInstance.put(
-                        `/peme/${PemeID}/question/${form.id}`,
+                        `/peme/${PemeID}/question/${form.id}/updateQuestion`,
                         payload,
                         { headers }
                     );
 
                     axiosInstance
-                        .get(`/peme/${PemeID}/questionnaire`, { headers })
+                        .get(`/peme/${PemeID}/getQuestionnaire`, { headers })
                         .then((response) => {
                             setPemeForms(response.data);
                             setIsLoading(false);

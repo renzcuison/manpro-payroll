@@ -109,7 +109,7 @@ const PerformanceEvaluationEvaluateePage = () => {
         position: 'center'
       }).then(() => {
         setAckModalOpen(false);
-        navigate('/admin/performance-evaluation');
+        navigate('/employee/performance-evaluation');
       });
     } catch (e) {
       Swal.fire({
@@ -525,7 +525,7 @@ const handleDownloadPDFClick = async () => {
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           >
-            <MenuItem onClick={() => { handleSettingsClose(); setTimeout(() => navigate('/admin/performance-evaluation'), 100); }}>Exit Form</MenuItem>
+            <MenuItem onClick={() => { handleSettingsClose(); setTimeout(() => navigate('/employee/performance-evaluation'), 100); }}>Exit Form</MenuItem>
             <MenuItem onClick={() => { handleSettingsClose(); setReviewModalOpen(true); }}>View Form</MenuItem>
             <MenuItem onClick={async () => { handleSettingsClose(); await handleDownloadPDFClick(); }}>Download</MenuItem>
           </Menu>

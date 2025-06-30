@@ -1,3 +1,5 @@
+import React, { useEffect, useState } from "react";
+import axiosInstance, { getJWTHeader } from "../../../../../utils/axiosConfig";
 import {
     Dialog,
     Typography,
@@ -8,31 +10,42 @@ import {
     IconButton,
     Tooltip,
 } from "@mui/material";
-import React from "react";
 import DownloadIcon from "@mui/icons-material/Download";
 
 const PemeRecordsFilePreview = ({ open, close, file }) => {
-    const downloadFile = async (filename) => {
-        try {
-            // const response = await fetch(`http://192.168.1.150:8000/api/download/${filename}`, {
-            const response = await fetch(`http://localhost:8000/api/download/${filename}`, {
-                method: "GET",
-            });
+    const storedUser = localStorage.getItem("nasya_user");
+    const headers = getJWTHeader(JSON.parse(storedUser));
 
-            if (!response.ok) {
-                alert("Download failed.");
-                return;
+    const downloadFile = async (encryptedId) => {
+
+        try {
+            const response = await axiosInstance.get(
+                `/peme-response-details/download/${encryptedId}`,
+                {
+                    responseType: 'blob',
+                    headers,
+
+                }
+
+            );
+
+            console.log("Headers:", response.headers);
+            const contentDisposition = response.headers['content-disposition'];
+            let filename = "downloaded_file";
+
+            if (contentDisposition) {
+                const match = contentDisposition.match(/filename="?([^"]+)"?/);
+                filename = match?.[1] || file?.file_name || filename;
             }
 
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-
+            const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement("a");
             link.href = url;
-            link.setAttribute("download", filename);
+            link.download = filename;
             document.body.appendChild(link);
             link.click();
             link.remove();
+            window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error("Download error:", error);
             alert("An error occurred while downloading.");
@@ -73,7 +86,7 @@ const PemeRecordsFilePreview = ({ open, close, file }) => {
                     {file?.file_name && (
                         <Tooltip title="Download file">
                             <IconButton
-                                onClick={() => downloadFile(file.file_name)}
+                                onClick={() => downloadFile(file.id)}
                                 sx={{
                                     color: "#727F91",
                                     padding: 1,
@@ -105,7 +118,7 @@ const PemeRecordsFilePreview = ({ open, close, file }) => {
                             flex: 1,
                             border: "1px solid #ccc",
                             borderRadius: 2,
-                            overflow: "hidden",
+                            overflow: "auto",
                             backgroundColor: "#fff",
                         }}
                     >

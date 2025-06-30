@@ -15,6 +15,8 @@ use App\Models\PemeResponseDetails;
 use App\Models\PemeQItem;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Support\Facades\Validator;
+use Ilovepdf\Ilovepdf;
+use Illuminate\Support\Facades\Storage;
 
 class PemeResponseController extends Controller
 {
@@ -29,7 +31,7 @@ class PemeResponseController extends Controller
         return false;
     }
 
-    public function index()
+    public function showResponses()
     {
         $user = Auth::user();
 
@@ -100,7 +102,7 @@ class PemeResponseController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function createResponse(Request $request)
     {
 
         $request->merge([
@@ -168,15 +170,8 @@ class PemeResponseController extends Controller
         );
     }
 
-    public function storeAll(Request $request)
+    public function submitResponse(Request $request)
     {
-
-        // \Log::info("INCOMING FILE KEYS", [
-        //     'all' => $request->all(),
-        //     'allFiles' => $request->allFiles(),
-        //     'hasFile' => $request->hasFile('responses'),
-        // ]);
-        // \Log::info('storeAll called', ['input' => $request->all()]);
 
         try {
             $validated = $request->validate([
@@ -220,7 +215,6 @@ class PemeResponseController extends Controller
 
         $missing = [];
         foreach ($requiredQuestionIds as $requiredId) {
-            // Find all responses for this question
             $responsesForQuestion = collect($validated['responses'])
                 ->filter(function ($resp) use ($requiredId) {
                     return Crypt::decrypt($resp['peme_q_item_id']) == $requiredId;
@@ -314,17 +308,6 @@ class PemeResponseController extends Controller
                     return $file instanceof UploadedFile && $file->isValid() && $file->getClientOriginalName();
                 });
 
-                // \Log::info('Received files for response', [
-                //     'index' => $index,
-                //     'files' => array_map(function ($f) {
-                //         return [
-                //             'name' => $f->getClientOriginalName(),
-                //             'mime' => $f->getMimeType(),
-                //             'valid' => $f->isValid(),
-                //         ];
-                //     }, $files)
-                // ]);
-
                 if (count($files)) {
                     $maxFiles = $detail->question->max_files;
                     $existingCount = $detail->getMedia('attachments')->count();
@@ -339,14 +322,6 @@ class PemeResponseController extends Controller
                     $fileSizeLimitMb = $detail->inputType ? $detail->inputType->file_size_limit : null;
                     $maxKilobytes = $fileSizeLimitMb ? intval($fileSizeLimitMb * 1024) : null;
 
-                    \Log::info('File size limit for upload', [
-                        'fileSizeLimitMb' => $fileSizeLimitMb,
-                        'maxKilobytes' => $maxKilobytes,
-                        'question_id' => $detail->peme_q_item_id,
-                        'type_id' => $detail->peme_q_type_id,
-                        'question' => $detail->question->question ?? null,
-                    ]);
-
                     foreach ($files as $file) {
                         if (
                             !$file instanceof UploadedFile ||
@@ -358,9 +333,75 @@ class PemeResponseController extends Controller
 
                         $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
                         $validator = Validator::make(['file' => $file], $rules);
+                        $compressOnly = 1024 * 1024 * 5;
 
+                        $originalName = $file->getClientOriginalName();
+                        $originalSize = $file->getSize();
+
+                        $shouldCompress = (
+                            $file->getClientOriginalExtension() === 'pdf'
+                            && $originalSize > $compressOnly
+                        );
+
+                        if ($shouldCompress) {
+                            try {
+                                $ilovepdf = new Ilovepdf(
+                                    env('ILOVE_PDF_PUBLIC_KEY'),
+                                    env('ILOVE_PDF_SECRET_KEY')
+                                );
+
+                                $task = $ilovepdf->newTask('compress');
+
+                                $tempPath = $file->storeAs('tmp_uploads', uniqid() . '.pdf');
+                                $fullTempPath = storage_path("app/" . $tempPath);
+
+                                $fileObject = $task->addFile($fullTempPath);
+                                $task->execute();
+                                $task->download(storage_path("app/tmp_uploads"));
+
+                                // Dynamically find the compressed file (usually only one will be new)
+                                $downloadPath = storage_path("app/tmp_uploads");
+                                $matchingFiles = glob($downloadPath . '/*.pdf');
+
+                                if (empty($matchingFiles)) {
+                                    throw new \Exception('No compressed PDF file found.');
+                                }
+
+                                // Just grab the first matching file
+                                $compressedPath = $matchingFiles[0];
+                                $compressedSize = filesize($compressedPath);
+
+                                // Logging info
+                                \Log::info('File compression summary', [
+                                    'original_name' => $originalName,
+                                    'original_size_kb' => round($originalSize / 1024, 2),
+                                    'compressed_size_kb' => round($compressedSize / 1024, 2),
+                                ]);
+
+                                $file = new UploadedFile(
+                                    $compressedPath,
+                                    $file->getClientOriginalName(),
+                                    'application/pdf',
+                                    null,
+                                    true
+                                );
+                            } catch (\Exception $e) {
+                                \Log::error('File compression error', [
+                                    'file' => $file->getClientOriginalName(),
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
+                        }
                         try {
                             $media = $detail->addMedia($file)->toMediaCollection('attachments');
+
+                            if (isset($tempPath)) {
+                                Storage::delete($tempPath);
+                            }
+
+                            if (isset($compressedPath) && file_exists($compressedPath)) {
+                                @unlink($compressedPath);
+                            }
                         } catch (\Exception $e) {
                             \Log::error('MediaLibrary error', [
                                 'error' => $e->getMessage(),
@@ -458,7 +499,7 @@ class PemeResponseController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function getUserResponse($id)
     {
         $id = Crypt::decrypt($id);
 

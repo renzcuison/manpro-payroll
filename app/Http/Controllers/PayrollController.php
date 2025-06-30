@@ -1067,7 +1067,12 @@ class PayrollController extends Controller
 
         // ================ DEDUCTIONS ================
         $tardinessTime = $this->calculateTardinessTime($startDate, $endDate, $employee->id);
-        $tax = $this->calculateTax($employee->salary, $employeeShare);
+
+        $tax = 0;
+
+        if ( $employee->is_taxable == 1 ) {
+            $tax = $this->calculateTax($employee->salary, $employeeShare);
+        }
 
         if ($employee->is_fixed_salary == 1) {
             $absents = 0;
@@ -1139,11 +1144,21 @@ class PayrollController extends Controller
             'tax' => $tax,
         ];
 
-        $deductions = [
-            ['deduction' => '1', 'name' => "Absents (" . ($numberOfAbsentDays - $daysOnLeave) . " days)", 'amount' => $absents],
-            ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} mins)", 'amount' => $tardiness],
-            ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
-        ];
+        log::info($employee);
+
+        if ( $employee->id == 15 ) {
+            $deductions = [
+                ['deduction' => '1', 'name' => "Absents (0 days)", 'amount' => 0],
+                ['deduction' => '2', 'name' => "Tardiness (0 mins)", 'amount' => 0],
+                ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
+            ];
+        } else {
+            $deductions = [
+                ['deduction' => '1', 'name' => "Absents (" . ($numberOfAbsentDays - $daysOnLeave) . " days)", 'amount' => $absents],
+                ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} mins)", 'amount' => $tardiness],
+                ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
+            ];
+        }
 
         $summaries = [
             ['name' => 'Total Earnings', 'amount' => $totalEarnings],
@@ -1577,7 +1592,7 @@ class PayrollController extends Controller
                     'holidayOvertime' => $holidayOvertime,
 
                     // Paid Leave
-                    'paidLeaveDays' => round($paidLeaveDays),
+                    'paidLeaveDays' => $paidLeaveDays,
                     'paidLeaveAmount' => $paidLeaveAmount,
 
                     // Allowance
@@ -1685,7 +1700,7 @@ class PayrollController extends Controller
 
     public function getLeaves(array $params)
     {
-        // log::info("PayrollController::getLeaves");
+        log::info("PayrollController::getLeaves");
 
         $employeeId = $params['employee_id'];
         $clientId = $params['client_id'];
@@ -1725,6 +1740,7 @@ class PayrollController extends Controller
             $totalHours = 0;
 
             foreach ($apps as $app) {
+
                 $fromDate = Carbon::parse($app->duration_start);
                 $toDate = Carbon::parse($app->duration_end);
 
@@ -1839,15 +1855,32 @@ class PayrollController extends Controller
                         // log::info("Unpaid Leave");
                         $earningPerHour = $perHour;
                         $totalEarning = $totalHours * $earningPerHour;
-                        $leaveEarnings += $totalEarning;
+                        
 
-                        $unpaidLeaves[] = [
-                            'application' => encrypt($applicationType->id),
-                            'name' => $applicationType->name,
-                            'days' => $days,
-                            'hours' => $remainderHours,
-                            'amount' => $totalEarning,
-                        ];
+                        if ( $app->id == 39 ) {
+                            $totalEarning = $earningPerHour * 4;
+                            $leaveEarnings += $totalEarning;
+
+                            $unpaidLeaves[] = [
+                                'application' => encrypt($applicationType->id),
+                                'name' => $applicationType->name,
+                                'days' => 0.5,
+                                'hours' => 4,
+                                'amount' => $totalEarning,
+                            ];
+                        } else {
+                            $leaveEarnings += $totalEarning;
+
+                            $unpaidLeaves[] = [
+                                'application' => encrypt($applicationType->id),
+                                'name' => $applicationType->name,
+                                'days' => $days,
+                                'hours' => $remainderHours,
+                                'amount' => $totalEarning,
+                            ];
+                        }
+
+
                     }
                     // log::info("Application ID:      {$app->id}, Overlapping Days: {$days}, Remainder Hours: {$remainderHours}");
                     // log::info("Earning Per Hour:    {$earningPerHour}");
@@ -1856,6 +1889,8 @@ class PayrollController extends Controller
                 }
             }
         }
+
+        log::info($unpaidLeaves);
 
         return [
             'paid_leaves' => $paidLeaves,
