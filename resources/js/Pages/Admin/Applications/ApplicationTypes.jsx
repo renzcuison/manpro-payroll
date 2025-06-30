@@ -88,8 +88,8 @@ const ApplicationsTypes = () => {
                                         <TableHead>
                                             <TableRow>
                                                 <TableCell align="center">Type Name</TableCell>
-                                                <TableCell align="center">Paid Leave</TableCell>
                                                 <TableCell align="center">Percentage</TableCell>
+                                                <TableCell align="center">Paid Leave</TableCell>
                                                 <TableCell align="center">Require Files</TableCell>
                                                 <TableCell align="center">Tenureship Required</TableCell>
                                             </TableRow>

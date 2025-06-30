@@ -92,10 +92,9 @@ const PerformanceEvaluationResultPage = () => {
           setSelectedResultId(filtered[0].id);
         } else if (filtered.length > 0 && !selectedResultId) {
           setSelectedResultId(filtered[0].id);
-        }
+        } else setLoading(false);
       })
-      .catch(() => setResults([]))
-      .finally(() => setLoading(false));
+      .catch(() => setResults([]));
     // eslint-disable-next-line
   }, []);
 

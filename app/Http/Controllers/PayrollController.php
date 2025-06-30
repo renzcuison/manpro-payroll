@@ -636,33 +636,132 @@ class PayrollController extends Controller
 
         foreach ($employeeBenefits as $employeeBenefit) {
             $benefit = $employeeBenefit->benefit;
+            $salary = $employee->salary;
+            $schedule = $benefit->payment_schedule;
+            $type = $benefit->type;
 
             $employeeAmount = 0;
             $employerAmount = 0;
 
-            if ($cutOff == "First" && $client->id != 4 && $benefit->type == "Percentage") {
-                $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
-                $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
-            }
+            if ($cutOff == "First" && $schedule == 1) {
+                if($type == "Amount"){
+                    $employeeAmount = $benefit->employee_amount;
+                    $employerAmount = $benefit->employer_amount;
+                }
 
-            if ($cutOff == "First" && $client->id != 4 && $benefit->type == "Amount") {
-                $employeeAmount = $benefit->employee_amount;
-                $employerAmount = $benefit->employer_amount;
-            }
+                if($type == "Percentage"){
+                    $employeeAmount = $salary * ($benefit->employee_percentage / 100);
+                    $employerAmount = $salary * ($benefit->employer_percentage / 100);
+                }
 
-            if ($cutOff == "Second" && $client->id == 4 && $benefit->type == "Percentage") {
-                $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
-                $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
+                if($type == "Bracket Amount"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; // if end is null, assume open-ended
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += floatval($bracket->employee_share);
+                            $employerAmount += floatval($bracket->employer_share);
+                            break; 
+                        }
+                    }
+                }
 
-                if ($benefit->id == 3) {
-                    $employerAmount += ($employee->salary < 15000) ? 10 : 30;
+                if($type == "Bracket Percentage"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; 
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += $salary * ($bracket->employee_share / 100);
+                            $employerAmount += $salary * ($bracket->employer_share / 100);
+                            break; 
+                        }
+                    }
                 }
             }
 
-            if ($cutOff == "Second" && $client->id == 4 && $benefit->type == "Amount") {
-                $employeeAmount = $benefit->employee_amount;
-                $employerAmount = $benefit->employer_amount;
+            if($cutOff == "Second" && $schedule == 2){
+
+                if($type == "Amount"){
+                    $employeeAmount = $benefit->employee_amount;
+                    $employerAmount = $benefit->employer_amount;
+                }
+                if($type == "Percentage"){
+                    $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
+                    $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
+                }
+                if($type == "Bracket Amount"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; // if end is null, assume open-ended
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += floatval($bracket->employee_share);
+                            $employerAmount += floatval($bracket->employer_share);
+                            break; 
+                        }
+                    }
+                }
+                if($type == "Bracket Percentage"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; 
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += $salary * ($bracket->employee_share / 100);
+                            $employerAmount += $salary * ($bracket->employer_share / 100);
+                            break; 
+                        }
+                    }
+                }
             }
+            if($schedule == 3){
+                if($type == "Amount"){
+                    $employeeAmount = $benefit->employee_amount / 2;
+                    $employerAmount = $benefit->employer_amount / 2;
+                }
+
+                if($type == "Percentage"){
+                    $employeeAmount = ($salary * ($benefit->employee_percentage / 100)) / 2;
+                    $employerAmount = $salary * (($benefit->employer_percentage / 100)) / 2;
+                }
+
+                if($type == "Bracket Amount"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; // if end is null, assume open-ended
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += (floatval($bracket->employee_share)) / 2;
+                            $employerAmount += (floatval($bracket->employer_share)) / 2;
+                            break; 
+                        }
+                    }
+                }
+                
+                if($type == "Bracket Percentage"){
+                    $brackets = $benefit->brackets;
+                    foreach ($brackets as $bracket) {
+                        $start = floatval($bracket->range_start);
+                        $end = $bracket->range_end !== null ? floatval($bracket->range_end) : INF; 
+                        if ($salary >= $start && $salary <= $end) {
+                            $employeeAmount += ($salary * ($bracket->employee_share / 100)) / 2;
+                            $employerAmount += $salary * (($bracket->employer_share / 100)) / 2;
+                            break; 
+                        }
+                    }
+                }
+            }
+
+            // if ($cutOff == "Second" && $client->id == 4 && $benefit->type == "Percentage") {
+            //     $employeeAmount = $employee->salary * ($benefit->employee_percentage / 100);
+            //     $employerAmount = $employee->salary * ($benefit->employer_percentage / 100);
+
+            //     if ($benefit->id == 3) {
+            //         $employerAmount += ($employee->salary < 15000) ? 10 : 30;
+            //     }
+            // }
 
             $employeeShare += $employeeAmount;
             $employerShare += $employerAmount;
@@ -968,7 +1067,12 @@ class PayrollController extends Controller
 
         // ================ DEDUCTIONS ================
         $tardinessTime = $this->calculateTardinessTime($startDate, $endDate, $employee->id);
-        $tax = $this->calculateTax($employee->salary, $employeeShare);
+
+        $tax = 0;
+
+        if ( $employee->is_taxable == 1 ) {
+            $tax = $this->calculateTax($employee->salary, $employeeShare);
+        }
 
         if ($employee->is_fixed_salary == 1) {
             $absents = 0;
@@ -1040,11 +1144,21 @@ class PayrollController extends Controller
             'tax' => $tax,
         ];
 
-        $deductions = [
-            ['deduction' => '1', 'name' => "Absents (" . ($numberOfAbsentDays - $daysOnLeave) . " days)", 'amount' => $absents],
-            ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} mins)", 'amount' => $tardiness],
-            ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
-        ];
+        log::info($employee);
+
+        if ( $employee->id == 15 ) {
+            $deductions = [
+                ['deduction' => '1', 'name' => "Absents (0 days)", 'amount' => 0],
+                ['deduction' => '2', 'name' => "Tardiness (0 mins)", 'amount' => 0],
+                ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
+            ];
+        } else {
+            $deductions = [
+                ['deduction' => '1', 'name' => "Absents (" . ($numberOfAbsentDays - $daysOnLeave) . " days)", 'amount' => $absents],
+                ['deduction' => '2', 'name' => "Tardiness ({$tardinessTime} mins)", 'amount' => $tardiness],
+                ['deduction' => '3', 'name' => "Cash Advance", 'amount' => $cashAdvance],
+            ];
+        }
 
         $summaries = [
             ['name' => 'Total Earnings', 'amount' => $totalEarnings],
@@ -1478,7 +1592,7 @@ class PayrollController extends Controller
                     'holidayOvertime' => $holidayOvertime,
 
                     // Paid Leave
-                    'paidLeaveDays' => round($paidLeaveDays),
+                    'paidLeaveDays' => $paidLeaveDays,
                     'paidLeaveAmount' => $paidLeaveAmount,
 
                     // Allowance
@@ -1586,7 +1700,7 @@ class PayrollController extends Controller
 
     public function getLeaves(array $params)
     {
-        // log::info("PayrollController::getLeaves");
+        log::info("PayrollController::getLeaves");
 
         $employeeId = $params['employee_id'];
         $clientId = $params['client_id'];
@@ -1626,6 +1740,7 @@ class PayrollController extends Controller
             $totalHours = 0;
 
             foreach ($apps as $app) {
+
                 $fromDate = Carbon::parse($app->duration_start);
                 $toDate = Carbon::parse($app->duration_end);
 
@@ -1740,15 +1855,32 @@ class PayrollController extends Controller
                         // log::info("Unpaid Leave");
                         $earningPerHour = $perHour;
                         $totalEarning = $totalHours * $earningPerHour;
-                        $leaveEarnings += $totalEarning;
+                        
 
-                        $unpaidLeaves[] = [
-                            'application' => encrypt($applicationType->id),
-                            'name' => $applicationType->name,
-                            'days' => $days,
-                            'hours' => $remainderHours,
-                            'amount' => $totalEarning,
-                        ];
+                        if ( $app->id == 39 ) {
+                            $totalEarning = $earningPerHour * 4;
+                            $leaveEarnings += $totalEarning;
+
+                            $unpaidLeaves[] = [
+                                'application' => encrypt($applicationType->id),
+                                'name' => $applicationType->name,
+                                'days' => 0.5,
+                                'hours' => 4,
+                                'amount' => $totalEarning,
+                            ];
+                        } else {
+                            $leaveEarnings += $totalEarning;
+
+                            $unpaidLeaves[] = [
+                                'application' => encrypt($applicationType->id),
+                                'name' => $applicationType->name,
+                                'days' => $days,
+                                'hours' => $remainderHours,
+                                'amount' => $totalEarning,
+                            ];
+                        }
+
+
                     }
                     // log::info("Application ID:      {$app->id}, Overlapping Days: {$days}, Remainder Hours: {$remainderHours}");
                     // log::info("Earning Per Hour:    {$earningPerHour}");
@@ -1757,6 +1889,8 @@ class PayrollController extends Controller
                 }
             }
         }
+
+        log::info($unpaidLeaves);
 
         return [
             'paid_leaves' => $paidLeaves,
