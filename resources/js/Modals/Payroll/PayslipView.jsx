@@ -4,9 +4,11 @@ import axiosInstance, { getJWTHeader } from "../../utils/axiosConfig";
 import "react-quill/dist/quill.snow.css";
 import Swal from 'sweetalert2';
 
+import { useUser } from '../../hooks/useUser';
 import Payslip from "../../components/Payroll/Payslip";
 
 const PayslipView = ({ open, close, selectedPayroll }) => {
+    const { user } = useUser();
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
@@ -71,15 +73,18 @@ const PayslipView = ({ open, close, selectedPayroll }) => {
                     </Box>
                 </DialogTitle>
 
-                <DialogContent sx={{ px: 5, pb: 5 }}>
-                    <Payslip selectedPayroll={selectedPayroll} />
-
-                    <Box display="flex" justifyContent="center" sx={{ marginTop: 8 }}>
-                        <Button onClick={handleDeletePayslip} variant="contained" sx={{ backgroundColor: '#f44336', color: 'white' }} >
-                            <p className='m-0'><i className="fa fa-trash mr-2 mt-1"></i> Delete Payslip </p>
-                        </Button>
-                    </Box>
-                </DialogContent>
+                
+                    <DialogContent sx={{ px: 5, pb: 5 }}>
+                        <Payslip selectedPayroll={selectedPayroll} />
+                        
+                        {user.user_type === "Admin" && (
+                            <Box display="flex" justifyContent="center" sx={{ marginTop: 8 }}>
+                                <Button onClick={handleDeletePayslip} variant="contained" sx={{ backgroundColor: '#f44336', color: 'white' }} >
+                                    <p className='m-0'><i className="fa fa-trash mr-2 mt-1"></i> Delete Payslip</p>
+                                </Button>
+                            </Box>
+                        )}
+                    </DialogContent>
             </Dialog>
         </>
     );
