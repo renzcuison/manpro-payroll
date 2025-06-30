@@ -274,7 +274,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getWorkDays', [WorkScheduleController::class, 'getWorkDays']);
         Route::post('/saveWorkDay', [WorkScheduleController::class, 'saveWorkDay']);
 
-        Route::get('/getHolidays', [WorkScheduleController::class, 'getHolidays']);
+        Route::get('/getHolidays', [
+            WorkScheduleController::class,
+            'getHolidays',
+        ]);
+
+        route::get('/getWorkSchedByUser', [
+            WorkScheduleController::class,
+            'getWorkSchedByUser',
+        ]);
     });
 
     Route::prefix('attendance')->group(function () {
