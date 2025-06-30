@@ -161,7 +161,7 @@ const PemeQuestionnairePreview = () => {
 
     useEffect(() => {
         axiosInstance
-            .get(`/peme/${PemeID}/questionnaire`, { headers })
+            .get(`/peme/${PemeID}/getQuestionnaire`, { headers })
             .then((response) => {
                 setPemePreview(response.data);
                 console.log("PEME Records responses:", response.data);

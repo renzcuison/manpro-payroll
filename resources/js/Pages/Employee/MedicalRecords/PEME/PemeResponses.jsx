@@ -40,7 +40,7 @@ const PemeResponses = () => {
     // GET EXAMS TAKEN BY EMPLOYEE
     useEffect(() => {
         axiosInstance
-            .get("/peme-responses", { headers })
+            .get("/peme-responses/showResponses", { headers })
             .then((response) => {
                 setPemeResponses(response.data);
                 setIsLoading(false);
@@ -90,7 +90,7 @@ const PemeResponses = () => {
 
     const handleCloseAddPemeRecordsModal = () => {
         setOpenAddPemeRecordsModal(false);
-        axiosInstance.get("/peme-responses", { headers }).then((response) => {
+        axiosInstance.get("/peme-responses/showResponses", { headers }).then((response) => {
             setPemeResponses(response.data);
         });
     };

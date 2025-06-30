@@ -175,7 +175,7 @@ const PemeQuestionnaireView = () => {
 
     useEffect(() => {
         axiosInstance
-            .get(`/peme-response/${PemeResponseID}/details`, {
+            .get(`/peme-response/${PemeResponseID}/getResponse`, {
                 headers,
             })
             .then((response) => {
@@ -220,7 +220,7 @@ const PemeQuestionnaireView = () => {
                     console.log(payload);
 
                     await axiosInstance.patch(
-                        `/peme-responses/${PemeResponseID}/status`,
+                        `/peme-responses/${PemeResponseID}/updateResponse`,
                         payload,
                         { headers }
                     );

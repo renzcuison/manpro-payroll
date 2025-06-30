@@ -333,11 +333,15 @@ class PemeResponseController extends Controller
 
                         $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
                         $validator = Validator::make(['file' => $file], $rules);
-
-                        $shouldCompress = $file->getClientOriginalExtension() === 'pdf';
+                        $compressOnly = 1024 * 1024 * 5;
 
                         $originalName = $file->getClientOriginalName();
                         $originalSize = $file->getSize();
+
+                        $shouldCompress = (
+                            $file->getClientOriginalExtension() === 'pdf'
+                            && $originalSize > $compressOnly
+                        );
 
                         if ($shouldCompress) {
                             try {

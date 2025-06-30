@@ -43,7 +43,7 @@ const PemeRecordsAddModal = ({ open, close, records }) => {
             const payload = { peme_id: selectedExamID };
             console.log(payload);
 
-            const response = await axiosInstance.post("/peme-responses", payload, { headers });
+            const response = await axiosInstance.post("/peme-responses/createResponse", payload, { headers });
 
             console.log("Successfully created questionnaire:", response.data);
 
@@ -54,7 +54,7 @@ const PemeRecordsAddModal = ({ open, close, records }) => {
                 confirmButtonColor: "#177604",
             });
 
-            close(true); 
+            close(true);
         } catch (error) {
             console.error("Error creating questionnaire:", error);
 

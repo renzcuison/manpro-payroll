@@ -318,7 +318,7 @@ const PemeQuestionnaireView = () => {
 
     useEffect(() => {
         axiosInstance
-            .get(`/peme-response/${PemeResponseID}/details`, {
+            .get(`/peme-response/${PemeResponseID}/getResponse`, {
                 headers,
             })
             .then((response) => {
@@ -478,12 +478,12 @@ const PemeQuestionnaireView = () => {
                 });
 
                 try {
-                    await axiosInstance.post(`/peme-responses/storeAll`, formData, {
+                    await axiosInstance.post(`/peme-responses/submitResponse`, formData, {
                         headers,
                     });
 
                     const response = await axiosInstance.get(
-                        `/peme-response/${PemeResponseID}/details`,
+                        `/peme-response/${PemeResponseID}/getResponse`,
                         { headers }
                     );
                     setEmployeeResponse(response.data);
@@ -668,12 +668,12 @@ const PemeQuestionnaireView = () => {
         }
 
         try {
-            await axiosInstance.post(`/peme-responses/storeAll`, formData, {
+            await axiosInstance.post(`/peme-responses/submitResponse`, formData, {
                 headers,
             });
 
             const response = await axiosInstance.get(
-                `/peme-response/${PemeResponseID}/details`,
+                `/peme-response/${PemeResponseID}/getResponse`,
                 { headers }
             );
             setEmployeeResponse(response.data);
