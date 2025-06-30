@@ -27,32 +27,24 @@ class PemeResponseDetailsController extends Controller
         return false;
     }
 
-
     public function download($id)
     {
         try {
             $mediaId = Crypt::decrypt($id);
-            $media = Media::findOrFail($mediaId);
         } catch (\Exception $e) {
-            \Log::error('Media download failed: ' . $e->getMessage());
-            return response()->json(['message' => 'Invalid or missing media ID.'], 404);
+            return response()->json(['message' => 'Invalid file ID.'], 400);
         }
 
-
+        $media = Media::findOrFail($mediaId);
         $path = $media->getPath();
 
         if (!file_exists($path)) {
             return response()->json(['message' => 'File not found on disk.'], 404);
         }
 
-        $mimeType = $media->mime_type ?? mime_content_type($path) ?? 'application/octet-stream';
-
-        if (str_ends_with(strtolower($media->file_name), '.docx')) {
-            $mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        }
-
         return response()->download($path, $media->file_name, [
-            'Content-Type' => $mimeType
+            'Content-Type' => mime_content_type($path),
+            'Content-Disposition' => 'attachment; filename="' . $media->file_name . '"',
         ]);
     }
 

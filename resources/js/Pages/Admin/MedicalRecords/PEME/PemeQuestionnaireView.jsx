@@ -258,6 +258,7 @@ const PemeQuestionnaireView = () => {
     };
 
     const handleFileClick = (fileObj) => {
+        console.log('previewed', fileObj)
         if (fileObj?.file_name?.toLowerCase().endsWith(".docx") && fileObj.url) {
             const link = document.createElement("a");
             link.href = fileObj.url;
@@ -265,6 +266,8 @@ const PemeQuestionnaireView = () => {
             document.body.appendChild(link);
             link.click();
             link.remove();
+
+            // console.log('previewed', fileObj)
         } else {
             setSelectedFile(fileObj);
             setFilePreviewOpen(true);

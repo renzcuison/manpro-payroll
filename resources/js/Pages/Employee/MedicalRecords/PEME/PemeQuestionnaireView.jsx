@@ -35,6 +35,7 @@ const UploadForm = ({
     onFileClick,
     onRemoveFile,
     formID,
+
 }) => {
     const fileInputRef = useRef();
 
@@ -52,6 +53,7 @@ const UploadForm = ({
                     borderRadius: 1,
                     backgroundColor: "#e6e6e6",
                     display: "flex",
+                    flexWrap: "wrap",
                     alignItems: "center",
                     gap: 2,
                 }}
@@ -82,12 +84,37 @@ const UploadForm = ({
                                 backgroundColor: "#fafafa",
                                 cursor: "pointer",
                                 mr: 2,
+                                width: 170,
                             }}
                         >
-                            <FileUploadIcon
-                                sx={{ mr: 1, verticalAlign: "middle" }}
-                            />
-                            {file.file_name}
+                            <FileUploadIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                            {(() => {
+                                const name = file.file_name || "";
+                                const lastDot = name.lastIndexOf(".");
+                                let base = name;
+                                let ext = "";
+                                if (lastDot !== -1) {
+                                    base = name.substring(0, lastDot);
+                                    ext = name.substring(lastDot);
+                                }
+
+                                const maxBaseLength = 11;
+                                const displayBase = base.length > maxBaseLength ? base.substring(0, maxBaseLength) + "..." : base;
+                                return (
+                                    <span
+                                        style={{
+                                            display: "inline-block",
+                                            verticalAlign: "middle",
+                                            maxWidth: 120,
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap"
+                                        }}
+                                    >
+                                        {displayBase}{ext}
+                                    </span>
+                                );
+                            })()}
                             <Button
                                 sx={{
                                     zIndex: 10,
@@ -100,7 +127,7 @@ const UploadForm = ({
                                 }}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    onRemoveFile && onRemoveFile(file); // Pass the file object
+                                    onRemoveFile && onRemoveFile(file);
                                 }}
                             >
                                 <CancelIcon />
@@ -123,6 +150,7 @@ const UploadForm = ({
                                 backgroundColor: "#fafafa",
                                 cursor: "pointer",
                                 mr: 2,
+                                width: 200,
                             }}
                             // onClick={() => {
                             //     if (onFileClick && file?.url) {
@@ -280,6 +308,7 @@ const PemeQuestionnaireView = () => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const { PemeResponseID } = useParams();
     const [isLoading, setIsLoading] = useState(true);
+    const [uploadLoading, setUploadLoading] = useState(true);
     const [employeeResponse, setEmployeeResponse] = useState([]);
     const [expirationDate, setExpirationDate] = useState(dayjs());
     const [nextSchedule, setNextSchedule] = useState(dayjs());
@@ -294,6 +323,7 @@ const PemeQuestionnaireView = () => {
             })
             .then((response) => {
                 setEmployeeResponse(response.data);
+
             })
             .catch((error) => {
                 console.error("Error fetching PEME records:", error);
@@ -304,6 +334,7 @@ const PemeQuestionnaireView = () => {
     // Re-initialize answers whenever employeeResponse changes
     useEffect(() => {
         if (Array.isArray(employeeResponse.details)) {
+            setIsLoading(true);
             const initialAnswers = {};
             employeeResponse.details.forEach((form) => {
                 initialAnswers[form.question_id] = {};
@@ -331,159 +362,192 @@ const PemeQuestionnaireView = () => {
             showCancelButton: true,
             cancelButtonText: "Cancel",
         }).then(async (res) => {
-            const responses = [];
-
-            if (Array.isArray(employeeResponse.details)) {
-                employeeResponse.details.forEach((form) => {
-                    if (Array.isArray(form.input_type)) {
-                        form.input_type.forEach((type) => {
-                            const value =
-                                answers[form.question_id]?.[type.input_type] ??
-                                null;
-
-                            // Handle attachments
-                            if (type.input_type === "attachment") {
-                                // Existing backend files
-                                const existingFiles = Array.isArray(form.media)
-                                    ? form.media
-                                    : [];
-                                // New files (File objects)
-                                const newFiles = Array.isArray(value)
-                                    ? value.filter((f) => f instanceof File)
-                                    : [];
-
-                                const responseEntry = {
-                                    peme_q_item_id: form.question_id,
-                                    peme_q_type_id: type.id,
-                                    existing_file_ids: existingFiles.map(
-                                        (f) => f.id
-                                    ), // <-- use .id, not .file
-                                };
-
-                                if (newFiles.length > 0) {
-                                    responseEntry.files = newFiles;
-                                }
-
-                                if (newFiles.length > 0 || existingFiles.length > 0 || form.isRequired === 1) {
-                                    responses.push(responseEntry);
-                                }
-                            } else {
-                                // Non-attachment types
-                                responses.push({
-                                    peme_q_item_id: form.question_id,
-                                    peme_q_type_id: type.id,
-                                    value: value,
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-
-            const formData = new FormData();
-            formData.append("peme_response_id", PemeResponseID);
-            formData.append("isDraft", draftStatus);
-
-            responses.forEach((item, index) => {
-                formData.append(
-                    `responses[${index}][peme_q_item_id]`,
-                    item.peme_q_item_id
-                );
-                formData.append(
-                    `responses[${index}][peme_q_type_id]`,
-                    item.peme_q_type_id
-                );
-
-                // Always append existing file IDs
-                if (item.existing_file_ids) {
-                    if (item.existing_file_ids.length === 0) {
-                        formData.append(
-                            `responses[${index}][existing_file_ids]`,
-                            ""
-                        );
-                    } else {
-                        item.existing_file_ids.forEach((id, idIndex) => {
-                            formData.append(
-                                `responses[${index}][existing_file_ids][${idIndex}]`,
-                                id
-                            );
-                        });
-                    }
-                }
-
-                // Append new files
-                if (
-                    Array.isArray(item.files) &&
-                    item.files[0] instanceof File
-                ) {
-                    item.files
-                        .filter(f => f instanceof File)
-                        .forEach((file, fileIndex) => {
-                            formData.append(
-                                `responses[${index}][files][${fileIndex}]`,
-                                file
-                            );
-                        });
-                }
-
-                // For non-attachments
-                if (item.value !== undefined && item.value !== null) {
-                    formData.append(`responses[${index}][value]`, item.value);
-                }
-            });
-
-            try {
-                await axiosInstance.post(`/peme-responses/storeAll`, formData, {
-                    headers,
-                });
-
-                const response = await axiosInstance.get(
-                    `/peme-response/${PemeResponseID}/details`,
-                    { headers }
-                );
-                setEmployeeResponse(response.data);
+            if (res.isConfirmed) {
                 Swal.fire({
-                    icon: "success",
-                    text: "Response saved successfully.",
+                    customClass: { container: "my-swal" },
+                    title: "Submitting.",
+                    text: "Please wait.",
+                    allowOutsideClick: false,
                     showConfirmButton: false,
-                    timer: 1500,
-                });
-            } catch (error) {
-                const status = error.response.status;
+                    showCancelButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
 
-                console.log("ERROR", error);
-                if (status >= 500) {
-                    Swal.fire({
-                        title: "Server Error",
-                        text: `error`,
-                        icon: "error",
-                        confirmButtonText: "Okay",
-                        confirmButtonColor: "#177604",
-                    });
-                } else if (status === 400) {
-                    Swal.fire({
-                        title: "Error",
-                        text: `Submission Failed`,
-                        icon: "error",
-                        confirmButtonText: "Okay",
-                        confirmButtonColor: "#177604",
-                    });
-                } else {
-                    Swal.fire({
-                        title: "Error",
-                        text: `Please Fill out all required fields`,
-                        icon: "error",
-                        confirmButtonText: "Okay",
-                        confirmButtonColor: "#177604",
+                });
+
+                const responses = [];
+
+                if (Array.isArray(employeeResponse.details)) {
+                    employeeResponse.details.forEach((form) => {
+                        if (Array.isArray(form.input_type)) {
+                            form.input_type.forEach((type) => {
+                                const value =
+                                    answers[form.question_id]?.[type.input_type] ??
+                                    null;
+
+                                // Handle attachments
+                                if (type.input_type === "attachment") {
+                                    // Existing backend files
+                                    const existingFiles = Array.isArray(form.media)
+                                        ? form.media
+                                        : [];
+                                    // New files (File objects)
+                                    const newFiles = Array.isArray(value)
+                                        ? value.filter((f) => f instanceof File)
+                                        : [];
+
+                                    const responseEntry = {
+                                        peme_q_item_id: form.question_id,
+                                        peme_q_type_id: type.id,
+                                        existing_file_ids: existingFiles.map(
+                                            (f) => f.id
+                                        ), // <-- use .id, not .file
+                                    };
+
+                                    if (newFiles.length > 0) {
+                                        responseEntry.files = newFiles;
+                                    }
+
+                                    if (newFiles.length > 0 || existingFiles.length > 0 || form.isRequired === 1) {
+                                        responses.push(responseEntry);
+                                    }
+                                } else {
+                                    // Non-attachment types
+                                    responses.push({
+                                        peme_q_item_id: form.question_id,
+                                        peme_q_type_id: type.id,
+                                        value: value,
+                                    });
+                                }
+                            });
+                        }
                     });
                 }
 
-                console.log(error);
+                const formData = new FormData();
+                formData.append("peme_response_id", PemeResponseID);
+                formData.append("isDraft", draftStatus);
+
+                responses.forEach((item, index) => {
+                    formData.append(
+                        `responses[${index}][peme_q_item_id]`,
+                        item.peme_q_item_id
+                    );
+                    formData.append(
+                        `responses[${index}][peme_q_type_id]`,
+                        item.peme_q_type_id
+                    );
+
+                    // Always append existing file IDs
+                    if (item.existing_file_ids) {
+                        if (item.existing_file_ids.length === 0) {
+                            formData.append(
+                                `responses[${index}][existing_file_ids]`,
+                                ""
+                            );
+                        } else {
+                            item.existing_file_ids.forEach((id, idIndex) => {
+                                formData.append(
+                                    `responses[${index}][existing_file_ids][${idIndex}]`,
+                                    id
+                                );
+                            });
+                        }
+                    }
+
+                    // Append new files
+                    if (
+                        Array.isArray(item.files) &&
+                        item.files[0] instanceof File
+                    ) {
+                        item.files
+                            .filter(f => f instanceof File)
+                            .forEach((file, fileIndex) => {
+                                formData.append(
+                                    `responses[${index}][files][${fileIndex}]`,
+                                    file
+                                );
+                            });
+                    }
+
+                    // For non-attachments
+                    if (item.value !== undefined && item.value !== null) {
+                        formData.append(`responses[${index}][value]`, item.value);
+                    }
+                });
+
+                try {
+                    await axiosInstance.post(`/peme-responses/storeAll`, formData, {
+                        headers,
+                    });
+
+                    const response = await axiosInstance.get(
+                        `/peme-response/${PemeResponseID}/details`,
+                        { headers }
+                    );
+                    setEmployeeResponse(response.data);
+
+                    Swal.close();
+
+                    Swal.fire({
+                        icon: "success",
+                        text: "Response saved successfully.",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+                } catch (error) {
+                    Swal.close();
+
+                    const status = error.response.status;
+
+                    console.log("ERROR", error);
+                    if (status >= 500) {
+                        Swal.fire({
+                            title: "Server Error",
+                            text: `error`,
+                            icon: "error",
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        });
+                    } else if (status === 400) {
+                        Swal.fire({
+                            title: "Error",
+                            text: `Submission Failed`,
+                            icon: "error",
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: `Please Fill out all required fields`,
+                            icon: "error",
+                            confirmButtonText: "Okay",
+                            confirmButtonColor: "#177604",
+                        });
+                    }
+
+                    console.log(error);
+                }
             }
         });
     };
 
     const handleSaveDraft = async (draftStatus) => {
+        // setIsLoading(true);
+        Swal.fire({
+            customClass: { container: "my-swal" },
+            title: "Saving draft.",
+            text: "Please wait.",
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            showCancelButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         const responses = [];
 
         employeeResponse.details.forEach((form) => {
@@ -615,17 +679,27 @@ const PemeQuestionnaireView = () => {
             setEmployeeResponse(response.data);
             console.log("Refetch response.data", response.data);
             console.log("Refetch employeeResponse", employeeResponse);
+            setUploadLoading(false);
+
+            Swal.close();
+
+            if (uploadLoading === false) {
+
+                Swal.fire({
+                    icon: "success",
+                    text: "Draft saved successfully.",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+
+
+        } catch (error) {
+            Swal.close();
 
             Swal.fire({
-                icon: "success",
-                text: "Draft saved successfully.",
-                showConfirmButton: false,
-                timer: 1500,
-            });
-        } catch (error) {
-            Swal.fire({
                 title: "Error",
-                text: "Failed to save draft. Please try again.",
+                text: "Failed to `save draft`. Please try again.",
                 icon: "error",
                 confirmButtonText: "Okay",
                 confirmButtonColor: "#177604",
@@ -895,6 +969,7 @@ const PemeQuestionnaireView = () => {
                                                     return (
                                                         <UploadForm
                                                             key={i}
+
                                                             formID={
                                                                 form.question_id
                                                             }
