@@ -30,4 +30,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'ilovepdf' => [
+        'public_key' => env('ILOVE_PDF_PUBLIC_KEY'),
+        'secret_key' => env('ILOVE_PDF_SECRET_KEY'),
+    ],
+
 ];

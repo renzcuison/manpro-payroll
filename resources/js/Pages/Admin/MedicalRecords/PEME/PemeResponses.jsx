@@ -68,7 +68,7 @@ const PemeResponses = () => {
         setLoadingSettings(true);
 
         axiosInstance
-            .get(`/peme/${PemeID}/questionnaire`, { headers })
+            .get(`/peme/${PemeID}/getQuestionnaire`, { headers })
             .then((response) => {
                 setPemeRecords(response.data);
                 setVisible(response.data.isVisible);
@@ -89,7 +89,7 @@ const PemeResponses = () => {
         setLoadingSettings(true);
 
         axiosInstance
-            .get(`/peme/${PemeID}/questionnaire`, { headers })
+            .get(`/peme/${PemeID}/getQuestionnaire`, { headers })
             .then((response) => {
                 setPemeRecords(response.data);
                 setVisible(response.data.isVisible);
@@ -108,7 +108,7 @@ const PemeResponses = () => {
     // FETCH PEME RESPONSES FOR THE GIVEN PEME ID
     useEffect(() => {
         axiosInstance
-            .get(`/peme-responses/${PemeID}`, { headers })
+            .get(`/peme-responses/${PemeID}/getUserResponse`, { headers })
             .then((response) => {
                 setPemeResponses([response.data]);
                 console.log("responses", response.data);
@@ -122,7 +122,7 @@ const PemeResponses = () => {
 
     useEffect(() => {
         axiosInstance
-            .get(`/peme-responses/${PemeID}/all`, { headers })
+            .get(`/peme-responses/${PemeID}/showAll`, { headers })
             .then((response) => {
                 setRespondents([response.data]);
                 setIsLoading(false);
