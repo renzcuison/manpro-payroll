@@ -23,7 +23,7 @@ class PemeQuestionnaireController extends Controller
         return false;
     }
 
-    public function store(Request $request)
+    public function createQuestionnaire(Request $request)
     {
 
         $pemeId = Crypt::decrypt($request->peme_id);
@@ -115,7 +115,7 @@ class PemeQuestionnaireController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, $pemeId, $questionId)
+    public function updateQuestion(Request $request, $pemeId, $questionId)
     {
 
         $pemeId = Crypt::decrypt($pemeId);
@@ -258,7 +258,7 @@ class PemeQuestionnaireController extends Controller
         ]);
     }
 
-    public function destroy($questionId)
+    public function deleteQuestionnaire($questionId)
     {
 
         $questionId = Crypt::decrypt($questionId);
