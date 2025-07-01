@@ -17,6 +17,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Support\Facades\Validator;
 use Ilovepdf\Ilovepdf;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class PemeResponseController extends Controller
 {
@@ -333,8 +334,8 @@ class PemeResponseController extends Controller
 
                         $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
                         $validator = Validator::make(['file' => $file], $rules);
-                        $compressOnly = 1024 * 1024 * 5;
 
+                        $compressOnly = 1024 * 1024 * 5;
                         $originalName = $file->getClientOriginalName();
                         $originalSize = $file->getSize();
 
@@ -345,6 +346,8 @@ class PemeResponseController extends Controller
 
                         if ($shouldCompress) {
                             try {
+                                File::cleanDirectory(storage_path("app/tmp_uploads"));
+
                                 $ilovepdf = new Ilovepdf(
                                     env('ILOVE_PDF_PUBLIC_KEY'),
                                     env('ILOVE_PDF_SECRET_KEY')
@@ -359,7 +362,6 @@ class PemeResponseController extends Controller
                                 $task->execute();
                                 $task->download(storage_path("app/tmp_uploads"));
 
-                                // Dynamically find the compressed file (usually only one will be new)
                                 $downloadPath = storage_path("app/tmp_uploads");
                                 $matchingFiles = glob($downloadPath . '/*.pdf');
 
@@ -367,11 +369,9 @@ class PemeResponseController extends Controller
                                     throw new \Exception('No compressed PDF file found.');
                                 }
 
-                                // Just grab the first matching file
                                 $compressedPath = $matchingFiles[0];
                                 $compressedSize = filesize($compressedPath);
 
-                                // Logging info
                                 \Log::info('File compression summary', [
                                     'original_name' => $originalName,
                                     'original_size_kb' => round($originalSize / 1024, 2),

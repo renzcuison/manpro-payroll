@@ -419,7 +419,7 @@ const PemeQuestionnaireView = () => {
                                         peme_q_type_id: type.id,
                                         existing_file_ids: existingFiles.map(
                                             (f) => f.id
-                                        ), 
+                                        ),
                                     };
 
                                     if (newFiles.length > 0) {
@@ -720,10 +720,10 @@ const PemeQuestionnaireView = () => {
 
         } catch (error) {
             Swal.close();
-
+            s
             Swal.fire({
                 title: "Error",
-                text: "Failed to `save draft`. Please try again.",
+                text: "Failed to Save as Draft. Please try again.",
                 icon: "error",
                 confirmButtonText: "Okay",
                 confirmButtonColor: "#177604",
@@ -1072,10 +1072,23 @@ const PemeQuestionnaireView = () => {
                             >
                                 <Button
                                     variant="contained"
-                                    sx={{
-                                        backgroundColor: "#7a7a7a",
+                                    sx={{ backgroundColor: "#7a7a7a"}}
+                                    onClick={() => {
+                                        Swal.fire({
+                                            title: 'Are you sure?',
+                                            text: 'Any unsaved changes will be lost.',
+                                            icon: 'question',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#388e3c',
+                                            cancelButtonColor: '#7a7a7a',
+                                            confirmButtonText: 'Return',
+                                            cancelButtonText: 'Cancel',
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                handleOnCancelClick();
+                                            }
+                                        });
                                     }}
-                                    onClick={handleOnCancelClick}
                                 >
                                     Return
                                 </Button>

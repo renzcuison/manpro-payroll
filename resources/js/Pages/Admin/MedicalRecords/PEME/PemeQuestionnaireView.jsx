@@ -515,10 +515,23 @@ const PemeQuestionnaireView = () => {
                         >
                             <Button
                                 variant="contained"
-                                sx={{
-                                    backgroundColor: "#7a7a7a",
+                                sx={{ backgroundColor: "#7a7a7a" }}
+                                onClick={() => {
+                                    Swal.fire({
+                                        title: 'Are you sure?',
+                                        text: 'Any unsaved changes will be lost.',
+                                        icon: 'question',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#388e3c',
+                                        cancelButtonColor: '#7a7a7a',
+                                        confirmButtonText: 'Return',
+                                        cancelButtonText: 'Cancel',
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            handleOnCancelClick();
+                                        }
+                                    });
                                 }}
-                                onClick={handleOnCancelClick}
                             >
                                 Return
                             </Button>
