@@ -1,6 +1,10 @@
 import Layout from "../../../../components/Layout/Layout";
 import PemeRecordsFilePreview from "./Modals/PemeRecordsFilePreview";
 import React, { useState, useEffect } from "react";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import ArticleIcon from "@mui/icons-material/Article";
+import ImageIcon from "@mui/icons-material/Image";
+
 import {
     Box,
     Button,
@@ -31,9 +35,6 @@ const UploadForm = ({ fileSizeLimit, fileArray, fileName, onFileClick }) => {
 
     return (
         <>
-            <Typography variant="h7">
-                Max File Size: <strong>{limit}MB</strong>
-            </Typography>
             <Box
                 sx={{
                     border: 1,
@@ -64,33 +65,28 @@ const UploadForm = ({ fileSizeLimit, fileArray, fileName, onFileClick }) => {
                                 width: 150,
                             }}
                         >
-                             {(() => {
-                                const name = file.file_name || "";
-                                const lastDot = name.lastIndexOf(".");
-                                let base = name;
-                                let ext = "";
-                                if (lastDot !== -1) {
-                                    base = name.substring(0, lastDot);
-                                    ext = name.substring(lastDot);
-                                }
-
-                                const maxBaseLength = 10
-                                const displayBase = base.length > maxBaseLength ? base.substring(0, maxBaseLength) + "..." : base;
-                                return (
-                                    <span
-                                        style={{
-                                            display: "inline-block",
-                                            verticalAlign: "middle",
-                                            maxWidth: "100%",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            whiteSpace: "nowrap"
-                                        }}
-                                    >
-                                        {displayBase}{ext}
-                                    </span>
-                                );
-                            })()}
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                                {(() => {
+                                    const name = file.file_name || file.name || "";
+                                    const ext = name.split('.').pop().toLowerCase();
+                                    if (ext === "pdf") return <PictureAsPdfIcon sx={{ mr: 1, color: "#388e3c" }} />;
+                                    if (["doc", "docx"].includes(ext)) return <ArticleIcon sx={{ mr: 1, color: "#388e3c" }} />;
+                                    if (["jpg", "jpeg", "png"].includes(ext)) return <ImageIcon sx={{ mr: 1, color: "#388e3c" }} />;
+                                    return <ArticleIcon sx={{ mr: 1, color: "#388e3c" }} />; // fallback
+                                })()}
+                                <span
+                                    style={{
+                                        display: "inline-block",
+                                        verticalAlign: "middle",
+                                        maxWidth: "100%",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap"
+                                    }}
+                                >
+                                    {file.file_name || file.name || "Unknown file"}
+                                </span>
+                            </Box>
                         </Typography>
                     );
                 })}
@@ -100,6 +96,9 @@ const UploadForm = ({ fileSizeLimit, fileArray, fileName, onFileClick }) => {
                     ""
                 )}
             </Box>
+            <Typography variant="h7">
+                Max File Size: <strong>{limit}MB</strong>
+            </Typography>
         </>
     );
 };

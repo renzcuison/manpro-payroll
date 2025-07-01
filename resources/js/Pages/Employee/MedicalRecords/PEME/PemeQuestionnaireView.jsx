@@ -152,11 +152,7 @@ const UploadForm = ({
                                 mr: 2,
                                 width: 150,
                             }}
-                            // onClick={() => {
-                            //     if (onFileClick && file?.url) {
-                            //         onFileClick(file.url, file.file_name);
-                            //     }
-                            // }}
+
                             onClick={() => {
                                 if (onFileClick && file?.url) {
                                     onFileClick(file);
