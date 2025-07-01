@@ -520,7 +520,7 @@ const PemeQuestionnaireView = () => {
                                 }}
                                 onClick={handleOnCancelClick}
                             >
-                                Cancel
+                                Return
                             </Button>
                             <Box sx={{ display: "flex", gap: 2 }}>
                                 <LocalizationProvider

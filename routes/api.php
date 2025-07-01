@@ -791,7 +791,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent']);
     // temp error-fix
 
-    // Medical Records
     // PEME Dashboard
     Route::post('/createPeme', [PemeController::class, 'createPeme']);
     Route::get('/getPemeList', [PemeController::class, 'getPemeList']);
@@ -804,29 +803,32 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/peme/{pemeId}/getQuestionnaire', [PemeQuestionnaireController::class, 'getQuestionnaire']);
     Route::put('peme/{pemeID}/question/{questionId}/updateQuestion', [PemeQuestionnaireController::class, 'updateQuestion']);
     Route::delete('/peme/{questionId}/deleteQuestionnaire', [PemeQuestionnaireController::class, 'deleteQuestionnaire']);
+    // unused routes
     // Route::get('peme/{pemeID}/question/{questionId}', [PemeQuestionnaireController::class, 'show']);
 
     // PEME Responses
     Route::post('/peme-responses/submitResponse', [PemeResponseController::class, 'submitResponse']);
-    // Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
     Route::get('/peme-responses/showResponses', [PemeResponseController::class, 'showResponses']);
     Route::get('/peme-responses/{id}/getUserResponse', [PemeResponseController::class, 'getUserResponse']);
     Route::get('/peme-responses/{id}/showAll', [PemeResponseController::class, 'showAll']);
     Route::patch('/peme-responses/{id}/updateResponse', [PemeResponseController::class, 'updateResponse']);
     Route::post('/peme-responses/createResponse', [PemeResponseController::class, 'createResponse']);
+    Route::get('/peme-response/{id}/getResponse', [PemeResponseController::class, 'getResponse']);
+    // unused routes
+    // Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
     // Route::get('/peme-responses/summary/{pemeId}', [PemeResponseController::class, 'summary']);
     // Route::post('/peme-responses/{id}/restore', [PemeResponseController::class, 'restore']);
-    Route::get('/peme-response/{id}/getResponse', [PemeResponseController::class, 'getResponse']);
 
-    // Response Details
-    Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
-    Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
-    Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
-    Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);
-    Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
-    Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
-    Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
+    // PEME Response-Details
     Route::get('/peme-response-details/download/{id}', [PemeResponseDetailsController::class, 'download']);
+    // unused routes
+    // Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
+    // Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
+    // Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);
+    // Route::patch('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'update']);
+    // Route::delete('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'destroy']);
+    // Route::post('/peme-response-details/{id}/restore', [PemeResponseDetailsController::class, 'restore']);
+    // Route::post('/peme-response-details/{id}/attach-media', [PemeResponseDetailsController::class, 'attachMedia']);
 
     Route::put('/public-event/{id}', [GoogleController::class, 'updatePublicEvent', ]);
     Route::delete('/public-event/{id}', [GoogleController::class, 'deletePublicEvent', ]);

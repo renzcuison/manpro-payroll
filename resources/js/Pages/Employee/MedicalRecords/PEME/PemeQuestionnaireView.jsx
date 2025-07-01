@@ -419,14 +419,17 @@ const PemeQuestionnaireView = () => {
                                         peme_q_type_id: type.id,
                                         existing_file_ids: existingFiles.map(
                                             (f) => f.id
-                                        ), // <-- use .id, not .file
+                                        ), 
                                     };
 
                                     if (newFiles.length > 0) {
                                         responseEntry.files = newFiles;
                                     }
 
-                                    if (newFiles.length > 0 || existingFiles.length > 0 || form.isRequired === 1) {
+                                    if (
+                                        answers[form.question_id]?.[type.input_type] !== undefined ||
+                                        form.isRequired === 1
+                                    ) {
                                         responses.push(responseEntry);
                                     }
                                 } else {
@@ -582,11 +585,12 @@ const PemeQuestionnaireView = () => {
                             ? value.filter((f) => f instanceof File)
                             : [];
 
-                        if (
-                            newFiles.length > 0 ||
-                            existingFiles.length > 0 ||
-                            form.isRequired === 1
-                        ) {
+                        // if (
+                        //     newFiles.length > 0 ||
+                        //     existingFiles.length > 0 ||
+                        //     form.isRequired === 1
+                        // )
+                        {
                             const responseEntry = {
                                 peme_q_item_id: form.question_id,
                                 peme_q_type_id: type.id,
@@ -598,7 +602,13 @@ const PemeQuestionnaireView = () => {
                                 responseEntry.files = newFiles;
                             }
 
-                            if (newFiles.length > 0 || existingFiles.length > 0 || form.isRequired === 1) {
+                            // if (newFiles.length > 0 || existingFiles.length > 0 || form.isRequired === 1) {
+                            //     responses.push(responseEntry);
+                            // }
+                            if (
+                                answers[form.question_id]?.[type.input_type] !== undefined ||
+                                form.isRequired === 1
+                            ) {
                                 responses.push(responseEntry);
                             }
                         }
