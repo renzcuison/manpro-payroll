@@ -73,7 +73,7 @@ import AttendanceSummary from "../Pages/Admin/Attendance/AttendanceSummary";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
 
-import Workshifts from "../Pages/Admin/WorkShifts/WorkShifts";
+import Workshifts from "../Pages/Admin/WorkShifts/Workshifts";
 import WorkshiftsAdd from "../Pages/Admin/WorkShifts/WorkshiftsAdd";
 import WorkshiftView from "../Pages/Admin/WorkShifts/WorkshiftView";
 
