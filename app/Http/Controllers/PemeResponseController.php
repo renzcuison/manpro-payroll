@@ -322,7 +322,7 @@ class PemeResponseController extends Controller
                         $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
                         $validator = Validator::make(['file' => $file], $rules);
 
-                        // compression-logic below
+                        // start of compression
                         $compressOnly = 1024 * 1024 * 5;
                         $originalName = $file->getClientOriginalName();
                         $originalSize = $file->getSize();
@@ -337,8 +337,8 @@ class PemeResponseController extends Controller
                                 File::cleanDirectory(storage_path("app/tmp_uploads"));
 
                                 $ilovepdf = new Ilovepdf(
-                                    env('ILOVE_PDF_PUBLIC_KEY'),
-                                    env('ILOVE_PDF_SECRET_KEY')
+                                    env('ILOVE_PDF_PUBLIC_KEY'), // update in .env
+                                    env('ILOVE_PDF_SECRET_KEY') // update in .env
                                 );
 
                                 $task = $ilovepdf->newTask('compress');
@@ -379,8 +379,9 @@ class PemeResponseController extends Controller
                                 ]);
                             }
 
-                            // end of compression
+
                         }
+                         // end of compression
                         try {
                             $media = $detail->addMedia($file)->toMediaCollection('attachments');
 
