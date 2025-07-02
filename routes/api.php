@@ -803,8 +803,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/peme/{pemeId}/getQuestionnaire', [PemeQuestionnaireController::class, 'getQuestionnaire']);
     Route::put('peme/{pemeID}/question/{questionId}/updateQuestion', [PemeQuestionnaireController::class, 'updateQuestion']);
     Route::delete('/peme/{questionId}/deleteQuestionnaire', [PemeQuestionnaireController::class, 'deleteQuestionnaire']);
-    // unused routes
-    // Route::get('peme/{pemeID}/question/{questionId}', [PemeQuestionnaireController::class, 'show']);
 
     // PEME Responses
     Route::post('/peme-responses/submitResponse', [PemeResponseController::class, 'submitResponse']);
@@ -814,14 +812,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::patch('/peme-responses/{id}/updateResponse', [PemeResponseController::class, 'updateResponse']);
     Route::post('/peme-responses/createResponse', [PemeResponseController::class, 'createResponse']);
     Route::get('/peme-response/{id}/getResponse', [PemeResponseController::class, 'getResponse']);
-    // unused routes
-    // Route::get('/peme-responses/filter', [PemeResponseController::class, 'filter']);
-    // Route::get('/peme-responses/summary/{pemeId}', [PemeResponseController::class, 'summary']);
-    // Route::post('/peme-responses/{id}/restore', [PemeResponseController::class, 'restore']);
 
     // PEME Response-Details
     Route::get('/peme-response-details/download/{id}', [PemeResponseDetailsController::class, 'download']);
-    // unused routes
     // Route::get('/peme-response-details', [PemeResponseDetailsController::class, 'index']);
     // Route::get('/peme-response-details/{id}', [PemeResponseDetailsController::class, 'show']);
     // Route::post('/peme-response-details', [PemeResponseDetailsController::class, 'store']);

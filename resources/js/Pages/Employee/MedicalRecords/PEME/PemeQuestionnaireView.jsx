@@ -389,8 +389,22 @@ const PemeQuestionnaireView = () => {
                     showCancelButton: false,
                     didOpen: () => {
                         Swal.showLoading();
-                    }
 
+                        const spinner = document.querySelector('.swal2-loader');
+                        if (spinner) {
+                            spinner.style.marginBottom = '12px';
+                        }
+
+                        setTimeout(() => {
+                            const popup = Swal.getPopup();
+                            if (popup) {
+                                const content = popup.querySelector('.swal2-html-container');
+                                if (content) {
+                                    content.innerText = "Some files are being compressed. Please wait.";
+                                }
+                            }
+                        }, 10000);
+                    }
                 });
 
                 const responses = [];
@@ -555,7 +569,6 @@ const PemeQuestionnaireView = () => {
     };
 
     const handleSaveDraft = async (draftStatus) => {
-        // setIsLoading(true);
         Swal.fire({
             customClass: { container: "my-swal" },
             title: "Saving draft.",
@@ -566,6 +579,21 @@ const PemeQuestionnaireView = () => {
             showCancelButton: false,
             didOpen: () => {
                 Swal.showLoading();
+
+                const spinner = document.querySelector('.swal2-loader');
+                if (spinner) {
+                    spinner.style.marginBottom = '12px';
+                }
+
+                setTimeout(() => {
+                    const popup = Swal.getPopup();
+                    if (popup) {
+                        const content = popup.querySelector('.swal2-html-container');
+                        if (content) {
+                            content.innerText = "Some files are being compressed. Please wait.";
+                        }
+                    }
+                }, 10000);
             }
         });
 
@@ -1072,7 +1100,7 @@ const PemeQuestionnaireView = () => {
                             >
                                 <Button
                                     variant="contained"
-                                    sx={{ backgroundColor: "#7a7a7a"}}
+                                    sx={{ backgroundColor: "#7a7a7a" }}
                                     onClick={() => {
                                         Swal.fire({
                                             title: 'Are you sure?',

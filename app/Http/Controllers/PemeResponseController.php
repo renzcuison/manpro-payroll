@@ -48,7 +48,6 @@ class PemeResponseController extends Controller
             $questions = $response->peme->questions ?? collect();
             $details = $response->details ?? collect();
 
-            // Prepare detail map
             $detailMap = [];
             foreach ($details as $detail) {
                 $qID = (int) $detail->peme_q_item_id;
@@ -102,7 +101,6 @@ class PemeResponseController extends Controller
         return response()->json($responses);
     }
 
-
     public function createResponse(Request $request)
     {
 
@@ -116,7 +114,6 @@ class PemeResponseController extends Controller
             "next_schedule" => "nullable|date",
         ]);
 
-        // new code block
         $peme = Peme::findOrFail($validated['peme_id']);
 
         if (!$peme->isMultiple) {
@@ -157,9 +154,6 @@ class PemeResponseController extends Controller
                     "id" => Crypt::encrypt($response->id),
                     "peme_id" => Crypt::encrypt($response->peme_id),
                     "user_id" => Crypt::encrypt($response->user_id),
-                    // "id" => $response->id,
-                    // "peme_id" => $response->peme_id,
-                    // "user_id" => $response->user_id,
                     "expiry_date" => $response->expiry_date,
                     "next_schedule" => $response->next_schedule,
                     "status" => $response->status,
@@ -182,8 +176,6 @@ class PemeResponseController extends Controller
                 'responses.*.peme_q_type_id' => 'required|string',
                 'responses.*.value' => 'nullable|string|max:512',
                 'responses.*.files' => 'nullable|array',
-                // 'responses.*.files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png',
-                // 'responses.*.files.*' => 'file|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/octet-stream,image/jpeg,image/png',
                 'responses.*.existing_file_ids' => 'nullable|array',
                 'isDraft' => 'required|boolean',
             ]);
@@ -193,11 +185,6 @@ class PemeResponseController extends Controller
                 'input' => $request->all(),
             ]);
         }
-
-        // foreach ($request->input('responses', []) as $index => $response) {
-        //     $files = data_get($request->allFiles(), "responses.$index.files", []);
-        //     $files = is_array($files) ? $files : [$files];
-        // }
 
         $pemeResponseId = Crypt::decrypt($validated['peme_response_id']);
         $pemeResponse = PemeResponse::where('id', $pemeResponseId)
@@ -335,6 +322,7 @@ class PemeResponseController extends Controller
                         $rules = ['file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png'];
                         $validator = Validator::make(['file' => $file], $rules);
 
+                        // compression-logic below
                         $compressOnly = 1024 * 1024 * 5;
                         $originalName = $file->getClientOriginalName();
                         $originalSize = $file->getSize();
@@ -358,12 +346,11 @@ class PemeResponseController extends Controller
                                 $tempPath = $file->storeAs('tmp_uploads', uniqid() . '.pdf');
                                 $fullTempPath = storage_path("app/" . $tempPath);
 
-                                $fileObject = $task->addFile($fullTempPath);
+                                $task->addFile($fullTempPath);
                                 $task->execute();
                                 $task->download(storage_path("app/tmp_uploads"));
 
-                                $downloadPath = storage_path("app/tmp_uploads");
-                                $matchingFiles = glob($downloadPath . '/*.pdf');
+                                $matchingFiles = glob(storage_path("app/tmp_uploads") . '/*.pdf');
 
                                 if (empty($matchingFiles)) {
                                     throw new \Exception('No compressed PDF file found.');
@@ -391,6 +378,8 @@ class PemeResponseController extends Controller
                                     'error' => $e->getMessage(),
                                 ]);
                             }
+
+                            // end of compression
                         }
                         try {
                             $media = $detail->addMedia($file)->toMediaCollection('attachments');
@@ -589,7 +578,6 @@ class PemeResponseController extends Controller
             return [
                 'response_id' => Crypt::encrypt($response->id),
                 'peme_id' => Crypt::encrypt($response->peme_id),
-                // 'peme_id' => $response->peme_id,
                 'user_id' => Crypt::encrypt($response->user_id),
                 'respondent' => $fullName,
                 'branch' => $response->user->branch->name ?? 'null',
@@ -697,19 +685,13 @@ class PemeResponseController extends Controller
             $user = $response->user;
             $fullName = $user->first_name . ' ' . ($user->middle_name ? $user->middle_name . ' ' : '') . $user->last_name;
 
-            // $branch = BranchesModel::find($user->branch_id);
-            // $department = DepartmentsModel::find($user->department_id);
-
             return [
                 'response_id' => Crypt::encrypt($response->id),
                 'peme_id' => Crypt::encrypt($response->peme_id),
-                // 'peme_id' => $response->peme_id,
                 'user_id' => Crypt::encrypt($response->user_id),
                 'respondent' => $fullName,
                 'branch' => $response->peme->user->branch->name ?? 'null',
-                // 'branch' => $branch->name ?? 'null',
                 'department' => $response->peme->user->department->name ?? 'null',
-                // 'department' => $department->name ?? 'null',
                 'status' => ucfirst($response->status),
                 'isDraft' => $response->isDraft,
                 'expiry_date' => optional($response->expiry_date)->format('Y-m-d H:i:s'),
@@ -727,124 +709,7 @@ class PemeResponseController extends Controller
         return response()->json($result);
     }
 
-    // public function show($id)
-    // {
-    //     $id = Crypt::decrypt($id);
-
-    //     $response = PemeResponse::with([
-    //         'peme.questions.types',
-    //         'peme.user.branch',
-    //         'peme.user.department',
-    //         'user',
-    //         'details',
-    //     ])->findOrFail($id);
-
-    //     $allDetails = PemeResponseDetails::whereHas('response', function (
-    //         $query
-    //     ) use ($response) {
-    //         $query->where('peme_id', $response->peme_id);
-    //     })
-    //         ->with(['media', 'response'])
-    //         ->get();
-
-    //     $detailMap = [];
-    //     foreach ($allDetails as $detail) {
-    //         $qID = (int) $detail->peme_q_item_id;
-    //         $tID = (int) $detail->peme_q_type_id;
-    //         $detailMap[$qID][$tID] = $detail;
-    //     }
-
-    //     $questions = $response->peme->questions->map(function ($question) use (
-    //         $detailMap
-    //     ) {
-    //         $inputTypesWithValues = $question->types->map(function ($type) use (
-    //             $question,
-    //             $detailMap
-    //         ) {
-    //             $matchedDetail =
-    //                 $detailMap[(int) $question->id][(int) $type->id] ?? null;
-
-    //             return [
-    //                 'id' => Crypt::encrypt($type->id),
-    //                 'input_type' => $type->input_type,
-    //                 'value' => $matchedDetail->value ?? null,
-    //             ];
-    //         });
-
-    //         return [
-    //             'question_id' => Crypt::encrypt($question->id),
-    //             'question_text' => $question->question,
-    //             'input_type' => $inputTypesWithValues,
-    //         ];
-    //     });
-
-    //     $totalQuestions = $questions->count();
-    //     $answeredQuestions = 0;
-
-    //     foreach ($questions as $question) {
-    //         $allAnswered = $question['input_type']->every(function (
-    //             $inputType
-    //         ) {
-    //             return $inputType['value'] !== null &&
-    //                 trim($inputType['value']) !== '';
-    //         });
-
-    //         if ($allAnswered) {
-    //             $answeredQuestions++;
-    //         }
-    //     }
-
-    //     $user = $response->user;
-    //     $fullName =
-    //         $user->first_name .
-    //         ' ' .
-    //         ($user->middle_name ? $user->middle_name . ' ' : '') .
-    //         $user->last_name;
-
-    //     return response()->json([
-    //         'response_id' => Crypt::encrypt($response->id),
-    //         'peme_id' => Crypt::encrypt($response->peme_id),
-    //         'user_id' => Crypt::encrypt($response->user_id),
-    //         'respondent' => $fullName,
-    //         'branch' => $response->peme->user->branch->name ?? 'null',
-    //         'department' => $response->peme->user->department->name ?? 'null',
-    //         'status' => ucfirst($response->status),
-    //         'expiry_date' => optional($response->expiry_date)->format(
-    //             'Y-m-d H:i:s'
-    //         ),
-    //         'next_schedule' => optional($response->next_schedule)->format(
-    //             'Y-m-d H:i:s'
-    //         ),
-    //         'response_details_id' => $response->details->pluck('id'),
-
-    //         'progress' => [
-    //             'completed' => $answeredQuestions,
-    //             'total' => $totalQuestions,
-    //             'percent' =>
-    //             $totalQuestions > 0
-    //                 ? round(($answeredQuestions / $totalQuestions) * 100)
-    //                 : 0,
-    //         ],
-    //     ]);
-    // }
-
-    public function summary($pemeId)
-    {
-        $pemeId = Crypt::decrypt($pemeId);
-
-        $counts = PemeResponse::where("peme_id", $pemeId)
-            ->selectRaw("status, COUNT(*) as total")
-            ->groupBy("status")
-            ->pluck("total", "status");
-
-        return response()->json([
-            "peme_id" => Crypt::encrypt($pemeId),
-            // "peme_id" => $pemeId,
-            "summary" => $counts,
-        ]);
-    }
-
-    public function destroy($id)
+    public function deleteResponse($id)
     {
         $id = Crypt::decrypt($id);
 
@@ -879,12 +744,6 @@ class PemeResponseController extends Controller
             ->where('id', $responseId)
             ->where('user_id', Auth::id())
             ->first();
-
-        // if (!$pemeResponse) {
-        //     return response()->json([
-        //         'message' => 'Unauthorized access or response not found.',
-        //     ], 403);
-        // }
 
         $pemeResponse = PemeResponse::with([
             'peme.questions.types',
@@ -961,7 +820,6 @@ class PemeResponseController extends Controller
 
         return response()->json([
             'peme' => $pemeResponse->peme->name,
-            // 'peme_id' => $pemeResponse->peme->id,
             'peme_id' => Crypt::encrypt($pemeResponse->peme->id),
             'peme_response_id' => Crypt::encrypt($pemeResponse->id),
             'user_id' => Crypt::encrypt($pemeResponse->user_id),
@@ -971,29 +829,6 @@ class PemeResponseController extends Controller
             'expiry_date' => $pemeResponse->expiry_date,
             'next_schedule' => $pemeResponse->next_schedule,
             'details' => $questions,
-        ]);
-    }
-
-    public function restore($id)
-    {
-        $id = Crypt::decrypt($id);
-
-        $response = PemeResponse::withTrashed()->findOrFail($id);
-        $response->restore();
-
-        $pemeId = $response->peme_id;
-
-        $respondentsCount = PemeResponse::where('peme_id', $pemeId)
-            ->distinct('user_id')
-            ->count('user_id');
-
-        Peme::where('id', $pemeId)->update([
-            'respondents' => $respondentsCount,
-        ]);
-
-        return response()->json([
-            "message" => "Response restored.",
-            "respondents" => $respondentsCount,
         ]);
     }
 }

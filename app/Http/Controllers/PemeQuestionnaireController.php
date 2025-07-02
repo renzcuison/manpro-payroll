@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
-// use Illuminate\Support\Facades\Log;
 use App\Models\PemeQItem;
 use App\Models\PemeQType;
 use App\Models\Peme;
@@ -27,7 +26,6 @@ class PemeQuestionnaireController extends Controller
     {
 
         $pemeId = Crypt::decrypt($request->peme_id);
-        // $pemeId = $request->peme_id;
         $request->merge(['peme_id' => $pemeId]);
 
         $validated = $request->validate([
@@ -97,14 +95,11 @@ class PemeQuestionnaireController extends Controller
             "data" => [
                 "question" => [
                     "id" => Crypt::encrypt($question->id),
-                    // "id" => $question->id,
                     "peme_id" => Crypt::encrypt($question->peme_id),
-                    // "peme_id" => $question->peme_id,
                     "question" => $question->question,
                     "isRequired" => $question->isRequired,
                     "types" => $question->types->map(function ($type) {
                         return [
-                            // "id" => Crypt::encrypt($type->id),
                             "id" => Crypt::encrypt($type->id),
                             "input_type" => $type->input_type,
                             "file_size_limit" => $type->file_size_limit ?? null,
@@ -127,7 +122,6 @@ class PemeQuestionnaireController extends Controller
             "input_types.*" => "in:attachment,pass_fail,pos_neg,remarks,text",
             "file_size_limit" => "nullable|numeric|min:0.1|max:100",
             "isRequired" => "sometimes|boolean",
-            // "max_files" => "nullable|integer|min:1|max:10",
         ]);
 
         if (
@@ -194,14 +188,11 @@ class PemeQuestionnaireController extends Controller
                 "data" => [
                     "question" => [
                         "id" => Crypt::encrypt($question->id),
-                        // "id" => $question->id,
                         "peme_id" => Crypt::encrypt($question->peme_id),
-                        // "peme_id" => $question->peme_id,
                         "question" => $question->question,
                         "types" => $question->types->map(function ($type) {
                             return [
                                 "id" => Crypt::encrypt($type->id),
-                                // "id" => $type->id,
                                 "input_type" => $type->input_type,
                                 "file_size_limit" => $type->file_size_limit ?? null,
                             ];
@@ -240,7 +231,6 @@ class PemeQuestionnaireController extends Controller
 
             return [
                 "id" => Crypt::encrypt($question->id),
-                // "id" => $question->id,
                 "question" => $question->question,
                 "isRequired" => $question->isRequired,
                 "input_types" => $inputTypes,
@@ -249,7 +239,6 @@ class PemeQuestionnaireController extends Controller
 
         return response()->json([
             "peme_id" => Crypt::encrypt($peme->id),
-            // "peme_id" => $peme->id,
             "peme" => $peme->name,
             "isVisible" => $peme->isVisible,
             "isMultiple" => $peme->isMultiple,
@@ -287,35 +276,5 @@ class PemeQuestionnaireController extends Controller
         }
 
         return $query->exists();
-    }
-
-    public function show($pemeId, $questionId)
-    {
-        $pemeId = Crypt::decrypt($pemeId);
-        $questionId = Crypt::decrypt($questionId);
-
-        $question = PemeQItem::with("types")
-            ->where("id", $questionId)
-            ->where("peme_id", $pemeId)
-            ->firstOrFail();
-
-        return response()->json([
-            "question" => [
-                "id" => Crypt::encrypt($question->id),
-                // "id" => $question->id,
-                "peme_id" => Crypt::encrypt($question->peme_id),
-                // "peme_id" => $question->peme_id,
-                "isRequired" => $question->isRequired,
-                "question" => $question->question,
-                "types" => $question->types->map(function ($type) {
-                        return [
-                            "id" => Crypt::encrypt($type->id),
-                            // "id" => $type->id,
-                            "input_type" => $type->input_type,
-                            "file_size_limit" => $type->file_size_limit ?? null,
-                        ];
-                    }),
-            ],
-        ]);
     }
 }

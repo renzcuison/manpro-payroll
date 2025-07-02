@@ -140,7 +140,6 @@ class PemeController extends Controller
             ->map(function ($peme) {
                 return [
                     'id' => Crypt::encrypt($peme->id),
-                    // 'id' => $peme->id,
                     'name' => $peme->name,
                     'respondents' => $peme->respondents,
                 ];
