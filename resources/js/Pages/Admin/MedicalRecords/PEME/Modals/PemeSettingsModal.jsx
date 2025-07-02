@@ -239,7 +239,7 @@ const PemeSettingsModal = ({
                                     fontSize: "12px"
                                 }}
                             >
-                                {hasRespondents ? "Responses currently exist" : ""}
+                                {hasRespondents ? "Responses already exist." : ""}
                             </Typography>
                         </Box>
                     </>

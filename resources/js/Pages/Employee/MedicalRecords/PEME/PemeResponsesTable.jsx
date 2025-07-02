@@ -143,8 +143,8 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                     <TableRow>
                         <TableCell align="center"> Date </TableCell>
                         <TableCell align="center"> Exam Name </TableCell>
-                        <TableCell align="center"> Expiry Date </TableCell>
                         <TableCell align="center"> Next Schedule </TableCell>
+                        <TableCell align="center"> Expiry Date </TableCell>
                         <TableCell align="center"> Progress</TableCell>
                         <TableCell align="center"> Status </TableCell>
                     </TableRow>
@@ -183,15 +183,6 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                         {response.peme}
                                     </TableCell>
                                     <TableCell align="center">
-                                        {dayjs(response.expiry_date).isValid()
-                                            ? dayjs(response.expiry_date).format("MMMM D, YYYY")
-                                            : "Pending"}
-                                        <p></p>
-                                        {dayjs(response.expiry_date).isValid()
-                                            ? getDueStatus(response.expiry_date)
-                                            : ""}
-                                    </TableCell>
-                                    <TableCell align="center">
                                         {dayjs(response.next_schedule).isValid()
                                             ? dayjs(response.next_schedule).format("MMMM D, YYYY")
                                             : "Pending"}
@@ -200,7 +191,15 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                             ? getDueStatus(response.next_schedule)
                                             : ""}
                                     </TableCell>
-
+                                    <TableCell align="center">
+                                        {dayjs(response.expiry_date).isValid()
+                                            ? dayjs(response.expiry_date).format("MMMM D, YYYY")
+                                            : "Pending"}
+                                        <p></p>
+                                        {dayjs(response.expiry_date).isValid()
+                                            ? getDueStatus(response.expiry_date)
+                                            : ""}
+                                    </TableCell>
                                     <TableCell align="center">
                                         <Box
                                             sx={{

@@ -384,6 +384,7 @@ const PemeQuestionnaireView = () => {
                     customClass: { container: "my-swal" },
                     title: "Submitting.",
                     text: "Please wait.",
+                    icon: "info",
                     allowOutsideClick: false,
                     showConfirmButton: false,
                     showCancelButton: false,
@@ -612,12 +613,6 @@ const PemeQuestionnaireView = () => {
                         const newFiles = Array.isArray(value)
                             ? value.filter((f) => f instanceof File)
                             : [];
-
-                        // if (
-                        //     newFiles.length > 0 ||
-                        //     existingFiles.length > 0 ||
-                        //     form.isRequired === 1
-                        // )
                         {
                             const responseEntry = {
                                 peme_q_item_id: form.question_id,
@@ -630,9 +625,6 @@ const PemeQuestionnaireView = () => {
                                 responseEntry.files = newFiles;
                             }
 
-                            // if (newFiles.length > 0 || existingFiles.length > 0 || form.isRequired === 1) {
-                            //     responses.push(responseEntry);
-                            // }
                             if (
                                 answers[form.question_id]?.[type.input_type] !== undefined ||
                                 form.isRequired === 1

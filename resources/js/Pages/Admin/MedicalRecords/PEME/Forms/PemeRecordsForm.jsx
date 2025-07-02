@@ -548,7 +548,8 @@ const PemeRecordsForm = () => {
 
     const handleConfirmQuestionnaire = () => {
         navigator(
-            `/admin/medical-records/peme-records`
+            // `/admin/medical-records/peme-records`
+            -1
         );
     };
 
@@ -574,9 +575,24 @@ const PemeRecordsForm = () => {
                             {pemeForms.peme}
                         </Typography>
                         <Button
-                            onClick={handleConfirmQuestionnaire}
                             variant="contained"
-                            sx={{ backgroundColor: "#8f8f8f" }}
+                            sx={{ backgroundColor: "#7a7a7a" }}
+                            onClick={() => {
+                                Swal.fire({
+                                    title: 'Are you sure?',
+                                    text: 'Any unsaved changes will be lost.',
+                                    icon: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#388e3c',
+                                    cancelButtonColor: '#7a7a7a',
+                                    confirmButtonText: 'Return',
+                                    cancelButtonText: 'Cancel',
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        handleConfirmQuestionnaire();
+                                    }
+                                });
+                            }}
                         >
                             Return
                         </Button>
@@ -701,11 +717,11 @@ const PemeRecordsForm = () => {
                                                     ? editFileSize
                                                     : form.input_types.find(
 
-                                                          (item) =>
-                                                              (item.input_type ??
-                                                                  item) ===
-                                                              "attachment"
-                                                      )?.file_size_limit ?? 10
+                                                        (item) =>
+                                                            (item.input_type ??
+                                                                item) ===
+                                                            "attachment"
+                                                    )?.file_size_limit ?? 10
                                             }
                                             setFileSize={
                                                 isEditing
@@ -844,10 +860,10 @@ const PemeRecordsForm = () => {
                                                 isEditing
                                                     ? editSavedFileSize
                                                     : form.input_types.find(
-                                                          (item) =>
-                                                              item.input_type ===
-                                                              "attachment"
-                                                      )?.file_size_limit ?? 10
+                                                        (item) =>
+                                                            item.input_type ===
+                                                            "attachment"
+                                                    )?.file_size_limit ?? 10
                                             }
                                             setFileSize={
                                                 isEditing

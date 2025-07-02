@@ -74,7 +74,6 @@ class PemeController extends Controller
                 "message" => "Exam created successfully.",
                 "peme" => [
                     "id" => Crypt::encrypt($peme->id),
-                    // "id" => $peme->id,
                     "name" => $peme->name,
                     "created_at" => $peme->created_at,
                 ],
@@ -86,6 +85,10 @@ class PemeController extends Controller
     public function getPemeList()
     {
         $user = Auth::user();
+
+        $answeredPemeIds = PemeResponse::where('user_id', $user->id)
+            ->pluck('peme_id')
+            ->toArray();
 
         $query = Peme::select(
             "id",
@@ -107,6 +110,10 @@ class PemeController extends Controller
 
         $pemeList = $query->orderBy("created_at", "desc")
             ->get()
+            ->filter(function ($peme) use ($answeredPemeIds, $user) {
+                $hasAnswered = in_array($peme->id, $answeredPemeIds);
+                return !$hasAnswered || $peme->isMultiple == 1;
+            })
             ->map(function ($peme) {
                 $respondentCount = PemeResponse::where('peme_id', $peme->id)
                     ->distinct('user_id')
@@ -125,10 +132,59 @@ class PemeController extends Controller
                     "updated_at" => $peme->updated_at,
                     "deleted_at" => $peme->deleted_at,
                 ];
-            });
+            })
+            ->values();
 
         return response()->json($pemeList);
     }
+
+    // safe getPemeList() func. -> use if first func. has bugs
+    // public function getPemeList()
+    // {
+    //     $user = Auth::user();
+
+    //     $query = Peme::select(
+    //         "id",
+    //         "client_id",
+    //         "user_id",
+    //         "name",
+    //         "respondents",
+    //         "isVisible",
+    //         "isEditable",
+    //         "isMultiple",
+    //         "created_at",
+    //         "updated_at",
+    //         "deleted_at"
+    //     )->where("client_id", $user->client_id);
+
+    //     if ($user->user_type !== 'Admin') {
+    //         $query->where("isVisible", 1);
+    //     }
+
+    //     $pemeList = $query->orderBy("created_at", "desc")
+    //         ->get()
+    //         ->map(function ($peme) {
+    //             $respondentCount = PemeResponse::where('peme_id', $peme->id)
+    //                 ->distinct('user_id')
+    //                 ->count('user_id');
+
+    //             return [
+    //                 "id" => Crypt::encrypt($peme->id),
+    //                 "client_id" => Crypt::encrypt($peme->client_id),
+    //                 "user_id" => Crypt::encrypt($peme->user_id),
+    //                 "name" => $peme->name,
+    //                 "respondents" => $peme->respondents,
+    //                 "isVisible" => $peme->isVisible,
+    //                 "isEditable" => $respondentCount > 0 ? 0 : $peme->isEditable,
+    //                 "isMultiple" => $peme->isMultiple,
+    //                 "created_at" => $peme->created_at,
+    //                 "updated_at" => $peme->updated_at,
+    //                 "deleted_at" => $peme->deleted_at,
+    //             ];
+    //         });
+
+    //     return response()->json($pemeList);
+    // }
 
     public function getPemeStats()
     {

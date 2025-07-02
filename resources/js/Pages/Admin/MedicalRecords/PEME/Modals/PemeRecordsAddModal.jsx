@@ -12,6 +12,7 @@ import { useParams } from "react-router-dom";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "@/utils/axiosConfig";
+import Swal from "sweetalert2";
 
 const PemeRecordsAddModal = ({ open, close }) => {
     const [recordName, setRecordName] = React.useState("");
@@ -25,6 +26,7 @@ const PemeRecordsAddModal = ({ open, close }) => {
     const handleSubmit = async () => {
         const storedUser = localStorage.getItem("nasya_user");
         const headers = getJWTHeader(JSON.parse(storedUser));
+
         try {
             const response = await axiosInstance.post(
                 "/createPeme",
@@ -34,11 +36,38 @@ const PemeRecordsAddModal = ({ open, close }) => {
             console.log("Successfully created questionnaire:", response.data);
 
             const newId = response?.data?.peme?.id;
-            navigator(`/admin/medical-records/peme-records/peme-form/${newId}`);
+
+            const result = await Swal.fire({
+                title: "Success!",
+                text: "Exam created successfully.",
+                icon: "success",
+                confirmButtonColor: "#177604",
+            });
+
+            if (result.isConfirmed) {
+                navigator(`/admin/medical-records/peme-records/peme-form/${newId}`);
+            }
 
             return newId;
         } catch (error) {
             console.error("Error creating questionnaire:", error);
+
+            if (error.response?.status === 409) {
+                Swal.fire({
+                    title: "Exam already exists.",
+                    text: "Please enter a different exam name.",
+                    icon: "warning",
+                    confirmButtonColor: "#177604",
+                });
+            } else {
+                Swal.fire({
+                    title: "Error",
+                    text: "Something went wrong. Please try again later.",
+                    icon: "error",
+                    confirmButtonColor: "#177604",
+                });
+            }
+
             return null;
         }
     };

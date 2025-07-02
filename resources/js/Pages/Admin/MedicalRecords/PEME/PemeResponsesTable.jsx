@@ -141,8 +141,8 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                 <TableHead>
                     <TableRow>
                         <TableCell align="center"> Date </TableCell>
-                        <TableCell align="center"> Expiry Date </TableCell>
                         <TableCell align="center"> Next Schedule </TableCell>
+                        <TableCell align="center"> Expiry Date </TableCell>
                         <TableCell align="center"> Employee </TableCell>
                         <TableCell align="center"> Branch </TableCell>
                         <TableCell align="center"> Department </TableCell>
@@ -186,22 +186,22 @@ const PemeResponsesTable = ({ responses, onRowClick, search }) => {
                                             )}
                                         </TableCell>
                                         <TableCell align="center">
-                                            {dayjs(detail.expiry_date).isValid() ? (
+                                            {dayjs(detail.next_schedule).isValid() ? (
                                                 <>
-                                                    {dayjs(detail.expiry_date).format("MMMM D, YYYY")}
+                                                    {dayjs(detail.next_schedule).format("MMMM D, YYYY")}
                                                     <p></p>
-                                                    {getDueStatus(detail.expiry_date)}
+                                                    {getDueStatus(detail.next_schedule)}
                                                 </>
                                             ) : (
                                                 "Pending"
                                             )}
                                         </TableCell>
                                         <TableCell align="center">
-                                            {dayjs(detail.next_schedule).isValid() ? (
+                                            {dayjs(detail.expiry_date).isValid() ? (
                                                 <>
-                                                    {dayjs(detail.next_schedule).format("MMMM D, YYYY")}
+                                                    {dayjs(detail.expiry_date).format("MMMM D, YYYY")}
                                                     <p></p>
-                                                    {getDueStatus(detail.next_schedule)}
+                                                    {getDueStatus(detail.expiry_date)}
                                                 </>
                                             ) : (
                                                 "Pending"

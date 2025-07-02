@@ -37,7 +37,7 @@ class DepartmentController extends Controller
         } else {
             $userID = null;
         }
-    
+
         $userID = Auth::check() ? Auth::id() : null;
     $user = DB::table('users')->where('id', $userID)->first();
 
@@ -74,7 +74,7 @@ class DepartmentController extends Controller
 
             throw $e;
         }
-    
+
     }
 
 }

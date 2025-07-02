@@ -152,7 +152,6 @@ const PemeQuestionnairePreview = () => {
     const { PemeID } = useParams();
     const [isLoading, setIsLoading] = useState(true);
     const navigator = useNavigate();
-    const handleOnDeleteClick = () => {};
     const handleOnCancelClick = () => {
         navigator(
             `/admin/medical-records/peme-records/peme-responses/${PemeID}`
@@ -302,7 +301,7 @@ const PemeQuestionnairePreview = () => {
                     <Box
                         sx={{
                             display: "flex",
-                            justifyContent: "space-between",
+                            justifyContent: "flex-end",
                         }}
                     >
                         <Button
@@ -310,14 +309,7 @@ const PemeQuestionnairePreview = () => {
                             sx={{ backgroundColor: "#7a7a7a" }}
                             onClick={handleOnCancelClick}
                         >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="contained"
-                            sx={{ backgroundColor: "#c82e2e" }}
-                            onClick={handleOnDeleteClick}
-                        >
-                            Delete
+                            Return
                         </Button>
                     </Box>
                 </Box>

@@ -170,7 +170,7 @@ const PemeResponses = () => {
 
                     Swal.fire({
                         icon: "success",
-                        text: "Question deleted successfully.",
+                        text: "Exam deleted successfully.",
                         showConfirmButton: false,
                         timer: 1500,
                     });
