@@ -34,6 +34,22 @@ export function useDeduction(enabled = true){
     }
 }
 
+export function useAssignableDeductions(userName = null){
+    const query = useQuery(["assignableDeductions", userName], async () => {
+        const { data } = await axiosInstance.get("compensation/getAssignableDeductions", {
+            headers, params: {username: userName}
+        });
+        return data;
+    }, {enabled: !!userName});
+
+    return{
+        deductionsData: query.data,
+        isDeductionsLoading: query.isLoading,
+        isDeductionsError: query.isError,
+        refetchDeductions: query.refetch,
+    }
+}
+
 export function useEmployeesDeductions(filters = {}, pagination = {}, enabled = true){
     const params = buildParams(filters, pagination);
     const query = useQuery(["employeesDeductions", {filters, pagination}], async () => {

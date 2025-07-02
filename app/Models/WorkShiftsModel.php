@@ -28,4 +28,9 @@ class WorkShiftsModel extends Model
     public function workDays () {
         return $this->hasMany(WorkDays::class, 'work_shift_id');
     }
+
+    public function workHour()
+    {
+        return $this->belongsTo(WorkHoursModel::class, 'work_hour_id');
+    }
 }

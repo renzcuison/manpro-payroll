@@ -263,21 +263,24 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
               <>
                 <Box sx={{ mt: 1 }}>
                   <Grid container justifyContent="center" spacing={6}>
-                    {subCategory.options.map((opt, idx) => (
-                      <Grid item key={opt.id ?? idx} sx={{ textAlign: "center" }}>
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                          <Typography variant="body1" sx={{ mb: 0.5 }}>
-                            {opt.label}
-                          </Typography>
-                          <Radio
-                            checked={subCategory.percentage_answer?.value === opt.score}
-                            value={opt.score}
-                            sx={{ mx: "auto" }}
-                            disabled // Commentor page = view only, no selection
-                          />
-                        </Box>
-                      </Grid>
-                    ))}
+{subCategory.options.map((opt, idx) => {
+
+  return (
+    <Grid item key={opt.id ?? idx} sx={{ textAlign: "center" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <Typography variant="body1" sx={{ mb: 0.5 }}>
+          {opt.label}
+        </Typography>
+        <Radio
+          checked={!!opt.option_answer}
+          value={opt.score}
+          sx={{ mx: "auto" }}
+          disabled // or not, if you want to enable editing
+        />
+      </Box>
+    </Grid>
+  );
+})}
                   </Grid>
                 </Box>
                 <Divider sx={{ my: 2 }} />
@@ -467,7 +470,7 @@ const PerformanceEvaluationCommentorPage = ({ id: propId, asModal }) => {
           Evaluatee: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(
+          Evaluator: {responseMeta?.evaluators ? responseMeta.evaluators.map(
             evaluator => getFullName(evaluator)
           ).join(' & ') : ''}
         </Typography>

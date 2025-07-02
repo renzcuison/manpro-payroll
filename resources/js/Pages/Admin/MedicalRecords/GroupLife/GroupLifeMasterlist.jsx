@@ -12,45 +12,32 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../../../components/Layout/Layout";
-import GroupLifeAddModal from "./Modal/GroupLifeAddModal";
+import GroupLifeAddPlanModal from "./Modal/GroupLifeAddPlanModal";
 import GroupLifeAddCompanyModal from "./Modal/GroupLifeAddCompanyModal";
 import GroupLifeCompanyTable from "./GroupLifeCompanyTable";
 import GroupLifeOverview from "./GroupLifeOverview";
-import GroupLifeEmployees from "./GroupLifeEmployees";
-import axios from "axios";
 import axiosInstance, { getJWTHeader } from '../../../../utils/axiosConfig';
-import Swal from 'sweetalert2';
 
 const GroupLifeMasterlist = () => {
     const navigator = useNavigate();
     const [openAddGroupLifeModal, setOpenAddGroupLifeModal] = useState(false);
     const [openAddCompanyModal, setOpenAddCompanyModal] = useState(false);
     const [search, setSearch] = useState("");
-
     const [listOfCompanies, setListOfCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
-
     const storedUser = useMemo(() => {
         const item = localStorage.getItem("nasya_user");
         return item ? JSON.parse(item) : null;
-        }, []);
-        
+    }, []);   
     const user = storedUser;
-
-    // const storedUser = localStorage.getItem("nasya_user");
-    // const user = storedUser ? JSON.parse(storedUser) : null;
-
     const [rows, setRows] = useState([]);    
 
     useEffect(() => {
         if (!user) return;
-
         setLoading(true);
-
         axiosInstance
             .get("/medicalRecords/getGroupLifeCompanies", { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
-                console.log("API response:", res.data); 
                 setListOfCompanies(
                     (res.data.companies || []).map(company => ({
                         companyMenuItem: company.name,
@@ -60,24 +47,16 @@ const GroupLifeMasterlist = () => {
             })
             .catch(console.error)
             .finally(() => setLoading(false));
-
-
-
-
-        }, [user]);
-        
-        
+    }, [user]);    
 
     useEffect(() => {
         
         if (!user) return;
-
         setLoading(true);
-
         axiosInstance
             .get("/medicalRecords/getGroupLifePlans", { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {const plans = res.data.plans || [];
-                setRows(
+            setRows(
                 plans.map(row => ({
                 id: row.id,
                 groupLifeName: row.group_life_company_name,
@@ -85,22 +64,18 @@ const GroupLifeMasterlist = () => {
                 paymentType: row.type,
                 employerShare: row.employer_share,
                 employeeShare: row.employee_share,
+                employeesAssignedCount: row.employees_assigned_count
             }))
-        );
-
-                })
-                .catch(console.error);
-                
+            );
+            })
+            .catch(console.error);
         }, [user]);
 
         const refreshCompanies = () => {
             if (!user) return;
-
             setLoading(true);
-
         axiosInstance.get('/group-life-companies', { headers: { Authorization: `Bearer ${user.token}` } })
             .then(res => {
-                console.log("Rows updated", rows);
                 setListOfCompanies(
                     res.data.map(company => ({
                         companyMenuItem: company.name,
@@ -110,19 +85,16 @@ const GroupLifeMasterlist = () => {
             })
             .catch(console.error)
             .finally(() => setLoading(false));
-    };
+        };
 
     const refreshPlans = () => {
-
         setLoading(true);
-
         axiosInstance
             .get("/medicalRecords/getGroupLifePlans", {
                 headers: { Authorization: `Bearer ${user.token}` }
             })
             .then(res => {
                 const plans = res.data.plans || [];
-                console.log("Processed plans:", plans);
                 setRows(
                     plans.map(row => ({
                         id: row.id,
@@ -131,6 +103,7 @@ const GroupLifeMasterlist = () => {
                         paymentType: row.type,
                         employerShare: row.employer_share,
                         employeeShare: row.employee_share,
+                        employeesAssignedCount: row.employees_assigned_count 
                     }))
                 );
             })
@@ -159,7 +132,6 @@ const GroupLifeMasterlist = () => {
     const resultsCount = filteredRecords.length;
 
     const handleOnRowClick = (row) => {
-        localStorage.setItem("selected_plan_details", JSON.stringify(row));
         navigator(
             `/admin/medical-records/group-life-masterlist/group-life-employees/${row.id}`,
             { state: row }
@@ -169,19 +141,15 @@ const GroupLifeMasterlist = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
-
     const paginatedRows = useMemo(() => {
         const startIndex = currentPage * rowsPerPage;
         return filteredRecords.slice(startIndex, startIndex + rowsPerPage);
     }, [filteredRecords, currentPage, rowsPerPage]);
 
-    console.log("Rows sent to chart:", rows);
-
     return (
     <Layout title={"Pre-Employment Medical Exam Records"}>
         <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
             <Box sx={{ mx: "auto", width: { xs: "100%", md: "1400px" } }}>
-
                     <Box sx={{ mt: 5, display: 'flex', justifyContent: 'space-between', px: 1, alignItems: 'center' }}>
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}> Group Life Masterlist </Typography>
                             <Grid container spacing={2} gap={2}>
@@ -222,8 +190,7 @@ const GroupLifeMasterlist = () => {
                                             : "Matches"}
                                         </Typography>
                                         </InputAdornment>
-                                    )
-                                    }
+                                    )}
                                     label="Search"
                                 />
                             </FormControl>
@@ -231,7 +198,6 @@ const GroupLifeMasterlist = () => {
                     </Box>
 
                     <Box sx={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "nowrap", justifyContent: "flex-start", alignItems: "flex-start" }}>
-                    
                         <Box sx={{width: "25%", minWidth: 280, backgroundColor: "white", borderRadius: 2, padding: 2, flexShrink: 0 }}>
                             <GroupLifeOverview records={rows} />
                         </Box>
@@ -239,13 +205,11 @@ const GroupLifeMasterlist = () => {
                         <Box sx={{ width: "80%", minWidth: 300, backgroundColor: "white", borderRadius: 2, padding: 2, overflow: "hidden" }}>
                             <GroupLifeCompanyTable
                                 onRowClick={handleOnRowClick}
-                                // rows={filteredRecords}
                                 rows={paginatedRows}
                                 search={search}
-                                refreshPlans={refreshPlans}
                                 loading={loading}
-                                />
-                                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                            />
+                            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
                                 <TablePagination
                                     rowsPerPageOptions={[5, 10, 25]}
                                     component="div"
@@ -265,31 +229,26 @@ const GroupLifeMasterlist = () => {
                                         width: "fit-content",
                                         mt: 2
                                     }}
-                                    />
-                                    </Box>
+                                />
+                            </Box>
                         </Box>
-                        
                     </Box>
 
                     {openAddGroupLifeModal && (
-                        <GroupLifeAddModal
+                        <GroupLifeAddPlanModal
                             open={openAddGroupLifeModal}
                             close={() => setOpenAddGroupLifeModal(false)}
                             listOfCompanies={listOfCompanies}
                             refreshPlans={refreshPlans}
                         />
                     )}
+
                     {openAddCompanyModal && (
                     <GroupLifeAddCompanyModal
                         open={true}
                         close={() => setOpenAddCompanyModal(false)}
                         onAddCompany={companyName => {
-                        // setOpenAddCompanyModal(false);
                         refreshCompanies();
-                        setListOfCompanies(prev => [
-                            ...prev,
-                            { companyMenuItem: companyName }
-                        ]);
                         }}
                     />
                     )}

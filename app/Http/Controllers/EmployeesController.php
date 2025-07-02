@@ -78,6 +78,7 @@ class EmployeesController extends Controller
 
     private function enrichEmployeeDetails($employee)
     {
+        //Log::info("EmployeesController::enrichEmployeeDetails");
         $employee->name = $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name;
         $employee->role = "";
         $employee->jobTitle = "";
@@ -198,8 +199,7 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
-    //for the employee assignment process (only returns employees that are either unassigned or those whose department id matches the id being updated)
-    public function getAssignableEmployees(Request $request)
+    public function getUnverifiedEmployees()
     {
         // log::info("EmployeesController::getEmployees");
 
@@ -208,51 +208,37 @@ class EmployeesController extends Controller
             // $employees = $user->company->users;
 
             $client = ClientsModel::find($user->client_id);
-            $departmentId = $request->query('department_id');
+            // $employees = $client->employees;
+            // $employees = $user->company->users;
 
-            //responsible for filtering employees that are not assigned to any dept or those who belong to the specific dept id
-            $employees = $client->employees->filter(function ($employee) use ($departmentId){
-                
-                if(is_null($departmentId)){
-                    //executed when no department_id is provided (will be used when adding new department)
-                    return is_null($employee->department_id);
-                }
-                //otherwise execute this (will be used when updating a specific department)
-                return is_null($employee->department_id) || $employee->department_id == $departmentId;
-            });
+            $employees = UsersModel::where('client_id', $client->id)->orderBy('last_name', 'desc')->get();
 
-           $employees = $employees->map(function ($employee) {
+            $client = ClientsModel::find($user->client_id);
+            $employees = $client->employees;
+
+           $employees->map(function ($employee) {
                 $employee = $this->enrichEmployeeDetails($employee);
 
                 unset(
+                    // $employee->id,
                     $employee->verify_code,
                     $employee->code_expiration,
                     $employee->is_verified,
                     $employee->client_id,
                     $employee->branch_id,
+                    // $employee->department_id,
+                    // $employee->role_id,
+                    // $employee->job_title_id,
+                    // $employee->work_group_id
                 );
+
                 return $employee;
             });
-
-            $employees = $employees->values()->all();
 
             return response()->json(['status' => 200, 'employees' => $employees]);
         }
 
         return response()->json(['status' => 200, 'employees' => null]);
-    }
-
-
-
-    public function getEmployeesByBranch($id)
-    {
-        try {
-            $employees = UsersModel::where('branch_id', $id)->select('id', 'first_name', 'last_name', 'avatar')->get();
-                
-            return response()->json([ 'status' => 200, 'employees' => $employees ]);
-        } catch (\Exception $e) {
-            return response()->json([ 'status' => 500, 'message' => 'Error fetching employees by branch' ]);
-        }
     }
 
     public function getEmployeeLeaveCredits()
@@ -267,7 +253,7 @@ class EmployeesController extends Controller
             foreach ($client->employees as $employee) {
                 $employees[] = [
                     'user_name' => $employee->user_name,
-                    'name' => $employee->first_name . ", " . $employee->last_name . " " . $employee->middle_name . " " . $employee->suffix,
+                    'name' => $employee->last_name . ", " . $employee->first_name . " " . $employee->middle_name . " " . $employee->suffix,
                     'branch' => optional($employee->branch)->name . " (" . optional($employee->branch)->acronym . ")", 'N/A',
                     'department' => optional($employee->department)->name . " (" . optional($employee->department)->acronym . ")", 'N/A',
                     'total' => $employee->leaveCredits->sum('number'),
@@ -453,10 +439,11 @@ class EmployeesController extends Controller
 
     public function getMyDetails(Request $request)
     {
-        // log::info("EmployeesController::getMyDetails");
+        // Log::info("EmployeesController::getMyDetails");
 
         $user = Auth::user();
         $employee = UsersModel::find($user->id);
+        Log::info("Employee details fetched", ['id' => $employee->id, 'name' => $employee->name, 'user_name' => $employee->user_name]);
 
         $employee = $this->enrichEmployeeDetails($employee);
 
@@ -504,7 +491,6 @@ class EmployeesController extends Controller
     public function getMyAvatar()
     {
         $authUser = Auth::user();
-        Log::info("Getting avatar for user", ['id' => $authUser->id]);
 
         $avatar = [
             'image' => null,
@@ -535,22 +521,12 @@ class EmployeesController extends Controller
                     }
                     $avatar['url'] = $mediaUrl;
                 } else {
-                    Log::warning("Media record exists but file not found", [
-                        'path' => $media->getPath(),
-                        'disk' => $media->disk
-                    ]);
+                    Log::warning("Media record exists but file not found", [ 'path' => $media->getPath(), 'disk' => $media->disk ]);
                     
-                    return response()->json([
-                        'status' => 404,
-                        'message' => 'Avatar file not found'
-                    ], 404);
+                    return response()->json([ 'status' => 404, 'message' => 'Avatar file not found' ], 404);
                 }
             } else {
-                Log::info("No media found in profile_pictures collection");
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'No avatar found'
-                ], 404);
+                return response()->json([ 'status' => 404, 'message' => 'No avatar found' ], 404);
             }
         } catch (\Exception $e) {
             Log::error("Avatar fetch error", [
@@ -601,8 +577,8 @@ class EmployeesController extends Controller
 
     public function editMyProfile(Request $request)
     {
-        log::info("EmployeesController::editMyProfile");
-        log::info($request);
+        // log::info("EmployeesController::editMyProfile");
+        // log::info($request);
 
         $user = UsersModel::findOrFail($request->input('id'));
 
@@ -693,12 +669,12 @@ class EmployeesController extends Controller
             if ($request->hasFile('profilePicture')) {
                 // Clear existing media
                 $user->clearMediaCollection('profile_pictures');
-
+ 
                 // Add new media without conversion references
                 $media = $user->addMedia($request->file('profilePicture'))
                     ->usingName($request->file('profilePicture')->getClientOriginalName())
                     ->toMediaCollection('profile_pictures', 'public');
-                
+               
                 $mediaDetails = [
                     'id' => $media->id,
                     'name' => $media->name,
@@ -707,7 +683,7 @@ class EmployeesController extends Controller
                     'size' => $media->size,
                     'url' => $media->getUrl()
                 ];
-
+ 
                 return response()->json([
                     'status' => 200,
                     'message' => 'Profile picture updated successfully',
@@ -715,12 +691,12 @@ class EmployeesController extends Controller
                     'user' => $user->load('media')
                 ]);
             }
-
+ 
             return response()->json([
                 'message' => 'No profile picture provided',
                 'status' => 422
             ]);
-
+ 
         } catch (\Exception $e) {
             Log::error("Error saving profile picture: " . $e->getMessage());
             return response()->json([
@@ -745,7 +721,7 @@ class EmployeesController extends Controller
                 DB::beginTransaction();
 
                 $old_salary_grade = $employee->salary_grade;
-                $old_salary = $employee->salary;
+                $old_salary = $employee->salary ?? 0;
 
                 $employee->first_name = $request->firstName;
                 $employee->middle_name = $request->middleName;
@@ -756,7 +732,7 @@ class EmployeesController extends Controller
                 $employee->contact_number = $request->phoneNumber;
                 $employee->address = $request->address;
 
-                $employee->salary = $request->salary;
+                $employee->salary = $request->salary ?? 0;
                 $employee->is_fixed_salary = $request->fixedSalary;
                 $employee->salary_type = $request->salaryType;
 
@@ -783,7 +759,7 @@ class EmployeesController extends Controller
                         'old_salary_grade' => $old_salary_grade,
                         'old_amount' => $old_salary,
                         'new_salary_grade' => $request->selectedSalaryGrade,
-                        'new_amount' => $request->salary,
+                        'new_amount' => $request->salary ?? 0,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
@@ -1002,40 +978,36 @@ class EmployeesController extends Controller
 
         return $result;
     }
-//TEST VVVV
- public function getLeaveCreditByUser($username)
-{
-    // Check if the user is authorized
-    if (! $this->checkUserAdmin() && !(Auth::check() && Auth::user()->user_name === $username)) {
-        return response()->json(['message' => 'Unauthorized to view these leave credits.'], 403);
+
+    public function getLeaveCreditByUser($username)
+    {
+        // Check if the user is authorized
+        if (! $this->checkUserAdmin() && !(Auth::check() && Auth::user()->user_name === $username)) {
+            return response()->json(['message' => 'Unauthorized to view these leave credits.'], 403);
+        }
+
+        // Retrieve the user by username
+        $user = UsersModel::where('user_name', $username)->first();
+        if (! $user) {
+            return response()->json(['leaveCredits' => []], 404);
+        }
+
+        // Fetch leave credits with associated leave type
+        $leaveCredits = LeaveCreditsModel::where('user_id', $user->id)->with('type')->get();
+
+        // Format the leave credits data
+        $formattedLeaveCredits = $leaveCredits->map(function ($credit) {
+            return [
+                'leaveType'   => $credit->type ? $credit->type->name : 'Unknown Leave Type',
+                'leaveTypeId' => $credit->type ? $credit->type->id : null,
+                'limit'       => (float) $credit->number,
+                'used'        => (float) $credit->used,
+                'remaining'   => max (0, (float) ($credit->number - $credit->used)),
+            ];
+        })->toArray();
+
+        // Return the formatted credits
+        return response()->json([ 'leaveCredits' => $formattedLeaveCredits ]);
     }
-
-    // Retrieve the user by username
-    $user = UsersModel::where('user_name', $username)->first();
-    if (! $user) {
-        return response()->json(['leaveCredits' => []], 404);
-    }
-
-    // Fetch leave credits with associated leave type
-    $leaveCredits = LeaveCreditsModel::where('user_id', $user->id)
-        ->with('type')
-        ->get();
-
-    // Format the leave credits data
-    $formattedLeaveCredits = $leaveCredits->map(function ($credit) {
-        return [
-            'leaveType'   => $credit->type ? $credit->type->name : 'Unknown Leave Type',
-            'leaveTypeId' => $credit->type ? $credit->type->id : null,
-            'limit'       => (float) $credit->number,
-            'used'        => (float) $credit->used,
-            'remaining'   => max (0, (float) ($credit->number - $credit->used)),
-        ];
-    })->toArray();
-
-    // Return the formatted credits
-    return response()->json([
-        'leaveCredits' => $formattedLeaveCredits
-    ]);
-}
 
 }

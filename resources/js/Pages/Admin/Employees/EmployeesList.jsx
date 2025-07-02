@@ -1,58 +1,38 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, TablePagination, Box, Typography, Button, Menu, MenuItem, TextField, Stack, Grid, CircularProgress, Avatar, FormControl, FormControlLabel, Checkbox, ListItemText, } from "@mui/material";
+import React, { useState } from "react";
+import { Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Box, Typography, Button, Menu, MenuItem, TextField, Grid, Avatar } from "@mui/material";
 import Layout from "../../../components/Layout/Layout";
-import axiosInstance, { getJWTHeader } from "../../../utils/axiosConfig";
-import PageHead from "../../../components/Table/PageHead";
-import PageToolbar from "../../../components/Table/PageToolbar";
-import { Link, useNavigate, useParams, useSearchParams, } from "react-router-dom";
-import { getComparator, stableSort, } from "../../../components/utils/tableUtils";
-
+import { Link } from "react-router-dom";
 import LoadingSpinner from "../../../components/LoadingStates/LoadingSpinner";
-import { useEmployees } from "./hooks/useEmployees";
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import duration from "dayjs/plugin/duration";
+
+// Hooks
+import { useCSVExport } from "../../../hooks/useCSVExport";
+import { useEmployeesData } from "./hooks/useEmployees";
+import { useFilteredEmployees } from "./hooks/useEmployees";
+
+dayjs.extend(utc);
+dayjs.extend(localizedFormat);
+dayjs.extend(duration);
 
 const EmployeesList = () => {
-    const storedUser = localStorage.getItem("nasya_user");
-    const headers = getJWTHeader(JSON.parse(storedUser));
+    const { exportEmployees } = useCSVExport();
+    const { data, isLoading, isError } = useEmployeesData();
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [employees, setEmployees] = useState([]);
-    const [branches, setBranches] = useState([]);
-    const [departments, setDepartments] = useState([]);
+    const employees = data?.employees || [];
+    const branches = data?.branches || [];
+    const departments = data?.departments || [];
 
     const [searchName, setSearchName] = useState("");
     const [filterByBranch, setFilterByBranch] = useState("");
     const [filterByDepartment, setFilterByDepartment] = useState("");
-
-    useEffect(() => {
-        axiosInstance.get("/employee/getEmployees", { headers })
-            .then((response) => {
-                setEmployees(response.data.employees);
-                setIsLoading(false);
-            })
-            .catch((error) => {
-                console.error("Error fetching clients:", error);
-                setIsLoading(false);
-            });
-
-        axiosInstance.get("/settings/getDepartments", { headers })
-            .then((response) => {
-                setDepartments(response.data.departments);
-            })
-            .catch((error) => {
-                console.error("Error fetching departments:", error);
-            });
-
-        axiosInstance.get("/settings/getBranches", { headers })
-            .then((response) => {
-                setBranches(response.data.branches);
-            })
-            .catch((error) => {
-                console.error("Error fetching branches:", error);
-            });
-    }, []);
-
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
+
+    const filteredEmployees = useFilteredEmployees(employees, searchName, filterByBranch, filterByDepartment);
 
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -61,50 +41,45 @@ const EmployeesList = () => {
         setAnchorEl(null);
     };
 
-    const filteredEmployees = employees.filter((employee) => {
-        const fullName = `${employee.first_name} ${employee.middle_name || ""} ${employee.last_name} ${employee.suffix || ""}`.toLowerCase();
-        const matchedName = fullName.includes(searchName.toLowerCase());
-        const matchedBranchDept = (filterByBranch === "" || employee["branch"] === filterByBranch) && (filterByDepartment === "" || employee["department"] === filterByDepartment);
-
-        return matchedName && matchedBranchDept;
-    });
+    if (isError) {
+        return (
+            <Layout title="EmployeesList">
+                <Box p={4}>
+                    <Typography color="error" variant="h6">Failed to load employee data.</Typography>
+                </Box>
+            </Layout>
+        );
+    }
 
     return (
         <Layout title={"EmployeesList"}>
-            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }} >
+            <Box sx={{ overflowX: "auto", width: "100%", whiteSpace: "nowrap" }}>
                 <Box>
-                    <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }} >
-                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                            {" "}Employees{" "}
-                        </Typography>
-
+                    <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }}>
+                        <Typography variant="h4" sx={{ fontWeight: "bold" }}>Employees</Typography>
                         <Box>
-                            <Button id="employee-menu" variant="contained" color="primary" sx={{ mr: 1 }} aria-controls={open ? "emp-menu" : undefined} aria-haspopup="true" aria-expanded={open ? "true" : undefined} onClick={handleMenuOpen} >
-                                <p className="m-0"><i className="fa fa-file-excel-o"></i> {" "}Export{" "}</p>
+                            <Button onClick={() => exportEmployees(employees)} variant="contained" color="primary">
+                                <p className="m-0"><i className="fa fa-file-excel-o"></i> Export</p>
                             </Button>
                             <Button id="employee-menu" variant="contained" color="primary" sx={{ ml: 1 }} aria-controls={open ? "emp-menu" : undefined} aria-haspopup="true" aria-expanded={open ? "true" : undefined} onClick={handleMenuOpen} >
-                                <p className="m-0"><i className="fa fa-plus"></i> {" "}Add{" "}</p>
+                                <p className="m-0 m"><i className="fa fa-bars mr-2"></i> Menu </p>
                             </Button>
-
                             <Menu id="emp-menu" anchorEl={anchorEl} open={open} onClose={handleMenuClose} MenuListProps={{ "aria-labelledby": "employee_menu" }} >
-                                <MenuItem component={Link} to="/admin/employees/add" onClick={handleMenuClose} >
-                                    {" "}Add Employee{" "}
-                                </MenuItem>
-                                <MenuItem component={Link} to="/admin/employees/formlinks" onClick={handleMenuClose} >
-                                    {" "}Employee Form Links{" "}
-                                </MenuItem>
+                                <MenuItem component={Link} to="/admin/employees/add" onClick={handleMenuClose}> Add Employee </MenuItem>
+                                <MenuItem component={Link} to="/admin/employees/import" onClick={handleMenuClose}> Import Employees </MenuItem>
+                                <MenuItem component={Link} to="/admin/employees/formlinks" onClick={handleMenuClose}> Employee Form Links </MenuItem>
                             </Menu>
                         </Box>
                     </Box>
 
-                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }} >
+                    <Box sx={{ mt: 6, p: 3, bgcolor: "#ffffff", borderRadius: "8px" }}>
                         <Grid container sx={{ pb: 4, borderBottom: "1px solid #e0e0e0" }} >
                             <Grid container size={12} spacing={2}>
-                                {/*<---Name Search field--->*/}
+
                                 <Grid size={6}>
                                     <TextField id="searchName" label="Search Name" variant="outlined" value={searchName} onChange={(e) => setSearchName(e.target.value) } />
                                 </Grid>
-                                {/*<---Branch filter field--->*/}
+
                                 <Grid size={3}>
                                     <TextField
                                         select
@@ -124,7 +99,6 @@ const EmployeesList = () => {
                                     </TextField>
                                 </Grid>
 
-                                {/*<---Department filter field--->*/}
                                 <Grid size={3}>
                                     <TextField
                                         select
@@ -146,80 +120,54 @@ const EmployeesList = () => {
                             </Grid>
                         </Grid>
 
-                        {/*<---Main Employee List table--->*/}
                         {isLoading ? (
                             <LoadingSpinner />
                         ) : (
                             <>
-                                <TableContainer style={{ overflowX: "auto" }} sx={{ minHeight: 400, maxHeight: 500 }} >
-                                    <Table stickyHeader aria-label="employee table" >
-                                        {/*<--Table Header Section-->*/}
+                                <TableContainer sx={{ minHeight: 400, maxHeight: 500 }}>
+                                    <Table stickyHeader>
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell align="center" scope="col" >{" "}Name{" "}</TableCell>
-                                                <TableCell align="center" scope="col" >{" "}Branch{" "}</TableCell>
-                                                <TableCell align="center" scope="col" >{" "}Department{" "}</TableCell>
-                                                <TableCell align="center" scope="col" >{" "}Role{" "}</TableCell>
-                                                <TableCell align="center" scope="col" >{" "}Status{" "}</TableCell>
-                                                <TableCell align="center" scope="col" >{" "}Type{" "}</TableCell>
+                                                <TableCell align="center">Name</TableCell>
+                                                <TableCell align="center">Branch</TableCell>
+                                                <TableCell align="center">Department</TableCell>
+                                                <TableCell align="center">Role</TableCell>
+                                                <TableCell align="center">Status</TableCell>
+                                                <TableCell align="center">Type</TableCell>
                                             </TableRow>
                                         </TableHead>
-                                        {/*<--Table Body Section-->*/}
                                         <TableBody>
-                                            {filteredEmployees?.length > 0 ? (
-                                                filteredEmployees?.map(
-                                                    (employee) => (
-                                                        <TableRow key={employee.id} sx={{ "&:last-child td, &:last-child th": { border: 0 }, "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.1)", cursor: "pointer", }, }} >
-                                                            <TableCell align="left">
-                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit", }} >
-                                                                    <Box display="flex" sx={{ alignItems: "center", }} >
-                                                                        <Avatar src={employee?.media?.length ? employee.media[0]?.original_url : employee?.avatar || "../../../../../images/avatarpic.jpg"} sx={{ mr: 2 }} />
-                                                                        {employee.last_name}{", "}{employee.first_name}{" "}{employee.middle_name || ""}{" "}{employee.suffix || ""}
-                                                                    </Box>
-                                                                </Link>
-                                                            </TableCell>
-
-                                                            <TableCell align="center">
-                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit" }}> {employee.branch || ""} </Link>
-                                                            </TableCell>
-
-                                                            <TableCell align="center">
-                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit" }}> {employee.department || ""} </Link>
-                                                            </TableCell>
-
-                                                            <TableCell align="center">
-                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit" }}> {employee.role || ""} </Link>
-                                                            </TableCell>
-
-                                                            <TableCell align="center">
-                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit" }}> {employee.employment_status || ""} </Link>
-                                                            </TableCell>
-
-                                                            <TableCell align="center">
-                                                                <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit" }}> {employee.employment_type || ""} </Link>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    )
-                                                )
+                                            {filteredEmployees.length > 0 ? (
+                                                filteredEmployees.map((employee) => (
+                                                    <TableRow key={employee.id} hover>
+                                                        <TableCell align="left">
+                                                            <Link to={`/admin/employee/${employee.user_name}`} style={{ textDecoration: "none", color: "inherit" }} >
+                                                                <Box display="flex" alignItems="center">
+                                                                    <Avatar src={ employee?.media?.length ? employee.media[0]?.original_url : employee?.avatar || "../../../../../images/avatarpic.jpg" } sx={{ mr: 2 }} />
+                                                                    {`${employee.last_name}, ${employee.first_name} ${employee.middle_name || ""} ${employee.suffix || ""}`}
+                                                                </Box>
+                                                            </Link>
+                                                        </TableCell>
+                                                        <TableCell align="center">{employee.branch || ""}</TableCell>
+                                                        <TableCell align="center">{employee.department || ""}</TableCell>
+                                                        <TableCell align="center">{employee.role || ""}</TableCell>
+                                                        <TableCell align="center">{employee.employment_status || ""}</TableCell>
+                                                        <TableCell align="center">{employee.employment_type || ""}</TableCell>
+                                                    </TableRow>
+                                                ))
                                             ) : (
                                                 <TableRow>
-                                                    <TableCell colSpan={6} align="center" >
-                                                        {" "} No employees found.{" "}
-                                                    </TableCell>
+                                                    <TableCell colSpan={6} align="center">No employees found.</TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
 
-                                {filteredEmployees?.length > 0 && (
-                                    <Box display="flex" sx={{ py: 2, pr: 2, width: "100%", justifyContent: "flex-end", alignItems: "center" }}>
-                                        <Typography sx={{ mr: 2 }}>
-                                            {" "}Number of Employees:{" "}
-                                        </Typography>
-                                        <Typography variant="h6" sx={{ fontWeight: "bold" }} >
-                                            {" "}{filteredEmployees?.length}{" "}
-                                        </Typography>
+                                {filteredEmployees.length > 0 && (
+                                    <Box display="flex" justifyContent="flex-end" alignItems="center" sx={{ py: 2 }}>
+                                        <Typography sx={{ mr: 2 }}>Number of Employees:</Typography>
+                                        <Typography variant="h6" fontWeight="bold"> {filteredEmployees.length} </Typography>
                                     </Box>
                                 )}
                             </>

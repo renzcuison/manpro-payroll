@@ -6,11 +6,8 @@ const GroupLifeOverview = ({ records }) => {
     const chartInstanceRef = useRef(null);
     const lastRecordHashRef = useRef(null);
 
-    // const generateDataHash = (records) =>
-    //     records.map(r => r.companyname).sort().join(",");
-
     const generateDataHash = (records) =>
-    records.map(r => `${r.groupLifeName}-${r.planType}`).sort().join(",");
+    records.map(r => `${r.groupLifeName}-${r.planType}-${r.employeesAssignedCount || 0}`).sort().join(",");
 
     useEffect(() => {
 
@@ -18,21 +15,15 @@ const GroupLifeOverview = ({ records }) => {
         if (!context) return;
 
         const currentHash = generateDataHash(records);
-        if (lastRecordHashRef.current === currentHash) return; // No real data change
+        if (lastRecordHashRef.current === currentHash) return;
 
         lastRecordHashRef.current = currentHash;
 
-        // const counts = records.reduce((acc, rec) => {
-
-        //     acc[rec.companyname] = (acc[rec.companyname] || 0) + 1;
-        //     return acc;
-        //     }, {});
-
         const counts = records.reduce((acc, rec) => {
-    const label = `${rec.groupLifeName} - ${rec.planType}`; // Combine for distinct slices
-    acc[label] = (acc[label] || 0) + 1;
-    return acc;
-}, {});
+            const label = `${rec.groupLifeName} - ${rec.planType}`;
+            acc[label] = (acc[label] || 0) + (rec.employeesAssignedCount || 0);;
+            return acc;
+        }, {});
 
         const data = {
             labels: Object.keys(counts),
@@ -45,7 +36,6 @@ const GroupLifeOverview = ({ records }) => {
         };
 
         if (chartInstanceRef.current) {
-            // Update chart data instead of recreating it
             chartInstanceRef.current.data = data;
             chartInstanceRef.current.update();
         } 
@@ -60,11 +50,12 @@ const GroupLifeOverview = ({ records }) => {
                     legend: {
                         display: true,
                         position: "bottom",
+                        align: "start",
                         labels: {
                             usePointStyle: true,
                             pointStyle: "circle",
                             font: {
-                                size: 14,
+                                size: 12,
                                 },
                             },
                         },

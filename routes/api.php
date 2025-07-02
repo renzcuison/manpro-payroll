@@ -29,6 +29,7 @@ use App\Http\Controllers\BranchPositionController;
 use App\Http\Controllers\SalaryPlansController;
 
 use App\Http\Controllers\InsurancesController;
+use App\Http\Controllers\ExcelController;
 
 // Old Controllers
 use App\Http\Controllers\VoiceController;
@@ -169,9 +170,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('employee')->group(function () {
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
-        Route::get('/getAssignableEmployees', [EmployeesController::class, 'getAssignableEmployees']);
-        Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
+        Route::get('/getUnverifiedEmployees', [EmployeesController::class, 'getUnverifiedEmployees']);
 
+        Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
         Route::post('/updateEmployeeBranchPosition', [EmployeesController::class, 'updateBranchPosition']);
 
         Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
@@ -191,12 +192,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
-        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editMyProfilePicture', [EmployeesController::class, 'editMyProfilePicture']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
-        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
@@ -205,10 +204,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/deleteFormLink', [EmployeesController::class, 'deleteFormLink']);
     });
 
-
     Route::prefix('compensation')->group(function () {
         //allowances
         Route::get('/getAllowances', [CompensationManagementController::class, 'getAllowances']);
+        Route::get('/getAssignableAllowances', [CompensationManagementController::class, 'getAssignableAllowances', ]);
         Route::post('/saveAllowance', [CompensationManagementController::class, 'saveAllowance']);
         Route::post('/updateAllowance', [CompensationManagementController::class, 'updateAllowance']);
 
@@ -219,6 +218,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         //incentives
         Route::get('/getIncentives', [CompensationManagementController::class, 'getIncentives', ]);
+        Route::get('/getAssignableIncentives', [CompensationManagementController::class, 'getAssignableIncentives', ]);
         Route::post('saveIncentives', [CompensationManagementController::class, 'saveIncentives', ]);
         Route::post('/updateIncentives', [CompensationManagementController::class, 'updateIncentives']);
 
@@ -229,6 +229,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         //benefits
         Route::get('/getBenefits', [CompensationManagementController::class, 'getBenefits', ]);
+        Route::get('/getAssignableBenefits', [CompensationManagementController::class, 'getAssignableBenefits', ]);
         Route::post('/saveBenefits', [CompensationManagementController::class, 'saveBenefits', ]);
         Route::post('/updateBenefits', [CompensationManagementController::class, 'updateBenefits']);
 
@@ -239,6 +240,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         //deductions
         Route::get('/getDeductions', [CompensationManagementController::class, 'getDeductions']);
+        Route::get('/getAssignableDeductions', [CompensationManagementController::class, 'getAssignableDeductions', ]);
         Route::post('/saveDeductions', [CompensationManagementController::class, 'saveDeductions']);
         Route::post('/updateDeductions', [CompensationManagementController::class, 'updateDeductions']);
 
@@ -270,13 +272,24 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getWorkDays', [WorkScheduleController::class, 'getWorkDays']);
         Route::post('/saveWorkDay', [WorkScheduleController::class, 'saveWorkDay']);
 
-        Route::get('/getHolidays', [WorkScheduleController::class, 'getHolidays']);
+        Route::get('/getHolidays', [
+            WorkScheduleController::class,
+            'getHolidays',
+        ]);
+
+        route::get('/getWorkSchedByUser', [
+            WorkScheduleController::class,
+            'getWorkSchedByUser',
+        ]);
     });
 
     Route::prefix('attendance')->group(function () {
         Route::get('/getAttendanceLogs', [AttendanceController::class, 'getAttendanceLogs']);
         Route::get('/getAttendanceSummary', [AttendanceController::class, 'getAttendanceSummary']);
         Route::get('/getAttendanceOvertime', [AttendanceController::class, 'getAttendanceOvertime']);
+
+        Route::get('/getAttendanceRestDay', [AttendanceController::class, 'getAttendanceRestDay']);
+        
         Route::get('/getEmployeeAttendanceLogs', [AttendanceController::class, 'getEmployeeAttendanceLogs']);
         Route::get('/getEmployeeAttendanceSummary', [AttendanceController::class, 'getEmployeeAttendanceSummary']);
         Route::get('/getEmployeeDashboardAttendance', [AttendanceController::class, 'getEmployeeDashboardAttendance']);
@@ -486,16 +499,64 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('medicalRecords')->group(function () {
         // Group Life Company - New
-        Route::post('/saveGroupLifeCompanies', [InsurancesController::class, 'saveGroupLifeCompanies']);
-        Route::get('/getGroupLifeCompanies', [InsurancesController::class, 'getGroupLifeCompanies']);
-        Route::post('/saveGroupLifePlans', [InsurancesController::class, 'saveGroupLifePlans']);
-        Route::get('/getGroupLifePlans', [InsurancesController::class, 'getGroupLifePlans']);
-        Route::get('/getGroupLifeEmployees', [InsurancesController::class, 'getGroupLifeEmployees']);
-        Route::get('/getGroupLifeEmployeePlanById/{id}', [InsurancesController::class, 'getGroupLifeEmployeePlanById']);
-        Route::post('/saveGroupLifeEmployees', [InsurancesController::class, 'saveGroupLifeEmployees']);
-        Route::put('' . '/editGroupLifeEmployeePlan/{id}', [InsurancesController::class, 'editGroupLifeEmployeePlan']);
+        //Admin
+        Route::post('/saveGroupLifeCompanies', [ InsurancesController::class, 'saveGroupLifeCompanies', ]);
+        Route::get('/getGroupLifeCompanies', [ InsurancesController::class, 'getGroupLifeCompanies', ]);
+        Route::put('/editGroupLifeCompany/{id}', [ InsurancesController::class, 'editGroupLifeCompany', ]);
+        Route::delete('/deleteGroupLifeCompany/{id}', [ InsurancesController::class, 'deleteGroupLifeCompany', ]);
+        Route::post('/saveGroupLifePlans', [ InsurancesController::class, 'saveGroupLifePlans', ]);
+        Route::get('/getGroupLifePlans', [ InsurancesController::class, 'getGroupLifePlans', ]);
+        Route::get('/getGroupLifePlan/{id}', [ InsurancesController::class, 'getGroupLifePlan', ]);
+        Route::post('/editGroupLifePlan/{id}', [ InsurancesController::class, 'editGroupLifePlan', ]);
+        Route::delete('/deleteGroupLifePlan/{id}', [ InsurancesController::class, 'deleteGroupLifePlan', ]);
+        Route::get('/getGroupLifeEmployees', [ InsurancesController::class, 'getGroupLifeEmployees', ]);
+        Route::get('/getGroupLifeEmployeePlanById/{id}', [ InsurancesController::class, 'getGroupLifeEmployeePlanById', ]);
+        Route::get('/getGroupLifeEmployeePlanById', [ InsurancesController::class, 'getGroupLifeEmployeePlanById', ]);
+        Route::post('/saveGroupLifeEmployees', [ InsurancesController::class, 'saveGroupLifeEmployees', ]);
+        Route::put('' . '/editGroupLifeEmployeePlan/{id}', [ InsurancesController::class, 'editGroupLifeEmployeePlan', ]);
+        Route::delete('/deleteGroupLifeEmployee/{id}', [ InsurancesController::class, 'deleteGroupLifeEmployee', ]);
+        Route::delete('/deleteGroupLifeDependent/{id}', [ InsurancesController::class, 'deleteGroupLifeDependent', ]);
 
+        //Employee
+        Route::get('/getEmployeeGroupLifePlans', [ InsurancesController::class, 'getEmployeeGroupLifePlans', ]);
+        Route::get('/getEmployeeGroupLifePlan', [ InsurancesController::class, 'getEmployeeGroupLifePlan', ]);
+        Route::get('/getEmployeeGroupLifePlanById/{id}', [ InsurancesController::class, 'getEmployeeGroupLifePlanById', ]);
+        Route::put('/editEmployeeGroupLifePlan/{id}', [ InsurancesController::class, 'editEmployeeGroupLifePlan', ]);
+
+        Route::post('/addEmployeeDependent', [ InsurancesController::class, 'addEmployeeDependent', ]);
+
+
+
+        // HMO Company
+        Route::post('/saveHMOCompanies', [ InsurancesController::class, 'saveHMOCompanies', ]);
+        Route::get('/getHMOCompanies', [ InsurancesController::class, 'getHMOCompanies', ]);
+        Route::put('/editHMOCompany/{id}', [ InsurancesController::class, 'editHMOCompany', ]);
+        Route::delete('/deleteHMOCompany/{id}', [ InsurancesController::class, 'deleteHMOCompany', ]);
+        Route::post('/saveHMOPlans', [ InsurancesController::class, 'saveHMOPlans', ]);
+        Route::get('/getHMOPlans', [ InsurancesController::class, 'getHMOPlans', ]);
+        Route::get('/getHMOPlan/{id}', [ InsurancesController::class, 'getHMOPlan', ]);
+        Route::post('/editHMOPlan/{id}', [ InsurancesController::class, 'editHMOPlan', ]);
+        Route::delete('/deleteHMOPlan/{id}', [ InsurancesController::class, 'deleteHMOPlan', ]);
+        Route::get('/getHMOEmployees', [ InsurancesController::class, 'getHMOEmployees', ]);
+        Route::get('/getHMOEmployeePlanById/{id}', [ InsurancesController::class, 'getHMOEmployeePlanById', ]);
+
+        Route::post('/saveHMOEmployees', [ InsurancesController::class, 'saveHMOEmployees', ]);
+        Route::put('' . '/editHMOEmployeePlan/{id}', [ InsurancesController::class, 'editHMOEmployeePlan', ]);
+        Route::delete('/deleteHMOEmployee/{id}', [ InsurancesController::class, 'deleteHMOEmployee', ]);
+        Route::delete('/deleteHMODependent/{id}', [ InsurancesController::class, 'deleteHMODependent', ]);
+
+        // HMO Employee
+        Route::get('/getEmployeeHMOPlan', [ InsurancesController::class, 'getEmployeeHMOPlan', ]);
+        Route::get('/getEmployeeHMOPlanById/{id}', [ InsurancesController::class, 'getEmployeeHMOPlanById', ]);
+        Route::put('/editEmployeeHMOPlan/{id}', [ InsurancesController::class, 'editEmployeeHMOPlan', ]);
     });
+
+    Route::get('/excel/downloadEmployeeTemplate', [ExcelController::class, 'downloadEmployeeTemplate']);
+
+    // Route::prefix('excel')->group(function () {
+        // Route::get('/downloadEmployeeTemplate', [ExcelController::class, 'downloadEmployeeTemplate']);
+    // });
+
 
     // Hr employees
     Route::get('/employeesHistory/{id}/{dates}', [HrEmployeesController::class, 'getEmployeeHistory']);
@@ -574,9 +635,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getEvaluationResponses', [EvaluationResponseController::class, 'getEvaluationResponses']);
     Route::post('/saveEvaluationResponse', [EvaluationResponseController::class, 'saveEvaluationResponse']);
 
-    Route::get('/getEvaluatees', [EvaluationResponseController::class, 'getEvaluatees']);
-    Route::get('/getEvaluators', [EvaluationResponseController::class, 'getEvaluators']);
-    Route::get('/getCommentors', [EvaluationResponseController::class, 'getCommentors']);
+    // Route::get('/getEvaluatees', [EvaluationResponseController::class, 'getEvaluatees']);
+    // Route::get('/getEvaluators', [EvaluationResponseController::class, 'getEvaluators']);
+    // Route::get('/getCommentors', [EvaluationResponseController::class, 'getCommentors']);
+    Route::get('/getEvaluationResponseUsers', [EvaluationResponseController::class, 'getEvaluationResponseUsers']);
     Route::post('/deleteEvaluationEvaluator', [EvaluationResponseController::class, 'deleteEvaluationEvaluator']);
     Route::post('/editEvaluationEvaluator', [EvaluationResponseController::class, 'editEvaluationEvaluator']);
     Route::get('/getEvaluationEvaluator', [EvaluationResponseController::class, 'getEvaluationEvaluator']);
@@ -825,7 +887,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/deleteSalaryGrade', [SalaryPlansController::class, 'deleteSalaryGrade']);
     Route::get('/getSalaryLogs', [SalaryPlansController::class, 'getSalaryLogs']);
     Route::get('/getEmployeesBySalaryGrade', [SalaryPlansController::class, 'getEmployeesBySalaryGrade']);
-    Route::get('/getSalaryPlanById', [SalaryPlansController::class, 'getSalaryPlanById']);
     Route::delete('/google/event/{id}', [GoogleController::class, 'deleteEvent', ]);
 });
 

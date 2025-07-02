@@ -8,6 +8,7 @@ import Dashboard from "../Pages/Employee/Dashboard/DashboardView";
 import AttendanceLogs from "../Pages/Employee/Attendance/AttendanceLogs";
 import AttendanceSummary from "../Pages/Employee/Attendance/AttendanceSummary";
 import AttendanceOvertime from "../Pages/Employee/Attendance/AttendanceOvertime";
+import AttendanceRestDay from "../Pages/Employee/Attendance/AttendanceRestDay";
 
 import ApplicationList from "../Pages/Employee/Applications/ApplicationList";
 
@@ -24,13 +25,17 @@ import TrainingView from "../Pages/Employee/Trainings/TrainingView";
 import ProfileEdit from "../Pages/Employee/Profile/ProfileEdit";
 import ContentView from "../Pages/Employee/Trainings/ContentView";
 
-import GroupLifeMasterlist from "../Pages/Employee/MedicalRecords/GroupLifeMasterlist";
-import HMOmasterlist from "../Pages/Employee/MedicalRecords/HMOmasterlist";
+import GroupLifeMasterlist from "../Pages/Employee/MedicalRecords/GroupLife/GroupLifeMasterlist";
+import HMOMasterlist from "../Pages/Employee/MedicalRecords/HMO/HMOMasterlist";
 import PemeRecordsForm from "../Pages/Employee/MedicalRecords/PEME/Forms/PemeRecordsForm";
 import PemeResponses from "../Pages/Employee/MedicalRecords/PEME/PemeResponses";
 import PemeQuestionnaireView from "../Pages/Employee/MedicalRecords/PEME/PemeQuestionnaireView";
 import PemeOverview from "../Pages/Employee/MedicalRecords/PEME/PemeOverview";
 
+import GroupLifeEmployeeMasterlist from "../Pages/Employee/MedicalRecords/GroupLife/GroupLifeEmployeeMasterlist";
+import GroupLifeEmployeePlanView from "../Pages/Employee/MedicalRecords/GroupLife/GroupLifeEmployeePlanView";
+
+// import GroupLifeMasterlist from "../Pages/Employee/MedicalRecords/GroupLife/GroupLifeMasterlist";
 
 //
 import PerformanceEvaluationAnswerPage from '../Pages/Employee/PerformanceEvaluation/PerformanceEvaluationAnswerPage';
@@ -114,15 +119,9 @@ const EmployeeRoutes = ({ user }) => {
                     />
                 }
             />
-            <Route
-                path="attendance-overtime"
-                element={
-                    <ProtectedRoute
-                        element={<AttendanceOvertime />}
-                        user={user}
-                    />
-                }
-            />
+
+            <Route path="attendance-overtime" element={ <ProtectedRoute element={<AttendanceOvertime />} user={user} /> }/>
+            <Route path="attendance-rest-day" element={ <ProtectedRoute element={<AttendanceRestDay />} user={user} /> }/>
 
             {/* Application Routes ----------------------------------------- */}
             <Route
@@ -214,7 +213,7 @@ const EmployeeRoutes = ({ user }) => {
             <Route
                 path="medical-records/hmo-masterlist-records"
                 element={
-                    <ProtectedRoute element={<HMOmasterlist />} user={user} />
+                    <ProtectedRoute element={<HMOMasterlist />} user={user} />
                 }
             />
             <Route
@@ -232,6 +231,28 @@ const EmployeeRoutes = ({ user }) => {
                     />
                 }
             />
+
+            {/* <Route
+                path="s"
+                element={
+                    <ProtectedRoute element={<GroupLifeMasterlist />} user={user} />
+                }
+            /> */}
+
+            <Route 
+                path="/medical-records/group-life-employee-masterlist/view/:id"
+                element={
+                    <ProtectedRoute element={<GroupLifeMasterlist />}  user={user} />
+                } />
+
+            {/* <Route
+                path="medical-records/group-life-employee-masterlist/view/:id"
+                element={
+                    <ProtectedRoute element={<GroupLifeEmployeePlanView />} user={user} />
+                }
+            /> */}
+            
+
         </Routes>
     );
 };

@@ -42,30 +42,23 @@ const getSectionScore = (section) => {
       scoreTotal += subScore;
       counted++;
     } else if (subcat.subcategory_type === 'linear_scale') {
-    // Find the lowest and highest score in options
-    const scores = subcat.options.map(opt => Number(opt.score));
-    const start = Math.min(...scores);
-    const end = Math.max(...scores);
-
-    // Find selected value (from percentage_answer or fallback to option_answer)
-    let value = null;
-    if (subcat.percentage_answer && typeof subcat.percentage_answer.value === 'number') {
-      value = Number(subcat.percentage_answer.value);
-    } else {
-      // fallback: try to find by option_answer (for other types/future-proofing)
-      const selectedOpt = subcat.options.find(opt => opt.option_answer);
-      if (selectedOpt) value = Number(selectedOpt.score);
-    }
-
-
-    if (value !== null && end > start) {
-      subScore = ((value - start) / (end - start)) * 100;
-    }
-
-    subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
-    scoreTotal += subScore;
-    counted++;
+  const scores = subcat.options.map(opt => Number(opt.score));
+  const start = Math.min(...scores);
+  const end = Math.max(...scores);
+ 
+  // Find the selected option (option_answer not null)
+  const selectedOpt = subcat.options.find(opt => opt.option_answer != null);
+  const value = selectedOpt ? Number(selectedOpt.score) : null;
+ 
+  let subScore = 0;
+  if (value !== null && end > start) {
+    subScore = ((value - start + 1) / (end - start + 1)) * 100;
   }
+ 
+  subcatScores.push({ id: subcat.id, name: subcat.name, score: subScore, description: subcat.description });
+  scoreTotal += subScore;
+  counted++;
+}
   });
 
   const sectionScore = counted > 0 ? scoreTotal / counted : 0;
@@ -133,7 +126,7 @@ const PerformanceEvaluationEvaluateePage = () => {
     }
   };
 
- const handleDownloadPDFClick = async () => {
+const handleDownloadPDFClick = async () => {
     const doc = new jsPDF("p", "pt", "a4");
     const margin = 40;
     const cardWidth = 520;
@@ -143,7 +136,7 @@ const PerformanceEvaluationEvaluateePage = () => {
     const form = evaluationResponse.form;
     const responseMeta = evaluationResponse;
 
-    // HEADER (Single form name, not repeated)
+    // HEADER
     doc.setFontSize(18);
     doc.setTextColor(34, 34, 34);
     doc.setFont(undefined, "bold");
@@ -169,6 +162,9 @@ const PerformanceEvaluationEvaluateePage = () => {
 
     // --- SECTIONS ---
     form.sections.forEach((section, idx) => {
+      // Check for page overflow
+      if (y > 700) { doc.addPage(); y = margin; }
+
       // Compact Gold Bar Header
       const barHeight = 28;
       const barRadius = 5;
@@ -219,7 +215,7 @@ const PerformanceEvaluationEvaluateePage = () => {
     y += weightedBarHeight;
     y += 18;
 
-    // Table Header (aligned columns)
+    // Table Header
     doc.setFontSize(12);
     doc.setFont(undefined, "bold");
     doc.setTextColor(51, 51, 51);
@@ -242,6 +238,8 @@ const PerformanceEvaluationEvaluateePage = () => {
       )
     );
     weightedSections.forEach(section => {
+      // Check for page overflow
+      if (y > 770) { doc.addPage(); y = margin; }
       const { sectionScore, weightedScore } = getSectionScore(section);
       totalWeighted += weightedScore;
       doc.text(`${section.name} - ${section.score || 0}%`, margin + 20, y);
@@ -278,9 +276,9 @@ const PerformanceEvaluationEvaluateePage = () => {
       doc.setFont(undefined, "bold");
       doc.setTextColor(51, 51, 51);
       doc.text("Evaluator:", margin + 20, y);
-      y += 20; // LESS space here
+      y += 20;
       responseMeta.evaluators.forEach((evaluator) => {
-        if (y > 700) { doc.addPage(); y = margin; }
+        if (y > 770) { doc.addPage(); y = margin; }
         doc.setFont(undefined, "bold");
         doc.setFontSize(11);
         doc.setTextColor(34,34,34);
@@ -305,13 +303,13 @@ const PerformanceEvaluationEvaluateePage = () => {
       doc.setDrawColor(220, 220, 220);
       doc.setLineWidth(1.2);
       doc.line(margin, y, margin + cardWidth, y);
-      y += 30; // <<-- Add more space here (try 30 or more)
+      y += 30;
     }
 
     // Commentors
     if (Array.isArray(responseMeta.commentors) && responseMeta.commentors.length > 0) {
       responseMeta.commentors.forEach((commentor, idx) => {
-        if (y > 700) { doc.addPage(); y = margin; }
+        if (y > 770) { doc.addPage(); y = margin; }
         doc.setFont(undefined, "bold");
         doc.setFontSize(12);
         doc.setTextColor(51, 51, 51);
@@ -344,7 +342,7 @@ const PerformanceEvaluationEvaluateePage = () => {
     }
     y += 18;
 
-    // --- Signatures grid (3 per row, white rounded cards) ---
+    // --- Signatures grid (2 per row, white rounded cards, with page break) ---
     const signatureBarHeight = 28;
     doc.setFillColor(...gold);
     doc.roundedRect(margin, y, cardWidth, weightedBarHeight, 5, 5, "F");
@@ -405,12 +403,26 @@ const PerformanceEvaluationEvaluateePage = () => {
       }
     }
 
-    const colWidth = 155, sigImgHeight = 36, sigImgWidth = 100;
+    const colWidth = 250, sigImgHeight = 36, sigImgWidth = 100;
+    const gap = 16;
     let col = 0, row = 0, startY = y;
+
+    // Get page height (A4 is 842pt, but may differ, so use jsPDF api)
+    const pageHeight = doc.internal.pageSize.height || 842;
     for (let i = 0; i < signatureBlocks.length; ++i) {
       const sig = signatureBlocks[i];
-      const x = margin + col * (colWidth + 8);
-      const y0 = startY + row * 70;
+      const x = margin + col * (colWidth + gap);
+      let y0 = startY + row * 70;
+
+      // Check if next row would overflow page
+      if (y0 + 70 > pageHeight - margin) {
+        doc.addPage();
+        // Reset row, col, startY, y0 for new page
+        row = 0;
+        col = 0;
+        startY = margin;
+        y0 = startY;
+      }
 
       try {
         if (!sig.url || sig.url === "data:image/png;base64,")
@@ -443,11 +455,11 @@ const PerformanceEvaluationEvaluateePage = () => {
       }
 
       col++;
-      if (col === 3) { col = 0; row++; }
+      if (col === 2) { col = 0; row++; }
     }
 
     doc.save(`evaluation_${form.name.replace(/\s+/g, '_')}.pdf`);
-  };
+};
 
   const form = evaluationResponse.form;
   const responseMeta = evaluationResponse;
@@ -524,7 +536,7 @@ const PerformanceEvaluationEvaluateePage = () => {
           Employee Name: {responseMeta?.evaluatee ? getFullName(responseMeta.evaluatee) : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
-          Evaluators: {responseMeta?.evaluators ? responseMeta.evaluators.map(evaluator => getFullName(evaluator)).join(' & ') : ''}
+          Evaluator: {responseMeta?.evaluators ? responseMeta.evaluators.map(evaluator => getFullName(evaluator)).join(' & ') : ''}
         </Typography>
         <Typography variant="body1" sx={{ color: '#777', mb: 2 }}>
           Period Availability: {responseMeta.period_start_date} to {responseMeta.period_end_date}
@@ -582,126 +594,137 @@ const PerformanceEvaluationEvaluateePage = () => {
               <AccordionDetails sx={{ pt: 2 }}>
                 {/* Scored subcategories (bars) */}
                 {hasScorableSubcats && (
-                  <>
-                    <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
-                      {subcatScores.map(({ name, score, description, id }) => (
-                        <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }} key={id}>
-                          <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
-                            <Box
-                              component="span"
-                              onMouseEnter={() => setHoveredSubcat(`name-${id}`)}
-                              onMouseLeave={() => setHoveredSubcat(null)}
-                              sx={{
-                                fontWeight: 'bold',
-                                whiteSpace: 'nowrap',
-                                cursor: 'default',
-                                position: 'relative',
-                                color: '#222'
-                              }}
-                            >
-                              {name}
-                              {hoveredSubcat === `name-${id}` && !!description && (
-                                <Box
-                                  sx={{
-                                    position: 'absolute',
-                                    left: 0,
-                                    top: '100%',
-                                    mt: 1,
-                                    bgcolor: '#fffde7',
-                                    color: '#444',
-                                    zIndex: 10,
-                                    boxShadow: 3,
-                                    borderRadius: 1,
-                                    border: '1px solid #ffe082',
-                                    px: 2,
-                                    py: 1,
-                                    minWidth: 200,
-                                    maxWidth: 320,
-                                    fontSize: '0.97rem',
-                                    pointerEvents: 'none',
-                                    wordBreak: 'break-word',
-                                    overflow: 'auto',
-                                    maxHeight: 200,
-                                    whiteSpace: 'pre-line',
-                                  }}
-                                >
-                                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#E9AE20', mb: 0.5 }}>
-                                    Description
-                                  </Typography>
-                                  <Typography variant="body2">{description}</Typography>
-                                </Box>
-                              )}
-                            </Box>
-                          </Grid>
-                          <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
-                            <Box
-                              onMouseEnter={() => setHoveredSubcat(`bar-${id}`)}
-                              onMouseLeave={() => setHoveredSubcat(null)}
-                              sx={{ display: 'inline-block', width: '100%', position: 'relative' }}
-                            >
-                              <ScoreLinearBar
-                                variant="determinate"
-                                value={score}
-                                sx={{ width: { xs: 200, sm: 300, md: 500 } }}
-                              />
-                              {hoveredSubcat === `bar-${id}` && !!description && (
-                                <Box
-                                  sx={{
-                                    position: 'absolute',
-                                    left: 0,
-                                    top: '100%',
-                                    mt: 1,
-                                    bgcolor: '#fffde7',
-                                    color: '#444',
-                                    zIndex: 10,
-                                    boxShadow: 3,
-                                    borderRadius: 1,
-                                    border: '1px solid #ffe082',
-                                    px: 2,
-                                    py: 1,
-                                    minWidth: 200,
-                                    maxWidth: 320,
-                                    fontSize: '0.97rem',
-                                    pointerEvents: 'none',
-                                    wordBreak: 'break-word',
-                                    overflow: 'auto',
-                                    maxHeight: 200,
-                                    whiteSpace: 'pre-line',
-                                  }}
-                                >
-                                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#E9AE20', mb: 0.5 }}>
-                                    Description
-                                  </Typography>
-                                  <Typography variant="body2">{description}</Typography>
-                                </Box>
-                              )}
-                            </Box>
-                          </Grid>
-                          <Grid item sx={{ minWidth: 40, textAlign: 'right' }}>
-                            <Typography sx={{ fontWeight: 'bold', ml: 1 }}>{score.toFixed(1)} %</Typography>
-                          </Grid>
-                        </Grid>
-                      ))}
-                    </Box>
-                    <Divider sx={{ my: 2 }} />
-                    <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
-                      <Grid container alignItems="center" spacing={2} sx={{ mb: 1 }}>
-                        <Grid item sx={{ minWidth: 130, flexGrow: 0 }}>
-                          <Typography sx={{ fontWeight: 700, color: "#262626" }}>Total Rating</Typography>
-                        </Grid>
-                        <Grid item xs zeroMinWidth sx={{ pr: 2 }}>
-                         <ScoreLinearBar
-                            variant="determinate"
-                            value={sectionScore}
-                            sx={{ width: { xs: 200, sm: 300, md: 500 } }}
-                          />
-                        </Grid>
-                        <Grid item xs={2}>
-                          <Typography sx={{ fontWeight: 700, ml: 1 }}>{sectionScore.toFixed(1)} %</Typography>
-                        </Grid>
-                      </Grid>
-                    </Box>
-                  </>
+                  <Box sx={{ width: '100%', maxWidth: 800, mx: "auto", mt: 2, mb: 1 }}>
+                    <Table sx={{ '& .MuiTableCell-root': {borderBottom: 'none',},}}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 700, fontSize: 16 }}>Subcategories</TableCell>
+                          <TableCell sx={{ width: 300 }} align="center"></TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700, fontSize: 16 }}>Average Score</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {subcatScores.map(({ name, score, description, id }) => (
+                          <TableRow key={id}>
+                            <TableCell sx={{ fontWeight: 'bold', verticalAlign: 'middle', maxWidth: 250, wordBreak: 'break-word' }}>
+                              <Box
+                                component="span"
+                                onMouseEnter={() => setHoveredSubcat(`name-${id}`)}
+                                onMouseLeave={() => setHoveredSubcat(null)}
+                                sx={{
+                                  whiteSpace: 'pre-line',
+                                  cursor: 'default',
+                                  position: 'relative',
+                                  color: '#222'
+                                }}
+                              >
+                                {name}
+                                {hoveredSubcat === `name-${id}` && !!description && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      left: 0,
+                                      top: '100%',
+                                      mt: 1,
+                                      bgcolor: '#fffde7',
+                                      color: '#444',
+                                      zIndex: 10,
+                                      boxShadow: 3,
+                                      borderRadius: 1,
+                                      border: '1px solid #ffe082',
+                                      px: 2,
+                                      py: 1,
+                                      minWidth: 200,
+                                      maxWidth: 320,
+                                      fontSize: '0.97rem',
+                                      pointerEvents: 'none',
+                                      wordBreak: 'break-word',
+                                      overflow: 'auto',
+                                      maxHeight: 200,
+                                      whiteSpace: 'pre-line',
+                                    }}
+                                  >
+                                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#E9AE20', mb: 0.5 }}>
+                                      Description
+                                    </Typography>
+                                    <Typography variant="body2">{description}</Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            </TableCell>
+                            {/* This is the fixed ScoreLinearBar with hover */}
+                            <TableCell align="center" sx={{ position: "relative" }}>
+                              <Box
+                                sx={{ display: "inline-block", width: "100%", position: "relative" }}
+                                onMouseEnter={() => setHoveredSubcat(`bar-${id}`)}
+                                onMouseLeave={() => setHoveredSubcat(null)}
+                              >
+                                <ScoreLinearBar
+                                  variant="determinate"
+                                  value={score}
+                                  sx={{ width: { xs: 150, sm: 300, md: 400 } }}
+                                />
+                                {hoveredSubcat === `bar-${id}` && !!description && (
+                                  <Box
+                                    sx={{
+                                      position: "absolute",
+                                      left: 0,
+                                      top: "100%",
+                                      mt: 1,
+                                      bgcolor: "#fffde7",
+                                      color: "#444",
+                                      zIndex: 10,
+                                      boxShadow: 3,
+                                      borderRadius: 1,
+                                      border: "1px solid #ffe082",
+                                      px: 2,
+                                      py: 1,
+                                      minWidth: 200,
+                                      maxWidth: 320,
+                                      fontSize: "0.97rem",
+                                      pointerEvents: "none",
+                                      wordBreak: "break-word",
+                                      overflow: "auto",
+                                      maxHeight: 200,
+                                      whiteSpace: "pre-line",
+                                    }}
+                                  >
+                                    <Typography variant="body2" sx={{ fontWeight: 500, color: "#E9AE20", mb: 0.5 }}>
+                                      Description
+                                    </Typography>
+                                    <Typography variant="body2">{description}</Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: 15 }}>
+                              {score.toFixed(1)} %
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {/* Divider before total */}
+                        <TableRow>
+                          <TableCell colSpan={3}>
+                            <Divider sx={{ my: 2 }} />
+                          </TableCell>
+                        </TableRow>
+                        {/* Total Rating row */}
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 700, color: "#262626" }}>Total Rating</TableCell>
+                          <TableCell align="center">
+                            <ScoreLinearBar
+                              variant="determinate"
+                              value={sectionScore}
+                              sx={{ width: { xs: 150, sm: 300, md: 400 } }}
+                            />
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700, fontSize: 16 }}>
+                            {sectionScore.toFixed(1)} %
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </Box>
                 )}
                 {/* Open-ended/Text answers (Section 4 style) */}
                 {openAnswers.length > 0 && (
@@ -988,7 +1011,7 @@ const PerformanceEvaluationEvaluateePage = () => {
                 px: 5,
                 py: 1.5,
                 fontWeight: 'bold',
-                fontSize: 18,
+                fontSize: 14,
                 borderRadius: 2
               }}
               onClick={() => setAckModalOpen(true)}

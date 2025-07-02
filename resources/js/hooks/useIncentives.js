@@ -34,6 +34,22 @@ export function useIncentive(enabled = true){
     }
 }
 
+export function useAssignableIncentives(userName = null){
+    const query = useQuery(["assignableIncentives", userName], async () => {
+        const { data } = await axiosInstance.get("compensation/getAssignableIncentives", {
+            headers, params: {username: userName}
+        });
+        return data;
+    }, {enabled: !!userName});
+
+    return{
+        incentivesData: query.data,
+        isIncentivesLoading: query.isLoading,
+        isIncentivesError: query.isError,
+        refetchIncentives: query.refetch,
+    }
+}
+
 export function useEmployeesIncentives(filters = {}, pagination = {}, enabled = true) {
     const params = buildParams(filters, pagination);
     const query = useQuery(["employeesIncentives", {filters, pagination}], async () => {

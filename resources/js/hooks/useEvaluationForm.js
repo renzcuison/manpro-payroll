@@ -1,4 +1,5 @@
 import axiosInstance, { getJWTHeader } from "../utils/axiosConfig";
+import { getFullName } from "../utils/user-utils";
 import Swal from "sweetalert2";
 import { useEffect, useState } from "react";
 
@@ -25,7 +26,7 @@ export function useEvaluationForm(form) {
                 };
                 setFormId(evaluationForm.id);
                 setFormName(evaluationForm.name);
-                setCreatorName(evaluationForm.creator_user_name);
+                setCreatorName(getFullName(evaluationForm.creator));
                 setCreatedDate(evaluationForm.created_at);
                 setSections(evaluationForm.sections);
             })

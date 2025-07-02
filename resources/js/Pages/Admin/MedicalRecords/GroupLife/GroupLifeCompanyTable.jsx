@@ -71,7 +71,7 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search, loading }) => {
                         </TableRow>
                     ) : rows.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={5} align="center">
+                            <TableCell colSpan={6} align="center">
                                 <Typography>No Result Found</Typography>
                             </TableCell>
                         </TableRow>
@@ -117,7 +117,7 @@ const GroupLifeCompanyTable = ({ rows, onRowClick, search, loading }) => {
 
                                     
                                     <TableCell align="center">
-                                        0
+                                        {highlightMatch(row.employeesAssignedCount, search)}
                                     </TableCell>
                                 </TableRow>
                             );

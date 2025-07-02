@@ -33,6 +33,10 @@ const AttendanceItems = [
                 text: "Overtime",
             },
             {
+                href: `/employee/attendance-rest-day`,
+                text: "Rest Day",
+            },
+            {
                 href: `/employee/attendance-summary`,
                 text: "Summary",
             },
@@ -264,9 +268,11 @@ const Sidebar = ({ children, closeMini }) => {
                                     Applications{" "}
                                 </span>
                             </StyledNav>
+
                             {medicalRecords.map((items, index) => {
                                 return <SideItem key={index} items={items} />;
                             })}
+
                             <StyledNav to={`/employee/payroll`}>
                                 <i
                                     className="fa fa-money"

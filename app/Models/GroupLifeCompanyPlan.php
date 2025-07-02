@@ -22,6 +22,8 @@ class GroupLifeCompanyPlan extends Model
         'employee_share'
     ];
 
+    protected $dates = ['deleted_at'];
+
     public function company() {
         return $this->belongsTo(GroupLifeCompany::class, 'group_life_company_id');
     }
@@ -37,5 +39,10 @@ class GroupLifeCompanyPlan extends Model
         ->using(GroupLifeEmployeePlan::class)
         ->withPivot('enroll_date')
         ->withTimestamps();
+    }
+
+    public function assignedEmployees()
+    {
+        return $this->hasMany(GroupLifeEmployeePlan::class, 'group_life_plan_id');
     }
 }

@@ -15,7 +15,7 @@ import { useEmployeeBenefits } from "../../../../hooks/useBenefits";
 
 const EmployeeBenefitView = ({ open, close, userName, benefit}) => {
     const {employeeBenefits, isEmployeeBenefitsLoading, refetchEmployeeBenefits} = useEmployeeBenefits(userName, benefit);
-
+    
     const storedUser = localStorage.getItem("nasya_user");
     const headers = getJWTHeader(JSON.parse(storedUser));
 
