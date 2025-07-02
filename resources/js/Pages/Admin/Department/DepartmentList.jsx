@@ -100,9 +100,9 @@ const DepartmentList = () => {
                                 <MenuItem onClick={handleOpenDepartmentAddModal}>
                                     <ListItemText>Add New Department</ListItemText>
                                 </MenuItem>
-                                <MenuItem onClick={handleOpenDepartmentSettingsModal}>
-                                    <ListItemText>Department Positions Settings</ListItemText>
-                                </MenuItem>
+                                {/* <MenuItem onClick={handleOpenDepartmentSettingsModal}> */}
+                                    {/* <ListItemText>Department Positions Settings</ListItemText> */}
+                                {/* </MenuItem> */}
                             </Menu>
                         </Grid>
                     </Box>

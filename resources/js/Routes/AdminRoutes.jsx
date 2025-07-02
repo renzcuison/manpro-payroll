@@ -73,6 +73,7 @@ import AttendanceSummary from "../Pages/Admin/Attendance/AttendanceSummary";
 
 import WorkDayView from "../Pages/Admin/WorkDays/WorkDayView";
 
+import Workshifts from "../Pages/Admin/WorkShifts/WorkShifts";
 import WorkshiftsAdd from "../Pages/Admin/WorkShifts/WorkshiftsAdd";
 import WorkshiftView from "../Pages/Admin/WorkShifts/WorkshiftView";
 
@@ -222,6 +223,7 @@ const AdminRoutes = ({ user }) => {
             <Route path="perimeters" element={<ProtectedRoute element={<Perimeter />} user={user} />} />
             <Route path="perimeters/add" element={ <ProtectedRoute element={<AddNewPerimeter />} user={user} /> } />
 
+            <Route path="workshifts" element={ <ProtectedRoute element={<Workshifts />} user={user} /> } />
             <Route path="workshift/:client/:selectedShift" element={ <ProtectedRoute element={<WorkshiftView />} user={user} /> } />
             <Route path="workshifts/add" element={ <ProtectedRoute element={<WorkshiftsAdd />} user={user} /> } />
 

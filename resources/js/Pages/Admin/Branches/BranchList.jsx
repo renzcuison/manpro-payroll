@@ -215,9 +215,9 @@ const BranchList = () => {
                                 <MenuItem onClick={handleOpenAddBranchModal}>
                                     <ListItemText>Add Branch</ListItemText>
                                 </MenuItem>
-                                <MenuItem onClick={handleOpenBranchPositionsModal}>
-                                    <ListItemText>Branch Positions</ListItemText>
-                                </MenuItem>
+                                {/* <MenuItem onClick={handleOpenBranchPositionsModal}> */}
+                                    {/* <ListItemText>Branch Positions</ListItemText> */}
+                                {/* </MenuItem> */}
                             </Menu>
                         </Grid>
                     </Box>

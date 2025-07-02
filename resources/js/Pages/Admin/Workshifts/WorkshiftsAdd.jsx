@@ -3,7 +3,7 @@ import { Box, Button, Typography, FormGroup, TextField, FormControl, Menu, MenuI
 TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Checkbox } from '@mui/material';
 import Layout from '../../../components/Layout/Layout';
 import { useManageWorkshift } from '../../../hooks/useWorkShifts';
-import WorkDaySelector from '../Workshifts/WorkDaySelector';
+import WorkDaySelector from './WorkDaySelector';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -27,10 +27,6 @@ const WorkshiftAdd = () => {
         handleSplitFirstTimeOutChange, handleSplitSecondTimeInChange, handleWorkDaysChanges,
 
     } = useManageWorkshift();
-
-    const setFieldColor = () => {
-        return null
-    }
 
     return (
         <Layout title={"AddWorkShift"}>

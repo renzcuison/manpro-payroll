@@ -36,21 +36,10 @@ const Sidebar = ({ children, closeMini }) => {
     const headers = getJWTHeader(JSON.parse(storedUser));
     const navigate = useNavigate();
 
-    const [workshifts, setWorkshifts] = useState([]);
     const [workgroups, setWorkgroups] = useState([]);
 
     useEffect(() => {
-        axiosInstance
-            .get(`/workshedule/getWorkShiftLinks`, { headers })
-            .then((response) => {
-                setWorkshifts(response.data.workShifts);
-            })
-            .catch((error) => {
-                console.error("Error fetching work shifts:", error);
-            });
-
-        axiosInstance
-            .get(`/workshedule/getWorkGroups`, { headers })
+        axiosInstance.get(`/workshedule/getWorkGroups`, { headers })
             .then((response) => {
                 setWorkgroups(response.data.workGroups);
             })
@@ -58,25 +47,6 @@ const Sidebar = ({ children, closeMini }) => {
                 console.error("Error fetching work groups:", error);
             });
     }, []);
-
-    const workShifts = [
-        {
-            id: 5,
-            text: "Work Shifts",
-            icon: "fa fa-clock-o",
-            children: workshifts
-                .map((shift) => ({
-                    id: shift.id,
-                    href: `/admin/workshift/${shift.link}`,
-                    text: shift.name,
-                }))
-                .concat({
-                    id: "add-shift",
-                    href: "/admin/workshifts/add",
-                    text: "+ Add Shift",
-                }),
-        },
-    ];
 
     const workGroups = [
         {
@@ -307,9 +277,10 @@ const Sidebar = ({ children, closeMini }) => {
                                         <SideItem key={index} items={items} />
                                     ))}
 
-                                    {workShifts.map((items, index) => (
-                                        <SideItem key={index} items={items} />
-                                    ))}
+                                    <StyledNav to={`/admin/workshifts`}>
+                                        <i className="fa fa-clock-o" style={{ color: "#2a800f" }} ></i>
+                                        <span id="navName" className="sidebar-mini-hide"> Work Shifts </span>
+                                    </StyledNav>
 
                                     <StyledNav to={`/admin/schedules`}>
                                         <i className="fa fa-calendar" style={{ color: "#2a800f" }} ></i>
