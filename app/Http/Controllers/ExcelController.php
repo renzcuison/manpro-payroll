@@ -12,6 +12,6 @@ class ExcelController extends Controller
     {
         Log::info("ExcelController::downloadEmployeeTemplate");
 
-        return Excel::download(new EmployeeTemplateExport, 'employee_template.csv', \Maatwebsite\Excel\Excel::CSV);
+        return Excel::download(new EmployeeTemplateExport, 'ManPro - Import Employee Template.csv', \Maatwebsite\Excel\Excel::CSV);
     }
 }
