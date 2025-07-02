@@ -199,8 +199,7 @@ class EmployeesController extends Controller
         return response()->json(['status' => 200, 'employees' => null]);
     }
 
-    //for the employee assignment process (only returns employees that are either unassigned or those whose department id matches the id being updated)
-    public function getAssignableEmployees(Request $request)
+    public function getUnverifiedEmployees()
     {
         // log::info("EmployeesController::getEmployees");
 
@@ -209,51 +208,37 @@ class EmployeesController extends Controller
             // $employees = $user->company->users;
 
             $client = ClientsModel::find($user->client_id);
-            $departmentId = $request->query('department_id');
+            // $employees = $client->employees;
+            // $employees = $user->company->users;
 
-            //responsible for filtering employees that are not assigned to any dept or those who belong to the specific dept id
-            $employees = $client->employees->filter(function ($employee) use ($departmentId){
-                
-                if(is_null($departmentId)){
-                    //executed when no department_id is provided (will be used when adding new department)
-                    return is_null($employee->department_id);
-                }
-                //otherwise execute this (will be used when updating a specific department)
-                return is_null($employee->department_id) || $employee->department_id == $departmentId;
-            });
+            $employees = UsersModel::where('client_id', $client->id)->orderBy('last_name', 'desc')->get();
 
-           $employees = $employees->map(function ($employee) {
+            $client = ClientsModel::find($user->client_id);
+            $employees = $client->employees;
+
+           $employees->map(function ($employee) {
                 $employee = $this->enrichEmployeeDetails($employee);
 
                 unset(
+                    // $employee->id,
                     $employee->verify_code,
                     $employee->code_expiration,
                     $employee->is_verified,
                     $employee->client_id,
                     $employee->branch_id,
+                    // $employee->department_id,
+                    // $employee->role_id,
+                    // $employee->job_title_id,
+                    // $employee->work_group_id
                 );
+
                 return $employee;
             });
-
-            $employees = $employees->values()->all();
 
             return response()->json(['status' => 200, 'employees' => $employees]);
         }
 
         return response()->json(['status' => 200, 'employees' => null]);
-    }
-
-
-
-    public function getEmployeesByBranch($id)
-    {
-        try {
-            $employees = UsersModel::where('branch_id', $id)->select('id', 'first_name', 'last_name', 'avatar')->get();
-                
-            return response()->json([ 'status' => 200, 'employees' => $employees ]);
-        } catch (\Exception $e) {
-            return response()->json([ 'status' => 500, 'message' => 'Error fetching employees by branch' ]);
-        }
     }
 
     public function getEmployeeLeaveCredits()
@@ -592,8 +577,8 @@ class EmployeesController extends Controller
 
     public function editMyProfile(Request $request)
     {
-        log::info("EmployeesController::editMyProfile");
-        log::info($request);
+        // log::info("EmployeesController::editMyProfile");
+        // log::info($request);
 
         $user = UsersModel::findOrFail($request->input('id'));
 
@@ -993,40 +978,36 @@ class EmployeesController extends Controller
 
         return $result;
     }
-//TEST VVVV
- public function getLeaveCreditByUser($username)
-{
-    // Check if the user is authorized
-    if (! $this->checkUserAdmin() && !(Auth::check() && Auth::user()->user_name === $username)) {
-        return response()->json(['message' => 'Unauthorized to view these leave credits.'], 403);
+
+    public function getLeaveCreditByUser($username)
+    {
+        // Check if the user is authorized
+        if (! $this->checkUserAdmin() && !(Auth::check() && Auth::user()->user_name === $username)) {
+            return response()->json(['message' => 'Unauthorized to view these leave credits.'], 403);
+        }
+
+        // Retrieve the user by username
+        $user = UsersModel::where('user_name', $username)->first();
+        if (! $user) {
+            return response()->json(['leaveCredits' => []], 404);
+        }
+
+        // Fetch leave credits with associated leave type
+        $leaveCredits = LeaveCreditsModel::where('user_id', $user->id)->with('type')->get();
+
+        // Format the leave credits data
+        $formattedLeaveCredits = $leaveCredits->map(function ($credit) {
+            return [
+                'leaveType'   => $credit->type ? $credit->type->name : 'Unknown Leave Type',
+                'leaveTypeId' => $credit->type ? $credit->type->id : null,
+                'limit'       => (float) $credit->number,
+                'used'        => (float) $credit->used,
+                'remaining'   => max (0, (float) ($credit->number - $credit->used)),
+            ];
+        })->toArray();
+
+        // Return the formatted credits
+        return response()->json([ 'leaveCredits' => $formattedLeaveCredits ]);
     }
-
-    // Retrieve the user by username
-    $user = UsersModel::where('user_name', $username)->first();
-    if (! $user) {
-        return response()->json(['leaveCredits' => []], 404);
-    }
-
-    // Fetch leave credits with associated leave type
-    $leaveCredits = LeaveCreditsModel::where('user_id', $user->id)
-        ->with('type')
-        ->get();
-
-    // Format the leave credits data
-    $formattedLeaveCredits = $leaveCredits->map(function ($credit) {
-        return [
-            'leaveType'   => $credit->type ? $credit->type->name : 'Unknown Leave Type',
-            'leaveTypeId' => $credit->type ? $credit->type->id : null,
-            'limit'       => (float) $credit->number,
-            'used'        => (float) $credit->used,
-            'remaining'   => max (0, (float) ($credit->number - $credit->used)),
-        ];
-    })->toArray();
-
-    // Return the formatted credits
-    return response()->json([
-        'leaveCredits' => $formattedLeaveCredits
-    ]);
-}
 
 }

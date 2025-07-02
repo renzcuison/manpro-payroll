@@ -62,10 +62,11 @@ const EmployeesList = () => {
                                 <p className="m-0"><i className="fa fa-file-excel-o"></i> Export</p>
                             </Button>
                             <Button id="employee-menu" variant="contained" color="primary" sx={{ ml: 1 }} aria-controls={open ? "emp-menu" : undefined} aria-haspopup="true" aria-expanded={open ? "true" : undefined} onClick={handleMenuOpen} >
-                                <p className="m-0"><i className="fa fa-plus"></i> Add</p>
+                                <p className="m-0 m"><i className="fa fa-bars mr-2"></i> Menu </p>
                             </Button>
                             <Menu id="emp-menu" anchorEl={anchorEl} open={open} onClose={handleMenuClose} MenuListProps={{ "aria-labelledby": "employee_menu" }} >
                                 <MenuItem component={Link} to="/admin/employees/add" onClick={handleMenuClose}> Add Employee </MenuItem>
+                                <MenuItem component={Link} to="/admin/employees/import" onClick={handleMenuClose}> Import Employees </MenuItem>
                                 <MenuItem component={Link} to="/admin/employees/formlinks" onClick={handleMenuClose}> Employee Form Links </MenuItem>
                             </Menu>
                         </Box>

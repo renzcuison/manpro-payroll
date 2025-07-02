@@ -8,16 +8,16 @@ export function useEmployeesData() {
     const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
 
     return useQuery(["employeesData"], async () => {
-        const [empRes, depRes, brRes] = await Promise.all([
+        const [resEmployees, resDepartments, resBranches] = await Promise.all([
             axiosInstance.get("/employee/getEmployees", { headers }),
             axiosInstance.get("/settings/getDepartments", { headers }),
             axiosInstance.get("/settings/getBranches", { headers }),
         ]);
 
         return {
-            employees: empRes.data.employees,
-            departments: depRes.data.departments,
-            branches: brRes.data.branches,
+            employees: resEmployees.data.employees,
+            departments: resDepartments.data.departments,
+            branches: resBranches.data.branches,
         };
     });
 }
@@ -35,14 +35,19 @@ export function useFilteredEmployees(employees, searchName, branchFilter, depart
     }, [employees, searchName, branchFilter, departmentFilter]);
 }
 
-// Optional: Basic getEmployees if needed elsewhere
-export async function getEmployeesOnly() {
+
+// Get Unverified Employees
+export function useUnverifiedEmployees() {
     const storedUser = localStorage.getItem("nasya_user");
     const headers = storedUser ? getJWTHeader(JSON.parse(storedUser)) : [];
-    const { data } = await axiosInstance.get(`/employee/getEmployees`, { headers });
-    return data;
-}
 
-export function useEmployeesOnly() {
-    return useQuery(["employeesOnly"], getEmployeesOnly);
+    return useQuery(["employeesData"], async () => {
+        const [resEmployees] = await Promise.all([
+            axiosInstance.get("/employee/getEmployees", { headers }),
+        ]);
+
+        return {
+            employees: resEmployees.data.employees,
+        };
+    });
 }

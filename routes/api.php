@@ -29,6 +29,7 @@ use App\Http\Controllers\BranchPositionController;
 use App\Http\Controllers\SalaryPlansController;
 
 use App\Http\Controllers\InsurancesController;
+use App\Http\Controllers\ExcelController;
 
 // Old Controllers
 use App\Http\Controllers\VoiceController;
@@ -169,9 +170,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('employee')->group(function () {
         Route::get('/getEmployees', [EmployeesController::class, 'getEmployees']);
-        Route::get('/getAssignableEmployees', [EmployeesController::class, 'getAssignableEmployees']);
-        Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
+        Route::get('/getUnverifiedEmployees', [EmployeesController::class, 'getUnverifiedEmployees']);
 
+        Route::post('/saveEmployee', [EmployeesController::class, 'saveEmployee']);
         Route::post('/updateEmployeeBranchPosition', [EmployeesController::class, 'updateBranchPosition']);
 
         Route::get('/getEmployeeLeaveCredits', [EmployeesController::class, 'getEmployeeLeaveCredits']);
@@ -191,12 +192,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
-        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
         Route::post('/editMyProfile', [EmployeesController::class, 'editMyProfile']);
         Route::post('/editMyProfilePicture', [EmployeesController::class, 'editMyProfilePicture']);
         Route::post('/editEmployeeDetails', [EmployeesController::class, 'editEmployeeDetails']);
         Route::get('/employee/getEmployeesByDepartment/{id}', [EmployeesController::class, 'getEmployeesByDepartment']);
-        Route::get('/employee/getEmployeesByBranch/{id}', [EmployeesController::class, 'getEmployeesByBranch']);
 
         Route::get('/getMyPayrollHistory', [EmployeesController::class, 'getMyPayrollHistory']);
 
@@ -204,7 +203,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/saveFormLink', [EmployeesController::class, 'saveFormLink']);
         Route::post('/deleteFormLink', [EmployeesController::class, 'deleteFormLink']);
     });
-
 
     Route::prefix('compensation')->group(function () {
         //allowances
@@ -552,6 +550,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/getEmployeeHMOPlanById/{id}', [ InsurancesController::class, 'getEmployeeHMOPlanById', ]);
         Route::put('/editEmployeeHMOPlan/{id}', [ InsurancesController::class, 'editEmployeeHMOPlan', ]);
     });
+
+    Route::get('/excel/downloadEmployeeTemplate', [ExcelController::class, 'downloadEmployeeTemplate']);
+
+    // Route::prefix('excel')->group(function () {
+        // Route::get('/downloadEmployeeTemplate', [ExcelController::class, 'downloadEmployeeTemplate']);
+    // });
 
 
     // Hr employees
