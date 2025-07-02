@@ -17,14 +17,12 @@ class EmployeeTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
     public function headings(): array
     {
         return [
-            'Username',
-            'Email',
             'First Name',
             'Middle Name',
             'Last Name',
             'Suffix',
-            'Birthdate'
-        ];
+            'Email',
+            'Birthdate',        ];
     }
 
     public function getCsvSettings(): array

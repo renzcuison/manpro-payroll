@@ -24,11 +24,8 @@ const EmployeesImport = () => {
     const downloadTemplate = async () => {
         try {
             const response = await axiosInstance.get("/excel/downloadEmployeeTemplate", {
-                headers: {
-                    ...headers,
-                    Accept: 'text/csv',
-                },
-                responseType: 'blob', // important for binary data like CSV
+                headers: { ...headers, Accept: 'text/csv', },
+                responseType: 'blob',
             });
 
             const blob = new Blob([response.data], { type: 'text/csv' });
@@ -51,20 +48,11 @@ const EmployeesImport = () => {
                     <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 1, alignItems: "center" }}>
                         <Typography variant="h4" sx={{ fontWeight: "bold" }}>Import Employees</Typography>
                         <Box>
-                            <Button 
-                                sx={{ mr: 1 }} 
-                                onClick={downloadTemplate} 
-                                variant="contained" 
-                                color="primary"
-                                disabled={loading}
-                            >
-                                <p className="m-0">
-                                    <i className="fa fa-file-excel-o mr-2"></i> 
-                                    {loading ? 'Downloading...' : 'Template'}
-                                </p>
+                            <Button sx={{ mr: 1 }} onClick={downloadTemplate} variant="contained" color="primary"disabled={loading}>
+                                <p className="m-0"> <i className="fa fa-file-excel-o mr-2"></i>  {loading ? 'Downloading...' : 'Template'} </p>
                             </Button>
 
-                            <Button sx={{ ml: 1 }} onClick={() => exportEmployees(employees)} variant="contained" color="primary">
+                            <Button sx={{ ml: 1 }} variant="contained" color="primary">
                                 <p className="m-0"><i className="fa fa-file-excel-o mr-2"></i> Import </p>
                             </Button>
                         </Box>
